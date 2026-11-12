@@ -1,0 +1,266 @@
+# Balbala, the Traitor / Pirasha, the Forgotten Prisoner
+content: Act 2
+monsters: Metadata/Monsters/Balbala/Balbala, Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE_, Metadata/Monsters/Balbala/BalbalaMAP, Metadata/Monsters/Balbala/BalbalaSTANDALONE_
+scripts: Metadata/Monsters/Balbala/Balbala, Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE, Metadata/Monsters/Balbala/BalbalaMAP_, Metadata/Monsters/Balbala/BalbalaSTANDALONE
+own chain: Metadata/Monsters/Balbala/Balbala, Metadata/Monsters/MonsterIgnoreMeleePatternRange, Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE, Metadata/Monsters/Balbala/BalbalaMAP_, Metadata/Monsters/Balbala/BalbalaSTANDALONE
+areas: G2_2 Traitor's Passage act2; MapFortress Fortress act10; MapSanctuary Sanctuary act10
+ai: Metadata/Monsters/Balbala/Balbala.ais, Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE.ais, Metadata/Monsters/Balbala/BalbalaMap.ais, Metadata/Monsters/Balbala/BalbalaSTANDALONE.ais (not shipped)
+
+## skills
+- BalbalaTeleportStrike1 [teleport] action=Teleport anim=default:attack_01, attack_02, attack_03,stance2:attack_01, attack_02
+    flags: skill_cannot_be_stunned
+- BalbalaTeleportStrike2 [teleport] action=Teleport anim=default:attack_01, attack_02, attack_03,stance2:attack_01, attack_02
+    flags: skill_cannot_be_stunned
+- BalbalaFlickerCloneStrike [empty_action_attack] action=Frenzy anim=default:clone_strike_attack_01, clone_strike_attack_02,stance2:clone_strike_attack_01, clone_strike_attack_02
+    flags: skill_cannot_be_stunned
+- BalbalaSpawnClone [summon_specific_monsters_on_self] action=None anim=-
+    summons: Metadata/Monsters/Balbala/BalbalaClone_
+- BalbalaMinionFinisher [teleport] action=GroundSlam anim=stance3:clone_strike_finisher_01,stance4:disappear_slam_01
+    flags: skill_cannot_be_stunned
+- BalbalaWhirl [blade_flurry] action=None anim=-
+- BalbalaAttack1TriggeredSlash1 [geometry_attack] action=None anim=-
+    geom: cone length=10 width=0 angle=100 range=85 delay=33 anchor=3
+- BalbalaAttack1TriggeredSlash2 [geometry_attack] action=None anim=-
+    geom: cone length=11 width=0 angle=150 range=153 delay=33 anchor=3
+- BalbalaAttack1TriggeredSlash3 [geometry_attack] action=None anim=-
+    geom: cone length=10 width=0 angle=215 range=183 delay=33 anchor=3
+- BalbalaAttack2TriggeredSlash1 [geometry_attack] action=None anim=-
+    geom: cone length=9 width=0 angle=215 range=132 delay=33 anchor=3
+- BalbalaAttack2TriggeredSlash2 [geometry_attack] action=None anim=-
+    geom: cone length=9 width=0 angle=150 range=163 delay=33 anchor=3
+- BalbalaAttack3TriggeredSlash1 [geometry_attack] action=None anim=-
+    geom: cone length=11 width=0 angle=110 range=134 delay=33 anchor=3
+- BalbalaAttack3TriggeredSlash2 [geometry_attack] action=None anim=-
+    geom: cone length=7 width=0 angle=160 range=102 delay=33 anchor=3
+- BalbalaAttack3TriggeredSlash3 [geometry_attack] action=None anim=-
+    geom: cone length=11 width=0 angle=150 range=191 delay=33 anchor=3
+- BalbalaHideAndSeekDisappear [empty_action_spell] action=SpellProjectile anim=default:disappear_01
+    flags: skill_cannot_be_stunned
+- BalbalaHideAndSeekSlam [empty_action_attack] action=GroundSlam anim=stance3:clone_strike_finisher_01,stance4:disappear_slam_01
+- BalbalaHideAndSeekSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=21 width=0 angle=0 range=264 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- BalbalaDetonateClone [monster_detonate_dead_area] action=None anim=-
+    flags: is_area_damage
+- BalbalaTeleportToClone [empty_action_attack_2] action=LeapAttack anim=default:rune_detonate_01
+- BalbalaDetonateCloneGround [monster_cast_ground_effect] action=None anim=-
+    buffs: ground_wendigo_boss_death_breath
+    ground: Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/vomit_grd.ao
+- EGBalbalaDeathShockwave [execute_geal] action=None anim=-
+    GEAL 1023 on ['Metadata/Terrain/Gallows/Act2/2_2/Objects/WallSeals']: self{} each{globals.wall_seals.Transition();} r=120
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- FaceLastTarget [face_last_target] action=None anim=-
+- BalbalaCloneMelee [melee] action=None anim=-
+- BalbalaCloneKnifeThrow [melee] action=Throw anim=default:attack_ranged_01
+- GPABalbalaHoveringKnife [geometry_projectiles_attack] action=None anim=-
+- BalbalaFlickerCloneStrikeEnd [teleport] action=HeavyStrike anim=default:flicker_strike_end_01
+    flags: skill_cannot_be_stunned
+- MPSBalbalaCoin [monster_projectile_spell] action=SpellProjectileFire anim=default:coin_toss_01
+    flags: base_deal_no_damage
+- SOBalbalaRune [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/Balbala/ArenaObjects/clone_rune
+- GSBalbalaRuneExplode [geometry_spell] action=None anim=-
+    geom: circle length=21 width=0 angle=0 range=180 delay=40 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- BalbalaGlaiveProjectileLeft [lunaris_glaive_projectile] action=Throw anim=default:attack_ranged_01
+- BalbalaGlaiveProjectileRight [lunaris_glaive_projectile] action=ThrowOff anim=default:attack_ranged_02
+- GABalbalaFlickerStrikeTriggeredAttack1 [geometry_attack] action=None anim=-
+    geom: cone length=13 width=0 angle=100 range=85 delay=33 anchor=3
+    flags: is_area_damage
+- GABalbalaFlickerStrikeTriggeredAttack2 [geometry_attack] action=None anim=-
+    geom: cone length=13 width=0 angle=100 range=85 delay=33 anchor=3
+    flags: is_area_damage
+- EAABalbalaDaggerSummonMultiThrow [empty_action_attack] action=SpearDoubleThrow anim=default:multi_throw_01
+- MPWBalbalaKnifeSummon [monster_projectile_weapon] action=None anim=-
+    flags: base_deal_no_damage
+- BalbalaReverseKnifeFirestorm [firestorm_monster] action=None anim=-
+    flags: is_area_damage
+- EAABalbalaCombo [empty_action_attack] action=ShadowDash anim=default:dash_multi_stab_01
+- MPWBalbalaPoisonKnife [monster_projectile_weapon] action=None anim=-
+- EAABalbalaMultiStab [empty_action_attack] action=DoubleSlash anim=default:dash_multi_stab_02
+- BalbalaSpawnCloneMAP [summon_specific_monsters_on_self] action=None anim=-
+    summons: Metadata/Monsters/Balbala/BalbalaCloneMAP
+- SOBalbalaRuneMap [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/Balbala/ArenaObjects/clone_rune_map
+
+## own states and handlers
+states: visible = 1; hiding; multi_stab; knives_visible = 1; collidable = 1
+- on_state_visible_0 = { RemoveCollidability(); }
+- on_state_visible_1 = { MakeCollidable(); }
+- on_or_create_state_collidable_0 = { RemoveCollidability(); }
+- on_or_create_state_collidable_1 = { MakeCollidable(); }
+- on_event_rotate_for_whirlingblades_01 = { TurnToOverTime( GetOrientation() + 180, 0.8f ); QueueAnimation( idle_no_blend_01 ); }
+- on_event_contact_for_disappear_slam_01 = { ForceSkillIntoCooldown( BalbalaHideAndSeekDisappear ); }
+- create_state_visible_0 = { RemoveCollidability(); HideAllMeshSegments(); HideAllMeshColliders(); }
+- create_state_visible_1 = { MakeCollidable(); }
+- on_state_visible_0 = { HideAllMeshSegments(); HideAllMeshColliders(); }
+- on_state_visible_1 = { ShowAllMeshSegments(); ShowAllMeshColliders(); IfState( knives_visible, 0, (){HideMeshSegments( knife02Shape );}); }
+- on_or_create_state_hiding_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/fade_by_player_dist.epk' ); }
+- on_state_hiding_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/fade_by_player_dist.epk' ); }
+- on_or_create_state_knives_visible_1 = { IfState( visible, 1, (){ ShowMeshSegments( knife02Shape ); } ); }
+- on_or_create_state_knives_visible_0 = { HideMeshSegments( knife02Shape ); }
+- create_untransitioned = { IfAlive( (){ PlayAnimation( impaled_idle_01 ); } ); HideMeshSegment( knife02Shape ); }
+- create_transitioned = { EnableTargetable(); ShowMeshSegment( knife02Shape ); }
+- on_transition = { EnableTargetable(); }
+- on_event_epkout_for_Teleport = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_out.epk', 1.0 ); DisableHighlighting(); }
+- on_event_epkin_for_Teleport = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_out.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk', 1.0 ); Delay( 1.0, { EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_e
+- on_event_epkin_for_EmptyActionAttack2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_out.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk', 1.0 ); Delay( 1.0, { EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_e
+- on_death = { }
+- on_event_showweapons_for_impaled_activate_01 = { ShowMeshSegment( knife02Shape ); }
+- on_end_death_01 = { DisableRendering( ); }
+- on_disappear_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/fade_away.epk' ); PlayTextAudio( BalbalaDisappearRandom, 'Metadata/Monsters/Balbala/Balbala' ); Delay( 1.0, { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/fade_away.epk' ); } ); }
+- on_rune_detonate_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk', 1.0 ); PlayTextAudio( BalbalaCoinAmbushRandom, 'Metadata/Monsters/Balbala/Balbala', 800 ); Delay(
+- on_whirlingblades_01 = { PlayTextAudio( BalbalaWhirlingBladesRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_flicker_strike_end_01 = { PlayTextAudio( BalbalaFinalStrikeRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_coin_toss_01 = { PlayTextAudio( BalbalaCoinTossRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_heavy_stun_01 = { PlayTextAudio( BalbalaHeavyStunRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_disappear_slam_01 = { PlayTextAudio( BalbalaFlickerStrikeSkillRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_disappear_01 = { PlayTextAudio( BalbalaDisappearRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_clone_strike_finisher_01 = { PlayTextAudio( BalbalaAmbushRandom, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_pedestal_emerge_01 = { PlayTextAudio( BalbalaSpiritReleasedFromCoin, 'Metadata/Monsters/Balbala/Balbala' ); }
+- on_state_visible_1 = { ShowAllMeshSegments(); ShowAllMeshColliders(); IfState( knives_visible, 0, (){ HideMeshSegments( knife02Shape ); } ); }
+- on_end_death_01 = { DisableRendering(); }
+- on_disappear_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/fade_away.epk' ); PlayTextAudio( BalbalaDisappearRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); Delay( 1.0, { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/fade_away.epk' ); } );
+- on_rune_detonate_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk', 1.0 ); PlayTextAudio( BalbalaCoinAmbushRandom, 'Metadata/Monsters/Balbala/BalbalaMAP', 800 ); Del
+- on_whirlingblades_01 = { PlayTextAudio( BalbalaWhirlingBladesRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_flicker_strike_end_01 = { PlayTextAudio( BalbalaFinalStrikeRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_coin_toss_01 = { PlayTextAudio( BalbalaCoinTossRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_heavy_stun_01 = { PlayTextAudio( BalbalaHeavyStunRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_disappear_slam_01 = { PlayTextAudio( BalbalaFlickerStrikeSkillRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_disappear_01 = { PlayTextAudio( BalbalaDisappearRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_clone_strike_finisher_01 = { PlayTextAudio( BalbalaAmbushRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_pedestal_emerge_01 = { PlayTextAudio( BalbalaSpiritReleasedFromCoin, 'Metadata/Monsters/Balbala/BalbalaMAP' ); }
+- on_disappear_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/fade_away.epk' ); PlayTextAudio( BalbalaDisappearRandom, 'Metadata/Monsters/Balbala/BalbalaMAP' ); Delay( 1.0, { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/fade_away.epk' ); } );
+- on_rune_detonate_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/teleport_in.epk', 1.0 ); PlayTextAudio( BalbalaCoinAmbushRandom, 'Metadata/Monsters/Balbala/BalbalaMAP', 800 ); Del
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: [('hiding', 1)]  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/bladegrass_slam.ao
+- preload_monster_variety Metadata/Monsters/Balbala/BalbalaFog
+- preload_environment G2_2_boss
+- preload_monster_variety Metadata/Monsters/Balbala/BalbalaFogSTANDALONE
+
+## adds and forms
+- Metadata/Monsters/Balbala/BalbalaFog "Daemon" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=fog;leaking
+- Metadata/Monsters/Balbala/BalbalaFogSTANDALONE "Daemon" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=fog;leaking
+- Metadata/Monsters/Balbala/BalbalaCloneMAP "Spirit of Pirasha" bossbar=0 skills=BalbalaCloneMelee,BalbalaCloneKnifeThrow,SOBalbalaRuneMap comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=epks;no_rune
+- Metadata/Monsters/Balbala/BalbalaClone_ "Spirit of Balbala" bossbar=0 skills=BalbalaCloneMelee,BalbalaCloneKnifeThrow,SOBalbalaRune comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=epks;no_rune
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Balbala/ArenaObjects/clone_rune:  [server_only=true] states=activated on_or_create_state_activated_0{{ PlayAnimation( fade_in ); }}; on_or_create_state_activated_2{{ PlayAnimation(errupt); }}; on_timer_burning{{ PlayAnimation(fadeout); }}; on_timer_spawn_tick{{ this.spawning_timer = GetStateTimer( spawning ); this.effect_values = 10.0 - this.spawning_timer; this.effect_values =}; on_state_activated_0{{ this.effect_values = 0.0; this.effect_values += 0.0; this.effect_values += 0.0; this.effect_values += 0.0; }}
+- Metadata/Monsters/Balbala/ArenaObjects/clone_rune_map:  [server_only=true] states=activated on_or_create_state_activated_0{{ PlayAnimation( fade_in ); }}; on_or_create_state_activated_2{{ PlayAnimation(errupt); }}; on_timer_burning{{ PlayAnimation(fadeout); }}; on_timer_spawn_tick{{ this.spawning_timer = GetStateTimer( spawning ); this.effect_values = 10.0 - this.spawning_timer; this.effect_values =}; on_state_activated_0{{ this.effect_values = 0.0; this.effect_values += 0.0; this.effect_values += 0.0; this.effect_values += 0.0; }}
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/WallSeals: Transitionable states= on_transition{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/epks/envi/wall_scroll_burn_A.epk' ); SetTim}; on_finish{{ Delete(); }}
+- metadata/monsters/balbala/arenaobjects/balbalaarenamarker:  [server_only=true] states= 
+- metadata/monsters/balbala/arenaobjects/balbalaextracointarget:  [server_only=true] states= 
+- metadata/monsters/balbala/arenaobjects/balbalafogmarker:  [blocking=false object_size=1] states= 
+- metadata/monsters/balbala/arenaobjects/bossroomminimapicon: MinimapIcon [server_only=true icon=BalbalaActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( BalbalaInactive ); }}
+- metadata/monsters/balbala/arenaobjects/clone_rune:  [server_only=true] states=activated on_or_create_state_activated_0{{ PlayAnimation( fade_in ); }}; on_or_create_state_activated_2{{ PlayAnimation(errupt); }}; on_timer_burning{{ PlayAnimation(fadeout); }}; on_timer_spawn_tick{{ this.spawning_timer = GetStateTimer( spawning ); this.effect_values = 10.0 - this.spawning_timer; this.effect_values =}; on_state_activated_0{{ this.effect_values = 0.0; this.effect_values += 0.0; this.effect_values += 0.0; this.effect_values += 0.0; }}
+- metadata/monsters/balbala/arenaobjects/clone_rune_map:  [server_only=true] states=activated on_or_create_state_activated_0{{ PlayAnimation( fade_in ); }}; on_or_create_state_activated_2{{ PlayAnimation(errupt); }}; on_timer_burning{{ PlayAnimation(fadeout); }}; on_timer_spawn_tick{{ this.spawning_timer = GetStateTimer( spawning ); this.effect_values = 10.0 - this.spawning_timer; this.effect_values =}; on_state_activated_0{{ this.effect_values = 0.0; this.effect_values += 0.0; this.effect_values += 0.0; this.effect_values += 0.0; }}
+- Metadata/Monsters/Balbala/ArenaObjects/BalbalaArenaMarker:  [server_only=true] states= 
+- Metadata/Monsters/Balbala/ArenaObjects/BalbalaFogMarker:  [blocking=false object_size=1] states= 
+- Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/BossLight: Transitionable [blocking=false object_size=1 server_only=true] states= on_transition{{ PlayAnimation( start ); }}; on_untransition{{ PlayAnimation( off ); }}; create_transitioned{{ PlayAnimationRandom( idle ); }}; create_untransitioned{{ PlayAnimation( start ); PauseAnimation(); }}; on_end_start{{ PlayAnimationRandom( idle ); }}
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/BossTransition: InteractionAction ProximityTrigger Targetable MinimapIcon Stats [blocking=false object_size=3 radius=20 server_only=true icon=18] states= on_initial_position_set{{ this.door_fade = FindClosestObject( 'Metadata/Terrain/Gallows/Act2/2_2/Objects/ArenaDoorFade' ); }}; on_state_highlighted_1{{ this.door_fade.SetStateTo( fade, 1 ); }}; on_state_highlighted_0{{ this.door_fade.StartStateTimer( reset, 0.5 ); }}; on_triggered{{ this.door_fade.SetStateTo( fade, 1 ); this.door_fade.StartStateTimer( reset, 0.5 ); }}
+- Metadata/Monsters/Balbala/ArenaObjects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=BalbalaActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( BalbalaInactive ); }}
+- Metadata/Monsters/Balbala/ArenaObjects/BalbalaExtraCoinTarget:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/BalbalaArenaEntrancetitle: ProximityTrigger [radius=40 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardBalbalaArena, TitleCardBalbalaArenaSubtitle ); }}
+- Metadata/QuestObjects/Four_Act2/WraithEventChest:  [blocking=false object_size=2 server_only=true] states=open;clip1;clip2;clip3 on_construction_complete{{ this.needle = AddAttached( 'Metadata/Terrain/Desert/Maraketh/TraitorsPassage/TraitorsPassage_Arena_01_Seal_needle_01.a}; on_state_open_1{{ PlayAnimationAttachedByIndex( 'Metadata/Terrain/Desert/Maraketh/TraitorsPassage/TraitorsPassage_Arena_01_Seal_needle_0}; create_state_open_1{{ Delay( 0.01, { HideAttachedMeshSegments(); ShowAttachedMeshSegments( spike_meshShape ); } ); }}; create_state_open_2{{ Delay( 0.01, { HideAttachedMeshSegments(); ShowAttachedMeshSegments( spike_meshShape ); } ); }}
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_3: TriggerableBlockage InteractionAction Transitionable Targetable MinimapIcon [start_blocked=true blocking=false object_size=3 server_only=true icon=QuestObject] states=open on_state_open_1{{ PlayAnimationAttached( 'Metadata/Terrain/Desert/Maraketh/TraitorsPassage/TraitorsPassage_Arena_01_Seal_paper_03.ao', b}; create_state_open_1{{ HideAttachedMeshSegments( end_clip_meshShape ); HideAttachedMeshSegments( ribbonShape ); HideAttachedMeshSegments( bas}; create_state_open_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act2_FOUR/g2-2/epk/seal_glow.epk' ); }}; on_state_open_1{{ RemoveEffectPack( 'Metadata/Effects/Environment/Act2_FOUR/g2-2/epk/seal_glow.epk' ); DisableTargetable(); HideMinimapI}; create_state_open_1{{ DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_2: TriggerableBlockage InteractionAction Transitionable Targetable MinimapIcon [start_blocked=true blocking=false object_size=3 server_only=true icon=QuestObject] states=open on_state_open_1{{ PlayAnimationAttached( 'Metadata/Terrain/Desert/Maraketh/TraitorsPassage/TraitorsPassage_Arena_01_Seal_paper_02.ao', b}; create_state_open_1{{ HideAttachedMeshSegments( end_clip_meshShape ); HideAttachedMeshSegments( ribbonShape ); HideAttachedMeshSegments( bas}; create_state_open_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act2_FOUR/g2-2/epk/seal_glow.epk' ); }}; on_state_open_1{{ RemoveEffectPack( 'Metadata/Effects/Environment/Act2_FOUR/g2-2/epk/seal_glow.epk' ); DisableTargetable(); HideMinimapI}; create_state_open_1{{ DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_1: TriggerableBlockage InteractionAction Transitionable Targetable MinimapIcon [start_blocked=true blocking=false object_size=3 server_only=true icon=QuestObject] states=open on_state_open_1{{ PlayAnimationAttached( 'Metadata/Terrain/Desert/Maraketh/TraitorsPassage/TraitorsPassage_Arena_01_Seal_paper_01.ao', b}; create_state_open_1{{ HideAttachedMeshSegments( end_clip_meshShape ); HideAttachedMeshSegments( ribbonShape ); HideAttachedMeshSegments( bas}; create_state_open_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act2_FOUR/g2-2/epk/seal_glow.epk' ); }}; on_state_open_1{{ RemoveEffectPack( 'Metadata/Effects/Environment/Act2_FOUR/g2-2/epk/seal_glow.epk' ); DisableTargetable(); HideMinimapI}; create_state_open_1{{ DisableTargetable(); HideMinimapIcon(); }}
+
+## lines
+- on_disappear_01 -> BalbalaDisappearRandom: Visions of Jarah!
+- on_rune_detonate_01 -> BalbalaCoinAmbushRandom: Tithe!
+- on_whirlingblades_01 -> BalbalaWhirlingBladesRandom: Face me!
+- on_flicker_strike_end_01 -> BalbalaFinalStrikeRandom: <i>{Atul!}
+- on_coin_toss_01 -> BalbalaCoinTossRandom: <i>{Kun'dek!}
+- on_heavy_stun_01 -> BalbalaHeavyStunRandom: You... are a worthy adversary...
+- on_disappear_slam_01 -> BalbalaFlickerStrikeSkillRandom: <i>{Darakatha!}
+- on_disappear_01 -> BalbalaDisappearRandom: Visions of Jarah!
+- on_clone_strike_finisher_01 -> BalbalaAmbushRandom: <i>{Ko!}
+- on_pedestal_emerge_01 -> BalbalaSpiritReleasedFromCoin: I will serve...
+
+## linked buffs
+- caustic_cloud_balbala "Caustic Ground": You are taking Chaos Damage from standing in Caustic Ground | stats=base_chaos_damage_taken_per_minute,is_in_caustic_cloud
+- ground_wendigo_boss_death_breath "":  | stats=base_physical_damage_taken_per_minute,base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_2_rooms_unique_bossentrance_01.arm
+  sector ['BossArena', 74, 67, 340, 328, '']
+  sector ['hide_teleports', 164, 144, 299, 299, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 138, 166, 164, 289, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 159, 157, 170, 178, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['middle_area', 194, 185, 272, 270, '']
+  sector ['middle_area', 203, 270, 243, 287, '']
+  sector ['middle_area', 211, 174, 256, 185, '']
+  sector ['inner_area', 212, 213, 247, 247, '']
+  sector ['no_critters', 112, 116, 352, 342, '']
+  point [219.0, 219.0, 'mapboss']
+  point [186.0, 182.0, 'telepad']
+  point [74.0, 75.0, 'checkpoint1']
+  point [262.0, 249.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaArenaMarker x8 (199,274) (243,283) (279,254) (280,206) (246,178) (203,180) (187,206) (242,214)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaFogMarker x1 (229,229)
+  obj Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger x1 (138,138)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x1 (126,124)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossLight x1 (234,191)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossTransition x1 (151,151)
+  obj Metadata/MiscellaneousObjects/Ambush_ReturnChain x3 (11,100) (206,200) (104,8)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (65,66)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BossRoomMinimapIcon x1 (206,203)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaExtraCoinTarget x8 (257,258) (209,259) (209,199) (254,201) (232,186) (262,228) (227,269) (203,233)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BalbalaArenaEntrancetitle x1 (190,193)
+room metadata_terrain_maps_fortress_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 128, 274, 309, 470, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['middle_area', 178, 333, 263, 411, '']
+  sector ['middle_area', 160, 342, 178, 404, '']
+  sector ['middle_area', 263, 344, 276, 400, '']
+  sector ['inner_area', 201, 351, 235, 386, '']
+  sector ['no_movement_skills', 86, 277, 347, 280, '']
+  sector ['no_critters', 125, 270, 312, 472, '']
+  sector ['boss_sector', 120, 280, 319, 472, '']
+  point [218.0, 351.0, 'mapboss']
+  point [180.0, 45.0, 'magic']
+  point [218.0, 213.0, 'checkpoint']
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaArenaMarker x8 (161,383) (190,423) (244,423) (269,391) (267,349) (236,324) (196,326) (237,368)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaFogMarker x1 (218,368)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaExtraCoinTarget x8 (190,393) (189,345) (249,345) (247,390) (262,368) (220,398) (179,363) (215,339)
+  obj Metadata/QuestObjects/Four_Act2/WraithEventChest x1 (216,366)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (231,214)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (218,280)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (210,276) (204,276) (216,276) (222,276) (228,276) (234,276) (240,276) (198,276)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (219,364)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (274,368)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (265,405) (256,325) (182,323) (160,367)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (223,336)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_3 x1 (241,355)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_2 x1 (212,400)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_1 x1 (199,361)
+room metadata_terrain_maps_sanctuary_rooms_boss_01.arm
+  sector ['hide_teleports', 172, 126, 459, 388, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 149, 126, 498, 130, '']
+  sector ['no_critters', 191, 96, 453, 316, '']
+  sector ['boss_sector', 193, 129, 450, 314, '']
+  sector ['middle_area', 281, 176, 366, 254, '']
+  sector ['middle_area', 263, 185, 281, 247, '']
+  sector ['middle_area', 366, 187, 379, 243, '']
+  sector ['inner_area', 306, 201, 340, 236, '']
+  point [310.0, 205.0, 'mapboss']
+  point [323.0, 88.0, 'checkpoint']
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaArenaMarker x8 (264,226) (293,266) (347,266) (372,234) (370,192) (339,167) (299,169) (335,198)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaFogMarker x1 (321,218)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (336,106)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (319,126) (315,126) (311,126) (323,126) (327,126) (331,126) (335,126) (307,126)
+  obj Metadata/MiscellaneousObjects/BossArenaController x2 (321,274) (333,218)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (322,127)
+  obj Metadata/Monsters/Balbala/ArenaObjects/BalbalaExtraCoinTarget x8 (287,241) (287,195) (356,195) (356,241) (356,218) (333,241) (287,195) (310,172)
+  obj Metadata/QuestObjects/Four_Act2/WraithEventChest x1 (316,213)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (270,190)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (363,153) (261,210) (378,206) (281,152)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (321,184)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_3 x1 (343,204)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_2 x1 (315,246)
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/BossChainAnchor_1 x1 (302,208)

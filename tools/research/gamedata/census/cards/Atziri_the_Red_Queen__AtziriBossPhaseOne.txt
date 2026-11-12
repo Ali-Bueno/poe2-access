@@ -1,0 +1,266 @@
+# Atziri, the Red Queen
+content: League: Incursion
+monsters: Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne
+scripts: Metadata/Monsters/LeagueIncursionNew/AtziriBoss/AtziriBossPhaseOne
+own chain: Metadata/Monsters/LeagueIncursionNew/AtziriBoss/AtziriBossPhaseOne
+areas: 
+ai: Metadata/Monsters/LeagueIncursionNew/AtziriBoss/AtziriBossPhaseOne.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- GAAtziriSpinningFlameWall [geometry_attack] action=SpellAreaOfEffectFire anim=default:fire_spear_01
+    geom: circle length=40 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: base_deal_no_damage is_area_damage
+- SOAtziriSpinningFlameWall [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueIncursionNew/AtziriBoss/Objects/AtziriFlameWall
+- GAAtziriBloodSpear [geometry_attack] action=SpellAreaOfEffect anim=default:blood_spear_01
+    geom: circle length=20 width=0 angle=0 range=1000 delay=1000 anchor=4
+    flags: is_area_damage
+- MPSAtziriBloodSpearPulse [monster_projectile_spell] action=None anim=-
+- GSAtziriFlameblast [geometry_spell] action=SpellNovaFire anim=default:flameblast_01
+    geom: circle length=40 width=0 angle=0 range=2400 delay=2400 anchor=4
+    flags: is_area_damage
+- GSAtziriFlameblastEmpowered [geometry_spell] action=SpellNovaEpicFire anim=default:ultimate_flameblast_01
+    geom: circle length=50 width=0 angle=0 range=2400 delay=2400 anchor=4
+    flags: is_area_damage
+- GSAtziriFlameblastEmpoweredTriggered [geometry_spell] action=SpellNovaFire anim=default:flameblast_01
+    geom: circle length=50 width=0 angle=0 range=2400 delay=2400 anchor=4
+    flags: is_area_damage
+- GSAtziriStormCallSingle [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSAtziriStormCallSingleEmpowered [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=3100 delay=3100 anchor=4
+    flags: is_area_damage
+- GTAtziriStormCall [geometry_trigger] action=SpellNovaLightning anim=default:stormcall_01
+    geom: trigger count=15 delay=1800 spread=85 radius=10 angle=0 anchor=4
+    triggers: GSAtziriStormCallSingle
+- GTAtziriStormCallEmpowered [geometry_trigger] action=SpellNovaEpicLightning anim=default:ultimate_stormcall_01
+    geom: trigger count=250 delay=5000 spread=100 radius=15 angle=0 anchor=4
+- EASAtziriLightningDash [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:lightning_spear_01
+- CGEAtziriLightningGround [monster_cast_ground_effect_location] action=None anim=-
+- MPSAtziriLightningProj [monster_projectile_spell] action=SpellProjectileLightning anim=default:spellcast_01_lightning,stance3:spellcast_clone_01_lightning
+    flags: base_deal_no_damage
+- GSAtziriBloodCannon [geometry_spell] action=None anim=-
+    geom: rectangle length=200 width=18 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- EASAtziriCreateBloodCannons [empty_action_spell] action=SpellNova anim=default:bloodskill_01
+- EASAtziriCreateBloodCannonsEmpowered [empty_action_spell] action=SpellNovaCold anim=default:ultimate_bloodskill_01
+- MPWAtziriBloodSpearTeleport [monster_projectile_weapon] action=SpellProjectileChaos anim=default:teleport_01
+- EASAtziriSummonClones [empty_action_spell] action=SpellAoeEpic anim=default:clone_01
+- EASAtziriSummonCultists [empty_action_spell] action=SpellNovaEpic anim=default:summon_acolytes_01
+- GTAtziriStormCallTargeted [geometry_trigger] action=SpellNovaLightning anim=default:stormcall_01
+    geom: trigger count=1 delay=0 spread=5 radius=0 angle=0 anchor=1
+    triggers: GSAtziriStormCallSingle
+- GTAtziriStormCallEmpoweredTargeted [geometry_trigger] action=SpellNovaLightning anim=default:stormcall_01
+    geom: trigger count=1 delay=0 spread=5 radius=0 angle=0 anchor=1
+    triggers: GSAtziriStormCallSingleEmpowered
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=default:attack_01_fire, attack_02_fire,stance3:attack_clone_01_fire, attack_clone_02_fire
+- MeleeAtAnimationSpeedLightning [melee] action=MeleeLightning anim=default:attack_01_lightning, attack_02_lightning,stance3:attack_clone_01_lightning, attack_clone_02_lightning
+- GAAtziriLightningDashDamage [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- MPSAtziriBloodProj [monster_projectile_spell] action=SpellProjectile anim=default:spellcast_01,stance3:spellcast_clone_01
+    flags: base_deal_no_damage
+- MPSAtziriFireProj [monster_projectile_spell] action=SpellProjectileFire anim=default:spellcast_01_fire,stance3:spellcast_clone_01_fire
+    flags: base_deal_no_damage
+- GSAtziriBloodProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSAtziriFireProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSAtziriLightningProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSAtziriBloodProjImpactTerrain [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1275 delay=1150 anchor=4
+    flags: is_area_damage
+- GSAtziriFireProjImpactTerrain [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1275 delay=1150 anchor=4
+    flags: is_area_damage
+- GSAtziriLightningProjImpactTerrain [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1275 delay=1150 anchor=4
+    flags: is_area_damage
+- AtziriSpinningFlameWall [melee] action=SpellAreaOfEffectFire anim=default:fire_spear_01
+    flags: is_area_damage
+- GSAtziriFlameblastClone [geometry_spell] action=SpellNovaFire anim=default:flameblast_01
+    geom: circle length=40 width=0 angle=0 range=2400 delay=2400 anchor=4
+    flags: is_area_damage
+- EASAtziriBloodSpearClone [empty_action_spell] action=SpellAreaOfEffect anim=default:blood_spear_01
+- GTAtziriStormCallClone [geometry_trigger] action=SpellNovaLightning anim=default:stormcall_01
+    geom: trigger count=15 delay=1800 spread=85 radius=10 angle=0 anchor=4
+    triggers: GSAtziriStormCallSingle
+- EASAtziriStormCallEmpowered [empty_action_spell] action=SpellNovaEpicLightning anim=default:ultimate_stormcall_01
+- MPSAtziriLightningSpearProj [monster_projectile_spell] action=SpellProjectileLightning anim=default:spellcast_01_lightning,stance3:spellcast_clone_01_lightning
+    flags: base_deal_no_damage
+- AtziriElementalSpearCombo [melee] action=MeleeCombo anim=default:spear_combo_01
+- EASAtziriBloodSpear [empty_action_spell] action=None anim=-
+- EASAtziriBloodWarp [empty_action_spell] action=SpellProjectileChaos anim=default:teleport_01
+- EASAtziriGatherEnergy [empty_action_spell] action=SpellAoeEpicChaos anim=default:clone_end_01
+- EASAtziriPortalEscape [empty_action_spell] action=SpellAoeEpicFire anim=default:death_bwd_01
+
+## own states and handlers
+states: invis = 1; fire; lightning; blood; brazier; music_atziriphase; shortintro; redfire; redlightning; hasspear = 1
+- on_construction_complete = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Atziri/epk/brazier_flame_01.epk' ); SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, -0.5, -0.5, -0.5, true, 0.1 ); ForEachInRangeOfType( 200, 'Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CorruptionBloodPoolsInert', (
+- on_death = { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); }
+- on_spawned_dead = { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); }
+- on_or_create_state_hasspear_1 = { AddAttachedObjectToBones( 'Metadata/Monsters/Atziri/Phase1/attachments/AtziriStaffBlood.ao', 'SpearSocket' ); }
+- on_or_create_state_hasspear_0 = { RemoveAttachedObjectFromBones( 'SpearSocket' ); }
+- on_event_spear = { SetStateTo( hasspear, 1 ); }
+- on_event_nospear = { SetStateTo( hasspear, 0 ); }
+- on_event_fire = { SetStateTo( fire, 1 ); SetStateTo( lightning, 0 ); SetStateTo( blood, 0 ); SetStateTo( redfire, 0 ); SetStateTo( redlightning, 0 ); }
+- on_event_lightning = { SetStateTo( fire, 0 ); SetStateTo( lightning, 1 ); SetStateTo( blood, 0 ); SetStateTo( redfire, 0 ); SetStateTo( redlightning, 0 ); }
+- on_event_blood = { SetStateTo( fire, 0 ); SetStateTo( lightning, 0 ); SetStateTo( blood, 1 ); SetStateTo( redfire, 0 ); SetStateTo( redlightning, 0 ); }
+- on_event_redfire = { SetStateTo( fire, 0 ); SetStateTo( lightning, 0 ); SetStateTo( blood, 0 ); SetStateTo( redfire, 1 ); SetStateTo( redlightning, 0 ); }
+- on_event_redlightning = { SetStateTo( fire, 0 ); SetStateTo( lightning, 0 ); SetStateTo( blood, 0 ); SetStateTo( redfire, 0 ); SetStateTo( redlightning, 1 ); }
+- on_event_dull = { SetStateTo( fire, 0 ); SetStateTo( lightning, 0 ); SetStateTo( blood, 0 ); SetStateTo( redfire, 0 ); SetStateTo( redlightning, 0 ); SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, -0.5, -0.5, -0.5, true, 1 ); }
+- on_or_create_state_brazier_0 = { SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, -0.5, -0.5, -0.5, true, 0.5 ); }
+- on_or_create_state_brazier_1 = { SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, -0.5, 0.5, -0.5, true, 1.0 ); }
+- on_or_create_state_fire_1 = { IfState( brazier, 1, (){ SetDynamicFloat4( 'Atziri_Mote_Driver', 0.5, -0.5, -0.5, -0.5, true, 0.25 ); }, (){} ); }
+- on_or_create_state_lightning_1 = { IfState( brazier, 1, (){ SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, 0.5, -0.5, -0.5, true, 0.25 ); }, (){} ); }
+- on_or_create_state_blood_1 = { IfState( brazier, 1, (){ SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, -0.5, 0.5, -0.5, true, 0.25 ); }, (){} ); }
+- on_or_create_state_redfire_1 = { SetDynamicFloat4( 'Atziri_Mote_Driver', 0.5, -0.5, -0.5, 0.5, true, 0.5 ); }
+- on_or_create_state_redlightning_1 = { SetDynamicFloat4( 'Atziri_Mote_Driver', -0.5, 0.5, -0.5, 0.5, true, 0.5 ); }
+- on_or_create_state_invis_0 = { EnableRendering(); EnableAnimationSounds(); }
+- on_or_create_state_invis_1 = { DisableRendering(); DisableAnimationSounds(); }
+- on_or_create_state_music_atziriphase_0 = { SetGlobalAudioParam( AtziriPhase, 0 ); }
+- on_or_create_state_music_atziriphase_1 = { SetGlobalAudioParam( AtziriPhase, 1 ); }
+- on_or_create_state_music_atziriphase_2 = { SetGlobalAudioParam( AtziriPhase, 2 ); }
+- on_or_create_state_music_atziriphase_3 = { SetGlobalAudioParam( AtziriPhase, 3 ); }
+- on_bloodskill_01 = { PlayTextAudio( Atziri_P1_BloodSkill_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_blood_spear_01 = { PlayTextAudio( Atziri_P1_BloodSpear_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_fire_spear_01 = { PlayTextAudio( Atziri_P1_FireSpear_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_flameblast_01 = { PlayTextAudio( Atziri_P1_Flameblast_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( Atziri_P1_Knockdown_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_lightning_spear_01 = { PlayTextAudio( Atziri_P1_LightningSpear_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_clone_01 = { PlayTextAudio( Atziri_P1_SplitIntoClones_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_spear_combo_01 = { PlayTextAudio( Atziri_P1_SpearCombo_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_stormcall_01 = { PlayTextAudio( Atziri_P1_Stormcall_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_summon_acolytes_01 = { PlayTextAudio( Atziri_P1_SummonAcolytes_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_ultimate_bloodskill_01 = { PlayTextAudio( Atziri_P1_UltimateBloodSkill, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_ultimate_flameblast_01 = { PlayTextAudio( Atziri_P1_UltimateFlameblast_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_ultimate_stormcall_01 = { PlayTextAudio( Atziri_P1_UltimateStormcall_Random, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 400 ); }
+- on_death_bwd_01 = { PlayTextAudio( Incursion_AtziriPhaseChange_A, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 0 ); }
+- on_atziri_emerge_01_quick = { PlayTextAudio( Atziri_P1_EmergeQuick, 'Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOne', 15500 ); }
+- on_or_create_state_shortintro_0 = { SetGlobalAudioParam( AtziriIntro, 1 ); }
+- on_or_create_state_shortintro_1 = { SetGlobalAudioParam( AtziriIntro, 2 ); }
+hides(DisableRendering): [('bb_visible', 0), ('invis', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: ['music_atziriphase']  brackets: ['arena_sector_destruction, GetState']
+
+## preloads
+- preload_object Metadata/Monsters/LeagueIncursionNew/AtziriBoss/Objects/AtziriBloodOrb
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Atziri/teleport_marker.ao
+- preload_monster_variety Metadata/Monsters/LeagueIncursionNew/VaalZealotSacrifice
+- preload_monster_variety Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOneClone
+
+## adds and forms
+- Metadata/Monsters/LeagueIncursionNew/VaalZealotSacrifice "Royal Acolyte" bossbar=0 skills=VaalZealotSuicideExplosion comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/LeagueIncursionNew/AtziriBossPhaseOneClone "Atziri, the Red Queen" bossbar=0 skills=MeleeAtAnimationSpeedBoss,GAAtziriSpinningFlameWall,SOAtziriSpinningFlameWall,GAAtziriBloodSpear,MPSAtziriBloodSpearPulse,GSAtziriFlameblast,GSAtziriFlameblastEmpowered,GSAtziriFlameblastEmpoweredTriggered,GSAtziriStormCallSingle,GSAtziriStormCallSingleEmpowered,GTAtziriStormCall,GTAtziriStormCallEmpowered,EASAtziriLightningDash,CGEAtziriLightningGround,MPSAtziriLightningProj,GSAtziriBloodCannon,EASAtziriCreateBloodCannons,EASAtziriCreateBloodCannonsEmpowered,MPWAtziriBloodSpearTeleport,EASAtziriSummonClones,EASAtziriSummonCultists,GTAtziriStormCallTargeted,GTAtziriStormCallEmpoweredTargeted,MeleeAtAnimationSpeedFire,MeleeAtAnimationSpeedLightning,GAAtziriLightningDashDamage,MPSAtziriBloodProj,MPSAtziriFireProj,GSAtziriBloodProjImpact,GSAtziriFireProjImpact,GSAtziriLightningProjImpact,GSAtziriBloodProjImpactTerrain,GSAtziriFireProjImpactTerrain,GSAtziriLightningProjImpactTerrain,AtziriSpinningFlameWall,GSAtziriFlameblastClone,EASAtziriBloodSpearClone,GTAtziriStormCallClone,EASAtziriStormCallEmpowered,MPSAtziriLightningSpearProj,AtziriElementalSpearCombo,EASAtziriBloodSpear,EASAtziriBloodWarp,EASAtziriGatherEnergy,EASAtziriPortalEscape comps=ControlZone Targetable Actor Stats [blocking=true attackable=true server_only=true] states=fire;lightning;blood;render=0
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/LeagueIncursionNew/AtziriBoss/Objects/AtziriBloodOrb:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/LeagueIncursionNew/AtziriBoss/Objects/AtziriFlameWall:  [blocking=false object_size=1] states=die;active on_end_active_end{{ Delete(); }}; on_end_inactive_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( active_end ); }}; on_state_die_0{{ PlayAnimation( inactive_end ); }}; on_or_create_state_active_0{{ QueueAnimation( inactive_idle ); }}; on_or_create_state_active_1{{ PlayAnimation( active_start ); QueueAnimation( active_idle ); }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriarenasnakeheads:  [server_only=true] states=bloodtype on_or_create_state_bloodtype_1{{ PlayAnimation( off_01 ); }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziribeastdoor:  [server_only=true] states=bossstate on_construction_complete{{ globals.atziri_beast_door = this; }}; on_or_create_state_bossstate_0{{ SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true, 0.1 ); }}; create_state_bossstate_1{{ SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true ); }}; create_state_bossstate_2{{ SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true ); }}; on_state_bossstate_1{{ PlayAnimation( atziri_transform_01 ); QueueAnimation( atziri_idle_01 ); PlayAnimationAttached( 'Metadata/Monsters/Beas}; create_state_bossstate_1{{ PlayAnimation( atziri_idle_01 ); PlayAnimationAttached( 'Metadata/Monsters/BeastSeed/BeastEye/BeastEye.ao', atziri_pha}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziribloodlane:  [server_only=true] states=bloodstate = 1 on_state_bloodstate_0{{ Delay( 1, { Delete(); } ); }}; on_state_bloodstate_0{{ PlayAnimation( drain_01 ); }}; on_or_create_state_bloodstate_1{{ PlayAnimation( fill_01 ); }}; on_or_create_state_bloodstate_2{{ PlayAnimation( charge_01 ); }}; on_or_create_state_bloodstate_3{{ PlayAnimation( blast_01 ); }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziribloodorb:  [blocking=false object_size=0] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziribloodorbmarker:  [server_only=true] states= on_construction_complete{{ globals.atziri_blood_orb_marker = this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziribloodorbmarker2:  [server_only=true] states= on_construction_complete{{ globals.atziri_blood_orb_marker2 = this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atzirichestcontroller:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atzirichestmarkerprimary:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atzirichestmarkersecondary:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriclonespawnlocationmarker:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziricultistcharge:  [blocking=false object_size=0] states= on_construction_complete{{ globals.atziri_blood_orb += this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziricultistspawnmarker:  [server_only=true] states= on_construction_complete{{ globals.atziri_cultist_location_marker = this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriempoweredflamewall:  [blocking=false object_size=1] states=die;active on_end_active_end{{ Delete(); }}; on_end_inactive_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( active_end ); }}; on_state_die_0{{ PlayAnimation( inactive_end ); }}; on_or_create_state_active_0{{ QueueAnimation( inactive_idle ); }}; on_or_create_state_active_1{{ PlayAnimation( active_start ); QueueAnimation( active_idle ); }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriexpandingnova:  [blocking=false object_size=1] states=explodestate = 0 on_state_explodestate_3{{ Delay( 6, { Delete(); } ); }}; create_state_explodestate_3{{ Delete(); }}; on_or_create_state_explodestate_0{{ PlayAnimation( start ); }}; on_or_create_state_explodestate_1{{ PlayAnimation( grow_to_idle ); QueueAnimation( idle ); }}; on_or_create_state_explodestate_2{{ PlayAnimation( idle_to_grow ); QueueAnimation( idle_grow ); }}; on_state_explodestate_3{{ PlayAnimation( charge ); QueueAnimation( explode ); }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriflamewall:  [blocking=false object_size=1] states=die;active on_end_active_end{{ Delete(); }}; on_end_inactive_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( active_end ); }}; on_state_die_0{{ PlayAnimation( inactive_end ); }}; on_or_create_state_active_0{{ QueueAnimation( inactive_idle ); }}; on_or_create_state_active_1{{ PlayAnimation( active_start ); QueueAnimation( active_idle ); }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atzirifleshwall:  [server_only=true] states=bossstate on_construction_complete{{ globals.atziri_flesh_wall = this; }}; on_or_create_state_bossstate_0{{ SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true, 0.1 ); }}; on_state_bossstate_1{{ PlayAnimation( consume_atziri ); }}; on_state_bossstate_2{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.5, true, 35.0); }}; on_event_glowstart{{ SetStateTo( bossstate, 2 ); globals.atziri_beast_door.SetStateTo( bossstate, 3 ); this.doorash = SpawnEffect( 'Metadat}; on_timer_cataclysm_phase2{{ screenshake.PlayAnimation( screenShake_02 ); this.solar = SpawnEffect( 'Metadata/Effects/Spells/monsters_effects/Leagu}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atzirilightningmarker:  [server_only=true] states= on_construction_complete{{ globals.atziri_lightning_marker = this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atzirimusicmarker:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriphase1proxy:  [server_only=true] states=bossstate on_construction_complete{{ globals.atziri_proxy = this; }}; on_state_bossstate_1{{ LockHeight( GetHeight() ); }}; on_state_bossstate_1{{ PlayAnimation( transform_01 ); this.staff = GetAttachedAOByType( 'Metadata/Monsters/Atziri/Phase1/attachments/AtziriSt}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/atziriportalmarker:  [server_only=true] states= on_construction_complete{{ globals.atziri_portal_marker = this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/bloodblocking: TriggerableBlockage [start_blocked=false blocking=false object_size=2 server_only=true] states=blocking on_construction_complete{{ globals.atziri_blood_blocking += this; }}
+- metadata/monsters/leagueincursionnew/atziriboss/objects/doryanibossfightstart: ControlZone [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/doryaniphaseoneexit:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/doryaniphasetwoexit:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/atziriboss/objects/doryaniphasetwotarget:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon: MinimapIcon [server_only=true icon=IncursionViperLegionBarracksActive] states=quadrillas 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon: MinimapIcon [server_only=true icon=IncursionGarrisonActive] states= 
+- Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController: ControlZone [server_only=true] states= 
+
+## lines
+- on_bloodskill_01 -> Atziri_P1_BloodSkill_Random: Queen... of sacrifice!
+- on_blood_spear_01 -> Atziri_P1_BloodSpear_Random: I will succeed!
+- on_fire_spear_01 -> Atziri_P1_FireSpear_Random: You cannot best perfection!
+- on_flameblast_01 -> Atziri_P1_Flameblast_Random: Burn!
+- on_knockdown_bwd_01 -> Atziri_P1_Knockdown_Random: Ugh... you dare defile a queen?!
+- on_lightning_spear_01 -> Atziri_P1_LightningSpear_Random: You are worthless!
+- on_clone_01 -> Atziri_P1_SplitIntoClones_Random: Look upon me... all of me!
+- on_spear_combo_01 -> Atziri_P1_SpearCombo_Random: My ascension is at hand... bow before me!
+- on_stormcall_01 -> Atziri_P1_Stormcall_Random: You... are unworthy!
+- on_summon_acolytes_01 -> Atziri_P1_SummonAcolytes_Random: Acolytes... give your life for your queen!
+- on_ultimate_bloodskill_01 -> Atziri_P1_UltimateBloodSkill: You... are... nothing
+- on_ultimate_flameblast_01 -> Atziri_P1_UltimateFlameblast_Random: Behold the power... of desire!
+- on_ultimate_stormcall_01 -> Atziri_P1_UltimateStormcall_Random: Behold... the raging skies!
+- on_death_bwd_01 -> Incursion_AtziriPhaseChange_A: Enough of this!
+- on_atziri_emerge_01_quick -> Atziri_P1_EmergeQuick: Succumb... to me...
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_4open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,91) (161,92) (142,92) (125,92) (112,160) (66,93)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x8 (185,71) (148,72) (129,72) (112,72) (120,179) (53,73) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,163) (98,164) (100,91) (139,166) (157,166) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (98,176) (99,72) (139,178) (157,178) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (63,215) (87,33) (166,33) (186,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (76,131) (176,132)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x12 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (31,216) (55,34) (198,33) (218,218)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x12 (22,192) (226,192) (199,50) (55,50) (55,15) (36,33) (217,32) (198,14) (237,219) (218,237)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_3open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,93) (166,95) (147,95) (128,95) (108,95) (66,95)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x6 (185,73) (153,75) (134,75) (115,75) (95,75) (53,75)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,165) (94,167) (116,167) (156,167) (135,167) (195,167)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,177) (94,179) (116,179) (156,179) (135,179) (195,179)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,143)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (186,216) (167,32) (85,33) (65,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (82,126) (177,127)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x10 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (33,218) (218,218) (53,31) (199,31)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x10 (52,50) (200,50) (23,191) (227,191) (33,236) (14,218) (218,236) (237,218) (38,35) (214,34)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_garrison_4open_03.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [153.0, 41.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion x6 (198,91) (174,97) (149,93) (120,94) (112,160) (57,97)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingShieldIncursion_ x8 (185,71) (163,73) (136,73) (110,73) (120,179) (61,71) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion x6 (57,163) (83,164) (84,85) (148,165) (170,165) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (83,176) (84,73) (148,177) (170,177) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon x1 (126,129)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController x1 (133,128)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x6 (211,90) (211,163) (41,90) (41,163) (126,62) (126,190)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionBenchCampaignCurrency x1 (126,202)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (135,54)

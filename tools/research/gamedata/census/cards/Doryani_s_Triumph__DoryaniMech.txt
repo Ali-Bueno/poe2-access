@@ -1,0 +1,256 @@
+# Doryani's Triumph
+content: Act 3
+monsters: Metadata/Monsters/DoryaniMechSuit/DoryaniMech, Metadata/Monsters/DoryaniMechSuit/DoryaniMechMap, Metadata/Monsters/DoryaniMechSuit/DoryaniMechStandalone_, Metadata/Monsters/DoryaniMechSuit/DoryaniMechStandalone_Invasion
+scripts: Metadata/Monsters/DoryaniMechSuit/DoryaniMech, Metadata/Monsters/DoryaniMechSuit/DoryaniMechMap_, Metadata/Monsters/DoryaniMechSuit/DoryaniMechStandalone
+own chain: Metadata/Monsters/DoryaniMechSuit/DoryaniMech, Metadata/Monsters/DoryaniMechSuit/DoryaniMechMap_, Metadata/Monsters/DoryaniMechSuit/DoryaniMechStandalone
+areas: G3_17 The Black Chambers act3; MapUberBoss_StoneCitadel The Stone Citadel act10; MapUberBoss_StoneCitadel_Quest Eastern Enigma Chamber act10
+ai: Metadata/Monsters/DoryaniMechSuit/DoryaniMech.ais, Metadata/Monsters/DoryaniMechSuit/DoryaniMechStandalone.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- GADoryaniCrabBodySlam [geometry_attack] action=HeavyStrike anim=default:body_slam_01
+    geom: circle length=36 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+- EDADoryaniCrabClawSlam [effect_driven_attack] action=Cleave anim=default:slam_01
+    flags: is_area_damage
+- GSDoryaniCrabBrazierSlam [geometry_spell] action=HeavyCleave anim=default:slam_02
+    geom: circle length=61 width=0 angle=0 range=250 delay=33 anchor=3
+    flags: is_area_damage
+- GSDoryaniCrabDiscoLazer [geometry_spell] action=SpellAreaOfEffectFire anim=default:disco_lasers_01
+    geom: cone length=150 width=0 angle=75 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSDoryaniCrabFlamethrower [geometry_spell] action=SpellProjectileFire anim=default:brazier_flamethrower_01
+    geom: donut length=110 width=30 angle=15 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSDoryaniCrabFlamethrower90Right [geometry_spell] action=SpellNovaFire anim=default:brazier_flamethrower_right_01
+    geom: donut length=110 width=30 angle=15 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSDoryaniCrabFlamethrowerCorrupt [geometry_spell] action=SpellProjectileUpwardFire anim=default:brazier_flamethrower_epic_01
+    geom: donut length=110 width=30 angle=15 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSDoryaniCrabFrostLaser [geometry_spell] action=SpellProjectileCold anim=default:crab_claw_laser_01
+    geom: rectangle length=100 width=9 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    buffs: chilled_ground
+- GSDoryaniCrabFrostLaser90Left [geometry_spell] action=SpellNovaCold anim=default:crab_claw_laser_left_01
+    geom: rectangle length=100 width=9 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    buffs: chilled_ground
+- GSDoryaniCrabFrostLaserCorrupt [geometry_spell] action=SpellProjectileUpwardCold anim=default:crab_claw_laser_epic_01
+    geom: rectangle length=100 width=9 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    buffs: chilled_ground
+- EAADoryaniCrabLegToss [empty_action_attack] action=SpellProjectileChaos anim=default:leg_toss_01
+- MASDoryaniCrabSweep180 [melee] action=DoubleStrike anim=default:sweep_180_01
+- EASDoryaniCrabLightningCage [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:activate_pylons_01
+- EAADoryaniCrabComboSlam [empty_action_attack] action=SpellProjectile anim=default:combo_01
+- EASDoryaniCrabExplode [empty_action_spell] action=SpellAreaOfEffectCold anim=default:floating_explode_mech_01
+- EASDoryaniCrabPlatformAttach [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:attach_platform_01
+- EASDoryaniCrabPlatformDetach [empty_action_spell] action=SpellAreaOfEffect anim=default:detach_platform_01
+- MPADoryaniCrabLegToss [monster_projectile_weapon] action=SpellProjectileChaos anim=default:leg_toss_01
+    flags: base_deal_no_damage
+- GSDoryaniCrabLegProjImpact [geometry_spell] action=SpellProjectileFire anim=default:brazier_flamethrower_01
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=11
+    flags: is_area_damage
+- GADoryaniCrabLegProjImpactWall [geometry_attack] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GADoryaniCrabExplode [geometry_spell] action=None anim=-
+    geom: circle length=55 width=0 angle=0 range=300 delay=33 anchor=3
+    flags: is_area_damage
+- GADoryaniCrabExplodeSmash [geometry_attack] action=None anim=-
+    geom: circle length=64 width=0 angle=0 range=160 delay=33 anchor=3
+    flags: is_area_damage
+- MPSDoryaniCrabLightningCage [monster_projectile_spell] action=SpellProjectile anim=default:combo_01
+- GADoryaniCrabComboSlamBasic [geometry_attack] action=None anim=-
+    geom: circle length=23 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+- GADoryaniCrabSlamCold [geometry_attack] action=None anim=-
+    geom: cone length=46 width=0 angle=180 range=231 delay=33 anchor=3
+    flags: is_area_damage
+    buffs: chilled_ground
+- GADoryaniCrabSlamFire [geometry_attack] action=None anim=-
+    geom: cone length=46 width=0 angle=180 range=231 delay=33 anchor=3
+    flags: is_area_damage
+- GADoryaniCrabIceLaserSnap [geometry_spell] action=None anim=-
+    geom: rectangle length=110 width=36 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+    buffs: chilled_ground
+
+## own states and handlers
+states: enabled; no_collision; lock_on; pylons_active; ice_laser; ice_laser_90; corr_ice_laser; hover_crafting; current_rotate_dir
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_state_no_collision_0 = { MakeCollidable(); }
+- on_state_lock_on_0 = { SetUsesDirectionalRunAnimations( false ); }
+- on_state_lock_on_1 = { SetUsesDirectionalRunAnimations( true ); }
+- on_effect_start_EASDoryaniCrabPlatformAttach = { ForceSkillIntoCooldown( EASDoryaniCrabPlatformDetach ); }
+- on_or_create_state_enabled_0 = { RemoveCollidability(); DisableTargetable(); }
+- on_state_enabled_1 = { SetCustomCameraSpeed( 0.65 ); CreateCameraZoomNode( 9, 9, 1.5 ); }
+- on_or_create_state_enabled_2 = { StartStateTimer( check_bearing ); MakeCollidable(); EnableTargetable(); SetCustomCameraSpeed( 1.0 ); ClearCameraZoomNodes(); }
+- on_movement_started = { If( GetState( current_rotate_dir ) > 0, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_timer_check_bearing = { this.orientation = GetOrientation(); this.bearing = GetAnimatedBearing(); this.angle_diff = bearing - orientation; this.angle_diff = Round( EvalIf( angle_diff > 180.0, angle_diff - 360.0, EvalIf( angle_diff < -180, angle_diff + 360.0, angle_diff ) ), 2 ); If( Or( And( angle_diff <= 1.0, angle_diff
+- on_state_current_rotate_dir_0 = { FadeAnimations( 9, 0.2 ); FadeAnimations( 10, 0.2 ); }
+- on_state_current_rotate_dir_1 = { FadeAnimations( 10, 0.2 ); PlayAdditiveAnimation( turn_01_right, 9 ); }
+- on_state_current_rotate_dir_2 = { FadeAnimations( 9, 0.2 ); PlayAdditiveAnimation( turn_01_left, 10 ); }
+- on_death = { IfState( quick_death, 1, (){ Delay( 0.0, { all_attachments.SetCurrentAnimationSpeed( 10000.0 ); } ); } ); }
+- on_construction_complete = { this.hover_craft = GetAttachedAOByType( 'Metadata/Monsters/DoryaniMechSuit/Hovercraft.ao' ); this.l_arm_front = GetAttachedAOByType( 'Metadata/Monsters/DoryaniMechSuit/attachments/HovercraftLArmFront.ao' ); this.r_arm_front = GetAttachedAOByType( 'Metadata/Monsters/DoryaniMechSuit/attachments/Hove
+- create_state_hover_crafting_1 = { Delay( 0.0, { Call( detach_hover_craft ); } ); }
+- on_state_pylons_active_1 = { Delay( Random( 0.1, 0.5 ), { coil_1.Do( () { PlayAnimation( activate_01 ); QueueAnimation( idle_active_01 ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_2.Do( () { PlayAnimation( activate_01 ); QueueAnimation( idle_active_01 ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_3.Do( () { PlayAnimation( 
+- create_state_pylons_active_1 = { coil_1.QueueAnimation( idle_active_01 ); coil_2.QueueAnimation( idle_active_01 ); coil_3.QueueAnimation( idle_active_01 ); coil_4.QueueAnimation( idle_active_01 ); coil_5.QueueAnimation( idle_active_01 ); coil_6.QueueAnimation( idle_active_01 ); this.lightning_ring = AddAttached( 'Metadata/Effects
+- on_state_pylons_active_0 = { Delay( Random( 0.1, 0.5 ), { coil_1.Do( () { PlayAnimation( deactivate_01 ); QueueAnimation( idle_deactive_01 ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_2.Do( () { PlayAnimation( deactivate_01 ); QueueAnimation( idle_deactive_01 ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_3.Do( () { PlayAni
+- on_state_ice_laser_0 = { ice_laser.PlayAnimation( end ); }
+- on_state_ice_laser_1 = { this.ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam.ao', ice_laser_attachment ); ice_laser.PlayAnimation( start ); ice_laser.QueueAnimation( loop ); }
+- create_state_ice_laser_1 = { this.ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam.ao', ice_laser_attachment ); ice_laser.PlayAnimation( loop ); }
+- on_state_ice_laser_90_0 = { ice_laser.PlayAnimation( end ); }
+- on_state_ice_laser_90_1 = { this.ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam.ao', ice_laser90_attachment ); ice_laser.PlayAnimation( start ); ice_laser.QueueAnimation( loop ); }
+- create_state_ice_laser_90_1 = { this.ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam.ao', ice_laser90_attachment ); ice_laser.PlayAnimation( loop ); }
+- on_state_corr_ice_laser_0 = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam_corr.ao' ); }
+- on_state_corr_ice_laser_1 = { this.corr_ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam_corr.ao', ice_laser_attachment ); corr_ice_laser.PlayAnimation( start ); corr_ice_laser.QueueAnimation( loop ); }
+- create_state_corr_ice_laser_1 = { this.corr_ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam_corr.ao', ice_laser_attachment ); corr_ice_laser.PlayAnimation( loop ); }
+- on_state_corr_ice_laser_2 = { corr_ice_laser.PlayAnimation( swell ); }
+- create_state_corr_ice_laser_2 = { this.corr_ice_laser = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam_corr.ao', ice_laser_attachment ); corr_ice_laser.PlayAnimation( swell ); }
+- on_effect_start_GSDoryaniCrabFrostLaser90Left = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechClawLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFrostLaser = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechClawLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EDADoryaniCrabClawSlam = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabBrazierSlam = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSlam2_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GADoryaniCrabBodySlam = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechBodySlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabDiscoLazer = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechDiscoLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrower = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrower90Right = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrowerCorrupt = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabLightningCage = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechLightningStorm_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabLightningCageCorrupt = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechLightningStorm_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabExplode = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSelfDestruct_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechReassemble_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast', 6
+- on_effect_start_EASDoryaniCrabPlatformDetach = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechDetatchPlatform_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EAADoryaniCrabLegToss = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSpiderLegAttack_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EAADoryaniCrabComboSlam = { Roll( 1, 1, () { globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechComboSlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_timer_check_bearing = { this.orientation = GetOrientation(); this.bearing = GetAnimatedBearing(); this.angle_diff = bearing - orientation; this.angle_diff = Round( EvalIf( angle_diff > 180.0, angle_diff - 360.0, EvalIf( angle_diff < -180, angle_diff + 360.0, angle_diff ) ), 2 ); If( Or( And( angle_diff <= 1.0, angle_diff
+- on_death = { IfState( quick_death, 1, () { Delay( 0.0, { all_attachments.SetCurrentAnimationSpeed( 10000.0 ); } ); } ); IfInArea( MapUberBoss_StoneCitadel_Quest, (){ globals.arena_crystals.SetLightState( off, 0.5, 0 ); } ); }
+- on_state_pylons_active_1 = { Delay( Random( 0.1, 0.5 ), { coil_1.Do( () { PlayAnimation( activate_01 ); QueueAnimation( idle_active_01 ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_2.Do( () { PlayAnimation( activate_01 ); QueueAnimation( idle_active_01 ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_3.Do( () { PlayAnimation( 
+- on_effect_start_GSDoryaniCrabFrostLaser90Left = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechClawLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFrostLaser = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechClawLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EDADoryaniCrabClawSlam = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabBrazierSlam = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GADoryaniCrabBodySlam = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechBodySlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabDiscoLazer = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechDiscoLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrower = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrower90Right = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrowerCorrupt = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabLightningCage = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechLightningStorm_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabLightningCageCorrupt = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechLightningStorm_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabPlatformDetach = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechDetatchPlatform_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EAADoryaniCrabLegToss = { Roll( 1, 1, (){ globals.doryanis_voicebox.PlayTextAudio( DoryaniPastBoss_MechSpiderLegAttack_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_or_create_state_enabled_2 = { StartStateTimer( check_bearing ); }
+- on_state_pylons_active_1 = { Delay( Random( 0.1, 0.5 ), { coil_1.Do( ( coil ){ this.Call( activate_coil, coil ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_2.Do( ( coil ){ this.Call( activate_coil, coil ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_3.Do( ( coil ){ this.Call( activate_coil, coil ); } ); } ); Delay( Random( 0
+- on_state_pylons_active_0 = { Delay( Random( 0.1, 0.5 ), { coil_1.Do( (){ this.Call( deactivate_coil, coil ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_2.Do( (){ this.Call( deactivate_coil, coil ); } ); } ); Delay( Random( 0.1, 0.5 ), { coil_3.Do( (){ this.Call( deactivate_coil, coil ); } ); } ); Delay( Random( 0.1, 0.5 ), {
+- on_effect_start_GSDoryaniCrabFrostLaser90Left = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechClawLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFrostLaser = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechClawLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EDADoryaniCrabClawSlam = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechSlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabBrazierSlam = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechSlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GADoryaniCrabBodySlam = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechBodySlam_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabDiscoLazer = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechDiscoLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrower = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrower90Right = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniCrabFlamethrowerCorrupt = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechFlamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabLightningCage = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechLightningStorm_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabLightningCageCorrupt = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechLightningStorm_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniCrabExplode = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechSelfDestruct_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); my_doryani.PlayTextAudio( DoryaniPastBoss_MechReassemble_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast', 6000 ); } ); }
+- on_effect_start_EASDoryaniCrabPlatformDetach = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechDetatchPlatform_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EAADoryaniCrabLegToss = { Roll( 1, 1, () { my_doryani.PlayTextAudio( DoryaniPastBoss_MechSpiderLegAttack_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): [('enabled', 0)]
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_beam DoryaniMechButtLazer
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/epk/hovercraft_thrusters.epk
+- preload_monster_variety Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun
+- preload_object Metadata/Monsters/DoryaniMechSuit/DoryaniMechZapTarget
+- preload_monster_variety Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastMapStandalone
+- preload_monster_variety Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastStandalone_
+
+## adds and forms
+- Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun "Doryani's Triumph" bossbar=0 skills=GSDoryaniCrabLegProjImpact comps=Targetable Actor Stats [blocking=false object_size=0 attackable=true server_only=true] states=fade_out
+- Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastStandalone_ "Doryani, Royal Thaumaturge" bossbar=1 skills=GSDoryaniHumanBossBasicLightningZap,GSDoryaniHumanBossFlamethrower,MPSDoryaniHumanBossCrystalTossLeft,MPSDoryaniHumanBossCrystalTossRight,EASDoryaniHumanBossMultiLightningZap,GSDoryaniHumanBossLightningClap,SODoryaniHumanBossSolarOrb,MPSDoryaniHumanBossFireballPrimary,EDSDoryaniHumanBossFlameblast,EDSDoryaniHumanBossFlameblastSelf,GSDoryaniHumanBossBeamBlast,EASDoryaniHumanBossCrystalTraps,EASDoryaniHumanBossActivateMechanism,DTTDoryaniHumanBossJumpAround,DTTDoryaniHumanBossJumpToArenaMiddle,EASDoryaniExplodeCrab,CGEDoryaniIonCannon,GTDoryaniLightningStorm,GSDoryaniLightningStormBolt,GSDoryaniHumanBossDecelCrystalExplode,GSDoryaniHumanBossFireClap,GSDoryaniHumanBossMultiLightningZap,GSDoryaniHumanBossSolarOrbPulse,EDSDoryaniHumanBossFlameblastTriggered,EDSDoryaniHumanBossFlameblastTriggeredSelf,MPSDoryaniHumanBossFireballSecondary,GSDoryaniHumanBossFireballDirectImpactExplosion,GSDoryaniHumanBossMechanismBeam,GSDoryaniHumanBossMechanismBeamFlipped,GSDoryaniHumanBossCrystalZap,EDSDoryaniHumanBossBeamBlastCone,GSDoryaniHumanBossConstantLightning,GSDoryaniLightningStormBoltConstant,EASDoryaniHumanBossHoverDeath,EASDoryaniHumanBossGroundDeath,EASDoryaniHumanBossFloatingDeathActivate,EASDoryaniHumanBossGroundDeathActivate,DTTDoryaniHumanBossDeathJumpShort,DTTDoryaniHumanBossDeathJumpMedium,DTTDoryaniHumanBossDeathJumpLong,EAADoryaniHumanBossDeathFreeAlva,CGEDoryaniIonCannonTriggered,GTDoryaniIonCannonMap comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=lock_on;no_collision;can_move = 1;hover_crafting;audio_param
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/DoryaniMechSuit/DoryaniMechZapTarget:  [object_size=1] states=hidden = 1 on_or_create_state_hidden_0{{ EnableRendering(); }}; on_or_create_state_hidden_1{{ DisableRendering(); }}
+- metadata/monsters/doryanimechsuit/doryanimechzaptarget:  [object_size=1] states=hidden = 1 on_or_create_state_hidden_0{{ EnableRendering(); }}; on_or_create_state_hidden_1{{ DisableRendering(); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker:  [server_only=true] states=glow on_change_state_glow{{ SetDynamicFloat( 'minecapsule_driver', GetState( glow ) / 100.0 ); }}; on_construction_complete{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/epk/mine_capsule_glow.epk', infinity ); }}; on_wake{{ SetDynamicFloat( 'minecapsule_driver', GetState( glow ) / 100.0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01:  [blocking=false object_size=1 server_only=true] states=light = 1 on_state_light_0{{ SetLightState( off, 0.5, 0 ); }}; create_state_light_0{{ SetLightState( off, 0.0, 0 ); }}; on_state_light_1{{ SetLightState( on, 0.5, 0 ); }}; create_state_light_1{{ SetLightState( on, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02:  [blocking=false object_size=1 server_only=true] states=light = 1 on_state_light_0{{ SetLightState( off, 0.5, 0 ); }}; create_state_light_0{{ SetLightState( off, 0.0, 0 ); }}; on_state_light_1{{ SetLightState( on, 0.5, 0 ); }}; create_state_light_1{{ SetLightState( on, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/BossLootProxy:  [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/DoryaniArenaEntranceTitle: ProximityTrigger [radius=70 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardDoryaniArena, TitleCardDoryaniArenaSubtitle ); }}
+
+## lines
+- on_effect_start_GSDoryaniCrabFrostLaser90Left -> DoryaniPastBoss_MechClawLaser_Random: I cannot let my efforts be in vain!
+- on_effect_start_GSDoryaniCrabFrostLaser -> DoryaniPastBoss_MechClawLaser_Random: I cannot let my efforts be in vain!
+- on_effect_start_EDADoryaniCrabClawSlam -> DoryaniPastBoss_MechSlam_Random: Face the might of the Vaal!
+- on_effect_start_GSDoryaniCrabBrazierSlam -> DoryaniPastBoss_MechSlam2_Random: Full power!
+- on_effect_start_GADoryaniCrabBodySlam -> DoryaniPastBoss_MechBodySlam_Random: How foolish!
+- on_effect_start_GSDoryaniCrabDiscoLazer -> DoryaniPastBoss_MechDiscoLaser_Random: Let me show you what true intellect looks like!
+- on_effect_start_GSDoryaniCrabFlamethrower -> DoryaniPastBoss_MechFlamethrower_Random: I will burn you alive!
+- on_effect_start_GSDoryaniCrabFlamethrower90Right -> DoryaniPastBoss_MechFlamethrower_Random: I will burn you alive!
+- on_effect_start_GSDoryaniCrabFlamethrowerCorrupt -> DoryaniPastBoss_MechFlamethrower_Random: I will burn you alive!
+- on_effect_start_EASDoryaniCrabLightningCage -> DoryaniPastBoss_MechLightningStorm_Random: Ravaging power!
+- on_effect_start_EASDoryaniCrabLightningCageCorrupt -> DoryaniPastBoss_MechLightningStorm_Random: Ravaging power!
+- on_effect_start_EASDoryaniCrabExplode -> DoryaniPastBoss_MechSelfDestruct_Random: Self-destruction!
+- on_effect_start_EASDoryaniCrabExplode -> DoryaniPastBoss_MechReassemble_Random: This is not over yet.
+- on_effect_start_EASDoryaniCrabPlatformDetach -> DoryaniPastBoss_MechDetatchPlatform_Random: I plan for every contingency...
+- on_effect_start_EAADoryaniCrabLegToss -> DoryaniPastBoss_MechSpiderLegAttack_Random: You think you can run?!
+- on_effect_start_EAADoryaniCrabComboSlam -> DoryaniPastBoss_MechComboSlam_Random: I've been preparing for you for years!
+- on_effect_start_GSDoryaniCrabBrazierSlam -> DoryaniPastBoss_MechSlam_Random: Face the might of the Vaal!
+
+## linked buffs
+- chilled_ground "Chilled Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_maps_uberdoryani_rooms_unique_holodeck.arm
+  sector ['environment_inner', 287, 11, 1230, 379, '']
+  point [199.0, 209.0, 'default']
+  obj Metadata/Monsters/DoryaniMechSuit/EndgameDoryaniMechFragmentSurrogate x1 (563,207)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (188,209)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckTransition x1 (577,206)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckCube x1 (578,206)
+room metadata_terrain_gallows_act3_3_17_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 138, 136, 299, 299, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_env', 138, 134, 300, 300, '']
+  sector ['no_critters', 131, 132, 306, 307, '']
+  sector ['no_movement_skills', 146, 95, 289, 99, '']
+  point [218.0, 274.0, 'mapboss1']
+  point [218.0, 218.0, 'mapboss2']
+  point [217.0, 154.0, 'telepad1']
+  point [218.0, 31.0, 'checkpoint1']
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x4 (402,402) (314,380) (130,380) (34,402)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (230,29)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker x20 (218,243) (218,268) (243,243) (243,268) (193,268) (193,243) (168,243) (168,218) (193,218) (168,193)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01 x2 (155,218) (281,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02 x24 (134,219) (135,203) (141,186) (136,237) (142,253) (150,269) (162,280) (177,289) (197,298) (245,298)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (217,79)
+  obj Metadata/NPC/Four_Act3/AlvaSanctum x1 (218,305)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController x1 (217,24)
+  obj Metadata/Monsters/Doryani/TrueDoryani/objects/BossRoomMinimapIcon x1 (218,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/BossLootProxy x1 (231,277)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/DoryaniArenaEntranceTitle x1 (219,132)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (218,96)
+room metadata_terrain_maps_uberdoryani_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 141, 131, 297, 297, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_env', 138, 128, 300, 300, '']
+  sector ['no_critters', 135, 125, 303, 303, '']
+  sector ['boss_sector', 81, 89, 339, 334, '']
+  point [218.0, 274.0, 'mapboss1']
+  point [218.0, 218.0, 'mapboss2']
+  point [217.0, 154.0, 'telepad1']
+  point [228.0, 45.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x4 (402,402) (314,380) (130,380) (34,402)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker x20 (218,243) (218,268) (243,243) (243,268) (193,268) (193,243) (168,243) (168,218) (193,218) (168,193)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01 x2 (155,218) (281,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02 x24 (134,219) (135,203) (141,186) (136,237) (142,253) (150,269) (162,280) (177,289) (197,298) (245,298)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (217,79)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController x1 (217,24)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (239,45)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (167,195) (162,227) (276,223) (263,182)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (198,272)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (247,221)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (218,96)

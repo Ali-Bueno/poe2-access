@@ -1,0 +1,126 @@
+# Rakkar, the Frozen Talon / Thraeven, Wing of Winter
+content: Interlude
+monsters: Metadata/Monsters/ChaosGodOwlBoss/IcyOwlBoss, Metadata/Monsters/ChaosGodOwlBoss/IcyOwlBossCampaignSTANDALONE, Metadata/Monsters/ChaosGodOwlBoss/IcyOwlBossMap, Metadata/Monsters/ChaosGodOwlBoss/IcyOwlBossStandalone
+scripts: Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBoss, Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBossStandalone, Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBossMap
+own chain: Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBoss, Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBossStandalone, Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBossMap
+areas: P3_3 Glacial Tarn act6; MapFrozenFalls Frozen Falls act10
+ai: Metadata/Monsters/ChaosGodOwlBoss/IceOwl/IceOwlBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- EAAIceOwlBossBlizzard [empty_action_spell] action=SpellAreaOfEffect anim=default:nighttime_01
+- EAAIceOwlBossDashKick [empty_action_attack] action=HeavyStrike anim=default:dash_kick_combo_01
+- EAAIceOwlBossDiveBomb [empty_action_attack] action=DodgeBack anim=default:dash_up_01
+- GPAIceOwlBossFeatherSwipeLeft [geometry_projectiles_attack] action=SpellProjectileFire anim=default:feather_swipe_left_01
+- GPAIceOwlBossFeatherSwipeRight [geometry_projectiles_attack] action=SpellProjectileCold anim=default:feather_swipe_right_01
+- CTS3IceOwlBossBecomeIce [change_to_stance3] action=None anim=-
+- CTS1IceOwlBossExitIceForm [change_to_stance1] action=None anim=-
+- MDIceOwlBossSnowball [move_daemon] action=SpellProjectileChaos anim=default:ice_ball_01
+    daemons: Metadata/Monsters/InvisibleFire/MDIcyOwlBossSnowball
+- EAAIceOwlBossDashLeftShort [empty_action_attack] action=DodgeLeft anim=default:dash_left_small_01
+- EAAIceOwlBossDashRightShort [empty_action_attack] action=SpellProjectileUpwardFire anim=default:dash_right_small_01
+- GAIceOwlBossDashKickLacerateLeft [geometry_attack] action=None anim=-
+    geom: rectangle length=103 width=5 angle=0 range=250 delay=33 anchor=3
+    flags: is_area_damage
+- GAIceOwlBossDashKickLacerateRight [geometry_attack] action=None anim=-
+    geom: rectangle length=103 width=5 angle=0 range=250 delay=33 anchor=3
+    flags: is_area_damage
+- GAIceOwlBossDiveBombImpact [geometry_attack] action=None anim=-
+    geom: circle length=27 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSIceOwlBossIceSpikeDamage [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    buffs: chilled_ground
+- GTIceOwlBossBecomeIce [geometry_trigger] action=None anim=-
+    geom: trigger count=150 delay=600 spread=150 radius=15 angle=0 anchor=4
+- SOIceOwlBossIceSpikeMarker [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/ChaosGodOwlBoss/IceOwl/objects/IceCubeSpike
+- GSIceOwlBossIceCubePulse [geometry_spell] action=None anim=-
+    geom: circle length=150 width=0 angle=0 range=600 delay=33 anchor=3
+    flags: is_area_damage
+    GEAL 1166 on ['Metadata/Monsters/ChaosGodOwlBoss/IceOwl/objects/IceCubeSpike']: self{} each{triggerer.If( GetState( can_explode ) == 1, (){ Call( stab ); } );} r=0
+- GSIceOwlBossSnowballFallingIce [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- GSIceOwlBossSnowballColdSnap [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+
+## own states and handlers
+states: non_collidable; paused_emerge; instant_turning; am_ice; fog_active
+- on_or_create_state_non_collidable_1 = { RemoveCollidability(); }
+- on_or_create_state_non_collidable_0 = { MakeCollidable(); }
+- on_or_create_state_instant_turning_1 = { SetAnimatedTurnDuration( 0.035 ); }
+- on_state_instant_turning_0 = { ResetAnimatedTurnDuration(); }
+- on_or_create_state_am_ice_0 = { SetObjectCollisionSize( 11 ); }
+- on_or_create_state_am_ice_1 = { SetObjectCollisionSize( 25 ); }
+- on_state_fog_active_1 = { local victim = GetLocalPlayer(); this.my_fog = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/d_fog.ao' ); my_fog.AttachToGameObject( victim, root_jntBnd, false ); my_fog.SetDynamicFloat( 'BlizzardFog', 1.0, 0, Eval( this.GetTimeToNextEvent( darkness_end ) 
+- create_state_fog_active_1 = { local victim = GetLocalPlayer(); this.my_fog = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/d_fog.ao' ); my_fog.AttachToGameObject( victim, root_jntBnd, false ); my_fog.SetDynamicFloat( 'BlizzardFog', 1.0, 0, 0.0 ); }
+- on_state_fog_active_0 = { my_fog.SetDynamicFloat( 'BlizzardFog', 0.0, 0, 1.0 ); Delay( 1.0, { my_fog.Delete(); } ); }
+- on_or_create_state_am_ice_0 = { If( VariableExists( og_size ), (){ SetObjectCollisionSize( og_size ); } ); }
+- on_state_am_ice_1 = { this.ice_cube = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/glacial_prison_crystal.ao', <lock> ); ice_cube.PlayAnimation( Summon ); }
+- create_state_am_ice_1 = { this.ice_cube = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/glacial_prison_crystal.ao', <lock> ); ice_cube.PlayAnimation( Summon ); ice_cube.GoToAnimationEnd(); }
+- on_state_am_ice_0 = { Delay( 0.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/glacial_prison_crystal.ao' ); } ); }
+- on_state_fog_active_0 = { my_fog.SetDynamicFloat( 'BlizzardFog', 0.0, 0, 1.0 ); Delay( 1.0, { my_fog.Delete(); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/leap_up_marker.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/glacial_prison_crystal.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ChaosGodOwlBoss_Cold/ao/falling_iceshard.ao
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/MDIcyOwlBossSnowball
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/ChaosGodOwlBoss/IceOwl/objects/IceCubeSpike:  states= 
+- metadata/monsters/chaosgodowlboss/iceowl/objects/icecubespike:  states= 
+- Metadata/Terrain/Gallows/Act4_Interlude/Part3/P3_3/Objects/IcyOwlBossArenaMiddle:  [server_only=true] states= 
+
+## lines
+
+## linked buffs
+- chaos_god_owl_boss_tornado "Tornado": You are taking Physical Damage over time while inside the Tornado | stats=base_physical_damage_taken_per_minute
+- chilled_ground "Chilled Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_maps_frozenfalls_rooms_boss_rare_01.arm
+  point [296.0, 221.0, 'rare']
+  point [133.0, 246.0, 'checkpoint2']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (136,262)
+room metadata_terrain_maps_frozenfalls_rooms_boss_01.arm
+  sector ['hide_teleports', 336, 52, 644, 340, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 334, 86, 338, 367, '']
+  sector ['no_critters', 191, 30, 720, 360, '']
+  sector ['env', 142, 58, 665, 397, '']
+  point [447.0, 248.0, 'force:mapboss']
+  point [176.0, 231.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (179,247)
+  obj Metadata/Terrain/Gallows/Act4_Interlude/Part3/P3_3/Objects/IcyOwlBossArenaMiddle x1 (435,208)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x14 (336,231) (336,237) (336,225) (336,219) (336,213) (336,207) (336,201) (336,243) (336,260) (336,254)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (429,223)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x3 (332,221) (332,244) (332,207)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x1 (542,146)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (217,271)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (412,254)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (467,210) (474,180) (440,170) (460,233)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (441,222)
+room metadata_terrain_gallows_act4_interlude_part3_p3_3_rooms_boss_01.arm
+  sector ['hide_teleports', 341, 206, 548, 343, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 335, 125, 341, 343, '']
+  sector ['no_critters', 121, 71, 650, 401, '']
+  sector ['hide_teleports', 341, 93, 519, 206, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['env', 142, 58, 665, 397, '']
+  sector ['no_movement_skills', 521, 64, 551, 205, '']
+  sector ['no_movement_skills', 521, 122, 626, 230, '']
+  point [447.0, 248.0, 'force:mapboss']
+  point [176.0, 231.0, 'checkpoint2']
+  point [378.0, 227.0, 'telepad']
+  point [563.0, 162.0, 'entrance3']
+  point [437.0, 177.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (179,247)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (551,145) (322,228)
+  obj Metadata/Terrain/Gallows/Act4_Interlude/Part3/P3_3/Objects/IcyOwlBossArenaMiddle x1 (435,208)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (337,240) (519,172) (337,212)

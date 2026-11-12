@@ -1,0 +1,131 @@
+# The Rotten Druid / The Fungus Behemoth
+content: Act 1
+monsters: Metadata/Monsters/BeehiveBehemoth/FungusBehemoth, Metadata/Monsters/BeehiveBehemoth/FungusBehemothCampaignSTANDALONE, Metadata/Monsters/BeehiveBehemoth/FungusBehemothMap, Metadata/Monsters/BeehiveBehemoth/FungusBehemothSTANDALONE
+scripts: Metadata/Monsters/BeehiveBehemoth/FungusBehemoth, Metadata/Monsters/BeehiveBehemoth/FungusBehemothSTANDALONE, Metadata/Monsters/BeehiveBehemoth/FungusBehemothMap_
+own chain: Metadata/Monsters/BeehiveBehemoth/FungusBehemoth, Metadata/Monsters/BeehiveBehemoth/FungusBehemothSTANDALONE, Metadata/Monsters/BeehiveBehemoth/FungusBehemothMap_
+areas: G1_6 The Grim Tangle act1; G1_10 Root Hollow act1; MapHive Hive act10; MapSeepage Seepage act10; MapDecay Decay act10
+ai: Metadata/Monsters/BeehiveBehemoth/FungusBehemoth.ais, Metadata/Monsters/BeehiveBehemoth/FungusBehemothSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- MMSFungusBehemothProjectile [monster_mortar] action=SpellProjectileUpward anim=default:spellcast_01,spellcast_02
+    flags: is_area_damage
+- EASFungusBehemothBarrage [empty_action_spell] action=SpellProjectileFire anim=default:barrage_01
+- EASFungusBehemothBackup [empty_action_spell_2] action=SpellProjectileCold anim=default:swamp_backup_01
+- GPSFungusBehemothTreeTrunk [geometry_projectiles_spell] action=SpellProjectileLightning anim=default:tree_upheaval_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- FungusBehemothWarpEnemiesToSwamp [izaro_warp] action=Dance anim=default:teleport_fast_01
+- EASFungusBehemothTeleport [empty_action_spell] action=SpellProjectileChaos anim=default:vine_teleport_01
+- SSMFungusBehemothVine [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/BeehiveBehemoth/FungusBehemothVine
+- SOFungusBehemothSpawnPod [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/BeehiveBehemoth/Objects/FungusPod1, Metadata/Monsters/BeehiveBehemoth/Objects/FungusPod2, Metadata/Monsters/BeehiveBehemoth/Objects/FungusPod3
+- GSFungusBehemothPodExplosion [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSFungusBehemothRockSmash [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- CGEFungusBehemothCentralGoop [monster_cast_ground_effect] action=None anim=-
+    flags: is_area_damage
+- EASFungusBehemothStandAloneStartArena [empty_action_spell_3] action=SpellProjectileCold anim=default:swamp_backup_01
+
+## own states and handlers
+states: 
+- on_event_tree_face_for_GeometryProjectiles = { FaceObject( tree_target ); }
+- on_event_start_tracking_for_GeometryProjectiles = { SetTarget( tree_target, true ); }
+- on_event_stop_tracking_for_GeometryProjectiles = { SetTargetLocation( tree_target, _, _, true ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/epk/alive.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/epk/dead.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/epk/alive.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/epk/dead.epk' ); }
+- on_effect_destroy_EASFungusBehemothTeleport = { SetLightState( alive, 0.5 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/epk/alive.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/epk/dead.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/FungusBehemoth/vines_detached.ao
+- preload_object Metadata/Monsters/BeehiveBehemoth/Objects/SwampMarker
+- preload_object Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawnerFungusBehemothPitSTANDALONE
+
+## adds and forms
+- Metadata/Monsters/BeehiveBehemoth/FungusBehemothVine "Daemon" bossbar=0 skills=GAFungusBehemothVineSlam comps= states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/BeehiveBehemoth/Objects/SwampMarker:  [blocking=false object_size=6 server_only=true] states=collidable;delete on_or_create_state_collidable_0{{ RemoveCollidability(); }}; on_or_create_state_collidable_1{{ MakeCollidable(); }}; on_or_create_state_delete_1{{ Delete(); }}
+- Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawnerFungusBehemothPitSTANDALONE:  [server_only=true] states=burst;hidden on_state_burst_1{{ PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Fungal_Cave/spore_bombs/FungusBombAudio.ao' ); }}; on_or_create_state_hidden_0{{ EnableRendering(); }}; on_or_create_state_hidden_1{{ DisableRendering(); }}
+- Metadata/Monsters/BeehiveBehemoth/Objects/FungusPod1:  [server_only=true] states= 
+- Metadata/Monsters/BeehiveBehemoth/Objects/FungusPod2:  [server_only=true] states= 
+- Metadata/Monsters/BeehiveBehemoth/Objects/FungusPod3:  [server_only=true] states= 
+- metadata/monsters/beehivebehemoth/bossroomminimapicon: MinimapIcon [server_only=true icon=GrimTangleBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GrimTangleBossInactive ); }}
+- metadata/monsters/beehivebehemoth/fungusbehemothvine: Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states= on_start_Emerge{{ IfExists( nearest_player, { FaceObject( nearest_player ); } ); }}
+- metadata/monsters/beehivebehemoth/objects/funguspod:  [server_only=true] states= 
+- metadata/monsters/beehivebehemoth/objects/funguspod1:  [server_only=true] states= 
+- metadata/monsters/beehivebehemoth/objects/funguspod2:  [server_only=true] states= 
+- metadata/monsters/beehivebehemoth/objects/funguspod3:  [server_only=true] states= 
+- metadata/monsters/beehivebehemoth/objects/swampmarker:  [blocking=false object_size=6 server_only=true] states=collidable;delete on_or_create_state_collidable_0{{ RemoveCollidability(); }}; on_or_create_state_collidable_1{{ MakeCollidable(); }}; on_or_create_state_delete_1{{ Delete(); }}
+- Metadata/Monsters/BeehiveBehemoth/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=GrimTangleBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GrimTangleBossInactive ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_6_rooms_boss_1.arm
+  sector ['hide_teleports', 67, 70, 304, 299, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 60, 58, 313, 307, '']
+  sector ['no_movement_skills', 64, 39, 71, 303, '']
+  sector ['no_movement_skills', 189, 68, 332, 75, '']
+  point [167.0, 218.0, 'mapboss']
+  point [255.0, 121.0, 'telepad1']
+  point [94.0, 179.0, 'telepad2']
+  point [128.0, 176.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/BeehiveBehemoth/Objects/SwampMarker x1 (183,180)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (273,46)
+  obj Metadata/Monsters/Labyrinth/TeleportMarker x1 (184,180)
+  obj Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawner x18 (85,134) (137,109) (140,117) (88,142) (88,211) (154,248) (229,259) (270,220) (268,163) (232,116)
+  obj Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawnerFungusBehemothPit x14 (181,198) (162,189) (163,179) (176,187) (178,171) (163,170) (182,157) (189,172) (199,163) (208,173)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (42,181) (259,46)
+  obj Metadata/Monsters/BeehiveBehemoth/BossRoomMinimapIcon x1 (185,182)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x2 (259,71) (67,182)
+room metadata_terrain_maps_seepage_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 80, 64, 328, 331, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 79, 86, 302, 311, '']
+  sector ['boss_sector', 79, 83, 319, 314, '']
+  point [264.0, 195.0, 'mapboss']
+  point [46.0, 104.0, 'checkpoint']
+  point [46.0, 288.0, 'checkpoint']
+  obj Metadata/Monsters/BeehiveBehemoth/Objects/SwampMarker x1 (205,194)
+  obj Metadata/Monsters/Labyrinth/TeleportMarker x1 (205,195)
+  obj Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawnerFungusBehemothPit x22 (205,221) (189,211) (187,199) (198,213) (197,198) (186,185) (205,184) (210,196) (221,190) (216,181)
+  obj Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawner x23 (283,278) (47,305) (69,271) (71,120) (46,86) (134,240) (161,90) (133,145) (232,101) (143,228)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x3 (206,87) (206,303) (311,197)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x2 (53,274) (57,119)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x2 (80,288) (78,103)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x14 (76,111) (76,117) (76,105) (76,99) (76,93) (76,87) (76,123) (76,294) (76,300) (76,288)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (159,196)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (227,123)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (270,166) (255,128) (276,196) (255,260)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (266,220)
+room metadata_terrain_maps_decay_rooms_boss_1.arm
+  sector ['hide_teleports', 67, 139, 304, 368, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 64, 143, 69, 364, '']
+  sector ['no_critters', 49, 125, 311, 368, '']
+  sector ['boss_sector', 69, 143, 290, 364, '']
+  point [167.0, 287.0, 'mapboss']
+  point [43.0, 253.0, 'checkpoint']
+  obj Metadata/Monsters/BeehiveBehemoth/Objects/SwampMarker x1 (183,249)
+  obj Metadata/Monsters/Labyrinth/TeleportMarker x1 (184,249)
+  obj Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawner x18 (85,203) (137,178) (140,186) (88,211) (88,280) (154,317) (229,328) (270,289) (268,232) (232,185)
+  obj Metadata/Monsters/FungusZombie/FungalBurstMushrooms/FungalBurstSpawnerFungusBehemothPit x14 (181,267) (162,258) (163,248) (176,256) (178,240) (163,239) (182,226) (189,241) (199,232) (208,242)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x1 (259,115)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x4 (307,256) (287,307) (247,345) (198,367)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (45,273)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (67,251)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x10 (65,259) (65,265) (65,253) (65,247) (65,241) (65,235) (65,229) (65,271) (65,223) (65,276)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (153,250)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (117,207)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (239,291) (134,313) (188,318) (253,255)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (138,273)

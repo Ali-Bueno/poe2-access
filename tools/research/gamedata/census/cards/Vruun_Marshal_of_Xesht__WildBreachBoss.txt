@@ -1,0 +1,143 @@
+# Vruun, Marshal of Xesht
+content: League: Breach
+monsters: Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss
+scripts: Metadata/Monsters/Breach/Monsters/WildBreachBoss/BreachWildBoss
+own chain: Metadata/Monsters/Breach/Monsters/WildBreachBoss/BreachWildBoss, Metadata/Monsters/Breach/Monsters/BreachMonster
+areas: 
+ai: Metadata/Monsters/Breach/Monsters/WildBreachBoss/BreachWildBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedComboTEMP [melee] action=MeleeCombo anim=-
+- WildBreachBossCombo [melee] action=OffMelee anim=default:combo_01
+- MPWWildBreachBossFingerProjectile [monster_projectile_weapon] action=SpellProjectile anim=-
+- EASWildBreachBossDDWarcry [empty_action_spell] action=Warcry anim=default:warcry_01
+- GAWildBreachBossGroundSlam [geometry_attack] action=GroundSlam anim=default:groundslam_01
+    geom: circle length=35 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- DTTWildBreachBossLeapSlam [dash_attack_to_target] action=LeapSlam anim=default:leapslam_01
+- GAWildBreachBossLeapSlam [geometry_attack] action=GroundSlam anim=default:groundslam_01
+    geom: circle length=30 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EGBreachWildBossWarcry [execute_geal] action=Warcry anim=default:warcry_01
+    GEAL 1162 on any: self{} each{this.Call( ApplyDeathExplodeBuff, triggerer);} r=45
+- GSBreachBossWildWarcryDeathExplode [geometry_spell] action=None anim=-
+    geom: circle length=14 width=0 angle=0 range=1600 delay=1500 anchor=4
+    flags: is_area_damage
+- GSWildBreachBossBellNova [geometry_spell] action=None anim=-
+    geom: circle length=33 width=0 angle=0 range=220 delay=33 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: breachenraged; minimap_icon; breach_boss_warp; spawned_in_breach
+- on_construction_complete = { IfAlive( (){ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/alive.epk' ); }, (){} ); ShowMinimapIcon(); }
+- on_death = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/WildBreachBoss/attachments/WildBreachBossMaul.ao' ); my_weapon.MoveToBone( R_Weapon_02, 0 ); PlayTextAudio( VruunBoss_Death_Random, 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss' ); SetMinimapIcon( WildBreachBossInactive ); }
+- on_combo_01 = { PlayTextAudio( VruunBoss_Combo_Random, 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss' ); }
+- on_groundslam_01 = { PlayTextAudio( VruunBoss_GroundSlam_Random, 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( VruunBoss_Knockdown_Random, 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss' ); }
+- on_leapslam_01 = { PlayTextAudio( VruunBoss_LeapSlam_Random, 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss' ); }
+- on_warcry_01 = { PlayTextAudio( VruunBoss_Warcry_Random, 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss' ); }
+- on_transition = { MakeCollidable(); }
+- on_untransition = { RemoveCollidability(); }
+- on_state_breach_boss_warp_1 = { RemoveCollidability(); }
+- on_state_breach_boss_warp_0 = { MakeCollidable(); }
+- on_death = { SetStateTo( minimap_icon, 0 ); }
+- on_construction_complete = { IfInAreaLike( 'ChayulaLeague_Tower', (){}, (){ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/breach_clip.epk' ); } ); Delay( 0.1, { IfTeam( 1, (){ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/breach_clip.epk' ); }, (){} ); } ); }
+- on_transition = { EnableRendering(); }
+- create_transitioned = { EnableRendering(); If( GetState( breach_boss_warp ) == 0, (){ MakeCollidable(); }, () { RemoveCollidability(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/slam_Gather.epk' ); SetEPKFloat( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/sla
+- create_untransitioned = { RemoveCollidability(); DisableRendering(); }
+- on_untransition = { DisableRendering(); }
+- on_or_create_state_minimap_icon_0 = { HideMinimapIcon(); }
+- on_or_create_state_minimap_icon_1 = { ShowMinimapIcon(); }
+- on_state_breach_boss_warp_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/slam_Gather.epk' ); local breach_boss = FindClosestObject( 'Metadata/Monsters/Breach/WildBreachBoss/WildBreachBoss', 80 ); this.SetEPKBonePositionMatrixOther( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBre
+- on_state_breach_boss_warp_0 = { SetEPKFloat( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/slam_Gather.epk', 'epkFX_FadeTIME', 0.5, true, 0.5 ); Delay( 0.5, { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/slam_Gather.epk' ); } ); }
+- on_death = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delve/general/engaging_light/emissive_texture_fadeout.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delve/general/engaging_light/no_emissive_texture.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/Breach/WildBreachBoss/HandPortal
+- preload_monster_variety Metadata/Monsters/Breach/WildBreachBoss/BellBreach
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Delve/general/engaging_light/emissive_texture_fadeout.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Breach/WildBreachBoss/epk/slam_Gather.epk
+
+## adds and forms
+- Metadata/Monsters/Breach/WildBreachBoss/HandPortal "Daemon" bossbar=0 skills=MAASNoLineOfSight,GAWildBreachBossTitanHandSlamBelow comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/Breach/WildBreachBoss/BellBreach "Flesh Bell" bossbar=0 skills=GSWildBreachBossBellNova comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal:  [object_size=0 server_only=true] states=activate 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands:  [blocking=false server_only=true] states=emerge on_state_emerge_1{{ PlayAnimation(emerge_01); }}; create_state_emerge_1{{ PlayAnimation(emerge_01); GoToAnimationEnd( ); }}
+- Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega:  [object_size=0 server_only=true] states=activate 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Objects/AilithDeathLocation:  [blocking=false object_size=2 server_only=true] states= 
+
+## lines
+- on_death -> VruunBoss_Death_Random: The cycle... resumes...
+- on_combo_01 -> VruunBoss_Combo_Random: Countless vessels... with one will!
+- on_groundslam_01 -> VruunBoss_GroundSlam_Random: Crushed beneath!
+- on_knockdown_bwd_01 -> VruunBoss_Knockdown_Random: A brief failure...
+- on_leapslam_01 -> VruunBoss_LeapSlam_Random: Collapse inward!
+- on_warcry_01 -> VruunBoss_Warcry_Random: End in rupture!
+
+## linked buffs
+- breach_boss_spider_tether "Webbed": Movement speed [Slow|Slowed]. Moving far enough away from the web  will break it. | stats=movement_speed_+%_final_from_breach_boss_spider_tether
+- breach_discharge "":  | stats=capped_actor_scale_+%_from_soul_eater_if_not_player,skill_speed_+%,base_additional_physical_damage_reduction_%,base_resist_all_elements_%
+- breach_discharge_aura "":  | stats=grant_actor_scale_+%_to_aura_owner_on_death,grant_attack_speed_+%_to_aura_owner_on_death,grant_damage_reduction_%_to_aura_owner_on_death,soul_is_consumed_on_death
+- breach_hand_mage_storm_lightning_aura "Esh's Storm": You are taking Lightning Damage over time | stats=base_lightning_damage_taken_per_minute
+- breach_monster_potency "":  | stats=monster_potency_+%
+- breach_team_warp_buff "":  | stats=lightning_damage_+%,base_movement_velocity_+%,base_damage_taken_+%
+- breach_waking_nightmare "Waking Nightmare": You take 10% increased Damage and have 10% reduced Light Radius for 10 seconds per stack | stats=light_radius_+%,base_damage_taken_+%
+- breach_walk_buff "Into the Breach": Allows you to see nearby [FlamesOfChayula|Flames of Chayula] | stats=
+- breach_wild_boss_explode_on_death "":  | stats=
+- mtx_mantra_of_destruction_breach_on_kill_debuff "":  | stats=
+- purple_breach_flame_buff "Purple Flame of Chayula": [Gain] Damage as [Chaos] Damage per stack. | stats=non_skill_base_all_damage_%_to_gain_as_chaos
+
+## arena rooms
+room metadata_terrain_gallows_leagues_breach_breachdomain_01_rooms_unique_boss_02.arm
+  sector ['hide_teleports', 57, 341, 381, 647, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 1, 251, 437, 713, '']
+  sector ['boss_room', 75, 235, 380, 637, '']
+  point [218.0, 532.0, 'mapboss']
+  point [218.0, 359.0, 'telepad1']
+  point [231.0, 274.0, 'checkpoint']
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal x5 (305,481) (272,408) (327,520) (168,582) (137,606)
+  obj Metadata/MiscellaneousObjects/Breach/BreachMapLootMarker x1 (237,52)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (211,53)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands x1 (218,562)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner x1 (339,589)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega x2 (362,605) (84,612)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (218,314)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Objects/AilithDeathLocation x1 (219,506)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_BreachBoss x1 (218,262)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (219,340)
+room metadata_terrain_gallows_leagues_breach_breachdomain_01_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 57, 341, 381, 647, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 1, 251, 437, 713, '']
+  point [218.0, 532.0, 'mapboss']
+  point [219.0, 363.0, 'telepad']
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal x5 (305,481) (272,408) (327,520) (168,582) (137,606)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (219,317)
+  obj Metadata/MiscellaneousObjects/PortalToggleable x1 (218,90)
+  obj Metadata/MiscellaneousObjects/Breach/BreachMapLootMarker x1 (237,52)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (211,53)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands x1 (218,562)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner x1 (339,589)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega x2 (362,605) (84,612)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (219,340)
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_xesht_rooms_boss_02.arm
+  sector ['hide_teleports', 57, 341, 381, 647, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 1, 251, 437, 713, '']
+  point [218.0, 532.0, 'mapboss5']
+  point [218.0, 359.0, 'telepad9']
+  point [218.0, 257.0, 'checkpoint10']
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal x5 (305,481) (272,408) (327,520) (168,582) (137,606)
+  obj Metadata/MiscellaneousObjects/Breach/BreachMapLootMarker x1 (237,52)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (211,53)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands x1 (218,562)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner x1 (339,589)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega x2 (362,605) (84,612)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (218,282)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_BreachBoss x1 (240,261)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (220,322)

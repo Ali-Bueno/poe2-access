@@ -1,0 +1,180 @@
+# Cualli, Kamasan Smith
+content: League: Incursion
+monsters: Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3
+scripts: Metadata/Monsters/LeagueIncursionNew/Smithy/VaalForgeMaster/Tier3/VaalForgemaster
+own chain: Metadata/Monsters/LeagueIncursionNew/Smithy/VaalForgeMaster/Tier3/VaalForgemaster, Metadata/Monsters/LeagueIncursionNew/IncursionMiniBossBase
+areas: 
+ai: Metadata/Monsters/LeagueIncursionNew/Smithy/VaalForgeMaster/Tier3/VaalForgemaster.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MDGoldCrushTether [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaEdge
+- GAVaalForgemasterSnake [geometry_attack] action=Melee anim=default:axe_attack_01, blade_attack_01
+    geom: cone length=25 width=0 angle=210 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- EASForgeMasterReset [empty_action_spell] action=SpellBuffChaos anim=default:enrage_01
+- DTTForgeBossLeap [dash_to_target] action=LeapSlam anim=default:leap_slam_01
+- GAForgemasterBossLeap [geometry_attack] action=Melee anim=default:axe_attack_01, blade_attack_01
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EASForgeBossBrandExplosion [effect_driven_spell] action=SpellBuff anim=default:epic_brand_attack_01
+- GSForgeBossBrandExplosion [geometry_spell] action=Melee anim=default:axe_attack_01, blade_attack_01
+    geom: circle length=40 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- EAAVolcanicFissure [empty_action_attack] action=VolcanicFissure anim=default:volcanic_fissure_01
+- GTVaalForgeBossSunder1 [geometry_trigger] action=GroundSlam anim=default:underarm_waves_01
+    geom: trigger count=9 delay=600 spread=130 radius=0 angle=23 anchor=2
+- GAVaalForgeBossSunder1 [geometry_attack] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=66 delay=33 anchor=4
+    flags: is_area_damage
+- GAForgemasterBossLeapLava [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- DTTForgeBossLeapLava [dash_to_target] action=LeapSlamOffhand anim=default:leap_slam_lava_01
+- MDForgeBossWaves1 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- MDForgeBossWaves2 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- MDForgeBossWaves3 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- MDForgeBossWaves4 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- CTS1VaalForgeMasterClose [change_to_stance1] action=None anim=-
+- GAFissureSlamSpikeDamage [geometry_attack] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=100 delay=100 anchor=4
+    flags: is_area_damage
+- SOFissureSlamSpike [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes
+- EGDetonateWarcry [execute_geal] action=SpellBuffFire anim=default:warcry_detonate_01
+    GEAL 1132 on ['Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes', 'Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikesStandAlone']: self{} each{triggerer.SetStateTo( explode, 1 );} r=50
+- GAFissureWarcrySpikeDamage [geometry_attack] action=None anim=-
+    geom: circle length=23 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1133 on ['Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes', 'Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikesStandAlone']: self{} each{triggerer.IfState( explode, 1, (){}, (){ SetStateTo( explode, 2 ); } );} r=65
+- SOVaalForgeMasterFissureTrailSTANDALONE [spawn_object] action=VolcanicFissure anim=default:volcanic_fissure_01
+    objects: Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterFissureTrailStandAlone
+- GAVaalForgeMasterHammerImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EASVaalForgeMasterTooCool [empty_action_spell] action=SpellBuffFast anim=default:cooldown_01
+- EAAVaalForgemasterHammerSlam [empty_action_attack] action=HeavyStrike anim=default:hammer_attack_01
+- SOVaalForgemasterLavaPoolSTANDALONE [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/VaalForgeMaster/Lava/SunAuraStandAlone
+- MDForgeBossWavesIncursion [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- EAAVaalForgemasterLavaSlam [empty_action_attack] action=HeavyStrike anim=default:hammer_attack_01
+
+## own states and handlers
+states: opening; weapon_state; light; epk; env_override
+- on_or_create_state_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/epk/glowyMoltenyBody.epk' ); }
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/epk/glowyMoltenyBody.epk' ); }
+- create_state_light_1 = { Delay( 0.01, { SetLightState( pre_fight_light ); } ); }
+- on_state_light_1 = { SetLightState( pre_fight_light, 1.5 ); }
+- create_state_light_2 = { Delay( 0.01, { SetLightState( light ); } ); }
+- on_state_light_2 = { SetLightState( light, 1.5 ); }
+- create_state_light_3 = { Delay( 0.01, { SetLightState( on_death ); } ); }
+- on_state_light_3 = { SetLightState( on_death, 1.5 ); }
+- on_axe_attack_01 = { Roll( 1, 4, () { PlayTextAudio( Cualli_Past_Axe_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); } ); }
+- on_blade_attack_01 = { Roll( 1, 4, () { PlayTextAudio( Cualli_Past_Attack_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); } ); }
+- on_hammer_attack_01 = { Roll( 1, 2, () { PlayTextAudio( Cualli_Past_Hammer_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); } ); }
+- on_volcanic_fissure_01 = { PlayTextAudio( Cualli_Past_Fissure_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( Cualli_Past_Knockdown_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+- on_warcry_detonate_01 = { PlayTextAudio( Cualli_Past_Warcry_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+- on_underarm_waves_01 = { PlayTextAudio( Cualli_Past_Waves_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+- on_epic_brand_attack_01 = { PlayTextAudio( Cualli_Past_Brand_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+- on_enrage_01 = { PlayTextAudio( Cualli_Past_Waves_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+- on_smithing_end_01 = { PlayTextAudio( Cualli_Past_Emerge_Random, 'Metadata/Monsters/LeagueIncursionNew/Smithy/ForgemasterIncursionTier3', ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Monsters/VaalForgeMaster/Objects/LavaBlocking.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/volcanicFissure_hit.ao
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaEdge, Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalForgeMaster/Lava/SunAuraStandAlone:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes:  [blocking=true object_size=3 server_only=true] states=explode on_initial_position_set{{ SetVariableScale( Random( 0.9, 1.5 ), true, true ); }}; on_state_explode_1{{ PlayAnimation( explode_slow ); }}; on_state_explode_2{{ PlayAnimation( explode_fast ); }}
+- Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterFissureTrailStandAlone:  states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikesStandAlone:  [blocking=true object_size=3 server_only=true] states=explode on_initial_position_set{{ SetVariableScale( Random( 0.9, 1.5 ), true, true ); }}; on_state_explode_1{{ PlayAnimation( explode_slow ); }}; on_state_explode_2{{ PlayAnimation( explode_fast ); }}
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon: MinimapIcon [server_only=true icon=IncursionViperLegionBarracksActive] states=quadrillas 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon: MinimapIcon [server_only=true icon=IncursionGarrisonActive] states= 
+- Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController: ControlZone [server_only=true] states= 
+
+## lines
+- on_axe_attack_01 -> Cualli_Past_Axe_Random: Cut down!
+- on_blade_attack_01 -> Cualli_Past_Attack_Random: Eviscerate!
+- on_hammer_attack_01 -> Cualli_Past_Hammer_Random: Break!
+- on_volcanic_fissure_01 -> Cualli_Past_Fissure_Random: Behold, her fortune!
+- on_knockdown_bwd_01 -> Cualli_Past_Knockdown_Random: Ugh... I am not defeated... so easily!
+- on_warcry_detonate_01 -> Cualli_Past_Warcry_Random: Akte ibiik!
+- on_underarm_waves_01 -> Cualli_Past_Waves_Random: Golden ruin!
+- on_epic_brand_attack_01 -> Cualli_Past_Brand_Random: You belong to us now!
+- on_enrage_01 -> Cualli_Past_Waves_Random: Golden ruin!
+- on_smithing_end_01 -> Cualli_Past_Emerge_Random: Etsa ibiik ob'paláa!
+
+## linked buffs
+- vaal_forgemaster_boss_lava "":  | stats=non_skill_base_physical_damage_%_to_gain_as_fire,action_speed_cannot_be_reduced_below_base,base_damage_taken_+%
+
+## arena rooms
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_4open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,91) (161,92) (142,92) (125,92) (112,160) (66,93)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x8 (185,71) (148,72) (129,72) (112,72) (120,179) (53,73) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,163) (98,164) (100,91) (139,166) (157,166) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (98,176) (99,72) (139,178) (157,178) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (63,215) (87,33) (166,33) (186,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (76,131) (176,132)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x12 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (31,216) (55,34) (198,33) (218,218)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x12 (22,192) (226,192) (199,50) (55,50) (55,15) (36,33) (217,32) (198,14) (237,219) (218,237)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_3open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,93) (166,95) (147,95) (128,95) (108,95) (66,95)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x6 (185,73) (153,75) (134,75) (115,75) (95,75) (53,75)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,165) (94,167) (116,167) (156,167) (135,167) (195,167)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,177) (94,179) (116,179) (156,179) (135,179) (195,179)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,143)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (186,216) (167,32) (85,33) (65,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (82,126) (177,127)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x10 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (33,218) (218,218) (53,31) (199,31)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x10 (52,50) (200,50) (23,191) (227,191) (33,236) (14,218) (218,236) (237,218) (38,35) (214,34)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_garrison_4open_03.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [153.0, 41.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion x6 (198,91) (174,97) (149,93) (120,94) (112,160) (57,97)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingShieldIncursion_ x8 (185,71) (163,73) (136,73) (110,73) (120,179) (61,71) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion x6 (57,163) (83,164) (84,85) (148,165) (170,165) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (83,176) (84,73) (148,177) (170,177) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon x1 (126,129)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController x1 (133,128)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x6 (211,90) (211,163) (41,90) (41,163) (126,62) (126,190)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionBenchCampaignCurrency x1 (126,202)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (135,54)

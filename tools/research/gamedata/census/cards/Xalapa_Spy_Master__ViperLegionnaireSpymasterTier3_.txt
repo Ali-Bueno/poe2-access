@@ -1,0 +1,85 @@
+# Xalapa, Spy Master
+content: Act 3
+monsters: Metadata/Monsters/LeagueIncursionNew/ViperLegionnaires/ViperLegionnaireSpymasterTier3_
+scripts: Metadata/Monsters/VaalMonsters/ViperLegionnaire/Incursion/Tier3/Spymaster
+own chain: Metadata/Monsters/VaalMonsters/ViperLegionnaire/Incursion/Tier3/Spymaster
+areas: 
+ai: Metadata/Monsters/VaalMonsters/ViperLegionnaire/Incursion/SpymasterTier3.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeed [melee] action=None anim=-
+- CGEIncursionSpySmokeGround [monster_cast_ground_effect_location] action=None anim=-
+- CTS1Generic [change_to_stance1] action=None anim=-
+- CTS2Generic [change_to_stance2] action=None anim=-
+- GASpymasterClawCombo [geometry_attack] action=None anim=-
+    geom: rectangle length=70 width=20 angle=0 range=0 delay=0 anchor=3
+- EAASpymasterCloneStrike [empty_action_attack] action=HeavyStrike anim=default:multistrike_01
+- GASpymasterCloneStrikeLeft [geometry_attack] action=None anim=-
+    geom: cone length=13 width=0 angle=160 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage skill_can_be_active_blocked_from_all_directions
+- GASpymasterCloneStrike [geometry_attack] action=None anim=-
+    geom: cone length=13 width=0 angle=160 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage skill_can_be_active_blocked_from_all_directions
+
+## own states and handlers
+states: stance; tier; wave_count; spies_dead
+- on_state_stance_3 = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/fade_Out_dither.epk' ); }
+- on_state_stance_2 = { DisableRendering(); RemoveEffectPack( 'Metadata/Effects/Utility/EPKs/fade_Out_dither.epk' ); }
+- create_state_stance_2 = { DisableRendering(); }
+- on_state_stance_1 = { EnableRendering(); }
+- create_state_stance_1 = { EnableRendering(); }
+- on_emerge_01 = { PlayTextAudio( Spymaster_Emerge_Random ); }
+- on_claw_combo_01 = { Roll( 3, 5,{ PlayTextAudio( Spymaster_Flurry_Random ); }); }
+- on_claw_flurry_01 = { Roll( 3, 5,{ PlayTextAudio( Spymaster_Slash_Random ); }); }
+- on_effect_start_EAASpymasterCloneStrike = { PlayTextAudio( Spymaster_CloneStrike_Random ); }
+hides(DisableRendering): [('deli_clone', 1), ('stance', 2)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_epk Metadata/Effects/Utility/EPKs/fade_Out_dither.epk
+- preload_epk Metadata/Effects/Utility/EPKs/fade_In.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/SpyMaster/AOs/MultiSlash_Circle.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Gallows/Act3/3_16/Objects/AtziriStatueTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardAggoratAtziriStatue, TitleCardAggoratAtziriStatueSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_16/Objects/BloodTrailTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardAggoratBloodyArea, TitleCardAggoratBloodyAreaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Monsters/VaalMonsters/Living/objects/Marker:  [blocking=false object_size=0 server_only=true] states= 
+
+## lines
+- on_emerge_01 -> Spymaster_Emerge_Random: You challenge the best of the best...
+- on_effect_start_EAASpymasterCloneStrike -> Spymaster_CloneStrike_Random: Rage of the Viper!
+
+## linked buffs
+- spymaster_poison_pools "Poisoned Pool": You are taking Chaos Damage over time. | stats=base_chaos_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_16_rooms_unique_divider_gate_01.arm
+  point [218.0, 445.0, 'checkpoint2']
+  obj Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLivingSacrificeGuide x7 (196,335) (241,335) (218,356) (251,320) (184,319) (204,343) (232,343)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotSpearColdSacrifice x6 (276,116) (176,140) (204,280) (239,280) (217,266) (253,241)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrifice x13 (255,125) (186,131) (204,294) (230,291) (226,277) (191,270) (177,268) (182,251) (169,235) (178,222)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotKnifestickColdSacrifice x8 (257,105) (178,120) (192,286) (234,270) (193,256) (167,256) (249,263) (191,182)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersBannerSacrifice x3 (218,306) (256,224) (243,182)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrificePray x4 (224,174) (233,178) (213,177) (202,180)
+  obj Metadata/Monsters/VaalMonsters/Living/VaalOverseerLivingSacrificeGuard x2 (209,365) (227,365)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrificeWorship x1 (218,211)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (218,149)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (218,494)
+  obj Metadata/NPC/Four_Act3/AggoratPastAtziriGlyph x1 (218,223)
+  obj Metadata/MiscellaneousObjects/PatrolPathFinalNode x1 (218,448)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (218,425)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x8 (310,126) (310,172) (310,241) (310,57) (126,126) (126,172) (126,241) (126,57)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x3 (325,424) (112,414) (111,314)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x2 (356,586) (80,586)
+  obj Metadata/Terrain/Gallows/Act3/3_16/Objects/AtziriStatueTitle x1 (217,218)
+  obj Metadata/Terrain/Gallows/Act3/3_16/Objects/BloodTrailTitle x1 (218,477)
+room metadata_terrain_gallows_act3_3_15_rooms_library_libraryh_4open_01.arm
+  obj Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller x4 (57,13) (377,149) (13,149) (149,285)
+  obj Metadata/Monsters/VaalMonsters/Living/objects/Marker x38 (47,237) (250,52) (81,112) (307,132) (225,204) (291,56) (166,94) (232,94) (164,178) (308,70)
+room metadata_terrain_gallows_act3_3_15_rooms_library_libraryv_4open_01.arm
+  obj Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller x4 (13,149) (286,149) (57,13) (149,377)
+  obj Metadata/Monsters/VaalMonsters/Living/objects/Marker x37 (89,161) (177,54) (59,109) (177,159) (245,129) (169,296) (238,296) (65,299) (59,250) (175,205)

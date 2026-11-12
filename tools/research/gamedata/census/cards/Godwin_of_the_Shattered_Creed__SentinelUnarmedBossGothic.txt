@@ -1,0 +1,74 @@
+# Godwin of the Shattered Creed
+content: Interlude
+monsters: Metadata/Monsters/MarakethSanctumTrial/Boss/SentinelUnarmedBossGothic
+scripts: Metadata/Monsters/GothicSentinels/SentinelUnarmedBoss
+own chain: Metadata/Monsters/GothicSentinels/SentinelUnarmedBoss, Metadata/Monsters/GothicSentinels/GothicSentinelsBase
+areas: P1_4 Holten act6
+ai: Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelUnarmedBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=-
+- GAMarakethSentinelUnarmedBossFistSlam [geometry_attack] action=Sweep anim=default:fist_slam_01
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinelUnarmedBossFistSlamFrontalCone [geometry_attack] action=None anim=-
+    geom: rectangle length=40 width=20 angle=0 range=600 delay=33 anchor=3
+    flags: is_area_damage
+- EAAMarakethSentinelUnarmedBossFootSlam [empty_action_attack] action=GroundSlam anim=default:foot_stomp_01
+- GASMarakethSentinelUnarmedBossFootSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinelUnarmedBossFootSlamWave [geometry_attack] action=None anim=-
+    geom: cone length=70 width=0 angle=25 range=1500 delay=100 anchor=3
+    flags: is_area_damage
+- EAAMarakethSentinelUnarmedBossEnrage [empty_action_spell] action=SpellAreaOfEffect anim=default:activate_stone_01
+- GSMarakethSentinelUnarmedBossExplodeSelf [geometry_spell] action=SpellAreaOfEffectFire anim=default:living_bomb_01
+    geom: circle length=80 width=0 angle=0 range=200 delay=33 anchor=2
+    flags: is_area_damage
+- GAMarakethSentinelUnarmedBossFootSlamWaveLeft [geometry_attack] action=None anim=-
+    geom: cone length=70 width=0 angle=25 range=1500 delay=100 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinelUnarmedBossFootSlamWaveRight [geometry_attack] action=None anim=-
+    geom: cone length=70 width=0 angle=25 range=1500 delay=100 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: active; phase; enraged
+- on_construction_complete = { globals.sentinelunarmedboss += this; }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/frozenAura.epk' ); }
+- on_event_death = { globals.sentinelmaceboss.IfAlive( (){ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/fieryAura.epk' ); } ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/fire_death_01.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/gothicsentinels/gargoyleglyphinterlude: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=8] states= 
+- metadata/monsters/gothicsentinels/gargoyleinterlude:  [server_only=true] states=active on_end_emerge_head_look_01{{ PlayAnimation( emerge_idle_02 ); }}; create_state_active_0{{ PlayAnimation( emerge_idle_01 ); }}; on_state_active_1{{ PlayAnimation( emerge_head_look_01 ); }}; create_state_active_1{{ PlayAnimation( emerge_idle_02 ); }}
+- metadata/monsters/gothicsentinels/gothicsentinelsbase: Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=active;phase;enraged 
+- Metadata/Monsters/GothicSentinels/GargoyleGlyphInterlude: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=8] states= 
+- Metadata/Monsters/GothicSentinels/GargoyleInterlude:  [server_only=true] states=active on_end_emerge_head_look_01{{ PlayAnimation( emerge_idle_02 ); }}; create_state_active_0{{ PlayAnimation( emerge_idle_01 ); }}; on_state_active_1{{ PlayAnimation( emerge_head_look_01 ); }}; create_state_active_1{{ PlayAnimation( emerge_idle_02 ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act4_interlude_part1_p1_4_rooms_unique_boss_1.arm
+  sector ['hide_teleports', 160, 142, 422, 440, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 160, 142, 422, 440, '']
+  point [220.0, 323.0, 'mapboss1']
+  point [353.0, 322.0, 'mapboss2']
+  point [353.0, 77.0, 'magic']
+  point [289.0, 101.0, 'checkpoint3']
+  point [286.0, 161.0, 'telepad1']
+  point [285.0, 332.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (313,108)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x23 (258,404) (316,403) (384,117) (460,90) (460,34) (253,122) (468,47) (469,96) (453,122) (440,123)
+  obj Metadata/Monsters/GothicSentinels/GargoyleGlyphInterlude x1 (287,409)
+  obj Metadata/Monsters/GothicSentinels/GargoyleInterlude x1 (288,389)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (286,133)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (287,143)

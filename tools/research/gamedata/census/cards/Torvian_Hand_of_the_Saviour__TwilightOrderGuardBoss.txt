@@ -1,0 +1,251 @@
+# Torvian, Hand of the Saviour / Brakkus, the Juggernaut
+content: Act 4
+monsters: Metadata/Monsters/TwilightOrderSoldiers/TwilightOrderGuardBoss, Metadata/Monsters/TwilightOrderSoldiers/TwilightOrderGuardBossMap, Metadata/Monsters/TwilightOrderSoldiers/TwilightOrderGuardBossSTANDALONE
+scripts: Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBoss, Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBossMap, Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBossSTANDALONE
+own chain: Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBoss, Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBossNoQuest, Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBossMap, Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBossSTANDALONE
+areas: G4_8b Arastas act4; MapPit Pit act10; MapCliffside Cliffside act10
+ai: Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBoss.ais, Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/TwilightOrderGuardBossSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- DTTTwilightGuardBossLeap [dash_to_target] action=DodgeForward anim=default:leapslam_01
+- EASTwilightGuardBossBoulderToss [empty_action_spell] action=ThrowOff anim=default:rock_toss_01
+- EASTwilightGuardBossAxeToss [empty_action_spell] action=Throw anim=default:axe_spin_01
+- MPWTwilightGuardBossAxe [monster_projectile_weapon] action=Throw anim=default:axe_spin_01
+- GATwilightGuardBossAxeTossImpact [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GATwilightGuardBossAxeTossPillarExplode [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MPWTwilightGuardBossBoulder [monster_projectile_weapon] action=ThrowOff anim=default:rock_toss_01
+- GATwilightGuardBossBoulderImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GATwilightGuardBossLeapDelayedImpact [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=1083 delay=1083 anchor=3
+    flags: is_area_damage
+- GATwilightGuardBossLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GTTwilightGuardBossAxeTossSpikes [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=500 spread=40 radius=5 angle=0 anchor=3
+- GATwilightGuardBossAxeTossMiniSpike [geometry_attack] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GATwilightGuardBossAxeTossMegaSpike [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- SSMTwilightOrderGuardBossSkyBeam [summon_specific_monsters_on_target] action=SpellAreaOfEffect anim=default:sky_beam_01
+    summons: Metadata/Monsters/TwilightOrderSoldiers/TwilightOrderGuardBossSkyBeam
+- ABTTTwilightOrderGuardBossSkyBeam [add_buff_to_target_triggered] action=None anim=-
+    flags: is_area_damage
+- MPWTwilightGuardBossAxeHoly [monster_projectile_weapon] action=MagneticSalvo anim=default:holy_axe_spin_01
+- SOTwilightOrderGuardBossHolyWall [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/GuardBossHolyRing
+- GATwilightOrderGuardBossComboAftershock [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=980 delay=980 anchor=4
+    flags: is_area_damage
+- DTTTwilightGuardBossLeapHoly [dash_to_target] action=LeapSlam anim=default:holy_leapslam_01
+- MPWTwilightGuardBossBoulderHoly [monster_projectile_weapon] action=ThrowOff anim=default:rock_toss_01
+- MAASTwilightGuardBossCombo [melee] action=ComboAttack anim=default:combo_01
+- MAASTwilightGuardBossComboHoly [melee] action=MeleeCombo anim=default:holy_combo_01
+- MPWTwilightGuardBossAxeHolyTriggered [monster_projectile_weapon] action=MagneticSalvo anim=default:holy_axe_spin_01
+- GATwilightOrderGuardBossHolyBoulderExplosion [geometry_attack] action=None anim=-
+    geom: cone length=36 width=0 angle=170 range=100 delay=33 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GATwilightOrderGuardBossAxeShockwave1 [geometry_attack] action=None anim=-
+    geom: circle length=35 width=0 angle=0 range=950 delay=950 anchor=4
+    flags: is_area_damage
+- GATwilightOrderGuardBossAxeShockwave2 [geometry_attack] action=None anim=-
+    geom: donut length=35 width=53 angle=0 range=1450 delay=1450 anchor=4
+    flags: is_area_damage
+- GATwilightOrderGuardBossAxeShockwave3 [geometry_attack] action=None anim=-
+    geom: donut length=53 width=71 angle=0 range=1950 delay=1950 anchor=4
+    flags: is_area_damage
+- MPWTwilightOrderGuardBossTwinAxe [monster_projectile_weapon] action=SpellProjectileUpward anim=default:holy_axe_throw_01
+- EASTwilightOrderGuardBossSkybeam [empty_action_spell] action=SpellAreaOfEffect anim=default:sky_beam_01
+- GTTwilightOrderGuardBossWallCreation [geometry_trigger] action=None anim=-
+    geom: trigger count=8 delay=0 spread=57 radius=58 angle=0 anchor=4
+- MAASTwilightOrderGuardBossCyclone [melee] action=Cyclone anim=default:cyclone_01
+
+## own states and handlers
+states: boulder; holy_combo
+- on_state_boulder_0 = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Chattersaw/projectile.ao' ); }
+- on_or_create_state_boulder_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Chattersaw/projectile.ao', boulder, 1.0, 1 ); }
+- on_event_detach_weapons = { Call( DetachWeapons ); }
+- on_event_recover_weapons = { Call( RecoverWeapons, 1, 1 ); }
+- on_gain_guard_boss_utility_buff = { SetAudioParam( GuardBossHasUnstoppableBuff, 1.0 ); }
+- on_lose_guard_boss_utility_buff = { SetAudioParam( GuardBossHasUnstoppableBuff, 0.0 ); }
+- on_timer_beam_pos_epk_update = { local beam_pos_values = globals.twilight_guard_boss_sky_beam.GetPositionValues(); SetEPKFloat3( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/epk/boss_beam_cover.epk', 'epk_pos_world', beam_pos_values[0], beam_pos_values[1], beam_pos_values[2], true ); StartStateTimer(
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/epk/boss_beam_cover.epk' ); CancelStateTimer( beam_pos_epk_update ); }
+- on_timer_beam_pos_epk_update = { SetEPKFloat3( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/epk/boss_beam_cover.epk', 'epk_pos_world', beam_pos_values[0], beam_pos_values[1], beam_pos_values[2], true ); StartStateTimer( beam_pos_epk_update, 0.033 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/GuardBossHolyRing
+- preload_object Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/GuardBossHolyRingCentre
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/AXE_impact.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderGuardBoss/ao/AXE_impact_empowered.ao
+- preload_animated_object Metadata/Monsters/TwilightOrder/TwilightOrderTenderizerTwin/attachments/TwilightOrderTenderizerTwinWeapon.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Chattersaw/projectile.ao
+
+## adds and forms
+- Metadata/Monsters/TwilightOrderSoldiers/TwilightOrderGuardBossSkyBeam "Invisible" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/GuardBossHolyRing: Buffs Stats [blocking=false object_size=1 server_only=true] states=triggered 
+- Metadata/Monsters/TwilightOrder/TwilightOrderSoldiers/GuardBossHolyRingCentre: ControlZone [blocking=false object_size=1 server_only=true] states=pushed on_state_pushed_1{{ RemoveCollidability(); }}
+- metadata/monsters/twilightorder/twilightordersoldiers/guardbossdescry:  [blocking=false object_size=1 server_only=true] states=active;type create_state_active_0{{ PlayAnimation( animationPreSet ); }}; on_state_active_0{{ PlayAnimation( dissipate ); this.perm_beam.Delete(); }}; create_state_active_1{{ PlayAnimation( open ); SetCurrentAnimationPosition( 10.0 - GetStateTimer( buff_buildup ) ); SetCurrentAnimationSpeed( }; on_state_active_1{{ PlayAnimation( open ); SetCurrentAnimationSpeed( 1.4 ); this.perm_beam.Delete(); }}; create_state_active_3{{ PlayAnimation( animationPreSet ); }}; on_state_active_3{{ PlayAnimation( dissipate ); }}
+- metadata/monsters/twilightorder/twilightordersoldiers/guardbossholyring: Buffs Stats [blocking=false object_size=1 server_only=true] states=triggered 
+- metadata/monsters/twilightorder/twilightordersoldiers/guardbossholyringcentre: ControlZone [blocking=false object_size=1 server_only=true] states=pushed on_state_pushed_1{{ RemoveCollidability(); }}
+- metadata/monsters/twilightorder/twilightordersoldiers/twilightorder_churchambush:  states= 
+- metadata/monsters/twilightorder/twilightordersoldiers/twilightorderguardbossnoquest: Life Buffs Targetable Actor Stats [blocking=true attackable=true server_only=true] states=boulder;holy_combo on_state_boulder_0{{ DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Chattersaw/projectile.ao' ); }}; on_or_create_state_boulder_1{{ AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Chattersaw/projectile.ao', boulder, 1.0, 1 ); }}; on_event_detach_weapons{{ Call( DetachWeapons ); }}; on_event_recover_weapons{{ Call( RecoverWeapons, 1, 1 ); }}; on_gain_guard_boss_utility_buff{{ SetAudioParam( GuardBossHasUnstoppableBuff, 1.0 ); }}; on_lose_guard_boss_utility_buff{{ SetAudioParam( GuardBossHasUnstoppableBuff, 0.0 ); }}
+- metadata/monsters/twilightorder/twilightordersoldiers/twilightsoldierspatrolbase: Actor states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BoulderSpawnMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorForgeZoom:  [blocking=false object_size=0] states= on_initial_position_set{{ CreateCameraZoomNode(4.0, 11.0, 1.33); }}
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/TunnelMural:  [blocking=false object_size=3 server_only=true] states=down create_state_down_0{{ PlayAnimation( activate_01 ); PauseAnimation(); }}; on_state_down_1{{ PlayAnimation( activate_01 ); }}; create_state_down_1{{ PlayAnimation( activate_01 ); GoToAnimationEnd(); }}
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/CountessElevator:  [blocking=false object_size=3 server_only=true] states=up create_state_up_0{{ PlayAnimation(idle_01); }}; on_state_up_1{{ PlayAnimation( leave_01 ); }}; create_state_up_1{{ DisableRendering(); }}
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainEntranceLocation:  [blocking=false object_size=3 server_only=true] states=encounter_sequence 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainPath:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/WalkZoneStart: ControlZone [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/AssembleTrigger: ControlZone [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/KaruiChieftainAssemble:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainAssemble:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_10/Objects/ExcavationBossRoomProximityAudioTrigger:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/ArenaMiddle:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker1:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker2:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker3:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker4:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart2:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart1:  [server_only=true] states= 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=G4_10_BossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( G4_10_BossInactive ); }}
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarRight: TriggerableBlockage [start_blocked=false server_only=true] states=break 
+- Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarLeft: TriggerableBlockage [start_blocked=false server_only=true] states=break 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/TunnelPlatform: TriggerableBlockage [start_blocked=true blocking=false object_size=3 server_only=true] states=up 
+- Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorEntranceDoor: TriggerableBlockage [start_blocked=true blocking=false object_size=10 server_only=true] states=open = 0;active on_or_create_state_open_0{{ PlayAnimation( idle_01 ); }}; on_state_open_1{{ PlayAnimation( open_01 ); }}; on_or_create_state_open_0{{ If( GetState( active ) == 0, (){ DisableTargetable(); } ); PlayAnimationTreeByName( idle_01 ); }}; on_state_open_1{{ PlayAnimationTreeByName( open_01 ); DisableTargetable(); }}; create_state_open_1{{ PlayAnimationTreeByName( open_01 ); GoToAnimationTreeEnd(); DisableTargetable(); }}; on_or_create_state_active_1{{ If( GetState( open ) == 0, (){ EnableTargetable(); } ); }}
+
+## lines
+
+## linked buffs
+- guard_boss_utility_buff "Twilight Order's Faith": Twilight Priests are empowering Torvian with immunity to stun and ailments.  Get Torvian to throw a boulder at the scaffolding to interrupt the Priests and remove this buff. | stats=immune_to_status_ailments,base_cannot_be_stunned
+- twilight_order_holy_fire "Holy Fire": You are taking [Fire] damage over time | stats=base_fire_damage_taken_per_minute
+- twilight_order_holy_heal "[DNT-UNUSED] Holy Healing": You are Regenerating Life | stats=life_regeneration_rate_per_minute_%,base_energy_shield_regeneration_rate_per_minute_%
+- twilight_order_wall_debuff "Holy Vengeance": You have been found unworthy by the Twilight Order, slowing you and making you easier to critically hit. | stats=base_enemy_critical_strike_chance_+%_against_self,base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act4_4_10_rooms_unique_exit_02.arm
+  sector ['hide_teleports', 165, 119, 426, 274, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['pillar', 245, 121, 332, 273, '']
+  sector ['out_of_bounds', 427, 117, 505, 337, '']
+  sector ['out_of_bounds', 88, 118, 166, 338, '']
+  point [287.0, 241.0, 'mapboss']
+  point [286.0, 132.0, 'telepad1']
+  point [253.0, 53.0, 'checkpoint3']
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (234,60)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (288,100) (286,286)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BoulderSpawnMarker x16 (108,218) (466,202) (469,186) (106,248) (106,232) (106,266) (107,284) (112,303) (462,272) (462,287)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorForgeZoom x1 (287,793)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/TunnelMural x3 (336,529) (336,459) (336,391)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/CountessElevator x1 (287,241)
+  obj Metadata/NPC/Four_Act4/4_10/CountessDigsite x1 (287,241)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainEntranceLocation x1 (288,113)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainPath x2 (261,189) (276,253)
+  obj Metadata/Monsters/NPC/Digsite/KaruiChieftainDigsite_@0 x1 (287,241)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/WalkZoneStart x1 (287,348)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/AssembleTrigger x1 (287,736)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/KaruiChieftainAssemble x1 (260,761)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainAssemble x1 (270,745)
+  obj Metadata/NPC/Four_Act4/4_10/HoodedMentorDigsite x1 (287,736)
+  obj Metadata/NPC/Four_Act4/4_10/KaruiFirstMateDigsite x1 (287,241)
+  obj Metadata/Terrain/Gallows/Act4/4_10/Objects/ExcavationBossRoomProximityAudioTrigger x2 (288,731) (288,730)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/ArenaMiddle x1 (286,192)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker1 x1 (286,151)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker2 x1 (286,174)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker3 x1 (286,207)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker4 x1 (286,235)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart2 x1 (286,127)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart1 x1 (286,259)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BossRoomMinimapIcon x1 (286,195)
+  obj Metadata/MiscellaneousObjects/GenericStatBlocker x5 (279,680) (283,680) (287,680) (291,680) (295,680)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarRight x1 (344,92)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarLeft x1 (230,92)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/TunnelPlatform x5 (287,377) (287,419) (287,463) (287,506) (288,549)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x2 (287,113) (287,273)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorEntranceDoor x1 (286,323)
+room metadata_terrain_maps_excavation_rooms_unique_exit_01.arm
+  sector ['hide_teleports', 165, 119, 426, 274, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['pillar', 244, 121, 331, 273, '']
+  sector ['out_of_bounds', 86, 117, 164, 337, '']
+  sector ['out_of_bounds', 427, 119, 505, 339, '']
+  sector ['boss_sector', 171, 111, 405, 273, '']
+  sector ['no_movement_skills', 160, 111, 415, 115, '']
+  sector ['no_movement_skills', 411, 111, 415, 264, '']
+  sector ['no_movement_skills', 160, 111, 164, 264, '']
+  sector ['no_abyss', 351, 97, 430, 293, '']
+  sector ['no_abyss', 146, 110, 217, 306, '']
+  point [287.0, 241.0, 'mapboss']
+  point [288.0, 132.0, 'telepad1']
+  point [321.0, 53.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (340,60)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BoulderSpawnMarker x16 (108,218) (108,202) (105,186) (106,248) (106,232) (106,266) (107,284) (112,303) (462,272) (462,287)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/ArenaMiddle x1 (286,193)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker1 x1 (286,150)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker2 x1 (286,176)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker3 x1 (286,210)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker4 x1 (286,236)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart2 x1 (286,128)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart1 x1 (286,258)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BossRoomMinimapIcon x1 (286,184)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (289,303) (290,561)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (287,113)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x7 (281,110) (275,110) (287,110) (293,110) (299,110) (305,110) (269,110)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (290,188)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (315,202)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (303,224) (320,167) (252,162) (261,222)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (282,189)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarRight x1 (344,92)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarLeft x1 (230,92)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorEntranceDoor x1 (286,323)
+room metadata_terrain_gallows_act4_4_10_rooms_unique_exit_01_flipped.arm
+  sector ['hide_teleports', 165, 119, 426, 274, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['pillar', 244, 121, 331, 273, '']
+  sector ['out_of_bounds', 86, 117, 164, 337, '']
+  sector ['out_of_bounds', 427, 119, 505, 339, '']
+  point [287.0, 241.0, 'mapboss']
+  point [288.0, 132.0, 'telepad1']
+  point [321.0, 53.0, 'checkpoint3']
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (340,60)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (288,100) (288,287)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BoulderSpawnMarker x16 (108,218) (108,202) (105,186) (106,248) (106,232) (106,266) (107,284) (112,303) (462,272) (462,287)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorForgeZoom x1 (287,793)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/TunnelMural x3 (336,529) (336,459) (336,391)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/CountessElevator x1 (348,278)
+  obj Metadata/NPC/Four_Act4/4_10/CountessDigsite x1 (287,241)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainEntranceLocation x1 (288,113)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainPath x2 (261,189) (276,253)
+  obj Metadata/Monsters/NPC/Digsite/KaruiChieftainDigsite_@0 x1 (287,241)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/WalkZoneStart x1 (287,348)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/AssembleTrigger x1 (287,736)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/KaruiChieftainAssemble x1 (260,761)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/BoatCaptainAssemble x1 (270,745)
+  obj Metadata/NPC/Four_Act4/4_10/HoodedMentorDigsite x1 (287,736)
+  obj Metadata/NPC/Four_Act4/4_10/KaruiFirstMateDigsite x1 (287,241)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/ArenaMiddle x1 (286,193)
+  obj Metadata/Terrain/Gallows/Act4/4_10/Objects/ExcavationBossRoomProximityAudioTrigger x1 (288,731)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker1 x1 (286,150)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker2 x1 (286,176)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker3 x1 (286,210)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarker4 x1 (286,236)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart2 x1 (286,128)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/MazeSpawnMarkerStart1 x1 (286,258)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/BossRoomMinimapIcon x1 (286,197)
+  obj Metadata/MiscellaneousObjects/GenericStatBlocker x5 (279,681) (283,681) (287,681) (291,681) (295,681)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarLeft x1 (344,92)
+  obj Metadata/Monsters/TwilightOrder/TwilightOrderExcavationOverlord/Objects/PillarRight x1 (230,92)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/TunnelPlatform x5 (287,377) (287,419) (287,463) (287,506) (288,549)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (287,113) (287,274) (289,274)
+  obj Metadata/Terrain/Gallows/Act4/4_12/Objects/PrecursorEntranceDoor x1 (286,323)

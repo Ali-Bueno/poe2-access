@@ -1,0 +1,166 @@
+# Krutog, Lord of Kin / Brughor, the Insatiable
+content: Act 4
+monsters: Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossCampaignSTANDALONE, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP_, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossStandalone_
+scripts: Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossStandalone, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP
+own chain: Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossStandalone, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP
+areas: G4_1_2 Volcanic Warrens act4; BossRush_Area2 Boss Rush Area 2 act10; MapRockpools Rockpools act10; MapSinterRift Sinter Rift act10
+ai: Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss.ais, Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EASGoblinGiantBossMultiSlam [empty_action_spell] action=SpellAreaOfEffectFire anim=default:smash_combo_01
+- EASGoblinGiantBossMultiStomp [empty_action_spell] action=SpellAreaOfEffectCold anim=-
+- EASGoblinGiantBossEatSulphite [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:eat_sulphite_01
+- EASGoblinGiantBossSulphiteVomit [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:sulphite_vomit_01
+- GSGoblinGiantBossSulphiteBurp [geometry_spell] action=SpellAreaOfEffect anim=default:sulphite_burp_01
+    geom: cone length=52 width=0 angle=90 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- MPWGoblinGiantBossLimbToss [monster_projectile_weapon] action=SpellProjectile anim=default:limb_throw_01
+    flags: base_deal_no_damage
+- EDSGoblinGiantBossSulphiteBurp [effect_driven_spell] action=SpellAreaOfEffect anim=default:sulphite_burp_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAGoblinGiantBossMultiSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAGoblinGiantBossMultiStompImpact [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAGoblinGiantBossMultiStompImpactSulphiteInfused [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAGoblinGiantBossLimbTossConeImpact [geometry_attack] action=None anim=-
+    geom: cone length=30 width=0 angle=45 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GAGoblinGiantBossLimbTossImpactWall [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEGoblinGiantBossSulphiteVomit [monster_cast_ground_effect_location] action=None anim=-
+- MDGoblinGiantStompSpike [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDGoblinGiantStompSpike
+- GAGoblinGiantStompSpikeImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EASGoblinGiantStompForward_LeftFootForward [empty_action_spell] action=GlacialHammer anim=default:stomp_right_fwd_left_01
+- EASGoblinGiantStompForward_RightFootForward [empty_action_spell] action=OffGlacialHammer anim=default:stomp_left_fwd_right_01
+- EASGoblinGiantStompRight_LeftFootForward [empty_action_spell] action=SpellNovaLightning anim=default:stomp_right_90_right_01
+- EASGoblinGiantStompRight_RightFootForward [empty_action_spell] action=SpellBuffLightning anim=default:stomp_left_90_right_01
+- EASGoblinGiantStompLeft_LeftFootForward [empty_action_spell] action=SpellNovaFire anim=default:stomp_right_90_left_01
+- EASGoblinGiantStompLeft_RightFootForward [empty_action_spell] action=SpellBuffFire anim=default:stomp_left_90_left_01
+- EASGoblinGiantStompBehind_LeftFootForward [empty_action_spell] action=SpellNovaCold anim=default:stomp_right_180_left_01
+- EASGoblinGiantStompBehind_RightFootForward [empty_action_spell] action=SpellNovaChaos anim=default:stomp_left_180_right_01
+- EASGoblinGiantStompEnd_RightFootForward [empty_action_spell] action=SpellProjectileUpwardFire anim=default:stomp_out_left_01
+- EASGoblinGiantStompEnd_LeftFootForward [empty_action_spell] action=SpellProjectileUpwardCold anim=default:stomp_out_right_01
+- GAGoblinGiantBossMultiSlamImpactFinal [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASGoblinGiantBossEatSulphiteExpedition [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:eat_sulphite_01
+- WalkEmergeKrutogExpedition [walk_emerge] action=None anim=-
+
+## own states and handlers
+states: eaten_rocks; foot_pose = 2; corpse_slamma; stomp_time; pre_emerge = 1; second_corpse_gone; dead; pre_emerge; second_corpse_gone = 1
+- on_death = { KillGroundEffectsOfType( Sulphite, 0, 1, 150 ); }
+- on_enter = { ShowNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn', 0 ); }
+- on_exit = { HideNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn' ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( GoblinGiantBossApproachRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss' ); globals.ambient_lights.SetLightState( Off, 6.0 ); }
+- on_effect_custom_event_projectile_fired_for_MPWGoblinGiantBossLimbToss = { projectile.Do( () { SetRandomYaw(); SetRandomRoll(); SetXYTilt( Random( 360 ), Random( 360 ) ); } ); }
+- on_effect_custom_event_projectile_hit_for_MPWGoblinGiantBossLimbToss = { If( projectile.GetHeight() <= Eval( projectile.GetHeightAtLocation() + 4.0 ), (){ projectile.PlayAnimation( end_TEMP ); }, (){ projectile.PlayAnimation( end_air ); } ); }
+- on_effect_custom_event_projectile_hit_terrain_for_MPWGoblinGiantBossLimbToss = { If( projectile.GetHeight() <= Eval( projectile.GetHeightAtLocation() + 4.0 ), (){ projectile.PlayAnimation( end_TEMP ); }, (){ projectile.PlayAnimation( end_air ); } ); }
+- on_state_eaten_rocks_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/boss_sulphur_buff.epk' ); }
+- on_or_create_state_eaten_rocks_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/boss_sulphur_buff.epk' ); }
+- on_or_create_state_second_corpse_gone_0 = { AddAttachedObjectToBones( 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon2.ao', root_jntBnd, 0 ); }
+- on_state_second_corpse_gone_1 = { DetachAllOfType( 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon2.ao' ); }
+- on_or_create_state_pre_emerge_1 = { HideWeapons(); }
+- on_or_create_state_pre_emerge_0 = { DetachAllOfType( 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeaponPreFight.ao' ); IfState( dead, 1, (){}, (){ ShowWeapons(); } ); }
+- on_or_create_state_corpse_slamma_1 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage1.epk', 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon.ao' ); }
+- on_or_create_state_corpse_slamma_2 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage2.epk', 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon.ao' ); }
+- on_or_create_state_corpse_slamma_3 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage3.epk', 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon.ao' ); }
+- on_state_corpse_slamma_2 = { RemoveEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage1.epk', 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon.ao' ); }
+- on_state_corpse_slamma_3 = { RemoveEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage2.epk', 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeapon.ao' ); }
+- on_or_create_state_dead_1 = { SetControlZoneRadius( 200 ); HideWeapons(); }
+- on_state_stomp_time_3 = { PlayCharacterAudioEvent( VolcanoGoblinBossStomping ); globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_KrutogStompCallout_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrapped' ); } ); }
+- on_smash_combo_01 = { QueueTextAudio( GoblinGiantBossSlamRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss' ); }
+- on_limb_throw_01 = { Roll( 1, 2, { QueueTextAudio( GoblinGiantBossLimbThrowRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss' ); } ); }
+- on_eat_sulphite_01 = { QueueTextAudio( GoblinGiantBossEatSulphiteRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBoss' ); }
+- on_event_limb_grab = { AddAttachedObjectToBones( 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseArmWeapon.ao', L_Weapon ); }
+- on_event_limb_release = { DetachAllOfType( 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseArmWeapon.ao' ); }
+- on_sulphite_vomit_01 = { globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_KrutogPukeCallout_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrapped' ); } ); }
+- on_effect_custom_event_projectile_hit_for_MPWGoblinGiantBossLimbToss = { If( projectile.GetHeight() <= Eval( projectile.GetHeightAtLocation() + 4.0 ), (){ projectile.PlayAnimation( end_TEMP ); }, (){ projectile.PlayAnimation( end_air ); } ); }
+- on_effect_custom_event_projectile_hit_terrain_for_MPWGoblinGiantBossLimbToss = { If( projectile.GetHeight() <= Eval( projectile.GetHeightAtLocation() + 4.0 ), (){ projectile.PlayAnimation( end_TEMP ); }, (){ projectile.PlayAnimation( end_air ); } ); }
+- on_or_create_state_pre_emerge_0 = { DetachAllOfType( 'Metadata/Monsters/Goblins/GoblinGiantBoss/attachments/CorpseWeaponPreFight.ao' ); if( IsAlive() ){ ShowWeapons(); } }
+- on_state_stomp_time_3 = { PlayCharacterAudioEvent( VolcanoGoblinBossStomping ); }
+- on_smash_combo_01 = { QueueTextAudio( GoblinGiantBossSlamRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP_' ); }
+- on_limb_throw_01 = { Roll( 1, 2, { QueueTextAudio( GoblinGiantBossLimbThrowRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP_' ); } ); }
+- on_eat_sulphite_01 = { QueueTextAudio( GoblinGiantBossEatSulphiteRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP_' ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( GoblinGiantBossApproachRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP_' ); globals.ambient_lights.SetLightState( Off, 6.0 ); }
+- on_or_create_state_dead_1 = { HideWeapons(); }
+- on_state_stomp_time_3 = { PlayCharacterAudioEvent( VolcanoGoblinBossStomping ); }
+- on_limb_throw_01 = { Roll( 1, 2, { QueueTextAudio( GoblinGiantBossLimbThrowRandom, 'Metadata/Monsters/Goblins/GoblinGiantBoss/GoblinGiantBossMAP_' ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/NPC/Four_Act4/HoodedMentorVolcanicWarrensSummon
+- preload_monster_variety Metadata/NPC/Four_Act4/DoryaniVolcanicWarrensSummon
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/boss_sulphur_buff.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage1.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage2.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/epk/corpse_damage_stage3.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/vomit_splash.ao
+- preload_environment G4_1_2_boss
+
+## adds and forms
+- Metadata/NPC/Four_Act4/HoodedMentorVolcanicWarrensSummon "The Hooded One" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+- Metadata/NPC/Four_Act4/DoryaniVolcanicWarrensSummon "Doryani" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+daemons: Metadata/Monsters/InvisibleFire/MDGoblinGiantStompSpike
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/goblins/goblingiantboss/bossroomminimapicon: MinimapIcon [server_only=true icon=VolcanicWarrensBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( VolcanicWarrensBossInactive ); }}
+- metadata/monsters/goblins/goblingiantboss/goblingiantfillgroundvomit:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/Goblins/objects/BossArenaController:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/Goblins/objects/ArenaCrowd:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=IsleOfKinBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( IsleOfKinBossInactive ); }}
+
+## lines
+- on_effect_start_CTS1BossFightStart -> GoblinGiantBossApproachRandom: You don't bring sulphite?
+- on_state_stomp_time_3 -> Matiki_Wild_KrutogStompCallout_Random: Look out!
+- on_smash_combo_01 -> GoblinGiantBossSlamRandom: I'll crush you!
+- on_eat_sulphite_01 -> GoblinGiantBossEatSulphiteRandom: More...
+- on_sulphite_vomit_01 -> Matiki_Wild_KrutogPukeCallout_Random: He's gonna puke!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act4_4_1_1_rooms_unique_arena_02.arm
+  sector ['hide_teleports', 121, 184, 243, 356, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 134, 183, 233, 347, '']
+  point [183.0, 195.0, 'telepad']
+  point [184.0, 106.0, 'checkpoint2']
+  point [182.0, 257.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Goblins/objects/BossArenaController x1 (184,310)
+  obj Metadata/Monsters/Goblins/objects/ArenaCrowd x55 (261,272) (260,249) (256,233) (249,216) (279,277) (292,250) (277,252) (275,233) (225,192) (106,248)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (199,116)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (183,174)
+  obj Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon x1 (184,264)
+room metadata_terrain_gallows_act4_4_1_1_rooms_unique_arena_03.arm
+  sector ['hide_teleports', 121, 184, 243, 356, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 134, 183, 233, 347, '']
+  point [183.0, 195.0, 'telepad']
+  point [184.0, 106.0, 'checkpoint2']
+  point [184.0, 256.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Goblins/objects/BossArenaController x1 (184,310)
+  obj Metadata/Monsters/Goblins/objects/ArenaCrowd x55 (261,272) (260,249) (256,233) (249,216) (279,277) (292,250) (277,252) (275,233) (225,192) (106,248)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (199,116)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (183,174)
+  obj Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon x1 (184,264)
+room metadata_terrain_gallows_act4_4_1_1_rooms_unique_arena_01.arm
+  sector ['hide_teleports', 121, 184, 243, 356, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 134, 183, 233, 347, '']
+  point [183.0, 195.0, 'telepad']
+  point [184.0, 106.0, 'checkpoint2']
+  point [183.0, 256.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Goblins/objects/BossArenaController x1 (184,310)
+  obj Metadata/Monsters/Goblins/objects/ArenaCrowd x55 (261,272) (260,249) (256,233) (249,216) (279,277) (292,250) (277,252) (275,233) (225,192) (106,248)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (199,116)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (183,174)
+  obj Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon x1 (183,262)

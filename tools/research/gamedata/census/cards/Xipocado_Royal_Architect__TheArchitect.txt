@@ -1,0 +1,239 @@
+# Xipocado, Royal Architect
+content: League: Incursion
+monsters: Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitect, Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitectStandalone_
+scripts: Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitect, Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitectStandalone
+own chain: Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitect, Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitectStandalone
+areas: Programming_Lite Programming World (Lite) act3
+ai: Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitect.ais, Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/TheArchitectStandalone.ais (not shipped)
+
+## skills
+- EASArchitectBossBasicRuneCast [empty_action_spell] action=SpellProjectile anim=default:attack_01
+- EASArchitectBossHelixRuneCast [empty_action_spell] action=SpellProjectileUpward anim=default:attack_03
+- EASArchitectBossDualRuneCombo [empty_action_spell] action=SpellAreaOfEffect anim=default:summon_tablets_01
+- GAArchitectBossRepulseSlam [geometry_attack] action=HeavyStrike anim=default:restricted_area_01
+    geom: circle length=60 width=0 angle=0 range=333 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GSArchitectBossTabletWarp [geometry_spell] action=SpellBuffFire anim=default:tablet_warp_01
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- GSArchitectBossTabletWarpFast [geometry_spell] action=SpellBuffLightning anim=default:tablet_warp_02
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- EASArchitectBossTabletShuffle [empty_action_spell] action=SpellBuffCold anim=default:shuffle_01
+- MPSArchitectBossFirebolt [monster_projectile_spell] action=None anim=-
+- MPSArchitectBossIceSpear [frost_bolt] action=None anim=-
+    flags: is_area_damage
+- MPSArchitectBossBouncingSpark [monster_projectile_spell] action=None anim=-
+- MPSArchitectBossChaosBolt [monster_projectile_spell] action=None anim=-
+- MPSArchitectBossBloodBlob [monster_projectile_spell] action=None anim=-
+- GSArchitectBossFireboltImpact [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSArchitectBossBloodBlobImpact [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEArchitectBossRepulseSlamSlowZone [monster_cast_ground_effect_location] action=None anim=-
+- MPSArchitectBossTabletWarp [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+    flags: base_deal_no_damage
+- GSArchitectBossWarpBallExplosion [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- GAArchitectBossTabletSlam [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=200 delay=33 anchor=4
+- GSArchitectBossRuneComboFireMeteorImpact [geometry_spell] action=None anim=-
+    geom: circle length=40 width=0 angle=0 range=200 delay=33 anchor=4
+    flags: is_area_damage
+- GSArchitectBossRuneComboIceXCascadeInitial [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=100 delay=100 anchor=12
+    flags: is_area_damage
+- GSArchitectBossRuneComboIceXCascade [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1500 delay=1500 anchor=12
+    flags: is_area_damage
+- GSArchitectBossRuneComboLightningSnake [geometry_spell] action=None anim=-
+    geom: rectangle length=28 width=28 angle=0 range=1175 delay=1175 anchor=4
+    flags: is_area_damage
+- SoulrendArchitectBossChaosCloud [monster_soulrend] action=None anim=-
+- SoulrendArchitectBossChaosCloudSecondary [monster_soulrend] action=None anim=-
+- GSArchitectBossChaosCloudBurst [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- MPSArchitectBossChaosBounceProj [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+- GSArchitectBossChaosBounceNova [geometry_spell] action=None anim=-
+    geom: circle length=22 width=0 angle=0 range=175 delay=33 anchor=4
+    flags: is_area_damage
+- DeceleratingProjectilesArchitectBloodSpray [decelerating_projectile] action=SpellProjectile anim=default:attack_01
+- GSArchitectBossBloodSprayExplode [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=200 delay=33 anchor=4
+    flags: is_area_damage
+- GAArchitectBossBloodSlammerSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=50 width=8 angle=0 range=300 delay=33 anchor=12
+- CGEArchitectBossFireGeyser [monster_cast_ground_effect_location] action=None anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/League_Sanctum/Shakari/poison_grd_01.ao
+
+## own states and handlers
+states: 
+- on_state_light_0 = { SetLightState( on_death_delayed, 2.0, 0 ); }
+- create_state_light_0 = { SetLightState( on_death_delayed, 0.0, 0 ); }
+- on_effect_event_spawn_rune_visuals_for_EASArchitectBossDualRuneCombo = { if( rune_one == 1 and rune_two == 1 ) TriggerBracket( combo_rune_visuals, 1 ); if( rune_one == 1 and rune_two == 4 ) TriggerBracket( combo_rune_visuals, 2 ); if( rune_one == 2 and rune_two == 1 ) TriggerBracket( combo_rune_visuals, 3 ); if( rune_one == 2 and rune_two == 4 ) TriggerBracket( combo_r
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Combo_IceCrystals.epk' ); }
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( Architect_Emerge_Random ); }
+- on_effect_start_EASArchitectBossBasicRuneCast = { Roll( 1, 5,{ PlayTextAudio( Architect_BasicCast_Random ); }); }
+- on_effect_start_GAArchitectBossRepulseSlam = { Roll( 1, 5,{ PlayTextAudio( Architect_RepulseSlam_Random ); }); }
+- on_effect_start_GSArchitectBossTabletWarp = { Roll( 3, 5,{ PlayTextAudio( Architect_TeleportBlast_Random ); }); }
+- on_effect_start_GSArchitectBossTabletWarpFast = { Roll( 3, 5,{ PlayTextAudio( Architect_BasicCast_Random ); }); }
+- on_effect_start_EASArchitectBossTabletShuffle = { Roll( 3, 5,{ PlayTextAudio( Architect_ShuffleTablets_Random ); }); }
+- on_knockdown_01 = { PlayTextAudio( Architect_Knockdown_Random ); }
+- on_death = { PlayTextAudio( Architect_Death_Random ); }
+- on_initial_position_set = { this.my_back_attachment = GetAttachedAOByType( 'Metadata/Monsters/HeadVaalArchivist/attachments/HeadVaalBackatacchment/HeadVaalArchivistBackatacchment.ao' ); }
+- on_event_warp_for_emerge_01 = { my_back_attachment.PlayAnimation( idle_01 ); }
+- on_attack_01 = { my_back_attachment.AppendAnimation( attack_01_additive ); }
+- on_attack_02 = { my_back_attachment.AppendAnimation( attack_02_additive ); }
+- on_attack_03 = { my_back_attachment.AppendAnimation( attack_03_additive ); }
+- on_emerge_01 = { my_back_attachment.AppendAnimation( emerge_01_additive ); }
+- on_flinch_bwd_01 = { my_back_attachment.AppendAnimation( flinch_bwd_01_additive ); }
+- on_flinch_fwd_01 = { my_back_attachment.AppendAnimation( flinch_fwd_01_additive ); }
+- on_flinch_left_01 = { my_back_attachment.AppendAnimation( flinch_left_01_additive ); }
+- on_flinch_right_01 = { my_back_attachment.AppendAnimation( flinch_right_01_additive ); }
+- on_knockdown_01 = { my_back_attachment.AppendAnimation( knockdown_01_additive ); }
+- on_restricted_area_01 = { my_back_attachment.AppendAnimation( restricted_area_01_additive ); }
+- on_shuffle_01 = { my_back_attachment.AppendAnimation( shuffle_01_additive ); }
+- on_summon_tablets_01 = { my_back_attachment.AppendAnimation( summon_tablets_01_additive ); }
+- on_tablet_warp_01 = { my_back_attachment.AppendAnimation( tablet_warp_01_additive ); }
+- on_tablet_warp_02 = { my_back_attachment.AppendAnimation( tablet_warp_02_additive ); }
+- on_death = { my_back_attachment.PlayAnimation( death_bwd_01 ); }
+- on_spawned_dead = { my_back_attachment.Do( (){ PlayAnimation( death_bwd_01 ); GoToAnimationEnd(); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: ['combo_rune_visuals, 1', 'combo_rune_visuals, 10', 'combo_rune_visuals, 2', 'combo_rune_visuals, 3', 'combo_rune_visuals, 4', 'combo_rune_visuals, 5', 'combo_rune_visuals, 6', 'combo_rune_visuals, 7', 'combo_rune_visuals, 8', 'combo_rune_visuals, 9']
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Combo_BloodCleave.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Combo_BloodOrbSpray_MainBall.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Combo_Chaos_OrbTrail.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Combo_Fire_Meteor.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Combo_Lightning_Dance.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_BloodCleave.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_BloodOrbSpray.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_ChaosBounce.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_ChaosOrb.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_FireGeyser.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_FireMeteor.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_IceBlackHole.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_IceCrystals.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_LightningDance.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/ComboRune_LightningSnake.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Rune_CHAOS.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Rune_FIRE.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Rune_ICE.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Rune_LIGHT.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Rune_PHYS.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Tablet_RepulseSlam_Charge.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Tablet_WarpIn.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/AOs/Tablet_WarpIn_Short.ao
+- preload_animated_object Metadata/Terrain/Leagues/Incursion/Doodads/ArchitectArena/Architect_Tablet_01.ao
+- preload_animated_object Metadata/Terrain/Leagues/Incursion/Doodads/ArchitectArena/Architect_Tablet_02.ao
+- preload_animated_object Metadata/Terrain/Leagues/Incursion/Doodads/ArchitectArena/Architect_Tablet_03.ao
+- preload_animated_object Metadata/Terrain/Leagues/Incursion/Doodads/ArchitectArena/Architect_Tablet_04.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Combo_IceCrystals.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_Emerge.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_RepulseSlam.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_Warp_Target.epk
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossExplosiveChaosCloud
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossFloorTabletSocket
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossBasicSpamRune
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossChaosBallBounceTracker
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossBloodBallSource
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossIceCrystalSpawner
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossBloodSlammer
+- preload_object Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossChaosBallShuffleOrbitFixer
+- preload_monster_variety Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/ArchitectBlackHole
+- preload_misc_beam ArchitectBloodSprayBeam
+
+## adds and forms
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/ArchitectBlackHole "Daemon" bossbar=0 skills=- comps=Life Targetable Actor Stats [blocking=false object_size=0 attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossExplosiveChaosCloud:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossFloorTabletSocket: Buffs [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossBasicSpamRune:  [blocking=false object_size=0] states=rune_element on_initial_position_set{{ Call( update_height ); }}
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossChaosBallBounceTracker:  [server_only=true] states= 
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossBloodBallSource:  [blocking=false object_size=0 server_only=true] states=height;xy_scale on_change_state_height{{ LockHeight( GetState( height ) ); }}; on_change_state_xy_scale{{ local scaled_size_change = 0.2 + ( GetState( xy_scale ) / 1000.0 ) * 0.8; SetXYScale( scaled_size_change ); }}; on_initial_position_set{{ LockOrientation(); LockHeight( GetState( height ) ); }}
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossIceCrystalSpawner:  states= 
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossBloodSlammer:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/LeagueIncursionNew/ArchitectBoss/objects/ArchitectBossChaosBallShuffleOrbitFixer:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossbasicspamrune:  [blocking=false object_size=0] states=rune_element on_initial_position_set{{ Call( update_height ); }}
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossbloodballsource:  [blocking=false object_size=0 server_only=true] states=height;xy_scale on_change_state_height{{ LockHeight( GetState( height ) ); }}; on_change_state_xy_scale{{ local scaled_size_change = 0.2 + ( GetState( xy_scale ) / 1000.0 ) * 0.8; SetXYScale( scaled_size_change ); }}; on_initial_position_set{{ LockOrientation(); LockHeight( GetState( height ) ); }}
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossbloodslammer:  [blocking=false object_size=0] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbosschaosballbouncetracker:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbosschaosballshuffleorbitfixer:  [server_only=true] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossexplosivechaoscloud:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossfloortablet:  [blocking=false object_size=0 server_only=true] states=repulse_glow;tablet_warp;tablet_shuffle on_initial_position_set{{ Call( update_height ); SetMovementFaceMode( DontFace ); }}; on_or_create_state_repulse_glow_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_RepulseSlam.epk}; on_or_create_state_repulse_glow_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_RepulseSlam.epk' )}; on_or_create_state_tablet_warp_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_Warp_Target.epk}; on_or_create_state_tablet_warp_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_Warp_Target.epk' )}; on_or_create_state_tablet_shuffle_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Incursion/ArchitectBoss/EPKs/Tablet_Emerge.epk' ); }
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossfloortabletsocket: Buffs [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossicecrystalspawner:  states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectbossrepulseslamiceground:  [blocking=false object_size=0] states= 
+- metadata/monsters/leagueincursionnew/architectboss/objects/architectconversationcontroller:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon: MinimapIcon [server_only=true icon=IncursionViperLegionBarracksActive] states=quadrillas 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon: MinimapIcon [server_only=true icon=IncursionGarrisonActive] states= 
+- Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController: ControlZone [server_only=true] states= 
+
+## lines
+- on_effect_start_CTS1BossFightStart -> Architect_Emerge_Random: How did you reach me?!
+- on_knockdown_01 -> Architect_Knockdown_Random: Uh! ... I did not... anticipate this...
+- on_death -> Architect_Death_Random: In... con... ceivable.
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_4open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,91) (161,92) (142,92) (125,92) (112,160) (66,93)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x8 (185,71) (148,72) (129,72) (112,72) (120,179) (53,73) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,163) (98,164) (100,91) (139,166) (157,166) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (98,176) (99,72) (139,178) (157,178) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (63,215) (87,33) (166,33) (186,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (76,131) (176,132)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x12 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (31,216) (55,34) (198,33) (218,218)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x12 (22,192) (226,192) (199,50) (55,50) (55,15) (36,33) (217,32) (198,14) (237,219) (218,237)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_3open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,93) (166,95) (147,95) (128,95) (108,95) (66,95)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x6 (185,73) (153,75) (134,75) (115,75) (95,75) (53,75)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,165) (94,167) (116,167) (156,167) (135,167) (195,167)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,177) (94,179) (116,179) (156,179) (135,179) (195,179)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,143)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (186,216) (167,32) (85,33) (65,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (82,126) (177,127)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x10 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (33,218) (218,218) (53,31) (199,31)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x10 (52,50) (200,50) (23,191) (227,191) (33,236) (14,218) (218,236) (237,218) (38,35) (214,34)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_garrison_4open_03.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [153.0, 41.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion x6 (198,91) (174,97) (149,93) (120,94) (112,160) (57,97)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingShieldIncursion_ x8 (185,71) (163,73) (136,73) (110,73) (120,179) (61,71) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion x6 (57,163) (83,164) (84,85) (148,165) (170,165) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (83,176) (84,73) (148,177) (170,177) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon x1 (126,129)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController x1 (133,128)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x6 (211,90) (211,163) (41,90) (41,163) (126,62) (126,190)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionBenchCampaignCurrency x1 (126,202)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (135,54)

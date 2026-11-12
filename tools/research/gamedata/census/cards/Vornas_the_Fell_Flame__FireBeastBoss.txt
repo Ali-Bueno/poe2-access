@@ -1,0 +1,121 @@
+# Vornas, the Fell Flame / Morvak, the Infernal
+content: Interlude
+monsters: Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBoss, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossCampaignSTANDALONE, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossMAP__, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossSTANDALONE
+scripts: Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBoss, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossSTANDALONE, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossMAP
+own chain: Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBoss, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossSTANDALONE, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossMAP
+areas: P2_5 The Galai Gates act6; MapPrecipice Precipice act10; MapCanyon Canyon act10
+ai: Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBoss.ais, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossMAP.ais, Metadata/Monsters/Goblins/Beast/FireBeastBoss/FireBeastBossSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=-
+- EAAFireBeastSlashCombo [empty_action_attack] action=DoubleSlash anim=default:combo_01
+- EAAFireBeastMultiSlam [empty_action_attack] action=GroundSlam anim=default:multislam_01
+- DTTFireBeastLeapSlam [dash_to_target] action=LeapSlam anim=default:leapslam_01
+- GAFireBeastBasicSlam [geometry_attack] action=HeavyStrike anim=default:groundslam_01, groundslam_02
+    geom: circle length=18 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- EAAFireBeastMultiSlamEnraged [empty_action_attack] action=GroundSlamOffhand anim=default:enrage_01
+- EASFireBeastEnragedImmolate [empty_action_spell] action=Frenzy anim=default:rage_01
+- GAFireBeastFlameBreathe [geometry_attack] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- GAFireBeastGroundSlashEnraged [geometry_attack] action=None anim=-
+    geom: rectangle length=79 width=6 angle=0 range=300 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAFireBeastGroundSlash [geometry_attack] action=None anim=-
+    geom: rectangle length=79 width=6 angle=0 range=300 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAFireBeastMultiSlamFlameWave [geometry_attack] action=None anim=-
+    geom: cone length=75 width=0 angle=30 range=833 delay=33 anchor=3
+    flags: is_area_damage
+- GAFireBeastMultiSlamFinalSlam [geometry_attack] action=None anim=-
+    geom: circle length=27 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- GAFireBeastLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- MPSFireBeastVolcanoProj [monster_projectile_spell] action=SpellProjectile anim=-
+- GSFireBeastVolcanoProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage skill_can_be_active_blocked_from_all_directions
+- GTFireBeastVolcanoSpawner [geometry_trigger] action=None anim=-
+    geom: trigger count=3 delay=600 spread=50 radius=25 angle=0 anchor=4
+- GTFireBeastGeyserLine [geometry_trigger] action=None anim=-
+    geom: trigger count=8 delay=800 spread=90 radius=12 angle=0 anchor=3
+- GAFireBeastGeyserSlam [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=500 delay=500 anchor=4
+    flags: is_area_damage
+- EGFireBeastProximitySingeCorpse [execute_geal] action=None anim=-
+    GEAL 1181 on ['Metadata/Monsters/Goblins/Beast/FireBeastBoss/Objects/corpses_to_burn']: self{} each{triggerer.If( GetState( combusting ) == 0, (){ SetStateTo( combusting, 1 ); }, (){  } );} r=45
+- EGFireBeastProximityBurnCorpse [execute_geal] action=None anim=-
+    GEAL 1182 on ['Metadata/Monsters/Goblins/Beast/FireBeastBoss/Objects/corpses_to_burn']: self{} each{triggerer.If( GetState( combusting ) == 1, (){ SetStateTo( combusting, 2 ); }, (){  } );} r=20
+- GAFireBeastBasicSlamSpammable [geometry_attack] action=HeavyStrike anim=default:groundslam_01, groundslam_02
+    geom: circle length=18 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: buffed; render; epk
+- on_or_create_state_render_0 = { DisableRendering(); }
+- on_or_create_state_render_1 = { EnableRendering(); }
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FireBeastBoss/EPKs/ambient_2nd_phase.epk' ); }
+- on_or_create_state_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FireBeastBoss/EPKs/ambient_1st_phase.epk' ); }
+- on_or_create_state_epk_2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FireBeastBoss/EPKs/ambient_1st_phase.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FireBeastBoss/EPKs/ambient_2nd_phase.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('render', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/Goblins/Beast/FireBeastBoss/Objects/FireBeastVolcano
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Goblins/Beast/FireBeastBoss/Objects/FireBeastVolcano:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/Goblins/Beast/FireBeastBoss/Objects/corpses_to_burn (no script)
+- metadata/monsters/goblins/beast/firebeastboss/objects/firebeastvolcano:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/goblins/beast/firebeastboss/objects/largebossdoors:  [blocking=false object_size=1 server_only=true] states=open on_construction_complete{{ SetExtraTileActivationDistance( 3 ); }}; create_state_open_1{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}
+- metadata/monsters/goblins/beast/firebeastboss/objects/volcano_markers:  [server_only=true] states= 
+- metadata/monsters/goblins/beast/firebeastboss/objects/volcano_markers_back:  [server_only=true] states= 
+- metadata/monsters/goblins/beast/firebeastboss/objects/volcano_markers_mid:  [server_only=true] states= 
+- Metadata/Monsters/Goblins/objects/BossArenaController:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/Goblins/objects/ArenaCrowd:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=IsleOfKinBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( IsleOfKinBossInactive ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act4_4_1_1_rooms_unique_arena_02.arm
+  sector ['hide_teleports', 121, 184, 243, 356, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 134, 183, 233, 347, '']
+  point [183.0, 195.0, 'telepad']
+  point [184.0, 106.0, 'checkpoint2']
+  point [182.0, 257.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Goblins/objects/BossArenaController x1 (184,310)
+  obj Metadata/Monsters/Goblins/objects/ArenaCrowd x55 (261,272) (260,249) (256,233) (249,216) (279,277) (292,250) (277,252) (275,233) (225,192) (106,248)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (199,116)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (183,174)
+  obj Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon x1 (184,264)
+room metadata_terrain_gallows_act4_4_1_1_rooms_unique_arena_03.arm
+  sector ['hide_teleports', 121, 184, 243, 356, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 134, 183, 233, 347, '']
+  point [183.0, 195.0, 'telepad']
+  point [184.0, 106.0, 'checkpoint2']
+  point [184.0, 256.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Goblins/objects/BossArenaController x1 (184,310)
+  obj Metadata/Monsters/Goblins/objects/ArenaCrowd x55 (261,272) (260,249) (256,233) (249,216) (279,277) (292,250) (277,252) (275,233) (225,192) (106,248)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (199,116)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (183,174)
+  obj Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon x1 (184,264)
+room metadata_terrain_gallows_act4_4_1_1_rooms_unique_arena_01.arm
+  sector ['hide_teleports', 121, 184, 243, 356, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 134, 183, 233, 347, '']
+  point [183.0, 195.0, 'telepad']
+  point [184.0, 106.0, 'checkpoint2']
+  point [183.0, 256.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Goblins/objects/BossArenaController x1 (184,310)
+  obj Metadata/Monsters/Goblins/objects/ArenaCrowd x55 (261,272) (260,249) (256,233) (249,216) (279,277) (292,250) (277,252) (275,233) (225,192) (106,248)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (199,116)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (183,174)
+  obj Metadata/Monsters/Goblins/Beast/BossRoomMinimapIcon x1 (183,262)

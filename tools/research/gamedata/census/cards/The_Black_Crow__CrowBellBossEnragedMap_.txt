@@ -1,0 +1,211 @@
+# The Black Crow
+content: Map boss
+monsters: Metadata/Monsters/CrowBell/CrowBellBossEnragedMap_, Metadata/Monsters/CrowBell/CrowBellBossEnragedSTANDALONE
+scripts: Metadata/Monsters/CrowBell/CrowBellEnragedMAP, Metadata/Monsters/CrowBell/CrowBellEnragedSTANDALONE
+own chain: Metadata/Monsters/CrowBell/CrowBellEnragedMAP, Metadata/Monsters/CrowBell/CrowBellEnragedSTANDALONE
+areas: MapSlash Slash act10
+ai: Metadata/Monsters/CrowBell/CrowBellEnraged.ais (not shipped)
+
+## skills
+- CrowbellMeleeSwipe [melee] action=Melee anim=default:enraged_attack_01
+- CrowbellMeleeSlash [melee] action=OffMelee anim=default:enraged_attack_02
+- CrowbellMeleeCombo [melee] action=Flurry anim=default:enraged_attack_combo_01
+- CrowbellDoubleSlamEAA [empty_action_attack] action=GroundSlam anim=default:enraged_groundslam_01
+- CrowbellDoubleSlamTriggerGA1 [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- CrowbellDoubleSlamTriggerGA2 [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- CrowbellLeapSlam [leap_slam] action=LeapSlam anim=default:enraged_leapslam_01
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- CrowbellLeapSlamTriggerGA [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=250 delay=33 anchor=3
+    flags: is_area_damage
+- CrowbellBellSlamEAA [empty_action_attack_2] action=GroundSlam anim=default:enraged_groundslam_01
+- CrowbellBellSlamTriggerGA1 [geometry_attack] action=None anim=-
+    geom: rectangle length=103 width=35 angle=0 range=800 delay=100 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+- CrowbellBellSlamTriggerGA2 [geometry_attack] action=None anim=-
+    geom: circle length=19 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+- CrowbellBellCharge [shield_charge] action=None anim=-
+    flags: base_deal_no_damage
+- CrowbellBellChargeTriggerGA [geometry_attack] action=None anim=-
+    geom: cone length=40 width=0 angle=220 range=400 delay=50 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- CrowbellGrabBellEAS [empty_action_spell] action=LayTrap anim=default:calm_01
+    flags: skill_cannot_be_stunned
+- CrowbellSmashGateEAS [empty_action_spell] action=Throw anim=default:calm_01
+    flags: skill_cannot_be_stunned
+- CrowbellMeleeBellSwipe [melee] action=OffMelee anim=default:enraged_attack_02
+- CrowbellMeleeBellCombo [melee] action=Flurry anim=default:enraged_attack_combo_01
+- CrowbellSmashDoor [empty_action_spell] action=Frenzy anim=-
+    flags: skill_cannot_be_stunned
+- CrowbellSlamWave [geometry_attack] action=None anim=-
+    geom: rectangle length=69 width=19 angle=0 range=800 delay=100 anchor=3
+    flags: is_area_damage
+- CrowbellSlamWaveEAA [empty_action_attack_3] action=HeavyStrike anim=default:enraged_groundslam_02
+- CrowbellDoubleSlamEAAEnraged [empty_action_attack] action=GroundSlam anim=default:enraged_groundslam_01
+- CrowbellMeleeSwipeEnraged [melee] action=Melee anim=default:enraged_attack_01
+- CrowbellMeleeSlashEnraged [melee] action=OffMelee anim=default:enraged_attack_02
+- CrowbellMeleeComboEnraged [melee] action=Flurry anim=default:enraged_attack_combo_01
+- CrowbellLeapSlamEnraged [leap_slam] action=LeapSlam anim=default:enraged_leapslam_01
+    flags: is_area_damage
+- CrowbellDoubleSlamTriggerGA1Enraged [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- CrowbellDoubleSlamTriggerGA2Enraged [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- CrowbellBellWhirlEAA [melee] action=GlacialHammer anim=-
+- SwollenMillerChargeTrample [geometry_attack] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- CrowbellUltimateGA [geometry_attack] action=None anim=-
+    geom: cone length=40 width=0 angle=270 range=400 delay=100 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- TCCrowbell [table_charge] action=ChargeStart anim=-
+    flags: is_area_damage
+- GACrowbellLeapSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GACrowbellLeapSlamImpactEnraged [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- DTTCrowbellLeapSlam [dash_to_target] action=LeapSlam anim=default:enraged_leapslam_01
+- DTTCrowbellLeapSlamEnraged [dash_to_target] action=LeapSlam anim=default:enraged_leapslam_01
+
+## own states and handlers
+states: hiddenz = 1; enrage; with_bell; first_arena_complete; second_arena_complete; third_arena_complete; enrage = 1
+- on_construction_complete = { AddToPlayerWakeGroup( true ); }
+- on_state_enrage_0 = { Delay( 2.0, { RemoveEffectPack( 'Metadata/Effects/StatusAilments/monsters/Crowbell/beast_enrage.epk' ); } ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell/enrage_energy_FADEOUT.epk', 2.0 ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell
+- create_state_enrage_0 = { RemoveEffectPack( 'Metadata/Effects/StatusAilments/monsters/Crowbell/beast_enrage.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell/enrage_energy.epk' ); }
+- on_state_enrage_1 = { AddEffectPack( 'Metadata/Effects/StatusAilments/monsters/Crowbell/beast_enrage.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell/enrage_energy.epk' ); PlayCharacterAudioEvent( CrowbellEnragingComment ); }
+- create_state_enrage_1 = { AddEffectPack( 'Metadata/Effects/StatusAilments/monsters/Crowbell/beast_enrage.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell/enrage_energy.epk' ); }
+- on_state_with_bell_1 = { AddAttached( 'Metadata/Monsters/CrowBell/Attachments/Bell.ao', bell_jntBnd, 1.0, 1.0, 1 ); }
+- create_state_with_bell_1 = { AddAttached( 'Metadata/Monsters/CrowBell/Attachments/Bell.ao', bell_jntBnd, 1.0, 1.0, 1 ); }
+- on_or_create_state_first_arena_complete_1 = { TriggerBracket( arena_sector_destruction, 1 ); }
+- on_or_create_state_second_arena_complete_1 = { globals.disable_instant_teleport_sector_3.RenameSectorsAtLocation( hide_teleports_off, hide_teleports ); TriggerBracket( arena_sector_destruction, 2 ); }
+- on_or_create_state_third_arena_complete_1 = { TriggerBracket( arena_sector_destruction, 3 ); }
+- on_start_ChangeToStance2Immediate = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell/onAct_bangingDoor.ao' ); }
+- on_death = { SetStaticLifeBarVisibilty( false ); RemoveEffectPack( 'Metadata/Effects/StatusAilments/monsters/Crowbell/beast_enrage.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CrowBell/enrage_energy.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: ['arena_sector_destruction, 1', 'arena_sector_destruction, 2', 'arena_sector_destruction, 3']
+
+## preloads
+- preload_buff_visual sprinting
+- preload_buff_visual phasing_buff
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/crowbell/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=CrowbellActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( CrowbellInactive ); }}
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/BellCrowBell:  [blocking=false object_size=0 server_only=true] states=bellgrab create_state_bellgrab_0{{ PlayAnimationByIndex( 0 ); PauseAnimation(); }}; create_state_bellgrab_1{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); }}; create_state_bellgrab_2{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); HideMeshSegment( Bell_ClapperShape ); HideMeshSegment( Bell_mainShape )}; on_state_bellgrab_1{{ PlayAnimationByIndex( 0 ); }}; on_state_bellgrab_2{{ HideMeshSegment( Bell_ClapperShape ); HideMeshSegment( Bell_mainShape ); }}
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/MiddleArenaTrigger:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTeleport_MiddleArena:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/CrowBell/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=CrowbellActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( CrowbellInactive ); }}
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/FinalArenaTrigger:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/CrowbellArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardCrowbellArena, TitleCardCrowbellArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTrapGate2: TriggerableBlockage [start_blocked=false blocking=false object_size=3 server_only=true] states=open=1 create_state_open_0{{ PlayAnimationByIndex( 0 ); PauseAnimation(); }}; create_state_open_1{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); }}; on_state_open_1{{ PlayAnimationByIndex( 0 ); }}; create_state_open_2{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; on_state_open_2{{ PlayAnimationByIndex( 1 ); }}
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTrapGate1: TriggerableBlockage [start_blocked=false blocking=false object_size=3 server_only=true] states=open create_state_open_0{{ HideMeshSegmentsBySubstring( shard ); PlayAnimationByIndex( 1 ); PauseAnimation(); }}; create_state_open_1{{ HideMeshSegmentsBySubstring( shard ); PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; on_state_open_1{{ PlayAnimationByIndex( 1 ); }}; create_state_open_2{{ HideMeshSegment( wood_plank665Shape ); HideMeshSegment( door_ropeShape ); PlayAnimationByIndex( 0 ); GoToAnimationEnd(}; on_state_open_2{{ PlayAnimationByIndex( 0 ); }}; create_state_open_3{{ HideMeshSegment( wood_plank665Shape ); HideMeshSegment( door_ropeShape ); PlayAnimationByIndex( 2 ); GoToAnimationEnd(}
+- Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTeleport_FinalArena:  [blocking=false object_size=0 server_only=true] states= 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_11_rooms_crowbell_full_1.arm
+  sector ['door1_open', 289, 557, 346, 624, '']
+  sector ['door2_open', 298, 424, 346, 498, '']
+  sector ['hide_teleports', 219, 94, 375, 211, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['einhar_zone', 305, 248, 351, 271, '']
+  sector ['crowbell_zone', 173, 810, 257, 871, '']
+  sector ['hide_teleports_off', 162, 774, 271, 884, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports3']
+  sector ['hide_teleports', 219, 211, 375, 339, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 219, 339, 375, 465, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 279, 465, 365, 584, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['no_critters', 212, 88, 381, 470, '']
+  sector ['no_movement_skills', 286, 466, 379, 469, '']
+  sector ['no_movement_skills', 271, 584, 376, 587, '']
+  point [296.0, 182.0, 'mapboss']
+  point [323.0, 485.0, 'telepad1']
+  point [323.0, 571.0, 'telepad2']
+  point [188.0, 791.0, 'telepad3']
+  point [315.0, 614.0, 'checkpoint1']
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized x1 (322,571)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x1 (306,546)
+  obj Metadata/MiscellaneousObjects/TargetMarker2 x1 (322,583)
+  obj Metadata/MiscellaneousObjects/TargetMarker1 x1 (329,258)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/BellCrowBell x1 (305,546)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x3 (322,460) (322,597) (179,752)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/MiddleArenaTrigger x1 (322,554)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTeleport_MiddleArena x1 (296,589)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (300,601)
+  obj Metadata/Monsters/CrowBell/Objects/BossRoomMinimapIcon x1 (290,149)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/FinalArenaTrigger x1 (205,836)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x6 (345,584) (295,579) (339,469) (359,470) (298,468) (299,480)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/CrowbellArenaEntranceTitle x1 (322,545)
+  obj Metadata/MiscellaneousObjects/PathMarkers/CrowbellPath1 x19 (255,184) (286,193) (305,223) (299,243) (288,261) (277,284) (278,309) (289,332) (307,347) (320,364)
+  obj Metadata/MiscellaneousObjects/PathMarkers/CrowbellPath2 x14 (321,609) (311,644) (298,666) (271,676) (243,676) (215,672) (190,670) (174,704) (179,726) (175,683)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTrapGate2 x1 (325,474)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTrapGate1 x1 (322,577)
+room metadata_terrain_gallows_act1_1_11_rooms_crowbell_full_3.arm
+  sector ['door1_open', 289, 557, 346, 624, '']
+  sector ['door2_open', 298, 424, 346, 498, '']
+  sector ['hide_teleports', 221, 95, 367, 221, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['einhar_zone', 305, 248, 351, 271, '']
+  sector ['crowbell_zone', 108, 810, 192, 871, '']
+  sector ['hide_teleports_off', 94, 777, 217, 883, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports3']
+  sector ['hide_teleports', 221, 221, 367, 345, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 221, 345, 367, 468, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 278, 468, 367, 585, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['no_critters', 212, 88, 381, 470, '']
+  sector ['no_movement_skills', 271, 584, 376, 587, '']
+  sector ['no_movement_skills', 286, 466, 379, 469, '']
+  point [296.0, 182.0, 'mapboss']
+  point [323.0, 485.0, 'telepad1']
+  point [323.0, 571.0, 'telepad2']
+  point [179.0, 791.0, 'telepad3']
+  point [320.0, 610.0, 'checkpoint1']
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized x1 (322,571)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x1 (306,546)
+  obj Metadata/MiscellaneousObjects/TargetMarker2 x1 (322,583)
+  obj Metadata/MiscellaneousObjects/TargetMarker1 x1 (329,258)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/BellCrowBell x1 (305,546)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x3 (322,460) (322,597) (187,752)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/MiddleArenaTrigger x1 (322,554)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTeleport_MiddleArena x1 (296,589)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (299,597)
+  obj Metadata/Monsters/CrowBell/Objects/BossRoomMinimapIcon x1 (290,149)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTeleport_FinalArena x1 (133,762)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/FinalArenaTrigger x1 (162,836)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x6 (345,584) (295,579) (339,469) (359,470) (298,468) (299,480)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/CrowbellArenaEntranceTitle x1 (323,548)
+  obj Metadata/MiscellaneousObjects/PathMarkers/CrowbellPath1 x19 (255,184) (286,193) (305,223) (299,243) (288,261) (277,284) (278,309) (289,332) (307,347) (320,364)
+  obj Metadata/MiscellaneousObjects/PathMarkers/CrowbellPath2 x14 (321,609) (311,644) (298,666) (271,676) (246,676) (222,681) (204,689) (188,727) (192,706) (187,758)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTrapGate2 x1 (325,474)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/EinharTrapGate1 x1 (322,576)
+room metadata_terrain_maps_slash_rooms_arena.arm
+  sector ['no_critters', 38, 71, 272, 252, '']
+  sector ['crowbell_zone', 47, 103, 252, 265, '']
+  sector ['no_movement_skills', 43, 102, 47, 197, '']
+  sector ['no_movement_skills', 43, 196, 47, 230, '']
+  sector ['no_movement_skills', 47, 226, 105, 230, '']
+  sector ['boss_sector', 47, 63, 216, 237, '']
+  point [177.0, 170.0, 'mapboss']
+  point [12.0, 224.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x1 (137,185)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (22,234)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSource_6_6 x2 (304,108) (314,109)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/FinalArenaTrigger x1 (125,152)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/BellCrowBell x1 (140,191)
+  obj Metadata/Terrain/Gallows/Act1/1_11/Objects/MiddleArenaTrigger x1 (122,162)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (141,138)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (184,194) (174,147) (111,139) (83,143)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (185,166)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (46,212) (47,218) (44,206) (42,201) (41,195) (39,189) (38,183) (49,224)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (164,181)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (45,203)

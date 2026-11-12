@@ -1,0 +1,175 @@
+# Draven, the Eternal Praetor / Tycho, the Black Praetor
+content: Act 1
+monsters: Metadata/Monsters/HusbandMonster/HusbandMonster, Metadata/Monsters/HusbandMonster/HusbandMonsterCampaignSTANDALONE, Metadata/Monsters/HusbandMonster/HusbandMonsterMAP, Metadata/Monsters/HusbandMonster/HusbandMonsterSTANDALONE
+scripts: Metadata/Monsters/HusbandMonster/HusbandMonster, Metadata/Monsters/HusbandMonster/HusbandMonsterSTANDALONE, Metadata/Monsters/HusbandMonster/HusbandMonsterMAP_
+own chain: Metadata/Monsters/HusbandMonster/HusbandMonster, Metadata/Monsters/HusbandMonster/HusbandMonsterSTANDALONE, Metadata/Monsters/HusbandMonster/HusbandMonsterMAP_
+areas: G1_8 Mausoleum of the Praetor act1; MapNecropolis Necropolis act10
+ai: Metadata/Monsters/HusbandMonster/HusbandMonster.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MPSHusbandMonsterCleaveBalls [monster_projectile_spell] action=SpellProjectile anim=default:cleave_01
+- HusbandMonsterBlazingLance [fire_wake_spear] action=SpellAreaOfEffectFire anim=default:overhead_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASHusbandMonsterConsumeSpirit [empty_action_spell] action=SpellAreaOfEffect anim=default:empower_01
+- EASHusbandMonsterSpiritExpire [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:cooldown_01
+- HusbandMonsterCleave [melee] action=OffMelee anim=default:cleave_01
+- HusbandMonsterComboAttack [melee] action=Flurry anim=default:combo_01
+- HusbandMonsterCleaveEmpowered [melee] action=Cleave anim=default:cleave_02
+- GSHusbandPurge [geometry_spell] action=None anim=-
+    geom: circle length=225 width=0 angle=0 range=500 delay=50 anchor=12
+    flags: is_area_damage
+    GEAL 1107 on ['Metadata/Monsters/SummonedPhantasm/HusbandWifeSpirits']: self{} each{triggerer.ChangeStance(stance2); triggerer.KillSelfNoDrops();} r=225
+- EASHusbandCallSpirits [empty_action_spell] action=Frenzy anim=default:empower_01
+- DTTHusbandDash [dash_attack_to_target] action=ShadowDash anim=default:dash_slice_01
+- GAHusbandCleaveDash [geometry_attack] action=None anim=-
+    geom: cone length=18 width=0 angle=180 range=250 delay=33 anchor=3
+- GAHusbandDashTrigger [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+
+## own states and handlers
+states: spirits; max; souls
+- on_effect_event_reset_pierce_list_for_HusbandMonsterCleaveEmpowered = { RemoveNamedTask( SharedPierceList ); AddNamedTask( SharedPierceList ); }
+- create_state_light_0 = { DisableLight(); }
+- create_state_light_1 = { Delay( 0.01, { EnableLight(); } ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); }
+- on_state_light_0 = { DisableLight(); }
+- on_state_light_1 = { FadeInLight( 6 ); SetStateTo( spirits, 1 ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); }
+- on_state_light_2 = { SetLightState( dim, 2 ); }
+- create_state_light_2 = { SetLightState( dim ); }
+- on_or_create_state_light_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup_body.epk' ); }
+- on_or_create_state_max_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup_body.epk' ); }
+- on_or_create_state_spirits_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup_body.epk' ); }
+- on_change_state_spirits = { this.soul_intensity = Clamp( 0.0 + GetState( spirits ), 0.0, 4.0 ); Call( update_soul_states, soul_intensity ); }
+- on_effect_event_dialogue_for_CTS1BossFightStart = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2', player_ascendancy == 'Warrior3' ), { PlayTextAudio( HusbandBoss_Emerge_Karui_Random, 'Met
+- on_effect_start_HusbandMonsterComboAttack = { Roll( 1, 2, () { PlayTextAudio( HusbandBoss_Combo_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); } ); }
+- on_effect_start_HusbandMonsterBlazingLance = { Roll( 1, 1, () { PlayTextAudio( HusbandBoss_Overhead_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); } ); }
+- on_cleave_01 = { PlayTextAudio( HusbandBoss_Cleave_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); }
+- on_cleave_02 = { PlayTextAudio( HusbandBoss_Cleave2_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); }
+- on_dash_slice_01 = { PlayTextAudio( HusbandBoss_Dash_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); }
+- on_empower_01 = { PlayTextAudio( HusbandBoss_Empower_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( HusbandBoss_Knockdown_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster' ); }
+- on_end_death_bwd_02 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup_body.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup_body.epk' ); }
+- on_effect_event_reset_pierce_list_for_HusbandMonsterCleaveEmpowered = { RemoveNamedTask( SharedPierceList ); AddNamedTask( SharedPierceList ); }
+- create_state_light_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); }
+- on_state_light_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); }
+- on_effect_event_dialogue_for_CTS1BossFightStart = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2', player_ascendancy == 'Warrior3' ), { PlayTextAudio( HusbandBoss_Emerge_Karui_Random, _, 5
+- on_effect_start_HusbandMonsterComboAttack = { Roll( 1, 2, () { PlayTextAudio( HusbandBoss_Combo_Random, _ ); } ); }
+- on_effect_start_HusbandMonsterBlazingLance = { Roll( 1, 1, () { PlayTextAudio( HusbandBoss_Overhead_Random, _ ); } ); }
+- on_cleave_01 = { PlayTextAudio( HusbandBoss_Cleave_Random, _ ); }
+- on_cleave_02 = { PlayTextAudio( HusbandBoss_Cleave2_Random, _ ); }
+- on_dash_slice_01 = { PlayTextAudio( HusbandBoss_Dash_Random, _ ); }
+- on_empower_01 = { PlayTextAudio( HusbandBoss_Empower_Random, _ ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( HusbandBoss_Knockdown_Random, _ ); }
+- on_effect_event_dialogue_for_CTS1BossFightStart = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2', player_ascendancy == 'Warrior3' ), { PlayTextAudio( HusbandBoss_Emerge_Karui_Random, 'Met
+- on_effect_start_HusbandMonsterComboAttack = { Roll( 1, 2, () { PlayTextAudio( HusbandBoss_Combo_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); } ); }
+- on_effect_start_HusbandMonsterBlazingLance = { Roll( 1, 1, () { PlayTextAudio( HusbandBoss_Overhead_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); } ); }
+- on_cleave_01 = { PlayTextAudio( HusbandBoss_Cleave_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); }
+- on_cleave_02 = { PlayTextAudio( HusbandBoss_Cleave2_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); }
+- on_dash_slice_01 = { PlayTextAudio( HusbandBoss_Dash_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); }
+- on_empower_01 = { PlayTextAudio( HusbandBoss_Empower_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( HusbandBoss_Knockdown_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/SummonedPhantasm/HusbandWifeSpirits
+- preload_monster_variety Metadata/Monsters/WifeMonster/WifeMonsterApparition_
+- preload_object Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner
+
+## adds and forms
+- Metadata/Monsters/SummonedPhantasm/HusbandWifeSpirits "Captured Soul" bossbar=0 skills=EASHusbandMonsterConsumeSpirit,GSHusbandWifeRevive comps=Life ControlZone Targetable Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/WifeMonster/WifeMonsterApparition_ "Asinia, the Praetor's Consort" bossbar=1 skills=GSWifeMonsterDelayedBlast,GSWifeMonsterDelayedBlastLarge,EASWifeMonsterDelayedBlast comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=light;death;emerged
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner:  [blocking=false object_size=1 server_only=true] states=triggered 
+- metadata/monsters/husbandmonster/bloodknightbloodground:  [blocking=false object_size=0] states= 
+- metadata/monsters/husbandmonster/objects/bloodknightpiano:  [blocking=false object_size=1] states=emerge on_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); }}; create_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); GoToAnimationEnd(); }}
+- metadata/monsters/husbandmonster/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=HusbandActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( HusbandInactive ); }}
+- Metadata/QuestObjects/Four_Act1/ExitTransition_Mausoleum: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=2 server_only=true icon=28] states= create_untransitioned{{ DisableTargetable(); DisableRendering(); PlayAnimationByIndex( 2 ); PauseAnimation(); }}; create_transitioned{{ PlayAnimationByIndex( 0 ); }}; on_transition{{ PlayAnimationByIndex( 2 ); EnableTargetable(); EnableRendering(); QueueAnimationByIndex( 0 ); }}
+- Metadata/Terrain/Gallows/Act1/1_8/Objects/BitterGuyWife: InteractionAction Transitionable [blocking=false object_size=5 server_only=true] states=boss_dead create_untransitioned{{ PlayAnimation( once ); PauseAnimation(); }}; create_transitioned{{ PlayAnimation( once ); GoToAnimationEnd(); PauseAnimation(); }}; on_event_addfadeepk{{ AddEffectPack( 'Metadata/Effects/Environment/woods/bitterguyquest/fadecorpse.epk' ); }}; on_state_boss_dead_1{{ this.my_ghost_effect = PlayEffect( 'Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild2Soul.ao', default, 1.0, 1}
+- Metadata/Monsters/HusbandMonster/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=HusbandActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( HusbandInactive ); }}
+
+## lines
+- on_effect_event_dialogue_for_CTS1BossFightStart -> HusbandBoss_Emerge_Karui_Random: Your soul will be quite the trophy... Karui...
+- on_effect_event_dialogue_for_CTS1BossFightStart -> HusbandBoss_Emerge_Karui_Random: Your soul will be quite the trophy... Karui...
+- on_effect_event_dialogue_for_CTS1BossFightStart -> HusbandBoss_Emerge_Witch: Depraved witch... You are not long for this world!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> HusbandBoss_Emerge_Templar: Oriathan... Your soul will never see the light of your god!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> HusbandBoss_Emerge_Other_Random: You will have eternity to regret your intrusion here!
+- on_effect_start_HusbandMonsterComboAttack -> HusbandBoss_Combo_Random: I will end your meaningless life!
+- on_effect_start_HusbandMonsterBlazingLance -> HusbandBoss_Overhead_Random: Perish!
+- on_cleave_01 -> HusbandBoss_Cleave_Random: Cut down!
+- on_cleave_02 -> HusbandBoss_Cleave2_Random: Your intrusion will be punished!
+- on_dash_slice_01 -> HusbandBoss_Dash_Random: Your soul is mine!
+- on_empower_01 -> HusbandBoss_Empower_Random: These spirits are mine!
+- on_knockdown_bwd_01 -> HusbandBoss_Knockdown_Random: Ugh... The Eternals will never surrender!
+
+## linked buffs
+- monster_no_drops_buff "":  | stats=monster_no_drops_or_experience
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_8_rooms_unique_boss.arm
+  sector ['hide_teleports', 46, 79, 252, 286, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 41, 75, 257, 288, '']
+  sector ['no_movement_skills', 21, 79, 272, 86, '']
+  point [149.0, 187.0, 'mapboss']
+  point [153.0, 251.0, 'entrance']
+  point [149.0, 93.0, 'telepad']
+  point [149.0, 52.0, 'checkpoint1']
+  point [149.0, 142.0, 'ritual_boss_spawn_override']
+  obj Metadata/QuestObjects/Four_Act1/ExitTransition_Mausoleum x1 (125,210)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/BitterGuyWife x1 (151,257)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (136,57)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x14 (64,227) (64,204) (64,182) (91,110) (68,110) (234,136) (234,157) (229,109) (235,209) (234,228)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (150,76)
+  obj Metadata/Monsters/HusbandMonster/Objects/BossRoomMinimapIcon x1 (149,187)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (149,82)
+room metadata_terrain_maps_necropolis_rooms_unique_boss_1.arm
+  sector ['hide_teleports', 5, 151, 300, 377, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 79, 102, 218, 151, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 10, 298, 290, 301, '']
+  sector ['no_critters', 7, 101, 291, 360, '']
+  sector ['boss_sector', 79, 105, 218, 151, '']
+  sector ['boss_sector', 5, 151, 300, 368, '']
+  sector ['no_movement_skills', 10, 145, 13, 301, '']
+  sector ['no_movement_skills', 287, 146, 290, 301, '']
+  sector ['no_movement_skills', 216, 146, 290, 149, '']
+  sector ['no_movement_skills', 10, 145, 85, 148, '']
+  sector ['no_movement_skills', 82, 102, 85, 148, '']
+  sector ['no_movement_skills', 82, 102, 219, 105, '']
+  sector ['no_movement_skills', 216, 102, 219, 149, '']
+  sector ['outside_tiles', 55, 314, 255, 379, '']
+  point [149.0, 206.0, 'mapboss']
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x14 (64,242) (64,179) (64,201) (91,273) (68,273) (234,247) (234,226) (229,274) (235,174) (203,150)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (127,91)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (149,106)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (140,105) (134,105) (146,105) (152,105) (158,105) (164,105) (170,105) (128,105)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (149,193)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (206,320) (89,320)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (166,252)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (210,231) (204,261) (96,260) (129,259)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (163,179)
+room metadata_terrain_maps_epitaph_rooms_unique_boss.arm
+  sector ['hide_teleports', 171, 170, 406, 405, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 136, 129, 444, 441, '']
+  sector ['no_movement_skills', 174, 172, 403, 175, '']
+  sector ['boss_sector', 169, 175, 406, 405, '']
+  sector ['no_movement_skills', 172, 172, 175, 401, '']
+  sector ['no_movement_skills', 172, 400, 401, 403, '']
+  sector ['no_movement_skills', 400, 172, 403, 401, '']
+  point [288.0, 287.0, 'mapboss']
+  point [286.0, 19.0, 'checkpoint']
+  point [21.0, 286.0, 'checkpoint']
+  point [286.0, 552.0, 'checkpoint']
+  point [552.0, 288.0, 'checkpoint']
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x11 (207,247) (246,234) (217,234) (206,316) (216,344) (365,326) (353,341) (333,343) (367,253) (352,234)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x4 (268,19) (21,304) (304,552) (552,270)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x4 (200,201) (372,201) (201,372) (372,372)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x4 (286,174) (171,288) (288,403) (403,287)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x36 (281,171) (275,171) (287,171) (293,171) (299,171) (305,171) (311,171) (269,171) (263,171) (403,263)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (287,287)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (321,246)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (341,357) (335,197) (233,206) (222,356)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (310,288)

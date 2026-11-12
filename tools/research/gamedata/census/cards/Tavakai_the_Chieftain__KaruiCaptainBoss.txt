@@ -1,0 +1,656 @@
+# Tavakai, the Chieftain / Tavakai, the Fallen / Tavakai, the Consumed / Manoki, the Chosen / Manoki, the Fevered / Manoki, the Defiled
+content: Act 4
+monsters: Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Standalone
+scripts: Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss2, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3, Metadata/Monsters/KaruiChieftain/KaruiCaptainBossMap, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss2Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3Standalone
+own chain: Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss2, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3, Metadata/Monsters/KaruiChieftain/KaruiCaptainBossMap, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss2Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3Map, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3Standalone
+areas: G4_11_2 Heart of the Tribe act4; MapUberBoss_JadeCitadel The Jade Isles act10; MapUberBoss_JadeCitadel The Jade Isles act10; MapUberBoss_JadeCitadel The Jade Isles act10
+ai: Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss.ais, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss2.ais, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss2Map.ais, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3.ais, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3Map.ais, Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss3Standalone.ais, Metadata/Monsters/KaruiChieftain/KaruiCaptainBossMap.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MAASKaruiCaptainBossUnhingedCombo [melee] action=SpellAreaOfEffectFire anim=default:unhinged_01
+- MAASKaruiCaptainBoss360Cleave [melee] action=SpellAreaOfEffect anim=default:circle_cleave_01
+- DTTKaruiCaptainBossLeapSlam [dash_to_target] action=DodgeForward anim=default:leap_slam_01
+- KaruiCaptainBossHookToss [hellscape_tentacle_grab] action=SpellAreaOfEffectCold anim=default:hook_combo_throw_hook_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EAAKaruiCaptainBossJadeStomp [empty_action_attack] action=SpellAreaOfEffectLightning anim=default:jade_stomp_01
+- EAAKaruiCaptainBossRollingSlamCombo [empty_action_attack] action=SpellAreaOfEffectChaos anim=default:rolling_slam_combo_01
+- GTKaruiCaptainBossJadeSunder [geometry_trigger] action=SpellProjectileFire anim=default:jade_sunder_01
+    geom: trigger count=50 delay=1000 spread=150 radius=20 angle=50 anchor=4
+- GAKaruiCaptainBossSpiritChieftainSlam [geometry_attack] action=SpellProjectile anim=default:warcry_01
+    geom: circle length=64 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- KaruiCaptainBossPhase1ToPhase2KnockdownHit [empty_action_spell] action=SpellProjectileUpwardFire anim=default:t1_t2_knockdown_01
+- KaruiCaptainBossPhase1ToPhase2KnockdownDoT [empty_action_spell] action=SpellProjectileUpwardCold anim=default: knockdown_dot_01
+- KaruiCaptainBossPhase1ToPhase2 [empty_action_spell] action=SpellBuffFire anim=default:t1_t2_transform_01
+- GAKaruiCaptainBossBasicMeleeSlam [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossUnhingedSlam1 [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=130 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossUnhingedSlam2 [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=130 delay=33 anchor=3
+    flags: is_area_damage
+- MPAKaruiCaptainBossUnhingedBoulderToss [monster_projectile_weapon] action=SpellProjectile anim=default:warcry_01
+- GPAKaruiCaptainBossUnhingedBoulderToss [geometry_projectiles_attack] action=None anim=-
+- GAKaruiCaptainBossUnhingedBoulderTossImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAKaruiCaptainBossUnhingedCrystalExplosion [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GPAKaruiCaptainBossUnhingedCrystalShards [geometry_projectiles_attack] action=None anim=-
+- GAKaruiCaptainBossLeapSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossLeapSlamImpact2 [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossLeapSlamEQExplosion [geometry_attack] action=None anim=-
+    geom: circle length=37 width=0 angle=0 range=180 delay=33 anchor=4
+    flags: is_area_damage
+- GAKaruiCaptainBossHookTossHitSlam [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossHookTossHitCleave [geometry_attack] action=None anim=-
+    geom: circle length=19 width=0 angle=227 range=120 delay=33 anchor=3
+    flags: is_area_damage
+- EAAKaruiCaptainBossHookTossMiss [empty_action_attack] action=None anim=-
+- GAKaruiCaptainBossJadeStomp [geometry_attack] action=None anim=-
+    geom: cone length=32 width=0 angle=240 range=135 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+    GEAL 1163 on ['Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeWall']: self{} each{triggerer.SetStateTo( shattered, 1 ); triggerer.KillSelfNoDrops(); triggerer.StartStateTimer( end_me, 0.0 );} r=25
+- MPAKaruiCaptainBossJadeStomp [monster_projectile_weapon] action=None anim=-
+- GAKaruiCaptainBossRollingSlamSlam [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- GSKaruiCaptainBossJadeSunderWave [geometry_attack] action=None anim=-
+    geom: donut length=130 width=20 angle=55 range=900 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossJadeSunderInitialCone [geometry_attack] action=None anim=-
+    geom: cone length=46 width=0 angle=120 range=400 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBossJadeSunderSpike [geometry_attack] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAKaruiCaptainBossJadeSunderMinionSpike [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTKaruiCaptainBoss2JadeSunder [geometry_trigger] action=SpellProjectileFire anim=default:jade_sunder_01
+    geom: trigger count=50 delay=1000 spread=150 radius=20 angle=50 anchor=4
+- GAKaruiCaptainBoss2PustulePop [geometry_attack] action=SpellProjectileLightning anim=default:pustule_degen_slam_01
+    geom: circle length=20 width=0 angle=0 range=231 delay=33 anchor=3
+    flags: is_area_damage
+- EAAKaruiCaptainBoss2SlamCombo [empty_action_attack] action=SpellAreaOfEffectFire anim=default:unhinged_01
+- EASKaruiCaptainBoss2Laser [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:jade_stomp_01
+- EAAKaruiCaptainBoss2StabSpirals [empty_action_attack] action=SpellProjectile anim=default:warcry_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- MAASKaruiCaptainBoss2UnhingedCombo [melee] action=SpellProjectileChaos anim=default:unhinged_01
+- EAAKaruiCaptainBoss2LeapSlam [empty_action_attack] action=DodgeForward anim=default:leap_slam_01
+- EASKaruiCaptainBoss2RequestDivineAid [empty_action_spell] action=SpellProjectileCold anim=default:warcry_01
+- CTS3KaruiCaptainBossForwardRun [empty_action_spell] action=SpellProjectileUpwardFire anim=default:t1_t2_knockdown_01
+- CTS3KaruiCaptainBoss180Run [empty_action_spell] action=SpellProjectileUpwardCold anim=default: knockdown_dot_01
+- EASKaruiCaptainBoss2Emerge [empty_action_spell] action=SpellBuffFire anim=default:t1_t2_transform_01
+- MAASKaruiCaptainBoss2Emerge [melee] action=SpellAreaOfEffectCold anim=default:hook_combo_throw_hook_01
+- GSKaruiCaptainBoss2JadeSunderWave [geometry_attack] action=None anim=-
+    geom: donut length=130 width=20 angle=55 range=900 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss2JadeSunderInitialCone [geometry_attack] action=None anim=-
+    geom: cone length=46 width=0 angle=120 range=400 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss2JadeSunderSpike [geometry_attack] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAKaruiCaptainBoss2JadeSunderMinionSpike [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEKaruiCaptainBoss2PustulePop [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- GSKaruiCaptainBoss2LaserDamage [geometry_spell] action=None anim=-
+    geom: cone length=0 width=0 angle=30 range=500 delay=33 anchor=12
+    flags: is_area_damage
+- GAKaruiCaptainBoss2StabSpiralsStab [geometry_attack] action=None anim=-
+    geom: circle length=4 width=0 angle=0 range=66 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAKaruiCaptainBoss2UnhingedSunder [geometry_attack] action=None anim=-
+    geom: cone length=28 width=0 angle=80 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MPAKaruiCaptainBoss2UnhingedRubble [monster_projectile_weapon] action=None anim=-
+    flags: skill_can_be_active_blocked_from_all_directions
+- MPAKaruiCaptainBoss2UnhingedRubbleOuterRing [monster_projectile_weapon] action=None anim=-
+    flags: skill_can_be_active_blocked_from_all_directions
+- MPSKaruiCaptainBoss2UnhingedRubbleSkyfall [monster_projectile_spell] action=None anim=-
+    flags: skill_can_be_active_blocked_from_all_directions
+- GAKaruiCaptainBoss2UnhingedProjImpact [geometry_attack] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage skill_can_be_active_blocked_from_all_directions
+- GAKaruiCaptainBoss2UnhingedSlam [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss2LeapSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss2SlamComboSlam1 [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss2SlamComboSlam2 [geometry_attack] action=None anim=-
+    geom: circle length=48 width=0 angle=0 range=2250 delay=2250 anchor=3
+    flags: is_area_damage
+- EASKaruiCaptainBoss2BeginPhase2 [empty_action_spell] action=SpellAreaOfEffect anim=default:circle_cleave_01
+- EASKaruiCaptainBoss2BeginPhase2ComboAttack [empty_action_spell] action=SpellAreaOfEffectCold anim=default:hook_combo_throw_hook_01
+- EASKaruiCaptainBoss2DoorSmash [empty_action_spell] action=SpellAreaOfEffectFire anim=default:unhinged_01
+- EASKaruiCaptainBoss2TukohamaStab [empty_action_spell] action=SpellAreaOfEffectCold anim=default:hook_combo_throw_hook_01
+- ABTTKaruiCaptainBoss2KitavaBloodSiphon [add_buff_to_target_triggered] action=None anim=-
+- GSKaruiCaptainBoss2ArohonguiMoonBlast [geometry_spell] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+    buffs: vortex
+- CGEKaruiCaptainBoss2NgamahuVolcanoLava [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+    buffs: karui_chieftain_plant_damage_debuff
+    ground: Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/plant_growth.ao
+- CGEKaruiCaptainBoss2RongokuraiVoidGround [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- CGEKaruiCaptainBoss2TawhoaPlantGround [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- CGEKaruiCaptainBoss2RamakoStarBurn [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+    ground: Metadata/Effects/Spells/crossbow_toxic_grenade/toxic_cloud.ao
+- GSKaruiCaptainBoss2NgamahuVolcanoProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- GSKaruiCaptainBoss2RamakoSunExplosion [geometry_spell] action=None anim=-
+    geom: circle length=52 width=0 angle=0 range=375 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage skill_can_be_active_blocked_from_all_directions
+- GSKaruiCaptainBoss2TasalioWaterBullet [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=500 delay=500 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- GSKaruiCaptainBoss2ValakoLightningStormBolt [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=450 delay=450 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- GTKaruiCaptainBoss2ValakoLightningStorm [geometry_trigger] action=None anim=-
+    geom: trigger count=14 delay=10000 spread=40 radius=0 angle=0 anchor=1
+    triggers: GSKaruiCaptainBoss2ValakoLightningStormBolt
+- MPSKaruiCaptainBoss2NgamahuVolcanoProj [monster_projectile_spell] action=None anim=-
+    flags: skill_can_be_active_blocked_from_all_directions
+- KaruiCaptainBossPhase2ToPhase3 [empty_action_spell] action=SpellBuffCold anim=default:t2_t3_transform_01
+- MeleeAtAnimationSpeedBoss180 [melee] action=OffMelee anim=default:cleave_180_01, stab_180_01, stab_slam_180_01
+- MAASKaruiCaptainBoss3JuicedUpSlam [melee] action=SpellAreaOfEffect anim=default:circle_cleave_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- DTTKaruiCaptainBoss3Leap [dash_to_target] action=LeapSlam anim=default:leap_slam_01
+- MAASKaruiCaptainBoss3Unhinged [melee] action=Cleave anim=default:unhinged_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EAAKaruiCaptainBoss3PustulePropagator [empty_action_attack] action=SpellBuffFire anim=default:t1_t2_transform_01
+- GAKaruiCaptainBoss3StabSlam [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss3UnhingedSlam1 [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss3UnhingedSlam2 [geometry_attack] action=None anim=-
+    geom: cone length=147 width=0 angle=60 range=500 delay=33 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss3UnhingedSlam3 [geometry_attack] action=None anim=-
+    geom: circle length=45 width=0 angle=0 range=250 delay=0 anchor=3
+    flags: is_area_damage
+- GAKaruiCaptainBoss3AlternatingSlamCircleImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAKaruiCaptainBoss3AlternatingSlamConeImpact [geometry_attack] action=None anim=-
+    geom: cone length=150 width=0 angle=55 range=520 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GTKaruiCaptainBoss3AlternatingSlamSpikeMines [geometry_trigger] action=None anim=-
+    geom: trigger count=50 delay=550 spread=150 radius=5 angle=90 anchor=4
+- GAKaruiCaptainBoss3AlternatingSlamSpikeMine [geometry_attack] action=None anim=-
+    geom: circle length=24 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- GAKaruiCaptainBoss3LeapSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=45 width=0 angle=0 range=250 delay=33 anchor=3
+    flags: is_area_damage
+- GTKaruiCaptainBoss3PustulePropagator [geometry_trigger] action=None anim=-
+    geom: trigger count=250 delay=1500 spread=120 radius=30 angle=0 anchor=4
+- GSKaruiCaptainBoss3PustulePopSmall [geometry_spell] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=250 delay=33 anchor=4
+    flags: is_area_damage
+- GSKaruiCaptainBoss3PustulePopBig [geometry_spell] action=None anim=-
+    geom: circle length=28 width=0 angle=0 range=198 delay=33 anchor=4
+    flags: is_area_damage
+- EASKaruiCaptainBossPhase3ToPhase1 [empty_action_spell] action=SpellBuffLightning anim=default:t3_t1_transform_01
+- KaruiCaptainBossPhase3ToPhase1 [empty_action_spell] action=SpellBuffLightning anim=default:t3_t1_transform_01
+
+## own states and handlers
+states: collidable = 1; invis; music_TavakaiPhase; room_burning_progress; invis = 1; spear_removed; fight_complete
+- on_construction_complete = { globals.tavakai_boss = this; }
+- on_or_create_state_collidable_0 = { RemoveCollidability(); }
+- on_or_create_state_collidable_1 = { MakeCollidable(); }
+- on_death = { Delay( 0.1, { DisableRendering(); } ); }
+- on_spawned_dead = { Delay( 0.1, { DisableRendering(); } ); }
+- on_or_create_state_dead_1 = { Delay( 0.1, { DisableRendering(); TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); } ); }
+- on_event_visual_hook_throw = { local my_actual_hook = GetAttachedAOByType( 'Metadata/Monsters/KaruiChieftain/attachments/Hook.ao' ); local my_fake_hook = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/hook_proj.ao', aux_L_Weapon_attachment_02 ); this.my_fake_hook_beam = MakeBeam( KaruiCaptainBossHookTo
+- on_event_reattach_visual_hook = { Call( hook_cleanup ); }
+- on_effect_destroy_KaruiCaptainBossHookToss = { Call( hook_cleanup ); }
+- on_effect_event_spawn_spirit_for_GAKaruiCaptainBossSpiritChieftainSlam = { this.spirit_slam = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/jugg_slam.ao', 8, inherit, 3.0, inherit, inherit, -100.0 ); spirit_slam.PlayAnimation( fist_slam_01 ); }
+- on_effect_end_or_destroy_GAKaruiCaptainBossSpiritChieftainSlam = { spirit_slam.Delete(); }
+- on_attack_01 = { Roll( 1, 3, () { PlayTextAudio( Tavakai_Bossfight_Remember_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); } ); }
+- on_attack_02 = { Roll( 1, 3, () { PlayTextAudio( Tavakai_Bossfight_Foul_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); } ); }
+- on_circle_cleave_01 = { PlayTextAudio( Tavakai_Bossfight_Clear_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_jade_stomp_01 = { PlayTextAudio( Tavakai_Bossfight_Might_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_jade_sunder_01 = { PlayTextAudio( Tavakai_Bossfight_Head_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_Prosper_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_rolling_slam_combo_01 = { PlayTextAudio( Tavakai_Bossfight_Bones_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_warcry_01 = { PlayTextAudio( Tavakai_Bossfight_Warcry_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( Tavakai_Bossfight_Knockdown_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_Unhinged, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_unhinged_turn_180_01 = { PlayTextAudio( Tavakai_Bossfight_Unhinged, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 0 ); }
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( Tavakai_Bossfight_YetAnother, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 100 ); Delay( 8.0, { PlayTextAudio( Tavakai_Bossfight_AsWeSpeak, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); } ); }
+- on_or_create_state_music_TavakaiPhase_1 = { SetGlobalAudioParam( TavakaiPhase, 1 ); }
+- on_or_create_state_music_TavakaiPhase_2 = { SetGlobalAudioParam( TavakaiPhase, 2 ); }
+- on_or_create_state_music_TavakaiPhase_3 = { SetGlobalAudioParam( TavakaiPhase, 3 ); }
+- on_or_create_state_music_TavakaiPhase_4 = { SetGlobalAudioParam( TavakaiPhase, 4 ); }
+- on_or_create_state_music_TavakaiPhase_5 = { SetGlobalAudioParam( TavakaiPhase, 5 ); }
+- on_or_create_state_invis_0 = { EnableRendering(); EnableAnimationSounds(); }
+- on_or_create_state_invis_1 = { DisableRendering(); DisableAnimationSounds(); }
+- on_event_swap_weapon_attachment_bone = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/KaruiChieftain/attachments/AxeBig.ao' ); my_weapon.MoveToBone( L_Weapon, 0 ); }
+- on_spawned_dead = { DisableRendering( ); }
+- on_effect_start_EASKaruiCaptainBoss2Laser = { AppendAnimation( spear_blood_beam_01_spelling_left02, 1.0, true, 0.0, 0, 4 ); AppendAnimation( spear_blood_beam_01_spelling_right, 1.0, true, 0.0, 0, 5 ); SetLayerAnimationSpeed( 4, 1.0 * GetCurrentAnimationSpeed() ); SetLayerAnimationSpeed( 5, 1.0 * GetCurrentAnimationSpeed() ); SetLayerAnimation
+- on_t1_t2_transform_01 = { PlayTextAudio( Tavakai_Bossfight_IMust, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); Delay( 14, { PlayTextAudio( Tavakai_Bossfight_HearMe, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); } ); }
+- on_phase2_emerge_turn_01 = { PlayTextAudio( Tavakai_Bossfight_DamnYou, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 800 ); }
+- on_phase2_spear_stab_to_control_tukohama_01 = { PlayTextAudio( Tavakai_Bossfight_LendMe, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_event_tukohama_dialogue = { PlayTextAudio( TukohamaBossfightNotTheWay, 'Metadata/Monsters/LeagueAncestral/Chieftains/Tukohama/Tukohama', 900 ); }
+- on_event_howcanthisbe_dialogue = { PlayTextAudio( Tavakai_Bossfight_HowCanThisBe, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_event_sobeit_dialogue = { PlayTextAudio( Tavakai_Bossfight_SoBeIt, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_pustule_degen_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Pustule_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_spear_rain_01 = { PlayTextAudio( Tavakai_Bossfight_T2_SpearRain_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_slam_combo_01 = { PlayTextAudio( Tavakai_Bossfight_T2_SlamCombo_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T2_LeapSlam_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_spear_three_stabs_01 = { PlayTextAudio( Tavakai_Bossfight_T2_SpearThree_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_jade_sunder_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Sunder_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_spear_blood_beam_01 = { PlayTextAudio( Tavakai_Bossfight_T2_BloodBeam_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_attack_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Attack1_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_attack_02 = { PlayTextAudio( Tavakai_Bossfight_T2_Attack2_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_attack_03 = { PlayTextAudio( Tavakai_Bossfight_T2_Attack3_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stun_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Knockdown_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Unhinged, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_effect_start_EASKaruiCaptainBoss2TukohamaStab = { PlayTextAudio( Tavakai_Bossfight_LendMe, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_or_create_state_spear_removed_1 = { HideMeshSegments( spear_long_tendrils_mesh_2Shape, spear_long_tendrils_mesh_Shape1, spear_meat_meshShape, spear_short_tendrils_mesh_2Shape, spear_short_tendrils_mesh_Shape1, blade_meshShape, heatsink_meshShape, core_meshShape, rod_meshShape, staff_meshShape ); }
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( Tavakai_Bossfight_ThePower_One, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_effect_event_whathave_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 = { PlayTextAudio( Tavakai_Bossfight_WhatHave, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_effect_event_healher_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 = { PlayTextAudio( Tavakai_Bossfight_HealHer, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_effect_event_dowhatyoumust_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 = { PlayTextAudio( Tavakai_Bossfight_DoWhatYouMust, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_or_create_state_fight_complete_1 = { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); }
+- on_corrupted_ground_01 = { PlayTextAudio( Tavakai_Bossfight_T3_YourBones_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T3_ShortLine_7_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stab_and_grab_01 = { PlayTextAudio( Tavakai_Bossfight_T3_MedLine_8_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_cleave_01 = { PlayTextAudio( Tavakai_Bossfight_T3_ShortLine_4_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_cleave_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_ShortLine_4_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stab_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T3_MedLine_3_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stab_slam_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_MedLine_3_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stab_01 = { PlayTextAudio( Tavakai_Bossfight_T3_LongLine_1_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stab_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_LongLine_1_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_stun_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Knockdown_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight' ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_T3_PainMisery_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 2950 ); }
+- on_inject_synthol_01 = { PlayTextAudio( Tavakai_Bossfight_T3_IWillGiveEverything_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 4000 ); }
+- on_inject_synthol_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_IWillGiveEverything_Random, 'Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight', 4000 ); }
+- on_attack_01 = { Roll( 1, 3, () { PlayTextAudio( Tavakai_Bossfight_Remember_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); } ); }
+- on_attack_02 = { Roll( 1, 3, () { PlayTextAudio( Tavakai_Bossfight_Foul_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); } ); }
+- on_circle_cleave_01 = { PlayTextAudio( Tavakai_Bossfight_Clear_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_jade_stomp_01 = { PlayTextAudio( Tavakai_Bossfight_Might_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_jade_sunder_01 = { PlayTextAudio( Tavakai_Bossfight_Head_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_Prosper_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_rolling_slam_combo_01 = { PlayTextAudio( Tavakai_Bossfight_Bones_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_warcry_01 = { PlayTextAudio( Tavakai_Bossfight_Warcry_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( Tavakai_Bossfight_Knockdown_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_Unhinged, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_unhinged_turn_180_01 = { PlayTextAudio( Tavakai_Bossfight_Unhinged, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_Map', 0 ); }
+- on_t1_t2_transform_01 = { PlayTextAudio( Tavakai_Bossfight_IMust, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); Delay( 14, { PlayTextAudio( Tavakai_Bossfight_HearMe, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); } ); }
+- on_phase2_emerge_turn_01 = { PlayTextAudio( Tavakai_Bossfight_DamnYou, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map', 800 ); }
+- on_phase2_spear_stab_to_control_tukohama_01 = { PlayTextAudio( Tavakai_Bossfight_LendMe, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_event_howcanthisbe_dialogue = { PlayTextAudio( Tavakai_Bossfight_HowCanThisBe, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_event_sobeit_dialogue = { PlayTextAudio( Tavakai_Bossfight_SoBeIt, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_pustule_degen_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Pustule_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_spear_rain_01 = { PlayTextAudio( Tavakai_Bossfight_T2_SpearRain_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_slam_combo_01 = { PlayTextAudio( Tavakai_Bossfight_T2_SlamCombo_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T2_LeapSlam_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_spear_three_stabs_01 = { PlayTextAudio( Tavakai_Bossfight_T2_SpearThree_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_jade_sunder_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Sunder_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_spear_blood_beam_01 = { PlayTextAudio( Tavakai_Bossfight_T2_BloodBeam_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_attack_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Attack1_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_attack_02 = { PlayTextAudio( Tavakai_Bossfight_T2_Attack2_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_attack_03 = { PlayTextAudio( Tavakai_Bossfight_T2_Attack3_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_stun_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Knockdown_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_T2_Unhinged, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_effect_start_EASKaruiCaptainBoss2TukohamaStab = { PlayTextAudio( Tavakai_Bossfight_LendMe, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map' ); }
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( Tavakai_Bossfight_ThePower_One, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_effect_event_whathave_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 = { PlayTextAudio( Tavakai_Bossfight_WhatHave, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_effect_event_healher_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 = { PlayTextAudio( Tavakai_Bossfight_HealHer, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_effect_event_dowhatyoumust_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 = { PlayTextAudio( Tavakai_Bossfight_DoWhatYouMust, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_corrupted_ground_01 = { PlayTextAudio( Tavakai_Bossfight_T3_CorruptedGround_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Endure_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_inject_synthol_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Die_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_inject_synthol_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Die_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_stab_and_grab_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Wimp_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_cleave_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Outsider_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_cleave_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Outsider_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_stab_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Tremble_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_stab_slam_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Tremble_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_stab_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Bloodbath_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_stab_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Bloodbath_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_stun_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Knockdown_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Unhinged_Random, 'Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map' ); }
+- on_corrupted_ground_01 = { PlayTextAudio( Tavakai_Bossfight_T3_CorruptedGround_Random ); }
+- on_leap_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Endure_Random ); }
+- on_inject_synthol_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Die_Random ); }
+- on_inject_synthol_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Die_Random ); }
+- on_stab_and_grab_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Wimp_Random ); }
+- on_cleave_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Outsider_Random ); }
+- on_cleave_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Outsider_Random ); }
+- on_stab_slam_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Tremble_Random ); }
+- on_stab_slam_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Tremble_Random ); }
+- on_stab_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Bloodbath_Random ); }
+- on_stab_180_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Bloodbath_Random ); }
+- on_stun_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Knockdown_Random ); }
+- on_unhinged_01 = { PlayTextAudio( Tavakai_Bossfight_T3_Unhinged_Random ); }
+hides(DisableRendering): [('bb_visible', 0), ('dead', 1), ('deli_clone', 1), ('invis', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: ['music_TavakaiPhase']  brackets: ['arena_sector_destruction, GetState']
+
+## preloads
+- preload_animated_object Metadata/Monsters/KaruiChieftain/attachments/Hook.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/hook_proj.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/jugg_slam.ao
+- preload_animated_object Metadata/Effects/Environment/Act4_FOUR/G4_11_2/boss_wall_smash/SmashedWall_FX.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/leapslam_jadeclone.ao
+- preload_animated_object Metadata/Monsters/LeagueAncestral/Chieftains/Akoya/Akoya.ao
+- preload_animated_object Metadata/NPC/Four_Act1/HoodedMentor/A4BossFight/HoodedMentor.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/ocean_impact.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/ocean_drawup.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/storm_warning_aoe.ao
+- preload_animated_object Metadata/Items/QuestItems/Gallows/Act4/PrecursorLance/PrecursorLanceHeld.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/bloodsteal_beam.ao
+- preload_animated_object Metadata/Monsters/KaruiChieftain/objects/TotemRedFlashHelper.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/totem_surge_asc.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/totem_surge_corr.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/smallmine_marker.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/bigmine_marker.ao
+- preload_monster_variety Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2
+- preload_monster_variety Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3
+- preload_monster_variety Metadata/Monsters/KaruiJadeSpearSpirit/WarriorSpirit
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossUnhingedCrystal
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeWall
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeSpikePrison
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PivotTarget
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeStabSpike
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBoss3AlternatingSlamSpikeMine
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBoss3Pustule
+- preload_object Metadata/NPC/Four_Act4/HoodedMentorHeartOfTheTribe
+- preload_object Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodSpaceTaniwha
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodVolcano
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodPlantGround
+- preload_object Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodStarFall
+- preload_epk Metadata/Effects/Spells/unblockable_marker/epk/unblockable_skin_pulse_only.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_corr_skinglow_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/clone_emerge_skin_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/clone_deathBack_skin_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/clone_deathForward_skin_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/clone_deathLeft_skin_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/clone_deathRight_skin_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_bloodsteal_skin_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_nightdegen_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_tangledegen_01.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/t2to3_totempulse.ao
+- preload_misc_beam KaruiCaptainBoss2BloodBeamSweeper
+- preload_epk Metadata/Monsters/PlagueSwarm/epks/BloodDrone/attach_idle_fade/BLUE_fadein.epk
+- preload_epk Metadata/Monsters/PlagueSwarm/epks/BloodDrone/attach_idle_fade/BLUE_fadeout.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/sin_corruption_beam.ao
+- preload_monster_variety Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_2Map
+- preload_monster_variety Metadata/Monsters/KaruiChieftain/KaruiCaptainBoss_3Map
+
+## adds and forms
+- Metadata/Monsters/KaruiJadeSpearSpirit/WarriorSpirit "Warrior Spirit" bossbar=0 skills=MeleeAtAnimationSpeed comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossUnhingedCrystal:  [object_size=2] states=explode 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeWall: Life Targetable Actor Stats [blocking=true object_size=1] states= on_death{{ RemoveCollidability(); }}
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeSpikePrison:  [blocking=false object_size=4 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PivotTarget:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossJadeStabSpike:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBoss3AlternatingSlamSpikeMine:  [object_size=2] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBoss3Pustule:  [object_size=2] states= 
+- Metadata/NPC/Four_Act4/HoodedMentorHeartOfTheTribe: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=3] states=exists;take_spear on_or_create_state_exists_0{{ DisableRendering(); }}; on_or_create_state_take_spear_1{{ Delay( 0.1, { this.my_spear = fake_me.AddAttached( 'Metadata/Items/QuestItems/Gallows/Act4/PrecursorLance/PrecursorLan}
+- Metadata/NPC/Four_Act4/KaruiWarshipCaptain_bossfight: InteractionAction ControlZone Targetable MinimapIcon [blocking=true object_size=4 radius=0 server_only=true icon=3] states=targetable;visible;spawning_finished;boatreturn;post_boss_fight_has_axe on_or_create_state_targetable_0{{ DisableTargetable(); }}; on_or_create_state_targetable_1{{ EnableTargetable(); }}; on_or_create_state_visible_0{{ DisableRendering(); DisableAnimationSounds(); }}; on_or_create_state_visible_1{{ EnableRendering(); EnableAnimationSounds(); }}; on_or_create_state_boatreturn_1{{ SetControlZoneRadius( 100 ); }}; on_or_create_state_post_boss_fight_has_axe_1{{ AddAttached( 'Metadata/Monsters/KaruiChieftain/attachments/AxeBig.ao', R_Weapon, 1.0, _, true ); }}
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodSpaceTaniwha:  [blocking=false object_size=0 server_only=true] states=visible = 1 on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}; on_construction_complete{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/taniwha_skin_01.epk' ); }}; on_or_create_state_visible_0{{ DisableRendering(); }}; on_or_create_state_visible_1{{ EnableRendering(); }}
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodVolcano: TriggerableBlockage [start_blocked=true blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodPlantGround:  [blocking=false object_size=0 server_only=true] states=active 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodStarFall:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/fallinglogs: Transitionable [blocking=false server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 3 ); }}; create_untransitioned{{ PlayAnimationByIndex( 2 ); DisableRendering(); }}; on_transition{{ EnableRendering( ); PlayAnimationByIndex( 1 ); QueueAnimationByIndex( 3 ); }}
+- metadata/monsters/karuichieftain/objects/fallinglogs_doorblocker: TriggerableBlockage Transitionable [start_blocked=false blocking=false server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 3 ); }}; create_untransitioned{{ PlayAnimationByIndex( 2 ); }}; on_transition{{ PlayAnimationByIndex( 1 ); QueueAnimationByIndex( 3 ); }}
+- metadata/monsters/karuichieftain/objects/karuicaptainboss3alternatingslamspikemine:  [object_size=2] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainboss3pustule:  [object_size=2] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossdoorsmash:  [server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossgodplantground:  [blocking=false object_size=0 server_only=true] states=active 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossgodspacetaniwha:  [blocking=false object_size=0 server_only=true] states=visible = 1 on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}; on_construction_complete{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/taniwha_skin_01.epk' ); }}; on_or_create_state_visible_0{{ DisableRendering(); }}; on_or_create_state_visible_1{{ EnableRendering(); }}
+- metadata/monsters/karuichieftain/objects/karuicaptainbossgodstarfall:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossgodtotem:  [blocking=false object_size=0 server_only=true] states=skill_visuals_active;current_phase on_or_create_state_current_phase_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk' ); }}; on_or_create_state_current_phase_3{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk' ); AddE}; on_state_current_phase_4{{ SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true, 3.0 ); Delay( 3.0, { RemoveEffectPack( 'Metadata/Effects/Spells/monst}; create_state_current_phase_4{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk' ); }}; on_state_skill_visuals_active_0{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.0, true, 3.0 ); TriggerBracket( remove_totem_epk, god_totem_index ); }}; create_state_skill_visuals_active_0{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.0, true ); }}
+- metadata/monsters/karuichieftain/objects/karuicaptainbossgodvolcano: TriggerableBlockage [start_blocked=true blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossjadespikeprison:  [blocking=false object_size=4 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossjadestabspike:  [blocking=false server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossjadewall: Life Targetable Actor Stats [blocking=true object_size=1] states= on_death{{ RemoveCollidability(); }}
+- metadata/monsters/karuichieftain/objects/karuicaptainbossmoonbeamground:  [blocking=false object_size=0] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossphase2pathmarker:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossphase2pathmarker2:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossphase2pivottarget:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbosstukohamatotem:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/karuichieftain/objects/karuicaptainbossunhingedcrystal:  [object_size=2] states=explode 
+- metadata/monsters/karuichieftain/objects/noportalaura: Buffs [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightController:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossTukohamaTotem:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodTotem:  [blocking=false object_size=0 server_only=true] states=skill_visuals_active;current_phase on_or_create_state_current_phase_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk' ); }}; on_or_create_state_current_phase_3{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk' ); AddE}; on_state_current_phase_4{{ SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true, 3.0 ); Delay( 3.0, { RemoveEffectPack( 'Metadata/Effects/Spells/monst}; create_state_current_phase_4{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Tavakai/epks/totem_ansc_skinglow_01.epk' ); }}; on_state_skill_visuals_active_0{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.0, true, 3.0 ); TriggerBracket( remove_totem_epk, god_totem_index ); }}; create_state_skill_visuals_active_0{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.0, true ); }}
+- Metadata/Monsters/KaruiChieftain/objects/FallingLogs: Transitionable [blocking=false server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 3 ); }}; create_untransitioned{{ PlayAnimationByIndex( 2 ); DisableRendering(); }}; on_transition{{ EnableRendering( ); PlayAnimationByIndex( 1 ); QueueAnimationByIndex( 3 ); }}
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker2:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/NoPortalAura: Buffs [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossDoorSmash:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=G4_11_2_BossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( G4_11_2_BossInactive ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage1:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage1 += this; }}; on_construction_complete{{ globals.BossFireStage1 += this; DisableRendering(); DisableLights(); SetGlobalAudioParam( FireIntensity, 0 ); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 0 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage2:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage2 += this; }}; on_construction_complete{{ globals.BossFireStage2 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 0 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage3:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage3 += this; }}; on_construction_complete{{ globals.BossFireStage3 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 0.2 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage4:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage4 += this; }}; on_construction_complete{{ globals.BossFireStage4 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 0.4 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage5:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage5 += this; }}; on_construction_complete{{ globals.BossFireStage5 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 0.6 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage6:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage6 += this; }}; on_construction_complete{{ globals.BossFireStage6 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 0.8 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage7:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage7 += this; }}; on_construction_complete{{ globals.BossFireStage7 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 1.0 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage8:  [server_only=true] states=flame_on on_construction_complete{{ globals.BossFireStage8 += this; }}; on_construction_complete{{ globals.BossFireStage8 += this; DisableRendering(); DisableLights(); }}; on_or_create_state_flame_on_1{{ EnableRendering(); FadeInLight( 0.5 ); SetGlobalAudioParam( FireIntensity, 1.0 ); }}
+- Metadata/Terrain/Gallows/Act4/4_11_2/Objects/PreBossFightAudioEvent1:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/KaruiChieftain/objects/FallingLogs_DoorBlocker: TriggerableBlockage Transitionable [start_blocked=false blocking=false server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 3 ); }}; create_untransitioned{{ PlayAnimationByIndex( 2 ); }}; on_transition{{ PlayAnimationByIndex( 1 ); QueueAnimationByIndex( 3 ); }}
+
+## lines
+- on_attack_01 -> Tavakai_Bossfight_Remember_Random: Remember this day... if you survive!
+- on_attack_02 -> Tavakai_Bossfight_Foul_Random: What even guides you, foul one?
+- on_circle_cleave_01 -> Tavakai_Bossfight_Clear_Random: The way is clear!
+- on_jade_stomp_01 -> Tavakai_Bossfight_Might_Random: Might of the Karui!
+- on_jade_sunder_01 -> Tavakai_Bossfight_Head_Random: Your head is mine!
+- on_leap_slam_01 -> Tavakai_Bossfight_Prosper_Random: The Karui will prosper!
+- on_rolling_slam_combo_01 -> Tavakai_Bossfight_Bones_Random: Your bones will shatter!
+- on_warcry_01 -> Tavakai_Bossfight_Warcry_Random: Like Akoya!
+- on_knockdown_bwd_01 -> Tavakai_Bossfight_Knockdown_Random: You dare challenge a chieftain?
+- on_unhinged_01 -> Tavakai_Bossfight_Unhinged: I am the true... <i>{Ngakuramakoi!}
+- on_unhinged_turn_180_01 -> Tavakai_Bossfight_Unhinged: I am the true... <i>{Ngakuramakoi!}
+- on_effect_start_CTS1BossFightStart -> Tavakai_Bossfight_YetAnother: Another interfering with things they don't understand! You don't belong here... This is a Karui matter!
+- on_t1_t2_transform_01 -> Tavakai_Bossfight_IMust: I must be stronger... For the Karui!
+- on_phase2_emerge_turn_01 -> Tavakai_Bossfight_DamnYou: I am the true <i>{Ngakuramakoi!}
+- on_phase2_spear_stab_to_control_tukohama_01 -> Tavakai_Bossfight_LendMe: Lend me your strength, Tukohama!
+- on_event_tukohama_dialogue -> TukohamaBossfightNotTheWay: This... is not the Way.
+- on_event_howcanthisbe_dialogue -> Tavakai_Bossfight_HowCanThisBe:  What... Why do you reject me?! All I have done... I have done in your honour!
+- on_event_sobeit_dialogue -> Tavakai_Bossfight_SoBeIt: So be it... I will save my people myself!
+- on_pustule_degen_slam_01 -> Tavakai_Bossfight_T2_Pustule_Random: Remember this day... if you survive!
+- on_spear_rain_01 -> Tavakai_Bossfight_T2_SpearRain_Random: Your bones will shatter!
+- on_slam_combo_01 -> Tavakai_Bossfight_T2_SlamCombo_Random: You should not have come here!
+- on_leap_slam_01 -> Tavakai_Bossfight_T2_LeapSlam_Random: The Karui will prosper!
+- on_spear_three_stabs_01 -> Tavakai_Bossfight_T2_SpearThree_Random: Outsiders exploited our kindness... now they will know... now they will fear!
+- on_jade_sunder_01 -> Tavakai_Bossfight_T2_Sunder_Random: Your head is mine!
+- on_spear_blood_beam_01 -> Tavakai_Bossfight_T2_BloodBeam_Random: Weakness becomes you!
+- on_attack_01 -> Tavakai_Bossfight_T2_Attack1_Random: Tremble!
+- on_attack_02 -> Tavakai_Bossfight_T2_Attack2_Random: Bloodbath!
+- on_attack_03 -> Tavakai_Bossfight_T2_Attack3_Random: Coward!
+- on_stun_01 -> Tavakai_Bossfight_T2_Knockdown_Random: You will suffer for that!
+- on_unhinged_01 -> Tavakai_Bossfight_T2_Unhinged: The way... is mine... and Ngamakanui... is ours!
+- on_effect_start_EASKaruiCaptainBoss2TukohamaStab -> Tavakai_Bossfight_LendMe: Lend me your strength, Tukohama!
+- on_effect_start_CTS1BossFightStart -> Tavakai_Bossfight_ThePower_One: The power of the Ancestors is mine!
+- on_effect_event_whathave_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 -> Tavakai_Bossfight_WhatHave: What... what have I done?
+- on_effect_event_healher_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 -> Tavakai_Bossfight_HealHer: Please... can you heal her?
+- on_effect_event_dowhatyoumust_dialogue_for_EASKaruiCaptainBossPhase3ToPhase1 -> Tavakai_Bossfight_DoWhatYouMust: Do... what you must.
+- on_corrupted_ground_01 -> Tavakai_Bossfight_T3_YourBones_Random: Your bones... will... shatter!
+- on_leap_slam_01 -> Tavakai_Bossfight_T3_ShortLine_7_Random: Coward!
+- on_stab_and_grab_01 -> Tavakai_Bossfight_T3_MedLine_8_Random: Helpless wimp!
+- on_cleave_01 -> Tavakai_Bossfight_T3_ShortLine_4_Random: Die outsider!
+- on_cleave_180_01 -> Tavakai_Bossfight_T3_ShortLine_4_Random: Die outsider!
+- on_stab_slam_01 -> Tavakai_Bossfight_T3_MedLine_3_Random: Your head is mine!
+- on_stab_slam_180_01 -> Tavakai_Bossfight_T3_MedLine_3_Random: Your head is mine!
+- on_stab_01 -> Tavakai_Bossfight_T3_LongLine_1_Random: You will not survive!
+- on_stab_180_01 -> Tavakai_Bossfight_T3_LongLine_1_Random: You will not survive!
+- on_stun_01 -> Tavakai_Bossfight_T3_Knockdown_Random: Ugh... Vile outsider!
+- on_unhinged_01 -> Tavakai_Bossfight_T3_PainMisery_Random: Pain, misery, death, and fear!
+- on_inject_synthol_01 -> Tavakai_Bossfight_T3_IWillGiveEverything_Random: I will give everything for my people!
+- on_inject_synthol_180_01 -> Tavakai_Bossfight_T3_IWillGiveEverything_Random: I will give everything for my people!
+- on_corrupted_ground_01 -> Tavakai_Bossfight_T3_CorruptedGround_Random: (random group)
+- on_leap_slam_01 -> Tavakai_Bossfight_T3_Endure_Random: (random group)
+- on_inject_synthol_01 -> Tavakai_Bossfight_T3_Die_Random: (random group)
+- on_inject_synthol_180_01 -> Tavakai_Bossfight_T3_Die_Random: (random group)
+- on_stab_and_grab_01 -> Tavakai_Bossfight_T3_Wimp_Random: (random group)
+- on_cleave_01 -> Tavakai_Bossfight_T3_Outsider_Random: (random group)
+- on_cleave_180_01 -> Tavakai_Bossfight_T3_Outsider_Random: (random group)
+- on_stab_slam_01 -> Tavakai_Bossfight_T3_Tremble_Random: (random group)
+- on_stab_slam_180_01 -> Tavakai_Bossfight_T3_Tremble_Random: (random group)
+- on_stab_01 -> Tavakai_Bossfight_T3_Bloodbath_Random: (random group)
+- on_stab_180_01 -> Tavakai_Bossfight_T3_Bloodbath_Random: (random group)
+- on_unhinged_01 -> Tavakai_Bossfight_T3_Unhinged_Random: (random group)
+
+## linked buffs
+- karui_captain_boss_blood_thief_heal "":  | stats=life_regeneration_rate_per_minute_%
+- karui_chieftain_plant_damage_debuff "Tawhoa's Forest": Your damage dealt is significantly reduced while within Tawhoa's Forest | stats=damage_+%
+- vortex "Vortex": You are taking cold damage from a Vortex. | stats=base_cold_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_act4_4_11_2_rooms_unique_boss_01.arm
+  sector ['boss_environment', 195, 276, 494, 514, '']
+  sector ['hide_teleports', 149, 287, 540, 936, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 169, 276, 538, 306, '']
+  sector ['no_movement_skills', 212, 514, 496, 523, '']
+  sector ['TavakaiAltRoomMusic', 104, 265, 587, 1001, '']
+  sector ['boss_sector', 265, 771, 431, 955, '']
+  sector ['no_movement_skills', 203, 767, 487, 775, '']
+  point [344.0, 411.0, 'mapbossWG']
+  point [347.0, 609.0, 'killzone=20']
+  point [344.0, 323.0, 'telepad1']
+  point [344.0, 191.0, 'checkpoint1']
+  point [344.0, 254.0, 'telepad3']
+  obj Metadata/MiscellaneousObjects/Environment/EnvRadiusNode x1 (344,851)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightController x1 (344,411)
+  obj Metadata/Terrain/Tools/AudioTools/G4_11_2/InsideHutBigAudio x1 (344,411)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (315,186)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossTukohamaTotem x1 (345,918)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodTotem x8 (394,917) (423,875) (425,824) (394,781) (295,917) (266,875) (264,823) (295,781)
+  obj Metadata/Monsters/KaruiChieftain/objects/FallingLogs x3 (425,416) (260,478) (265,332)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (344,264) (344,323)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker x8 (344,614) (344,578) (344,669) (346,719) (346,781) (345,834) (344,496) (346,882)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker2 x39 (344,481) (304,481) (327,466) (315,444) (333,432) (303,416) (322,407) (329,376) (310,364) (325,342)
+  obj Metadata/NPC/Four_Act4/LilyRothsCrew/BoatCaptainFemale_A4Boss x1 (344,890)
+  obj Metadata/Monsters/KaruiChieftain/objects/NoPortalAura x1 (341,661)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x8 (233,150) (135,132) (405,112) (439,14) (33,34) (53,91) (437,210) (249,206)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossDoorSmash x1 (344,521)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle2 x1 (344,845)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossRoomMinimapIcon x1 (345,386)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage1 x2 (325,288) (318,308)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage2 x5 (291,281) (281,302) (266,281) (394,303) (425,276)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage3 x4 (270,313) (252,301) (434,300) (445,319)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage4 x4 (269,360) (243,353) (248,377) (432,337)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage5 x4 (274,378) (256,393) (443,358) (418,370)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage6 x7 (274,413) (247,416) (273,434) (418,391) (436,405) (417,445) (444,385)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage7 x5 (255,437) (274,455) (269,477) (441,464) (417,464)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage8 x5 (275,495) (259,506) (419,497) (438,510) (440,485)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/PreBossFightAudioEvent1 x1 (347,370)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x16 (342,770) (336,770) (348,770) (354,770) (360,770) (366,770) (372,770) (378,770) (330,770) (324,770)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (346,774)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (342,855)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (344,522)
+  obj Metadata/Monsters/KaruiChieftain/objects/FallingLogs_DoorBlocker x1 (344,297)
+room metadata_terrain_gallows_act4_4_11_2_rooms_unique_boss_02.arm
+  sector ['boss_environment', 195, 276, 494, 519, '']
+  sector ['hide_teleports', 149, 287, 540, 972, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['TavakaiAltRoomMusic', 127, 265, 587, 1001, '']
+  sector ['no_movement_skills', 195, 272, 479, 296, '']
+  sector ['no_movement_skills', 203, 510, 487, 519, '']
+  sector ['boss_sector', 267, 771, 433, 955, '']
+  sector ['no_movement_skills', 220, 767, 504, 775, '']
+  point [344.0, 412.0, 'mapbossWG']
+  point [347.0, 616.0, 'killzone=20']
+  point [344.0, 323.0, 'telepad1']
+  point [344.0, 191.0, 'checkpoint1']
+  point [344.0, 254.0, 'telepad3']
+  obj Metadata/MiscellaneousObjects/Environment/EnvRadiusNode x1 (344,851)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (315,187)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossTukohamaTotem x1 (345,918)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodTotem x8 (394,917) (423,875) (425,824) (394,781) (295,917) (266,875) (264,823) (295,781)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker x8 (344,614) (344,578) (344,669) (346,719) (346,781) (345,834) (346,882) (344,496)
+  obj Metadata/Monsters/KaruiChieftain/objects/NoPortalAura x1 (341,661)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x8 (233,150) (135,132) (405,112) (439,14) (33,34) (53,91) (437,210) (249,206)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle2 x1 (344,845)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightController x1 (344,412)
+  obj Metadata/Terrain/Tools/AudioTools/G4_11_2/InsideHutBigAudio x1 (344,413)
+  obj Metadata/Monsters/KaruiChieftain/objects/FallingLogs x3 (425,416) (260,478) (265,332)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (344,277) (344,323)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker2 x39 (344,481) (304,481) (327,466) (315,444) (333,432) (303,416) (322,407) (329,376) (310,364) (325,342)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossDoorSmash x1 (344,521)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossRoomMinimapIcon x1 (345,386)
+  obj Metadata/NPC/Four_Act4/LilyRothsCrew/BoatCaptainFemale_A4Boss x1 (344,890)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/PreBossFightAudioEvent1 x1 (344,308)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage1 x2 (319,287) (312,307)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage2 x5 (285,280) (275,301) (260,280) (388,302) (415,275)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage3 x4 (264,312) (246,300) (425,298) (439,318)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage4 x4 (263,359) (237,352) (242,376) (426,336)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage5 x4 (268,377) (250,392) (437,357) (412,369)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage6 x7 (268,412) (241,415) (267,433) (412,390) (430,404) (411,444) (438,384)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage7 x5 (249,436) (268,454) (263,476) (435,463) (411,463)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightFire_Stage8 x5 (269,494) (253,505) (413,496) (432,509) (434,484)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x16 (344,770) (338,770) (350,770) (356,770) (362,770) (368,770) (374,770) (380,770) (332,770) (326,770)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (348,771)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (344,855)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (345,520)
+  obj Metadata/Monsters/KaruiChieftain/objects/FallingLogs_DoorBlocker x1 (344,297)
+room metadata_terrain_maps_ubertavakai_rooms_unique_boss_01.arm
+  sector ['boss_environment', 195, 241, 494, 540, '']
+  sector ['hide_teleports', 149, 287, 540, 956, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 248, 305, 440, 309, '']
+  sector ['no_movement_skills', 253, 521, 445, 525, '']
+  sector ['boss_sector', 265, 773, 431, 957, '']
+  sector ['no_movement_skills', 219, 771, 503, 774, '']
+  point [344.0, 405.0, 'mapboss1WG']
+  point [347.0, 609.0, 'killzone=20']
+  point [342.0, 87.0, 'magic']
+  point [344.0, 323.0, 'telepad1']
+  point [343.0, 192.0, 'checkpoint']
+  point [344.0, 254.0, 'telepad3']
+  obj Metadata/MiscellaneousObjects/Environment/EnvRadiusNode x1 (344,851)
+  obj Metadata/Terrain/Gallows/Act4/4_11_2/Objects/BossFightController x1 (344,405)
+  obj Metadata/Terrain/Tools/AudioTools/G4_11_2/InsideHutBigAudio x1 (344,405)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (323,195)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossTukohamaTotem x1 (345,918)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossGodTotem x8 (394,917) (423,875) (425,824) (394,781) (295,917) (266,875) (264,823) (295,781)
+  obj Metadata/Monsters/KaruiChieftain/objects/FallingLogs x3 (425,416) (260,478) (265,332)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (344,254) (344,323)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker x8 (344,614) (344,578) (344,669) (346,719) (346,781) (345,834) (344,496) (346,882)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossPhase2PathMarker2 x39 (344,481) (304,481) (327,466) (315,444) (333,432) (303,416) (322,407) (329,376) (310,364) (325,342)
+  obj Metadata/Monsters/KaruiChieftain/objects/NoPortalAura x1 (341,661)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x8 (233,150) (135,132) (405,112) (439,14) (33,34) (53,91) (248,217) (437,209)
+  obj Metadata/Monsters/KaruiChieftain/objects/KaruiCaptainBossDoorSmash x1 (344,521)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle2 x1 (344,846)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x16 (342,772) (336,772) (348,772) (354,772) (360,772) (366,772) (372,772) (378,772) (330,772) (324,772)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (346,773)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (342,857)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (298,811) (292,854) (397,868) (380,803)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (307,889)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (362,862)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (344,522)
+  obj Metadata/Monsters/KaruiChieftain/objects/FallingLogs_DoorBlocker x1 (344,297)

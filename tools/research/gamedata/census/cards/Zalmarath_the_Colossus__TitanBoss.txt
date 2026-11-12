@@ -1,0 +1,259 @@
+# Zalmarath, the Colossus / Vastweld, the Colossal Guardian
+content: Act 2
+monsters: Metadata/Monsters/TitanBoss/TitanBoss, Metadata/Monsters/TitanBoss/TitanBossCampaignSTANDALONE_, Metadata/Monsters/TitanBoss/TitanBossMap, Metadata/Monsters/TitanBoss/TitanBossSTANDALONE
+scripts: Metadata/Monsters/TitanBoss/TitanBoss, Metadata/Monsters/TitanBoss/TitanBossSTANDALONE, Metadata/Monsters/TitanBoss/TitanBossMap_
+own chain: Metadata/Monsters/TitanBoss/TitanBoss, Metadata/Monsters/TitanBoss/TitanBossSTANDALONE, Metadata/Monsters/TitanBoss/TitanBossMap_
+areas: G2_7 The Titan Grotto act2; MapForge Forge act10
+ai: Metadata/Monsters/TitanBoss/TitanBoss.ais, Metadata/Monsters/TitanBoss/TitanBossSTANDALONE.ais (not shipped)
+
+## skills
+- MAASTitanBossSwordOuter [melee] action=GlacialHammer anim=default:sword_stab_left_01
+- MAASTitanBossSwordMid [melee] action=Cleave anim=default:sword_stab_mid_01
+- MAASTitanBossSwordInner [melee] action=Sweep anim=default:sword_stab_right_01
+- MAASTitanBossArmSweepSlam [melee] action=Backstab anim=default:sweep_start_right_01
+- MAASTitanBossArmSweepSlamLeft [melee] action=Chop anim=default:sweep_slam_left_01
+- MAASTitanBossSwordThrustLeft [melee] action=Sunder anim=default:sword_thrust_left_01
+- MAASTitanBossSwordThrustMid [melee] action=Slash anim=default:sword_thrust_mid_01
+- MAASTitanBossSwordThrustRight [melee] action=DoubleSlam anim=default:sword_thrust_right_01
+- MAASTitanBossSwordThrustMidRight [melee] action=Spark anim=default:sword_thrust_midright_01
+- EASTitanBossHammerFistLeft [empty_action_attack_no_los] action=ViperStrike anim=default:hammer_left_01
+- EASTitanBossHammerFistMid [empty_action_attack_no_los] action=Impale anim=default:hammer_mid_01
+- EASTitanBossHammerFistRight [empty_action_attack_no_los] action=GroundSlam anim=default:hammer_right_01
+- EASTitanBossMultiStabLeft [empty_action_attack_no_los] action=HeavyStrike anim=default:multislam_left_01
+- EASTitanBossMultiStabRight [empty_action_attack_no_los] action=Frenzy anim=default:multislam_right_01
+- EASTitanBossFlameWalkLeft [empty_action_spell_no_los] action=SpellAreaOfEffectCold anim=default:flame_walk_left_01
+- EASTitanBossFlameWalkRight [empty_action_spell_no_los] action=SpellAreaOfEffectLightning anim=default:flame_walk_right_01
+- EASTitanBossLaserBeam [empty_action_spell_no_los] action=SpellAreaOfEffectFire anim=default:eye_beam_01
+- EASTitanBossLaserBeamRoof [empty_action_spell] action=SpellProjectileUpward anim=default:roof_laser_01
+- EASTitanFissueSlam [empty_action_attack_no_los] action=Flurry anim=default:palm_arena_01
+- EASTitanBossWalkRight [empty_action_spell_no_los] action=DodgeRight anim=default:walk_right_01
+- EASTitanBossWalkLeft [empty_action_spell_no_los] action=DodgeLeft anim=default:walk_left_45_01
+- EASTitanSweepEndToIdle [melee] action=Throw anim=default:sweep_right_01
+- EASTitanSweepEndToSlam [melee] action=Snipe anim=default:sweep_slam_right_01
+- GATitanBossStab [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GATitanBossSlap [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- TitanBossMultiStabImpact [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- TitanBossArmSweepStabImpact [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- TitanBossHammerSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GTTitanBossFlameWalkFire [geometry_trigger] action=None anim=-
+    geom: trigger count=700 delay=7000 spread=150 radius=140 angle=90 anchor=2
+    triggers: MPSTitanBossFlameWalkFire
+- GTTitanBossRoofFall [geometry_trigger] action=None anim=-
+    geom: trigger count=9 delay=8000 spread=60 radius=0 angle=0 anchor=1
+    triggers: GATitanBossRockFall
+- MPSTitanBossFlameWalkFire [monster_projectile_spell] action=None anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- MDTitanBossLaserTarget [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget
+- SOTitanBossStalagmite [spawn_object] action=SpellProjectileCold anim=default:eye_beam_long_01
+    objects: Metadata/Monsters/TitanBoss/BrainStalagmite
+- MDTitanBossLaserTargetLeftBack [move_daemon] action=SpellAreaOfEffectFire anim=default:eye_beam_01
+    daemons: Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget
+- GATitanBossRockFall [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=3000 delay=3000 anchor=4
+    flags: is_area_damage
+- GSTitanBossMegaBlast [geometry_spell] action=SpellProjectileChaos anim=default:sword_blast_01
+    geom: cone length=150 width=0 angle=90 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- GATitanBossFissureDamage [geometry_attack] action=None anim=-
+    geom: circle length=3 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GATitanArmSlam [geometry_attack] action=GroundSlam anim=default:hammer_right_01
+    geom: rectangle length=90 width=45 angle=0 range=1000 delay=33 anchor=3
+    flags: is_area_damage
+- EGTitanBossSpawnWisps [execute_geal] action=None anim=-
+    GEAL 1111 on ['Metadata/Monsters/TitanBoss/Objects/VolatileSpawner']: self{} each{triggerer.StartMonsterSpawner( 1 );} r=300
+- GATitanArmSlam2 [geometry_attack] action=DoubleStrike anim=default:arm_slam_inner_01
+    geom: rectangle length=90 width=45 angle=0 range=1000 delay=33 anchor=3
+    flags: is_area_damage
+- GATitanArmSlam3 [geometry_attack] action=DoubleSlash anim=default:arm_slam_outer_01
+    geom: rectangle length=90 width=45 angle=0 range=1000 delay=33 anchor=3
+    flags: is_area_damage
+- GATitanBossChiselSlam [geometry_attack] action=Puncture anim=default:chisel_slam_01
+    geom: rectangle length=70 width=20 angle=0 range=350 delay=33 anchor=3
+    flags: is_area_damage
+- GATitanBossRockFallLarge [geometry_attack] action=Puncture anim=default:chisel_slam_01
+    geom: circle length=32 width=0 angle=0 range=3000 delay=3000 anchor=4
+    flags: is_area_damage
+    GEAL 1114 on ['Metadata/Monsters/TitanBoss/shatter1', 'Metadata/Monsters/TitanBoss/shatter2', 'Metadata/Monsters/TitanBoss/shatter3', 'Metadata/Monsters/TitanBoss/shatter4']: self{} each{triggerer.IfState(shattered, 0,{SetStateTo(shattered, 1);});} r=30
+- GTTitanBossRoofFallShatter [geometry_trigger] action=None anim=-
+    geom: trigger count=9 delay=3000 spread=15 radius=0 angle=0 anchor=1
+- GTTitanBossThrustRockSpray [geometry_trigger] action=None anim=-
+    geom: trigger count=50 delay=200 spread=120 radius=100 angle=60 anchor=4
+- MPWTitanBossRockSpray [monster_projectile_weapon] action=DoubleStrike anim=default:arm_slam_inner_01
+- CGETitanBossFissureFire [monster_cast_ground_effect_location] action=None anim=-
+    buffs: ground_wendigo_boss_death_breath
+    ground: Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/vomit_grd.ao
+- MPWTitanBossRockThrow [monster_projectile_weapon_no_los] action=SpellProjectile anim=default:rock_throw_01
+- GPATitanRockSpray [geometry_projectiles_attack] action=None anim=-
+- SOStationaryLaserTarget [spawn_object] action=SpellProjectileCold anim=default:eye_beam_long_01
+    objects: Metadata/Monsters/TitanBoss/Objects/StationaryTitanBossLaserTarget
+- GSTitanBossLaserImpact [geometry_spell] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- MDTitanBossLaserTargetBackRight [move_daemon] action=SpellAreaOfEffectFire anim=default:eye_beam_01
+    daemons: Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget
+- EASTitanBossLaserTargetBackRight [empty_action_spell] action=SpellAreaOfEffectFire anim=default:eye_beam_01
+- EASTitanBossLaserTargetBackLeft [empty_action_spell] action=SpellAreaOfEffectFire anim=default:eye_beam_01
+
+## own states and handlers
+states: emerged; standalone_effect
+- create_state_emerged_0 = { SetRangeCheckingForGlobalAudioParams( False ); }
+- create_state_emerged_1 = { Delay( 0.1, { SetStaticLifeBarVisibilty( True ); } ); }
+- on_state_emerged_1 = { SetRangeCheckingForGlobalAudioParams( True ); }
+- on_start_Emerge = { PlayCharacterAudioEvent( TitanSeenApproaching ); }
+- on_end_Emerge = { SetStaticLifeBarVisibilty( True ); }
+- on_effect_custom_event_projectile_fired_for_MPWTitanBossRockThrow = { projectile.Do( () { SetRandomYaw(); SetRandomRoll(); SetXYTilt( Random( 360 ), Random( 360 ) ); } ); }
+- on_state_standalone_effect_0 = { PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TitanBoss/EnvironmentBase.ao', end ); Delay( 1.0, { standalone_effect.Delete(); } ); }
+- on_state_standalone_effect_1 = { this.standalone_effect = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TitanBoss/EnvironmentBase.ao', <root> ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TitanBoss/EnvironmentBase.ao', loop ); }
+- create_state_standalone_effect_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TitanBoss/EnvironmentBase.ao', <root> ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TitanBoss/EnvironmentBase.ao', loop ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_beam TitanBossRoofBeam
+- preload_misc_object TitanBossFissureLineStart
+- preload_misc_object TitanBossFissureLine
+- preload_misc_object TitanBossFissureLineEnd
+- preload_environment G2_7_boss
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/TitanBoss/BrainStalagmite: TriggerableBlockage [start_blocked=true server_only=true] states= 
+- Metadata/Monsters/TitanBoss/Objects/StationaryTitanBossLaserTarget:  states= 
+- Metadata/Monsters/TitanBoss/Objects/VolatileSpawner:  [server_only=true] states=emerging 
+- Metadata/Monsters/TitanBoss/shatter1:  [server_only=true] states=shattered 
+- Metadata/Monsters/TitanBoss/shatter2:  [server_only=true] states=shattered 
+- Metadata/Monsters/TitanBoss/shatter3:  [server_only=true] states=shattered 
+- Metadata/Monsters/TitanBoss/shatter4:  [server_only=true] states=shattered 
+- metadata/monsters/titanboss/brainstalagmite: TriggerableBlockage [start_blocked=true server_only=true] states= 
+- metadata/monsters/titanboss/lefttarget:  [server_only=true] states= 
+- metadata/monsters/titanboss/middletarget:  [server_only=true] states= 
+- metadata/monsters/titanboss/objects/bosslootproxy: InteractionAction [blocking=false server_only=true] states= 
+- metadata/monsters/titanboss/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=TitanActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( TitanInactive ); }}
+- metadata/monsters/titanboss/objects/shatter1blocking: TriggerableBlockage [start_blocked=false server_only=true] states=shattered 
+- metadata/monsters/titanboss/objects/shatter2blocking: TriggerableBlockage [start_blocked=false server_only=true] states=shattered 
+- metadata/monsters/titanboss/objects/shatter3blocking: TriggerableBlockage [start_blocked=false server_only=true] states=shattered 
+- metadata/monsters/titanboss/objects/shatter4blocking: TriggerableBlockage [start_blocked=false server_only=true] states=shattered 
+- metadata/monsters/titanboss/objects/stationarytitanbosslasertarget:  states= 
+- metadata/monsters/titanboss/objects/titanarenamiddle:  [server_only=true] states= 
+- metadata/monsters/titanboss/objects/titanbossheighthelper: TriggerableBlockage [start_blocked=false server_only=true] states=enabled 
+- metadata/monsters/titanboss/objects/volatilespawner:  [server_only=true] states=emerging 
+- metadata/monsters/titanboss/righttarget:  [server_only=true] states= 
+- metadata/monsters/titanboss/rooftarget1: TriggerableBlockage [start_blocked=false server_only=true] states=shattered on_state_shattered_1{{ PlayAnimation( shatter_01 ); }}; create_state_shattered_1{{ PlayAnimation( shatter_01 ); GoToAnimationEnd(); }}
+- metadata/monsters/titanboss/rooftarget2: TriggerableBlockage [start_blocked=false server_only=true] states=shattered on_state_shattered_1{{ PlayAnimation( shatter_02 ); }}; create_state_shattered_1{{ PlayAnimation( shatter_02 ); GoToAnimationEnd(); }}
+- metadata/monsters/titanboss/rooftarget3: TriggerableBlockage [start_blocked=false server_only=true] states=shattered on_state_shattered_1{{ PlayAnimation( shatter_02 ); }}; create_state_shattered_1{{ PlayAnimation( shatter_02 ); GoToAnimationEnd(); }}
+- metadata/monsters/titanboss/rooftarget4: TriggerableBlockage [start_blocked=false server_only=true] states=shattered on_state_shattered_1{{ PlayAnimation( shatter_02 ); }}; create_state_shattered_1{{ PlayAnimation( shatter_02 ); GoToAnimationEnd(); }}
+- metadata/monsters/titanboss/rotatinglasershow:  [server_only=true] states= 
+- metadata/monsters/titanboss/shatter1:  [server_only=true] states=shattered 
+- metadata/monsters/titanboss/shatter2:  [server_only=true] states=shattered 
+- metadata/monsters/titanboss/shatter3:  [server_only=true] states=shattered 
+- metadata/monsters/titanboss/shatter4:  [server_only=true] states=shattered 
+- metadata/monsters/titanboss/titanbossfissureline: Life Actor Stats [blocking=false object_size=1] states= 
+- metadata/monsters/titanboss/titanbossfissurelineend:  states= 
+- metadata/monsters/titanboss/titanbossfissurelinestart:  states= 
+- Metadata/Monsters/TitanBoss/Objects/TitanArenaMiddle:  [server_only=true] states= 
+- Metadata/Monsters/TitanBoss/RightTarget:  [server_only=true] states= 
+- Metadata/Monsters/TitanBoss/MiddleTarget:  [server_only=true] states= 
+- Metadata/Monsters/TitanBoss/LeftTarget:  [server_only=true] states= 
+- Metadata/Monsters/TitanBoss/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=TitanActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( TitanInactive ); }}
+- Metadata/Monsters/TitanBoss/Objects/BossLootProxy: InteractionAction [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_7/Objects/TitanBossArenaTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardTitanArena, TitleCardTitanArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+- ground_wendigo_boss_death_breath "":  | stats=base_physical_damage_taken_per_minute,base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_7_rooms_unique_boss_06.arm
+  sector ['hide_teleports', 137, 258, 293, 409, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 127, 247, 302, 422, '']
+  sector ['no_movement_skills', 112, 401, 324, 405, '']
+  point [218.0, 256.0, 'force:mapboss1']
+  point [216.0, 385.0, 'telepad1']
+  point [218.0, 517.0, 'checkpoint2']
+  point [201.0, 326.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/CameraZoom/TreeOfSouls x1 (217,335)
+  obj Metadata/Monsters/TitanBoss/Objects/TitanArenaMiddle x1 (217,335)
+  obj Metadata/Monsters/TitanBoss/RightTarget x1 (275,282)
+  obj Metadata/Monsters/TitanBoss/MiddleTarget x1 (216,253)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (230,519)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate_Toggleable x1 (217,418)
+  obj Metadata/Monsters/TitanBoss/LeftTarget x1 (155,283)
+  obj Metadata/Monsters/TitanBoss/Objects/VolatileSpawner x7 (71,193) (24,334) (79,468) (356,473) (414,332) (347,195) (222,142)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (242,520)
+  obj Metadata/Monsters/TitanBoss/shatter4 x1 (158,351)
+  obj Metadata/Monsters/TitanBoss/shatter3 x1 (182,401)
+  obj Metadata/Monsters/TitanBoss/shatter1 x1 (245,399)
+  obj Metadata/Monsters/TitanBoss/shatter2 x1 (271,356)
+  obj Metadata/Monsters/TitanBoss/Objects/BossRoomMinimapIcon x1 (216,336)
+  obj Metadata/Monsters/TitanBoss/Objects/BossLootProxy x1 (216,335)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (241,439)
+  obj Metadata/Terrain/Gallows/Act2/2_7/Objects/TitanBossArenaTitle x1 (215,369)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (218,403)
+room metadata_terrain_gallows_act2_2_7_rooms_unique_boss_08.arm
+  sector ['hide_teleports', 442, 145, 593, 301, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 429, 138, 604, 313, '']
+  sector ['no_movement_skills', 446, 110, 450, 322, '']
+  point [594.0, 218.0, 'force:mapboss1']
+  point [465.0, 220.0, 'telepad1']
+  point [333.0, 218.0, 'checkpoint2']
+  point [529.0, 208.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/CameraZoom/TreeOfSouls x1 (515,219)
+  obj Metadata/Monsters/TitanBoss/Objects/TitanArenaMiddle x1 (515,219)
+  obj Metadata/Monsters/TitanBoss/RightTarget x1 (568,161)
+  obj Metadata/Monsters/TitanBoss/MiddleTarget x1 (597,220)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (331,206)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate_Toggleable x1 (432,219)
+  obj Metadata/Monsters/TitanBoss/LeftTarget x1 (567,281)
+  obj Metadata/Monsters/TitanBoss/Objects/VolatileSpawner x7 (657,365) (516,412) (382,357) (377,80) (518,22) (655,89) (708,214)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (330,194)
+  obj Metadata/Monsters/TitanBoss/shatter4 x1 (499,278)
+  obj Metadata/Monsters/TitanBoss/shatter3 x1 (449,254)
+  obj Metadata/Monsters/TitanBoss/shatter1 x1 (451,191)
+  obj Metadata/Monsters/TitanBoss/shatter2 x1 (494,165)
+  obj Metadata/Monsters/TitanBoss/Objects/BossRoomMinimapIcon x1 (514,220)
+  obj Metadata/Monsters/TitanBoss/Objects/BossLootProxy x1 (515,220)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (411,195)
+  obj Metadata/Terrain/Gallows/Act2/2_7/Objects/TitanBossArenaTitle x1 (481,220)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (447,218)
+room metadata_terrain_gallows_act2_2_7_rooms_unique_boss_07.arm
+  sector ['hide_teleports', 442, 145, 593, 301, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 429, 136, 604, 311, '']
+  sector ['no_movement_skills', 447, 114, 451, 326, '']
+  point [594.0, 218.0, 'force:mapboss1']
+  point [465.0, 220.0, 'telepad1']
+  point [333.0, 218.0, 'checkpoint2']
+  point [530.0, 209.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/CameraZoom/TreeOfSouls x1 (515,219)
+  obj Metadata/Monsters/TitanBoss/Objects/TitanArenaMiddle x1 (515,219)
+  obj Metadata/Monsters/TitanBoss/RightTarget x1 (568,161)
+  obj Metadata/Monsters/TitanBoss/MiddleTarget x1 (597,220)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (329,205)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate_Toggleable x1 (432,219)
+  obj Metadata/Monsters/TitanBoss/LeftTarget x1 (567,281)
+  obj Metadata/Monsters/TitanBoss/Objects/VolatileSpawner x7 (657,365) (516,412) (382,357) (377,80) (518,22) (655,89) (708,214)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (330,194)
+  obj Metadata/Monsters/TitanBoss/shatter4 x1 (499,278)
+  obj Metadata/Monsters/TitanBoss/shatter3 x1 (449,254)
+  obj Metadata/Monsters/TitanBoss/shatter1 x1 (451,191)
+  obj Metadata/Monsters/TitanBoss/shatter2 x1 (494,165)
+  obj Metadata/Monsters/TitanBoss/Objects/BossRoomMinimapIcon x1 (514,220)
+  obj Metadata/Monsters/TitanBoss/Objects/BossLootProxy x1 (515,220)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (411,195)
+  obj Metadata/Terrain/Gallows/Act2/2_7/Objects/TitanBossArenaTitle x1 (483,220)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (447,218)

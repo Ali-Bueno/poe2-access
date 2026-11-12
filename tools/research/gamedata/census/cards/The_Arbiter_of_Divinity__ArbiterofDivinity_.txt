@@ -1,0 +1,259 @@
+# The Arbiter of Divinity
+content: Pinnacle
+monsters: Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/ArbiterofDivinity_, Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/ArbiterofDivinityStandalone
+scripts: Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/ArbiterOfDivinityBoss
+own chain: Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/ArbiterOfDivinityBoss, Metadata/Monsters/PinnacleBossBase
+areas: MapUberBoss_Divinity The Origin Tower act10
+ai: Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/ArbiterOfDivinityBoss.ais (not shipped)
+
+## skills
+- MAASAoDP1_BasicMelee [melee] action=None anim=-
+- EAAAoDP1_WingFlapCombo [empty_action_attack] action=SpellProjectileLightning anim=default:spellcast_01,stance3:triangulate_end_01
+- EAAAoDP1_SwoopSlam [empty_action_attack] action=DodgeForward anim=default:swooping_dash_01,stance3:ascended_blink_01
+- MPAAoDP1_SpearToss [monster_projectile_weapon] action=Throw anim=default:spear_throw_01
+- EAAAoDP1_ExtendoSpearCombo [empty_action_attack] action=HeavyStrike anim=default:extended_spear_combo_01,stance2:arbiter_emerge_cine_02_emerge_subsequent
+- MPSAoDP1_OrbitTotemPayload [monster_projectile_spell] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- GTAoDP1_CloneBoltArea [geometry_trigger] action=SpellAreaOfEffectLightning anim=default:summon_clones_01,stance3:ascended_spellcast_01
+    geom: trigger count=4 delay=800 spread=150 radius=30 angle=0 anchor=4
+- EAAAoDP1_DodgeLeft [empty_action_attack] action=DodgeLeft anim=default:dodge_left_01,stance3:ascended_blink_left_01
+- EAAAoDP1_DodgeRight [empty_action_attack] action=DodgeRight anim=default:dodge_right_01,stance3:ascended_blink_right_01
+- CTS3AoDP1_Phase1ToPhase2 [change_to_stance3] action=ChangeToStance3 anim=stance4:unleash_divine_end_01
+- MAASAoDP2_BasicMelee [melee] action=Melee anim=default:attack_01,stance3:ascended_attack_01, ascended_attack_02, ascended_clone_attack_01, ascended_clone_attack_02, ascended_clone_attack_03, ascended_clone_attack_04, ascended_clone_attack_05, ascended_clone_attack_06
+- EAAAoDP2_BlinkSlam [empty_action_attack] action=DodgeForward anim=default:swooping_dash_01,stance3:ascended_blink_01
+- MAASAoDP2_ExtendoSpearCombo [melee] action=SpellAreaOfEffectFire anim=stance3:ascended_spear_combo_01
+- MPAAoDP2_SpearToss [monster_projectile_weapon] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- EASAoDP2_SpellCombo [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:summon_clones_01,stance3:ascended_spellcast_01
+- EASAoDP2_SoulRelease [empty_action_spell] action=SpellAreaOfEffectCold anim=stance3:soul_release_01
+- GTAoDP2_StormBlink [geometry_trigger] action=SpellAreaOfEffectChaos anim=stance3:storm_blink_start_01
+    geom: trigger count=1800 delay=2000 spread=250 radius=15 angle=0 anchor=4
+- EAAAoDP2_TriangulateStart [empty_action_attack] action=SpellProjectileFire anim=stance3:triangulate_start_01
+- EAAAoDP2_TriangulateRepeat [empty_action_attack] action=SpellProjectileCold anim=stance3:triangulate_01_short
+- EAAAoDP2_TriangulateEnd [empty_action_attack] action=SpellProjectileLightning anim=default:spellcast_01,stance3:triangulate_end_01
+- EAAAoDP2_DodgeLeft [empty_action_attack] action=DodgeLeft anim=default:dodge_left_01,stance3:ascended_blink_left_01
+- EAAAoDP2_DodgeRight [empty_action_attack] action=DodgeRight anim=default:dodge_right_01,stance3:ascended_blink_right_01
+- MAASAoDP1_SuckerPunchEmerge [melee] action=Cleave anim=default:arbiter_emerge_cine_02,stance2:arbiter_emerge_cine_02
+- MAASAoDP1_SuckerPunchEmergeQuick [melee] action=HeavyStrike anim=default:extended_spear_combo_01,stance2:arbiter_emerge_cine_02_emerge_subsequent
+- GAAoDP1_WingFlapComboLeft [geometry_attack] action=None anim=-
+    geom: rectangle length=124 width=17 angle=0 range=260 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP1_WingFlapComboRight [geometry_attack] action=None anim=-
+    geom: rectangle length=124 width=17 angle=0 range=260 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP1_WingFlapComboMiddle [geometry_attack] action=None anim=-
+    geom: rectangle length=145 width=30 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP1_SwoopSlamDashStab [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=15 angle=0 range=315 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP1_SwoopSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=40 width=0 angle=0 range=200 delay=33 anchor=3
+- GAAoDP1_SpearTossImpact [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GAAoDP1_SpearTossSuperHeroLanding [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=150 delay=33 anchor=3
+- CGEAoDP1_SpearTossLightningDegen [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- GAAoDP1_SpearTossSweep [geometry_attack] action=None anim=-
+    geom: cone length=100 width=0 angle=290 range=334 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GSAoDP1_OrbitTotemPayloadImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- LGAoDP1_OrbitTotemOrbiterFwd [lunaris_glaive_projectile] action=None anim=-
+- CGEAoDP1_OrbitTotemGroundDebuff [monster_cast_ground_effect_location] action=None anim=-
+- GSAoDP1_CloneBoltBolt [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAAoDP1_CloneBoltDetonate [geometry_attack] action=None anim=-
+    geom: circle length=40 width=0 angle=0 range=200 delay=33 anchor=4
+- MPSAoDP1_ExtendoSpearComboSpellProj [monster_projectile_spell] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- GAAoDP1_ExtendoSpearComboDashStab [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=6 angle=0 range=300 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP1_ExtendoSpearComboLacerate1 [geometry_attack] action=None anim=-
+    geom: rectangle length=138 width=20 angle=0 range=215 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAAoDP1_ExtendoSpearComboLacerate2 [geometry_attack] action=None anim=-
+    geom: rectangle length=138 width=20 angle=0 range=215 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAAoDP1_ExtendoSpearComboLacerate3 [geometry_attack] action=None anim=-
+    geom: rectangle length=138 width=20 angle=0 range=215 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAAoDP1_ExtendoSpearComboSlam1 [geometry_attack] action=None anim=-
+    geom: circle length=59 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAAoDP1_ExtendoSpearComboSlam2 [geometry_attack] action=None anim=-
+    geom: circle length=28 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSAoDP1_ExtendoSpearComboZapBeams [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=8 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- EGAoDP1_ExtendoSpearComboVolatileDetonation [execute_geal] action=None anim=-
+    GEAL 1207 on ['Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP1_ExtendoComboVolatiles']: self{} each{triggerer.SetStateTo( explode, 1 );} r=300
+- GSAoDP1_ExtendoSpearComboVolatileExplode [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=150 delay=33 anchor=4
+    flags: is_area_damage
+- MPSAoDP2_BasicMeleeProj [monster_projectile_spell] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- GAAoDP2_BasicMeleeRectSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=92 width=20 angle=0 range=300 delay=33 anchor=3
+    flags: is_area_damage
+- GAAoDP2_BlinkSlam [geometry_attack] action=DodgeForward anim=default:swooping_dash_01,stance3:ascended_blink_01
+    geom: circle length=20 width=0 angle=0 range=99 delay=33 anchor=2
+- GAAoDP2_ExtendoSpearComboCleave1 [geometry_attack] action=None anim=-
+    geom: cone length=55 width=0 angle=315 range=300 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP2_ExtendoSpearComboCleave2 [geometry_attack] action=None anim=-
+    geom: cone length=88 width=0 angle=315 range=300 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP2_ExtendoSpearComboCleave3 [geometry_attack] action=None anim=-
+    geom: cone length=118 width=0 angle=315 range=300 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP2_SpearTossImpact [geometry_attack] action=None anim=-
+    geom: circle length=35 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GAAoDP2_SpearTossCleave [geometry_attack] action=None anim=-
+    geom: cone length=100 width=0 angle=290 range=334 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- MPSAoDP2_SpellComboProj1 [monster_projectile_spell] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- MPSAoDP2_SpellComboProj2 [monster_projectile_spell] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- GAAoDP2_SpellComboStab [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=15 angle=0 range=350 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GAAoDP2_SpellComboCleave [geometry_attack] action=None anim=-
+    geom: cone length=45 width=0 angle=130 range=150 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- MMSAoDP2_SoulReleaseProj [monster_mortar] action=None anim=-
+    flags: is_area_damage
+- MPSAoDP2_SoulReleaseProj [monster_projectile_spell] action=SpellProjectile anim=default:orbit_totem_01,stance3:ascended_spear_throw_01
+- GSAoDP2_SoulReleaseProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- GSAoDP2_StormBlinkBolt [geometry_spell] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=80 delay=80 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSAoDP2_StormBlinkBoltChain [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=10 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GAAoDP2_TriangulateSplitRect [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=11 angle=0 range=233 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GSAoDP2_TriangulateSplitSidewaysRect [geometry_spell] action=None anim=-
+    geom: rectangle length=90 width=25 angle=0 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+
+## own states and handlers
+states: current_fight_phase = 1; fight_music_parameter; emerge_status; emerged; no_portals_sector_enabled; no_more_wings
+- on_or_create_state_fight_music_parameter_0 = { SetGlobalAudioParam( DivinityPhase, 0 ); }
+- on_or_create_state_fight_music_parameter_1 = { SetGlobalAudioParam( DivinityPhase, 1 ); }
+- on_or_create_state_fight_music_parameter_2 = { SetGlobalAudioParam( DivinityPhase, 2 ); }
+- on_or_create_state_fight_music_parameter_3 = { SetGlobalAudioParam( DivinityPhase, 3 ); }
+- on_or_create_state_fight_music_parameter_4 = { SetGlobalAudioParam( DivinityPhase, 4 ); }
+- on_or_create_state_fight_music_parameter_5 = { SetGlobalAudioParam( DivinityPhase, 5 ); }
+- on_or_create_state_emerged_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/epk/idle_body.epk' ); }
+- on_or_create_state_no_portals_sector_enabled_0 = { globals.disable_instant_teleport_sector_1.RenameSectorsAtLocation( hide_teleports, hide_teleports_off ); }
+- on_or_create_state_no_portals_sector_enabled_1 = { globals.disable_instant_teleport_sector_1.RenameSectorsAtLocation( hide_teleports_off, hide_teleports ); }
+- on_effect_start_EAAAoDP1_SwoopSlam = { fix_orientation_after_action( 180, true ); }
+- on_effect_event_contact_for_MPAAoDP1_SpearToss = { HideWeapons( true, true ); }
+- on_effect_event_superherolanding_for_MPAAoDP1_SpearToss = { ShowWeapons( true, true ); }
+- on_or_create_state_no_more_wings_1 = { DetachAllOfType( 'Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/attachments/Wings.ao' ); }
+- on_effect_event_contact_for_MPAAoDP2_SpearToss = { HideWeapons( true, true ); }
+- on_effect_event_tele_grab_for_MPAAoDP2_SpearToss = { ShowWeapons( true, true ); }
+- on_death = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/attachments/Weapon.ao' ); my_weapon.MoveToBone( R_Weapon_2, 0 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: ['fight_music_parameter']  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP1_ExtendoComboVolatiles
+- preload_misc_beam AoDPhaseChangeBuffBeam
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/tele_marker.ao
+- preload_object Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP2_DivinityBlob
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_01.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_02.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_03.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_04.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_01_flip.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_02_flip.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_03_flip.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/orbform_path_04_flip.ao
+- preload_object Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP2_StormBlinkTarget
+- preload_misc_beam AoDTriangulateSplitBeam
+- preload_misc_beam AoDDeathBeam
+- preload_object Metadata/NPC/Four_Endgame/Doryani/DoryaniArbiterOfDivinityArea
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP1_ExtendoComboVolatiles:  [server_only=true] states= 
+- Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP2_DivinityBlob:  [server_only=true] states=active on_or_create_state_active_1{{ EnableRendering(); }}; on_or_create_state_active_2{{ EnableRendering(); }}; on_start{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.5 ); SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true, GetCurrentAnimationLength}; on_end{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.5, true, GetCurrentAnimationLength() ); }}
+- Metadata/Monsters/AtlasBosses/ArbiterOfDivinityBoss/objects/AoDP2_StormBlinkTarget:  [server_only=true] states= 
+- Metadata/NPC/Four_Endgame/Doryani/DoryaniArbiterOfDivinityArea: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=3] states=spawned;hide on_or_create_state_spawned_1{{ IfState( hide, 1, () { DisableRendering(); DisableTargetable(); HideMinimapIcon(); }, () { PlayAnimation( portal_arriv}; on_state_spawned_2{{ IfState( hide, 1, () { DisableRendering(); }, () { Delay( 13.79, { EnableTargetable(); ShowMinimapIcon(); } ); PlayAni}; create_state_spawned_2{{ IfState( hide, 1, () { DisableRendering(); DisableTargetable(); HideMinimapIcon(); }, () { EnableTargetable(); ShowMin}; on_portal_arrive_03{{ Delay( 1.2, { IfState( hide, 1, (){}, (){ PlayTextAudio( DoryaniEG_PostArbiterOfDivinity_A1wild, 'Metadata/NPC/Four_En}; on_end_portal_arrive_03{{ SetStateTo( spawned, 2 ); }}
+- metadata/monsters/atlasbosses/arbiterofdivinityboss/objects/aodp1_extendocombovolatiles:  [server_only=true] states= 
+- metadata/monsters/atlasbosses/arbiterofdivinityboss/objects/aodp2_divinityblob:  [server_only=true] states=active on_or_create_state_active_1{{ EnableRendering(); }}; on_or_create_state_active_2{{ EnableRendering(); }}; on_start{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.5 ); SetDynamicFloat( 'dynamic_FadeTIME', -0.5, true, GetCurrentAnimationLength}; on_end{{ SetDynamicFloat( 'dynamic_FadeTIME', 0.5, true, GetCurrentAnimationLength() ); }}
+- metadata/monsters/atlasbosses/arbiterofdivinityboss/objects/aodp2_stormblinktarget:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityFightInitiatorQuest: InteractionAction Transitionable Targetable [blocking=false object_size=3 server_only=true] states=activated;enable_cinematic_view;hide;show;first_attempt = 1;subsequent_attempt on_or_create_state_hide_1{{ DisableRendering(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); }}; create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_untransition{{ EnableTargetable(); EnableHighlighting(); }}; create_untransitioned{{ EnableTargetable(); EnableHighlighting(); }}; on_state_enable_cinematic_view_1{{ ShowCinematicState( false, false ); CloseOpenScreen(); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/MysteriousEntity:  [blocking=false object_size=1 server_only=true] states=active on_or_create_state_active_0{{ DisableRendering(); }}; on_or_create_state_active_1{{ EnableRendering(); }}; on_arbiter_emerge_cine_01{{ QueueTextAudio( Tecrod_Divinity_A_Cinematic, 'Metadata/Monsters/FourHorsemenOfkalguur/Death/Horseman/DeathDivinity', 6}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityCameraController:  [blocking=false object_size=3 server_only=true] states=active on_construction_complete{{ globals.intro_camera_controller = this; }}; on_construction_complete{{ local skybox = globals.intro_camera_controller.GetAttachedAOByType( 'Metadata/Terrain/Gallows/EndGame/Divinity/Tiles/D}; on_state_active_1{{ EnableBoneFollowingCamera( 'camera_bone', 30, 1.0, 44.785 ); Delay( GetCurrentAnimationLength() - 3.0, { SetStateTo( a}; on_state_active_2{{ DisableBoneFollowingCamera( 1.0 ); Delete(); Delay( 3.0, { RemoveCustomCameraSpeed(); } ); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityFakeEmerge:  [blocking=false object_size=1 server_only=true] states=active on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_or_create_state_active_0{{ PlayAnimationTreeByName( arbiter_emerge_cine_01 ); Delay( 0.0, { PauseAnimationTree(); } ); }}; on_state_active_1{{ PlayAnimationTreeByName( arbiter_emerge_cine_01 ); }}; on_event_add_glow_epk{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/epk/idle_body.epk' );}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/DivinityStatue:  [blocking=false object_size=1 server_only=true] states=cracking on_or_create_state_cracking_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Arbiter_of_Divinity/epk/statue_fx.epk' );}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityFightInitiatorNonQuest: InteractionAction Transitionable Targetable [blocking=false object_size=3 server_only=true] states=activated;enable_cinematic_view;hide;show;first_attempt = 1;subsequent_attempt on_or_create_state_show_0{{ DisableRendering(); }}; on_or_create_state_show_1{{ EnableRendering(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); }}; create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_untransition{{ EnableTargetable(); EnableHighlighting(); }}; create_untransitioned{{ EnableTargetable(); EnableHighlighting(); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArenaLiftGone_Transition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=active = 1 on_construction_complete{{ this.no_wobble = true; }}; on_or_create_state_active_0{{ DisableTargetable(); DisableHighlighting(); }}; on_or_create_state_active_1{{ EnableTargetable(); EnableHighlighting(); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArenaLift_Transition: InteractionAction Targetable [blocking=false object_size=1 server_only=true] states=active on_construction_complete{{ globals.arena_lift_transition = this; }}; on_or_create_state_active_0{{ DisableTargetable(); }}; on_or_create_state_active_1{{ EnableTargetable(); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_construction_complete{{ SetExtraTileActivationDistance( 10 ); }}; on_triggered{{ ShowTitleCard( TitleCardArbiterOfDivinityArena, TitleCardArbiterOfDivinityArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/TowerFloorBeamTurrets: TriggerableBlockage Targetable MinimapIcon [start_blocked=true blocking=false object_size=3 server_only=true] states=turret_sequence;atlas_tower_selected on_construction_complete{{ globals.tower_beam_turrets += this; }}; create_state_turret_sequence_0{{ PlayAnimation( turretTop_rise ); GoToAnimationEnd(); HideMinimapIcon(); }}; on_or_create_state_turret_sequence_0{{ DisableTargetable(); DisableHighlighting(); HideMinimapIcon(); }}; on_state_turret_sequence_1{{ PlayAnimation( turretTop_down ); QueueAnimation( idle_down ); }}; create_state_turret_sequence_1{{ PlayAnimation( idle_down ); }}; on_or_create_state_turret_sequence_1{{ DisableTargetable(); DisableHighlighting(); }}
+- Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArenaLiftBlocking: TriggerableBlockage [start_blocked=true blocking=false object_size=3 server_only=true] states=blocked = 1 on_construction_complete{{ globals.arena_lift_blocking += this; }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_endgame_divinity_rooms_bossroom_01.arm
+  sector ['hide_teleports_off', 333, 226, 623, 627, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 264, 127, 668, 676, '']
+  sector ['lift_arena', 457, 195, 509, 253, '']
+  sector ['lift_arena', 509, 206, 512, 249, '']
+  sector ['lift_arena', 512, 212, 515, 245, '']
+  sector ['lift_arena', 515, 216, 518, 238, '']
+  sector ['lift_arena', 518, 221, 521, 234, '']
+  sector ['lift_arena', 454, 206, 457, 249, '']
+  sector ['lift_arena', 451, 212, 454, 245, '']
+  sector ['lift_arena', 448, 216, 451, 238, '']
+  sector ['lift_arena', 445, 221, 448, 234, '']
+  sector ['no_movement_skills', 455, 253, 511, 255, '']
+  sector ['no_movement_skills', 455, 249, 457, 255, '']
+  sector ['no_movement_skills', 452, 245, 454, 251, '']
+  sector ['no_movement_skills', 446, 234, 448, 240, '']
+  sector ['no_movement_skills', 449, 238, 451, 247, '']
+  sector ['no_movement_skills', 452, 249, 457, 251, '']
+  sector ['no_movement_skills', 449, 245, 454, 247, '']
+  sector ['no_movement_skills', 446, 238, 451, 240, '']
+  sector ['no_movement_skills', 443, 234, 448, 236, '']
+  sector ['no_movement_skills', 443, 195, 445, 236, '']
+  sector ['no_movement_skills', 521, 195, 523, 236, '']
+  sector ['no_movement_skills', 518, 234, 523, 236, '']
+  sector ['no_movement_skills', 518, 234, 520, 240, '']
+  sector ['no_movement_skills', 515, 238, 520, 240, '']
+  sector ['no_movement_skills', 515, 238, 517, 247, '']
+  sector ['no_movement_skills', 512, 245, 517, 247, '']
+  sector ['no_movement_skills', 512, 245, 514, 251, '']
+  sector ['no_movement_skills', 509, 249, 514, 251, '']
+  sector ['no_movement_skills', 509, 249, 511, 255, '']
+  point [480.0, 509.0, 'mapboss']
+  point [483.0, 237.0, 'telepad']
+  point [482.0, 268.0, 'checkpoint']
+  point [483.0, 226.0, 'telepad']
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityFightInitiatorQuest x1 (483,459)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/MysteriousEntity x1 (469,476)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityCameraController x1 (484,460)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityFakeEmerge x1 (468,476)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/DivinityStatue x1 (482,550)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleAsh x1 (521,257)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityFightInitiatorNonQuest x1 (483,459)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArenaLiftGone_Transition x1 (483,246)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArenaLift_Transition x1 (483,226)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (483,459)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArbiterOfDivinityArenaTitle x1 (483,230)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/TowerFloorBeamTurrets x8 (448,287) (517,287) (576,356) (576,460) (535,513) (430,513) (389,460) (390,356)
+  obj Metadata/Terrain/Gallows/EndGame/Divinity/Objects/ArenaLiftBlocking x3 (482,255) (521,233) (443,233)

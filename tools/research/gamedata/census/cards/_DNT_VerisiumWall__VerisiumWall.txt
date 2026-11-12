@@ -1,0 +1,83 @@
+# [DNT] VerisiumWall
+content: Other/unplaced
+monsters: Metadata/Monsters/CyclopsSpiderBoss/VerisiumWall
+scripts: Metadata/Monsters/CyclopsSpiderBoss/VerisiumWall
+own chain: Metadata/Monsters/CyclopsSpiderBoss/VerisiumWall
+areas: 
+ai: Metadata/Monsters/CyclopsSpiderBoss/VerisiumWall.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+
+## own states and handlers
+states: 
+hides(DisableRendering): []
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/cyclopsspiderboss/objects/barrierkeyhole: InteractionAction Transitionable Targetable [server_only=true] states=bones_1;bones_socketed;activated;barrier_down on_construction_complete{{ globals.arena_key_hole = this; AddToPlayerWakeGroup( true ); }}; on_interaction_started{{ Call( hide_all_player_weapons, triggerer ); this.trig_scale = triggerer.GetScale(); SetStateTo( activated, 1 ); }}; on_interaction_stopped{{ Call( show_all_player_weapons, triggerer ); }}; create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); }}; on_state_activated_0{{ EnableTargetable(); EnableHighlighting(); }}
+- metadata/monsters/cyclopsspiderboss/objects/beachmonsterspawner:  [server_only=true] states=activate;wave_count 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderbeamoffset:  [server_only=true] states=beam;clean_up 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspideregg:  [blocking=false object_size=3 server_only=true] states=emerge 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspideregg2:  [blocking=false object_size=3 server_only=true] states=emerge 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspideremergecorruption:  [blocking=false object_size=3 server_only=true] states=emerge 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspidergroundcorruption:  [blocking=false object_size=3 server_only=true] states=emerge;absorb 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderrocks:  [blocking=true object_size=3 server_only=true] states=type;emerge;lift;absorb 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderrocksprocessed:  [blocking=false object_size=3 server_only=true] states=emerge;projectile;wall;submerge;busy;rock_number;direction;initial_torpedo_direction;mortar;rock_slot 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderverisumblade:  [server_only=true] states=type;emerge;spin;end 
+- metadata/monsters/cyclopsspiderboss/objects/spiderarenamiddle: TriggerableBlockage [server_only=true] states=barrier_down on_construction_complete{{ AddToPlayerWakeGroup( true ); globals.spider_arena_barrier = this; }}
+- metadata/monsters/cyclopsspiderboss/objects/strafemarker:  [server_only=true] states= 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/StrafeMarker:  [server_only=true] states= 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg:  [blocking=false object_size=3 server_only=true] states=emerge 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/BarrierKeyHole: InteractionAction Transitionable Targetable [server_only=true] states=bones_1;bones_socketed;activated;barrier_down on_construction_complete{{ globals.arena_key_hole = this; AddToPlayerWakeGroup( true ); }}; on_interaction_started{{ Call( hide_all_player_weapons, triggerer ); this.trig_scale = triggerer.GetScale(); SetStateTo( activated, 1 ); }}; on_interaction_stopped{{ Call( show_all_player_weapons, triggerer ); }}; create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); }}; on_state_activated_0{{ EnableTargetable(); EnableHighlighting(); }}
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/BeachMonsterSpawner:  [server_only=true] states=activate;wave_count 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg2:  [blocking=false object_size=3 server_only=true] states=emerge 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderGroundCorruption:  [blocking=false object_size=3 server_only=true] states=emerge;absorb 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEmergeCorruption:  [blocking=false object_size=3 server_only=true] states=emerge 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/SpiderArenaMiddle: TriggerableBlockage [server_only=true] states=barrier_down on_construction_complete{{ AddToPlayerWakeGroup( true ); globals.spider_arena_barrier = this; }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_endgame_fallenstar_rooms_arena_01.arm
+  sector ['hide_teleports', 484, 510, 1014, 1138, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1014, 679, 1029, 980, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1029, 703, 1044, 999, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1044, 722, 1059, 1018, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1059, 742, 1074, 1038, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 493, 455, 979, 488, '']
+  sector ['no_movement_skills', 971, 483, 1004, 681, '']
+  sector ['no_movement_skills', 1082, 757, 1115, 955, '']
+  sector ['boss_sector', 485, 501, 996, 1139, '']
+  sector ['boss_sector', 987, 698, 1040, 1137, '']
+  sector ['boss_sector', 1034, 813, 1086, 1031, '']
+  point [805.0, 810.0, 'mapboss']
+  point [1046.0, 584.0, 'checkpoint']
+  point [736.0, 686.0, 'telepad1']
+  point [1015.0, 750.0, 'telepad3']
+  point [373.0, 228.0, 'telepad2']
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleAsh x1 (1028,592)
+  obj Metadata/MiscellaneousObjects/AreaTransitionDelete x1 (364,220)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/StrafeMarker x2 (625,661) (783,581)
+  obj Metadata/MiscellaneousObjects/RowBoatStart x1 (183,123)
+  obj Metadata/MiscellaneousObjects/RowBoatEnd x1 (370,198)
+  obj Metadata/NPC/Four_Endgame/LilyRothsCrewBrawnFallenStar x1 (370,198)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg x1 (805,810)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/BarrierKeyHole x1 (675,283)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/BeachMonsterSpawner x1 (583,256)
+  obj Metadata/Terrain/Tools/AudioTools/Leagues/Expedition/BossArenas/PinnacleFallenStar_BossStinger x1 (681,407)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg2 x1 (805,810)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderGroundCorruption x1 (805,810)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEmergeCorruption x13 (794,912) (853,899) (905,854) (915,817) (751,725) (705,849) (737,893) (895,764) (861,735) (821,709)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x28 (1043,790) (1043,796) (1043,784) (1043,778) (1043,772) (1043,766) (1043,760) (1043,802) (1044,807) (1043,736)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (931,775)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x6 (1008,696) (1026,695) (1041,712) (1042,745) (1044,800) (1043,777)
+  obj Metadata/Terrain/Tools/AudioTools/Leagues/Expedition/BossArenas/PinnacleFallenStar_BossStingerPath x1 (999,449)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/SpiderArenaMiddle x1 (809,816)

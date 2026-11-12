@@ -1,0 +1,164 @@
+# Vandroth, Blackblooded Enslaver
+content: League: Abyss
+monsters: Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss, Metadata/Monsters/LeagueAbyss/Blackblood/DoomBossSTANDALONE
+scripts: Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomBoss, Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomBossSTANDALONE
+own chain: Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomBoss, Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomBossSTANDALONE
+areas: Abyss_Boss2 Dark Domain act10
+ai: Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomBoss.ais (not shipped)
+
+## skills
+- MPWDoomBossDrillBlast [monster_projectile_spell] action=MeleeCold anim=default:attack_01
+- MPWDoomBossArmSwing [monster_projectile_spell] action=Sweep anim=default:attack_02
+- GSDoomBossSummoningSlam [geometry_attack] action=SpellNovaCold anim=default:slam_01
+    geom: circle length=30 width=0 angle=0 range=300 delay=100 anchor=3
+    flags: is_area_damage
+- GSDoomBossColdOrbSingle [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- GTDoomBossColdOrbs [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=0 spread=61 radius=60 angle=0 anchor=4
+    triggers: SODoomBossDoomCrystal
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- GSDoomBossColdVomit [geometry_spell] action=SpellAoeEpic anim=default:vomit_complete_01
+    geom: cone length=70 width=0 angle=30 range=300 delay=33 anchor=3
+    flags: is_area_damage
+- TCDoomBossSumoDash [table_charge] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- GSDoomBossSumoIceStep [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=120 delay=33 anchor=3
+    flags: is_area_damage
+- GSDoomBossSumoIceSmash [geometry_spell] action=None anim=-
+    geom: circle length=28 width=0 angle=0 range=120 delay=33 anchor=3
+    flags: is_area_damage
+- EASDoomBossMinionPhase [empty_action_spell] action=Teleport anim=default:burrow_start_01
+- GADoomBossMinionPhaseSlam [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=300 delay=100 anchor=3
+    flags: is_area_damage
+- GSAbyssRollerBallImpact [geometry_spell] action=None anim=-
+    geom: rectangle length=31 width=18 angle=0 range=329 delay=33 anchor=12
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- SODoomBossDoomCrystal [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/Objects/DoomCrystals
+- GADoomBossMinionPhaseSecondSlam [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=300 delay=100 anchor=3
+    flags: is_area_damage
+- GSDoomBossDoomPustuleExplode [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=99 delay=33 anchor=4
+    flags: is_area_damage
+- GSDoomBossSummoningSlamMarker [geometry_attack] action=SpellNovaCold anim=default:slam_01
+    geom: circle length=30 width=0 angle=0 range=300 delay=100 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: collidable
+- on_death = { myspire.SetStateTo( animstate, 2 ); }
+- on_event_interupt = { myspire.SetStateTo( animstate, 1 ); }
+- on_or_create_state_collidable_0 = { MakeCollidable(); }
+- on_or_create_state_collidable_1 = { RemoveCollidability(); }
+- create_state_dead_1 = { ShowNPCSummon( globals.player, 'Metadata/NPC/Abyss/AbyssReturnToSurface', 0 ); }
+- on_effect_start_EASDoomBossMinionPhase = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/DoomBoss/epk/Spawning_Dissolve.epk', 3 ); }
+- on_effect_event_contact_for_GADoomBossMinionPhaseSlam = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/DoomBoss/epk/burrowed_pustule_swim.epk' ); }
+- on_event_halo_emerge_for_emerge_01 = { this.halo = GetAttachedAOByType( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/faction_halos/halo_blackblood_01.ao' ); this.halo.SetDynamicFloat( 'abyss_halo_DRIVER', 1, true, 0.5 ); }
+- on_event_addepk_for_burrow_swim_start = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/DoomBoss/epk/burrowed_pustule_swim.epk' ); }
+- on_end_death_bwd_01 = { ShowNPCSummon( globals.player, 'Metadata/NPC/Abyss/AbyssReturnToSurface', 0 ); }
+- on_death = { this.halo.SetDynamicFloat( 'abyss_halo_DRIVER', 0, true, 0.3 ); }
+- on_spawned_alive = { this.halo = GetAttachedAOByType( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/faction_halos/halo_blackblood_01.ao' ); this.halo.SetDynamicFloat( 'abyss_halo_DRIVER', 1, true, 0.5 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomPustules
+- preload_object Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/RollerBall
+- preload_object Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomPustules
+- preload_misc_beam DoomBossAbyssCrystalBeam
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Abyss/DoomBoss/ao/doom_crystal_beam.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/RollerBall:  [blocking=true object_size=12 server_only=true] states=die;pulse on_construction_complete{{ EnableTiltToTerrain(); }}
+- Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/DoomPustules:  [blocking=false object_size=0] states=explode;idle_state on_state_explode_1{{ PlayAnimation( end ); }}; on_event_delete{{ Delete(); }}; on_event_primed{{ SetStateTo( idle_state, 1 ); }}
+- Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/Objects/DoomCrystals:  [blocking=false object_size=0] states= 
+- metadata/monsters/leagueabyss/blackblood/doomboss/doompustules:  [blocking=false object_size=0] states=explode;idle_state on_state_explode_1{{ PlayAnimation( end ); }}; on_event_delete{{ Delete(); }}; on_event_primed{{ SetStateTo( idle_state, 1 ); }}
+- metadata/monsters/leagueabyss/blackblood/doomboss/objects/arenaspawner_base:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/leagueabyss/blackblood/doomboss/objects/doomcrystals:  [blocking=false object_size=0] states= 
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/CircleRollerBallSpawner:  [server_only=true] states= 
+- Metadata/Monsters/LeagueAbyss/Lightless/ConsumeBoss/Objects/ArenaSpawner_Base:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/LeagueAbyss/BossLichSpire:  [blocking=true server_only=true] states=animstate on_or_create_state_animstate_0{{ PlayAnimation( full_idle_01 ); }}; on_or_create_state_animstate_1{{ PlayAnimation( half_idle_01 ); }}; on_or_create_state_animstate_2{{ PlayAnimation( destroy_01 ); }}; on_or_create_state_animstate_3{{ PlayAnimation( idle_off ); }}; on_state_animstate_0{{ SetLightState( Light_FULL_ON, 1.0 ); }}; create_state_animstate_0{{ SetLightState( Light_FULL_ON ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/ArenaEntranceDoorController:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/Objects/ArenaSpawner_Base:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/RollerBallSpawner:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/Lich_1: InteractionAction Targetable [blocking=false object_size=1 server_only=true] states=world_description_button = 2;active on_or_create_state_active_1{{ SetDisplayText( AbyssPinnacleLichOptionAmanamu1 ); }}; on_or_create_state_active_2{{ SetDisplayText( AbyssPinnacleLichOptionAmanamu2 ); }}; on_or_create_state_active_3{{ SetDisplayText( AbyssPinnacleLichOptionAmanamu3 ); }}; on_or_create_state_active_0{{ DisableTargetable(); }}; on_change_state_active{{ If( GetState( active ) > 0, (){ EnableTargetable(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/Lich_2: InteractionAction Targetable [blocking=false object_size=1 server_only=true] states=world_description_button = 3;active on_or_create_state_active_1{{ SetDisplayText( AbyssPinnacleLichOptionKurgal1 ); }}; on_or_create_state_active_2{{ SetDisplayText( AbyssPinnacleLichOptionKurgal2 ); }}; on_or_create_state_active_3{{ SetDisplayText( AbyssPinnacleLichOptionKurgal3 ); }}; on_or_create_state_active_0{{ DisableTargetable(); }}; on_change_state_active{{ If( GetState( active ) > 0, (){ EnableTargetable(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/Lich_3: InteractionAction Targetable [blocking=false object_size=1 server_only=true] states=world_description_button = 4;active on_or_create_state_active_1{{ SetDisplayText( AbyssPinnacleLichOptionUlaman1 ); }}; on_or_create_state_active_2{{ SetDisplayText( AbyssPinnacleLichOptionUlaman2 ); }}; on_or_create_state_active_3{{ SetDisplayText( AbyssPinnacleLichOptionUlaman3 ); }}; on_or_create_state_active_0{{ DisableTargetable(); }}; on_change_state_active{{ If( GetState( active ) > 0, (){ EnableTargetable(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/AbyssCraftingDevice: InteractionAction Targetable [blocking=false object_size=1 server_only=true] states=active;broken on_or_create_state_broken_2{{ RenameSectorsAtLocation( future_no_movement_skills, no_movement_skills ); }}; on_or_create_state_active_0{{ DisableTargetable(); }}; on_state_active_1{{ EnableTargetable(); }}; create_state_broken_0{{ PlayAnimation(idle_01); }}; on_state_broken_1{{ PlayAnimation(break_01); }}; create_state_broken_1{{ PlayAnimation(break_01); GoToAnimationEnd(); }}
+- Metadata/Monsters/LeagueAbyss/LichBoss/Objects/AbyssBossTotem:  [blocking=false object_size=4 server_only=true] states=frozen;portal on_or_create_state_frozen_1{{ AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/souldrain_pillar_ice.ao', '<root>' ); }}; on_state_frozen_0{{ PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/souldrain_pillar_ice.ao', dissol}; on_state_frozen_2{{ PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Abyss/Kulemak/souldrain_pillar_ice.ao', shatte}; on_state_portal_1{{ PlayAnimation( open ); QueueAnimation( idle ); }}; create_state_portal_1{{ PlayAnimation( idle ); }}; on_or_create_state_portal_2{{ PlayAnimation( idle ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/LichBossRing:  [blocking=false object_size=1 server_only=true] states=active = -1 on_or_create_state_active_0{{ EnableRendering(); PlayAnimation( emerge ); QueueAnimation( brazier_idle ); }}; on_state_active_1{{ PlayAnimation( surge ); QueueAnimation( charged ); }}; create_state_active_1{{ PlayAnimation( charged ); }}; on_state_active_2{{ PlayAnimation( revive_start ); QueueAnimation( revive_idle ); }}; create_state_active_2{{ PlayAnimation( revive_idle ); }}; on_state_active_3{{ PlayAnimation( revive_idle ); QueueAnimation( dissolve ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/LichBossPreEmerge:  [blocking=false object_size=1 server_only=true] states=active 
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/CrackShunter:  [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/CrackShuntTarget:  [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/BossForceFieldDoorVisuals: ControlZone Transitionable [blocking=false object_size=3 radius=0 server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); SetControlZoneRadius( 40 ); }}; create_untransitioned{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; on_transition{{ SetControlZoneRadius( 40 ); }}; on_untransition{{ SetControlZoneRadius( 0 ); }}; on_enter{{ If( triggerer == GetLocalPlayer(), () { this.PlayAnimationByIndex( 2 ); this.QueueAnimationByIndex( 0 ); } ); }}; on_exit{{ If( triggerer == GetLocalPlayer(), (){ this.PlayAnimationByIndex( 1 ); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/PlayerGetup:  [blocking=true server_only=true] states=player_waking_up 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_abyss_abyssalcity_rooms_unique_boss1_01.arm
+  sector ['boss_sector', 39, 345, 396, 662, '']
+  sector ['hide_teleports', 39, 345, 396, 661, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [221.0, 591.0, 'mapboss']
+  point [203.0, 202.0, 'checkpoint']
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/CircleRollerBallSpawner x6 (218,495) (218,495) (218,495) (218,495) (218,495) (218,495)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x1 (221,494)
+  obj Metadata/Monsters/LeagueAbyss/Lightless/ConsumeBoss/Objects/ArenaSpawner_Base x23 (176,563) (154,535) (164,508) (139,494) (157,437) (163,468) (173,417) (186,442) (218,436) (214,416)
+  obj Metadata/Monsters/LeagueAbyss/BossLichSpire x1 (221,617)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/ArenaEntranceDoorController x1 (220,384)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (190,214)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (216,459)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x6 (235,350) (229,350) (223,350) (217,350) (205,350) (211,350)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (219,348)
+room metadata_terrain_gallows_leagues_abyss_abyssalcity_rooms_unique_boss2_01.arm
+  sector ['roller_lane', 55, 351, 386, 386, '']
+  sector ['roller_lane', 51, 432, 382, 467, '']
+  sector ['roller_lane', 56, 514, 387, 549, '']
+  sector ['hide_teleports', 38, 323, 395, 639, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_sector', 38, 323, 395, 640, '']
+  point [218.0, 574.0, 'mapboss']
+  point [226.0, 277.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueAbyss/Blackblood/DoomBoss/Objects/ArenaSpawner_Base x19 (159,374) (183,405) (228,363) (246,414) (282,379) (284,455) (261,492) (230,459) (165,452) (193,485)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/RollerBallSpawner x3 (98,531) (94,448) (95,369)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x3 (346,368) (345,447) (346,530)
+  obj Metadata/Monsters/LeagueAbyss/BossLichSpire x1 (218,614)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssalCity/Objects/ArenaEntranceDoorController x1 (218,367)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (246,279)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (218,326)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x6 (210,328) (204,328) (216,328) (222,328) (228,328) (234,328)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (215,437)
+room metadata_terrain_gallows_leagues_abyss_abysspinnacle_rooms_pinnacle_arena_01.arm
+  sector ['boss_sector', 0, 281, 343, 713, '']
+  sector ['no_movement_skills', 0, 291, 346, 293, '']
+  sector ['future_no_movement_skills', 181, 274, 195, 645, '']
+  sector ['hide_teleports', 0, 207, 346, 713, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['arena_left', 0, 281, 181, 713, '']
+  sector ['arena_right', 195, 281, 343, 713, '']
+  point [183.0, 578.0, 'mapboss']
+  point [184.0, 52.0, 'telepad1']
+  point [184.0, 52.0, 'entrance1']
+  point [187.0, 253.0, 'checkpoint']
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/Lich_1 x1 (113,649)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/Lich_2 x1 (181,664)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/Lich_3 x1 (251,646)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/AbyssCraftingDevice x1 (184,605)
+  obj Metadata/Monsters/LeagueAbyss/LichBoss/Objects/AbyssBossTotem x10 (100,554) (100,493) (100,444) (100,390) (100,333) (268,554) (268,496) (268,444) (268,390) (268,333)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/LichBossRing x1 (184,611)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/LichBossPreEmerge x1 (183,578)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (183,462)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x16 (155,288) (160,288) (165,288) (170,288) (175,288) (180,288) (185,288) (190,288) (195,288) (200,288)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/CrackShunter x16 (189,620) (189,593) (190,572) (190,553) (190,534) (190,507) (191,486) (191,467) (190,448) (190,421)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/CrackShuntTarget x30 (167,625) (162,598) (163,576) (171,554) (178,531) (176,510) (176,488) (175,462) (176,439) (176,417)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/BossForceFieldDoorVisuals x1 (185,278)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleAbyss x1 (211,256)
+  obj Metadata/Terrain/Gallows/Leagues/Abyss/AbyssPinnacle/Objects/PlayerGetup x1 (168,11)

@@ -1,0 +1,81 @@
+# Draven, the Eternal Praetor
+content: Act 1
+monsters: Metadata/Monsters/HusbandMonster/HusbandMonsterApparition
+scripts: Metadata/Monsters/HusbandMonster/Apparition/HusbandMonsterApparition
+own chain: Metadata/Monsters/HusbandMonster/Apparition/HusbandMonsterApparition
+areas: 
+ai: Metadata/Monsters/HusbandMonster/Apparition/HusbandMonsterApparition.ais (not shipped)
+
+## skills
+- MPSHusbandMonsterCleaveBalls [monster_projectile_spell] action=SpellProjectile anim=-
+- HusbandMonsterCleave [melee] action=OffMelee anim=default:summoned_cleave_01
+
+## own states and handlers
+states: light; death; emerged
+- create_state_light_0 = { DisableLight(); }
+- on_state_light_0 = { FadeOutLight( 1.5 ); }
+- create_state_light_1 = { Delay( 0.01, { EnableLight(); } ); }
+- on_state_light_1 = { FadeInLight( 0.5 ); }
+- on_or_create_state_death_1 = { DisableRendering(); }
+- on_summoned_cleave_01 = { IfInArea( G1_8, () { PlayTextAudio( HusbandBoss_AsiniaSummon_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonster', 3000 ); }, () { PlayTextAudio( HusbandBoss_AsiniaSummon_Random, 'Metadata/Monsters/HusbandMonster/HusbandMonsterMAP', 3000 ); } ); }
+hides(DisableRendering): [('death', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano:  [blocking=false object_size=1] states=emerge on_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); }}; create_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); GoToAnimationEnd(); }}
+- Metadata/QuestObjects/Four_Act1/ExitTransition_Mausoleum: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=2 server_only=true icon=28] states= create_untransitioned{{ DisableTargetable(); DisableRendering(); PlayAnimationByIndex( 2 ); PauseAnimation(); }}; create_transitioned{{ PlayAnimationByIndex( 0 ); }}; on_transition{{ PlayAnimationByIndex( 2 ); EnableTargetable(); EnableRendering(); QueueAnimationByIndex( 0 ); }}
+- Metadata/Terrain/Gallows/Act1/1_8/Objects/BitterGuyWife: InteractionAction Transitionable [blocking=false object_size=5 server_only=true] states=boss_dead create_untransitioned{{ PlayAnimation( once ); PauseAnimation(); }}; create_transitioned{{ PlayAnimation( once ); GoToAnimationEnd(); PauseAnimation(); }}; on_event_addfadeepk{{ AddEffectPack( 'Metadata/Effects/Environment/woods/bitterguyquest/fadecorpse.epk' ); }}; on_state_boss_dead_1{{ this.my_ghost_effect = PlayEffect( 'Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild2Soul.ao', default, 1.0, 1}
+- Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner:  [blocking=false object_size=1 server_only=true] states=triggered 
+- Metadata/Monsters/HusbandMonster/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=HusbandActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( HusbandInactive ); }}
+
+## lines
+- on_summoned_cleave_01 -> HusbandBoss_AsiniaSummon_Random: Foul intruder!
+- on_summoned_cleave_01 -> HusbandBoss_AsiniaSummon_Random: Foul intruder!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_maps_derelict_rooms_unique_courtyard_01_flipback.arm
+  sector ['arena', 0, 0, 207, 299, '']
+  sector ['hide_teleports', 9, 9, 198, 290, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [103.0, 182.0, 'mapboss2']
+  point [103.0, 224.0, 'mapboss1']
+  point [126.0, 29.0, 'telepad4']
+  point [80.0, 29.0, 'telepad3']
+  obj Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs x1 (103,149)
+  obj Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano x1 (103,241)
+  obj Metadata/Terrain/Tools/AudioTools/Endgame/Maps/DerelictMansion/Organ/CourtyardDownstairsOrgan x1 (106,267)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (51,173)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (149,209) (130,142) (52,129) (55,211)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (86,211)
+room metadata_terrain_gallows_act1_1_8_rooms_unique_boss.arm
+  sector ['hide_teleports', 46, 79, 252, 286, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 41, 75, 257, 288, '']
+  sector ['no_movement_skills', 21, 79, 272, 86, '']
+  point [149.0, 187.0, 'mapboss']
+  point [153.0, 251.0, 'entrance']
+  point [149.0, 93.0, 'telepad']
+  point [149.0, 52.0, 'checkpoint1']
+  point [149.0, 142.0, 'ritual_boss_spawn_override']
+  obj Metadata/QuestObjects/Four_Act1/ExitTransition_Mausoleum x1 (125,210)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/BitterGuyWife x1 (151,257)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (136,57)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x14 (64,227) (64,204) (64,182) (91,110) (68,110) (234,136) (234,157) (229,109) (235,209) (234,228)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (150,76)
+  obj Metadata/Monsters/HusbandMonster/Objects/BossRoomMinimapIcon x1 (149,187)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (149,82)
+room metadata_terrain_gallows_act4_interlude_part1_p1_6_rooms_unique_courtyard_01.arm
+  sector ['hide_teleports', 10, 10, 197, 289, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [103.0, 182.0, 'mapboss2']
+  point [103.0, 224.0, 'mapboss1']
+  point [80.0, 29.0, 'telepad']
+  point [126.0, 29.0, 'telepad']
+  obj Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs x1 (103,149)
+  obj Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano x1 (103,241)
+  obj Metadata/Terrain/Tools/AudioTools/Interlude/P1_6/CourtyardDownstairsOrgan x1 (100,267)

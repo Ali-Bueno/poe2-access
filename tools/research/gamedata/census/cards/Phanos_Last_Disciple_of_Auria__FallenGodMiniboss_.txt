@@ -1,0 +1,122 @@
+# Phanos, Last Disciple of Auria
+content: Other/unplaced
+monsters: Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_
+scripts: Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss
+own chain: Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss
+areas: 
+ai: Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EASFallenGodBossMinionResurrection [empty_action_spell_ally] action=SpellAreaOfEffectFire anim=default:divine_buff_01,stance3:fire_beam_big_01
+- EASFallenGodBossMinionAddBuff [empty_action_spell_ally] action=SpellAreaOfEffectCold anim=default:exalt_buff_01,stance3:fire_circle_01
+- EASFallenGodBossMinionRerollBuff [empty_action_spell_ally] action=SpellAreaOfEffectLightning anim=default:chaos_buff_01
+- EASFallenGodBossMinionSiphonHeal [empty_action_spell_ally] action=SpellAreaOfEffectChaos anim=default:heal_01
+- EASFallenGodKillMinions [empty_action_spell] action=SpellAreaOfEffect anim=default:bubble_dispel_01,stance3:fire_beam_01
+- MDFallenGodBossFireBeam [move_daemon] action=SpellAreaOfEffect anim=default:bubble_dispel_01,stance3:fire_beam_01
+    daemons: Metadata/Monsters/InvisibleFire/MDFallenGodFIreBeam
+- EASFallenGodBossGigaSlam [empty_action_spell] action=SpellAreaOfEffectFire anim=default:divine_buff_01,stance3:fire_beam_big_01
+- GAFallenGodBossFireSlam [geometry_attack] action=SpellAreaOfEffectCold anim=default:exalt_buff_01,stance3:fire_circle_01
+    geom: circle length=40 width=0 angle=0 range=561 delay=38 anchor=3
+    flags: is_area_damage
+- FallenGodBossDodgeFwd [monster_dodge] action=DodgeForward anim=stance3:dash_fwd_01
+- FallenGodBossDodgeBwd [monster_dodge] action=DodgeBack anim=stance3:dash_bwd_01
+- FallenGodBossDodgeLeft [monster_dodge] action=DodgeLeft anim=stance3:dash_left_01
+- FallenGodBossDodgeRight [monster_dodge] action=DodgeRight anim=stance3:dash_right_01
+- CGEFallenGodBossFireBeam [monster_cast_ground_effect_location] action=None anim=-
+    buffs: abyss_desecrated_ground
+    ground: Metadata/Effects/Spells/cold_frozen_vortex/frozen_vortex_01.ao
+- EASFallenGodChaosBeam [empty_action_spell] action=SpellProjectileFire anim=stance3:chaos_throw_01
+- EASFallenGodExaltBeam [empty_action_spell] action=SpellProjectileCold anim=stance3:exalt_throw_01
+- EASFallenGodDivineBeam [empty_action_spell] action=SpellProjectileLightning anim=stance3:divine_throw_01
+- GSFallenGodDivineProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSFallenGodBossWaveRevive [geometry_spell] action=None anim=-
+    geom: circle length=50 width=0 angle=0 range=500 delay=0 anchor=4
+    flags: base_deal_no_damage is_area_damage
+    GEAL 1103 on ['Metadata/Monsters/FallenGods/FallenGodMinibossBloaterMinion', 'Metadata/Monsters/FallenGods/FallenGodMinibossSplitMinion', 'Metadata/Monsters/FallenGods/FallenGodMinibossClubHandMinion', 'Metadata/Monsters/FallenGods/FallenGodMinibossCrawlerMinion', 'Metadata/Monsters/FallenGods/FallenGodMinibossStalkerMinion', 'Metadata/Monsters/FallenGods/FallenGodMinibossStagMinion', 'Metadata/Monsters/FallenGods/FallenGodMinibossHooksMinion__']: self{} each{If( And( And( triggerer != monster_to_resurrect, triggerer.GetState( unused_corpse ) == 1 ), alive_minion_count < max_minion_alive_count ), (){ Call( revive_minion, triggerer ); } );} r=0
+- FallenGodMinibossEmergeLeap [empty_action_spell_no_los] action=LeapSlam anim=default:emerge_throne_01
+    flags: is_area_damage
+- GSFallenGodBossBeamSlam [geometry_spell] action=None anim=-
+    geom: circle length=55 width=0 angle=0 range=250 delay=33 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: immune; enter_combat; emerge_dialogue
+- on_or_create_state_hidden_0 = { SetImmobile( false ); }
+- on_or_create_state_hidden_1 = { SetImmobile( true ); }
+- on_effect_end_or_destroy_FallenGodMinibossEmergeLeap = { ResetBaseHullType(); }
+- on_initial_position_set = { OverrideBaseHullType( projectile ); }
+- on_state_emerge_dialogue_1 = { PlayTextAudio( Phanos_FallenGodBoss_Emerge, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); }
+- on_effect_start_EASFallenGodBossMinionResurrection = { Roll( 1, 2, () { PlayTextAudio( Phanos_FallenGodBoss_BuffDivine_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_EASFallenGodBossMinionAddBuff = { Roll( 1, 2, () { PlayTextAudio( Phanos_FallenGodBoss_BuffExalt_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_EASFallenGodBossMinionRerollBuff = { Roll( 1, 2, () { PlayTextAudio( Phanos_FallenGodBoss_BuffChaos_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_MDFallenGodBossFireBeam = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_MovingFireBeam_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_GSFallenGodBossBeamSlam = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_StaffSirusBeam_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_GAFallenGodBossFireSlam = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_FireImmolation_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_EASFallenGodChaosBeam = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_ThrowChaos_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_EASFallenGodExaltBeam = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_ThrowExalt_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_EASFallenGodDivineBeam = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_ThrowDivine_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+- on_effect_start_FallenGodMinibossEmergeLeap = { PlayCharacterAudioEvent( TemplesBossPhaseTransition ); }
+- on_death = { Roll( 1, 1, () { PlayTextAudio( Phanos_FallenGodBoss_Death_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMiniboss_' ); } ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_environment G5_7_boss
+- preload_misc_object FallenGodMinibossGigaSlam
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossBloaterMinion
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossSplitMinion
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossClubHandMinion
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossCrawlerMinion
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossStalkerMinion
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossStagMinion
+- preload_monster_variety Metadata/Monsters/FallenGods/FallenGodMinibossHooksMinion__
+- preload_monster_variety Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossChaos
+- preload_monster_variety Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossExalt
+- preload_monster_variety Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossDivine_
+- preload_object Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossGigaSlam
+- preload_misc_beam FallenGodBossGigaSlamBeam
+- preload_misc_beam FallenGodCurrencySpawnBeam
+- preload_misc_beam FallenGodBuffSurgeBeam
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act5_FOUR/FallenGods/Miniboss/corr_fire_laser_impact.ao
+- preload_misc_beam FallenGodSweepBeam
+
+## adds and forms
+- Metadata/Monsters/FallenGods/FallenGodMinibossBloaterMinion "Forgotten Mauler" bossbar=0 skills=MeleeAtAnimationSpeed,EASFallenGodBlasphamy,GAFallenGodHexblastSlam,GAFallenGodHexblastSlamChaos comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=aura
+- Metadata/Monsters/FallenGods/FallenGodMinibossSplitMinion "Forgotten Cloven" bossbar=0 skills=MeleeAtAnimationSpeed,EASFallenGodSplitLeft,EASFallenGodSplitRight,MeleeAtAnimationSpeedComboTEMP2 comps=Life Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=epk1;epk2
+- Metadata/Monsters/FallenGods/FallenGodMinibossClubHandMinion "Forgotten Brutaliser" bossbar=0 skills=MeleeAtAnimationSpeed,GAFallenGodGrowthSlam comps=Life Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=tentacle
+- Metadata/Monsters/FallenGods/FallenGodMinibossCrawlerMinion "Forgotten Crawler" bossbar=0 skills=MeleeAtAnimationSpeed,MPSFallenCrawlerFireProjectile,MASExtraAttackDistance12 comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenGods/FallenGodMinibossStalkerMinion "Forgotten Stalker" bossbar=0 skills=MeleeAtAnimationSpeedComboTEMP,EASGenericMonsterTaunt,GAFallenStalkerFlicker,EASFallenStalkerShadowClone comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenGods/FallenGodMinibossStagMinion "Forgotten Stag" bossbar=0 skills=MeleeAtAnimationSpeed,TCFallenStag,GAFallenGodStagChargeImpact,GAFallenStagTentacles comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenGods/FallenGodMinibossHooksMinion__ "Forgotten Satyr" bossbar=0 skills=MeleeAtAnimationSpeed,DTTFallenHookDash,GAFallenHookDash,MeleeAtAnimationSpeedComboTEMP2 comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossChaos "Invisible" bossbar=0 skills=TCFallenGodChaosCharge,CGEFallenGodBossChaosChargeFire comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden = 1
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossExalt "Invisible" bossbar=0 skills=CGEFallenGodBossExaltSkybeam comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden = 1
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossDivine_ "Invisible" bossbar=0 skills=MPSFallenGodDivineProjSpam comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden = 1
+daemons: Metadata/Monsters/InvisibleFire/MDFallenGodFIreBeam
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossGigaSlam:  [server_only=true] states= 
+- metadata/monsters/fallengodminiboss/fallengodminibossdivineproj:  [blocking=false server_only=true] states=die on_initial_position_set{{ LockHeight( GetHeight() ); }}; on_state_die_1{{ PlayAnimation( impact ); }}
+- metadata/monsters/fallengodminiboss/fallengodminibossgigaslam:  [server_only=true] states= 
+- metadata/monsters/fallengodminiboss/sanctified/fallengodminibossdivineproj:  [blocking=false server_only=true] states=die on_initial_position_set{{ LockHeight( GetHeight() ); }}; on_state_die_1{{ PlayAnimation( impact ); }}
+
+## lines
+- on_state_emerge_dialogue_1 -> Phanos_FallenGodBoss_Emerge: Another intruder! Kitava's cursed madness never ends!
+- on_effect_start_EASFallenGodBossMinionResurrection -> Phanos_FallenGodBoss_BuffDivine_Random: Divine Rebirth!
+- on_effect_start_EASFallenGodBossMinionAddBuff -> Phanos_FallenGodBoss_BuffExalt_Random: Exaltation!
+- on_effect_start_EASFallenGodBossMinionRerollBuff -> Phanos_FallenGodBoss_BuffChaos_Random: Chaotic boon!
+- on_effect_start_MDFallenGodBossFireBeam -> Phanos_FallenGodBoss_MovingFireBeam_Random: Auria's radiance!
+- on_effect_start_GSFallenGodBossBeamSlam -> Phanos_FallenGodBoss_StaffSirusBeam_Random: Succumb to her radiance!
+- on_effect_start_GAFallenGodBossFireSlam -> Phanos_FallenGodBoss_FireImmolation_Random: Wealth is power!
+- on_effect_start_EASFallenGodChaosBeam -> Phanos_FallenGodBoss_ThrowChaos_Random: Chaotic power!
+- on_effect_start_EASFallenGodExaltBeam -> Phanos_FallenGodBoss_ThrowExalt_Random: Exalted are the worthy!
+- on_effect_start_EASFallenGodDivineBeam -> Phanos_FallenGodBoss_ThrowDivine_Random: Divine blessing!
+- on_death -> Phanos_FallenGodBoss_Death_Random: You are worthy... take my staff...
+
+## linked buffs
+- abyss_desecrated_ground "Desecrated Ground": You are taking [Physical] damage over time and cannot recover Life or Energy Shield. | stats=base_physical_damage_taken_per_minute
+
+## arena rooms

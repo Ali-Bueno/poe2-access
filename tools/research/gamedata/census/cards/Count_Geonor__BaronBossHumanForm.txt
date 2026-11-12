@@ -1,0 +1,350 @@
+# Count Geonor / Geonor, the Putrid Wolf
+content: Act 1
+monsters: Metadata/Monsters/Baron/BaronBossHumanForm, Metadata/Monsters/Baron/BaronBossHumanFormMap, Metadata/Monsters/Baron/BaronBossCorruptedWolfForm, Metadata/Monsters/Baron/BaronBossCorruptedWolfFormMap, Metadata/Monsters/Baron/BaronBossCorruptedWolfFormStandalone, Metadata/Monsters/Baron/BaronBossCorruptedWolfFormStandaloneInvasion
+scripts: Metadata/Monsters/Baron/BaronHumanForm, Metadata/Monsters/Baron/BaronHumanFormMap, Metadata/Monsters/Baron/BaronCorruptWolfForm, Metadata/Monsters/Baron/BaronCorruptWolfFormMap, Metadata/Monsters/Baron/BaronCorruptWolfFormStandalone
+own chain: Metadata/Monsters/Baron/BaronHumanForm, Metadata/Monsters/Baron/BaronHumanFormMap, Metadata/Monsters/Baron/BaronCorruptWolfForm, Metadata/Monsters/Baron/BaronCorruptWolfFormMap, Metadata/Monsters/Baron/BaronCorruptWolfFormStandalone
+areas: G1_15 Ogham Manor act1; MapUberBoss_IronCitadel The Iron Citadel act10; MapUberBoss_IronCitadel_Quest Western Enigma Chamber act10; MapUberBoss_IronCitadel The Iron Citadel act10; MapUberBoss_IronCitadel_Quest Western Enigma Chamber act10
+ai: Metadata/Monsters/Baron/BaronCorruptWolfForm.ais, Metadata/Monsters/Baron/BaronCorruptWolfFormStandalone.ais, Metadata/Monsters/Baron/BaronHumanForm.ais, Metadata/Monsters/Baron/BaronHumanFormMap.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- TCBaronBossHumanImpale [table_charge] action=ChargeStart anim=default:charge_start_01
+    flags: is_area_damage skill_cannot_be_stunned
+- GABaronHumanEpicThrust [geometry_attack] action=SpellAreaOfEffectFire anim=default:ice_stab_01
+    geom: rectangle length=20 width=7 angle=0 range=100 delay=33 anchor=12
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EAABaronHumanLacerateSlam [empty_action_attack] action=SpellAreaOfEffectCold anim=default:ice_lacerate_01
+- EASBaronBossHumanShapeshiftToWolf [empty_action_spell] action=SpellBuffFire anim=default:transform_to_wolf_01
+- EASBaronBossHumanShapeshiftFromWolf [empty_action_spell] action=SpellBuffCold anim=default:transform_from_wolf_01
+- EASBaronBossHumanTransformToCorruptWolf [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:transform_to_corrupted_wolf_01
+- MPABaronHumanEpicThrustProj [monster_projectile_weapon] action=SpellProjectile anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GABaronHumanLacerateSlamLeft [geometry_attack] action=None anim=-
+    geom: rectangle length=92 width=8 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- GABaronHumanLacerateSlamRight [geometry_attack] action=None anim=-
+    geom: rectangle length=92 width=8 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- GABaronHumanLacerateSlamSlam [geometry_attack] action=None anim=-
+    geom: cone length=97 width=0 angle=45 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GTBaronHumanFrostWallL [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=200 spread=92 radius=2 angle=0 anchor=3
+- GTBaronHumanFrostWallR [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=200 spread=92 radius=2 angle=0 anchor=3
+- GSBaronBossHumanSwordExplosion [geometry_spell] action=None anim=-
+    geom: circle length=0 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSBaronBossHumanSwordExplosionDebuff [geometry_spell] action=None anim=-
+    geom: circle length=0 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GABaronBossHumanSwordDangerRectangle [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- MASBaronBossFrontalChargeCleave [melee] action=HeavyStrike anim=default:charge_end_slash_01
+- MASBaronBossBackwardsChargeCleave [melee] action=Cleave anim=default:charge_end_slash_02
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GABaronBossHumanImpalingSword [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=1 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+    buffs: baron_boss_sword_charge_impale
+- CGEBaronBossHumanExpandingSwordZone [monster_cast_ground_effect_location] action=None anim=-
+- BaronBossShapeShiftToWolf [transform] action=SpellBuffFire anim=default:transform_to_wolf_01
+- BaronBossShapeShiftFromWolf [transform] action=SpellBuffCold anim=default:transform_from_wolf_01
+- EASBaronWolfLeapMid [empty_action_attack] action=Flurry anim=-
+- EASBaronWolfLeapLong [empty_action_attack] action=TempestFlurry anim=-
+- EASBaronWolfLeapLong2 [empty_action_attack] action=TempestBellSlam anim=-
+- EAABaronWolfBloodBallDash [empty_action_attack] action=SpellAreaOfEffect anim=-
+- EAABaronWolfBloodTeleSlam [empty_action_attack] action=Teleport anim=default:blood_teleport_slam_01
+- EASBaronWolfWerewolfSummon [empty_action_spell] action=SummonMinion anim=-
+- DTTBaronWolfBloodPortalIn [dash_to_target] action=DodgeLeft anim=-
+- DTTBaronWolfBloodPortalOut [dash_to_target] action=DodgeRight anim=-
+- GABaronWolfBloodTeleSlam [geometry_attack] action=None anim=-
+    geom: circle length=34 width=0 angle=0 range=1000 delay=1000 anchor=2
+    flags: is_area_damage
+- GABaronWolfDashDangerRectangle [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=15 angle=0 range=250 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- MDBaronWolfBloodBurst [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDBaronWolfBloodBurst
+- GABaronWolfBloodBurst [geometry_attack] action=SpellAreaOfEffect anim=-
+    geom: rectangle length=0 width=15 angle=0 range=400 delay=33 anchor=2
+    flags: is_area_damage
+- EDABaronWolfBloodBurst [effect_driven_attack] action=GroundSlam anim=-
+    flags: is_area_damage
+- MAASBaronEndgameBasic [melee] action=None anim=-
+- BaronBossMapShapeShiftToWolf [transform] action=SpellBuffFire anim=default:transform_to_wolf_01
+- BaronBossMapShapeShiftFromWolf [transform] action=SpellBuffCold anim=default:transform_from_wolf_01
+- GTBaronMapCorruptedBeamIntermittent [geometry_trigger] action=None anim=-
+    geom: trigger count=3 delay=600 spread=100 radius=10 angle=0 anchor=1
+    triggers: GSBaronCorruptWolfMoonbeamRed
+- GSBaronCorruptWolfMoonbeamRed [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1000 delay=1000 anchor=4
+    flags: is_area_damage
+- MAASBaronBossSword [melee] action=SpellProjectileUpwardFire anim=default:attack_02
+- MAASBaronBossMouth [melee] action=SpellProjectileUpwardCold anim=default:attack_03, attack_04
+- MAASBaronBossHand [melee] action=SpellProjectileUpwardLightning anim=default:attack_01
+- MAASBaronBoss180Slash [melee] action=SpellProjectileUpwardChaos anim=default:attack_180_01
+- DTTBaronBossCorruptWolfJump [dash_to_target] action=DodgeForward anim=default:attack_jump_01
+- GSBaronBossColdBreathChannel [geometry_spell] action=SpellProjectileCold anim=default:breath_full_01
+    geom: cone length=20 width=0 angle=54 range=0 delay=0 anchor=2
+    flags: base_deal_no_damage is_area_damage
+- GTBaronBossIcicles [geometry_trigger] action=HeavyStrike anim=default:charge_end_slash_01
+    geom: trigger count=250 delay=2800 spread=90 radius=5 angle=0 anchor=4
+- EASBaronBossHowlFogFade [empty_action_spell] action=SpellAreaOfEffectFire anim=default:ice_stab_01
+    flags: skill_cannot_be_stunned
+- EASBaronCorruptWolfMoonbeams [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:moon_beam_01
+- EASBaronCorruptWolfMoonbeamsRed [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:transform_to_corrupted_wolf_01
+- EAABaronCorruptWolfBloodTeleSlam [empty_action_attack] action=Teleport anim=default:blood_teleport_slam_01
+- EASBaronBossHowlJumpIn [empty_action_spell] action=SpellAreaOfEffectCold anim=default:ice_lacerate_01
+- TCBaronBossHowlChargeOut [table_charge] action=None anim=-
+- GABaronBossFogDash [geometry_attack] action=None anim=-
+    geom: rectangle length=191 width=23 angle=0 range=1100 delay=33 anchor=12
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- SOBaronBossIcicles [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/Baron/Objects/BaronCorruptWolfFormIcicle
+- GABaronBossIciclesStab [geometry_attack] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSBaronBossIciclesActivate [geometry_spell] action=None anim=-
+    geom: circle length=90 width=0 angle=0 range=700 delay=33 anchor=3
+    flags: is_area_damage
+    GEAL 1104 on ['Metadata/Monsters/Baron/Objects/BaronCorruptWolfFormIcicle']: self{} each{triggerer.Call( stab );} r=0
+- GABaronBossCorruptWolfJumpSlash [geometry_attack] action=None anim=-
+    geom: cone length=33 width=0 angle=169 range=120 delay=33 anchor=3
+    flags: is_area_damage
+- GSBaronBossColdBreath [geometry_spell] action=None anim=-
+    geom: cone length=0 width=0 angle=54 range=800 delay=33 anchor=2
+    flags: is_area_damage
+- GSBaronBossColdBreathGround [geometry_spell] action=None anim=-
+    geom: cone length=0 width=0 angle=45 range=800 delay=33 anchor=12
+    flags: base_deal_no_damage is_area_damage
+    buffs: chilled_ground
+- GABaronCorruptWolfBloodTeleSlam [geometry_attack] action=None anim=-
+    geom: circle length=34 width=0 angle=0 range=1000 delay=1000 anchor=2
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GTBaronCorruptWolfMoonbeams [geometry_trigger] action=None anim=-
+    geom: trigger count=9 delay=200 spread=100 radius=10 angle=0 anchor=1
+    triggers: GSBaronCorruptWolfMoonbeam
+- GSBaronCorruptWolfMoonbeam [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1000 delay=1000 anchor=4
+    flags: is_area_damage
+- GTBaronCorruptWolfMoonbeamsRed [geometry_trigger] action=None anim=-
+    geom: trigger count=9 delay=200 spread=100 radius=10 angle=0 anchor=1
+    triggers: GSBaronCorruptWolfMoonbeamRed
+- MPSBaronBossCorruptWolfIceBreath [monster_projectile_spell] action=SpellProjectile anim=-
+
+## own states and handlers
+states: sitting = 1; big_wolf_time; call_for_aid; transform_dialogue_option; audio_param; seen_intro; seen_phase_change; tele_hide; removed; emerge_hide; faded; moonlight; poem_selector
+- on_state_sitting_1 = { RemoveCollidability(); }
+- on_state_sitting_0 = { MakeCollidable(); }
+- on_initial_position_set = { SetExtraTileActivationDistance( 15, 15 ); Delay( 0.034, { If( GetState( sitting ) == 1, (){ RemoveCollidability(); }, (){ MakeCollidable(); } ); } ); }
+- on_or_create_state_tele_hide_1 = { RemoveCollidability(); }
+- on_or_create_state_tele_hide_0 = { MakeCollidable(); }
+- on_or_create_state_removed_1 = { Delay( 0.034, { RemoveCollidability(); } ); }
+- on_construction_complete = { IfAnimatedObject( 'Metadata/Monsters/Baron/Phase2/BaronPhase2.ao', () { If( GetStance() == 'stance2', (){ AddAttached( 'Metadata/Monsters/Baron/Phase2/BaronGreatsword.ao', R_Weapon_2 ); }, (){ AddAttached( 'Metadata/Monsters/Baron/Phase2/BaronGreatsword.ao', R_Weapon ); } ); Delay( 0.0, { UpdateBo
+- create_state_sitting_1 = { SetLightState( pre_fight, 0 ); }
+- on_or_create_state_audio_param_0 = { SetGlobalAudioParam( BaronPhase, 0 ); }
+- on_or_create_state_audio_param_1 = { SetGlobalAudioParam( BaronPhase, 1 ); }
+- on_or_create_state_audio_param_2 = { SetGlobalAudioParam( BaronPhase, 2 ); }
+- on_or_create_state_audio_param_3 = { SetGlobalAudioParam( BaronPhase, 3 ); }
+- on_effect_event_sword_spawn_for_EASBaronBossHumanShapeshiftToWolf = { DetachAllOfType( 'Metadata/Monsters/Baron/Phase2/BaronGreatsword.ao' ); }
+- on_effect_event_shapeshiftin_for_EASBaronBossHumanShapeshiftToWolf = { DisableHighlighting(); }
+- on_effect_end_EASBaronBossHumanShapeshiftToWolf = { EnableHighlighting(); }
+- on_effect_event_shapeshiftout_for_EASBaronBossHumanShapeshiftFromWolf = { DisableHighlighting(); }
+- on_effect_event_sword_grab_for_EASBaronBossHumanShapeshiftFromWolf = { AddAttached( 'Metadata/Monsters/Baron/Phase2/BaronGreatsword.ao', R_Weapon ); }
+- on_effect_destroy_EASBaronBossHumanShapeshiftFromWolf = { AddAttached( 'Metadata/Monsters/Baron/Phase2/BaronGreatsword.ao', R_Weapon ); }
+- on_effect_end_EASBaronBossHumanShapeshiftFromWolf = { EnableHighlighting(); }
+- on_or_create_state_tele_hide_1 = { RemoveCollidability(); }
+- on_or_create_state_tele_hide_0 = { MakeCollidable(); }
+- on_event_fast_turn = { SetAnimatedTurnDuration( 0.3 ); }
+- on_event_slow_turn = { ResetAnimatedTurnDuration(); }
+- on_or_create_state_removed_1 = { RemoveCollidability(); DisableRendering(); PauseAnimation(); }
+- on_effect_event_transform_for_EASBaronBossHumanTransformToCorruptWolf = { DetachAll(); AddEffectPack( BaronBossShapeshiftSource ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( Count_NoNooseThisTime, 'Metadata/Monsters/Baron/BaronHumanForm', 0, 0, 977, 400 ); PlayCharacterAudioEvent( IronCountRemoveHeadReply ); }
+- on_effect_start_EAABaronWolfBloodTeleSlam = { DisableHighlighting( ); }
+- on_effect_end_or_destroy_EAABaronWolfBloodTeleSlam = { EnableHighlighting( ); }
+- on_event_combo_01 = { If( GetState( big_wolf_time ) == 0,() { Roll( 1, 6, { PlayTextAudio( Count_Skill_AttackLine_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }); }
+- on_event_combo_02 = { If( GetState( big_wolf_time ) == 0,() { Roll( 1, 6, { PlayTextAudio( Count_Skill_AttackLine_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }); }
+- on_event_charge_start_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_Charge_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }
+- on_event_charge_end_slash_01 = { If( GetState( big_wolf_time ) == 0, (){ DoRandom( () { PlayTextAudio( Count_Skill_NowDie_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); }, () { PlayTextAudio( Count_Skill_Enough_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); } ); }
+- on_event_face_sword_for_transform_from_wolf_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_ToMe_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }
+- on_event_stun_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Phase1_HeavyStun_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }
+- on_event_ice_lacerate_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_IceSwordAttack_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }
+- on_event_ice_stab_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_IceStabRanged_Random, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }
+- on_state_call_for_aid_1 = { PlayTextAudio( Count_OpenTheCage_A, 'Metadata/Monsters/Baron/BaronHumanForm' ); }
+- on_state_big_wolf_time_2 = { If( GetState( transform_dialogue_option ) == 1, (){ QueueTextAudio( Count_HowDareYou_A_A, 'Metadata/Monsters/Baron/BaronHumanForm' ); }, (){ QueueTextAudio( Count_HowDareYou_B_A, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); }
+- on_state_big_wolf_time_3 = { If( GetState( seen_phase_change ) == 0, (){ If( GetState( transform_dialogue_option ) == 1, (){ QueueTextAudio( Count_HowDareYou_A_B, 'Metadata/Monsters/Baron/BaronHumanForm' ); }, (){ QueueTextAudio( Count_HowDareYou_B_B, 'Metadata/Monsters/Baron/BaronHumanForm' ); } ); } ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( Count_EmergeMap, 'Metadata/Monsters/Baron/BaronHumanFormMap', 0, 0, 977, 400 ); PlayCharacterAudioEvent( IronCountRemoveHeadReply ); }
+- on_event_charge_start_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_Charge_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_charge_end_slash_01 = { If( GetState( big_wolf_time ) == 0, (){ DoRandom( () { PlayTextAudio( Count_Skill_NowDie_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); }, () { PlayTextAudio( Count_Skill_Enough_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); } ); }
+- on_event_stun_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Phase1_HeavyStun_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_face_sword_for_transform_from_wolf_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_ToMe_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_stun_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Phase1_HeavyStun_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_ice_lacerate_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_IceSwordAttack_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_ice_stab_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_IceStabRanged_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_transform_to_corrupted_wolf_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_PhaseChangeMap_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_event_face_sword_for_transform_from_wolf_01 = { If( GetState( big_wolf_time ) == 0, (){ PlayTextAudio( Count_Skill_ToMe_Random, 'Metadata/Monsters/Baron/BaronHumanFormMap' ); } ); }
+- on_death = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/Baron/Phase3/BaronGreatswordWolfForm.ao' ); my_weapon.MoveToBone( R_Weapon_2, 0 ); }
+- on_stun_01 = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/Baron/Phase3/BaronGreatswordWolfForm.ao' ); my_weapon.MoveToBone( R_Weapon_2, 0 ); }
+- on_end_stun_01 = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/Baron/Phase3/BaronGreatswordWolfForm.ao' ); my_weapon.MoveToBone( R_Weapon, 0 ); }
+- on_state_faded_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperLegionaire/epk/Smoke_Invi_fadeout.epk' ); MakeCollidable(); SetLightState( on, 0.5, 0 ); }
+- on_state_faded_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperLegionaire/epk/Smoke_Invi_fadeout.epk' ); RemoveCollidability(); SetLightState( off, 0.5, 0 ); }
+- create_state_faded_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperLegionaire/epk/Smoke_Invi_fadeout.epk' ); RemoveCollidability(); SetLightState( off, 0.0, 0 ); }
+- on_state_moonlight_0 = { moonlight.SetLightState( off, 2.0, 0 ); Delay( 2.0, { moonlight.Delete(); } ); }
+- on_state_moonlight_1 = { this.moonlight = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/moonlight_TEMP.ao' ); moonlight.SetLocation( FindClosestObject( 'Metadata/MiscellaneousObjects/ArenaMiddle', 200 ), 1 ); moonlight.SetLightState( on, 2.0, 0 ); }
+- create_state_moonlight_1 = { this.moonlight = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/moonlight_TEMP.ao' ); moonlight.SetLocation( FindClosestObject( 'Metadata/MiscellaneousObjects/ArenaMiddle', 100 ), 1 ); moonlight.SetLightState( on, 0.0, 0 ); }
+- on_or_create_state_emerge_hide_1 = { DisableRendering(); }
+- on_or_create_state_emerge_hide_0 = { EnableRendering(); }
+- on_effect_start_GSBaronBossColdBreathChannel = { PlayTextAudio( CorruptWolf_Skill_IceBreath_Random, 'Metadata/Monsters/Baron/BaronCorruptWolfForm' ); }
+- on_effect_start_GTBaronBossIcicles = { PlayTextAudio( CorruptWolf_Skill_GroundStab_Random, 'Metadata/Monsters/Baron/BaronCorruptWolfForm' ); }
+- on_effect_start_EAABaronCorruptWolfBloodTeleSlam = { DisableHighlighting( ); }
+- on_effect_end_or_destroy_EAABaronCorruptWolfBloodTeleSlam = { EnableHighlighting( ); }
+- on_moon_beam_01 = { PlayTextAudio( CorruptWolf_Skill_IceSkyBeams_Random, 'Metadata/Monsters/Baron/BaronCorruptWolfForm' ); }
+- on_stun_01 = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/Baron/Phase3/BaronGreatswordWolfForm.ao' ); my_weapon.MoveToBone( R_Weapon_2, 0 ); }
+- on_end_stun_01 = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/Baron/Phase3/BaronGreatswordWolfForm.ao' ); my_weapon.MoveToBone( R_Weapon, 0 ); }
+- on_or_create_state_tele_hide_1 = { RemoveCollidability(); }
+- on_or_create_state_tele_hide_0 = { MakeCollidable(); }
+- on_effect_start_GSBaronBossColdBreathChannel = { PlayTextAudio( CorruptWolf_Skill_IceBreath_Random, 'Metadata/Monsters/Baron/BaronCorruptWolfFormMap' ); }
+- on_effect_start_GTBaronBossIcicles = { PlayTextAudio( CorruptWolf_Skill_GroundStab_Random, 'Metadata/Monsters/Baron/BaronCorruptWolfFormMap' ); }
+- on_effect_start_EAABaronCorruptWolfBloodTeleSlam = { DisableHighlighting(); }
+- on_effect_end_or_destroy_EAABaronCorruptWolfBloodTeleSlam = { EnableHighlighting(); }
+- on_moon_beam_01 = { PlayTextAudio( CorruptWolf_Skill_IceSkyBeams_Random, 'Metadata/Monsters/Baron/BaronCorruptWolfFormMap' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('emerge_hide', 1), ('removed', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: ['audio_param']  brackets: []
+
+## preloads
+- preload_character_animation BaronSwordImpaledLoop
+- preload_monster_variety Metadata/Monsters/Baron/BaronWerewolfSummon
+- preload_monster_variety Metadata/Monsters/Baron/BaronBossCorruptedWolfForm
+- preload_object Metadata/Monsters/Baron/Objects/BaronHumanFormSword
+- preload_object Metadata/Monsters/Baron/Objects/BaronHumanFormIceWallR
+- preload_object Metadata/Monsters/Baron/Objects/BaronHumanFormIceWallL
+- preload_object Metadata/Monsters/Baron/Objects/BaronWolfBloodOrb
+- preload_object Metadata/Effects/SleepableEffect
+- preload_object Metadata/Effects/SleepableServerBeamEffect
+- preload_misc_beam BaronBossWolfSummonBloodBeam
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/rune_rings.ao
+- preload_monster_variety Metadata/Monsters/Baron/BaronBossCorruptedWolfFormMap
+- preload_object Metadata/Monsters/Baron/Objects/BaronCorruptWolfFormGroundIce
+- preload_object Metadata/Effects/PermanentServerEffect
+- preload_object Metadata/Effects/SleepableServerEffect
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/fog_border.ao
+- preload_object Metadata/MiscellaneousObjects/PlayerPortalLocation
+- preload_monster_variety Metadata/Monsters/Baron/BaronWerewolfProwlerSummon
+- preload_monster_variety Metadata/Monsters/Baron/BaronBossCorruptedWolfFogDaemon
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/blood_comet.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperLegionaire/epk/Smoke_Invi_fadeout.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/moonlight_TEMP.ao
+
+## adds and forms
+- Metadata/Monsters/Baron/BaronWerewolfSummon "Court Werewolf" bossbar=0 skills=MeleeAtAnimationSpeed,GSBaronWolfSummonDeathExplode,MAASBaronEndgameBasic comps=Life Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=hidden
+- Metadata/Monsters/Baron/BaronWerewolfProwlerSummon "Tendril Prowler" bossbar=0 skills=MeleeAtAnimationSpeed,MeleeAtAnimationSpeed2,MAASBaronEndgameBasic comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=hidden = 1
+- Metadata/Monsters/Baron/BaronBossCorruptedWolfFogDaemon "Daemon" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+daemons: Metadata/Monsters/InvisibleFire/MDBaronWolfBloodBurst
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Baron/Objects/BaronHumanFormSword:  states=active 
+- Metadata/Monsters/Baron/Objects/BaronHumanFormIceWallR: Life Targetable Actor Stats [blocking=true object_size=4] states= on_death{{ RemoveCollidability(); }}
+- Metadata/Monsters/Baron/Objects/BaronHumanFormIceWallL: Life Targetable Actor Stats [blocking=true object_size=4] states= on_death{{ RemoveCollidability(); }}
+- Metadata/Monsters/Baron/Objects/BaronWolfBloodOrb:  states= 
+- Metadata/Effects/SleepableEffect:  [blocking=false object_size=0] states= 
+- Metadata/Effects/SleepableServerBeamEffect:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/Baron/Objects/BaronCorruptWolfFormGroundIce:  [blocking=false object_size=0] states= 
+- Metadata/Effects/PermanentServerEffect:  [blocking=false object_size=0] states= 
+- Metadata/Effects/SleepableServerEffect:  [blocking=false object_size=0] states= 
+- Metadata/MiscellaneousObjects/PlayerPortalLocation:  states= 
+- Metadata/Monsters/Baron/Objects/BaronCorruptWolfFormIcicle:  states= 
+- metadata/monsters/baron/objects/baroncorruptwolfformgroundice:  [blocking=false object_size=0] states= 
+- metadata/monsters/baron/objects/baroncorruptwolfformicicle:  states= 
+- metadata/monsters/baron/objects/baronhumanformicewalll: Life Targetable Actor Stats [blocking=true object_size=4] states= on_death{{ RemoveCollidability(); }}
+- metadata/monsters/baron/objects/baronhumanformicewallr: Life Targetable Actor Stats [blocking=true object_size=4] states= on_death{{ RemoveCollidability(); }}
+- metadata/monsters/baron/objects/baronhumanformsword:  states=active 
+- metadata/monsters/baron/objects/baronwolfbloodorb:  states= 
+- metadata/monsters/baron/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=CountActive] states=boss_dead on_or_create_state_boss_dead_1{{ SetMinimapIcon( CountInactive ); }}; on_or_create_state_boss_dead_1{{ SetMinimapIcon( LootFilterLargeGreyUpsideDownHouse ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionUp: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states= on_interaction_started{{ If( IsLocalPlayer( triggerer ), { Delay( 1.7, { globals.boss_elevator.Transition(); } ); } ); }}; on_state_hidden_1{{ DisableTargetable(); }}; on_state_hidden_0{{ EnableTargetable(); }}; on_interaction_started{{ If( IsLocalPlayer( triggerer ), { SetStateTo( hidden, 1 ); } ); }}; on_interaction_stopped{{ If( IsLocalPlayer( triggerer ), { Delay( 2.0, { SetStateTo( hidden, 0 ); } ); } ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/SubsceneArena:  [blocking=false object_size=0] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossArenaTorch:  [blocking=false object_size=1 server_only=true] states=torchness = 1 on_state_torchness_0{{ SetLightState( off, 0.5, 0 ); }}; on_state_torchness_1{{ SetLightState( torch_pLight, 0.5, 0 ); }}; create_state_torchness_0{{ SetLightState( off, 0.0, 0 ); }}; create_state_torchness_1{{ SetLightState( torch_pLight, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/TastyCorpse:  [blocking=false object_size=1 server_only=true] states=thrown on_state_thrown_1{{ PlayAnimation( feed_throw_01 ); }}; on_state_thrown_2{{ PlayAnimation( feed_beast_01 ); }}; create_state_thrown_1{{ PlayAnimation( feed_throw_01 ); GoToAnimationEnd(); }}; create_state_thrown_2{{ Delete(); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevator: Transitionable [blocking=false object_size=0] states= on_construction_complete{{ globals.boss_elevator += this; }}; on_untransition{{ PlayAnimationByName( down_01 ); SetCurrentAnimationSpeed( 0.4 ); }}; on_transition{{ PlayAnimationByName( up_01 ); SetCurrentAnimationSpeed( 0.4 ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/PanController:  [blocking=false object_size=1 server_only=true] states=intro_zoom;intro_pan on_state_intro_zoom_0{{ ClearCameraZoomNodes(); Delay( 3.5, { RemoveCustomCameraSpeed(); } ); }}; on_state_intro_pan_0{{ ClearCameraPanNode( boss_emerge, clear_camera_pan_duration ); }}
+- Metadata/Monsters/Baron/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=CountActive] states=boss_dead on_or_create_state_boss_dead_1{{ SetMinimapIcon( CountInactive ); }}; on_or_create_state_boss_dead_1{{ SetMinimapIcon( LootFilterLargeGreyUpsideDownHouse ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionDownEnd: InteractionAction [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionDown: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states= on_interaction_started{{ If( IsLocalPlayer( triggerer ), { Delay( 1.7, { globals.boss_elevator.Untransition(); } ); } ); }}; on_state_hidden_1{{ DisableTargetable(); }}; on_state_hidden_0{{ EnableTargetable(); }}; on_interaction_started{{ If( IsLocalPlayer( triggerer ), { SetStateTo( hidden, 1 ); } ); }}; on_interaction_stopped{{ If( IsLocalPlayer( triggerer ), { Delay( 2.0, { SetStateTo( hidden, 0 ); } ); } ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/SmashableProps:  [blocking=false object_size=1] states=smashed on_construction_complete{{ this.has_animation = false; IfHasAnimation( shake, (){ this.has_animation = true; }, (){ IfHasAnimation( smash, (){ th}; create_state_smashed_0{{ If( this.has_animation, (){ PlayAnimationByIndex(0); PauseAnimation(); }, (){ } ); }}; create_state_smashed_1{{ If( this.has_animation, (){ PlayAnimationByIndex(0); GoToAnimationEnd(); }, (){ } ); }}; on_state_smashed_1{{ If( this.has_animation, (){ PlayAnimationByIndex(0); }, (){ } ); If( Animation, (){ }, (){ } ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/StorageBench:  [server_only=true] states= on_initial_position_set{{ Delete(); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/SubsceneLevel1:  [blocking=false object_size=0] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/CountThirdSighting:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionUpEnd: InteractionAction [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/CountTastyAudio:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/ExtendActivationDistance4:  states= 
+
+## lines
+- on_effect_start_CTS1BossFightStart -> Count_NoNooseThisTime: No noose this time. I'll remove your head myself!
+- on_event_charge_start_01 -> Count_Skill_Charge_Random: Run little rabbit!
+- on_event_charge_end_slash_01 -> Count_Skill_NowDie_Random: (random group)
+- on_event_charge_end_slash_01 -> Count_Skill_Enough_Random: Enough.
+- on_event_face_sword_for_transform_from_wolf_01 -> Count_Skill_ToMe_Random: Agnar, to me!
+- on_event_stun_01 -> Count_Phase1_HeavyStun_Random: Argh! You will pay for that.
+- on_event_ice_lacerate_01 -> Count_Skill_IceSwordAttack_Random: No escape.
+- on_event_ice_stab_01 -> Count_Skill_IceStabRanged_Random: Easy prey!
+- on_state_call_for_aid_1 -> Count_OpenTheCage_A: Oriana! Open the cage. Release the Beast! Give me what you promised!
+- on_state_big_wolf_time_2 -> Count_HowDareYou_A_A: You manipulative whore! How dare you abandon me!
+- on_state_big_wolf_time_2 -> Count_HowDareYou_B_A: How dare you abandon me!
+- on_state_big_wolf_time_3 -> Count_HowDareYou_A_B: After! All! I've! Given! You!
+- on_state_big_wolf_time_3 -> Count_HowDareYou_B_B: After! All! I've! Given! You!
+- on_effect_start_CTS1BossFightStart -> Count_EmergeMap: You cannot stop us... We will take the power that we deserve!
+- on_event_transform_to_corrupted_wolf_01 -> Count_PhaseChangeMap_Random: I pledge my body to the pack!
+- on_effect_start_GSBaronBossColdBreathChannel -> CorruptWolf_Skill_IceBreath_Random: Chilling frost.
+- on_effect_start_GTBaronBossIcicles -> CorruptWolf_Skill_GroundStab_Random: I smell your blood... And I am ravenous.
+- on_moon_beam_01 -> CorruptWolf_Skill_IceSkyBeams_Random: Requiem on high.
+
+## linked buffs
+- baron_boss_sword_charge_impale "":  | stats=
+- chilled_ground "Chilled Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_15_rooms_unique_boss.arm
+  sector ['lift', 227, 98, 240, 119, '']
+  sector ['hide_teleports', 56, 59, 234, 225, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['no_critters', 36, 22, 258, 242, '']
+  point [145.0, 148.0, 'mapboss2']
+  point [220.0, 108.0, 'telepad5']
+  obj Metadata/Monsters/Baron/BaronMinerPlebThrower1 x1 (135,215)
+  obj Metadata/Monsters/Baron/BaronMinerPlebThrower2 x1 (126,188)
+  obj Metadata/Monsters/Baron/BaronMinerPleb_ x4 (88,161) (205,151) (193,121) (194,164)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionUp x1 (221,108)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/SubsceneArena x1 (140,153)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (145,145)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossArenaTorch x5 (81,83) (74,167) (162,67) (222,152) (130,238)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (221,83)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/TastyCorpse x1 (168,189)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevator x1 (233,108)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/PanController x1 (146,296)
+  obj Metadata/Monsters/Baron/Objects/BossRoomMinimapIcon x1 (146,148)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionDownEnd x1 (220,108)
+room metadata_terrain_maps_ubercount_rooms_unique_holodeck.arm
+  sector ['environment_inner', 287, 11, 1230, 379, '']
+  point [199.0, 209.0, 'default']
+  obj Metadata/Monsters/Baron/EndgameBaronFragmentSurrogate x1 (563,206)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (188,209)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckTransition x1 (577,206)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckCube x1 (578,206)
+room metadata_terrain_gallows_act1_1_15_rooms_unique_boss_entry.arm
+  point [231.0, 122.0, 'telepad6']
+  point [62.0, 110.0, 'checkpoint2']
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionDown x1 (232,122)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/SmashableProps x2 (71,73) (207,51)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/StorageBench x1 (19,75)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/SubsceneLevel1 x1 (137,174)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/CountThirdSighting x1 (47,145)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (64,132)
+  obj Metadata/Terrain/Tools/AudioTools/G1_15/BossArenaEnvFirstFloorAudio x1 (143,171)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionUpEnd x1 (231,122)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/CountTastyAudio x1 (147,102)
+  obj Metadata/Terrain/Tools/AudioTools/G1_15/BossArenaEnvElevatorAudio x1 (239,118)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/ExtendActivationDistance4 x1 (256,256)
+  obj Metadata/NPC/Four_Act1/ManorJournalGlyph1 x1 (38,196)
+  obj Metadata/Decals/grungedecalold.atlas x2 (202.505,871.456) (1281.21,557.824)
+  obj Metadata/Decals/grungedecal.atlas x1 (224.785,916.373)

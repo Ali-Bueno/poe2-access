@@ -1,0 +1,200 @@
+# Asinia, the Praetor's Consort / Saphira, The Dread Consort
+content: Act 1
+monsters: Metadata/Monsters/WifeMonster/WifeMonster, Metadata/Monsters/WifeMonster/WifeMonsterCampaignSTANDALONE, Metadata/Monsters/WifeMonster/WifeMonsterMap_, Metadata/Monsters/WifeMonster/WifeMonsterSTANDALONE
+scripts: Metadata/Monsters/WifeMonster/WifeMonster, Metadata/Monsters/WifeMonster/WifeMonsterSTANDALONE, Metadata/Monsters/WifeMonster/WifeMonsterMAP
+own chain: Metadata/Monsters/WifeMonster/WifeMonster, Metadata/Monsters/WifeMonster/WifeMonsterSTANDALONE, Metadata/Monsters/WifeMonster/WifeMonsterMAP
+areas: G1_9 Tomb of the Consort act1; MapGrimhaven Grimhaven act10; MapEpitaph Epitaph act10
+ai: Metadata/Monsters/WifeMonster/WifeMonster.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- GSWifeMonsterDelayedBlast [geometry_spell] action=SpellAreaOfEffect anim=default:delayed_blast_01
+    geom: circle length=24 width=0 angle=0 range=1550 delay=1550 anchor=11
+    flags: is_area_damage
+- GSWifeMonsterDelayedBlastLarge [geometry_spell] action=None anim=-
+    geom: circle length=35 width=0 angle=0 range=1550 delay=1550 anchor=11
+    flags: is_area_damage
+- MMSWifeMonsterSpiritMortar [monster_mortar] action=None anim=-
+    flags: is_area_damage
+- WifeMonsterComboAttack [melee] action=Flurry anim=default:combo_02
+- GTWifeMonsterUnstableProj [geometry_trigger] action=SpellProjectile anim=default:explode_01
+    geom: trigger count=30 delay=1200 spread=72 radius=6 angle=0 anchor=4
+    triggers: MMSWifeMonsterSpiritMortar
+- EASWifeMonsterBodySwap [melee] action=Teleport anim=default:swap_02
+- EASWifeMonsterDelayedBlast [empty_action_spell] action=SpellAreaOfEffect anim=default:delayed_blast_01
+- GSHusbandPurge [geometry_spell] action=None anim=-
+    geom: circle length=225 width=0 angle=0 range=500 delay=50 anchor=12
+    flags: is_area_damage
+    GEAL 1107 on ['Metadata/Monsters/SummonedPhantasm/HusbandWifeSpirits']: self{} each{triggerer.ChangeStance(stance2); triggerer.KillSelfNoDrops();} r=225
+- CGEWifeGhostflameBurning [monster_cast_ground_effect_location] action=None anim=-
+    buffs: ground_fire_ghostflame_monster
+    ground: Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/bramble_ground.ao
+- EASWifeUnstableProjectiles [empty_action_spell] action=SpellProjectile anim=default:explode_01
+- EASWifeMonsterBoneWallStorm [empty_action_spell] action=SpellNovaFire anim=-
+- GSWifeMonsterBoneCone [geometry_spell] action=GroundSlam anim=default:bone_cone_01
+    geom: cone length=55 width=0 angle=48 range=300 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- SSMWifeMonsterBoneWall [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/WifeMonster/WifeMonsterBoneWall
+- GTWifeMonsterBoneWall [geometry_trigger] action=RaiseSpectre anim=default:bone_wall_01
+    geom: trigger count=38 delay=0 spread=27 radius=26 angle=360 anchor=4
+    triggers: SSMWifeMonsterBoneWall
+- GTWifeMonsterBoneWallStorm [geometry_trigger] action=None anim=-
+    geom: trigger count=30 delay=1333 spread=26 radius=0 angle=0 anchor=1
+    triggers: GSWifeMonsterBoneStorm
+- GSWifeMonsterBoneStorm [geometry_spell] action=SpellAreaOfEffect anim=default:delayed_blast_01
+    geom: circle length=9 width=0 angle=0 range=642 delay=642 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASWifeSummon90 [empty_action_spell] action=SpellBuff anim=default:summon_01
+- GSWifeBossSlow [geometry_spell] action=None anim=-
+    geom: circle length=40 width=0 angle=0 range=500 delay=100 anchor=2
+    flags: is_area_damage
+    buffs: hinder
+
+## own states and handlers
+states: spirits; max; souls
+- create_state_light_0 = { DisableLight(); }
+- create_state_light_1 = { Delay( 0.01, { EnableLight(); } ); }
+- on_state_light_0 = { FadeOutLight( 1.0 ); }
+- on_state_light_1 = { FadeInLight( 6.0 ); }
+- on_state_light_2 = { SetLightState( dim, 2 ); }
+- create_state_light_2 = { SetLightState( dim ); }
+- on_or_create_state_spirits_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); }
+- on_or_create_state_spirits_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/HusbandBoss/epk/powerup.epk' ); }
+- on_change_state_spirits = { this.soul_intensity = 2.0 + GetState( spirits ); Call( update_soul_states, soul_intensity ); }
+- on_effect_event_dialogue_for_CTS1BossFightStart = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Druid', player_ascendancy == 'Druid1', player_ascendancy == 'Druid2', player_ascendancy == 'Druid3' ), { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_Emerge_Ezomyte,
+- on_effect_start_EASWifeMonsterBodySwap = { Roll( 5, 6, () { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_Swap_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_Swap_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); } ); }
+- on_effect_start_WifeMonsterComboAttack = { Roll( 5, 6, () { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_Combo_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_Combo_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); } ); }
+- on_effect_start_EASWifeMonsterDelayedBlast = { Roll( 1, 1, () { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_DelayedBlast_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_DelayedBlast_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); } ); }
+- on_effect_start_GTWifeMonsterUnstableProj = { Roll( 1, 1, () { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_Explode_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_Explode_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); } ); }
+- on_effect_start_GTWifeMonsterBoneWall = { Roll( 1, 1, () { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_BoneWall_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_BoneWall_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); } ); }
+- on_effect_start_GSWifeMonsterBoneCone = { Roll( 1, 1, () { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_Attack_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_Attack_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); } ); }
+- on_knockdown_bwd_01 = { IfInArea( G1_9, () { PlayTextAudio( WifeBoss_Knockdown_Random, 'Metadata/Monsters/WifeMonster/WifeMonster' ); }, () { PlayTextAudio( WifeBoss_Knockdown_Random, 'Metadata/Monsters/WifeMonster/WifeMonsterMap_' ); } ); }
+- on_effect_event_dialogue_for_CTS1BossFightStart = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Druid', player_ascendancy == 'Druid1', player_ascendancy == 'Druid2', player_ascendancy == 'Druid3' ), { PlayTextAudio( WifeBoss_Emerge_Ezomyte, _, 600 ); succeeded 
+- on_effect_start_EASWifeMonsterBodySwap = { Roll( 5, 6, () { PlayTextAudio( WifeBoss_Swap_Random, _ ); } ); }
+- on_effect_start_WifeMonsterComboAttack = { Roll( 5, 6, () { PlayTextAudio( WifeBoss_Combo_Random, _ ); } ); }
+- on_effect_start_EASWifeMonsterDelayedBlast = { PlayTextAudio( WifeBoss_DelayedBlast_Random, _ ); }
+- on_effect_start_GTWifeMonsterUnstableProj = { Roll( 1, 1, () { PlayTextAudio( WifeBoss_Explode_Random, _ ); } ); }
+- on_effect_start_GTWifeMonsterBoneWall = { Roll( 1, 1, () { PlayTextAudio( WifeBoss_BoneWall_Random, _ ); } ); }
+- on_effect_start_GSWifeMonsterBoneCone = { Roll( 1, 1, () { PlayTextAudio( WifeBoss_Attack_Random, _ ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/HusbandMonster/HusbandMonsterApparition
+- preload_object Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner
+
+## adds and forms
+- Metadata/Monsters/HusbandMonster/HusbandMonsterApparition "Draven, the Eternal Praetor" bossbar=1 skills=MPSHusbandMonsterCleaveBalls,HusbandMonsterCleave comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=light;death;emerged
+- Metadata/Monsters/WifeMonster/WifeMonsterBoneWall "Bone Wall" bossbar=0 skills=- comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=tilted
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner:  [blocking=false object_size=1 server_only=true] states=triggered 
+- metadata/monsters/wifemonster/audio_preemerge_singing/preemerge_singing:  [blocking=false object_size=0] states= 
+- metadata/monsters/wifemonster/dancetargetmarker:  [server_only=true] states= 
+- metadata/monsters/wifemonster/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=WifeActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( WifeInactive ); }}
+- metadata/monsters/wifemonster/objects/vampirequeendancepartner:  [blocking=false object_size=0] states= on_construction_complete{{ PlayAnimation( dance_emerge_idle ); }}
+- Metadata/QuestObjects/Four_Act1/ExitTransition_Mausoleum: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=2 server_only=true icon=28] states= create_untransitioned{{ DisableTargetable(); DisableRendering(); PlayAnimationByIndex( 2 ); PauseAnimation(); }}; create_transitioned{{ PlayAnimationByIndex( 0 ); }}; on_transition{{ PlayAnimationByIndex( 2 ); EnableTargetable(); EnableRendering(); QueueAnimationByIndex( 0 ); }}
+- Metadata/Terrain/Gallows/Act1/1_8/Objects/BitterGuyWife: InteractionAction Transitionable [blocking=false object_size=5 server_only=true] states=boss_dead create_untransitioned{{ PlayAnimation( once ); PauseAnimation(); }}; create_transitioned{{ PlayAnimation( once ); GoToAnimationEnd(); PauseAnimation(); }}; on_event_addfadeepk{{ AddEffectPack( 'Metadata/Effects/Environment/woods/bitterguyquest/fadecorpse.epk' ); }}; on_state_boss_dead_1{{ this.my_ghost_effect = PlayEffect( 'Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild2Soul.ao', default, 1.0, 1}
+- Metadata/Monsters/HusbandMonster/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=HusbandActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( HusbandInactive ); }}
+- Metadata/QuestObjects/Four_Act1/ExitTransition_Tomb: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=2 server_only=true icon=28] states= create_untransitioned{{ DisableTargetable(); DisableRendering(); PlayAnimationByIndex( 2 ); PauseAnimation(); }}; create_transitioned{{ PlayAnimationByIndex( 0 );EnableRendering(); }}; on_transition{{ EnableTargetable(); EnableRendering(); PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 0 ); }}
+- Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild1: Transitionable [blocking=false object_size=7 server_only=true] states=boss_dead create_untransitioned{{ PlayAnimation( once ); PauseAnimation(); }}; create_transitioned{{ PlayAnimation( once ); GoToAnimationEnd(); PauseAnimation(); }}; on_event_addfadeepk{{ AddEffectPack( 'Metadata/Effects/Environment/woods/bitterguyquest/fadecorpse.epk' ); }}; on_state_boss_dead_1{{ }}
+- Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild2: Transitionable [blocking=false object_size=7 server_only=true] states=boss_dead create_untransitioned{{ PlayAnimation( once ); PauseAnimation(); }}; create_transitioned{{ PlayAnimation( once ); GoToAnimationEnd(); PauseAnimation(); }}; on_event_addfadeepk{{ AddEffectPack( 'Metadata/Effects/Environment/woods/bitterguyquest/fadecorpse.epk' ); }}; on_state_boss_dead_1{{ Delay( 3.5, { next.Transition(); } ); }}
+- Metadata/Monsters/WifeMonster/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=WifeActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( WifeInactive ); }}
+
+## lines
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Ezomyte: Vile dog! Now you shall meet your end!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Ezomyte: Vile dog! Now you shall meet your end!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Karui: Your "Way" has no place here, Karui!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Karui: Your "Way" has no place here, Karui!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Karui: Your "Way" has no place here, Karui!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Karui: Your "Way" has no place here, Karui!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Sorc: Let me teach you the power of the Eternals, desert fiend!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Sorc: Let me teach you the power of the Eternals, desert fiend!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Witch: Ohhhh... Show me your power, dear sister!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Witch: Ohhhh... Show me your power, dear sister!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Templar: The Cult of Innocence is not welcome here, Templar!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Templar: The Cult of Innocence is not welcome here, Templar!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Other: You will never leave this place!
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Other: You will never leave this place!
+- on_effect_start_EASWifeMonsterBodySwap -> WifeBoss_Swap_Random: No escape!
+- on_effect_start_EASWifeMonsterBodySwap -> WifeBoss_Swap_Random: No escape!
+- on_effect_start_WifeMonsterComboAttack -> WifeBoss_Combo_Random: Bow before me!
+- on_effect_start_WifeMonsterComboAttack -> WifeBoss_Combo_Random: Bow before me!
+- on_effect_start_EASWifeMonsterDelayedBlast -> WifeBoss_DelayedBlast_Random: Rite of the Fourth Moon!
+- on_effect_start_EASWifeMonsterDelayedBlast -> WifeBoss_DelayedBlast_Random: Rite of the Fourth Moon!
+- on_effect_start_GTWifeMonsterUnstableProj -> WifeBoss_Explode_Random: How dare you disturb me!
+- on_effect_start_GTWifeMonsterUnstableProj -> WifeBoss_Explode_Random: How dare you disturb me!
+- on_effect_start_GTWifeMonsterBoneWall -> WifeBoss_BoneWall_Random: Now you are mine... forever!
+- on_effect_start_GTWifeMonsterBoneWall -> WifeBoss_BoneWall_Random: Now you are mine... forever!
+- on_effect_start_GSWifeMonsterBoneCone -> WifeBoss_Attack_Random: Conquer!
+- on_effect_start_GSWifeMonsterBoneCone -> WifeBoss_Attack_Random: Conquer!
+- on_knockdown_bwd_01 -> WifeBoss_Knockdown_Random: Ugh... How could you?... 
+- on_knockdown_bwd_01 -> WifeBoss_Knockdown_Random: Ugh... How could you?... 
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Karui_Random: (random group)
+- on_effect_event_dialogue_for_CTS1BossFightStart -> WifeBoss_Emerge_Karui_Random: (random group)
+
+## linked buffs
+- ground_fire_ghostflame_monster "[DNT-UNUSED] Ignited Ground":  | stats=
+- hinder "Hinder": Movement speed [Slow|Slowed]. | stats=hinder_movement_speed_+%_final
+
+## arena rooms
+room metadata_terrain_maps_necropolis_rooms_unique_boss_1.arm
+  sector ['hide_teleports', 5, 151, 300, 377, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 79, 102, 218, 151, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 10, 298, 290, 301, '']
+  sector ['no_critters', 7, 101, 291, 360, '']
+  sector ['boss_sector', 79, 105, 218, 151, '']
+  sector ['boss_sector', 5, 151, 300, 368, '']
+  sector ['no_movement_skills', 10, 145, 13, 301, '']
+  sector ['no_movement_skills', 287, 146, 290, 301, '']
+  sector ['no_movement_skills', 216, 146, 290, 149, '']
+  sector ['no_movement_skills', 10, 145, 85, 148, '']
+  sector ['no_movement_skills', 82, 102, 85, 148, '']
+  sector ['no_movement_skills', 82, 102, 219, 105, '']
+  sector ['no_movement_skills', 216, 102, 219, 149, '']
+  sector ['outside_tiles', 55, 314, 255, 379, '']
+  point [149.0, 206.0, 'mapboss']
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x14 (64,242) (64,179) (64,201) (91,273) (68,273) (234,247) (234,226) (229,274) (235,174) (203,150)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (127,91)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (149,106)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (140,105) (134,105) (146,105) (152,105) (158,105) (164,105) (170,105) (128,105)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (149,193)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (206,320) (89,320)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (166,252)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (210,231) (204,261) (96,260) (129,259)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (163,179)
+room metadata_terrain_gallows_act1_1_8_rooms_unique_boss.arm
+  sector ['hide_teleports', 46, 79, 252, 286, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 41, 75, 257, 288, '']
+  sector ['no_movement_skills', 21, 79, 272, 86, '']
+  point [149.0, 187.0, 'mapboss']
+  point [153.0, 251.0, 'entrance']
+  point [149.0, 93.0, 'telepad']
+  point [149.0, 52.0, 'checkpoint1']
+  point [149.0, 142.0, 'ritual_boss_spawn_override']
+  obj Metadata/QuestObjects/Four_Act1/ExitTransition_Mausoleum x1 (125,210)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/BitterGuyWife x1 (151,257)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (136,57)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x14 (64,227) (64,204) (64,182) (91,110) (68,110) (234,136) (234,157) (229,109) (235,209) (234,228)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (150,76)
+  obj Metadata/Monsters/HusbandMonster/Objects/BossRoomMinimapIcon x1 (149,187)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (149,82)
+room metadata_terrain_gallows_act1_1_9_rooms_unique_boss_02.arm
+  sector ['hide_teleports', 81, 22, 283, 273, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 76, 18, 286, 276, '']
+  sector ['no_movement_skills', 74, 12, 81, 281, '']
+  point [172.0, 148.0, 'mapboss']
+  point [224.0, 123.0, 'entrance']
+  point [95.0, 150.0, 'telepad']
+  point [58.0, 208.0, 'checkpoint1']
+  point [141.0, 117.0, 'ritual_boss_spawn_override']
+  obj Metadata/QuestObjects/Four_Act1/ExitTransition_Tomb x1 (231,118)
+  obj Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild1 x1 (259,154)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (59,223)
+  obj Metadata/Terrain/Gallows/Act1/1_9/Objects/BitterGuyChild2 x1 (259,144)
+  obj Metadata/Terrain/Gallows/Act1/1_8/Objects/SpiritSpawner x11 (131,229) (118,190) (118,219) (200,230) (228,220) (210,71) (225,83) (227,103) (137,69) (118,84)
+  obj Metadata/Monsters/WifeMonster/Objects/BossRoomMinimapIcon x1 (171,149)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (72,149)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x4 (77,183) (77,218) (77,149) (77,111)

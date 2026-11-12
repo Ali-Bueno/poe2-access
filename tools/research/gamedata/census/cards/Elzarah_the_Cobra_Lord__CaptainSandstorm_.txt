@@ -1,0 +1,143 @@
+# Elzarah, the Cobra Lord / Serath, the Scaled One
+content: Interlude
+monsters: Metadata/Monsters/Pirates/CaptainSandstorm_, Metadata/Monsters/Pirates/CaptainSandstormCampaignSTANDALONE, Metadata/Monsters/Pirates/CaptainSandstormMAP_, Metadata/Monsters/Pirates/CaptainSandstormSTANDALONE
+scripts: Metadata/Monsters/Pirates/CaptainSandstorm, Metadata/Monsters/Pirates/CaptainSandstormSTANDALONE, Metadata/Monsters/Pirates/CaptainSandstormMAP
+own chain: Metadata/Monsters/Pirates/CaptainSandstorm, Metadata/Monsters/Pirates/CaptainSandstormSTANDALONE, Metadata/Monsters/Pirates/CaptainSandstormMAP
+areas: P2_3 Sel Khari Sanctuary  act6; MapOrbalasCrossing Orbala's Crossing act10; MapOrnateChambers Ornate Chambers act10
+ai: Metadata/Monsters/Pirates/CaptainSandstorm.ais, Metadata/Monsters/Pirates/CaptainSandstormMAP.ais, Metadata/Monsters/Pirates/CaptainSandstormSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- GACaptainSandSlam [geometry_attack] action=GroundSlam anim=default:slam_01
+    geom: rectangle length=40 width=20 angle=0 range=350 delay=33 anchor=3
+    flags: is_area_damage
+- MPWCaptainSandCannonball [monster_projectile_weapon] action=SpellProjectile anim=default:cannon_blast_01
+    flags: base_deal_no_damage
+- MPWCaptainSandStormRailGun [monster_projectile_weapon] action=SpellProjectile anim=default:cannon_blast_01
+- GTCaptainSandMinionBeam [geometry_trigger] action=SpellAreaOfEffectChaos anim=default:summon_01
+    geom: trigger count=5 delay=0 spread=75 radius=40 angle=130 anchor=2
+- EASCaptainSandSoulMortar [empty_action_spell] action=SpellProjectileCold anim=default:mortar_01
+- EASCaptainSandTitanDrop [empty_action_spell] action=SpellAreaOfEffectFire anim=default:drop_anchor_01
+- EASCaptainSandWheelSpin [empty_action_spell_5] action=SpellBuffFire anim=default:wheel_spin_01
+- EASCaptainSandSummonTornado [empty_action_spell] action=SpellAreaOfEffect anim=default:cannon_barrage_01
+- MDSandStormSandTornado [move_daemon] action=SpellAreaOfEffect anim=default:cannon_barrage_01
+    daemons: Metadata/Monsters/InvisibleFire/MDSandStormTornado
+- GSCaptainSandTitanDropSlam [geometry_attack] action=SpellAreaOfEffectFire anim=default:drop_anchor_01
+    geom: circle length=36 width=0 angle=0 range=293 delay=293 anchor=4
+    flags: is_area_damage
+- SSMCaptainSandSummonMinion [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/SkeletonSnake/SandSkeletonSnake
+- TBCaptainSandMinionBeam [trigger_beam] action=None anim=-
+    beams: CaptainSandStormMinionBeam
+- MMSCaptainSandMortar [monster_mortar] action=SpellProjectileCold anim=default:mortar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GACaptainSandCannonImpactWall [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=50 delay=33 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GACaptainSandCannonImpactFloor [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=50 delay=33 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GACaptainSandSlamAnchorImpact [geometry_attack] action=SpellProjectileChaos anim=default:cannon_slam_01, slam_fast_01
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSCaptainSandWaveImpacts [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MDCaptainSandWave [move_daemon] action=SpellProjectileUpward anim=default:tidal_wave_01
+    daemons: Metadata/Monsters/Pirates/CaptainSnadStormBossWave
+- GSCaptainSandSandOrbDamage [geometry_spell] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+    GEAL 1180 on ['Metadata/Monsters/InvisibleFire/MDSandStormTornado']: self{} each{triggerer.SetStateTo(fire_charge, 1);} r=150
+- CGESandStormFlameGeyser [monster_cast_ground_effect_location] action=SpellProjectileUpwardLightning anim=-
+    flags: is_area_damage
+    ground: Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/EyeSlamGroundEffect.ao
+
+## own states and handlers
+states: current_skill; dead
+- on_death = { }
+- on_drop_anchor_01 = { }
+- on_emerge_01 = { }
+- on_mortar_01 = { Roll( 1, 2, { } ); }
+- on_summon_01 = { }
+- on_tidal_wave_01 = { Roll( 1, 4, { } ); }
+- on_or_create_state_current_skill_1 = { DoRandom( { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls_1Array.epk', 'Metadata/Monsters/Pirates/attachments/PirateBossHelm.ao' ); }, { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls
+- on_or_create_state_current_skill_2 = { DoRandom( { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls_4Array.epk', 'Metadata/Monsters/Pirates/attachments/PirateBossHelm.ao' ); }, { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls
+- on_or_create_state_current_skill_3 = { DoRandom( { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls_6Array.epk', 'Metadata/Monsters/Pirates/attachments/PirateBossHelm.ao' ); }, { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls
+- on_or_create_state_current_skill_4 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/CaptainRoth/epk/wheel_skulls_5Array.epk', 'Metadata/Monsters/Pirates/attachments/PirateBossHelm.ao' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/Pirates/objects/SandOrb
+- preload_monster_variety Metadata/Monsters/Pirates/SandArm
+- preload_monster_variety Metadata/Monsters/InvisibleFire/MDSandStormTornado
+- preload_misc_beam CaptainSandStormMinionBeam
+
+## adds and forms
+- Metadata/Monsters/Pirates/SandArm "Sand Arm" bossbar=0 skills=GASandHandSlam,GASandHandSlamBelow comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/InvisibleFire/MDSandStormTornado "Invisible" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/SkeletonSnake/SandSkeletonSnake "Skeletal Cobra" bossbar=0 skills=MeleeAtAnimationSpeed comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+daemons: Metadata/Monsters/InvisibleFire/MDSandStormTornado, Metadata/Monsters/Pirates/CaptainSnadStormBossWave
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Pirates/objects/SandOrb:  [server_only=true] states=clean_up 
+- metadata/monsters/pirates/bossroomminimapicon: MinimapIcon [server_only=true icon=G4_2_2_BossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( G4_2_2_BossInactive ); }}
+- metadata/monsters/pirates/objects/barrelforpickup:  [blocking=false object_size=1 server_only=true] states=claimed 
+- metadata/monsters/pirates/objects/barrellandmark:  [server_only=true] states=prime;explode;primeable on_end_open_01{{ PlayAnimation( opened_cooldown ); }}; on_end_opened_cooldown{{ PlayAnimation( opened_loop ); }}; on_state_prime_1{{ IfState( primeable, 1, { PlayAnimation( open_windup ); }, { SetStateTo( prime, 0 ); } ); }}; on_state_explode_1{{ PlayAnimation( open_01 ); }}
+- metadata/monsters/pirates/objects/barrelplaced:  [blocking=true object_size=3 server_only=true] states=prime;explode on_end_open_01{{ PlayAnimation( opened_cooldown ); }}; on_end_opened_cooldown{{ PlayAnimation( opened_loop ); }}; on_state_prime_1{{ PlayAnimation( open_windup ); }}; on_state_explode_1{{ PlayAnimation( open_01 ); }}; on_or_create_state_explode_1{{ RemoveCollidability(); }}
+- metadata/monsters/pirates/objects/barrelplacedsecondary:  [blocking=true object_size=1 server_only=true] states=prime;explode on_end_open_01{{ PlayAnimation( opened_cooldown ); }}; on_end_opened_cooldown{{ PlayAnimation( opened_loop ); }}; on_state_prime_1{{ PlayAnimation( open_windup ); }}; on_state_explode_1{{ PlayAnimation( open_01 ); }}
+- metadata/monsters/pirates/objects/gunpowderlines: Actor Stats [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/pirates/objects/gunpowderlines_landmarkstarter: Actor Stats [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/pirates/objects/sandbossarenamiddle: ControlZone [server_only=true] states= 
+- metadata/monsters/pirates/objects/sandbosstornadomarkers: ControlZone [server_only=true] states= 
+- metadata/monsters/pirates/objects/sandorb:  [server_only=true] states=clean_up 
+- Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_7/Objects/SummonAllyTemple: MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=activated;visible = 1 on_state_activated_1{{ DisableTargetable(); DisableRendering(); HideMinimapIcon(); }}; create_state_activated_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; create_state_visible_0{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; create_state_visible_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Monsters/Pirates/objects/SandBossArenaMiddle: ControlZone [server_only=true] states= 
+- Metadata/Monsters/Pirates/objects/SandBossTornadoMarkers: ControlZone [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger:  [blocking=false object_size=0 server_only=true] states= 
+
+## lines
+
+## linked buffs
+- fire_tornado_degen "Fire Tornado": You are taking Fire Damage over time due to being inside the Tornado.  | stats=base_fire_damage_taken_per_minute
+- tornado_degen "Tornado": You are taking Physical Damage over time and your Movement Speed is being reduced due to being inside the Tornado. An additional stack of this effect is applied when deep inside the Tornado. | stats=base_physical_damage_taken_per_minute,base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act4_interlude_part2_p2_3_rooms_boss_01.arm
+  sector ['hide_teleports', 174, 129, 461, 391, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 144, 115, 493, 119, '']
+  sector ['no_critters', 191, 96, 453, 316, '']
+  sector ['boss_sector', 193, 129, 450, 314, '']
+  sector ['env', 161, 97, 480, 347, '']
+  point [322.0, 267.0, 'mapboss']
+  point [323.0, 84.0, 'checkpoint1']
+  point [332.0, 223.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (336,106)
+  obj Metadata/NPC/Four_Interlude/Part2/DjinnOrderInjured x1 (379,267)
+  obj Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_7/Objects/SummonAllyTemple x1 (366,274)
+  obj Metadata/Monsters/Pirates/objects/SandBossArenaMiddle x1 (318,225)
+  obj Metadata/Monsters/Pirates/objects/SandBossTornadoMarkers x6 (285,284) (356,284) (286,154) (354,154) (235,219) (397,218)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x9 (315,125) (309,125) (321,125) (327,125) (333,125) (339,125) (345,125) (303,125) (297,125)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (322,216)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (322,127)
+room metadata_terrain_maps_ornatechambers_rooms_boss_01.arm
+  sector ['boss_sector', 193, 129, 450, 314, '']
+  sector ['hide_teleports', 195, 129, 448, 312, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 191, 127, 453, 316, '']
+  sector ['no_movement_skills', 235, 124, 409, 127, '']
+  point [324.0, 264.0, 'mapboss']
+  point [323.0, 84.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (336,106)
+  obj Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger x1 (318,219)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x9 (315,125) (309,125) (321,125) (327,125) (333,125) (339,125) (345,125) (303,125) (297,125)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (322,216)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (321,127)
+  obj Metadata/Monsters/Pirates/objects/SandBossTornadoMarkers x6 (285,262) (359,260) (287,157) (352,155) (232,216) (402,216)
+  obj Metadata/Monsters/Pirates/objects/SandBossArenaMiddle x1 (320,222)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (385,228)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (369,181) (387,186) (277,188) (280,249)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (336,247)
+room metadata_terrain_gallows_act4_4_2_2_rooms_inland_3x3_10open_c_01.arm
+  obj Metadata/Monsters/Pirates/PirateBarrel x3 (53,111) (359,86) (313,344)

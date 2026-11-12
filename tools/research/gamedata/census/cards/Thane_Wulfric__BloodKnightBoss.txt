@@ -1,0 +1,142 @@
+# Thane Wulfric / Varloch, the Ashen Lord
+content: Interlude
+monsters: Metadata/Monsters/HusbandMonster/BloodKnightBoss, Metadata/Monsters/HusbandMonster/BloodKnightBossMAP_, Metadata/Monsters/HusbandMonster/BloodKnightBossSTANDALONE
+scripts: Metadata/Monsters/HusbandMonster/BloodKnightBoss, Metadata/Monsters/HusbandMonster/BloodKnightBossMAP, Metadata/Monsters/HusbandMonster/BloodKnightBossSTANDALONE
+own chain: Metadata/Monsters/HusbandMonster/BloodKnightBoss, Metadata/Monsters/HusbandMonster/BloodKnightBossMAP, Metadata/Monsters/HusbandMonster/BloodKnightBossSTANDALONE
+areas: P1_6 Holten Estate act6; MapDerelictMansion Derelict Mansion act10
+ai: Metadata/Monsters/HusbandMonster/BloodKnightBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- BloodKnightCleave [melee] action=OffMelee anim=default:cleave_01
+- BloodKnightCleaveEmpowered [melee] action=Cleave anim=default:cleave_02
+- BloodKnightComboAttack [melee] action=Flurry anim=default:combo_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked
+- MPSBloodKnightCleaveBalls [monster_projectile_spell] action=SpellProjectile anim=default:cleave_01
+- GABloodKnightCleaveDash [geometry_attack] action=None anim=-
+    geom: cone length=18 width=0 angle=180 range=250 delay=33 anchor=3
+- GABloodKnightDashTrigger [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- DTTBloodKnightDash [dash_attack_to_target] action=ShadowDash anim=default:dash_slice_01
+- BloodKnightBlazingLance [fire_wake_spear] action=SpellAreaOfEffectFire anim=default:overhead_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASBloodKnightEnrage [empty_action_spell] action=Frenzy anim=default:empower_01
+- EASBloodKnightCooldown [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:cooldown_01
+- GTBloodKnightBloodFall [geometry_trigger] action=SpellAreaOfEffect anim=default:blood_orb_01
+    geom: trigger count=10 delay=2500 spread=80 radius=20 angle=0 anchor=4
+    triggers: GSBloodKnightBloodFallSingle
+- GSBloodKnightBloodFallSingle [geometry_spell] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=950 delay=950 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+    buffs: architect_ground_blood
+
+## own states and handlers
+states: spirits; max; souls; wifedead; wifedead = 1
+- on_death = { IfState( wifedead, 1, (){}, (){ this.vampirequeen.SetStateTo( husbanddead, 1 ); } ); }
+- on_effect_event_reset_pierce_list_for_HusbandMonsterCleaveEmpowered = { RemoveNamedTask( SharedPierceList ); AddNamedTask( SharedPierceList ); }
+- create_state_light_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup.epk' ); }
+- on_state_light_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup.epk' ); }
+- on_or_create_state_light_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); }
+- on_or_create_state_max_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); }
+- on_or_create_state_spirits_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); }
+- on_change_state_spirits = { this.soul_intensity = Clamp( 0.0 + GetState( spirits ), 0.0, 4.0 ); Call( update_soul_states, soul_intensity ); }
+- on_construction_complete = { AddAttached( 'Metadata/Monsters/HusbandMonster/attachments/HusbandReskinHelmet.ao', aux_L_Weapon_attachment_02 ); }
+- on_event_helmet = { MoveAttachedToBone( aux_L_Weapon_attachment_02, head_jntBnd, 0.0, 'Metadata/Monsters/HusbandMonster/attachments/HusbandReskinHelmet.ao' ); }
+- on_blood_orb_01 = { PlayTextAudio( VampireHusbandBoss_BloodOrb_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_cleave_01 = { PlayTextAudio( VampireHusbandBoss_Cleave_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_cleave_02 = { PlayTextAudio( VampireHusbandBoss_Cleave_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_combo_01 = { PlayTextAudio( VampireHusbandBoss_Combo_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_cooldown_01 = { PlayTextAudio( VampireHusbandBoss_Cooldown_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_dash_slice_01 = { PlayTextAudio( VampireHusbandBoss_Dash_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_empower_01 = { PlayTextAudio( VampireHusbandBoss_Empower_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( VampireHusbandBoss_Knockdown_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_overhead_01 = { PlayTextAudio( VampireHusbandBoss_Overhead_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_end_death_bwd_02 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); globals.vampirequeenboss.PlayTextAudio( VampireHusbandBoss_Overhead_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBoss', 0 ); }
+- on_blood_orb_01 = { PlayTextAudio( VampireHusbandBoss_BloodOrb_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_combo_01 = { PlayTextAudio( VampireHusbandBoss_Combo_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_cooldown_01 = { PlayTextAudio( VampireHusbandBoss_Cooldown_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_dash_slice_01 = { PlayTextAudio( VampireHusbandBoss_Dash_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_empower_01 = { PlayTextAudio( VampireHusbandBoss_Empower_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( VampireHusbandBoss_Knockdown_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_overhead_01 = { PlayTextAudio( VampireHusbandBoss_Overhead_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); globals.vampirequeenboss.PlayTextAudio( VampireHusbandBoss_Overhead_Random, 'Metadata/Monsters/HusbandMonster/BloodKnightBossMAP', 0 ); }
+- on_construction_complete = { AddAttached( 'Metadata/Monsters/HusbandMonster/attachments/HusbandReskinHelmet.ao', head_jntBnd ); }
+- on_blood_orb_01 = { PlayTextAudio( VampireHusbandBoss_BloodOrb_Random ); }
+- on_cleave_01 = { PlayTextAudio( VampireHusbandBoss_Cleave_Random ); }
+- on_cleave_02 = { PlayTextAudio( VampireHusbandBoss_Cleave_Random ); }
+- on_combo_01 = { PlayTextAudio( VampireHusbandBoss_Combo_Random ); }
+- on_cooldown_01 = { PlayTextAudio( VampireHusbandBoss_Cooldown_Random ); }
+- on_dash_slice_01 = { PlayTextAudio( VampireHusbandBoss_Dash_Random ); }
+- on_empower_01 = { PlayTextAudio( VampireHusbandBoss_Empower_Random ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( VampireHusbandBoss_Knockdown_Random ); }
+- on_overhead_01 = { PlayTextAudio( VampireHusbandBoss_Overhead_Random ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/EPKs/powerup_body.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/husbandmonster/bloodknightbloodground:  [blocking=false object_size=0] states= 
+- metadata/monsters/husbandmonster/objects/bloodknightpiano:  [blocking=false object_size=1] states=emerge on_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); }}; create_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); GoToAnimationEnd(); }}
+- metadata/monsters/husbandmonster/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=HusbandActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( HusbandInactive ); }}
+- Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano:  [blocking=false object_size=1] states=emerge on_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); }}; create_state_emerge_1{{ PlayAnimation( dance_emerge_01 ); GoToAnimationEnd(); }}
+
+## lines
+- on_blood_orb_01 -> VampireHusbandBoss_BloodOrb_Random: Why hunt in Darkness... when you can become it?
+- on_cleave_01 -> VampireHusbandBoss_Cleave_Random: Holten's bite!
+- on_cleave_02 -> VampireHusbandBoss_Cleave_Random: Holten's bite!
+- on_combo_01 -> VampireHusbandBoss_Combo_Random: From neck to navel!
+- on_cooldown_01 -> VampireHusbandBoss_Cooldown_Random: Blood shall drip!
+- on_dash_slice_01 -> VampireHusbandBoss_Dash_Random: I'll have your throat!
+- on_empower_01 -> VampireHusbandBoss_Empower_Random: Darkness stirs!
+- on_knockdown_bwd_01 -> VampireHusbandBoss_Knockdown_Random: I will have you flayed!
+- on_overhead_01 -> VampireHusbandBoss_Overhead_Random: I shall peel your flesh!
+- on_death -> VampireHusbandBoss_Overhead_Random: I shall peel your flesh!
+
+## linked buffs
+- architect_ground_blood "Boiling Blood": You are taking Physical Damage over time | stats=base_physical_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_maps_derelict_rooms_unique_courtyard_01.arm
+  sector ['arena', 0, 0, 207, 299, '']
+  sector ['hide_teleports', 9, 9, 198, 290, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_sector', 21, 23, 184, 267, '']
+  point [103.0, 182.0, 'mapboss2']
+  point [103.0, 224.0, 'mapboss1']
+  point [80.0, 29.0, 'telepad3']
+  point [126.0, 29.0, 'telepad4']
+  obj Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs x1 (103,149)
+  obj Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano x1 (103,241)
+  obj Metadata/Terrain/Tools/AudioTools/Endgame/Maps/DerelictMansion/Organ/CourtyardDownstairsOrgan x1 (100,267)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (51,173)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (149,209) (130,142) (52,129) (55,211)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (86,211)
+room metadata_terrain_maps_derelict_rooms_unique_courtyard_01_flipback.arm
+  sector ['arena', 0, 0, 207, 299, '']
+  sector ['hide_teleports', 9, 9, 198, 290, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [103.0, 182.0, 'mapboss2']
+  point [103.0, 224.0, 'mapboss1']
+  point [126.0, 29.0, 'telepad4']
+  point [80.0, 29.0, 'telepad3']
+  obj Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs x1 (103,149)
+  obj Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano x1 (103,241)
+  obj Metadata/Terrain/Tools/AudioTools/Endgame/Maps/DerelictMansion/Organ/CourtyardDownstairsOrgan x1 (106,267)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (51,173)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (149,209) (130,142) (52,129) (55,211)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (86,211)
+room metadata_terrain_gallows_act4_interlude_part1_p1_6_rooms_unique_courtyard_01.arm
+  sector ['hide_teleports', 10, 10, 197, 289, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [103.0, 182.0, 'mapboss2']
+  point [103.0, 224.0, 'mapboss1']
+  point [80.0, 29.0, 'telepad']
+  point [126.0, 29.0, 'telepad']
+  obj Metadata/Terrain/Maps/Derelict/Objects/SubsceneDownstairs x1 (103,149)
+  obj Metadata/Monsters/HusbandMonster/Objects/BloodKnightPiano x1 (103,241)
+  obj Metadata/Terrain/Tools/AudioTools/Interlude/P1_6/CourtyardDownstairsOrgan x1 (100,267)

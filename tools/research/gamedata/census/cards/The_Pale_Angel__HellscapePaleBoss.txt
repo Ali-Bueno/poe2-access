@@ -1,0 +1,79 @@
+# The Pale Angel
+content: League: Hellscape
+monsters: Metadata/Monsters/LeagueHellscape/PaleFaction/HellscapePaleBoss
+scripts: Metadata/Monsters/LeagueHellscape/PaleFaction/HellscapePaleBoss
+own chain: Metadata/Monsters/LeagueHellscape/PaleFaction/HellscapePaleBoss, Metadata/Monsters/LeagueHellscape/HellscapeBossBase
+areas: 
+ai: Metadata/Monsters/LeagueHellscape/PaleFaction/HellscapePaleBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MASExtraAttackDistance12 [melee] action=OffMelee anim=default:attack_03
+- MPWHellscapePaleBossSnipe [monster_projectile_weapon] action=Snipe anim=default:charged_shot_01
+    flags: base_deal_no_damage base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASHellscapePaleBossAxeToss [empty_action_attack] action=SpellProjectile anim=default:double_throw_01
+- DTTHellscapePaleBossLeap [dash_to_target] action=DodgeForward anim=default:leapslam_01
+- GAHellscapePaleBossCleave [geometry_attack] action=Cleave anim=default:cleave_01
+    geom: cone length=30 width=0 angle=225 range=225 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    buffs: hellscape_pale_boss_recovery_debuff
+- DTTHellscapePaleBossDashStab [dash_to_target] action=DodgeBack anim=default:dash_01
+- GAHellscapePaleBossAxeSlamBig [geometry_attack] action=HeavyStrike anim=default:attack_02_big
+    geom: cone length=35 width=0 angle=120 range=275 delay=33 anchor=3
+    flags: is_area_damage
+- MPWHellscapePaleBossAxeToss [monster_projectile_weapon] action=None anim=-
+    flags: base_deal_no_damage
+- MPWHellscapePaleBossAxeToss2 [monster_projectile_weapon] action=None anim=-
+    flags: base_deal_no_damage
+- GAHellscapePaleBossAxeTossImpact [geometry_attack] action=None anim=-
+    geom: circle length=14 width=0 angle=0 range=150 delay=33 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAHellscapePaleBossSnipeImpact [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAHellscapePaleBossLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAHellscapePaleBossLeapDelayedImpact [geometry_attack] action=None anim=-
+    geom: circle length=40 width=0 angle=0 range=375 delay=40 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GTHellscapePaleBossLightningNova [geometry_trigger] action=None anim=-
+    geom: trigger count=40 delay=4000 spread=1 radius=0 angle=0 anchor=1
+- GSHellscapepaleBossLeapLightningNova [geometry_spell] action=None anim=-
+    geom: donut length=23 width=20 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAHellscapePaleBossDashStab [geometry_attack] action=None anim=-
+    geom: rectangle length=45 width=10 angle=0 range=100 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- CGEHellscapePaleBossLightning [monster_cast_ground_effect_location] action=None anim=-
+- GAHellscapePaleBossAxeSlamSmall [geometry_attack] action=GroundSlam anim=default:attack_02
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: no_axe1_ground; no_axe2_ground; spawned; cleansed
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_pale_king/EPKs/idle_Electro.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_pale_king/EPKs/idle_Electro.epk' ); }
+- on_death = { HideMinimapIcon(); }
+- on_spawned_dead = { HideMinimapIcon(); }
+- on_start_ChangeToStance1 = { SetGlobalAudioParam( CorruptPhase, 1 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/NPC/Four_Act3/DoryaniMapCorruptedBoss
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/boss_warcry.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/NPC/Four_Act3/DoryaniMapCorruptedBoss (no script)
+- metadata/monsters/leaguehellscape/palefaction/objects/palebosslightningground:  [blocking=false object_size=0] states= 
+
+## lines
+
+## linked buffs
+- hellscape_pale_boss_recovery_debuff "Eternal Scourge": You have reduced Life, Energy Shield and Mana Recovery Rate. | stats=life_recovery_rate_+%,energy_shield_recovery_rate_+%,mana_recovery_rate_+%
+
+## arena rooms

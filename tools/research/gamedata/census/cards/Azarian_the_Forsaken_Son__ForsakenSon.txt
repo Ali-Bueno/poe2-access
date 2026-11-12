@@ -1,0 +1,257 @@
+# Azarian, the Forsaken Son / Hask, the Fallen Son
+content: Act 2
+monsters: Metadata/Monsters/Act2/ForsakenSon, Metadata/Monsters/Act2/ForsakenSonCampaignSTANDALONE, Metadata/Monsters/Act2/ForsakenSonMap, Metadata/Monsters/Act2/ForsakenSonSTANDALONE
+scripts: Metadata/Monsters/ForsakenSon/ForsakenSon, Metadata/Monsters/ForsakenSon/ForsakenSonSTANDALONE, Metadata/Monsters/ForsakenSon/ForsakenSonMap_
+own chain: Metadata/Monsters/ForsakenSon/ForsakenSon, Metadata/Monsters/ForsakenSon/ForsakenSonSTANDALONE, Metadata/Monsters/ForsakenSon/ForsakenSonMap_
+areas: G2_4_3 Buried Shrines act2; BossRush_Area1 Boss Rush Area 1 act10; MapHeadland Headland act10; MapChannel Channel act10
+ai: Metadata/Monsters/ForsakenSon/ForsakenSon.ais, Metadata/Monsters/ForsakenSon/ForsakenSonSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=-
+- ForsakenCyclone [melee] action=OffMelee anim=default:cyclone_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASForsakenSonDoubleSlam [empty_action_spell] action=GroundSlam anim=default:groundslam_01
+- EASForsakenSonDoubleLacerate [empty_action_spell] action=Frenzy anim=default:throw_quad_01
+- MPWForsakenSonRubbleToss [monster_projectile_weapon] action=SpellAreaOfEffect anim=default:throw_censer_01
+    flags: base_deal_no_damage
+- MPWForsakenSonRubbleTossBreakThings [monster_projectile_weapon] action=SpellAreaOfEffect anim=default:throw_censer_01
+    flags: base_deal_no_damage
+- GAForsakenSonDoubleSlam [geometry_attack] action=None anim=-
+    geom: cone length=40 width=0 angle=18 range=233 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+- GAForsakenSonDoubleSlamFireInfused [geometry_attack] action=None anim=-
+    geom: cone length=50 width=0 angle=51 range=233 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+- GAForsakenSonLacerate [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=30 angle=0 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAForsakenSonLacerateFire [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=30 angle=0 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAForsakenSonFireNova [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- CGEForsakenSonBurningGround [monster_cast_ground_effect_location] action=None anim=-
+    buffs: fountain_statue_goop
+    ground: Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/vomit_grd_instant.ao
+- GAForsakenSonRubbleImpactWall [geometry_attack] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GAForsakenSonRubbleImpactFloor [geometry_attack] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSForsakenSonFlamewallBurninate [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: flaming_censer_l; flaming_censer_r; FightStartShout
+- on_death = { KillGroundEffectsOfType( IgnitedGround, 1002, 1, 180 ); }
+- on_death = { Delay( 3.85 , { PlayTextAudio( ForsakenSonDeathLine, 'Metadata/Monsters/ForsakenSon/ForsakenSon' ); } ); }
+- on_throw_quad_01 = { Roll( 1, 4, { PlayTextAudio( ForsakenSonEmbraceCorruption, 'Metadata/Monsters/ForsakenSon/ForsakenSon' ); } ); }
+- on_groundslam_01 = { Roll( 1, 4, { PlayTextAudio( ForsakenSonSinsOfTheMother, 'Metadata/Monsters/ForsakenSon/ForsakenSon' ); } ); }
+- on_or_create_state_flaming_censer_l_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/ForsakenSon/epk/Ignited_L.epk' ); }
+- on_state_flaming_censer_l_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/ForsakenSon/epk/Ignited_L.epk' ); }
+- on_exit_state_FightStartShout_0 = { SetGlobalAudioParam( "ForsakenSonFightStart", 1 ); }
+- on_effect_custom_event_projectile_fired_for_MPWForsakenSonRubbleToss = { projectile.Do( () { SetRandomYaw(); SetRandomRoll(); SetXYTilt( Random( 360 ), Random( 360 ) ); } ); }
+- on_throw_quad_01 = { Roll( 1, 4, { PlayTextAudio( ForsakenSonEmbraceCorruption, 'Metadata/Monsters/Act2/ForsakenSonMap' ); } ); }
+- on_groundslam_01 = { Roll( 1, 4, { PlayTextAudio( ForsakenSonSinsOfTheMother, 'Metadata/Monsters/Act2/ForsakenSonMap' ); } ); }
+- on_exit_state_FightStartShout_0 = { SetGlobalAudioParam( 'ForsakenSonFightStart', 1 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/ForsakenSon/BossArenaObjects/ForsakenSonFlameWall
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/ForsakenSon/epk/Ignited_L.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/ForsakenSon/epk/Ignited_R.epk
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/ForsakenSonFlameWall: Buffs [blocking=false object_size=1] states=die on_initial_position_set{{ PlayAnimation( start ); QueueAnimation( loop ); }}; on_end_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( end ); }}
+- metadata/monsters/forsakenson/approachconversationcontroller:  [server_only=true] states= 
+- metadata/monsters/forsakenson/bossarenaobjects/bossroomminimapicon: MinimapIcon [server_only=true icon=ForsakenSonActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( ForsakenSonInactive ); }}
+- metadata/monsters/forsakenson/bossarenaobjects/forsakensoncenser: Transitionable [blocking=true object_size=8 transition_on_damage_taken=1 server_only=true] states=hits on_state_hits_3{{ PlayAnimationByIndex( 1 ); RemoveCollidability(); SetLightState( off, 0.5 ); }}; create_state_hits_3{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); RemoveCollidability(); SetLightState( off ); }}
+- metadata/monsters/forsakenson/bossarenaobjects/forsakensonflamewall: Buffs [blocking=false object_size=1] states=die on_initial_position_set{{ PlayAnimation( start ); QueueAnimation( loop ); }}; on_end_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( end ); }}
+- metadata/monsters/forsakenson/bossarenaobjects/frozenone/frozenoneinnerleftspikes:  [server_only=true] states= 
+- metadata/monsters/forsakenson/bossarenaobjects/frozenone/frozenoneinnerrightspikes:  [server_only=true] states= 
+- metadata/monsters/forsakenson/bossarenaobjects/frozenone/frozenonemiddlespikes:  [server_only=true] states= 
+- metadata/monsters/forsakenson/bossarenaobjects/frozenone/frozenoneouterleftspikes:  [server_only=true] states= 
+- metadata/monsters/forsakenson/bossarenaobjects/frozenone/frozenoneouterrightspikes:  [server_only=true] states= 
+- metadata/monsters/forsakenson/icespike:  [blocking=true] states= on_event_spike{{ RemoveCollidability(); }}; on_construction_complete{{ Delay( 0.1, { SetObjectSize( 4 ); } ); }}
+- Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/ForsakenSonCenser: Transitionable [blocking=true object_size=8 transition_on_damage_taken=1 server_only=true] states=hits on_state_hits_3{{ PlayAnimationByIndex( 1 ); RemoveCollidability(); SetLightState( off, 0.5 ); }}; create_state_hits_3{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); RemoveCollidability(); SetLightState( off ); }}
+- Metadata/Monsters/ForsakenSon/ApproachConversationController:  [server_only=true] states= 
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=ForsakenSonActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( ForsakenSonInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_4_2/Objects/ForsakenSonArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardForsakenSonEntrance, TitleCardForsakenSonEntranceSubtitle ); }}
+- Metadata/QuestObjects/Four_Act2/WaterGoddess_BurnInteract: InteractionAction Transitionable Targetable [object_size=7 server_only=true] states= create_untransitioned{{ DisableTargetable(); }}; on_transition{{ EnableTargetable(); }}
+- Metadata/QuestObjects/Four_Act2/WaterGoddessFailed: MinimapIcon [server_only=true icon=5] states=seen on_state_seen_1{{ HideMinimapIcon(); }}; create_state_seen_1{{ HideMinimapIcon(); }}
+- Metadata/Terrain/Gallows/Act2/2_4_2/Objects/WaterGoddessEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardWaterGoddessRoom, TitleCardWaterGoddessRoomSubtitle ); }}
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneOuterLeftSpikes:  [server_only=true] states= 
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneInnerRightSpikes:  [server_only=true] states= 
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneMiddleSpikes:  [server_only=true] states= 
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneOuterRightSpikes:  [server_only=true] states= 
+- Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneInnerLeftSpikes:  [server_only=true] states= 
+
+## lines
+
+## linked buffs
+- forsaken_son_buff "":  | stats=non_skill_base_physical_damage_%_to_convert_to_fire
+- forsaken_son_flaming_censer "":  | stats=non_skill_base_physical_damage_%_to_convert_to_fire,non_skill_base_physical_damage_%_to_gain_as_fire
+- fountain_statue_goop "[DNT-UNUSED] Goop": [DNT-UNUSED] You are taking lightning and chaos damage over time. | stats=base_lightning_damage_taken_per_minute,base_chaos_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea1_subarea_theforsakenson_rooms_boss_01.arm
+  sector ['fire_one', 494, 214, 558, 282, '']
+  sector ['fire_two', 494, 316, 558, 381, '']
+  sector ['fire_three', 592, 316, 665, 381, '']
+  sector ['fire_four', 592, 214, 665, 282, '']
+  sector ['disable_instant_portals', 494, 214, 665, 381, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['EnvBoss', 59, 189, 687, 592, '']
+  sector ['no_critters', 487, 209, 670, 585, '']
+  sector ['no_movement_skills', 507, 376, 645, 383, '']
+  sector ['no_movement_skills', 491, 232, 498, 370, '']
+  sector ['hide_teleports', 494, 214, 665, 381, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [581.0, 359.0, 'mapboss4']
+  point [600.0, 543.0, 'KethDungeonUrns']
+  point [615.0, 491.0, 'KethDungeonUrns']
+  point [532.0, 489.0, 'KethDungeonUrns']
+  point [611.0, 462.0, 'KethDungeonUrns']
+  point [553.0, 437.0, 'KethDungeonUrns']
+  point [555.0, 414.0, 'KethDungeonUrns']
+  point [594.0, 439.0, 'KethDungeonUrns']
+  point [602.0, 452.0, 'KethDungeonUrns']
+  point [536.0, 466.0, 'KethDungeonUrns']
+  point [615.0, 479.0, 'KethDungeonUrns']
+  point [610.0, 505.0, 'KethDungeonUrns']
+  point [610.0, 529.0, 'KethDungeonUrns']
+  point [549.0, 541.0, 'KethDungeonUrns']
+  point [540.0, 524.0, 'KethDungeonUrns']
+  point [172.0, 298.0, 'telepad']
+  point [201.0, 309.0, 'checkpoint8']
+  point [515.0, 298.0, 'telepad']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (152,300) (476,299)
+  obj Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger x3 (575,470) (225,297) (356,300)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (195,298)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/ForsakenSonCenser x4 (524,248) (625,248) (625,348) (524,348)
+  obj Metadata/Monsters/ForsakenSon/ApproachConversationController x1 (182,300)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/BossRoomMinimapIcon x1 (575,298)
+  obj Metadata/Terrain/Gallows/Act2/2_4_2/Objects/ForsakenSonArenaEntranceTitle x1 (218,296)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (636,299)
+room metadata_terrain_gallows_act2_2_4_2_rooms_unique_boss_01.arm
+  sector ['fire_one', 494, 214, 558, 282, '']
+  sector ['fire_two', 494, 316, 558, 381, '']
+  sector ['fire_three', 592, 316, 665, 381, '']
+  sector ['fire_four', 592, 214, 665, 282, '']
+  sector ['hide_teleports', 494, 214, 665, 381, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['disable_instant_portals', 494, 214, 665, 381, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['EnvBoss', 59, 189, 687, 592, '']
+  sector ['no_critters', 487, 209, 670, 585, '']
+  sector ['no_movement_skills', 507, 376, 645, 383, '']
+  sector ['no_movement_skills', 491, 232, 498, 370, '']
+  point [581.0, 359.0, 'mapboss']
+  point [600.0, 543.0, 'KethDungeonUrns']
+  point [615.0, 491.0, 'KethDungeonUrns']
+  point [532.0, 489.0, 'KethDungeonUrns']
+  point [611.0, 462.0, 'KethDungeonUrns']
+  point [553.0, 437.0, 'KethDungeonUrns']
+  point [555.0, 414.0, 'KethDungeonUrns']
+  point [594.0, 439.0, 'KethDungeonUrns']
+  point [602.0, 452.0, 'KethDungeonUrns']
+  point [536.0, 466.0, 'KethDungeonUrns']
+  point [615.0, 479.0, 'KethDungeonUrns']
+  point [610.0, 505.0, 'KethDungeonUrns']
+  point [610.0, 529.0, 'KethDungeonUrns']
+  point [549.0, 541.0, 'KethDungeonUrns']
+  point [540.0, 524.0, 'KethDungeonUrns']
+  point [172.0, 298.0, 'telepad']
+  point [172.0, 298.0, 'telepad']
+  point [515.0, 298.0, 'telepad']
+  point [575.0, 284.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (152,300) (476,299)
+  obj Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger x3 (575,470) (225,297) (356,300)
+  obj Metadata/QuestObjects/Four_Act2/WaterGoddess_BurnInteract x1 (575,498)
+  obj Metadata/QuestObjects/Four_Act2/WaterGoddessFailed x1 (574,493)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (195,298)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/ForsakenSonCenser x4 (524,248) (625,248) (625,348) (524,348)
+  obj Metadata/Monsters/ForsakenSon/ApproachConversationController x1 (182,300)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/BossRoomMinimapIcon x1 (575,298)
+  obj Metadata/Terrain/Gallows/Act2/2_4_2/Objects/ForsakenSonArenaEntranceTitle x1 (218,296)
+  obj Metadata/Terrain/Gallows/Act2/2_4_2/Objects/WaterGoddessEntranceTitle x1 (576,437)
+room metadata_terrain_gallows_act4_interlude_part1_p1_5_rooms_unique_boss_02.arm
+  sector ['hide_teleports', 159, 187, 209, 237, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 131, 189, 231, 289, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 161, 185, 211, 235, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 163, 183, 213, 233, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 165, 181, 215, 231, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 167, 179, 217, 229, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 171, 175, 221, 225, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 169, 177, 219, 227, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 173, 173, 223, 223, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 175, 171, 325, 321, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 177, 169, 227, 219, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 179, 167, 229, 217, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 183, 163, 233, 213, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 181, 165, 231, 215, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 185, 161, 235, 211, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 187, 159, 237, 209, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 189, 157, 239, 207, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 191, 129, 291, 229, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['spikemiddle', 170, 170, 222, 222, '']
+  sector ['spikemiddle', 239, 239, 294, 296, '']
+  sector ['spikemiddle', 220, 220, 225, 225, '']
+  sector ['spikemiddle', 225, 225, 230, 230, '']
+  sector ['spikemiddle', 230, 230, 235, 235, '']
+  sector ['spikemiddle', 235, 235, 240, 240, '']
+  sector ['spikemiddle', 238, 238, 243, 243, '']
+  sector ['spikemiddle', 233, 233, 238, 238, '']
+  sector ['spikemiddle', 228, 228, 233, 233, '']
+  sector ['spikemiddle', 223, 223, 228, 228, '']
+  sector ['spikemiddle', 218, 218, 223, 223, '']
+  sector ['spikeinnerleft', 171, 216, 206, 256, '']
+  sector ['spikeinnerleft', 170, 245, 218, 293, '']
+  sector ['spikeinnerleft', 202, 247, 250, 295, '']
+  sector ['spikeinnerleft', 220, 245, 240, 265, '']
+  sector ['spikeinnerleft', 218, 243, 238, 263, '']
+  sector ['spikeinnerleft', 216, 241, 236, 261, '']
+  sector ['spikeinnerleft', 214, 239, 234, 259, '']
+  sector ['spikeinnerleft', 212, 237, 232, 257, '']
+  sector ['spikeinnerleft', 210, 235, 230, 255, '']
+  sector ['spikeinnerleft', 208, 233, 228, 253, '']
+  sector ['spikeinnerleft', 206, 231, 226, 251, '']
+  sector ['spikeinnerleft', 204, 229, 224, 249, '']
+  sector ['spikeinnerleft', 202, 227, 222, 247, '']
+  sector ['spikeinnerleft', 200, 225, 220, 245, '']
+  sector ['spikeinnerleft', 198, 223, 218, 243, '']
+  sector ['spikeinnerleft', 196, 221, 216, 241, '']
+  sector ['spikeinnerleft', 194, 219, 214, 239, '']
+  sector ['spikeouterleft', 133, 218, 177, 329, '']
+  sector ['spikeouterleft', 172, 285, 246, 333, '']
+  sector ['spikeouterright', 219, 134, 288, 172, '']
+  sector ['spikeouterright', 282, 134, 332, 251, '']
+  sector ['spikeinnerright', 250, 170, 292, 245, '']
+  sector ['spikeinnerright', 216, 169, 268, 220, '']
+  sector ['spikeinnerright', 221, 200, 241, 220, '']
+  sector ['spikeinnerright', 224, 203, 244, 223, '']
+  sector ['spikeinnerright', 227, 206, 247, 226, '']
+  sector ['spikeinnerright', 230, 209, 250, 229, '']
+  sector ['spikeinnerright', 233, 212, 253, 232, '']
+  sector ['spikeinnerright', 236, 215, 256, 235, '']
+  sector ['spikeinnerright', 240, 218, 260, 238, '']
+  sector ['spikeinnerright', 243, 221, 263, 241, '']
+  sector ['spikeinnerright', 245, 223, 265, 243, '']
+  sector ['no_critters', 131, 132, 335, 329, '']
+  point [274.0, 273.0, 'mapboss']
+  point [120.0, 122.0, 'checkpoint3']
+  point [182.0, 181.0, 'telepad']
+  point [267.0, 192.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (107,138)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (167,167)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneOuterLeftSpikes x1 (269,190)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneInnerRightSpikes x1 (207,252)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneMiddleSpikes x1 (230,230)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneOuterRightSpikes x1 (191,269)
+  obj Metadata/Monsters/ForsakenSon/BossArenaObjects/FrozenOne/FrozenOneInnerLeftSpikes x1 (252,207)
+  obj Metadata/NPC/Four_Interlude/Part1/WolvenHoldGlyph x1 (135,76)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (174,175)

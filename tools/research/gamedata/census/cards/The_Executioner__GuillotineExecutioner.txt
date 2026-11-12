@@ -1,0 +1,193 @@
+# The Executioner / Incarnation of Death
+content: Act 1
+monsters: Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerCampaignSTANDALONE, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerSTANDALONE
+scripts: Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerSTANDALONE, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap_
+own chain: Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerSTANDALONE, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap_
+areas: G1_13_2 Ogham Village act1; MapPenitentiary Penitentiary act10
+ai: Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner.ais, Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerSTANDALONE.ais (not shipped)
+
+## skills
+- MAASExecutionerBoss [melee] action=None anim=-
+- MAASExecutionerBossShortRange [melee] action=Cleave anim=default:1h_punch_01, 1h_kick_01
+- MAASExecutionerBossTriggerSlam [melee] action=HeavyStrike anim=default:1h_attack_01
+- GAExecutionerMegaSlam [geometry_attack] action=GroundSlam anim=default:1h_charge_up_slam_01
+    geom: circle length=22 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAExecutionerSlam [geometry_attack] action=HeavyStrike anim=default:1h_attack_01
+    geom: rectangle length=55 width=20 angle=0 range=429 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAExecutionerGuillitineDrop [geometry_attack] action=SpellAreaOfEffect anim=default:1h_execute_01
+    geom: circle length=30 width=0 angle=0 range=300 delay=300 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASExecutionerChangeTo2h [empty_action_spell] action=WeaponBuff anim=default:1h_to_2h_taunt_01
+- EAAExecutionerSummonTaunt [empty_action_spell] action=Taunt anim=default:1h_warcry_01
+- GAExecutionerReverseSlam [geometry_attack] action=Flurry anim=stance3:1h_reverse_slam_01
+    geom: cone length=70 width=0 angle=60 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAExecutioner2H [geometry_attack] action=WeaponAreaOfEffect anim=-
+    geom: cone length=70 width=0 angle=60 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EASExecutionerGuillotineDrop [empty_action_spell] action=SpellAreaOfEffect anim=default:1h_execute_01
+- ExecutionerChannelledSlam [supercharged_slam] action=None anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASExectionerReturnTo1h [empty_action_spell] action=SpellBuff anim=stance3:1h_leapslam_end_01
+- GAExecutionerSlamAxeImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAExecutionerSlamAxeMelee [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=4 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- EAAExecutionerLeapSlam [empty_action_attack] action=LeapSlam anim=default:1h_leapslam_01
+- ExecutionerGATriggered1 [geometry_attack] action=None anim=-
+    geom: donut length=22 width=28 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- ExecutionerGATriggered2 [geometry_attack] action=None anim=-
+    geom: donut length=28 width=36 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- ExecutionerGATriggered3 [geometry_attack] action=None anim=-
+    geom: donut length=36 width=44 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GTGuillotineExecutionSummonHelpSTANDALONE [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=600 spread=95 radius=100 angle=0 anchor=1
+    triggers: SSMGuillotineExecutionSummonHelpSTANDALONE
+- SSMGuillotineExecutionSummonHelpSTANDALONE [summon_specific_monsters_on_target] action=None anim=-
+
+## own states and handlers
+states: reverse_slam; intro_block; awakened
+- on_effect_event_start_dodge_for_EAAExecutionerLeapSlam = { OverrideBaseHullType( projectile ); }
+- on_effect_event_end_dodge_for_EAAExecutionerLeapSlam = { ResetBaseHullType( ); }
+- on_or_create_state_intro_block_0 = { RemoveCollidability( ); }
+- on_or_create_state_intro_block_1 = { MakeCollidable( ); }
+- on_triggered = { DisableProximityTrigger(); leitisnpc.CancelStateTimer( leitistalk ); IfState( awakened, 1, {}, () { leitisnpc.IfTransitioned( {}, () { this.IfState( dead, 1, (){ leitisnpc.CancelStateTimer( leitistalk ); }, () { QueueTextAudio( LeitisWildAtExecutioner, 'Metadata/NPC/Four_Act1/ExecutionerFemaleNPC'
+- on_end_or_destroy_ChannelledSlam = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/charge_slam/charge.ao' ); }
+- on_1h_charge_up_slam_01 = { PlayTextAudio( Executioner_ChargeSlam_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner',); }
+- on_double_cleave_01 = { PlayTextAudio( Executioner_Cleave_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner',); }
+- on_1h_reverse_slam_01 = { PlayTextAudio( Executioner_GroundSlam_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner',); }
+- on_1h_to_2h = { PlayTextAudio( Executioner_PhaseChange_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner',); }
+- on_1h_knock_down_01 = { PlayTextAudio( Executioner_Knockdown_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner',); }
+- on_2h_knock_down_01 = { PlayTextAudio( Executioner_Knockdown_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutioner',); }
+- on_1h_charge_up_slam_01 = { PlayTextAudio( Executioner_ChargeSlam_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap' ); }
+- on_double_cleave_01 = { PlayTextAudio( Executioner_Cleave_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap' ); }
+- on_1h_reverse_slam_01 = { PlayTextAudio( Executioner_GroundSlam_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap' ); }
+- on_1h_to_2h = { PlayTextAudio( Executioner_PhaseChange_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap' ); }
+- on_1h_knock_down_01 = { PlayTextAudio( Executioner_Knockdown_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap' ); }
+- on_2h_knock_down_01 = { PlayTextAudio( Executioner_Knockdown_Random, 'Metadata/Monsters/GuillotineExecutioner/GuillotineExecutionerMap' ); }
+- on_triggered = { DisableProximityTrigger(); IfState( awakened, 1, {}, () { leitisnpc.IfTransitioned( {}, () { this.IfState( dead, 1, (){ leitisnpc.CancelStateTimer( leitistalk ); }, () { PlayTextAudio( LeitisWildAtExecutioner, 'Metadata/NPC/Four_Act1/ExecutionerFemaleNPC', 0 ); PlayTextAudio( LeitisWildAtExecution
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/guillotine_drop/guillotine_drop_marker.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/xbow_marker/xbow_marker.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/guillotineexecutioner/guillotineexecutioner.japan: Life ControlZone ProximityTrigger Targetable Actor Stats [blocking=true radius=75 attackable=true server_only=true] states=reverse_slam;intro_block;awakened on_effect_event_start_dodge_for_EAAExecutionerLeapSlam{{ OverrideBaseHullType( projectile ); }}; on_effect_event_end_dodge_for_EAAExecutionerLeapSlam{{ ResetBaseHullType( ); }}; on_or_create_state_intro_block_0{{ RemoveCollidability( ); }}; on_or_create_state_intro_block_1{{ MakeCollidable( ); }}; on_triggered{{ DisableProximityTrigger(); leitisnpc.CancelStateTimer( leitistalk ); IfState( awakened, 1, {}, () { leitisnpc.IfTransi}; on_end_or_destroy_ChannelledSlam{{ DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/charge_slam/charge.ao' ); }}
+- metadata/monsters/guillotineexecutioner/guillotineexecutionercruel.japan: Life ControlZone ProximityTrigger Targetable Actor Stats [blocking=true radius=70 attackable=true server_only=true] states=reverse_slam;intro_block;awakened on_effect_event_start_dodge_for_EAAExecutionerLeapSlam{{ OverrideBaseHullType( projectile ); }}; on_effect_event_end_dodge_for_EAAExecutionerLeapSlam{{ ResetBaseHullType( ); }}; on_or_create_state_intro_block_0{{ RemoveCollidability( ); }}; on_or_create_state_intro_block_1{{ MakeCollidable( ); }}; on_triggered{{ DisableProximityTrigger(); IfState( awakened, 1, {}, () { leitisnpc.IfTransitioned( {}, () { this.IfState( dead, 1, ()}; on_end_or_destroy_ChannelledSlam{{ DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/GuillotineExec/ao/charge_slam/charge.ao' ); }}
+- metadata/monsters/guillotineexecutioner/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=ExecutionerActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( ExecutionerInactive ); }}
+- metadata/monsters/guillotineexecutioner/objects/executionerbossfightcontroller:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/guillotineexecutioner/objects/executionerbosstargetmarkerserialized:  [server_only=true] states= 
+- metadata/monsters/guillotineexecutioner/objects/meleemercspawner:  [server_only=true] states=emerging 
+- metadata/monsters/guillotineexecutioner/objects/rangedmercspawner:  [server_only=true] states=emerging 
+- metadata/monsters/guillotineexecutioner/objects/stageblocking: TriggerableBlockage Transitionable [start_blocked=true blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 1 ); }}; on_transition{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; create_untransitioned{{ PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 0 ); }}; on_untransition{{ PlayAnimationByIndex( 0 ); }}
+- metadata/monsters/guillotineexecutioner/objects/torturedevice: InteractionAction Targetable MinimapIcon [blocking=false object_size=3 server_only=true icon=QuestObject] states=released;helper_state on_interaction_started{{ triggerer.HideWeapons(); }}; on_interaction_stopped{{ triggerer.ShowWeapons(); }}; on_or_create_state_released_0{{ HideMinimapIcon(); }}; on_state_released_1{{ leitisnpc.IfTransitioned( {}, () { this.PlayAnimation( idle_01_killed ); this.EnableTargetable(); this.ShowMinimapIcon}; create_state_released_1{{ leitisnpc.IfTransitioned( {}, () { this.PlayAnimation( idle_01_killed ); this.EnableTargetable(); this.ShowMinimapIcon}; on_state_released_2{{ PlayAnimation( release_01 ); DisableTargetable(); HideMinimapIcon(); SetLightState( off, 1.5 ); }}
+- Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossFightController:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossTargetMarkerSerialized:  [server_only=true] states= 
+- Metadata/Monsters/GuillotineExecutioner/Objects/MeleeMercSpawner:  [server_only=true] states=emerging 
+- Metadata/Monsters/GuillotineExecutioner/Objects/RangedMercSpawner:  [server_only=true] states=emerging 
+- Metadata/Monsters/GuillotineExecutioner/Objects/StageBlocking: TriggerableBlockage Transitionable [start_blocked=true blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 1 ); }}; on_transition{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; create_untransitioned{{ PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 0 ); }}; on_untransition{{ PlayAnimationByIndex( 0 ); }}
+- Metadata/Monsters/GuillotineExecutioner/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=ExecutionerActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( ExecutionerInactive ); }}
+- Metadata/Terrain/Gallows/Act1/1_13_2/Objects/ExecutionerBossArenaTitle: ProximityTrigger [radius=80 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardExecutionerArena, TitleCardExecutionerArenaSubtitle ); }}
+
+## lines
+- on_triggered -> LeitisWildAtExecutioner: Don't do this... stop! Just wait! Surely... surely we can—NO!
+- on_triggered -> LeitisWildAtExecutioner_2: Greatwolf take you, bastard!
+- on_1h_charge_up_slam_01 -> Executioner_ChargeSlam_Random: (random group)
+- on_double_cleave_01 -> Executioner_Cleave_Random: Your head is mine!
+- on_1h_reverse_slam_01 -> Executioner_GroundSlam_Random: Be crushed!
+- on_1h_to_2h -> Executioner_PhaseChange_Random: I grow impatient!
+- on_1h_knock_down_01 -> Executioner_Knockdown_Random: Argh! The dogs will have you for that!
+- on_2h_knock_down_01 -> Executioner_Knockdown_Random: Argh! The dogs will have you for that!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_maps_penitentiary_rooms_unique_boss_1.arm
+  sector ['hide_teleports', 197, 42, 504, 387, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['highground', 338, 74, 502, 96, '']
+  sector ['highground', 337, 338, 502, 363, '']
+  sector ['highground', 478, 265, 502, 362, '']
+  sector ['highground', 478, 74, 502, 170, '']
+  sector ['no_critters', 106, 80, 477, 349, '']
+  sector ['boss_sector', 231, 78, 488, 344, '']
+  sector ['no_movement_skills', 229, 171, 231, 262, '']
+  point [419.0, 216.0, 'mapboss']
+  point [87.0, 201.0, 'checkpoint']
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossFightController x1 (373,218)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossTargetMarkerSerialized x30 (434,124) (448,303) (418,310) (380,310) (397,126) (363,124) (426,311) (408,310) (365,310) (380,124)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/MeleeMercSpawner x27 (487,349) (455,349) (392,349) (353,352) (367,353) (409,352) (433,345) (474,348) (490,340) (491,279)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/RangedMercSpawner x12 (423,349) (363,346) (386,346) (464,353) (486,286) (487,320) (487,150) (488,117) (458,84) (424,84)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x7 (165,342) (160,99) (344,43) (345,394) (464,188) (471,225) (531,218)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (101,201)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (235,219)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (231,225) (231,231) (231,219) (231,213) (231,207) (231,201) (231,195) (231,237)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (319,216)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (403,265)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (405,148) (377,140) (369,291) (407,294)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (399,197)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/StageBlocking x1 (442,248)
+room metadata_terrain_gallows_act1_1_13_rooms_unique_exit_manor_01.arm
+  sector ['hide_teleports', 110, 126, 455, 433, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 116, 46, 253, 184, '']
+  sector ['sector', 322, 46, 529, 184, '']
+  sector ['sector', 414, 46, 529, 253, '']
+  sector ['highground', 143, 270, 165, 434, '']
+  sector ['highground', 407, 269, 432, 434, '']
+  sector ['highground', 334, 410, 431, 434, '']
+  sector ['highground', 143, 410, 239, 434, '']
+  sector ['no_critters', 123, 116, 455, 449, '']
+  sector ['no_movement_skills', 102, 120, 475, 127, '']
+  point [281.0, 350.0, 'mapboss']
+  point [286.0, 392.0, 'entrance']
+  point [287.0, 158.0, 'telepad']
+  point [313.0, 94.0, 'checkpoint1']
+  point [287.0, 301.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (311,115)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (287,427) (288,103)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Auto x1 (286,413)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossFightController x1 (287,304)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossTargetMarkerSerialized x30 (193,365) (372,379) (379,349) (379,311) (195,328) (193,294) (380,357) (379,339) (379,296) (193,311)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/MeleeMercSpawner x26 (418,418) (418,386) (418,323) (421,284) (422,298) (421,340) (414,364) (417,405) (409,421) (348,422)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/RangedMercSpawner x12 (418,354) (415,294) (415,317) (422,395) (355,417) (389,418) (218,418) (186,419) (153,389) (153,355)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/BossRoomMinimapIcon x1 (282,349)
+  obj Metadata/Terrain/Gallows/Act1/1_13_2/Objects/ExecutionerBossArenaTitle x1 (284,199)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (287,126)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/StageBlocking x1 (317,373)
+room metadata_terrain_gallows_act1_1_13_rooms_unique_exit_manor_02.arm
+  sector ['hide_teleports', 115, 125, 451, 432, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 322, 46, 529, 184, '']
+  sector ['sector', 414, 46, 529, 253, '']
+  sector ['highground', 144, 268, 169, 430, '']
+  sector ['highground', 144, 408, 239, 430, '']
+  sector ['highground', 407, 268, 431, 430, '']
+  sector ['highground', 335, 407, 431, 430, '']
+  sector ['no_critters', 123, 116, 455, 449, '']
+  sector ['no_movement_skills', 102, 120, 475, 127, '']
+  point [294.0, 348.0, 'mapboss']
+  point [287.0, 393.0, 'entrance']
+  point [287.0, 149.0, 'telepad']
+  point [319.0, 99.0, 'checkpoint1']
+  point [287.0, 301.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (322,115)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (288,428) (287,105)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Auto x1 (287,414)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossFightController x1 (285,305)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/ExecutionerBossTargetMarkerSerialized x29 (191,370) (372,381) (379,351) (379,313) (193,333) (191,299) (380,359) (379,341) (380,290) (191,316)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/MeleeMercSpawner x26 (418,418) (418,386) (418,323) (421,284) (422,298) (421,340) (414,364) (417,405) (409,421) (348,422)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/RangedMercSpawner x12 (418,354) (415,294) (415,317) (422,395) (355,417) (389,418) (219,418) (186,419) (153,389) (153,355)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/BossRoomMinimapIcon x1 (296,348)
+  obj Metadata/Terrain/Gallows/Act1/1_13_2/Objects/ExecutionerBossArenaTitle x1 (279,196)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (288,125)
+  obj Metadata/Monsters/GuillotineExecutioner/Objects/StageBlocking x1 (257,376)

@@ -1,0 +1,349 @@
+# Jamanra, the Abomination
+content: Act 2
+monsters: Metadata/Monsters/PerennialKingStage2/PerennialKing, Metadata/Monsters/PerennialKingStage2/PerennialKingMap, Metadata/Monsters/PerennialKingStage2/PerennialKingStandalone_, Metadata/Monsters/PerennialKingStage2/PerennialKingStandalone_Invasion
+scripts: Metadata/Monsters/PerennialKingStage2/PerennialKing, Metadata/Monsters/PerennialKingStage2/PerennialKingMap_, Metadata/Monsters/PerennialKingStage2/PerennialKingStandalone
+own chain: Metadata/Monsters/PerennialKingStage2/PerennialKing, Metadata/Monsters/PerennialKingStage2/PerennialKingMap_, Metadata/Monsters/PerennialKingStage2/PerennialKingStandalone
+areas: G2_12 Dreadnought act2; MapUberBoss_CopperCitadel The Copper Citadel act10; MapUberBoss_CopperCitadel_Quest The Copper Citadel act10
+ai: Metadata/Monsters/PerennialKingStage2/PerennialKing.ais, Metadata/Monsters/PerennialKingStage2/PerennialKingStandalone.ais (not shipped)
+
+## skills
+- GSPerennialKingBasicLightningZap [geometry_spell] action=SpellProjectile anim=default:attack_01_01,stance4:attack_01
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+- MASPerennialKingSandWhip [melee] action=None anim=-
+- CTS5PerennialKingSandstorm [change_to_stance5] action=None anim=-
+- CTS1PerennialKingEndSandstorm [change_to_stance1] action=None anim=-
+- EASPerennialKingBeaconToss [empty_action_spell] action=SpellAreaOfEffectFire anim=default:beacon_spear_throw_01
+- EASPerennialKingBeaconBolts [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:beacon_lightning_bolt_01
+- EASPerennialKingLightningSpray [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:beacon_spray_01
+- EASPerennialKingBeaconOrbitStart [empty_action_spell] action=SpellBuffFire anim=default:beacon_orbit_start_01
+- EASPerennialKingBeaconOrbitRecall [empty_action_spell] action=SpellBuffCold anim=default:beacon_orbit_recall_01
+- CTS3PerennialKingMultistab [change_to_stance3] action=None anim=-
+- CTS1PerennialKingEndMultistab [change_to_stance1] action=None anim=-
+- MPWPerennialKingGlassSpearToss [monster_projectile_weapon] action=Throw anim=default:obsidian_spear_01
+- GPAPerennialKingGlassSpearMultiToss [geometry_projectiles_attack] action=ThrowNear anim=default:obsidian_multi_spear_01
+- GAPerennialKingGlassSwordSlam [geometry_attack] action=HeavyStrike anim=default:obsidian_sword_large_01
+    geom: rectangle length=85 width=18 angle=0 range=250 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EAAPerennialKingGlassSwordFence [empty_action_attack] action=DualStrike anim=default:obsidian_sword_throw_01
+- GAPerennialKingAxeCleave [geometry_attack] action=Cleave anim=default:obsidian_axe_01
+    geom: cone length=57 width=0 angle=180 range=250 delay=33 anchor=2
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- MDPerennialKingObsidianStorm [move_daemon] action=SpellBuffChaos anim=default:obsidian_storms_01
+    daemons: Metadata/Monsters/InvisibleFire/MDPerennialKingObsidianStorm_
+- MDPerennialKingTornado [move_daemon] action=SpellBuffLightning anim=default:tornado_summon_01
+    daemons: Metadata/Monsters/InvisibleFire/MDPerennialKingTornado
+- EASPerennialKingOrbitTornado [empty_action_spell] action=SpellBuffLightning anim=default:tornado_summon_01
+- SOPerennialKingObsidianMinigun [spawn_object] action=SpellBuffFast anim=default:obsidian_minigun_01
+    objects: Metadata/Monsters/PerennialKingStage2/Objects/PerennialKingObsidianMinigunPortal
+- EASAbsoluteCartnage [empty_action_spell] action=Frenzy anim=default:slice_cart_01
+- GSPerennialKingBeaconSpray [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=4 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_blocked is_area_damage
+    GEAL 1110 on ['Metadata/Monsters/PerennialKingStage2/PerennialKingBeacon']: self{} each{/* stop hitting yourself */ If( triggerer != triggering_beacon, (){ triggerer.ModifyState( queued_zaps, zap_queue_count ); } );} r=0
+- GAPerennialKingBeaconSpearStab [geometry_attack] action=None anim=-
+    geom: rectangle length=10 width=4 angle=0 range=66 delay=33 anchor=4
+    flags: is_area_damage
+- GAPerennialKingBeaconSpearImpact [geometry_attack] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSPerennialKingBeaconOrbitLightningBeam [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=2 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- EDSPerennialKingBeaconLightningBolt [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GTPerennialKingGlassSpearToss [geometry_trigger] action=None anim=-
+    geom: trigger count=15 delay=350 spread=45 radius=0 angle=60 anchor=2
+- GAPerennialKingGlassSpearTossImpact [geometry_attack] action=None anim=-
+    geom: cone length=110 width=0 angle=60 range=500 delay=33 anchor=12
+    flags: is_area_damage
+- GAPerennialKingGlassSpearTossImpactMulti [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=100 delay=33 anchor=12
+    flags: is_area_damage
+- SOPerennialKingGlassSpearMultiRock [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/PerennialKingStage2/Objects/PerennialKingObsidianMultiSpearRock
+- SOPerennialKingGlassSwordFence [spawn_object] action=DualStrike anim=default:obsidian_sword_throw_01
+    objects: Metadata/Monsters/PerennialKingStage2/Objects/PerennialKingObsidianSwordFencePost
+- GSPerennialKingGlassSwordFenceZap [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=4 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+    buffs: perennial_king_shock_move_penalty
+- GAPerennialKingObsidianStormImpact [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSPerennialKingSandnadoPhysDamage [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSPerennialKingSandnadoLightningDamage [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MPWPerennialKingObsidianMinigun [monster_projectile_weapon] action=SpellProjectile anim=default:attack_01_01,stance4:attack_01
+
+## own states and handlers
+states: invis = 1; lock_on; tornados; seen_intro; has_left_beacon = 1; has_right_beacon = 1; first_arena_complete; lost_head; current_rotate_dir; seen_intro = 1
+- on_construction_complete = { globals.pen_king = this; AddToPlayerWakeGroup( true ); }
+- on_state_lock_on_0 = { SetUsesDirectionalRunAnimations( false ); }
+- on_state_lock_on_1 = { SetUsesDirectionalRunAnimations( true ); }
+- on_or_create_state_invis_0 = { MakeCollidable(); }
+- on_or_create_state_invis_1 = { RemoveCollidability(); }
+- on_event_prepare_proj_center = { this.spear_count = 0; this.multi_spear_target_center = target.GetLocation(); Call( generate_spear_target_points, multi_spear_target_center, 20.0, 8 ); this.target_points = null; this.target_points += target_points2[2]; this.target_points += target_points2[1]; this.target_points += target_points2[3
+- on_event_prepare_proj = { SetTargetLocation( GetVariablesFromGroup( target_points, spear_count, Index ), 0, 0, true ); this.spear_count = spear_count + 1; }
+- on_or_create_state_invis_0 = { EnableRendering(); }
+- on_or_create_state_invis_1 = { DisableRendering(); }
+- on_state_dead_1 = { globals.destructable_arena_core.PlayAnimation( crash_01 ); globals.destructable_arena_core.GoToAnimationEnd(); }
+- on_initial_position_set = { StartStateTimer( check_bearing ); }
+- on_movement_started = { If( GetState( current_rotate_dir ) > 0, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_timer_check_bearing = { this.orientation = GetOrientation(); this.bearing = GetAnimatedBearing(); this.angle_diff = bearing - orientation; this.angle_diff = Round( EvalIf( angle_diff > 180.0, angle_diff - 360.0, EvalIf( angle_diff < -180, angle_diff + 360.0, angle_diff ) ), 2 ); If( And( angle_diff > 5.0, angle_diff <= 4
+- on_state_current_rotate_dir_1 = { If( GetCurrentMoveSpeed() < 1.0, () { PlayAdditiveAnimation( turn_02_right, 9 ); Delay( 0.666, { SetStateTo( current_rotate_dir, 0 ); } ); }, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_state_current_rotate_dir_2 = { If( GetCurrentMoveSpeed() < 1.0, () { PlayAdditiveAnimation( turn_01_right, 9 ); Delay( 0.666, { SetStateTo( current_rotate_dir, 0 ); } ); }, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_state_current_rotate_dir_11 = { If( GetCurrentMoveSpeed() < 1.0, () { PlayAdditiveAnimation( turn_02_left, 9 ); Delay( 0.666, { SetStateTo( current_rotate_dir, 0 ); } ); }, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_state_current_rotate_dir_12 = { If( GetCurrentMoveSpeed() < 1.0, () { PlayAdditiveAnimation( turn_01_left, 9 ); Delay( 0.666, { SetStateTo( current_rotate_dir, 0 ); } ); }, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_or_create_state_first_arena_complete_1 = { TriggerBracket( arena_sector_destruction, 1 ); }
+- on_or_create_state_lost_head_1 = { HideMeshSegment( PerennialKing_headShape ); DetachAllOfType( 'Art/Models/MONSTERS/PerennialKingStage2/attachments/PerennialKingHelmet.fmt;Art/Models/MONSTERS/PerennialKingStage2/attachments/PerennialKingHelmet.ao' ); }
+- on_life_percent_reaches_1 = { PlayTextAudio( PerennialKing_Dreadnought_DeathMisc_7, 'Metadata/Monsters/PerennialKingStage2/PerennialKing', 1500 ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( PerennialKing_Dreadnought_Intro_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing', 3500 ); }
+- on_effect_start_GSPerennialKingBasicLightningZap = { Roll( 1, 6, () { PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MASPerennialKingSandWhip = { Roll( 1, 5, () { PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_CTS5PerennialKingSandstorm = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_SummonSandstorm_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingBeaconToss = { Roll( 1, 5, () { PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingBeaconBolts = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_BeaconLightning_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingLightningSpray = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_BeaconLightningSpray_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingBeaconOrbitStart = { Roll( 1, 1, () { PlayTextAudio( PerennialKing_Dreadnought_BeaconSend_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_CTS3PerennialKingMultistab = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_BeaconStab_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MPWPerennialKingGlassSpearToss = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_GPAPerennialKingGlassSpearMultiToss = { Roll( 1, 1, () { PlayTextAudio( PerennialKing_Dreadnought_SpearThrow_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_GAPerennialKingGlassSwordSlam = { Roll( 1, 1, () { PlayTextAudio( PerennialKing_Dreadnought_2hSword_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EAAPerennialKingGlassSwordFence = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_Lacerate_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_GAPerennialKingAxeCleave = { Roll( 1, 5, () { PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MDPerennialKingObsidianStorm = { Roll( 1, 1, () { PlayTextAudio( PerennialKing_Dreadnought_ObsidianTornado_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MDPerennialKingTornado = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_Tornado_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_SOPerennialKingObsidianMinigun = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_BeaconElectrify_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASAbsoluteCartnage = { Roll( 1, 1, () { PlayTextAudio( PerennialKing_Dreadnought_Countess_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing', 1000 ); } ); }
+- on_effect_event_contact_for_EASPerennialKingOrbitTornado = { Roll( 1, 1, () { PlayTextAudio( PerennialKing_Dreadnought_BeastSandstorm_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_heavy_stun_01 = { Roll( 1, 2, () { PlayTextAudio( PerennialKing_Dreadnought_HeavyStun_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_death_idle_01 = { Delay( 2, { PlayTextAudio( PerennialKing_Dreadnought_PostStabDeath, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_construction_complete = { globals.pen_king = this; AddToPlayerWakeGroup( true ); }
+- on_or_create_state_lost_head_1 = { HideMeshSegment( PerennialKing_headShape ); DetachAllOfType( 'Art/Models/MONSTERS/PerennialKingStage2/attachments/PerennialKingHelmet.fmt; Art/Models/MONSTERS/PerennialKingStage2/attachments/PerennialKingHelmet.ao' ); SetGlobalAudioParam( PerennialKingUberDeath, 1 ); }
+- on_life_percent_reaches_1 = { PlayTextAudio( PerennialKing_Dreadnought_DeathMisc_7, 'Metadata/Monsters/PerennialKingStage2/PerennialKing', 1500 ); SetGlobalAudioParam( PerennialKingUberDeath, 1 ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( PerennialKing_Dreadnought_Intro_ThisEnds_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing', 3500 ); }
+- on_effect_start_GSPerennialKingBasicLightningZap = { Roll( 1, 6, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MASPerennialKingSandWhip = { Roll( 1, 5, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_CTS5PerennialKingSandstorm = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_SummonSandstorm_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingBeaconToss = { Roll( 1, 5, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingBeaconBolts = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconLightning_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingLightningSpray = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconLightningSpray_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASPerennialKingBeaconOrbitStart = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconSend_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_CTS3PerennialKingMultistab = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconStab_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MPWPerennialKingGlassSpearToss = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_GPAPerennialKingGlassSpearMultiToss = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_SpearThrow_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_GAPerennialKingGlassSwordSlam = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_2hSword_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EAAPerennialKingGlassSwordFence = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_Lacerate_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_GAPerennialKingAxeCleave = { Roll( 1, 5, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MDPerennialKingObsidianStorm = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_ObsidianTornado_2, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_MDPerennialKingTornado = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_Tornado_4, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_SOPerennialKingObsidianMinigun = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconElectrify_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_start_EASAbsoluteCartnage = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_Countess_3, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_effect_event_contact_for_EASPerennialKingOrbitTornado = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_BeastSandstorm_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_heavy_stun_01 = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_HeavyStun_Random, 'Metadata/Monsters/PerennialKingStage2/PerennialKing' ); } ); }
+- on_life_percent_reaches_1 = { PlayTextAudio( PerennialKing_Dreadnought_DeathMisc_7, _, 1500 ); }
+- on_effect_start_CTS1BossFightStart = { QueueTextAudio( PerennialKing_Dreadnought_Intro_ThisEnds_Random, _, 3500 ); }
+- on_effect_start_GSPerennialKingBasicLightningZap = { Roll( 1, 6, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, _ ); } ); }
+- on_effect_start_MASPerennialKingSandWhip = { Roll( 1, 5, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, _ ); } ); }
+- on_effect_start_CTS5PerennialKingSandstorm = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_SummonSandstorm_Random, _ ); } ); }
+- on_effect_start_EASPerennialKingBeaconToss = { Roll( 1, 5, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, _ ); } ); }
+- on_effect_start_EASPerennialKingBeaconBolts = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconLightning_Random, _ ); } ); }
+- on_effect_start_EASPerennialKingLightningSpray = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconLightningSpray_Random, _ ); } ); }
+- on_effect_start_EASPerennialKingBeaconOrbitStart = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconSend_Random, _ ); } ); }
+- on_effect_start_CTS3PerennialKingMultistab = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconStab_Random, _ ); } ); }
+- on_effect_start_MPWPerennialKingGlassSpearToss = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, _ ); } ); }
+- on_effect_start_GPAPerennialKingGlassSpearMultiToss = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_SpearThrow_Random, _ ); } ); }
+- on_effect_start_GAPerennialKingGlassSwordSlam = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_2hSword_Random, _ ); } ); }
+- on_effect_start_EAAPerennialKingGlassSwordFence = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_Lacerate_Random, _ ); } ); }
+- on_effect_start_GAPerennialKingAxeCleave = { Roll( 1, 5, (){ PlayTextAudio( PerennialKing_Dreadnought_MiscSkill_Random, _ ); } ); }
+- on_effect_start_MDPerennialKingObsidianStorm = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_ObsidianTornado_2, _ ); } ); }
+- on_effect_start_MDPerennialKingTornado = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_Tornado_4, _ ); } ); }
+- on_effect_start_SOPerennialKingObsidianMinigun = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_BeaconElectrify_Random, _ ); } ); }
+- on_effect_start_EASAbsoluteCartnage = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_Countess_3, _ ); } ); }
+- on_effect_event_contact_for_EASPerennialKingOrbitTornado = { Roll( 1, 1, (){ PlayTextAudio( PerennialKing_Dreadnought_BeastSandstorm_Random, _ ); } ); }
+- on_heavy_stun_01 = { Roll( 1, 2, (){ PlayTextAudio( PerennialKing_Dreadnought_HeavyStun_Random, _ ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('invis', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: ['arena_sector_destruction, 1']
+
+## preloads
+- preload_character_animation KnockdownLoop
+- preload_animated_object Metadata/Monsters/PerennialKingStage2/PerennialKingStage2OnlyCorpses.ao
+- preload_environment G2_12_2
+- preload_object Metadata/Monsters/PerennialKingStage2/Objects/MatriarchMurderMarker
+- preload_monster_variety Metadata/Monsters/InvisibleFire/PerennialKingOrbitTornado
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/sand_storm_arena.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/big_zap_01.ao
+- preload_object Metadata/Monsters/PerennialKingStage2/PerennialKingBeacon
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend1
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend2
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend3
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend4_
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend5
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend6
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend7
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend8
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend9
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend10__
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend11
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend12
+- preload_monster_variety Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend13
+- preload_environment G2_12_2_boss
+- preload_misc_beam PerennialKingBeaconSprayBeam
+- preload_misc_beam PerennialKingHandsprayBeam
+
+## adds and forms
+- Metadata/Monsters/InvisibleFire/PerennialKingOrbitTornado "Invisible" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend1 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend2 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend3 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend4_ "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend5 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend6 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend7 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend8 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend9 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend10__ "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend11 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend12 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend13 "King's Attendant" bossbar=0 skills=MeleeAtAnimationSpeed,PerennialKingCorpseEmerge,CGEPerennialKingCorpseGround,GSPerennialKingCorpseFriendExplode comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=freedom;invisible
+- Metadata/Monsters/NPC/MarakethMatriarchGate "Sekhema Asala" bossbar=0 skills=MeleeAtAnimationSpeedUnique,MarakethMatriarchBeamBarrageGT,MarakethMatriarchBeamBarrageTB,MarakethMatriarchBeamBarrageGS,MarakethMatriarchBeamBarrageEAS,GSAsalaLightningStrike,GSPerennialKingAsalaLightningBolt,EGPerennialKingAsalaStun,EASAsalaGateCrankPush comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=false server_only=true icon=NPC] states=path;follow;met_risu
+- Metadata/Monsters/NPC/MarakethMatriarchDreadnought_ "Sekhema Asala" bossbar=0 skills=MeleeAtAnimationSpeedUnique,MarakethMatriarchBeamBarrageGT,MarakethMatriarchBeamBarrageTB,MarakethMatriarchBeamBarrageGS,MarakethMatriarchBeamBarrageEAS,GSAsalaLightningStrike,GSPerennialKingAsalaSandstormDefense,EASMarakethMatriarchMurderMove comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=false server_only=true icon=NPC] states=has_pks_head;unconscious;sandstorm_defence;oi_get_up;locked_orientation;spawned
+daemons: Metadata/Monsters/InvisibleFire/MDPerennialKingObsidianStorm_, Metadata/Monsters/InvisibleFire/MDPerennialKingTornado
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/PerennialKingStage2/Objects/MatriarchMurderMarker:  [object_size=0 server_only=true] states= 
+- Metadata/Monsters/PerennialKingStage2/PerennialKingBeacon:  [object_size=1] states=tracking;orbiting;queued_zaps;visible on_state_tracking_3{{ LockOrientation(); }}; on_construction_complete{{ If( GetState( visible ) != 1, (){ DisableRendering(); } ); }}; on_or_create_state_visible_1{{ EnableRendering(); }}; on_or_create_state_tracking_1{{ If( VariableExists( enable_tilt ), () { this.tilt_increment = 4.0; this.current_tilt = 0.0; StartStateTimer( tilt, 0.0}; on_state_tracking_2{{ CancelStateTimer( tilt ); }}; on_state_tracking_3{{ If( VariableExists( enable_tilt ), () { this.tilt_increment = 6.0 * owner.GetCurrentAnimationSpeed(); StartStateTimer(}
+- Metadata/Monsters/PerennialKingStage2/Objects/PerennialKingObsidianMinigunPortal:  [object_size=1] states= 
+- Metadata/Monsters/PerennialKingStage2/Objects/PerennialKingObsidianMultiSpearRock:  [object_size=1 server_only=true] states= 
+- Metadata/Monsters/PerennialKingStage2/Objects/PerennialKingObsidianSwordFencePost:  [blocking=false object_size=2 server_only=true] states= on_initial_position_set{{ MakeCollidable(); }}
+- metadata/monsters/perennialkingstage2/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=PerennialCorruptedActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( PerennialCorruptedInactive ); }}
+- metadata/monsters/perennialkingstage2/objects/matriarchmurdermarker:  [object_size=0 server_only=true] states= 
+- metadata/monsters/perennialkingstage2/objects/matriarchsandstormdefence:  [object_size=0 server_only=true] states= 
+- metadata/monsters/perennialkingstage2/objects/perennialkingobsidianminigunportal:  [object_size=1] states= 
+- metadata/monsters/perennialkingstage2/objects/perennialkingobsidianmultispearrock:  [object_size=1 server_only=true] states= 
+- metadata/monsters/perennialkingstage2/objects/perennialkingobsidianswordfencepost:  [blocking=false object_size=2 server_only=true] states= on_initial_position_set{{ MakeCollidable(); }}
+- metadata/monsters/perennialkingstage2/perennialkingbeacon:  [object_size=1] states=tracking;orbiting;queued_zaps;visible on_state_tracking_3{{ LockOrientation(); }}; on_construction_complete{{ If( GetState( visible ) != 1, (){ DisableRendering(); } ); }}; on_or_create_state_visible_1{{ EnableRendering(); }}; on_or_create_state_tracking_1{{ If( VariableExists( enable_tilt ), () { this.tilt_increment = 4.0; this.current_tilt = 0.0; StartStateTimer( tilt, 0.0}; on_state_tracking_2{{ CancelStateTimer( tilt ); }}; on_state_tracking_3{{ If( VariableExists( enable_tilt ), () { this.tilt_increment = 6.0 * owner.GetCurrentAnimationSpeed(); StartStateTimer(}
+- Metadata/Terrain/Gallows/Act2/2_12_1/Objects/Pull_Team:  states= on_wake{{ If( globals.destructable_arena_cart.GetState( stop_all_dreadnought_movement ) == 1, (){ Call( stop_movement ); } ); }}
+- Metadata/Terrain/Gallows/Act2/2_town/Objects/Caravan:  [blocking=false object_size=1] states= on_wake{{ If( globals.destructable_arena_cart.GetState( stop_all_dreadnought_movement ) == 1, (){ Call( stop_movement ); } ); }}
+- Metadata/Terrain/Gallows/Act2/2_town/Objects/CaravanBoss:  [blocking=false object_size=1] states= on_construction_complete{{ If( VariableExists( arena_core ), (){ this.ztest = true; globals.destructable_arena_core = this; }, (){ this.ztest = f}
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1EdgeMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1Mid:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingHuman:  [blocking=false object_size=0 server_only=true] states=encounter_sequence = 1 create_state_encounter_sequence_1{{ PlayAnimation( transform_01_idle_TEMP ); }}; on_state_encounter_sequence_3{{ PlayAnimation( transform_01 ); }}
+- Metadata/Monsters/PerennialKingStage2/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=PerennialCorruptedActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( PerennialCorruptedInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/CartSlashMarker:  [object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1SandstormDefenceMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardPerennialKingArena, TitleCardPerennialKingArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/BossArenaSpikeGate: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimation( close ); GoToAnimationEnd(); }}; create_untransitioned{{ PlayAnimation( open ); GoToAnimationEnd(); }}; on_transition{{ PlayAnimation( close ); }}; on_untransition{{ PlayAnimation( open ); }}
+- Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PostCrashArenaBlocker: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= on_transition{{ ForEachInRangeOfType( 65, 'Metadata/Effects/SleepableBeamEffect', (){ Delete(); } ); }}; create_transitioned{{ ForEachInRangeOfType( 65, 'Metadata/Effects/SleepableBeamEffect', (){ Delete(); } ); }}
+
+## lines
+- on_life_percent_reaches_1 -> PerennialKing_Dreadnought_DeathMisc_7: Die... foolish <i>{Sekhema}!
+- on_effect_start_CTS1BossFightStart -> PerennialKing_Dreadnought_Intro_Random: Ahh... the <i>{Sekhema} of the Ardura. Bow before your King!
+- on_effect_start_GSPerennialKingBasicLightningZap -> PerennialKing_Dreadnought_MiscSkill_Random: The Maraketh will pay!
+- on_effect_start_MASPerennialKingSandWhip -> PerennialKing_Dreadnought_MiscSkill_Random: The Maraketh will pay!
+- on_effect_start_CTS5PerennialKingSandstorm -> PerennialKing_Dreadnought_SummonSandstorm_Random: Vastiri vengeance!
+- on_effect_start_EASPerennialKingBeaconToss -> PerennialKing_Dreadnought_MiscSkill_Random: The Maraketh will pay!
+- on_effect_start_EASPerennialKingBeaconBolts -> PerennialKing_Dreadnought_BeaconLightning_Random: Justice!
+- on_effect_start_EASPerennialKingLightningSpray -> PerennialKing_Dreadnought_BeaconLightningSpray_Random: We are the storm!
+- on_effect_start_EASPerennialKingBeaconOrbitStart -> PerennialKing_Dreadnought_BeaconSend_Random: For my people!
+- on_effect_start_CTS3PerennialKingMultistab -> PerennialKing_Dreadnought_BeaconStab_Random: We are legion!
+- on_effect_start_MPWPerennialKingGlassSpearToss -> PerennialKing_Dreadnought_MiscSkill_Random: The Maraketh will pay!
+- on_effect_start_GPAPerennialKingGlassSpearMultiToss -> PerennialKing_Dreadnought_SpearThrow_Random: We will blot out the sun!
+- on_effect_start_GAPerennialKingGlassSwordSlam -> PerennialKing_Dreadnought_2hSword_Random: Forge of hate!
+- on_effect_start_EAAPerennialKingGlassSwordFence -> PerennialKing_Dreadnought_Lacerate_Random: Blood!
+- on_effect_start_GAPerennialKingAxeCleave -> PerennialKing_Dreadnought_MiscSkill_Random: The Maraketh will pay!
+- on_effect_start_MDPerennialKingObsidianStorm -> PerennialKing_Dreadnought_ObsidianTornado_Random: I will grind you into dust!
+- on_effect_start_MDPerennialKingTornado -> PerennialKing_Dreadnought_Tornado_Random: I call the winds!
+- on_effect_start_SOPerennialKingObsidianMinigun -> PerennialKing_Dreadnought_BeaconElectrify_Random: Endless hate!
+- on_effect_start_EASAbsoluteCartnage -> PerennialKing_Dreadnought_Countess_Random: My Queen, take the Beast!
+- on_effect_event_contact_for_EASPerennialKingOrbitTornado -> PerennialKing_Dreadnought_BeastSandstorm_Random: I don't have time for this. Sands, bend to my will! Impede my enemies!
+- on_heavy_stun_01 -> PerennialKing_Dreadnought_HeavyStun_Random: I will not fall.
+- on_effect_start_CTS1BossFightStart -> PerennialKing_Dreadnought_Intro_ThisEnds_Random: One way or another, this ends here.
+- on_effect_start_MDPerennialKingObsidianStorm -> PerennialKing_Dreadnought_ObsidianTornado_2: I will grind you into dust!
+- on_effect_start_MDPerennialKingTornado -> PerennialKing_Dreadnought_Tornado_4: Winds, to me!
+- on_effect_start_EASAbsoluteCartnage -> PerennialKing_Dreadnought_Countess_3: Nothing matters now but the Beast. Go!
+
+## linked buffs
+- perennial_king_corrupted_ground "Corrupted Ground": You are taking Physical Damage over time | stats=base_physical_damage_taken_per_minute,base_fire_damage_taken_per_minute
+- perennial_king_lightning_tornado "Charged Tornado": You take increased damage while standing in the Charged Tornado | stats=base_damage_taken_+%_from_shock
+- perennial_king_sand_storm "Sandstorm": You are taking Physical damage over time while standing in the Sandstorm. | stats=base_physical_damage_taken_per_minute
+- perennial_king_shock_move_penalty "Slowed": Your Movement Speed is reduced due to being damaged by the Electric Fence skill | stats=base_movement_velocity_+%
+- perennial_king_tornado_degen "Tornado": You are taking Physical Damage over time and your Movement Speed is being reduced due to being inside the Tornado. An additional stack of this effect is applied when deep inside the Tornado. | stats=base_physical_damage_taken_per_minute,base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_12_2_rooms_unique_boss_cart.arm
+  sector ['caravan', 0, 92, 207, 299, '']
+  sector ['caravan', 0, 23, 46, 92, '']
+  sector ['caravan', 69, 0, 138, 69, '']
+  sector ['noscroll', 46, 69, 207, 92, '']
+  sector ['noscroll', 138, 0, 207, 69, '']
+  sector ['noscroll', 46, 0, 69, 69, '']
+  sector ['noscroll', 0, 0, 46, 23, '']
+  sector ['noscroll', 0, 414, 207, 552, '']
+  sector ['caravan', 0, 299, 207, 414, '']
+  sector ['hide_teleports', 40, 178, 167, 302, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 36, 173, 172, 306, '']
+  sector ['no_movement_skills', 4, 174, 203, 181, '']
+  point [104.0, 266.0, 'mapboss']
+  point [103.0, 195.0, 'telepad1']
+  point [103.0, 23.0, 'checkpoint3']
+  obj Metadata/Terrain/Gallows/Act2/2_12_1/Objects/Pull_Team x2 (160,537) (48,545)
+  obj Metadata/Terrain/Gallows/Act2/2_town/Objects/Caravan x2 (105,32) (22,56)
+  obj Metadata/Terrain/Gallows/Act2/2_town/Objects/CaravanBoss x2 (103,296) (103,304)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (102,120)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (103,35)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1EdgeMarker x2 (160,230) (46,230)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1Mid x1 (103,230)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (121,52)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingHuman x1 (104,266)
+  obj Metadata/Monsters/PerennialKingStage2/Objects/BossRoomMinimapIcon x1 (104,230)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/CartSlashMarker x1 (103,274)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x3 (103,151) (103,54) (105,282)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1SandstormDefenceMarker x8 (74,230) (74,250) (74,270) (74,210) (132,270) (132,250) (132,230) (132,210)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArenaEntranceTitle x1 (102,138)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/BossArenaSpikeGate x1 (103,250)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PostCrashArenaBlocker x1 (103,113)
+room metadata_terrain_maps_uberperennialking_rooms_unique_boss_cart.arm
+  sector ['caravan', 0, 92, 207, 299, '']
+  sector ['caravan', 0, 23, 46, 92, '']
+  sector ['caravan', 69, 0, 138, 69, '']
+  sector ['noscroll', 46, 69, 207, 92, '']
+  sector ['noscroll', 138, 0, 207, 69, '']
+  sector ['noscroll', 46, 0, 69, 69, '']
+  sector ['noscroll', 0, 0, 46, 23, '']
+  sector ['noscroll', 0, 414, 207, 552, '']
+  sector ['caravan', 0, 299, 207, 414, '']
+  sector ['hide_teleports', 40, 178, 167, 302, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 39, 173, 169, 304, '']
+  sector ['no_movement_skills', 43, 177, 164, 179, '']
+  sector ['boss_sector', 22, 92, 200, 334, '']
+  point [104.0, 266.0, 'mapboss']
+  point [103.0, 195.0, 'telepad1']
+  point [104.0, 16.0, 'checkpoint']
+  obj Metadata/Monsters/NPC/MarakethMatriarchDreadnought_ x1 (110,119)
+  obj Metadata/Terrain/Gallows/Act2/2_12_1/Objects/Pull_Team x2 (160,537) (48,545)
+  obj Metadata/Terrain/Gallows/Act2/2_town/Objects/Caravan x2 (105,32) (22,56)
+  obj Metadata/Terrain/Gallows/Act2/2_town/Objects/CaravanBoss x2 (103,296) (103,304)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (102,120)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (103,35)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1EdgeMarker x2 (160,230) (46,230)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1Mid x1 (103,230)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingHuman x1 (104,266)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/CartSlashMarker x1 (103,274)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (103,151) (103,54)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1SandstormDefenceMarker x8 (74,230) (74,250) (74,270) (74,210) (132,270) (132,250) (132,230) (132,210)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (122,16)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/BossArenaSpikeGate x1 (103,250)
+  obj Metadata/Terrain/Gallows/Act2/2_12_2/Objects/PostCrashArenaBlocker x1 (103,113)
+room metadata_terrain_maps_uberperennialking_rooms_unique_mini_boss.arm
+  sector ['caravan', 0, 0, 207, 299, '']
+  sector ['noscroll', 0, 299, 207, 552, '']
+  point [103.0, 34.0, 'checkpoint']
+  obj Metadata/Terrain/Gallows/Act2/2_12_1/Objects/Pull_Team x2 (158,409) (55,470)
+  obj Metadata/Terrain/Gallows/Act2/2_town/Objects/Caravan x1 (105,134)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (113,33)

@@ -1,0 +1,114 @@
+# Precursor Refiner
+content: Map boss
+monsters: Metadata/Monsters/PrecursorReactorGuardians/CorruptionProcessors/CorruptionProcessor1
+scripts: Metadata/Monsters/PrecursorReactorGuardians/CorruptionProcessors/CorruptionProcessor1
+own chain: Metadata/Monsters/PrecursorReactorGuardians/CorruptionProcessors/CorruptionProcessor1
+areas: MapUniqueReactor_03 Eastern Gateway act10
+ai: Metadata/Monsters/PrecursorReactorGuardians/CorruptionProcessors/CorruptionProcessor1.ais (not shipped)
+
+## skills
+- MPSCorruptionProcessorProjNova [monster_projectile_spell] action=SpellAoeEpic anim=default:boss_charged_aoe_attack_01
+    flags: base_deal_no_damage skill_can_be_active_blocked_from_all_directions
+- GSCorruptionProcessorProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=1275 delay=1150 anchor=4
+    flags: is_area_damage
+- GSCorruptionProcessorCascadeSlam [geometry_spell] action=SpellNova anim=default:boss_charged_rectangle_attack_01
+    geom: rectangle length=80 width=25 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+    buffs: chilled_ground
+- MeleeAtAnimationSpeed [melee] action=None anim=-
+- GACorruptionProcessorIceNova [geometry_attack] action=GroundSlam anim=default:boss_slam_01
+    geom: circle length=45 width=0 angle=0 range=200 delay=33 anchor=2
+- GSCorruptionProcessorIceSpikeSingle [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTCorruptionProcessorIceSpikes [geometry_trigger] action=None anim=-
+    geom: trigger count=25 delay=800 spread=66 radius=65 angle=0 anchor=4
+    triggers: TBCorruptionProcessorIceSpikeBeams
+- TBCorruptionProcessorIceSpikeBeams [trigger_beam] action=None anim=-
+    beams: CorruptionProcessorIceBeam
+- GSCorruptionProcessorIceSpear [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1000 delay=1000 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASCorruptionProcessorIceSpear [empty_action_spell] action=SpellNovaEpic anim=default:boss_disco_01
+
+## own states and handlers
+states: damage; ballshowing
+- on_or_create_state_damage_0 = { SetDynamicFloat( 'Cent_heatDriver', 0.0, true, 1.0 ); }
+- on_or_create_state_damage_1 = { SetDynamicFloat( 'Cent_heatDriver', 0.25, true, 1.0 ); }
+- on_or_create_state_damage_2 = { SetDynamicFloat( 'Cent_heatDriver', 0.5, true, 1.0 ); }
+- on_or_create_state_damage_3 = { SetDynamicFloat( 'Cent_heatDriver', 0.75, true, 1.0 ); }
+- on_or_create_state_damage_4 = { SetDynamicFloat( 'Cent_heatDriver', 1, true, 1.0 ); }
+- on_or_create_state_ballshowing_0 = { HideMeshSegments( CargoShape, Cargo_Ball_Shape1, Cargo_Ball_Shape2, Cargo_Ball_Shape3, Cargo_Ball_Shape4, Cargo_Ball_Shape5 ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Corruption_Processor_01/epk/idle_bodyfx.epk' ); }
+- on_or_create_state_ballshowing_1 = { IfAlive( () { ShowMeshSegments( CargoShape, Cargo_Ball_Shape1, Cargo_Ball_Shape2, Cargo_Ball_Shape3, Cargo_Ball_Shape4, Cargo_Ball_Shape5 ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Corruption_Processor_01/epk/active_ice.epk' ); AddEffectPack( 'Metadata/Effec
+- on_end_boss_death_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Corruption_Processor_01/epk/active_ice.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Corruption_Processor_01/epk/idle_damage_01.epk' ); RemoveEffectPack( 'Metadata/Effect
+- on_event_activate_skin = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Corruption_Processor_01/epk/boss_emerge_01/glow.epk', 2.0); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/PrecursorReactorGuardians/Centipedes/Spawners:  [server_only=true] states= 
+- Metadata/Terrain/Maps/UniqueReactor_01/Objects/Lifts/BossLift: TriggerableBlockage [start_blocked=false blocking=false object_size=0 server_only=true] states=unlock;fight;activated;riseanim;rise;levers on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_construction_complete{{ this.turret = GetAttachedAOByType( 'Metadata/Terrain/Gallows/EndGame/Divinity/Tiles/DivinityTurret.ao' ); this.turret.}; on_or_create_state_riseanim_1{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_01 ); Pla}; on_or_create_state_riseanim_2{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_02 ); Pla}; on_or_create_state_riseanim_3{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_03 ); Pla}; on_or_create_state_unlock_1{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', bridge_01 ); PlayAnimatio}
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs:  [blocking=true object_size=4 server_only=true] states=stop on_state_stop_1{{ QueueAnimation( stop_01 ); }}; create_state_stop_1{{ PlayAnimation( stop_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/ItemDeviceCombinator: MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=stop;active on_construction_complete{{ globals.bossdevice = this; }}; on_or_create_state_stop_0{{ PlayAnimation( idle_01 ); }}; on_state_stop_1{{ PlayAnimation( deactivate ); }}; create_state_stop_1{{ PlayAnimation( deactivate_idle_01 ); }}; on_or_create_state_stop_1{{ DisableTargetable(); }}; on_or_create_state_active_1{{ EnableTargetable(); ShowMinimapIcon(); }}
+- Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulFemaleArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMothersoulFemaleArena, TitleCardMothersoulFemaleArenaSubtitle ); }}
+- Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulMaleArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMothersoulMaleArena, TitleCardMothersoulMaleArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+- chilled_ground "Chilled Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_maps_uniquereactor_01_rooms_unique_boss_01.arm
+  sector ['lift', 35, 35, 196, 196, '']
+  sector ['hide_teleports', 5, 6, 227, 227, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['arena_teleport', 5, 6, 227, 227, '']
+  point [146.0, 146.0, 'mapboss1']
+  point [112.0, 120.0, 'telepad4']
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x8 (17,31) (31,17) (213,31) (199,17) (199,213) (213,199) (31,213) (17,199)
+  obj Metadata/Monsters/PrecursorReactorGuardians/Centipedes/Spawners x12 (207,93) (207,115) (207,138) (23,138) (23,115) (23,93) (138,207) (115,207) (93,207) (138,23)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (93,115)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (187,184) (48,43) (44,185) (184,44)
+  obj Metadata/MiscellaneousObjects/DoodadNoWobble_Distant_Max x1 (120,107)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x4 (229,229) (229,1) (1,1) (1,229)
+  obj Metadata/Terrain/Maps/UniqueReactor_01/Objects/Lifts/BossLift x1 (115,115)
+room metadata_terrain_maps_mothersoul_rooms_female_unique_forge_01.arm
+  sector ['hide_teleports', 231, 300, 410, 546, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 225, 297, 416, 303, '']
+  sector ['boss_sector', 226, 301, 414, 548, '']
+  sector ['boss_env', 127, 17, 523, 640, '']
+  point [321.0, 427.0, 'mapboss1']
+  point [323.0, 214.0, 'checkpoint']
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs x4 (370,338) (370,415) (270,415) (270,338)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (320,419)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (323,301)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (313,299) (307,299) (319,299) (325,299) (331,299) (337,299) (343,299) (301,299)
+  obj Metadata/Monsters/MarakethSanctumTrial/ArenaCentreMarker x1 (318,385)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (298,426)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (269,392) (371,395) (343,429) (252,368)
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/ItemDeviceCombinator x1 (321,517)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (304,213)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (334,409)
+  obj Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulFemaleArenaTitle x1 (321,313)
+room metadata_terrain_maps_mothersoul_rooms_male_unique_forge_01.arm
+  sector ['hide_teleports', 231, 300, 410, 546, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 181, 297, 456, 303, '']
+  sector ['boss_sector', 226, 301, 414, 548, '']
+  sector ['boss_env', 127, 17, 523, 640, '']
+  point [321.0, 427.0, 'mapboss1']
+  point [323.0, 214.0, 'checkpoint']
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs x4 (370,338) (370,415) (270,415) (270,338)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (316,382)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (323,299)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (313,298) (307,298) (319,298) (325,298) (331,298) (337,298) (343,298) (301,298)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (305,221)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (294,428)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (266,379) (372,378) (348,427) (346,333)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (336,404)
+  obj Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulMaleArenaTitle x1 (321,313)

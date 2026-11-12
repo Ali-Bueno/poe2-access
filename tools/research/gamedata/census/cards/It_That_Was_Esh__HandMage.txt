@@ -1,0 +1,144 @@
+# It That Was Esh
+content: League: Breach
+monsters: Metadata/Monsters/BreachBossHandMage/HandMage, Metadata/Monsters/BreachBossHandMage/HandMageSTANDALONE
+scripts: Metadata/Monsters/BreachBossHandMage/HandMage, Metadata/Monsters/BreachBossHandMage/HandMageSTANDALONE
+own chain: Metadata/Monsters/BreachBossHandMage/HandMage, Metadata/Monsters/BreachBossHandMage/HandMageSTANDALONE
+areas: ChayulaLeague_TowerBoss Hive Colony act10
+ai: Metadata/Monsters/BreachBossHandMage/HandMage.ais (not shipped)
+
+## skills
+- MPWBreachHandMageChaosProjectile [monster_projectile_spell] action=SpellProjectileChaos anim=default:attack_01
+- MPWBreachHandMageLightningProjectile [monster_projectile_spell] action=SpellProjectileLightning anim=default:attack_02
+- GSBreachHandMageEnergyEruption [geometry_spell] action=SpellAreaOfEffectFire anim=default:energy_eruption_01
+    geom: donut length=13 width=12 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSBreachHandMageChestSummon [empty_action_spell] action=SpellAreaOfEffect anim=default:chest_summon_01
+    flags: is_area_damage
+- MPWBreachHandMageDeathBeam [monster_projectile_spell] action=SpellBuffChaos anim=default:death_beam_barrage_01
+- TCBreachHandMageSpiderDash [table_charge] action=Charge anim=default:spider_dash_loop_01
+    flags: is_area_damage skill_cannot_be_stunned
+- EASBreachHandMageUltimate [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:pair_ultimate_01
+- EASBreachHandMagePortalIn [empty_action_spell] action=Emerge anim=default:portal_in_01
+- EASBreachHandMagePortalOut [empty_action_spell] action=Submerge anim=default:portal_out_01,stance4:portal_out_sideline_01
+- SOBreachHandMageSpiderMines [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/BreachBossHandMage/SpiderMines
+- GSBreachHandMageSpiderMines [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EGBreachHandMageSpiderMinesExplode [execute_geal] action=None anim=-
+    GEAL 1164 on ['Metadata/Monsters/BreachBossHandMage/SpiderMines']: self{} each{triggerer.SetStateTo( boom, 1 );} r=150
+- GTBreachHandMageEnergyEruption [geometry_trigger] action=SpellAreaOfEffectFire anim=default:energy_eruption_01
+    geom: trigger count=12 delay=5000 spread=1 radius=0 angle=0 anchor=1
+    triggers: GSBreachHandMageEnergyEruption
+- MPWBreachHandMageDeathBeamSingle [monster_projectile_spell] action=SpellBuffChaos anim=default:death_beam_barrage_01
+- GSBreachHandMageChaosImpact [geometry_spell] action=SpellAreaOfEffect anim=default:chest_summon_01
+    geom: circle length=13 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSBreachHandMageLightningImpact [geometry_spell] action=SpellAreaOfEffect anim=default:chest_summon_01
+    geom: circle length=13 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTBreachHandMageChaosVolley [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=4000 spread=40 radius=15 angle=0 anchor=4
+    triggers: GSBreachHandMageChaosImpact
+- GTBreachHandMageLightningVolley [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=4000 spread=100 radius=40 angle=0 anchor=4
+    triggers: GSBreachHandMageLightningImpact
+- GSBreachHandMagePortalBlast [geometry_spell] action=None anim=-
+    geom: cone length=46 width=0 angle=40 range=300 delay=45 anchor=3
+    flags: is_area_damage
+- MPWBreachHandMageChaosProjectileSingle [monster_projectile_spell] action=SpellProjectileChaos anim=default:attack_01
+- MPWBreachHandMageLightningProjectileSingle [monster_projectile_spell] action=SpellProjectileLightning anim=default:attack_02
+- EASBreachHandMagePortalOutSideline [empty_action_spell] action=Submerge anim=default:portal_out_01,stance4:portal_out_sideline_01
+- EASBreachHandMagePortalInSideline [empty_action_spell] action=Emerge2 anim=stance4:portal_in_sideline_01
+- EASBreachHandMageEnergyEruption [empty_action_spell] action=SpellAreaOfEffectFire anim=default:energy_eruption_01
+
+## own states and handlers
+states: render; ultimate; talk_cooldown; finalphasedialogue; handheight; epk; music_state; music_EnergyEruption
+- on_initial_position_set = { this.arenaheight = GetHeight(); }
+- on_or_create_state_render_0 = { MakeCollidable(); }
+- on_or_create_state_render_1 = { RemoveCollidability(); }
+- on_or_create_state_handheight_0 = { SetHeight( arenaheight ); }
+- on_or_create_state_handheight_1 = { SetHeight( globals.breach_twins_sideline_marker2.GetHeight() ); }
+- on_event_add_collidability = { MakeCollidable(); }
+- on_death = { this.hand = AddAttached( 'Metadata/Monsters/BreachBossFallenKnight/BreachDeathArm.ao', root_jntBnd ); hand.PlayAnimation( handmage_death_bwd_01 ); }
+- on_or_create_state_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/epk/mage_arms_flame.epk' ); }
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/epk/mage_arms_flame.epk' ); }
+- on_or_create_state_render_0 = { EnableRendering(); }
+- on_or_create_state_render_1 = { DisableRendering(); }
+- on_effect_event_epk_for_EASBreachHandMageEnergyEruption = { this.mymarkers += GetAllAttachedAOsByType( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/floating_glyph_chaos.ao' ); this.mymarkers += GetAllAttachedAOsByType( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/floating_glyph_lightning.ao' ); local bonepos = GetBonePos
+- on_or_create_state_music_EnergyEruption_1 = { SetGlobalAudioParam( EnergyEruption, 1 ); }
+- on_or_create_state_music_EnergyEruption_2 = { SetGlobalAudioParam( EnergyEruption, 2 ); }
+- on_or_create_state_music_EnergyEruption_3 = { SetGlobalAudioParam( EnergyEruption, 3 ); }
+- on_or_create_state_music_EnergyEruption_4 = { SetGlobalAudioParam( EnergyEruption, 4 ); }
+- on_or_create_state_music_EnergyEruption_5 = { SetGlobalAudioParam( EnergyEruption, 5 ); }
+- on_or_create_state_music_EnergyEruption_5 = { SetGlobalAudioParam( EnergyEruption, 6 ); }
+- on_or_create_state_music_EnergyEruption_5 = { SetGlobalAudioParam( EnergyEruption, 7 ); }
+- on_or_create_state_music_EnergyEruption_5 = { SetGlobalAudioParam( EnergyEruption, 8 ); }
+- on_or_create_state_music_EnergyEruption_5 = { SetGlobalAudioParam( EnergyEruption, 9 ); }
+- on_or_create_state_music_EnergyEruption_5 = { SetGlobalAudioParam( EnergyEruption, 10 ); }
+- on_event_hideboss = { SetStateTo( render, 1 ); }
+- on_effect_event_epk_for_EASBreachHandMageEnergyEruption = { this.mymarkers += GetAllAttachedAOsByType( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/floating_glyph_chaos.ao' ); this.mymarkers += GetAllAttachedAOsByType( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/floating_glyph_lightning.ao' ); local bonepos = GetBonePos
+hides(DisableRendering): [('bb_visible', 0), ('render', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/BreachBossHandMage/VolatileOrbChaos
+- preload_monster_variety Metadata/Monsters/BreachBossHandMage/VolatileOrbLightning
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/esh_charge_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/fog_border.ao
+
+## adds and forms
+- Metadata/Monsters/BreachBossHandMage/VolatileOrbChaos "(DNT) Chaos Volatile" bossbar=0 skills=GPSBreachHandMageChaosVolatileProjectile,BreachHandMageChaosOrbSuicideExplosion comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/BreachBossHandMage/VolatileOrbLightning "(DNT) Lightning Volatile" bossbar=0 skills=GPSBreachHandMageLightningVolatileProjectile,BreachHandMageLightningOrbSuicideExplosion comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/BreachBossHandMage/SpiderMines:  [blocking=false object_size=0] states= 
+- metadata/monsters/breachbosshandmage/birthingsack:  [blocking=false object_size=1 server_only=true] states=emerge on_construction_complete{{ globals.breach_twins_birthing_sac = this; }}; create_state_emerge_0{{ this.extras = GetAttachedAOByType( 'Metadata/Terrain/Doodads/Leagues/Breach/BreachSac/ChayulaFruitSac.ao' ); PlayAnima}; on_state_emerge_1{{ this.extras = GetAttachedAOByType( 'Metadata/Terrain/Doodads/Leagues/Breach/BreachSac/ChayulaFruitSac.ao' ); PlayAnima}; create_state_emerge_1{{ this.extras = GetAttachedAOByType( 'Metadata/Terrain/Doodads/Leagues/Breach/BreachSac/ChayulaFruitSac.ao' ); PlayAnima}; on_event_burst{{ RemoveAttachedObjectFromBones( root_jntBnd ); }}
+- metadata/monsters/breachbosshandmage/sidelinesmarker:  [server_only=true] states= on_construction_complete{{ globals.breach_twins_sideline_marker2 = this; }}
+- metadata/monsters/breachbosshandmage/spidermines:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/BreachBossHandMage/SidelinesMarker:  [server_only=true] states= on_construction_complete{{ globals.breach_twins_sideline_marker2 = this; }}
+- Metadata/Monsters/BreachBossHandMage/BirthingSack:  [blocking=false object_size=1 server_only=true] states=emerge on_construction_complete{{ globals.breach_twins_birthing_sac = this; }}; create_state_emerge_0{{ this.extras = GetAttachedAOByType( 'Metadata/Terrain/Doodads/Leagues/Breach/BreachSac/ChayulaFruitSac.ao' ); PlayAnima}; on_state_emerge_1{{ this.extras = GetAttachedAOByType( 'Metadata/Terrain/Doodads/Leagues/Breach/BreachSac/ChayulaFruitSac.ao' ); PlayAnima}; create_state_emerge_1{{ this.extras = GetAttachedAOByType( 'Metadata/Terrain/Doodads/Leagues/Breach/BreachSac/ChayulaFruitSac.ao' ); PlayAnima}; on_event_burst{{ RemoveAttachedObjectFromBones( root_jntBnd ); }}
+
+## lines
+
+## linked buffs
+- breach_hand_mage_storm_lightning_aura "Esh's Storm": You are taking Lightning Damage over time | stats=base_lightning_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_leagues_breach_breachtower_rooms_boss_01.arm
+  sector ['hide_teleports', 243, 226, 408, 350, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 243, 182, 358, 226, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 358, 216, 368, 226, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 359, 216, 367, 224, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 358, 215, 366, 223, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 357, 214, 365, 222, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 356, 213, 364, 221, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 355, 212, 363, 220, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 354, 211, 362, 219, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 353, 210, 361, 218, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 352, 209, 360, 217, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 361, 217, 369, 225, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 362, 218, 370, 226, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 363, 219, 371, 227, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 364, 220, 372, 228, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 365, 221, 373, 229, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 366, 222, 374, 230, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 367, 223, 375, 231, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 368, 224, 376, 232, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_sector', 244, 196, 410, 352, '']
+  sector ['BossMusicSector', 218, 172, 425, 379, '']
+  point [322.0, 321.0, 'mapboss1']
+  point [321.0, 341.0, 'mapboss2']
+  point [386.0, 180.0, 'telepad']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (386,175)
+  obj Metadata/Monsters/BreachBossHandMage/SidelinesMarker x1 (404,275)
+  obj Metadata/Monsters/BreachBossFallenKnight/SidelinesMarker x1 (404,275)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (321,275)
+  obj Metadata/Monsters/BreachBossFallenKnight/EshTulDialogueTimerController x1 (326,276)
+  obj Metadata/Monsters/BreachBossHandMage/BirthingSack x1 (322,341)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (278,323)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x10 (389,230) (386,226) (383,223) (379,219) (376,217) (373,213) (370,210) (366,206) (363,203) (359,200)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (375,211)
+room metadata_terrain_leagues_breach_breachtower_rooms_boss_corridor_03.arm
+room metadata_terrain_leagues_breach_breachtower_rooms_boss_corridor_02.arm

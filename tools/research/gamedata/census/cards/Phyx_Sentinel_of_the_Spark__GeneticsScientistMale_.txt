@@ -1,0 +1,137 @@
+# Phyx, Sentinel of the Spark
+content: Map boss
+monsters: Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/GeneticsScientistMale__
+scripts: Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/GeneticsScientistMale
+own chain: Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/GeneticsScientistMale
+areas: MapMothersoul_Male The Patriarch Halls act10; MapMothersoul_Male_Quest The Patriarch Halls act10
+ai: Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/GeneticsScientistMale.ais (not shipped)
+
+## skills
+- MPSGeneticsScientistMaleBasicProj [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+- CTS3GeneticsScientistEnrageDash [change_to_stance3] action=None anim=-
+- CTS1GeneticsScientistEnrageDash [change_to_stance1] action=None anim=-
+- MPSGeneticsScientistMaleEnrageDash [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+- DTTGeneticsScientistMaleEnrageDash [dash_attack_to_target] action=DodgeForward anim=default:dash_fwd_short_01,stance3:enraged_dash_01
+- EASGeneticsScientistDodgeForwards [empty_action_spell] action=DodgeForward anim=default:dash_fwd_short_01,stance3:enraged_dash_01
+- EASGeneticsScientistDodgeForwardsShort [empty_action_spell] action=ShadowDash anim=default:dash_fwd_01
+- EASGeneticsScientistDodgeBackwards [empty_action_spell] action=DodgeBack anim=default:dash_bwd_01
+- EASGeneticsScientistDodgeLeft [empty_action_spell] action=DodgeLeft anim=default:dash_left_01
+- EASGeneticsScientistDodgeRight [empty_action_spell] action=DodgeRight anim=default:dash_right_01
+- SGLGeneticsScientistMaleEyeLaser [single_ground_laser] action=SpellProjectileCold anim=default:eye_laser_01
+    flags: is_area_damage
+- SGLGeneticsScientistMaleEyeLaser2 [single_ground_laser] action=SpellProjectileCold anim=default:eye_laser_01
+    flags: is_area_damage
+- SOGeneticsScientistMaleOrbitBall [spawn_object] action=SpellAreaOfEffectChaos anim=default:summon_blackhole_02
+    objects: Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/OrbitProjectile
+- GSGeneticsScientistMaleOrbitImpact [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MPSGeneticsScientistMaleRainingProj [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage skill_can_be_active_blocked_from_all_directions
+- GSGeneticsScientistMaleRainingProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=1275 delay=1100 anchor=4
+    flags: is_area_damage
+- GTGeneticsScientistMaleRainingProj [geometry_trigger] action=SpellProjectileFire anim=default:criss_cross_01
+    geom: trigger count=35 delay=3500 spread=162 radius=15 angle=0 anchor=4
+- GeneticsScientistMaleVBeam [avarius_divine_beam] action=None anim=-
+- MPSGeneticsScientistMaleBurstProjectiles [monster_projectile_spell] action=SpellProjectileChaos anim=default:super_nova_01
+- MPSGeneticsScientistMaleOrbNova [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+    flags: base_deal_no_damage base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- MPSGeneticsScientistMaleOrbNovaImpact [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EASGeneticsScientistMaleTimePlunge [empty_action_spell] action=SpellAoeEpic anim=default:enrage_01
+- CTS4GeneticsScientistMale [change_to_stance4] action=None anim=-
+- CTS1Generic [change_to_stance1] action=None anim=-
+- MPSGeneticsScientistMaleEnrageDashTriggered [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+
+## own states and handlers
+states: hidden; colision; camera
+- on_or_create_state_colision_1 = { MakeCollidable(); }
+- on_or_create_state_colision_0 = { RemoveCollidability(); }
+- on_or_create_state_hidden_1 = { DisableRendering(); }
+- on_or_create_state_hidden_0 = { EnableRendering(); }
+- on_or_create_state_camera_0 = { CreateCameraZoomNode( 4.0, 11.0, 1.33 ); }
+- on_or_create_state_camera_1 = { ClearCameraZoomNodes(); }
+- on_effect_end_CTS1BossFightStart = { SetStateTo( camera, 1 ); }
+hides(DisableRendering): [('bb_visible', 0), ('hidden', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_buff_visual debilitate_debuff_precursor
+- preload_buff genetic_scientist_slow
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Genetic_Scientist_Reactor_1/time_plunge.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/OrbitProjectile:  [blocking=false object_size=0] states= on_initial_position_set{{ LockHeight( GetHeightAtLocation() + 20.0 ); }}
+- metadata/monsters/precursorreactorguardians/geneticsscientists/itemdevicecombinator: MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=stop;active on_construction_complete{{ globals.bossdevice = this; }}; on_or_create_state_stop_0{{ PlayAnimation( idle_01 ); }}; on_state_stop_1{{ PlayAnimation( deactivate ); }}; create_state_stop_1{{ PlayAnimation( deactivate_idle_01 ); }}; on_or_create_state_stop_1{{ DisableTargetable(); }}; on_or_create_state_active_1{{ EnableTargetable(); ShowMinimapIcon(); }}
+- metadata/monsters/precursorreactorguardians/geneticsscientists/laserorbs:  [blocking=true object_size=4 server_only=true] states=stop on_state_stop_1{{ QueueAnimation( stop_01 ); }}; create_state_stop_1{{ PlayAnimation( stop_01 ); GoToAnimationEnd(); }}
+- metadata/monsters/precursorreactorguardians/geneticsscientists/orbitprojectile:  [blocking=false object_size=0] states= on_initial_position_set{{ LockHeight( GetHeightAtLocation() + 20.0 ); }}
+- metadata/monsters/precursorreactorguardians/geneticsscientists/orbitprojectile2:  [blocking=false object_size=0] states= on_initial_position_set{{ LockHeight( GetHeightAtLocation() + 20.0 ); }}
+- metadata/monsters/precursorreactorguardians/geneticsscientists/precursormapdevicelarge:  [blocking=false object_size=0 server_only=true] states=active;time on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+- Metadata/Monsters/PrecursorReactorGuardians/Centipedes/Spawners:  [server_only=true] states= 
+- Metadata/Terrain/Maps/UniqueReactor_01/Objects/Lifts/BossLift: TriggerableBlockage [start_blocked=false blocking=false object_size=0 server_only=true] states=unlock;fight;activated;riseanim;rise;levers on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_construction_complete{{ this.turret = GetAttachedAOByType( 'Metadata/Terrain/Gallows/EndGame/Divinity/Tiles/DivinityTurret.ao' ); this.turret.}; on_or_create_state_riseanim_1{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_01 ); Pla}; on_or_create_state_riseanim_2{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_02 ); Pla}; on_or_create_state_riseanim_3{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_03 ); Pla}; on_or_create_state_unlock_1{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', bridge_01 ); PlayAnimatio}
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs:  [blocking=true object_size=4 server_only=true] states=stop on_state_stop_1{{ QueueAnimation( stop_01 ); }}; create_state_stop_1{{ PlayAnimation( stop_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/ItemDeviceCombinator: MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=stop;active on_construction_complete{{ globals.bossdevice = this; }}; on_or_create_state_stop_0{{ PlayAnimation( idle_01 ); }}; on_state_stop_1{{ PlayAnimation( deactivate ); }}; create_state_stop_1{{ PlayAnimation( deactivate_idle_01 ); }}; on_or_create_state_stop_1{{ DisableTargetable(); }}; on_or_create_state_active_1{{ EnableTargetable(); ShowMinimapIcon(); }}
+- Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulFemaleArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMothersoulFemaleArena, TitleCardMothersoulFemaleArenaSubtitle ); }}
+- Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulMaleArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMothersoulMaleArena, TitleCardMothersoulMaleArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+- genetic_scientist_slow "Precursor Slow": You Are Being Slowed by Precursor Magic. | stats=action_speed_-%
+- genetics_scientist_male_divine_beam_damage "Chaos & Physical Beam": You are taking Chaos and Physical Damage over time | stats=base_physical_damage_taken_per_minute,base_chaos_damage_taken_per_minute
+- genetics_scientist_male_divine_beam_debuff "Chaos & Physical Beam Debuff": You are taking increased Chaos and Physical Damage the longer you are in the beam | stats=
+- genetics_scientist_male_projectile_slow "Precursor Slow": You Are Being Slowed by Precursor Magic. | stats=from_genetics_scientist_male_projectile_speed_+%_final
+
+## arena rooms
+room metadata_terrain_maps_uniquereactor_01_rooms_unique_boss_01.arm
+  sector ['lift', 35, 35, 196, 196, '']
+  sector ['hide_teleports', 5, 6, 227, 227, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['arena_teleport', 5, 6, 227, 227, '']
+  point [146.0, 146.0, 'mapboss1']
+  point [112.0, 120.0, 'telepad4']
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x8 (17,31) (31,17) (213,31) (199,17) (199,213) (213,199) (31,213) (17,199)
+  obj Metadata/Monsters/PrecursorReactorGuardians/Centipedes/Spawners x12 (207,93) (207,115) (207,138) (23,138) (23,115) (23,93) (138,207) (115,207) (93,207) (138,23)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (93,115)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (187,184) (48,43) (44,185) (184,44)
+  obj Metadata/MiscellaneousObjects/DoodadNoWobble_Distant_Max x1 (120,107)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x4 (229,229) (229,1) (1,1) (1,229)
+  obj Metadata/Terrain/Maps/UniqueReactor_01/Objects/Lifts/BossLift x1 (115,115)
+room metadata_terrain_maps_mothersoul_rooms_female_unique_forge_01.arm
+  sector ['hide_teleports', 231, 300, 410, 546, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 225, 297, 416, 303, '']
+  sector ['boss_sector', 226, 301, 414, 548, '']
+  sector ['boss_env', 127, 17, 523, 640, '']
+  point [321.0, 427.0, 'mapboss1']
+  point [323.0, 214.0, 'checkpoint']
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs x4 (370,338) (370,415) (270,415) (270,338)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (320,419)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (323,301)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (313,299) (307,299) (319,299) (325,299) (331,299) (337,299) (343,299) (301,299)
+  obj Metadata/Monsters/MarakethSanctumTrial/ArenaCentreMarker x1 (318,385)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (298,426)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (269,392) (371,395) (343,429) (252,368)
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/ItemDeviceCombinator x1 (321,517)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (304,213)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (334,409)
+  obj Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulFemaleArenaTitle x1 (321,313)
+room metadata_terrain_maps_mothersoul_rooms_male_unique_forge_01.arm
+  sector ['hide_teleports', 231, 300, 410, 546, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 181, 297, 456, 303, '']
+  sector ['boss_sector', 226, 301, 414, 548, '']
+  sector ['boss_env', 127, 17, 523, 640, '']
+  point [321.0, 427.0, 'mapboss1']
+  point [323.0, 214.0, 'checkpoint']
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs x4 (370,338) (370,415) (270,415) (270,338)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (316,382)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (323,299)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (313,298) (307,298) (319,298) (325,298) (331,298) (337,298) (343,298) (301,298)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (305,221)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (294,428)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (266,379) (372,378) (348,427) (346,333)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (336,404)
+  obj Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulMaleArenaTitle x1 (321,313)

@@ -1,0 +1,181 @@
+# Siora, Blade of the Mists / Thariel, the Umbral Wraith
+content: Interlude
+monsters: Metadata/Monsters/ReaperBoss/EzomyteReaperBoss, Metadata/Monsters/ReaperBoss/EzomyteReaperBossCampaignSTANDALONE, Metadata/Monsters/ReaperBoss/EzomyteReaperBossMAP, Metadata/Monsters/ReaperBoss/EzomyteReaperBossSTANDALONE
+scripts: Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss, Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossSTANDALONE, Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP
+own chain: Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss, Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossSTANDALONE, Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP
+areas: P1_2 Stones of Serle act6; MapRiverhold Riverhold act10; MapSnowfall Snowfall act10
+ai: Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss.ais (not shipped)
+
+## skills
+- MAASReaperBossMelee [melee] action=MeleeChaos anim=default:attack_01
+- MAASReaperBossMeleeCombo [melee] action=MeleeChaosCombo anim=default:attack_03
+- EzomyteReaperComboAttack [melee] action=Frenzy anim=default:attack_04
+- GAEzomyteReaperComboWhirl [geometry_attack] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=2
+- GAEzomyteReaperComboLeftSlash [geometry_attack] action=None anim=-
+    geom: cone length=25 width=0 angle=180 range=100 delay=33 anchor=3
+- GAEzomyteReaperComboRightSlash [geometry_attack] action=None anim=-
+    geom: cone length=25 width=0 angle=180 range=100 delay=33 anchor=3
+- GAEzomyteReaperDashImpactSlash [geometry_attack] action=None anim=-
+    geom: cone length=13 width=0 angle=180 range=100 delay=33 anchor=2
+- DTTEzomyteReaper [dash_to_target] action=DodgeForward anim=default:dash_01
+- GAEzomyteReaperDash [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=66 delay=33 anchor=2
+- GAEzomyteReaperCycloneImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=2
+- EzomyteReaperCyclone [melee] action=Cyclone anim=default:vorana_cyclone_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GSEzomyteReaperLightningStrike [geometry_attack] action=DualStrike anim=default:vorana_dualstrike_01
+    geom: rectangle length=75 width=6 angle=0 range=500 delay=500 anchor=4
+    flags: is_area_damage
+- EAAEzomyteReaperDualStrike [empty_action_attack] action=DualStrike anim=default:vorana_dualstrike_01
+- EASEzomyteReaperTeleport [empty_action_spell] action=SpellBuff anim=default:consume_minion_01
+- EASEzomyteReaperTeleportFast [empty_action_spell_2] action=SpellBuff anim=default:consume_minion_01
+- TBEzomyteReaperCycloneBeamSingle [trigger_beam] action=None anim=-
+    beams: EzomyteReaperLightningBeam
+- GTEzomyteReaperCycloneBeam [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=500 spread=25 radius=8 angle=0 anchor=4
+    triggers: TBEzomyteReaperCycloneBeamSingle
+- GTEzomyteReaperLightningStrike [geometry_trigger] action=DualStrike anim=default:vorana_dualstrike_01
+    geom: trigger count=5 delay=500 spread=70 radius=1 angle=0 anchor=3
+    triggers: GSEzomyteReaperLightningStrike
+
+## own states and handlers
+states: active; appear
+- on_construction_complete = { globals.voranaboss = this; }
+- create_state_active_0 = { DisableRendering(); }
+- on_or_create_state_active_1 = { EnableRendering(); }
+- on_state_appear_1 = { Call( addbaseepk ); EnableRendering(); ShowWeapons(); Delay( 1.5, { EnableHighlighting(); } ); }
+- create_state_appear_1 = { Call( addbaseepk ); }
+- on_emerge_boss_02 = { PlayTextAudio( SioraBoss_Emerge_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); }
+- on_dualstrike_01 = { PlayTextAudio( SioraBoss_Skill_DualStrike_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); }
+- on_cyclone_01 = { PlayTextAudio( SioraBoss_Skill_Cyclone_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( SioraBoss_Knockdown_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); }
+- on_attack_03 = { PlayTextAudio( SioraBoss_Skill_Attack_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); }
+- on_event_teleportout_for_EmptyActionSpell2 = { PlayTextAudio( SioraBoss_Skill_StormPhase_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); DisableHighlighting(); HideWeapons(); Call( removebaseepk ); }
+- on_event_teleportin_for_EmptyActionSpell2 = { ShowWeapons(); Delay( 1.5, { EnableHighlighting(); } ); Call( addbaseepk ); }
+- on_event_teleportout_for_EmptyActionSpell = { DisableHighlighting(); HideWeapons(); Call( removebaseepk ); }
+- on_event_teleportslow_for_EmptyActionSpell = { Delay( 1, { DisableRendering(); } ); }
+- on_death = { Call( removebaseepk ); PlayTextAudio( SioraBoss_Death_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBoss' ); SpawnEffect( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/ao/death_loop.ao' ); }
+- on_dualstrike_01 = { PlayTextAudio( SioraBoss_Skill_DualStrike_Random ); }
+- on_cyclone_01 = { PlayTextAudio( SioraBoss_Skill_Cyclone_Random ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( SioraBoss_Knockdown_Random ); }
+- on_attack_03 = { PlayTextAudio( SioraBoss_Skill_Attack_Random ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/head_FXs.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/ambient_FXs.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/head_FXs.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/ambient_FXs.epk' ); PlayTextAudio( SioraBoss_Death_Random ); SpawnEffect( 'Metadata/Effects/Spells/monsters_effects/Act
+- on_emerge_boss_02 = { PlayTextAudio( SioraBossMAP_Emerge_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); }
+- on_dualstrike_01 = { PlayTextAudio( SioraBoss_Skill_DualStrike_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); }
+- on_cyclone_01 = { PlayTextAudio( SioraBoss_Skill_Cyclone_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( SioraBoss_Knockdown_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); }
+- on_attack_03 = { PlayTextAudio( SioraBoss_Skill_Attack_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); }
+- on_event_teleportout_for_EmptyActionSpell2 = { PlayTextAudio( SioraBoss_Skill_StormPhase_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); DisableHighlighting(); HideWeapons(); Call( removebaseepk ); }
+- on_death = { Call( removebaseepk ); PlayTextAudio( SioraBoss_Death_Random, 'Metadata/Monsters/LeagueExpedition/ReaperBoss/EzomyteReaperBossMAP' ); SpawnEffect( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/ao/death_loop.ao' ); }
+hides(DisableRendering): [('active', 0), ('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/ReaperBoss/EzomyteReaperBoss/Objects/DarknessDaemon
+- preload_object Metadata/NPC/Four_Interlude/Part1/UnaStoneCircleSummon
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/ao/darkness_phase_screen.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Expedition/boss/reaper_boss/ao/on_act_teleport.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/ao/darkness_phase_screen.ao
+- preload_buff_visual blackwood_entrance_buff
+- preload_buff_visual ezomyte_reaper_storm
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/head_FXs.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/stone_to_boss_wisp.epk
+
+## adds and forms
+- Metadata/Monsters/ReaperBoss/EzomyteReaperBoss/Objects/DarknessDaemon "Creeping Fire" bossbar=0 skills=SSMEzomyteReaperVolatile,EASEzomyteReaperStormSubmerge,EASEzomyteReaperStormEmerge,EzomyteReaperDeathZone,GSEzomyteReaperStormImpactSingle,GTEzomyteReaperStormImpact comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/leagueexpedition/reaperboss/objects/arenarocks/arenacenterrune: MinimapIcon [server_only=true icon=BossSummoningLocationInactive] states=powered on_or_create_state_powered_0{{ PlayAnimation( idle ); }}; on_or_create_state_powered_1{{ PlayAnimation( pre_open ); QueueAnimation( pre_open_idle ); }}; on_or_create_state_powered_2{{ PlayAnimation( open ); QueueAnimation( idle ); }}; on_or_create_state_powered_3{{ PlayAnimation( idle ); globals.unawisps = SpawnEffect( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/ao/e}
+- metadata/monsters/leagueexpedition/reaperboss/objects/arenarocks/runerock_base: Targetable [blocking=true object_size=6 server_only=true] states=active;lightstrike;powered on_or_create_state_active_0{{ DisableTargetable(); PlayAnimation( idle_inactive ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_}; on_or_create_state_active_1{{ EnableTargetable(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Verona/epk/rune_ambient_FX.epk'}; on_or_create_state_active_3{{ PlayAnimation( idle_activate_nolightning ); }}; on_or_create_state_active_4{{ PlayAnimation( activate ); }}; on_end_activate{{ SetStateTo( active, 2 ); }}
+- metadata/monsters/leagueexpedition/reaperboss/objects/voranasmokeappeareffect:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker2WG (no script)
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker1WG (no script)
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/DannigOlrothPathMarker:  [server_only=true] states= 
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothAddSpawner:  [blocking=false object_size=0 server_only=true] states=exploded;active on_state_active_1{{ PlayAnimation( activate_01 ); QueueAnimation( idle_on ); }}; create_state_active_1{{ PlayAnimation( idle_on ); }}; on_state_active_0{{ PlayAnimation( deactivate_01 ); QueueAnimation( idle_off ); }}; create_state_active_0{{ PlayAnimation( idle_off ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothRoomProximityTrigger:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionExplosiveWall_BossEntrance: MinimapIcon [blocking=false object_size=1 server_only=true icon=ExpeditionDynamite] states=activated;exploded on_state_activated_1{{ PlayAnimation( activate_01_view ); }}; on_end_activate_01_view{{ this.effect = PlayEffect( 'Metadata/Effects/Environment/League_Expedition_New/ExpeditionExplosion/expeditionExplosion.}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk' );}; create_state_activated_1{{ PlayAnimation( activate_01_view ); GoToAnimationEnd(); PauseAnimation(); }}; on_state_activated_1{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk'}; on_or_create_state_activated_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Off.epk' );}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/ExpeditionConnectorPole_BossEntrance: MinimapIcon [blocking=false object_size=1 server_only=true icon=ExpeditionRegularMonster] states=activated;exploded on_end_close_01{{ PauseAnimation(); }}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/NoLight_Red.epk' }; on_or_create_state_activated_1{{ HideMinimapIcon(); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/}; on_or_create_state_activated_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/NoLight_Red.ep}; on_or_create_state_exploded_1{{ RandomiseExpeditionMarker( 40, 0, 30 ); SetRandomRotation(); AddEffectPack( 'Metadata/Terrain/Doodads/Leagues/Heist/Co}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionDetonator_BossEntrance: MinimapIcon [blocking=true object_size=1 server_only=true icon=ExpeditionDetonator] states=activated;targetable on_end_activate_01{{ PlayAnimation( idle_activated_01 ); }}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk' );}; on_state_activated_1{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk'}; create_state_activated_1{{ HideWorldDescription(); DisableTargetable(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expeditio}; on_or_create_state_targetable_0{{ DisableTargetable(); }}; on_or_create_state_targetable_1{{ IfState( activated, 1, (){}, (){ EnableTargetable(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExplodedDoor_Blocker:  [blocking=true object_size=18 server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoorFrame:  [blocking=false object_size=1 server_only=true] states=open create_state_open_0{{ PlayAnimation( open_01 ); PauseAnimation(); }}; on_state_open_1{{ PlayAnimation( open_01 ); }}; create_state_open_1{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}; on_or_create_state_open_2{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardOlroth, TitleCardOlrothSubtitle ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoor_Wall: TriggerableBlockage [start_blocked=true blocking=false object_size=1 server_only=true] states=open create_state_open_0{{ PlayAnimation( open_01 ); PauseAnimation(); }}; on_state_open_1{{ PlayAnimation( open_01 ); }}; create_state_open_1{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}
+
+## lines
+- on_emerge_boss_02 -> SioraBoss_Emerge_Random: Darkness descends... and with it, your end!
+- on_dualstrike_01 -> SioraBoss_Skill_DualStrike_Random: Cleave!
+- on_cyclone_01 -> SioraBoss_Skill_Cyclone_Random: Choke on the Mists!
+- on_knockdown_bwd_01 -> SioraBoss_Knockdown_Random: Ugh! This changes nothing! 
+- on_attack_03 -> SioraBoss_Skill_Attack_Random: Rip!
+- on_event_teleportout_for_EmptyActionSpell2 -> SioraBoss_Skill_StormPhase_Random: Drown in Darkness!
+- on_death -> SioraBoss_Death_Random: The Mists remain...
+- on_emerge_boss_02 -> SioraBossMAP_Emerge_Random: Darkness descends... and with it, your end!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_expedition_subarea_olroth_boss_rooms_feature_01.arm
+  sector ['hide_teleports', 1345, 494, 1529, 678, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['env', 1352, 494, 1529, 678, '']
+  sector ['no_movement_skills', 1336, 499, 1369, 581, '']
+  sector ['no_movement_skills', 1336, 592, 1369, 671, '']
+  sector ['indoor_env', 875, 268, 1769, 889, '']
+  sector ['force_roof_fade', 891, 491, 1095, 685, 'Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/SectorForceRoofFade']
+  sector ['hide_teleports', 1363, 494, 1529, 678, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [1445.0, 586.0, 'mapbossWG']
+  point [458.0, 572.0, 'killzone=4WG']
+  point [426.0, 568.0, 'default']
+  point [1370.0, 586.0, 'telepad']
+  point [1222.0, 586.0, 'checkpoint1']
+  obj Metadata/Monsters/LeagueExpeditionNew/Olroth/OlrothRelic x1 (1477,531)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker2WG x1 (1466,640)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker1WG x1 (1424,643)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/DannigOlrothPathMarker x6 (923,586) (1023,586) (1115,586) (1230,586) (1161,586) (1380,586)
+  obj Metadata/MiscellaneousObjects/Lights/ModularLight_BlueTorchRadiant_Trigg x6 (1367,554) (1368,622) (1437,665) (1440,505) (1510,552) (1509,620)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (1344,586)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (1000,586)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothAddSpawner x3 (1385,637) (1511,586) (1385,535)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (1329,585)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (1437,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothRoomProximityTrigger x1 (998,589)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (409,568)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionExplosiveWall_BossEntrance x5 (894,603) (894,596) (894,569) (894,577) (888,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/ExpeditionConnectorPole_BossEntrance x2 (873,569) (850,562)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionDetonator_BossEntrance x1 (826,554)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x44 (851,621) (1394,650) (1398,551) (1471,523) (1316,543) (1285,669) (1290,651) (1359,700) (1417,531) (1530,724)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleExpeditionOlroth x1 (1232,574)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (1083,504) (1084,668)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x20 (1362,595) (1362,601) (1362,589) (1362,583) (1362,571) (1362,565) (1362,559) (1362,607) (1362,613) (1362,619)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (1363,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExplodedDoor_Blocker x1 (959,585)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoorFrame x1 (897,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothTitle x1 (1008,587)
+  obj Metadata/NPC/League/Expedition/DannigOlrothIsland x1 (802,573)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (1363,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoor_Wall x1 (895,586)
+room metadata_terrain_gallows_leagues_expedition_logbook_peninsula_rooms_entrance_01.arm
+  sector ['expedition_no_spawning', 80, 80, 218, 218, '']
+  sector ['expedition_no_placement', 143, 165, 211, 204, '']
+  sector ['expedition_no_placement', 109, 90, 176, 129, '']
+  sector ['expedition_no_placement', 97, 161, 143, 195, '']
+  point [185.0, 127.0, 'default']
+  point [156.0, 159.0, 'checkpoint1']
+  obj Metadata/Monsters/LeagueExpedition/NPC/ExpeditionDannig x1 (195,178)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (174,123)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionDetonator x1 (143,147)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (115,179)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (156,171)
+  obj Metadata/Decals/MachinariumScorchMarks.atlas x4 (1852.22,1993.99) (1509.03,1182.97) (1414.35,1842.43) (1553.43,1594.46)
+room metadata_terrain_gallows_leagues_expedition_logbook_digsite_rooms_entrance_01.arm
+  sector ['expedition_no_spawning', 103, 80, 241, 218, '']
+  sector ['expedition_no_placement', 172, 126, 218, 172, '']
+  point [201.0, 120.0, 'default']
+  point [177.0, 149.0, 'checkpoint1']
+  obj Metadata/Monsters/LeagueExpedition/NPC/ExpeditionDannig x1 (204,183)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (187,116)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionDetonator x1 (195,149)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (177,132)

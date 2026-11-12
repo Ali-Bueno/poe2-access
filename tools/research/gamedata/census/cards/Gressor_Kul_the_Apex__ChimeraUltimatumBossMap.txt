@@ -1,0 +1,128 @@
+# Gressor-Kul, the Apex
+content: Map boss
+monsters: Metadata/Monsters/Ultimatum/ChimeraUltimatumBossMap
+scripts: Metadata/Monsters/ChaosGodChimera/ChaosGodChimeraMapBoss
+own chain: Metadata/Monsters/ChaosGodChimera/ChaosGodChimeraMapBoss
+areas: MapAugury Augury act10; MapBluff Bluff act10
+ai: Metadata/Monsters/ChaosGodChimera/ChaosGodChimeraMapBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- GAChimeraBossGroundslam [geometry_attack] action=HeavyStrike anim=default:ground_rage_triggered_01
+    geom: circle length=50 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- DTTChimeraBossLeap [dash_to_target] action=DodgeForward anim=default:ground_leap_slam_01
+- MPSChimeraWetlandsBossLightningBreath [monster_projectile_spell] action=SpellBuffCold anim=default:ground_lightning_bolt_01
+- MPSChimeraWetlandsBossChaosSpray [monster_projectile_spell] action=SpellAreaOfEffectChaos anim=default:ground_poison_spray_01
+    flags: base_deal_no_damage
+- GSChimeraWetlandsBossFrostBreath [geometry_spell] action=SpellAreaOfEffectCold anim=default:ground_cold_breath_01
+    geom: cone length=64 width=0 angle=300 range=2600 delay=35 anchor=3
+    flags: base_deal_no_damage is_area_damage
+    buffs: chilled_ground
+- GSChimeraWetlandsBossFireSpray [geometry_spell] action=SpellAreaOfEffectFire anim=default:ground_melee_fire_breath_01
+    geom: cone length=50 width=0 angle=15 range=198 delay=33 anchor=10
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- MPSChimeraWetlandsBossFireball [monster_projectile_spell] action=SpellProjectile anim=default:ground_fire_ball_01
+    flags: base_deal_no_damage
+- EASChimeraWetlandsBossDragonBreath [empty_action_spell] action=SpellProjectileFire anim=default:ground_dragon_breath_01
+- EAAChimeraBossForwardDash180 [empty_action_attack] action=SpellProjectileCold anim=default:ground_dodge_fwd_180_01
+- EAAChimeraBossWindBlast180 [empty_action_attack] action=SpellProjectileLightning anim=default:ground_180_flap_attack_01
+- EAAChimeraBossDodgeBackwards [empty_action_attack] action=SpellProjectileChaos anim=default:ground_dodge_bwd_01
+- CTS5ChimeraBossGroundToOffscreen [change_to_stance5] action=None anim=-
+- CTS1ChimeraBossOffScreenToGround [change_to_stance1] action=None anim=-
+- GAChimeraBossLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- GSChimeraBossLightningBreath [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSChimeraBossLightningOrbArc [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=2 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSChimeraBossLightningOrbExplosion [geometry_spell] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEChimeraBossLightningBreath [monster_cast_ground_effect_location] action=None anim=-
+- GSChimeraWetlandsBossChaosSprayImpact [geometry_spell] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=132 delay=33 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- CGEChimeraBossPoisonSpray [monster_cast_ground_effect_location] action=None anim=-
+- GSChimeraWetlandsBossFrostBreathImpact [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- GSChimeraWetlandsBossFireballImpactGround [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSChimeraWetlandsBossFireballImpactWall [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSChimeraBossDragonBreath [geometry_spell] action=SpellProjectileFire anim=default:ground_dragon_breath_01
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    buffs: ignited_ground
+    ground: Metadata/Effects/Spells/supports/RunicSupports/Leylines/ground_effect.ao
+- GAChimeraBossWindBlast [geometry_attack] action=None anim=-
+    geom: cone length=40 width=0 angle=160 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+
+## own states and handlers
+states: no_collision; floating
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_state_no_collision_0 = { MakeCollidable(); }
+- on_state_floating_0 = { MakeCollidable(); }
+- on_state_floating_1 = { RemoveCollidability(); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lightning.ep
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lig
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ground_death_idle.epk' ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_beam ChimeraDragonBreathGroundBurnBeam
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lightning.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_chaos.epk
+- preload_epk Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ground_death_idle.epk
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/chaosgodchimera/objects/sector1:  states= 
+- metadata/monsters/chaosgodchimera/objects/sector2:  states= 
+- metadata/monsters/chaosgodchimera/objects/sector3:  states= 
+- metadata/monsters/chaosgodchimera/objects/sector4:  states= 
+
+## lines
+
+## linked buffs
+- chilled_ground "Chilled Ground":  | stats=
+- ignited_ground "Ignited Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_maps_bluff_rooms_end_noboss_01.arm
+  point [155.0, 177.0, 'rare']
+  point [347.0, 102.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Endgame/TowerCompletion x1 (409,47)
+  obj Metadata/MiscellaneousObjects/Endgame/TowerBeaconObject x1 (409,47)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (338,119)
+room metadata_terrain_maps_augury_rooms_overlays_boss_entrance_blank.arm
+room metadata_terrain_maps_bluff_rooms_end_01.arm
+  sector ['hide_teleports', 52, 72, 236, 229, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 56, 67, 58, 187, '']
+  sector ['no_movement_skills', 237, 127, 239, 247, '']
+  sector ['no_critters', 44, 64, 247, 238, '']
+  sector ['boss_sector', 58, 90, 237, 219, '']
+  point [147.0, 172.0, 'mapboss']
+  point [28.0, 115.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Endgame/TowerCompletion x1 (409,47)
+  obj Metadata/MiscellaneousObjects/Endgame/TowerBeaconObject x1 (409,47)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (29,106)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x4 (57,118) (237,183) (53,117) (236,184)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x20 (240,165) (240,159) (240,171) (240,177) (240,183) (240,189) (240,195) (240,201) (240,153) (240,207)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (149,150)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (115,126)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (160,128) (142,185) (116,184) (175,185)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (138,153)

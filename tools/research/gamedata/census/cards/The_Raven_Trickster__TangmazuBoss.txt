@@ -1,0 +1,251 @@
+# The Raven Trickster
+content: Pinnacle
+monsters: Metadata/Monsters/DeliriumTangmazu/TangmazuBoss
+scripts: Metadata/Monsters/DeliriumTangmazu/TangmazuBoss
+own chain: Metadata/Monsters/DeliriumTangmazu/TangmazuBoss, Metadata/Monsters/PinnacleBossBase
+areas: MapUberBoss_Delirium The Withered Willow act10
+ai: Metadata/Monsters/DeliriumTangmazu/TangmazuBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- EASTangmazuMirrorActivateLeftNear [empty_action_spell_2] action=SpellAreaOfEffect anim=default:left_mirror_close_01
+- EASTangmazuMirrorActivateLeftMid [empty_action_spell_2] action=SpellAreaOfEffectFire anim=default:left_mirror_mid_01
+- EASTangmazuMirrorActivateLeftFar [empty_action_spell_2] action=SpellAreaOfEffectCold anim=default:left_mirror_far_01
+- EASTangmazuMirrorActivateRightNear [empty_action_spell_2] action=SpellAreaOfEffectLightning anim=default:right_mirror_close_01
+- EASTangmazuMirrorActivateRightMid [empty_action_spell_2] action=SpellAreaOfEffectChaos anim=default:right_mirror_mid_01
+- EASTangmazuMirrorActivateRightFar [empty_action_spell_2] action=SpellProjectileUpwardFire anim=default:right_mirror_far_01
+- EASTangmazuMirrorTeleport [empty_action_spell] action=SpellBuff anim=default:mirror_retreat_01_01
+- EGTangmazuMirrorActivateMagic [execute_geal] action=None anim=-
+    GEAL 1183 on ['Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirror']: self{} each{triggerer.If( GetState( in_use) == 0, (){ Call( test,Random(0, 4) ); }, (){  } );} r=200
+- EASTangmazuMirrorBreak [empty_action_spell] action=SpellBuffFast anim=default:phase02_teleport_01
+- EGTangmazuMirrorBreak [execute_geal] action=SpellNova anim=default:phase02_emerge_01
+    GEAL 1184 on ['Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirror']: self{} each{triggerer.SetStateTo(broken, 1); triggerer.SetStateTo(phase2,1);} r=200
+- EASTangmazuTeleport [empty_action_spell] action=Teleport anim=default:phase02_teleport_01
+- MPSTangmazuFrostShards [monster_projectile_spell] action=SpellNovaCold anim=default:phase02_cold_spammable_static_01
+- MPSTangmazuRedirectingFireball [monster_projectile_spell] action=SpellProjectileFire anim=default:phase02_fire_spammable_01
+- GTTangmazuFrostWall [geometry_trigger] action=SpellProjectileUpward anim=default:phase02_frost_wall_01
+    geom: trigger count=3 delay=500 spread=50 radius=2 angle=0 anchor=3
+- GSTangmazuFrostWallDamage [geometry_spell] action=None anim=-
+    geom: cone length=25 width=0 angle=210 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- GSTangmazuFrostComet [geometry_spell] action=None anim=-
+    geom: circle length=33 width=0 angle=0 range=2000 delay=2000 anchor=4
+    flags: is_area_damage
+    GEAL 1186 on ['Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuFrostwall']: self{} each{triggerer.Call(x_blast);} r=30
+- TBTangmazuStormCall [trigger_beam] action=SpellProjectileUpwardLightning anim=default:phase02_lightning_spammable_01
+    flags: base_deal_no_damage
+    beams: TangmazuStormcallBeam
+- GSTangmazuStormCall [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=1000 delay=1000 anchor=4
+    flags: is_area_damage
+- GSTangmazuVolatileFlameBlast [geometry_spell] action=SpellProjectile anim=-
+    geom: circle length=45 width=0 angle=0 range=150 delay=33 anchor=2
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EGTangmazuReactivateReflectingMirrors [execute_geal] action=SpellBuffChaos anim=default:phase02_reactivate_mirrors_01
+    GEAL 1185 on ['Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirror']: self{} each{triggerer.SetStateTo(phase2_reform,1); triggerer.SetStateTo(broken, 0);} r=200
+- MPSTangmazuFireball [monster_projectile_spell] action=SpellProjectileFire anim=default:phase02_fire_spammable_01
+- SOTangmazuStormCallMarker [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuStormcallMarker
+- EASTangmazuStormCall [empty_action_spell] action=SpellProjectileUpwardLightning anim=default:phase02_lightning_spammable_01
+- TBTangmazuStormCallStart [trigger_beam] action=SpellProjectileUpwardLightning anim=default:phase02_lightning_spammable_01
+    flags: base_deal_no_damage
+    beams: TangmazuStormcallBeam
+- GSTangmazuBigBoyBeam [geometry_spell] action=SpellBuffFire anim=default:phase02_big_boy_beam_arena_01
+    geom: rectangle length=220 width=18 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GTTangmazuFrostWallOuter [geometry_trigger] action=SpellProjectileUpward anim=default:phase02_frost_wall_01
+    geom: trigger count=17 delay=150 spread=33 radius=32 angle=300 anchor=4
+- CTS4TangmazuFlameBlastStart [change_to_stance4] action=ChangeToStance4 anim=stance3:phase02_floating_explosion_start_01
+- CTS3TangmazuFlameBlastEnd [change_to_stance3] action=ChangeToStance3 anim=stance4:phase02_floating_explosion_end_01
+- GSTangmazuMirrorBeamDamage [geometry_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GTTangmazuSpawnFloatingMirrors [geometry_trigger] action=SpellBuffCold anim=default:phase02_create_mirror_01
+    geom: trigger count=18 delay=800 spread=25 radius=24 angle=120 anchor=4
+- MDTangmazuBasicSpammable [move_daemon] action=SpellProjectileCold anim=default:spellcast_left_01, spellcast_right_01
+    daemons: Metadata/Monsters/InvisibleFire/MDTangmazuSpammableSpell
+- EASTangmazuRefractionBeam [empty_action_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+- TBTangmazuRefractionBeam [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaser
+- TBTangmazuRefractionBeamBounce [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaserBounceCold
+- EGTangmazuRefractionBeam [execute_geal] action=None anim=-
+    GEAL 1196 on ['Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirror']: self{} each{triggerer.If( GetState( in_use) == 0, (){ Call( bounce_beam ); }, (){  } );} r=50
+- GSTangmazuPillarFallDamage [geometry_spell] action=None anim=-
+    geom: circle length=23 width=0 angle=0 range=150 delay=33 anchor=4
+    flags: is_area_damage
+- GSTangmazuPillarUpwardDamage [geometry_spell] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSTangmazuMirrorBeamDamageCold [geometry_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSTangmazuMirrorBeamDamageFire [geometry_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSTangmazuMirrorBeamDamageLightning [geometry_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSTangmazuMirrorBeamDamageChoas [geometry_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSTangmazuMirrorBeamDamagePoison [geometry_spell] action=SpellProjectileChaos anim=default:mirror_beam_01
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- TBTangmazuRefractionBeamBounceCold [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaserBounceCold
+- TBTangmazuRefractionBeamBounceFire [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaserBounceFire
+- TBTangmazuRefractionBeamBounceLightning [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaserBounceLightning
+- TBTangmazuRefractionBeamBouncePoison [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaserBouncePoison
+- TBTangmazuRefractionBeamBounceChaos [trigger_beam] action=SpellProjectileChaos anim=default:mirror_beam_01
+    beams: TangmazuRefractionLaserBounceChaos
+- GSTangmazuRavenWave [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=16 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSTangmazuFrostShard [geometry_spell] action=SpellNovaCold anim=default:phase02_cold_spammable_static_01
+    geom: circle length=9 width=0 angle=0 range=460 delay=460 anchor=4
+    flags: is_area_damage
+- GSTangmazuFrostShard2 [geometry_spell] action=None anim=-
+    geom: circle length=14 width=0 angle=0 range=460 delay=460 anchor=4
+    flags: is_area_damage
+- EASTangmazuFrostShard [geometry_spell] action=SpellNovaCold anim=default:phase02_cold_spammable_static_01
+    geom: cone length=25 width=0 angle=210 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- GSTangmazuPhaseChangeBlast [geometry_spell] action=None anim=-
+    geom: circle length=90 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASTangmazuMirrorTeleportExit [empty_action_spell] action=SpellProjectileLightning anim=default:mirror_retreat_exit_01_01
+- CGETangmazuPillarSlamBurn [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+    ground: Metadata/Effects/Spells/monsters_effects/League_Expedition_New/AntCarrier/pheromone_cloud.ao
+- MPSTangmazuFireballPhase1 [monster_projectile_spell] action=BossProjectile1 anim=default:fire_spammable_01
+- TBTangmazuStormCallStartPhase1 [trigger_beam] action=BossProjectile2 anim=default:lightning_spammable_01
+    flags: base_deal_no_damage
+    beams: TangmazuStormcallBeam
+- EASTangmazuMirrorActivateRandomDouble [empty_action_spell_2] action=BossCombo1 anim=default:pair_mid_01
+
+## own states and handlers
+states: enrage_time; lightning_repeats; explode; epk; mirror_minions_on_cooldown
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delirium/Tangmazu/epk/ambient_FXs.epk', true ); }
+- on_or_create_state_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delirium/Tangmazu/epk/ambient_FXs.epk' ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delirium/Tangmazu/epk/alive.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delirium/Tangmazu/epk/alive.epk' ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuFrostwall
+- preload_object Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuDeathArm
+- preload_object Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuBigBoyBeam
+- preload_object Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuBeamMirrors
+- preload_object Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuUpwardRock
+- preload_misc_animated DischargeCold
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Delirium/Tangmazu/epk/alive.epk
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/MDTangmazuSpammableSpell
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuFrostwall:  [blocking=true object_size=5 server_only=true] states=no_blocking;inert on_or_create_state_no_blocking_1{{ RemoveCollidability( ); }}; on_or_create_state_no_blocking_0{{ MakeCollidable( ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuDeathArm:  [server_only=true] states= 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuBigBoyBeam:  [server_only=true] states=blast 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuBeamMirrors:  [server_only=true] states=charge;emerge;type on_initial_position_set{{ SetHeight( 18 ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuUpwardRock:  [blocking=false object_size=2 server_only=true] states=inert 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuStormcallMarker: ControlZone [server_only=true] states=armed;pillar 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirror:  [blocking=false object_size=2 server_only=true] states=in_use;broken;reform;am_beaming;phase2;phase2_reform 
+- metadata/monsters/deliriumtangmazu/minions/deliriumminionbase:  states=epk 
+- metadata/monsters/deliriumtangmazu/minions/deliriumminiondisgusttentacleattackers:  [blocking=false object_size=2 server_only=true] states= 
+- metadata/monsters/deliriumtangmazu/objects/bosslootproxy: InteractionAction [blocking=false server_only=true] states= 
+- metadata/monsters/deliriumtangmazu/objects/deliriumcraftingbench: MinimapIcon [blocking=false object_size=3 server_only=true icon=DeliriumDecanterOfMadness] states=visible on_construction_complete{{ SetHeight( 12 ); }}; on_construction_complete{{ globals.delirium_hub_crafting_bench = this;}}; create_state_visible_0{{ DisableTargetable(); DisableRendering(); HideMinimapIcon(); }}; on_state_visible_1{{ PlayAnimation( open ); QueueAnimation( idle ); EnableTargetable(); EnableRendering(); ShowMinimapIcon(); AddEffectPack}; create_state_visible_1{{ PlayAnimation( activated_idle_01 ); }}
+- metadata/monsters/deliriumtangmazu/objects/fleeingspirit:  [blocking=false server_only=true] states=waiting;intro create_state_intro_1{{ DisableRendering(); }}
+- metadata/monsters/deliriumtangmazu/objects/grottotransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=hidden;highlighted on_interaction_started{{ Call( player_epk, triggerer ); }}; on_timer_stop_highlighting{{ SetStateTo( highlighted, 0 ); }}; on_state_hidden_1{{ DisableRendering(); }}; on_state_hidden_0{{ EnableRendering(); }}; on_state_highlighted_1{{ CancelQueuedAnimation(); PlayAnimationByIndex( 0 ); QueueAnimationByIndex( 1 ); }}; on_state_highlighted_0{{ CancelQueuedAnimation(); PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 3 ); }}
+- metadata/monsters/deliriumtangmazu/objects/loomingdarkness:  [blocking=false server_only=true] states=waiting;intro create_state_intro_2{{ DisableRendering(); }}
+- metadata/monsters/deliriumtangmazu/objects/mindsceneblocking: TriggerableBlockage [start_blocked=true server_only=true] states=blocking 
+- metadata/monsters/deliriumtangmazu/objects/rotatingwendigo:  [blocking=false server_only=true] states=orbit on_or_create_state_orbit_1{{ SetGlobalAnimationSpeed( 1.0 ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazuarenagroundmirror:  [server_only=true] states=broken 
+- metadata/monsters/deliriumtangmazu/objects/tangmazuarenamiddle:  [server_only=true] states= 
+- metadata/monsters/deliriumtangmazu/objects/tangmazubeammirrors:  [server_only=true] states=charge;emerge;type on_initial_position_set{{ SetHeight( 18 ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazubigboybeam:  [server_only=true] states=blast 
+- metadata/monsters/deliriumtangmazu/objects/tangmazubigheadmarker:  [server_only=true] states= 
+- metadata/monsters/deliriumtangmazu/objects/tangmazuchild: ProximityTrigger [radius=40 server_only=true] states=intro;waiting;checkpoint on_triggered{{ SetGlobalAudioParam( TangmazuStory, 1 ); }}; create_state_intro_1{{ DisableRendering(); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazuchildpostfight:  [server_only=true] states=im_hidden;convo on_construction_complete{{ globals.post_fight_child = this; }}; create_state_im_hidden_0{{ PlayAnimation( idle_sobbing_01 ); }}; on_or_create_state_convo_1{{ PlayAnimation( sobbing_transition_01 ); QueueAnimation( idle_01 ); }}; on_state_im_hidden_1{{ SetAnimatedObjectType( 'Metadata/Monsters/DeliriumTangmazu/TangmazuBoss.ao' ); PlayEffect( 'Metadata/Effects/Spells/tr}; create_state_im_hidden_1{{DisableRendering();}}
+- metadata/monsters/deliriumtangmazu/objects/tangmazudeatharm:  [server_only=true] states= 
+- metadata/monsters/deliriumtangmazu/objects/tangmazufacetransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=hidden;highlighted on_timer_stop_highlighting{{ SetStateTo( highlighted, 0 ); }}; on_start_target{{ SetStateTo( highlighted, 1 ); CancelStateTimer( stop_highlighting ); }}; on_stop_target{{ StartStateTimer( stop_highlighting, 0.1 ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazufrostwall:  [blocking=true object_size=5 server_only=true] states=no_blocking;inert on_or_create_state_no_blocking_1{{ RemoveCollidability( ); }}; on_or_create_state_no_blocking_0{{ MakeCollidable( ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazugreetingowl:  [server_only=true] states=greet 
+- metadata/monsters/deliriumtangmazu/objects/tangmazugrottomirror: InteractionAction Transitionable Targetable [blocking=true server_only=true] states=clear_fog;bones_1;bones_socketed;fight_over;let_me_in create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); PlayInterlude( 'Audio/Music/Endgame/Leagues/Delirium/Stingers/TangmazuMirr}; create_state_clear_fog_0{{ DisableTargetable(); DisableHighlighting(); }}; on_state_clear_fog_1{{ Delay( 2.418, { PlayAnimation( disperse_fog_01 ); QueueAnimation( mirror_revealed_01 ); SetMinimapIcon( DeliriumMirror}; create_state_clear_fog_1{{ PlayAnimation( disperse_fog_01 ); GoToAnimationEnd(); QueueAnimation( mirror_revealed_01 ); SetMinimapIcon( DeliriumMi}; on_state_let_me_in_1{{ PlayAnimation( key_entered_idle_01 ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazumindentrance: TriggerableBlockage [start_blocked=false server_only=true] states=come_in on_event_enable_tele_for_entrance_start_01_01{{ RenameSectorsAtLocation( hide_teleports, hide_teleports_off ); }}; on_or_create_state_come_in_2{{ RenameSectorsAtLocation( hide_teleports, hide_teleports_off ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazumindentranceareatransition_animate: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=hidden;highlighted on_timer_stop_highlighting{{ SetStateTo( highlighted, 0 ); }}; on_state_hidden_1{{ DisableRendering(); }}; on_state_hidden_0{{ EnableRendering(); }}; on_state_highlighted_1{{ CancelQueuedAnimation(); PlayAnimationByIndex( 0 ); QueueAnimationByIndex( 1 ); }}; on_state_highlighted_0{{ CancelQueuedAnimation(); PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 3 ); }}; on_start_target{{ SetStateTo( highlighted, 1 ); CancelStateTimer( stop_highlighting ); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazuminionlaseroffset:  [server_only=true] states=beam 
+- metadata/monsters/deliriumtangmazu/objects/tangmazumirror:  [blocking=false object_size=2 server_only=true] states=in_use;broken;reform;am_beaming;phase2;phase2_reform 
+- metadata/monsters/deliriumtangmazu/objects/tangmazumirrorcleaningowl:  [server_only=true] states=clear_fog on_state_clear_fog_1{{ EnableRendering(); PlayAnimation( delirium_swoop_01 ); }}; on_construction_complete{{ DisableRendering(); }}
+- metadata/monsters/deliriumtangmazu/objects/tangmazumirrorsideshards:  [blocking=false object_size=0 server_only=true] states=revealed create_state_revealed_0{{ AddEffectPack( 'Metadata/Effects/Environment/Tangamazu/Narrative_Emerge_Sequence/epk/TreeMirrorShards/hidden.epk' ); }}; on_state_revealed_1{{ Delay( 2.5, { RemoveEffectPack( 'Metadata/Effects/Environment/Tangamazu/Narrative_Emerge_Sequence/epk/TreeMirrorShards}
+- metadata/monsters/deliriumtangmazu/objects/tangmazustormcallmarker: ControlZone [server_only=true] states=armed;pillar 
+- metadata/monsters/deliriumtangmazu/objects/tangmazuupwardrock:  [blocking=false object_size=2 server_only=true] states=inert 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuArenaMiddle:  [server_only=true] states= 
+- Metadata/Monsters/DeliriumTangmazu/Objects/RotatingWendigo:  [blocking=false server_only=true] states=orbit on_or_create_state_orbit_1{{ SetGlobalAnimationSpeed( 1.0 ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuBigHeadMarker:  [server_only=true] states= 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuArenaGroundMirror:  [server_only=true] states=broken 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuGrottoMirror: InteractionAction Transitionable Targetable [blocking=true server_only=true] states=clear_fog;bones_1;bones_socketed;fight_over;let_me_in create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); PlayInterlude( 'Audio/Music/Endgame/Leagues/Delirium/Stingers/TangmazuMirr}; create_state_clear_fog_0{{ DisableTargetable(); DisableHighlighting(); }}; on_state_clear_fog_1{{ Delay( 2.418, { PlayAnimation( disperse_fog_01 ); QueueAnimation( mirror_revealed_01 ); SetMinimapIcon( DeliriumMirror}; create_state_clear_fog_1{{ PlayAnimation( disperse_fog_01 ); GoToAnimationEnd(); QueueAnimation( mirror_revealed_01 ); SetMinimapIcon( DeliriumMi}; on_state_let_me_in_1{{ PlayAnimation( key_entered_idle_01 ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/GrottoTransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=hidden;highlighted on_interaction_started{{ Call( player_epk, triggerer ); }}; on_timer_stop_highlighting{{ SetStateTo( highlighted, 0 ); }}; on_state_hidden_1{{ DisableRendering(); }}; on_state_hidden_0{{ EnableRendering(); }}; on_state_highlighted_1{{ CancelQueuedAnimation(); PlayAnimationByIndex( 0 ); QueueAnimationByIndex( 1 ); }}; on_state_highlighted_0{{ CancelQueuedAnimation(); PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 3 ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/BossLootProxy: InteractionAction [blocking=false server_only=true] states= 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuGreetingOwl:  [server_only=true] states=greet 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirrorCleaningOwl:  [server_only=true] states=clear_fog on_state_clear_fog_1{{ EnableRendering(); PlayAnimation( delirium_swoop_01 ); }}; on_construction_complete{{ DisableRendering(); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/DeliriumCraftingBench: MinimapIcon [blocking=false object_size=3 server_only=true icon=DeliriumDecanterOfMadness] states=visible on_construction_complete{{ SetHeight( 12 ); }}; on_construction_complete{{ globals.delirium_hub_crafting_bench = this;}}; create_state_visible_0{{ DisableTargetable(); DisableRendering(); HideMinimapIcon(); }}; on_state_visible_1{{ PlayAnimation( open ); QueueAnimation( idle ); EnableTargetable(); EnableRendering(); ShowMinimapIcon(); AddEffectPack}; create_state_visible_1{{ PlayAnimation( activated_idle_01 ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuChildPostFight:  [server_only=true] states=im_hidden;convo on_construction_complete{{ globals.post_fight_child = this; }}; create_state_im_hidden_0{{ PlayAnimation( idle_sobbing_01 ); }}; on_or_create_state_convo_1{{ PlayAnimation( sobbing_transition_01 ); QueueAnimation( idle_01 ); }}; on_state_im_hidden_1{{ SetAnimatedObjectType( 'Metadata/Monsters/DeliriumTangmazu/TangmazuBoss.ao' ); PlayEffect( 'Metadata/Effects/Spells/tr}; create_state_im_hidden_1{{DisableRendering();}}
+- Metadata/Terrain/Gallows/EndGame/DeliriumPinnacle/Objects/FogWallBlocker:  [blocking=true object_size=5 server_only=true] states= 
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuFaceTransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=hidden;highlighted on_timer_stop_highlighting{{ SetStateTo( highlighted, 0 ); }}; on_start_target{{ SetStateTo( highlighted, 1 ); CancelStateTimer( stop_highlighting ); }}; on_stop_target{{ StartStateTimer( stop_highlighting, 0.1 ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMindEntranceAreaTransition_Animate: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=hidden;highlighted on_timer_stop_highlighting{{ SetStateTo( highlighted, 0 ); }}; on_state_hidden_1{{ DisableRendering(); }}; on_state_hidden_0{{ EnableRendering(); }}; on_state_highlighted_1{{ CancelQueuedAnimation(); PlayAnimationByIndex( 0 ); QueueAnimationByIndex( 1 ); }}; on_state_highlighted_0{{ CancelQueuedAnimation(); PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 3 ); }}; on_start_target{{ SetStateTo( highlighted, 1 ); CancelStateTimer( stop_highlighting ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuChild: ProximityTrigger [radius=40 server_only=true] states=intro;waiting;checkpoint on_triggered{{ SetGlobalAudioParam( TangmazuStory, 1 ); }}; create_state_intro_1{{ DisableRendering(); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/FleeingSpirit:  [blocking=false server_only=true] states=waiting;intro create_state_intro_1{{ DisableRendering(); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/LoomingDarkness:  [blocking=false server_only=true] states=waiting;intro create_state_intro_2{{ DisableRendering(); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMindEntrance: TriggerableBlockage [start_blocked=false server_only=true] states=come_in on_event_enable_tele_for_entrance_start_01_01{{ RenameSectorsAtLocation( hide_teleports, hide_teleports_off ); }}; on_or_create_state_come_in_2{{ RenameSectorsAtLocation( hide_teleports, hide_teleports_off ); }}
+- Metadata/Monsters/DeliriumTangmazu/Objects/MindSceneBlocking: TriggerableBlockage [start_blocked=true server_only=true] states=blocking 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_endgame_deliriumpinnacle_rooms_delirium_boss_01.arm
+  sector ['hide_teleports', 149, 149, 379, 379, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [295.0, 306.0, 'mapboss']
+  point [226.0, 215.0, 'telepad']
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirror x7 (229,159) (232,346) (311,176) (166,292) (348,250) (170,208) (314,326)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuArenaMiddle x1 (252,252)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/RotatingWendigo x2 (393,256) (119,256)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (210,197)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuBigHeadMarker x7 (281,344) (340,292) (337,205) (268,160) (191,178) (165,249) (195,327)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuArenaGroundMirror x1 (250,254)
+room metadata_terrain_gallows_endgame_deliriumpinnacle_rooms_deliriumpinnacle_entrance_01.arm
+  point [137.0, 412.0, 'default']
+  point [314.0, 266.0, 'telepad']
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (127,421)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuGrottoMirror x1 (356,299)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/GrottoTransition x1 (349,291)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/BossLootProxy x1 (295,242)
+  obj Metadata/NPC/League/Affliction/ElderMadoxHub x1 (331,258)
+  obj Metadata/MiscellaneousObjects/Environment/FlowSource x1 (84,507)
+  obj Metadata/MiscellaneousObjects/Environment/FlowSink x1 (649,229)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuGreetingOwl x1 (139,397)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMirrorCleaningOwl x1 (323,278)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/DeliriumCraftingBench x1 (286,285)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuChildPostFight x1 (338,274)
+  obj Metadata/Terrain/Gallows/EndGame/DeliriumPinnacle/Objects/FogWallBlocker x6 (336,298) (341,290) (346,282) (341,282) (336,291) (331,300)
+  obj Metadata/MiscellaneousObjects/Stash x1 (261,224)
+  obj Metadata/MiscellaneousObjects/GuildStash x1 (274,220)
+room metadata_terrain_gallows_endgame_deliriumpinnacle_rooms_deliriumpinnacle_mindvoid_01.arm
+  point [258.0, 139.0, 'telepad']
+  point [340.0, 344.0, 'telepad']
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuFaceTransition x1 (107,106)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMindEntranceAreaTransition_Animate x1 (264,298)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuChild x1 (265,285)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/FleeingSpirit x1 (265,285)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/LoomingDarkness x1 (265,285)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/TangmazuMindEntrance x1 (261,309)
+  obj Metadata/Monsters/DeliriumTangmazu/Objects/MindSceneBlocking x1 (261,258)

@@ -1,0 +1,104 @@
+# Mighty Silverfist / Zekoa, the Headcrusher
+content: Act 3
+monsters: Metadata/Monsters/Quadrilla/QuadrillaBoss, Metadata/Monsters/Quadrilla/QuadrillaBossCampaignSTANDALONE, Metadata/Monsters/Quadrilla/QuadrillaBossMAP, Metadata/Monsters/Quadrilla/QuadrillaBossSTANDALONE
+scripts: Metadata/Monsters/Quadrilla/QuadrillaBoss, Metadata/Monsters/Quadrilla/QuadrillaBossSTANDALONE, Metadata/Monsters/Quadrilla/QuadrillaBossMAP_
+own chain: Metadata/Monsters/Quadrilla/QuadrillaBoss, Metadata/Monsters/Quadrilla/QuadrillaBossSTANDALONE, Metadata/Monsters/Quadrilla/QuadrillaBossMAP_
+areas: G3_3 Jungle Ruins act3; BossRush_Area2 Boss Rush Area 2 act10; MapRiverside Riverside act10; MapRupture Rupture act10
+ai: Metadata/Monsters/Quadrilla/QuadrillaBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EAAQuadrillaBossCleaveLeft [melee] action=HeavyStrike anim=default:sweep_slam_pillar_left_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossCleaveRight [melee] action=OffHeavyStrike anim=default:sweep_slam_pillar_right_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossSpin [melee] action=GroundSlamOffhand anim=default:spin_slam_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossSlam [empty_action_attack] action=GroundSlam anim=default:heavy_slam_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAQuadrillaBossSlamCircle [geometry_attack] action=GroundSlam anim=default:heavy_slam_pillar_01
+    geom: circle length=30 width=0 angle=0 range=210 delay=70 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAQuadrillaBossRectSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=41 width=22 angle=0 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_blocked base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAQuadrillaBossSunder [geometry_attack] action=None anim=-
+    geom: rectangle length=63 width=27 angle=0 range=400 delay=40 anchor=3
+    flags: base_skill_can_be_blocked base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- DTTQuadrillaCommandoRoll [melee] action=DodgeForward anim=default:roll_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+
+## own states and handlers
+states: death; aggro
+- on_state_aggro_1 = { PlayEffect( 'Metadata/Monsters/Quadrilla/QuadrillaBossAggroAudio.ao' ); }
+- on_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); this.blood = PlayEffectAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/ao/death_pool.ao', 0, jaw_jntBnd, 1, inherit ); }
+- create_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); this.blood = PlayEffectAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/ao/death_pool.ao', 0, jaw_jntBnd, 1, inherit ); }
+- on_end_heavy_slam_pillar_01 = { PlayCharacterAudioEvent( JungleDepthsBossSlamSeen ); }
+- on_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); }
+- create_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_environment G3_3_boss
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/quadrilla/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=SilverbackBlackfistBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SilverbackBlackfistBossInactive ); }}
+- metadata/monsters/quadrilla/quadrillabossexpeditionencased: MinimapIcon Actor [icon=ExpeditionPOI] states=be_free on_construction_complete{{ DisableHighlighting(); AddEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk', infinity ); }}; on_state_be_free_1{{ EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk' ); }}
+- Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=SilverbackBlackfistBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SilverbackBlackfistBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle:  [server_only=true] states= on_construction_complete{{ globals.generic_arena_middle_object = this; }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle:  [blocking=true object_size=5 server_only=true] states=blasted create_state_blasted_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/wicker_fire.epk' ); }}; create_state_blasted_1{{ PlayAnimation( smash ); GoToAnimationEnd(); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, ds}; on_state_blasted_1{{ PlayAnimation( smash ); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, dstone_geoShape1, rope}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle: ProximityTrigger [radius=80 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardCarverBogBossArena, TitleCardCarverBogBossArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_silverbackblackfist_rooms_bossclearing_01.arm
+  sector ['no_critters', 69, 0, 345, 276, '']
+  point [178.0, 133.0, 'mapboss1']
+  point [214.0, 38.0, 'killzone=6']
+  point [175.0, 138.0, 'killzone=8']
+  point [207.0, 48.0, 'checkpoint2']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (229,55)
+  obj Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon x1 (205,129)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (205,115)
+room metadata_terrain_gallows_act3_3_3_rooms_clearingfeatures_bossclearing_01.arm
+  point [143.0, 119.0, 'mapboss']
+  point [107.0, 214.0, 'killzone=6']
+  point [146.0, 114.0, 'killzone=8']
+  point [107.0, 217.0, 'checkpoint9']
+  point [161.0, 67.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (92,197)
+  obj Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon x1 (116,123)
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_bogwitch_rooms_boss_01.arm
+  sector ['hide_teleports', 117, 162, 341, 317, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 162, 120, 301, 162, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 125, 129, 343, 329, '']
+  sector ['no_movement_skills', 148, 149, 177, 151, '']
+  sector ['no_movement_skills', 148, 149, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 127, 324, '']
+  sector ['no_movement_skills', 175, 130, 177, 151, '']
+  sector ['no_movement_skills', 175, 130, 341, 132, '']
+  point [249.0, 246.0, 'mapboss3']
+  point [171.0, 169.0, 'telepad4']
+  point [116.0, 115.0, 'checkpoint6']
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle x1 (227,226)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/Effigy x11 (278,162) (148,186) (238,311) (157,274) (304,274) (189,147) (141,227) (305,198) (189,305) (276,304)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker x24 (257,174) (175,196) (197,278) (287,226) (279,196) (227,166) (197,174) (167,226) (175,256) (227,286)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle x1 (220,218)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (131,98)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (147,148)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon x1 (227,226)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPackProxTrigger x1 (95,98)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker x42 (292,166) (300,175) (273,149) (264,144) (252,140) (225,140) (214,141) (204,142) (177,154) (170,162)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle x1 (227,226)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (240,237)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (162,160)

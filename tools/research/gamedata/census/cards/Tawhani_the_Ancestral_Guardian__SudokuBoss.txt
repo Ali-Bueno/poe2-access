@@ -1,0 +1,93 @@
+# Tawhani, the Ancestral Guardian
+content: Other/unplaced
+monsters: Metadata/Monsters/SudokuTotemBoss/SudokuBoss
+scripts: Metadata/Monsters/SudokuTotemBoss/SudokuBoss
+own chain: Metadata/Monsters/SudokuTotemBoss/SudokuBoss
+areas: 
+ai: Metadata/Monsters/SudokuTotemBoss/SudokuBoss.ais (not shipped)
+
+## skills
+- EASSudokuTotemDoEverything [empty_action_spell] action=SpellAreaOfEffect anim=default:dostuff_TEMP
+- CGESudokuTotemColdSnap [monster_cast_ground_effect_location] action=None anim=-
+- CGESudokuTotemMoltenPopGround [monster_cast_ground_effect_location] action=None anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Sudoku/calamity_of_frost.ao
+- GSSudokuTotemArc [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSSudokuTotemMoltenPop [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=1500 delay=1500 anchor=4
+    flags: is_area_damage
+- GSSudokuTotemShockNova [geometry_spell] action=None anim=-
+    geom: donut length=40 width=25 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- GSSudokuTotemStormCall [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTSudokuTotemMoltenPimples [geometry_trigger] action=None anim=-
+    geom: trigger count=20 delay=5000 spread=100 radius=5 angle=0 anchor=4
+    triggers: GSSudokuTotemMoltenPop
+- GTSudokuTotemStormCall [geometry_trigger] action=None anim=-
+    geom: trigger count=30 delay=10000 spread=150 radius=100 angle=0 anchor=3
+    triggers: GSSudokuTotemStormCall
+- MPSSudokuTotemTikiFireball [monster_projectile_spell] action=SpellProjectile anim=-
+- GTSudokuTotemStormCall2 [geometry_trigger] action=None anim=-
+    geom: trigger count=60 delay=10000 spread=150 radius=100 angle=0 anchor=3
+    triggers: GSSudokuTotemStormCall
+- SudokuTotemExpandingShocknova [expanding_pulse] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- MPSSudokuTotemVolcanicPopcorn [monster_projectile_spell] action=SpellProjectile anim=-
+- SudokuTotemAbyssSlam [proto_abyss_slam] action=LongOpen anim=-
+    flags: is_area_damage
+- GASudokuTotemVolcanicCrack [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=10 angle=0 range=100 delay=33 anchor=12
+    flags: is_area_damage
+- GTSudokuTotemStormCallTargetPlayer [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=10 radius=0 angle=0 anchor=1
+    triggers: GSSudokuTotemStormCall
+- GTSudokuTotemMoltenPimplesTargetPlayer [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=10 radius=0 angle=0 anchor=1
+    triggers: GSSudokuTotemMoltenPop
+
+## own states and handlers
+states: debuff; element; delivery_method
+- on_or_create_state_element_0 = { SetLightState( off ); }
+- on_or_create_state_element_1 = { SetLightState( fire, 1.0 ); }
+- on_or_create_state_element_2 = { SetLightState( cold, 1.0 ); }
+- on_or_create_state_element_3 = { SetLightState( lightning, 1.0 ); }
+- on_or_create_state_element_4 = { SetLightState( default, 1.0 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/FallenKarui/FallenKaruiArcher_______
+- preload_monster_variety Metadata/Monsters/KaruiSoulCaster/KaruiSoulCaster_
+- preload_monster_variety Metadata/Monsters/KaruiWarriorHorn/KaruiWarriorHorn_
+- preload_monster_variety Metadata/Monsters/FallenKarui/FallenKaruiShieldAxe
+- preload_monster_variety Metadata/Monsters/FallenKarui/FallenKaruiTwoHandAxe
+- preload_monster_variety Metadata/Monsters/FallenKarui/FallenKaruiOneHandMace
+- preload_misc_animated DischargeFire
+- preload_misc_beam SudokuTotemTikiArc
+
+## adds and forms
+- Metadata/Monsters/FallenKarui/FallenKaruiArcher_______ "Ancestral Archer" bossbar=0 skills=MeleeAtAnimationSpeed,SnipeFallenKaruiArcher,GAFallenKaruiArcherImpact,GAFallenKaruiArcherJadeRainSingle,GTFallenKaruiArcherJadeRain comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/KaruiSoulCaster/KaruiSoulCaster_ "Ancestral Channeler" bossbar=0 skills=MeleeAtAnimationSpeed,SSMKaruiSpiritSummon,GTSummonKaruiSpirits,EASKaruiSoulCasterMinionProjectile,GPSKaruiSpiritMinionProjectile,MPSKaruiCasterProjectile,MPSKaruiSpiritProjectile comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/KaruiWarriorHorn/KaruiWarriorHorn_ "Ancestral Hornbearer" bossbar=0 skills=MeleeAtAnimationSpeed,EGKaruiHornBuffSpawn,EGKaruiHornBuffAllies,EASKaruiHornSlam,GAKaruiHornSlamCleave comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenKarui/FallenKaruiShieldAxe "Ancestral Guardian" bossbar=0 skills=MeleeAtAnimationSpeed comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenKarui/FallenKaruiTwoHandAxe "Ancestral Warrior" bossbar=0 skills=MeleeAtAnimationSpeed,EESFallenKaruiBuffSelf comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/FallenKarui/FallenKaruiOneHandMace "Ancestral Headtaker" bossbar=0 skills=MeleeAtAnimationSpeed comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/sudokutotemboss/objects/sudokutotemvolcanicslam:  [server_only=true] states= 
+- metadata/monsters/sudokutotemboss/objects/sudokutotemvolcanicslampath:  [server_only=true] states= 
+- metadata/monsters/sudokutotemboss/objects/sudokutotemvolcanicslampathend:  [server_only=true] states= 
+- metadata/monsters/sudokutotemboss/objects/sudokutotemvolcanicslampathstart:  [server_only=true] states= 
+
+## lines
+
+## linked buffs
+- cannot_be_damaged_sudoku_boss_display "": Protected by Ancestral Warriors | stats=display_cannot_be_damaged_sudoku_boss
+- karui_horn_buff "":  | stats=damage_+%
+- sudoku_boss_upper_face_buff "":  | stats=always_crit,always_stun,global_maim_on_hit
+
+## arena rooms

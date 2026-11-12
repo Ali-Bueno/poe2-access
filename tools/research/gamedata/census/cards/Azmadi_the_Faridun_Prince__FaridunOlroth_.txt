@@ -1,0 +1,161 @@
+# Azmadi, the Faridun Prince / Zahmir, the Blade Sovereign
+content: Interlude
+monsters: Metadata/Monsters/FaridunOlroth/FaridunOlroth_, Metadata/Monsters/FaridunOlroth/FaridunOlrothMAP, Metadata/Monsters/FaridunOlroth/FaridunOlrothSTANDALONE, Metadata/Monsters/FaridunOlroth/FaridunOlrothClone, Metadata/Monsters/FaridunOlroth/FaridunOlrothCloneMAP
+scripts: Metadata/Monsters/FaridunOlroth/FaridunOlroth, Metadata/Monsters/FaridunOlroth/FaridunOlrothMAP, Metadata/Monsters/FaridunOlroth/FaridunOlrothSTANDALONE, Metadata/Monsters/FaridunOlroth/FaridunOlrothClone
+own chain: Metadata/Monsters/FaridunOlroth/FaridunOlroth, Metadata/Monsters/FaridunOlroth/FaridunOlrothMAP, Metadata/Monsters/BossBaseEndgameAddon, Metadata/Monsters/FaridunOlroth/FaridunOlrothSTANDALONE, Metadata/Monsters/FaridunOlroth/FaridunOlrothClone
+areas: P2_7 Qimah Reservoir act6; MapCavernCity Sacred Reservoir act10
+ai: Metadata/Monsters/FaridunOlroth/FaridunOlroth.ais, Metadata/Monsters/FaridunOlroth/FaridunOlrothMAP.ais, Metadata/Monsters/FaridunOlroth/FaridunOlrothSTANDALONE.ais, Metadata/Monsters/NoAi.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- EASChronoPrinceLeapSlamStart [empty_action_spell] action=SpellProjectileLightning anim=default:chrono_leap_slam_start_01
+- EAAChronoPrinceManySidedStrike [empty_action_attack] action=DoubleStrike anim=default:many_sides_strike_01
+- EAAChronoPrinceLacerate [empty_action_attack] action=GlacialHammer anim=default:empowered_triple_lacerate_01
+- DTTChronoPrince1 [dash_to_target] action=Flurry anim=default:dash_01
+- DTTChronoPrince2 [dash_to_target] action=Impale anim=default:dash_02
+- EAAChronoPrinceCloneSplitStrike [empty_action_attack] action=HeavyStrike anim=default:clone_strike_ultimate_01
+- CTS1Generic [change_to_stance1] action=None anim=-
+- EAAChronoPrinceFirstThrow [empty_action_attack] action=ThrowOff anim=default:sword_throw_start_01
+- EAAChronoPrinceRepeatThrow [empty_action_attack] action=ThrowNear anim=stance4:sword_throw_catch_throw_01
+- DTTChronoPrinceEmpowered1 [dash_to_target] action=Sweep anim=default:chrono_dash_01
+- MAASChronoPrinceNonLacerate [melee] action=Frenzy anim=default:triple_lacerate_01
+- DTTChronoPrinceEmpowered2 [dash_to_target] action=Stomp anim=default:chrono_dash_02
+- GAChronoPrinceGroundSlam [geometry_attack] action=BearSlam anim=default:groundslam_01
+    geom: circle length=42 width=0 angle=0 range=250 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAChronoPrinceRuptureSlam [geometry_attack] action=MoltenSlam anim=default:slam_rupture_01
+    geom: cone length=70 width=0 angle=30 range=250 delay=33 anchor=3
+    flags: is_area_damage
+- GAChronoPrinceEmpoweredRuptureSlam [geometry_attack] action=DoubleSlam anim=default:slam_rupture_03
+    geom: cone length=180 width=0 angle=30 range=100 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    buffs: ground_tar_slow
+- MPWChronoPrinceThrow [monster_projectile_weapon] action=PowerShot anim=default:sword_throw_01
+- MPWChronoPrinceThrowReturn [monster_projectile_weapon] action=PowerShot anim=default:sword_throw_01
+- EASChronoPrinceEmpowerTime [empty_action_spell] action=SpellNovaLightning anim=default:fake_dead_02
+- GAChronoPrinceLacerate1 [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=9 angle=0 range=400 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAChronoPrinceLacerate2 [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=9 angle=0 range=400 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAChronoPrinceLacerate3 [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=14 angle=0 range=400 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAChronoPrinceDash1 [geometry_attack] action=Flurry anim=default:dash_01
+    geom: rectangle length=20 width=7 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAChronoPrinceDash2 [geometry_attack] action=Impale anim=default:dash_02
+    geom: cone length=20 width=0 angle=180 range=120 delay=33 anchor=3
+    flags: is_area_damage
+- GAChronoPrinceDashLong [geometry_attack] action=Impale anim=default:dash_02
+    geom: rectangle length=0 width=6 angle=0 range=200 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAChronoPrincePostDash2 [geometry_attack] action=None anim=-
+    geom: rectangle length=20 width=7 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAChronoPrinceCloneSplitStrikeDetonate [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTChronoPrinceCloneSplitStrike [geometry_trigger] action=None anim=-
+    geom: trigger count=15 delay=0 spread=100 radius=60 angle=0 anchor=4
+- GAChronoPrinceLeapSlamImpact [geometry_attack] action=LeapingChop anim=stance3:chrono_leap_slam_end_01
+    geom: rectangle length=200 width=10 angle=0 range=1000 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASChronoPrinceLeapSlamImpact [empty_action_spell] action=LeapingChop anim=stance3:chrono_leap_slam_end_01
+- GAChronoPrinceCloneSplitStrikeLacerate [geometry_attack] action=None anim=-
+    geom: rectangle length=200 width=18 angle=0 range=400 delay=33 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: face_mode; chop; end_throwing; empowered; power_up_time; phase_change; FightStartShout; empowered_epks; dont_face
+- on_construction_complete = { AddToPlayerWakeGroup( true ); }
+- on_timer_face_player = { FaceNearestPlayer(); StartStateTimer( face_player, 0.034 ); }
+- on_or_create_state_face_mode_0 = { SetMovementFaceMode( FaceDirection ); }
+- on_or_create_state_face_mode_1 = { SetMovementFaceMode( FaceAway ); }
+- on_construction_complete = { this.my_back_attach = GetAttachedAOByType( 'Metadata/Monsters/FaridunOlroth/Attachments/FaridunBlackPrinceBackAttachment/FaridunBlackPrinceBackAttachment.ao' ); this.my_sword = GetAttachedAOByType( 'Metadata/Monsters/FaridunOlroth/Attachments/FaridunBlackPrinceWeapon.ao' ); }
+- on_or_create_state_empowered_epks_0 = { my_back_attach.RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/back_empowered.epk' ); }
+- on_or_create_state_empowered_epks_1 = { my_back_attach.AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/back_empowered.epk' ); }
+- on_or_create_state_empowered_epks_0 = { my_sword.RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/sword_empowered.epk' ); my_back_attach.RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/back_empowered.epk' ); }
+- on_or_create_state_empowered_epks_1 = { my_sword.AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/sword_empowered.epk' ); my_back_attach.AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/back_empowered.epk' ); }
+- on_or_create_state_dont_face_0 = { SetMovementFaceMode( FaceDirection ); }
+- on_or_create_state_dont_face_1 = { SetMovementFaceMode( DontFace ); }
+- on_construction_complete = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/temporal_clone.epk'); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/FaridunOlroth/Objects/OlrothSwordObject
+- preload_monster_variety Metadata/Monsters/FaridunOlroth/FaridunOlrothClone
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/domain_expansion.ao
+- preload_animated_object Metadata/Monsters/FaridunOlroth/FaridunBlackPrinceRuptureClone.ao
+- preload_monster_variety Metadata/Monsters/FaridunOlroth/FaridunOlrothCloneMAP
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/FaridunOlroth/Objects/OlrothSwordObject: Life Buffs Stats [blocking=true object_size=2 server_only=true] states= on_initial_position_set{{ StartStateTimer( face_player, 0.034 ); }}; on_timer_face_player{{ FaceNearestPlayer( ); StartStateTimer( face_player, 0.034 ); }}
+- metadata/monsters/faridunolroth/objects/approachconversationcontroller:  [server_only=true] states= 
+- metadata/monsters/faridunolroth/objects/bossarenamiddle: ControlZone [server_only=true] states= on_construction_complete{{ globals.chrono_arena_middle = this; }}
+- metadata/monsters/faridunolroth/objects/bossemergecontroller: ControlZone [server_only=true] states= 
+- metadata/monsters/faridunolroth/objects/bossemergeposition:  [blocking=true object_size=3 server_only=true] states=emerge on_or_create_state_emerge_1{{ AddAttached( 'Metadata/Monsters/FaridunOlroth/Attachments/FaridunBlackPrinceWeapon.ao', R_Weapon ); }}
+- metadata/monsters/faridunolroth/objects/captivewaterdjinn:  [server_only=true] states=pan;boss_dead on_state_boss_dead_1{{ PlayAnimation( return_to_barya_01 ); }}; create_state_boss_dead_1{{ PlayAnimation( return_to_barya_01 ); GoToAnimationEnd(); }}
+- metadata/monsters/faridunolroth/objects/olrothswordobject: Life Buffs Stats [blocking=true object_size=2 server_only=true] states= on_initial_position_set{{ StartStateTimer( face_player, 0.034 ); }}; on_timer_face_player{{ FaceNearestPlayer( ); StartStateTimer( face_player, 0.034 ); }}
+- metadata/monsters/faridunolroth/objects/waterdjinnbayra: InteractionAction Targetable [blocking=true object_size=5 server_only=true] states=triggered;hide;epk = 1 on_or_create_state_hide_1{{ DisableTargetable(); minimap_icon.HideMinimapIcon(); DisableHighlighting(); }}; on_or_create_state_epk_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/pedestal_pulse.epk' ); }}; on_or_create_state_epk_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/pedestal_pulse.epk' ); }}
+- metadata/monsters/faridunolroth/objects/waterdjinnbayraiconoffset: MinimapIcon [server_only=true icon=QuestObject] states=hide on_or_create_state_hide_1{{ HideMinimapIcon(); }}
+- Metadata/Monsters/FaridunOlroth/Objects/CaptiveWaterDjinn:  [server_only=true] states=pan;boss_dead on_state_boss_dead_1{{ PlayAnimation( return_to_barya_01 ); }}; create_state_boss_dead_1{{ PlayAnimation( return_to_barya_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/FaridunOlroth/Objects/WaterDjinnBayra: InteractionAction Targetable [blocking=true object_size=5 server_only=true] states=triggered;hide;epk = 1 on_or_create_state_hide_1{{ DisableTargetable(); minimap_icon.HideMinimapIcon(); DisableHighlighting(); }}; on_or_create_state_epk_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/pedestal_pulse.epk' ); }}; on_or_create_state_epk_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act_Interlude/FaridunOlroth/epk/pedestal_pulse.epk' ); }}
+- Metadata/Monsters/FaridunOlroth/Objects/BossEmergePosition:  [blocking=true object_size=3 server_only=true] states=emerge on_or_create_state_emerge_1{{ AddAttached( 'Metadata/Monsters/FaridunOlroth/Attachments/FaridunBlackPrinceWeapon.ao', R_Weapon ); }}
+- Metadata/Monsters/FaridunOlroth/Objects/BossArenaMiddle: ControlZone [server_only=true] states= on_construction_complete{{ globals.chrono_arena_middle = this; }}
+- Metadata/Monsters/FaridunOlroth/Objects/BossEmergeController: ControlZone [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_7/Objects/SummonAllyQimah: MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=activated;visible = 1 on_state_activated_1{{ DisableTargetable(); DisableRendering(); HideMinimapIcon(); }}; create_state_activated_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; create_state_visible_0{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; create_state_visible_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Monsters/FaridunOlroth/Objects/ApproachConversationController:  [server_only=true] states= 
+- Metadata/Monsters/FaridunOlroth/Objects/WaterDjinnBayraIconOffset: MinimapIcon [server_only=true icon=QuestObject] states=hide on_or_create_state_hide_1{{ HideMinimapIcon(); }}
+
+## lines
+
+## linked buffs
+- ground_tar_slow "Tarred Ground": Your movement speed is reduced while standing in tar | stats=base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act4_interlude_part2_p2_7_rooms_unique_boss_01.arm
+  sector ['boss_sector', 76, 198, 502, 522, '']
+  sector ['no_critters', 95, 198, 470, 516, '']
+  sector ['no_movement_skills', 106, 189, 463, 192, '']
+  sector ['hide_teleports', 50, 190, 528, 567, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [276.0, 54.0, 'checkpoint1']
+  point [277.0, 213.0, 'telepad1']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (296,54)
+  obj Metadata/Monsters/FaridunOlroth/Objects/CaptiveWaterDjinn x1 (275,534)
+  obj Metadata/Monsters/FaridunOlroth/Objects/WaterDjinnBayra x1 (276,535)
+  obj Metadata/Monsters/FaridunOlroth/Objects/BossEmergePosition x23 (244,435) (168,433) (276,484) (206,433) (244,392) (206,390) (168,390) (245,345) (207,343) (169,343)
+  obj Metadata/Monsters/FaridunOlroth/Objects/BossArenaMiddle x1 (275,353)
+  obj Metadata/Monsters/FaridunOlroth/Objects/BossEmergeController x1 (272,433)
+  obj Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_7/Objects/SummonAllyQimah x1 (297,476)
+  obj Metadata/Monsters/FaridunOlroth/Objects/ApproachConversationController x1 (275,196)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (274,181)
+  obj Metadata/Monsters/FaridunOlroth/Objects/WaterDjinnBayraIconOffset x1 (279,519)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (277,191) (312,191) (241,191)
+room metadata_terrain_maps_caverncity_rooms_unique_boss_01.arm
+  sector ['boss_sector', 76, 198, 502, 522, '']
+  sector ['no_critters', 95, 198, 470, 516, '']
+  sector ['no_movement_skills', 95, 198, 460, 203, '']
+  sector ['hide_teleports', 50, 195, 528, 572, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [275.0, 401.0, 'mapboss']
+  point [276.0, 54.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (296,54)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x23 (248,200) (242,200) (254,200) (260,200) (266,200) (272,200) (278,200) (284,200) (236,200) (230,200)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x6 (242,201) (203,201) (277,201) (314,201) (349,201) (168,201)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (279,355)
+  obj Metadata/Monsters/FaridunOlroth/Objects/CaptiveWaterDjinn x1 (275,534)
+  obj Metadata/Monsters/FaridunOlroth/Objects/WaterDjinnBayra x1 (276,535)
+  obj Metadata/Monsters/FaridunOlroth/Objects/BossEmergePosition x23 (244,435) (168,433) (276,484) (206,433) (244,392) (206,390) (168,390) (245,345) (207,343) (169,343)
+  obj Metadata/Monsters/FaridunOlroth/Objects/BossArenaMiddle x1 (275,353)
+  obj Metadata/Monsters/FaridunOlroth/Objects/BossEmergeController x1 (272,433)
+  obj Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_7/Objects/SummonAllyQimah x1 (297,476)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (249,461)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (306,418) (350,408) (227,420) (203,374)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (259,411)
+room metadata_terrain_maps_caverncity_rooms_unique_boss_transition_m_01.arm
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x5 (144,418) (209,415) (49,363) (303,366) (118,333)

@@ -1,0 +1,144 @@
+# Anundr, the Sandworm
+content: Interlude
+monsters: Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHead, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadSTANDALONE, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadMAP_, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadMinion
+scripts: Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHead, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadSTANDALONE, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadMap
+own chain: Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHead, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadSTANDALONE, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadMap
+areas: P2_1 The Khari Crossing act6; P2_4 [DNT] River Barrens act6; MapArroyo Arroyo act10; MapAridPlains Arid Plains act10
+ai: Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHead.ais, Metadata/Monsters/MudBurrower/DevourerDuo/DevourerBossDuoHeadSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeMudBurrowerLeftCleave [melee] action=Melee anim=default:attack_01
+- MeleeMudBurrowerRightCleave [melee] action=OffMelee anim=default:attack_02
+- MeleeMudBurrowerBite [melee] action=Frenzy anim=default:bite_01
+- MPAMudBurrowerBloodProj [monster_projectile_weapon] action=SpellProjectile anim=default:spit_01
+    flags: base_deal_no_damage
+- MudBurrowerBurrowSpam [minotaur_burrow] action=Submerge anim=default:submerge_dive_01_01
+    flags: is_area_damage
+- MudBurrowerEpicBurrowNoRetarget [teleport] action=Teleport anim=default:submerge_emerge_01
+- MudBurrowerGoopGT [geometry_trigger] action=SpellProjectileUpward anim=default:spit_epic_01
+    geom: trigger count=14 delay=0 spread=70 radius=10 angle=0 anchor=3
+    triggers: MPAMudBurrowerGoopSmallBall
+- MPAMudBurrowerSprayProj [monster_projectile_weapon] action=SpellProjectileUpwardChaos anim=default:acid_spray_01
+    flags: base_deal_no_damage
+- GAMudBurrowerBloodProj [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- MudBurrowerEpicBurrowTriggerGA [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- MudBurrowerMaggotSummon [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeEmergeSummoned1_
+- MudBurrowerGoopTriggerEG [execute_geal] action=None anim=-
+    GEAL 1008 on ['Metadata/Monsters/MudBurrower/MudBurrowerBodyBoss']: self{} each{triggerer.SetStateTo( fight, 1 );} r=100
+- MudBurrowerGoopTriggerKnockbackGA [geometry_attack] action=Melee anim=default:attack_01
+    geom: rectangle length=40 width=25 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- MPAMudBurrowerGoopSmallBall [monster_projectile_weapon] action=SpellProjectile anim=default:spit_01
+    flags: base_deal_no_damage
+- GAMudBurrowerGoopSmallImpact [geometry_attack] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MPAMudBurrowerGoopBigBall [monster_projectile_weapon] action=SpellProjectile anim=default:spit_01
+    flags: base_deal_no_damage
+- MudBurrowerGoopExplode [geometry_attack] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAMudBurrowerSpraySmallImpact [geometry_attack] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAMudBurrowerDivePush [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=18 angle=0 range=400 delay=33 anchor=12
+    flags: base_deal_no_damage base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAMudBurrowerHeadSlam [geometry_attack] action=GroundSlam anim=default:bite_vomit_01
+    geom: circle length=18 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- CGEMudBurrowerVomit [monster_cast_ground_effect_location] action=None anim=-
+- MPAMudBurrowerVomitProj [monster_projectile_weapon] action=SpellProjectileUpwardChaos anim=default:acid_spray_01
+    flags: base_deal_no_damage
+
+## own states and handlers
+states: 
+- on_submerge_emerge_01 = { RemoveCollidability(); }
+- on_end_submerge_emerge_01 = { MakeCollidable(); }
+- on_event_geotrigger_for_submerge_emerge_01 = { MakeCollidable(); }
+- create_untransitioned = { DisableRendering(); }
+- on_transition = { EnableRendering(); SetStaticLifeBarVisibilty( True ); }
+- create_transitioned = { IfAlive( { SetStaticLifeBarVisibilty( True ); } ); Delay( 0.1, {SetStaticLifeBarVisibilty( True ); } ); }
+- on_event_pulse_for_submerge_emerge_01 = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/preshockwave.ao' ); }
+- on_event_pulse_for_submerge_emerge_02 = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/preshockwave.ao' ); }
+- on_event_pulse_for_submerge_emerge_03 = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/preshockwave.ao' ); }
+- on_emerge_01 = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/mudburrower_travelling.ao' ); }
+- on_event_disable_turn_rate = { SetAnimatedTurnDuration( 0.1, 0 ); }
+- on_event_enable_turn_rate = { ResetAnimatedTurnDuration( 0 ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/epk/mouth_along.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/epk/mouth_along.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/on_death.epk' ); EnableProjectileAttaching(); SetStaticLifeBarVisibilty( false ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/on_death.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/mudburrower_travelling.ao
+- preload_animated_object Metadata/Monsters/MudBurrower/MudBurrowerHead.ao
+- preload_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/mudburrower_chasm
+- preload_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/mudburrower_chasm_body
+- preload_object Metadata/Monsters/MudBurrower/MudBurrowerBodyBoss
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/acidic_ground_slow_fade_in.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/emerge_epic.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/epk/mouth_along.epk
+- preload_environment G1_3_boss
+- preload_environment G1_3_boss_defeat
+
+## adds and forms
+- Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeEmergeSummoned1_ "Flesh Larva" bossbar=0 skills=MeleeAtAnimationSpeed comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=cinematic_grubs
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/mudburrower_chasm: Transitionable [blocking=false object_size=0] states=slow_fadeout on_end_fadeout{{ Delete(); }}; on_end_fadeout_slow{{ Delete(); }}; on_transition{{ PlayAnimation( fadeout ); }}; on_state_slow_fadeout_1{{ PlayAnimation( fadeout_slow ); }}; create_untransitioned{{ PlayAnimation( fadein ); QueueAnimation( idle ); }}
+- Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/mudburrower_chasm_body: Transitionable [blocking=false object_size=0] states=slow_fadeout on_end_fadeout{{ Delete(); }}; on_end_fadeout_slow{{ Delete(); }}; on_transition{{ PlayAnimation( fadeout ); }}; on_state_slow_fadeout_1{{ PlayAnimation( fadeout_slow ); }}; create_untransitioned{{ PlayAnimation( fadein ); QueueAnimation( idle ); }}
+- Metadata/Monsters/MudBurrower/MudBurrowerBodyBoss: TriggerableBlockage [start_blocked=false server_only=true] states=forward;fight;bite;emerge;emerge_epic;submerge_emerge;dead;ritual_melt on_construction_complete{{ DisableProjectileAttaching(); }}; on_state_forward_0{{ PlayAnimation( idle_alive_01 ); }}; on_state_forward_1{{ PlayAnimation( rotate_forward_01 ); SetCurrentAnimationSpeed( forward_loop_anim_speed ); }}; on_state_bite_1{{ PlayAnimation( bite_01 ); QueueAnimation( idle_alive_01 ); }}; on_state_emerge_1{{ PlayAnimation( emerge_01 ); QueueAnimation( idle_alive_01 ); }}; on_state_emerge_epic_1{{ PlayAnimation( emerge_epic_01 ); QueueAnimation( idle_alive_01 ); }}
+- Metadata/Monsters/MudBurrower/Arena_Blocker_Visual: Transitionable [blocking=false object_size=3 server_only=true] states= create_untransitioned{{ PlayAnimationByIndex( 0 ); PauseAnimation( ); }}; create_transitioned{{ PlayAnimationByIndex( 2 ); }}; on_transition{{ PlayAnimationByIndex( 0 ); QueueAnimationByIndex( 2 ); }}; on_untransition{{ PlayAnimationByIndex( 1 ); }}
+- Metadata/Monsters/MudBurrower/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=MudBurrowerActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( MudBurrowerInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumAirlockBlocker: TriggerableBlockage [start_blocked=true blocking=false object_size=5 server_only=true] states=sanctum_completed create_state_sanctum_completed_0{{ PlayAnimationByIndex( 0 ); PauseAnimation( ); }}; create_state_sanctum_completed_1{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd( ); }}; on_state_sanctum_completed_1{{ PlayAnimationByIndex( 0 ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_3_rooms_unique_boss.arm
+  sector ['noburrow', 91, 93, 129, 127, '']
+  sector ['noburrow', 129, 103, 141, 130, '']
+  sector ['noburrow', 141, 108, 165, 129, '']
+  sector ['noburrow', 141, 129, 160, 159, '']
+  sector ['noburrow', 101, 127, 129, 156, '']
+  sector ['noburrow', 129, 130, 141, 159, '']
+  sector ['hide_teleports', 1, 0, 276, 239, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 12, 5, 265, 227, '']
+  point [102.0, 53.0, 'mapboss']
+  point [239.0, 110.0, 'telepad']
+  point [111.0, 206.0, 'telepad']
+  point [115.0, 348.0, 'checkpoint1']
+  point [351.0, 104.0, 'checkpoint2']
+  point [123.0, 117.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (319,90) (90,313)
+  obj Metadata/Monsters/MudBurrower/Arena_Blocker_Visual x14 (300,104) (310,102) (288,115) (283,99) (267,103) (264,119) (280,104) (113,228) (128,243) (108,252)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized x28 (63,136) (190,109) (78,160) (193,155) (130,180) (87,169) (196,124) (197,138) (162,173) (70,148)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x3 (108,107) (112,144) (155,122)
+  obj Metadata/MiscellaneousObjects/Checkpoint x2 (337,110) (119,337)
+  obj Metadata/Monsters/MudBurrower/Objects/BossRoomMinimapIcon x1 (129,124)
+room metadata_terrain_gallows_leagues_sanctum_level_3_rooms_explore_explore_05.arm
+  point [275.0, 517.0, 'telepad']
+  obj Metadata/Monsters/MudBurrower/SpiresBurrowerSanctumTrial x6 (492,575) (597,701) (684,648) (531,436) (281,326) (407,439)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/HourglassLethal x7 (312,543) (672,506) (624,671) (398,296) (319,394) (592,351) (444,602)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x15 (381,477) (490,544) (430,475) (486,477) (485,503) (542,471) (551,531) (598,472) (312,543) (672,506)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/QuicksandPit@0 x5 (610,601) (503,433) (401,587) (411,380) (303,352)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x5 (610,601) (503,433) (401,587) (411,380) (303,352)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumAirlockBlocker x1 (770,517)
+room metadata_terrain_gallows_leagues_sanctum_level_3_rooms_explore_explore_04.arm
+  point [91.0, 517.0, 'telepad']
+  obj Metadata/Monsters/MudBurrower/SpiresBurrowerSanctumTrial x5 (236,576) (492,654) (185,760) (260,412) (418,289)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/HourglassLethal x7 (175,559) (223,333) (192,732) (480,357) (440,516) (347,395) (333,668)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (426,571) (465,311)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/QuicksandPit@0 x2 (426,571) (465,311)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x7 (175,559) (223,333) (192,732) (480,357) (440,516) (347,395) (333,668)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumAirlockBlocker x1 (609,517)

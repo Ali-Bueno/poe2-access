@@ -1,0 +1,207 @@
+# Kulka, Vaal Thaumaturge
+content: League: Incursion
+monsters: Metadata/Monsters/LeagueIncursionNew/Thaumaturge/DoryaniIncursionTier3
+scripts: Metadata/Monsters/LeagueIncursionNew/Thaumaturge/Boss/Tier3/DoryaniPast
+own chain: Metadata/Monsters/LeagueIncursionNew/Thaumaturge/Boss/Tier3/DoryaniPast, Metadata/Monsters/LeagueIncursionNew/IncursionMiniBossBase
+areas: 
+ai: Metadata/Monsters/LeagueIncursionNew/Thaumaturge/Boss/Tier3/DoryaniPast.ais (not shipped)
+
+## skills
+- GSDoryaniHumanBossBasicLightningZap [geometry_spell] action=DoryaniHumanBossLightningZap anim=default:attack_01_additive
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSDoryaniHumanBossFlamethrower [geometry_spell] action=DoryaniHumanBossFlamethrower anim=default:attack_02_additive
+    geom: donut length=45 width=10 angle=25 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked
+- MPSDoryaniHumanBossCrystalTossLeft [monster_projectile_spell] action=DoryaniHumanBossCrystalTossLeft anim=default:soul_cores_left_01_additive
+    flags: base_deal_no_damage
+- MPSDoryaniHumanBossCrystalTossRight [monster_projectile_spell] action=DoryaniHumanBossCrystalTossRight anim=default:soul_cores_right_01_additive
+    flags: base_deal_no_damage
+- EASDoryaniHumanBossMultiLightningZap [empty_action_spell] action=DoryaniHumanBossLightningTendrils anim=default:lightning_tendrils_01_additive
+- GSDoryaniHumanBossLightningClap [geometry_spell] action=SpellAreaOfEffectLightning anim=default:epic_slam_01
+    geom: cone length=48 width=0 angle=180 range=132 delay=33 anchor=3
+    flags: is_area_damage
+- SODoryaniHumanBossSolarOrb [spawn_object] action=DoryaniHumanBossSolarOrb anim=default:solar_orb_01_additive
+    objects: Metadata/Monsters/Doryani/TrueDoryani/objects/DoryaniHumanBossSolarOrb
+- MPSDoryaniHumanBossFireballPrimary [monster_projectile_spell] action=DoryaniHumanBossFireball anim=default:fireball_01_additive
+    flags: base_deal_no_damage
+- EDSDoryaniHumanBossFlameblast [effect_driven_spell] action=DoryaniHumanBossFlameblastTargeted anim=default:flameblast_targeted_01_additive
+    flags: is_area_damage
+- EDSDoryaniHumanBossFlameblastSelf [effect_driven_spell] action=DoryaniHumanBossFlameblastSelf anim=default:flameblast_self_01_additive
+    flags: is_area_damage
+- GSDoryaniHumanBossBeamBlast [geometry_spell] action=DoryaniHumanBossBeamBlast anim=default:soul_core_beam_blast_01_additive
+    geom: rectangle length=28 width=4 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- EASDoryaniHumanBossCrystalTraps [empty_action_spell] action=DoryaniHumanBossSoulCoresArena anim=default:soul_core_arena_activate_01_additive
+- EASDoryaniHumanBossActivateMechanism [empty_action_spell] action=DoryaniHumanBossActivateMechanism anim=default:soul_cores_arena_01_additive
+- DTTDoryaniHumanBossJumpAround [dash_to_target] action=DodgeBack anim=default:combat_jump_01
+- DTTDoryaniHumanBossJumpToArenaMiddle [dash_to_target] action=LeapSlam anim=default:phase_2_jump_01
+- EASDoryaniExplodeCrab [empty_action_spell] action=SpellAreaOfEffectCold anim=-
+- CGEDoryaniIonCannon [monster_cast_ground_effect_location] action=SpellAreaOfEffectFire anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/spear_aura/spear_aura.ao
+- GTDoryaniLightningStorm [geometry_trigger] action=SpellAreaOfEffectLightning anim=default:epic_slam_01
+    geom: trigger count=15 delay=4000 spread=15 radius=0 angle=0 anchor=1
+    triggers: GSDoryaniLightningStormBolt
+- GSDoryaniLightningStormBolt [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=850 delay=850 anchor=4
+    flags: is_area_damage
+- GSDoryaniHumanBossDecelCrystalExplode [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDoryaniHumanBossFireClap [geometry_spell] action=None anim=-
+    geom: cone length=48 width=0 angle=180 range=132 delay=33 anchor=3
+    flags: is_area_damage
+- GSDoryaniHumanBossMultiLightningZap [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSDoryaniHumanBossSolarOrbPulse [geometry_spell] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EDSDoryaniHumanBossFlameblastTriggered [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- EDSDoryaniHumanBossFlameblastTriggeredSelf [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- MPSDoryaniHumanBossFireballSecondary [monster_projectile_spell] action=None anim=-
+- GSDoryaniHumanBossFireballDirectImpactExplosion [geometry_spell] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDoryaniHumanBossMechanismBeam [geometry_spell] action=None anim=-
+    geom: cone length=120 width=0 angle=15 range=330 delay=33 anchor=12
+    flags: is_area_damage
+    GEAL 1135 on ['Metadata/Terrain/Gallows/Act3/3_17/Objects/ArenaCrystal']: self{} each{triggerer.If( GetState( active ) == 0, (){ SetStateTo( active, 1 ); } );} r=120
+- GSDoryaniHumanBossMechanismBeamFlipped [geometry_spell] action=None anim=-
+    geom: cone length=120 width=0 angle=15 range=330 delay=33 anchor=12
+    flags: is_area_damage
+    GEAL 1135 on ['Metadata/Terrain/Gallows/Act3/3_17/Objects/ArenaCrystal']: self{} each{triggerer.If( GetState( active ) == 0, (){ SetStateTo( active, 1 ); } );} r=120
+- GSDoryaniHumanBossCrystalZap [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EDSDoryaniHumanBossBeamBlastCone [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- GSDoryaniHumanBossConstantLightning [geometry_spell_channelled] action=ChannelUnleash anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDoryaniLightningStormBoltConstant [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=1500 delay=1500 anchor=4
+    flags: is_area_damage
+- EASDoryaniHumanBossHoverDeath [empty_action_spell] action=DodgeForward anim=-
+- EASDoryaniHumanBossGroundDeath [empty_action_spell] action=DodgeForward anim=-
+- EASDoryaniHumanBossFloatingDeathActivate [empty_action_spell] action=SpellProjectile anim=-
+- EASDoryaniHumanBossGroundDeathActivate [empty_action_spell] action=SpellProjectile anim=-
+- DTTDoryaniHumanBossDeathJumpShort [dash_to_target] action=SpellProjectileFire anim=-
+- DTTDoryaniHumanBossDeathJumpMedium [dash_to_target] action=SpellProjectileCold anim=-
+- DTTDoryaniHumanBossDeathJumpLong [dash_to_target] action=SpellProjectileLightning anim=-
+- EAADoryaniHumanBossDeathFreeAlva [empty_action_spell] action=SpellProjectile anim=-
+- SONotDoryaniHumanBossSolarOrb [spawn_object] action=DoryaniHumanBossSolarOrb anim=default:solar_orb_01_additive
+    objects: Metadata/Monsters/Doryani/TrueDoryani/objects/DoryaniHumanBossSolarOrb
+
+## own states and handlers
+states: lock_on; no_collision; can_move = 1; env_override
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_or_create_state_no_collision_0 = { MakeCollidable(); }
+- on_construction_complete = { }
+- create_state_lock_on_0 = { SetUsesDirectionalRunAnimations( false ); }
+- create_state_lock_on_1 = { SetUsesDirectionalRunAnimations( true ); }
+- on_emerge_02 = { PlayTextAudio( Thaumaturge_Tier3_Emerge_Random ); }
+- on_knockdown_01 = { PlayTextAudio( Thaumaturge_Tier3_Knockdown_Random ); }
+- on_effect_start_MPSDoryaniHumanBossFireballPrimary = { Roll( 1, 3,{ PlayTextAudio( Thaumaturge_Tier3_Flamethrower_Random ); }); }
+- on_effect_start_EDSDoryaniHumanBossFlameblast = { PlayTextAudio( Thaumaturge_Tier3_Flameblast_Random ); }
+- on_effect_start_EDSDoryaniHumanBossFlameblastSelf = { PlayTextAudio( Thaumaturge_Tier3_Flameblast_Random ); }
+- on_effect_start_SODoryaniHumanBossSolarOrb = { PlayTextAudio( Thaumaturge_Tier3_SolarOrb_Random ); }
+- on_effect_start_EASDoryaniHumanBossCrystalTraps = { PlayTextAudio( Thaumaturge_Tier3_SoulCore_Random ); }
+- on_effect_start_EASDoryaniHumanBossUberFlameblast = { Call( skill_disable_movement ); }
+- on_effect_start_GSDoryaniHumanBossBeamBlast = { PlayTextAudio( Thaumaturge_Tier3_SoulBeam_Random ); }
+- on_effect_start_GSDoryaniHumanBossBasicLightningZap = { Roll( 1, 5,{ PlayTextAudio( Thaumaturge_Tier3_LightningZap_Random ); }); }
+- on_effect_start_EASDoryaniHumanBossMultiLightningZap = { PlayTextAudio( Thaumaturge_Tier3_Tendrils_Random ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/lightningzap_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/laser_blast.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/floorgem_emerge.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/crawling_bolt.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/bloodgem_laser.ao
+- preload_animated_object Metadata/Effects/Spells/corrupted_blood_stream/BuffLoopAudio.ao
+- preload_buff_visual corrupted_blood_stream
+- preload_misc_beam DoryaniHumanBossMultiZapBeam
+- preload_misc_beam DoryaniHumanBossBasicZapBeam
+
+## adds and forms
+- Metadata/NPC/League/Incursion/DoryaniIncursionAccessSummon "Doryani" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing,GSDoryaniHumanBossBasicLightningZap,GSDoryaniHumanBossFlamethrower comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;hide;ritual;dialogue;skip;lock_on;can_move = 1;combat = 1;cutscene
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Doryani/TrueDoryani/objects/DoryaniHumanBossSolarOrb:  [object_size=1] states= on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/ArenaCrystal:  [server_only=true] states=light on_initial_position_set{{ globals.arena_crystals += this; }}; on_state_light_0{{ SetLightState( off, 0.5, 0 ); }}; create_state_light_0{{ SetLightState( off, 0.0, 0 ); }}; on_state_light_1{{ SetLightState( on, 0.5, 0 ); }}; create_state_light_1{{ SetLightState( on, 0.0, 0 ); }}
+- metadata/monsters/leagueincursionnew/thaumaturge/boss/tier3/obects/doryanihumanbosssolarorb:  [object_size=1] states= on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon: MinimapIcon [server_only=true icon=IncursionViperLegionBarracksActive] states=quadrillas 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon: MinimapIcon [server_only=true icon=IncursionGarrisonActive] states= 
+- Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController: ControlZone [server_only=true] states= 
+
+## lines
+- on_emerge_02 -> Thaumaturge_Tier3_Emerge_Random: You have made a grave mistake!
+- on_knockdown_01 -> Thaumaturge_Tier3_Knockdown_Random: Uh! ... I demand adherence!
+- on_effect_start_EDSDoryaniHumanBossFlameblast -> Thaumaturge_Tier3_Flameblast_Random: You leave me no choice!
+- on_effect_start_EDSDoryaniHumanBossFlameblastSelf -> Thaumaturge_Tier3_Flameblast_Random: You leave me no choice!
+- on_effect_start_SODoryaniHumanBossSolarOrb -> Thaumaturge_Tier3_SolarOrb_Random: Furious energies.
+- on_effect_start_EASDoryaniHumanBossCrystalTraps -> Thaumaturge_Tier3_SoulCore_Random: Corruption thrives!
+- on_effect_start_GSDoryaniHumanBossBeamBlast -> Thaumaturge_Tier3_SoulBeam_Random: The art... of Corruption.
+- on_effect_start_EASDoryaniHumanBossMultiLightningZap -> Thaumaturge_Tier3_Tendrils_Random: Give in to your doom!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_4open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,91) (161,92) (142,92) (125,92) (112,160) (66,93)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x8 (185,71) (148,72) (129,72) (112,72) (120,179) (53,73) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,163) (98,164) (100,91) (139,166) (157,166) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (98,176) (99,72) (139,178) (157,178) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (63,215) (87,33) (166,33) (186,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (76,131) (176,132)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x12 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (31,216) (55,34) (198,33) (218,218)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x12 (22,192) (226,192) (199,50) (55,50) (55,15) (36,33) (217,32) (198,14) (237,219) (218,237)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_3open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,93) (166,95) (147,95) (128,95) (108,95) (66,95)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x6 (185,73) (153,75) (134,75) (115,75) (95,75) (53,75)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,165) (94,167) (116,167) (156,167) (135,167) (195,167)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,177) (94,179) (116,179) (156,179) (135,179) (195,179)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,143)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (186,216) (167,32) (85,33) (65,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (82,126) (177,127)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x10 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (33,218) (218,218) (53,31) (199,31)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x10 (52,50) (200,50) (23,191) (227,191) (33,236) (14,218) (218,236) (237,218) (38,35) (214,34)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_garrison_4open_03.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [153.0, 41.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion x6 (198,91) (174,97) (149,93) (120,94) (112,160) (57,97)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingShieldIncursion_ x8 (185,71) (163,73) (136,73) (110,73) (120,179) (61,71) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion x6 (57,163) (83,164) (84,85) (148,165) (170,165) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (83,176) (84,73) (148,177) (170,177) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon x1 (126,129)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController x1 (133,128)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x6 (211,90) (211,163) (41,90) (41,163) (126,62) (126,190)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionBenchCampaignCurrency x1 (126,202)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (135,54)

@@ -1,0 +1,120 @@
+# Yama The White
+content: Act 4
+monsters: Metadata/Monsters/YamaBoss/YamaBoss, Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE, Metadata/Monsters/YamaBoss/YamaBossMAP_, Metadata/Monsters/YamaBoss/YamaBossSTANDALONE
+scripts: Metadata/Monsters/YamaBoss/YamaBoss, Metadata/Monsters/YamaBoss/YamaBossSTANDALONE, Metadata/Monsters/YamaBoss/YamaBossMAP
+own chain: Metadata/Monsters/YamaBoss/YamaBoss, Metadata/Monsters/ExtraFunctions, Metadata/Monsters/YamaBoss/YamaBossSTANDALONE, Metadata/Monsters/YamaBoss/YamaBossMAP
+areas: G4_4_2 Halls of the Dead act4; BossRush_Area3 Boss Rush Area 3 act10; MapSinkhole Sinkhole act10
+ai: Metadata/Monsters/YamaBoss/YamaBoss.ais, Metadata/Monsters/YamaBoss/YamaBossSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedChaos [melee] action=MeleeChaos anim=-
+- GSYamaChaosCloud [geometry_spell] action=SpellAreaOfEffectChaos anim=default:staff_swipe_01
+    geom: cone length=45 width=0 angle=80 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+- GSYamaDelayedEyeBlast [geometry_spell] action=SpellAreaOfEffectLightning anim=default:staff_point_01
+    geom: circle length=35 width=0 angle=0 range=1500 delay=1500 anchor=4
+    flags: base_skill_can_be_blocked is_area_damage skill_can_be_active_blocked_from_all_directions
+    buffs: caustic_cloud
+- YamaTimestopFutureKill [empty_action_spell] action=GroundSlam anim=default:time_freeze_01
+- YamaSoulrend [monster_soulrend] action=SpellProjectileChaos anim=default:soulrend_01
+- DTTYamaJumpBackwards [monster_dodge_target] action=DodgeBack anim=default:leap_bwd_01
+- DTTYamaJumpForwards [melee] action=DodgeForward anim=default:leap_fwd_01
+- DTTYamaJumpLeft [monster_dodge_target] action=DodgeLeft anim=default:leap_left_01
+- DTTYamaJumpRight [monster_dodge_target] action=DodgeRight anim=default:leap_right_01
+- MPSYamaJumpBackwardsProjectiles [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- GAYamaJumpForwardsCleave [geometry_attack] action=None anim=-
+    geom: cone length=25 width=0 angle=270 range=250 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSYamaTimeFreezeSlam [geometry_spell] action=GroundSlamOffhand anim=default:time_freeze_01
+    geom: donut length=200 width=21 angle=0 range=800 delay=33 anchor=4
+    flags: is_area_damage
+- EAAYamaTotemPhaseStart [empty_action_attack] action=SpellProjectileLightning anim=default:totems_start_01
+- GAYamaTotemPhaseEnd [geometry_attack] action=Slash anim=default:totems_end_01,stance3:totems_end_ground_01,stance4:totems_end_ground_02
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAYamaProjectileImpactGround [geometry_spell] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAYamaProjectileImpactWall [geometry_spell] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAYamaTotemRelocate [empty_action_attack] action=SpellProjectileLightning anim=default:totems_start_01
+- MPSYamaJumpBackwardsProjectiles2 [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- MPSYamaJumpBackwardsProjectiles3 [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- MPSYamaJumpBackwardsProjectiles4 [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- GAYamaTotemRelocate [geometry_attack] action=Teleport anim=default:totems_teleport_01
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- DTTYamaJumpForwardsShort [melee] action=LeapSlam anim=default:leap_fwd_01_01
+
+## own states and handlers
+states: invis; orb; yamadead; collidable
+- on_construction_complete = { SetTickWhileSimulationFrozen(); }
+- on_or_create_state_collidable_0 = { MakeCollidable(); }
+- on_state_collidable_1 = { RemoveCollidability(); }
+- on_state_collidable_2 = { MakeCollidable(); }
+- on_event_dead = { ForEachOfType( 'Metadata/Monsters/FallenYamaTheWhite/Cutscene/Staff', (){ Delete(); } ); }
+- on_or_create_state_invis_1 = { DisableRendering(); }
+- on_or_create_state_invis_0 = { EnableRendering(); }
+- on_or_create_state_orb_1 = { ShowAttachedMeshSegments( orbShape ); }
+- create_state_yamadead_1 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_WeaponDeath.epk', 'Metadata/Monsters/FallenYamaTheWhite/attachments/FallenYamaTheWhiteSceptre.ao' ); Delay( 0.034, { RemoveEffectPack( 'Metadata/Effects/Spells/hit_and_blood/EPKs/Death_Blood.epk' ); Rem
+- on_state_yamadead_1 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_WeaponDeath.epk', 'Metadata/Monsters/FallenYamaTheWhite/attachments/FallenYamaTheWhiteSceptre.ao' ); RemoveEffectPack( 'Metadata/Effects/Spells/hit_and_blood/EPKs/Death_Blood.epk' ); RemoveEffectPack( '
+- on_or_create_state_collidable_1 = { DisableRendering(); }
+- on_or_create_state_collidable_2 = { EnableRendering(); }
+- on_event_summon_clone = { this.myclone = AddAttached( 'Metadata/Monsters/FallenYamaTheWhite/FallenYamaTheWhiteClone.ao', root_jntBnd ); }
+- on_event_remove_clone = { myclone.AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/YamaClones_Stun.epk' ); Delay( 0.1, { RemoveAttached( myclone ); } ); }
+- on_event_dead = { QueueAnimation( idle_relaxed_01 ); ShowAttachedMeshSegments( orbShape ); SetGlobalAudioParam( FourBossLifePercentage, 0 ); }
+- on_effect_event_slam_for_YamaTimestopFutureKill = { globals.yamachosenclone.RemoveAttachedObjectFromBones( root_jntBnd ); globals.yamachosenclone.CancelStateTimer( ChargeUpProximity ); globals.yamachosenclone.SetGlobalAudioParam( YamaGlobalChargeUpProximity, 0 ); }
+- on_defeat = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_WeaponDeath.epk', 'Metadata/Monsters/FallenYamaTheWhite/attachments/FallenYamaTheWhiteSceptre.ao' ); RemoveEffectPack( 'Metadata/Effects/Spells/hit_and_blood/EPKs/Death_Blood.epk' ); RemoveEffectPack( '
+hides(DisableRendering): [('bb_visible', 0), ('collidable', 1), ('deli_clone', 1), ('invis', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Terrain/Woods/GrimTangle/shadows/SpotlightNarrow01.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/TimeFreeze.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/AOs/TimeFreezeSlamChargeUp.ao
+- preload_timeline Metadata/Characters/Timelines/death/Yama_death.atl
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk
+- preload_object Metadata/Monsters/YamaBoss/objects/YamaPlayerProxy
+- preload_environment G4_4_2_darkness
+- preload_animated_object Metadata/Monsters/FallenYamaTheWhite/attachments/FallenYamaTheWhiteSceptreOrb.ao
+- preload_animated_object Metadata/Monsters/FallenYamaTheWhite/Cutscene/Navali.ao
+- preload_animated_object Metadata/Monsters/FallenYamaTheWhite/Cutscene/YoungYama.ao
+- preload_animated_object Metadata/Monsters/FallenYamaTheWhite/attachments/FallenYamaTheWhiteSceptre.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/YamaBoss/objects/YamaPlayerProxy:  [server_only=true] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+- metadata/monsters/yamaboss/objects/yamafutureclone:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafutureclonepath:  [server_only=true] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+- metadata/monsters/yamaboss/objects/yamafutureclonepathend:  [server_only=true] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+- metadata/monsters/yamaboss/objects/yamafutureclonepathstart:  [server_only=true] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_dexfour:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_dexfourb:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_dexintfour:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_dexintfourb:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_intfour:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_intfourb:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_strdexfour:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_strdexfourb:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_strfour:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_strfourb:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_strintfour:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamafuturecone_children/yamafutureclone_strintfourb:  [server_only=true] states=add_effects;invis;chosen_one on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_or_create_state_add_effects_0{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreeze_PlayerClone.epk' ); RemoveE}; on_or_create_state_add_effects_1{{ IfState( chosen_one, 1, () { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Yama/EPKs/TimeFreez}; on_timer_ChargeUpProximity{{ IfExists( original, () { this.warningdistance = GetDistanceTo( original.GetLocation() ); warningdistance = warningdist}; on_or_create_state_invis_1{{ DisableRendering(); }}; on_or_create_state_invis_0{{ EnableRendering(); }}
+- metadata/monsters/yamaboss/objects/yamaplayerproxy:  [server_only=true] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+
+## lines
+
+## linked buffs
+- caustic_cloud "Caustic Ground": You are taking Chaos Damage from standing in Caustic Ground | stats=base_chaos_damage_taken_per_minute,is_in_caustic_cloud
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_xesht_rooms_1x1upper_3open_01.arm
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_theprisoner_rooms_deepwater_deepwater_st_01.arm
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_xesht_rooms_city_2x2_2open_st_03.arm

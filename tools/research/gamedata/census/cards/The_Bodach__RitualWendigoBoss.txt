@@ -1,0 +1,310 @@
+# The Bodach
+content: Pinnacle
+monsters: Metadata/Monsters/RitualWendigo/RitualWendigoBoss
+scripts: Metadata/Monsters/RitualWendigo/RitualWendigoBoss
+own chain: Metadata/Monsters/RitualWendigo/RitualWendigoBoss, Metadata/Monsters/PinnacleBossBase
+areas: Design Gone Fishing act3; MapUberBoss_Ritual Caer Tarth act10
+ai: Metadata/Monsters/RitualWendigo/RitualWendigoBoss.ais (not shipped)
+
+## skills
+- MAASRitualWendigoBossBasicSwipes [melee] action=Melee anim=default:phase1_swipe_left_01, phase1_swipe_right_01
+- GARitualWendigoBossRemoteFistLeft [geometry_attack] action=BossAttack1 anim=default:phase1_projectile_left_01
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GARitualWendigoBossRemoteFistRight [geometry_attack] action=BossAttack2 anim=default:phase1_projectile_right_01
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MAASRitualWendigoBossForwardScoop [melee] action=SpellBuffLightning anim=default:phase1_scoop_fwd_01
+- MAASRitualWendigoBossLeftScoop [melee] action=SpellBuffFire anim=default:phase1_scoop_left_01
+- MAASRitualWendigoBossRightScoop [melee] action=SpellBuffCold anim=default:phase1_scoop_right_01
+- MPSRitualWendigoBossBasicProjLeft [monster_projectile_spell] action=SpellProjectileUpwardFire anim=default:phase1_projectile_left_03
+- MPSRitualWendigoBossBasicProjRight [monster_projectile_spell] action=SpellProjectileUpwardCold anim=default:phase1_projectile_right_03
+- GARitualWendigoBossFistSlam [geometry_attack] action=Cleave anim=default:phase1_slam_left_01, phase1_slam_right_01
+    geom: circle length=15 width=0 angle=0 range=100 delay=50 anchor=3
+    flags: is_area_damage
+- GSRitualWendigoBossMothrowerLeft [geometry_spell] action=SpellProjectileFire anim=default:phase1_flamethrower_left_01
+    geom: donut length=150 width=10 angle=15 range=800 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GSRitualWendigoBossMothrowerRight [geometry_spell] action=SpellProjectileCold anim=default:phase1_flamethrower_right_01
+    geom: donut length=150 width=10 angle=15 range=800 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- EASRitualWendigoBossHeadGeyser [empty_action_spell] action=SpellProjectileChaos anim=default:phase1_geyser_01
+- GARitualWendigoBossHeadSlam [geometry_attack] action=SpellAreaOfEffect anim=default:phase1_retreat_slam_01,stance3:phase2_scratch_bwd_01
+    geom: circle length=40 width=0 angle=0 range=500 delay=33 anchor=3
+    flags: is_area_damage
+- GSRitualWendigoBossVacuum [geometry_spell_channelled] action=ChannelStart anim=default:phase1_vacuum_start_01
+    geom: rectangle length=1 width=1 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EASRitualWendigoBossRepositionExit [empty_action_spell] action=DodgeBack anim=default:phase1_retreat_01,stance3:phase2_jumpscare_end_01
+- EASRitualWendigoBossRepositionEnter [empty_action_spell] action=DodgeForward anim=default:phase1_reemerge_01,stance3:phase2_jumpscare_start_01
+- MAASRitualWendigoBossRepositionAttackEnter [melee] action=HeavyStrike anim=default:phase1_reemerge_attack_01
+- CTS4RitualWendigoBossSwapToPhase2 [change_to_stance4] action=ChangeToStance4 anim=default:phase1_exit_01
+- CTS3RitualWendigoBossPhase2Emerge [change_to_stance3] action=ChangeToStance3 anim=stance4:phase2_emerge_01
+- GSRitualWendigoBossBasicProjImpact [geometry_spell] action=None anim=-
+    geom: cone length=25 width=0 angle=210 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- MPARitualWendigoBossChainedAttackRubble [monster_projectile_weapon] action=SpellProjectile anim=-
+- MPARitualWendigoBossChainedAttackRubbleCluster [monster_projectile_weapon] action=SpellProjectile anim=-
+- MDRitualWendigoBossFistSlamLeft [move_daemon] action=GlacialHammer anim=default:phase1_slam_left_cast_01
+    daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoBossFistSlamMothball
+- MDRitualWendigoBossFistSlamRight [move_daemon] action=OffGlacialHammer anim=default:phase1_slam_right_cast_01
+    daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoBossFistSlamMothball
+- GPSRitualWendigoBossHeadGeyser [geometry_projectiles_spell] action=SpellProjectileChaos anim=default:phase1_geyser_01
+    flags: base_deal_no_damage
+- GSRitualWendigoBossHeadGeyserImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=250 delay=33 anchor=4
+    flags: is_area_damage
+- CGERitualWendigoBossHeadSlamDarkness [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- MDRitualWendigoBossVacuumBlob [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoBossVacuumBlob
+- GSRitualWendigoBossVacuumBlobShunt [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=150 delay=33 anchor=12
+    flags: is_area_damage
+- MPSRitualWendigoBossVacuumVomit [monster_projectile_spell] action=SpellProjectile anim=-
+- GSRitualWendigoBossVacuumVomit [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=99 delay=0 anchor=4
+    flags: is_area_damage
+- CGERitualWendigoBossVacuumVomit [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- EASRitualWendigoBossVacuumKnockdown [empty_action_spell] action=SpellProjectileLightning anim=default:phase1_vacuum_blast_01
+- GARitualWendigoBossVacuumBeatdownSmall [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=99 delay=0 anchor=3
+    flags: is_area_damage
+- GARitualWendigoBossVacuumBeatdownBig [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=99 delay=0 anchor=3
+    flags: is_area_damage
+- GARitualWendigoBossShadowArmVacuumKnockdown [geometry_attack] action=SpellAreaOfEffect anim=default:phase1_retreat_slam_01,stance3:phase2_scratch_bwd_01
+    geom: circle length=30 width=0 angle=0 range=0 delay=0 anchor=3
+    GEAL 1211 on any: self{} each{triggerer.ForceHumanForm(); triggerer.InterruptIndefinitely( KnockdownLoop ); triggerer.Delay( 0.5, { EndIndefiniteInterrupt(); } ); triggerer.FaceObject( this, true, false ); triggerer.RotateBy( 180, true, true );} r=0
+- MDRitualWendigoBossGrassPathPusher [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoBossGrassPathPusher
+- MDRitualWendigoBossCorridorSideVolatileLeft [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoCorridorMothball
+- MDRitualWendigoBossCorridorSideVolatileRight [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoCorridorMothball
+- GSRitualWendigoBossMothBallBurst [geometry_spell] action=SpellAreaOfEffect anim=default:phase1_retreat_slam_01,stance3:phase2_scratch_bwd_01
+    geom: circle length=15 width=0 angle=0 range=250 delay=33 anchor=4
+    flags: is_area_damage
+- GSRitualWendigoBossCorridorBallBurst [geometry_spell] action=SpellAreaOfEffect anim=default:phase1_retreat_slam_01,stance3:phase2_scratch_bwd_01
+    geom: circle length=15 width=0 angle=0 range=200 delay=33 anchor=4
+    flags: is_area_damage
+- CGERitualWendigoBossMothGround [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- MAASRitualWendigoP2_TeleMelee [melee] action=BossAttack3 anim=stance3:phase2_attack_01
+- MAASRitualWendigoP2_TeleMelee2 [melee] action=BossAttack4 anim=stance3:phase2_attack_02
+- MPSRitualWendigoP2_Bombard [monster_projectile_spell] action=SpellProjectileUpward anim=stance3:phase2_attack_ranged_01
+    flags: base_deal_no_damage
+- EAARitualWendigoP2_BackwardsSwipeout [empty_action_attack] action=SpellAreaOfEffect anim=default:phase1_retreat_slam_01,stance3:phase2_scratch_bwd_01
+- EAARitualWendigoP2_SlamMeteor [empty_action_attack] action=SpellAreaOfEffectFire anim=stance3:phase2_meteor_01
+- EAARitualWendigoP2_SlamMeteorSolarisSeed [empty_action_attack] action=SpellAreaOfEffectFire anim=stance3:phase2_meteor_01
+- EAARitualWendigoP2_SlamMeteorCombo [empty_action_attack] action=SpellAreaOfEffectCold anim=stance3:phase2_combo_01
+- DTTRitualWendigoP2_JumpscareIn [dash_to_target] action=DodgeBack anim=default:phase1_retreat_01,stance3:phase2_jumpscare_end_01
+- DTTRitualWendigoP2_JumpscareOut [dash_to_target] action=DodgeForward anim=default:phase1_reemerge_01,stance3:phase2_jumpscare_start_01
+- EAARitualWendigoP2_BossTaunt [empty_action_attack] action=BossBuff1 anim=stance3:phase2_regainPower
+- GSRitualWendigoP2_BombardImpact [geometry_spell] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- MPSRitualWendigoP2_BombardSecondary [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- GSRitualWendigoP2_BombardSecondaryImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=100 delay=33 anchor=12
+    flags: is_area_damage
+- GARitualWendigoP2_SlamMeteorImpact [geometry_attack] action=None anim=-
+    geom: circle length=50 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GARitualWendigoP2_SlamMeteorImpactSolarisSeed [geometry_attack] action=None anim=-
+    geom: circle length=80 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GARitualWendigoP2_SlamMeteorComboPunch1 [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=100 delay=33 anchor=3
+- GARitualWendigoP2_SlamMeteorComboPunch2 [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=100 delay=33 anchor=3
+- GARitualWendigoP2_SlamMeteorComboPunch3 [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=100 delay=33 anchor=3
+- GARitualWendigoP2_SlamMeteorComboMeteorImpact [geometry_attack] action=None anim=-
+    geom: circle length=50 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GARitualWendigoP2_BackwardsSwipeoutSwipe1 [geometry_attack] action=None anim=-
+    geom: rectangle length=150 width=40 angle=0 range=666 delay=33 anchor=3
+- GARitualWendigoP2_BackwardsSwipeoutSwipe2 [geometry_attack] action=None anim=-
+    geom: rectangle length=150 width=40 angle=0 range=666 delay=33 anchor=3
+- CGERitualWendigoBossBrambleGround [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+
+## own states and handlers
+states: phase_audio_parameter; fight_music_parameter; darkness_vacuum_range; phase_sequence; is_in_phase_1 = 1; in_moth_tele_form
+- on_construction_complete = { HideMinimapIcon(); }
+- on_or_create_state_phase_audio_parameter_0 = { SetGlobalAudioParam( wendigo_p2, 0 ); }
+- on_or_create_state_phase_audio_parameter_1 = { SetGlobalAudioParam( wendigo_p2, 1 ); }
+- on_or_create_state_phase_audio_parameter_2 = { SetGlobalAudioParam( wendigo_p2, 2 ); }
+- on_or_create_state_fight_music_parameter_0 = { SetGlobalAudioParam( BodachPhase, 0 ); }
+- on_or_create_state_fight_music_parameter_1 = { SetGlobalAudioParam( BodachPhase, 1 ); }
+- on_or_create_state_fight_music_parameter_2 = { SetGlobalAudioParam( BodachPhase, 2 ); }
+- on_or_create_state_fight_music_parameter_3 = { SetGlobalAudioParam( BodachPhase, 3 ); }
+- on_event_get_moth_beam = { this.my_moth_beam = GetAttachedAOByType( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/moth_flamethrower.ao' ); StartStateTimer( mothrower_update_player_pos, 0.033 ); }
+- on_event_end_moth_beam = { CancelStateTimer( mothrower_update_player_pos ); }
+- on_phase1_flamethrower_left_01 = { PlayTextAudio( TheWendigo_Mothbreath_Random, 'Metadata/Monsters/RitualWendigo/RitualWendigoBoss' ); }
+- on_phase1_flamethrower_right_01 = { PlayTextAudio( TheWendigo_Mothbreath_Random, 'Metadata/Monsters/RitualWendigo/RitualWendigoBoss' ); }
+- on_phase1_vacuum_blast_01 = { PlayTextAudio( TheWendigo_Lonnsaigh_Random, 'Metadata/Monsters/RitualWendigo/RitualWendigoBoss' ); }
+- on_effect_end_or_destroy_GSRitualWendigoBossMothrowerLeft = { CancelStateTimer( mothrower_update_player_pos ); }
+- on_effect_end_or_destroy_GSRitualWendigoBossMothrowerRight = { CancelStateTimer( mothrower_update_player_pos ); }
+- on_timer_mothrower_update_player_pos = { local player_pos = GetLocalPlayer().GetPositionValues(); my_moth_beam.SetDynamicFloat3( 'LocalPlayerPosition', player_pos[0], player_pos[1], player_pos[2] ); StartStateTimer( mothrower_update_player_pos, 0.033 ); }
+- on_change_state_darkness_vacuum_range = { local darkness_dist_param = 1.0 - this.GetState( darkness_vacuum_range ) / 100.0; SetGlobalAudioParam( BodachDarknessPull, darkness_dist_param ); vacuum_darkness_ao.SetDynamicFloat( 'VacuumProgress', darkness_dist_param, false, 1.0 ); }
+- create_state_phase_sequence_0 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/epk/phase1_darkness_skin.epk' ); }
+- create_state_phase_sequence_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/epk/phase1_darkness_skin.epk' ); }
+- on_or_create_state_phase_sequence_2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/epk/phase1_darkness_skin.epk' ); }
+- on_or_create_state_phase_sequence_3 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/epk/phase1_darkness_skin.epk' ); }
+- on_or_create_state_phase_sequence_4 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/epk/phase1_darkness_skin.epk' ); }
+- on_or_create_state_is_in_phase_1_1 = { HideMeshSegments( tail_fur_base_layerShape ); }
+- on_or_create_state_is_in_phase_1_0 = { ShowMeshSegments( tail_fur_base_layerShape ); EnableHighlighting(); }
+- on_death = { all_goddess_seeds.SetStateTo( status, 10 ); }
+- on_or_create_state_in_moth_tele_form_1 = { SetGlobalAudioParam( is_moths, 1 ); }
+- on_or_create_state_in_moth_tele_form_0 = { SetGlobalAudioParam( is_moths, 0 ); }
+- on_effect_event_dark_epk_for_CTS3RitualWendigoBossPhase2Emerge = { SetDynamicFloat( 'DarkStrength', 1.0, true, 0.7 ); Delay( 0.7, { SetDynamicFloat( 'DarkStrength', 0.0, true, 30.0 ); } ); }
+- on_effect_end_or_destroy_EAARitualWendigoP2_BossTaunt = { SetDynamicFloat( 'DarkStrength', 0.0, true, 30.0 ); }
+- on_effect_event_startpower_for_EAARitualWendigoP2_BossTaunt = { SetDynamicFloat( 'DarkStrength', 1.0, true, GetTimeToNextEvent( endpower ) ); }
+- on_event_death_face = { local scary_face = PlayEffect( 'Metadata/Monsters/IceWendigo/FaceApparition/FaceApparition.ao', scale:2.2, orientation:270 ); scary_face.Do( () { SetLocation( this.GetLastEventLocation( true ), true ); SetOrientation( 270, true, true ); } ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: ['fight_music_parameter']  brackets: []
+
+## preloads
+- preload_misc_epk DarknessShieldTakeHit
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/Arena_Darkness.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/moth_meteor_indicator_Tree.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/moth_meteor_indicator.ao
+- preload_misc_object RitualWendigoDarknessArena
+- preload_monster_variety Metadata/Monsters/RitualWendigo/RitualWendigoDarknessArm
+- preload_misc_object RitualWendigoDarknessPatch
+- preload_monster_variety Metadata/Monsters/RitualWendigo/RitualWendigoVacuumDaemon
+- preload_buff darkness_vacuum_aura
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessExtension
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessArena
+- preload_buff_visual block_test
+- preload_animated_object Metadata/Effects/Spells/greybox/groundArea_fx.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/Weapon_fade/fadein_fast.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Weapon_fade/fadeout.epk
+- preload_buff_visual ritual_wendigo_darkness
+- preload_animated_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoAudioHelper.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/moth_movement.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/SkyPalm_Arm_L.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/SkyPalm_Indicator.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/SkyPalm_Arm_R.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/Arena_Darkness_Vacuum.ao
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoViridiGrassPathPatch
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoViridiGrassPathPatchInitial
+- preload_object Metadata/Monsters/RitualWendigo/GoddessTrio/Lunaris
+- preload_object Metadata/Monsters/RitualWendigo/GoddessTrio/Solaris
+- preload_object Metadata/Monsters/RitualWendigo/GoddessTrio/Viridi
+- preload_animated_object Metadata/Monsters/RitualWendigo/GoddessTrio/Viridi.ao
+- preload_animated_object Metadata/Monsters/RitualWendigo/GoddessTrio/LunarisRemake.ao
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessCorridor
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoViridiGrassPathPatchInvisHeightBlocker
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessEmergeCleanser
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/Viridi_Wisp.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/TheWendigo/ao/moth_meteor_indicator.ao
+- preload_buff ritual_wendigo_chillout_visual
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoSeedSolaris
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoSeedLunaris
+- preload_object Metadata/Monsters/RitualWendigo/objects/RitualWendigoSeedViridi
+
+## adds and forms
+- Metadata/Monsters/RitualWendigo/RitualWendigoDarknessArm "Daemon" bossbar=0 skills=MAASRitualWendigoBossShadowArm,EASRitualWendigoBossShadowArmCrownSwipe,GARitualWendigoBossShadowArmVacuumKnockdown,GARitualWendigoBossShadowArmIntroSlam,GARitualWendigoBossShadowArmOuterRingSlam comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=visible
+- Metadata/Monsters/RitualWendigo/RitualWendigoVacuumDaemon "Daemon" bossbar=0 skills=MDRitualWendigoBossVacuumBlob comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+daemons: Metadata/Monsters/InvisibleFire/MDRitualWendigoBossFistSlamMothball, Metadata/Monsters/InvisibleFire/MDRitualWendigoBossGrassPathPusher, Metadata/Monsters/InvisibleFire/MDRitualWendigoBossVacuumBlob, Metadata/Monsters/InvisibleFire/MDRitualWendigoCorridorMothball
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessExtension:  [blocking=false object_size=4 server_only=true] states=active on_or_create_state_active_1{{ If( #arena_mid, (){ SetDynamicFloat3( 'ArenaCenter', arena_mid.GetPositionValues()[0], arena_mid.GetPositionValues()[1}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessArena:  [blocking=false object_size=4 server_only=true] states=hidden;corridor_angle on_initial_position_set{{ LockHeight( -1 ); }}; on_or_create_state_hidden_1{{ DisableRendering(); DisableAnimationSounds(); }}; on_wake{{ Call( update_corridor_angle ); }}; on_change_state_corridor_angle{{ Call( update_corridor_angle ); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoViridiGrassPathPatch:  [blocking=false server_only=true] states= on_initial_position_set{{ LockHeight( 0 ); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoViridiGrassPathPatchInitial:  [blocking=false server_only=true] states= on_initial_position_set{{ LockHeight( 0 ); }}
+- Metadata/Monsters/RitualWendigo/GoddessTrio/Lunaris:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- Metadata/Monsters/RitualWendigo/GoddessTrio/Solaris:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- Metadata/Monsters/RitualWendigo/GoddessTrio/Viridi:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessCorridor:  [blocking=false object_size=4 server_only=true] states=hidden on_or_create_state_hidden_1{{ DisableRendering(); DisableAnimationSounds(); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoViridiGrassPathPatchInvisHeightBlocker:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_initial_position_set{{ LockHeight( 0 ); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoDarknessEmergeCleanser:  [server_only=true] states= 
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoSeedSolaris:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoSeedLunaris:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- Metadata/Monsters/RitualWendigo/objects/RitualWendigoSeedViridi:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/ritualwendigo/goddesstrio/goddessbase:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- metadata/monsters/ritualwendigo/goddesstrio/lunaris:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- metadata/monsters/ritualwendigo/goddesstrio/solaris:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- metadata/monsters/ritualwendigo/goddesstrio/viridi:  [blocking=false object_size=4 server_only=true] states= on_initial_position_set{{ LockHeight( GetHeight() ); }}
+- metadata/monsters/ritualwendigo/objects/ritualpinnaclehubentrance: ProximityTrigger [blocking=false radius=10 server_only=true] states= on_triggered{{ Call( PlayPulseLocal, triggerer ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoarenasector:  states= 
+- metadata/monsters/ritualwendigo/objects/ritualwendigocrownoflight:  [blocking=false] states=fight_sequence;hide_visuals = 1 on_construction_complete{{ globals.crown_of_light = this; AddToPlayerWakeGroup( true ); globals.always_serialised += this; }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigodarknessarena:  [blocking=false object_size=4 server_only=true] states=hidden;corridor_angle on_initial_position_set{{ LockHeight( -1 ); }}; on_or_create_state_hidden_1{{ DisableRendering(); DisableAnimationSounds(); }}; on_wake{{ Call( update_corridor_angle ); }}; on_change_state_corridor_angle{{ Call( update_corridor_angle ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigodarknesscorridor:  [blocking=false object_size=4 server_only=true] states=hidden on_or_create_state_hidden_1{{ DisableRendering(); DisableAnimationSounds(); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigodarknessemergecleanser:  [server_only=true] states= 
+- metadata/monsters/ritualwendigo/objects/ritualwendigodarknessextension:  [blocking=false object_size=4 server_only=true] states=active on_or_create_state_active_1{{ If( #arena_mid, (){ SetDynamicFloat3( 'ArenaCenter', arena_mid.GetPositionValues()[0], arena_mid.GetPositionValues()[1}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoseedbase:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoseedlunaris:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoseedlunariscorrupticecrack:  states=cap_crack on_state_cap_crack_1{{ SetDynamicFloat( 'FissureGrowth', 0.5, false, 0.5 ); }}; create_state_cap_crack_1{{ SetDynamicFloat( 'FissureGrowth', 0.5 ); }}; on_state_cap_crack_0{{ SetDynamicFloat( 'FissureGrowth', 1.0, false, 0.5 ); }}; create_state_cap_crack_0{{ SetDynamicFloat( 'FissureGrowth', 1.0 ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoseedsolaris:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoseedviridi:  [blocking=false server_only=true] states=nearby_players on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoviridigrasspathpatch:  [blocking=false server_only=true] states= on_initial_position_set{{ LockHeight( 0 ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoviridigrasspathpatchinitial:  [blocking=false server_only=true] states= on_initial_position_set{{ LockHeight( 0 ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoviridigrasspathpatchinvisheightblocker:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_initial_position_set{{ LockHeight( 0 ); }}
+- metadata/monsters/ritualwendigo/objects/ritualwendigoviriditree:  [blocking=false] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_initial_position_set{{ LockHeight( 0 ); }}
+- metadata/monsters/ritualwendigo/ritualwendigoarenaentrancebutton: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=world_description_button = 8;button_enabled;first_attempt = 1;subsequent_attempt on_construction_complete{{ globals.arena_entrance_button = this; }}; on_or_create_state_button_enabled_0{{ Delay( 0.034, { DisableTargetable(); HideMinimapIcon(); } ); }}; on_or_create_state_button_enabled_1{{ Delay( 0.034, { EnableTargetable(); ShowMinimapIcon(); } ); }}; on_interaction_started{{ Call( hide_all_player_weapons, triggerer ); SetGlobalAudioParam( RitualHubTriggers, 1 ); }}; on_interaction_stopped{{ Call( show_all_player_weapons, triggerer ); }}
+- metadata/monsters/ritualwendigo/ritualwendigoarenaentrancecover: TriggerableBlockage [start_blocked=false blocking=false object_size=0 server_only=true] states=collapse on_construction_complete{{ globals.arena_entrance_cover = this; AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/ritualwendigo/ritualwendigoarenasetup: InteractionAction Targetable [blocking=true object_size=3 server_only=true] states=crown;bones_1;bones_2;bones_3;bones_4;bones_5;bones_socketed on_construction_complete{{ globals.effigy_ui += this; this.aoife_npc = FindClosestObject( 'Metadata/NPC/League/Ritual/AoifeHub', 200 ); }}; on_or_create_state_crown_0{{ DisableTargetable(); }}; on_or_create_state_crown_1{{ EnableTargetable(); }}; on_or_create_state_crown_2{{ DisableTargetable(); }}; on_or_create_state_crown_1{{ globals.buildable_effigy.effigy_crown = globals.buildable_effigy.AddAttached( 'Metadata/Terrain/Maps/Arenas/RitualPinn}; on_or_create_state_crown_2{{ globals.buildable_effigy.effigy_crown = globals.buildable_effigy.AddAttached( 'Metadata/Terrain/Maps/Arenas/RitualPinn}
+- metadata/monsters/ritualwendigo/ritualwendigobuildableeffigy: InteractionAction Targetable [blocking=true object_size=3 server_only=true] states=crown_attached;burn_up;crown_burn on_construction_complete{{ globals.buildable_effigy += this; }}; on_state_burn_up_1{{ effigy_parts.Do( () { PlayAnimation( end ); AddOnAnimationEnd( { Delete(); }, true ); } ); }}; create_state_burn_up_1{{ effigy_parts.Delete(); }}; on_state_crown_burn_1{{ effigy_crown.Do( () { PlayAnimation( end ); AddOnAnimationEnd( { Delete(); }, true ); } ); }}; create_state_burn_up_1{{ effigy_crown.Delete(); }}
+- metadata/monsters/ritualwendigo/ritualwendigobuildableeffigynonquest: InteractionAction Targetable [blocking=true object_size=3 server_only=true] states=crown_attached;burn_up;crown_burn on_construction_complete{{ globals.buildable_effigy += this; }}; on_state_burn_up_1{{ effigy_parts.Do( () { PlayAnimation( end ); AddOnAnimationEnd( { Delete(); }, true ); } ); }}; create_state_burn_up_1{{ effigy_parts.Delete(); }}; on_state_crown_burn_1{{ effigy_crown.Do( () { PlayAnimation( end ); AddOnAnimationEnd( { Delete(); }, true ); } ); }}; create_state_burn_up_1{{ effigy_crown.Delete(); }}
+- metadata/monsters/ritualwendigo/ritualwendigobuildableeffigyquest: InteractionAction Targetable [blocking=true object_size=3 server_only=true] states=crown_attached;burn_up;crown_burn on_construction_complete{{ globals.buildable_effigy += this; }}; on_state_burn_up_1{{ effigy_parts.Do( () { PlayAnimation( end ); AddOnAnimationEnd( { Delete(); }, true ); } ); }}; create_state_burn_up_1{{ effigy_parts.Delete(); }}; on_state_crown_burn_1{{ effigy_crown.Do( () { PlayAnimation( end ); AddOnAnimationEnd( { Delete(); }, true ); } ); }}; create_state_burn_up_1{{ effigy_crown.Delete(); }}
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/MapReturnPortal:  [server_only=true] states= 
+- Metadata/Monsters/RitualWendigo/RitualWendigoArenaEntranceButton: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=world_description_button = 8;button_enabled;first_attempt = 1;subsequent_attempt on_construction_complete{{ globals.arena_entrance_button = this; }}; on_or_create_state_button_enabled_0{{ Delay( 0.034, { DisableTargetable(); HideMinimapIcon(); } ); }}; on_or_create_state_button_enabled_1{{ Delay( 0.034, { EnableTargetable(); ShowMinimapIcon(); } ); }}; on_interaction_started{{ Call( hide_all_player_weapons, triggerer ); SetGlobalAudioParam( RitualHubTriggers, 1 ); }}; on_interaction_stopped{{ Call( show_all_player_weapons, triggerer ); }}
+- Metadata/Monsters/RitualWendigo/RitualWendigoArenaSetup: InteractionAction Targetable [blocking=true object_size=3 server_only=true] states=crown;bones_1;bones_2;bones_3;bones_4;bones_5;bones_socketed on_construction_complete{{ globals.effigy_ui += this; this.aoife_npc = FindClosestObject( 'Metadata/NPC/League/Ritual/AoifeHub', 200 ); }}; on_or_create_state_crown_0{{ DisableTargetable(); }}; on_or_create_state_crown_1{{ EnableTargetable(); }}; on_or_create_state_crown_2{{ DisableTargetable(); }}; on_or_create_state_crown_1{{ globals.buildable_effigy.effigy_crown = globals.buildable_effigy.AddAttached( 'Metadata/Terrain/Maps/Arenas/RitualPinn}; on_or_create_state_crown_2{{ globals.buildable_effigy.effigy_crown = globals.buildable_effigy.AddAttached( 'Metadata/Terrain/Maps/Arenas/RitualPinn}
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/AiofeEntranceGhost: InteractionAction Targetable MinimapIcon [blocking=true object_size=10 server_only=true icon=3] states=visible;ghosting;hide;targetable on_construction_complete{{ globals.AoifeEntranceGhost = this; }}; on_state_ghosting_1{{ PlayAnimation( portal_enter_01 ); PlayAnimationAttached( 'Metadata/Monsters/AiofeDruidsWife/attachments/AiofeCloak.ao'}; create_state_hide_1{{ DisableRendering(); DisableTargetable(); DisableHighlighting(); HideMinimapIcon(); }}; on_state_ghosting_1{{ DisableTargetable(); DisableHighlighting(); HideMinimapIcon(); }}; create_state_ghosting_1{{ DisableTargetable(); DisableHighlighting(); IfQuestFlagsSet( player, AiofeGhostRitualHubSeen, (){ DisableRendering(); }; create_state_ghosting_0{{ IfQuestFlagsSet( player, AiofeGhostRitualHubSeen, (){ DisableRendering(); }, () { DisableTargetable(); DisableHighligh}
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/AiofeDeadBody:  [blocking=false object_size=3 server_only=true] states=corpse_returned create_state_corpse_returned_0{{ DisableRendering(); }}
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/SubAreaTransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states=unlocked on_start_target{{ IfState( unlocked, 1, { CancelQueuedAnimation(); PlayAnimationByIndex( 0 ); QueueAnimationByIndex( 1 ); } ); }}; on_stop_target{{ IfState( unlocked, 1, { CancelQueuedAnimation(); PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 3 ); } ); }}
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/SideAreaTransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=5 server_only=true icon=18] states= 
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/SubAreaExit: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=5 server_only=true icon=18] states=unlocked on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_initial_position_set{{ SetOrientation( 135, true, true ); }}; on_or_create_state_unlocked_0{{ DisableRendering(); }}; on_state_unlocked_1{{ EnableRendering(); }}; on_interaction_started{{ PlayAnimation( Activate ); }}
+- Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/CrownSpawnMarker:  [server_only=true] states= on_construction_complete{{ globals.crown_spawn_marker = this; }}
+
+## lines
+- on_phase1_flamethrower_left_01 -> TheWendigo_Mothbreath_Random: Básaich!
+- on_phase1_flamethrower_right_01 -> TheWendigo_Mothbreath_Random: Básaich!
+- on_phase1_vacuum_blast_01 -> TheWendigo_Lonnsaigh_Random: Lonnsaigh!
+
+## linked buffs
+- darkness_vacuum_aura "":  | stats=
+- ritual_wendigo_boss_mothball "Concentrated Darkness": You are taking Physical Damage over time while near the sphere of darkness. | stats=base_physical_damage_taken_per_minute
+- ritual_wendigo_boss_wave_slow "Darkness": You are slowed and are taking Physical Damage over time. | stats=base_movement_velocity_+%,base_physical_damage_taken_per_minute
+- ritual_wendigo_chillout_visual "":  | stats=
+- ritual_wendigo_darkness "Darkness": You are taking Physical Damage over time. | stats=base_physical_damage_taken_per_minute
+- ritual_wendigo_tree_sanctuary "Viridi's Sanctum": You are within Viridi's Sanctum, gaining significant Life, Mana and Energy Shield Regeneration | stats=life_regeneration_rate_per_minute_%,mana_regeneration_rate_per_minute_%,base_energy_shield_regeneration_rate_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_endgame_ritualpinnacle_rooms_ritualpinnacle_entrance_01.arm
+  sector ['ritualclearing', 0, 0, 650, 480, '']
+  sector ['env_stage2', 338, 23, 644, 437, '']
+  point [222.0, 250.0, 'default']
+  point [465.0, 215.0, 'telepad3']
+  point [500.0, 282.0, 'entrance']
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/MapReturnPortal x1 (210,256)
+  obj Metadata/NPC/League/Ritual/AoifeHub x1 (529,254)
+  obj Metadata/Monsters/RitualWendigo/RitualWendigoArenaEntranceButton x1 (484,252)
+  obj Metadata/Monsters/RitualWendigo/RitualWendigoArenaSetup x1 (485,320)
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/AiofeEntranceGhost x1 (334,170)
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/AiofeDeadBody x1 (520,285)
+  obj Metadata/NPC/League/Ritual/AoifeDisappear x1 (510,279)
+  obj Metadata/MiscellaneousObjects/Stash x1 (522,239)
+  obj Metadata/MiscellaneousObjects/GuildStash x1 (517,229)
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/SubAreaTransition x1 (468,231)
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/SideAreaTransition x1 (492,268)
+  obj Metadata/Terrain/Maps/Arenas/RitualPinnacle/audio/Audio_RitualPinnacleArenaDoorStinger x1 (482,251)
+room metadata_terrain_gallows_endgame_ritualpinnacle_rooms_ritualpinnacle_boss_01.arm
+  sector ['hide_teleports', 264, 241, 1920, 1897, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['ritual_arena_spawn', 241, 218, 1943, 1920, 'Metadata/Monsters/RitualWendigo/objects/RitualWendigoArenaSector']
+  sector ['env', 218, 195, 1966, 1943, '']
+  point [1289.0, 1327.0, 'mapboss']
+  point [1094.0, 1069.0, 'telepad1']
+  point [1092.0, 1065.0, 'telepad2']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (460,493)
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/SubAreaExit x1 (1085,1067)
+  obj Metadata/Terrain/Gallows/EndGame/RitualPinnacle/Objects/CrownSpawnMarker x1 (1092,1069)
+room metadata_terrain_testareas_designertestarea_rooms_jasons_fun_room.arm
+  point [104.0, 103.0, 'mapboss']

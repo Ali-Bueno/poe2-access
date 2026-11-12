@@ -1,0 +1,98 @@
+# The Abominable Yeti / The Frostborn Fiend
+content: Interlude
+monsters: Metadata/Monsters/Quadrilla/IcyQuadrillaBoss, Metadata/Monsters/Quadrilla/IcyQuadrillaBossCampaignSTANDALONE, Metadata/Monsters/Quadrilla/IcyQuadrillaBossMap, Metadata/Monsters/Quadrilla/IcyQuadrillaBossStandalone
+scripts: Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBoss, Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBossStandalone, Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBossMap
+own chain: Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBoss, Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBossStandalone, Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBossMap
+areas: P3_4 Howling Caves act6; MapIceCave Ice Cave act10
+ai: Metadata/Monsters/Quadrilla/IcyQuadrilla/IcyQuadrillaBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EAAQuadrillaBossCleaveLeft [melee] action=HeavyStrike anim=default:sweep_slam_pillar_left_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossCleaveRight [melee] action=OffHeavyStrike anim=default:sweep_slam_pillar_right_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossSpin [melee] action=GroundSlamOffhand anim=default:spin_slam_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossSlam [empty_action_attack] action=GroundSlam anim=default:heavy_slam_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAQuadrillaBossSlamCircle [geometry_attack] action=GroundSlam anim=default:heavy_slam_pillar_01
+    geom: circle length=30 width=0 angle=0 range=210 delay=70 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- DTTQuadrillaCommandoRoll [melee] action=DodgeForward anim=default:roll_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAIcyQuadrillaBossRectSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=41 width=22 angle=0 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_blocked base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAIcyQuadrillaBossSunder [geometry_attack] action=None anim=-
+    geom: rectangle length=63 width=27 angle=0 range=400 delay=40 anchor=3
+    flags: base_skill_can_be_blocked base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+
+## own states and handlers
+states: death; aggro
+- on_state_aggro_1 = { PlayEffect( 'Metadata/Monsters/Quadrilla/QuadrillaBossAggroAudio.ao' ); }
+- on_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); this.blood = PlayEffectAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/ao/death_pool.ao', 0, jaw_jntBnd, 1, inherit ); }
+- create_state_death_1 = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); this.blood = PlayEffectAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/ao/death_pool.ao', 0, 
+- on_death = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk' ); }
+- on_end_heavy_slam_pillar_01 = { PlayCharacterAudioEvent( JungleDepthsBossSlamSeen ); }
+- on_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); }
+- create_state_death_1 = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_environment G3_3_boss
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=SilverbackBlackfistBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SilverbackBlackfistBossInactive ); }}
+- Metadata/Terrain/Gallows/Act4_Interlude/Part3/P3_4/Objects/WispLight:  [blocking=false object_size=0 server_only=true] states=height on_construction_complete{{ SetExtraTileActivationDistance( 3 ); }}; on_initial_position_set{{ SetHeight( GetHeight() ); LockHeight(); SetMovementFaceMode( DontFace ); }}; on_initial_position_set{{ PlayAnimationRandom( animate ); SetRandomRotation(); IfState( height, != 0, { Call( UpdateHeight ); } ); }}; on_movement_finished{{ StartStateTimer( idle, 0.1 ); }}; on_change_state_height{{ Call( UpdateHeight ); }}; on_wake{{ SetRenderDampenHeightSpeed( 1000 ); Call( UpdateHeight ); Delay( 1.0, { SetRenderDampenHeightSpeed( 1 ); } ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_silverbackblackfist_rooms_bossclearing_01.arm
+  sector ['no_critters', 69, 0, 345, 276, '']
+  point [178.0, 133.0, 'mapboss1']
+  point [214.0, 38.0, 'killzone=6']
+  point [175.0, 138.0, 'killzone=8']
+  point [207.0, 48.0, 'checkpoint2']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (229,55)
+  obj Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon x1 (205,129)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (205,115)
+room metadata_terrain_gallows_act3_3_3_rooms_clearingfeatures_bossclearing_01.arm
+  point [143.0, 119.0, 'mapboss']
+  point [107.0, 214.0, 'killzone=6']
+  point [146.0, 114.0, 'killzone=8']
+  point [107.0, 217.0, 'checkpoint9']
+  point [161.0, 67.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (92,197)
+  obj Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon x1 (116,123)
+room metadata_terrain_gallows_act4_interlude_part3_p3_4_rooms_unique_bossman.arm
+  sector ['boss_sector', 284, 314, 460, 496, '']
+  sector ['boss_sector', 293, 303, 313, 314, '']
+  sector ['hide_teleports', 283, 313, 462, 498, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 292, 302, 314, 313, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 275, 291, 478, 517, '']
+  sector ['no_movement_skills', 240, 316, 290, 372, '']
+  sector ['no_movement_skills', 299, 250, 349, 306, '']
+  sector ['no_movement_skills', 296, 302, 303, 309, '']
+  sector ['no_movement_skills', 292, 306, 299, 313, '']
+  sector ['no_movement_skills', 289, 309, 296, 316, '']
+  sector ['no_movement_skills', 285, 313, 292, 320, '']
+  sector ['no_movement_skills', 282, 316, 289, 323, '']
+  point [402.0, 425.0, 'mapboss1']
+  point [135.0, 267.0, 'magic']
+  point [311.0, 113.0, 'magic']
+  point [255.0, 275.0, 'checkpoint2']
+  point [390.0, 440.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (241,292)
+  obj Metadata/Terrain/Gallows/Act4_Interlude/Part3/P3_4/Objects/WispLight x8 (231,110) (93,183) (399,139) (66,361) (113,350) (128,94) (183,164) (370,85)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x9 (285,315) (281,319) (289,311) (293,306) (297,302) (301,298) (306,293) (276,323) (272,328)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (354,374)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (292,308)

@@ -1,0 +1,135 @@
+# Candlemass, the Living Rite
+content: Act 1
+monsters: Metadata/Monsters/Gargoyle/GargoyleBoss/ManorGargoyleBossCRUEL
+scripts: Metadata/Monsters/Gargoyle/GargoyleBoss/ManorGargoyleBossCRUEL
+own chain: Metadata/Monsters/Gargoyle/GargoyleBoss/ManorGargoyleBossCRUEL
+areas: 
+ai: Metadata/Monsters/Gargoyle/GargoyleBoss/ManorGargoyleBoss.ais (not shipped)
+
+## skills
+- MMSManorGargoyleCandleProjectile [monster_mortar] action=None anim=-
+    flags: is_area_damage
+- GTManorGargoyleTriggeredCandleProjectile1 [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=70 radius=40 angle=0 anchor=4
+    flags: is_area_damage
+- GAManorGargoyleLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- GAManorGargoyleLeapImpactCascade [geometry_attack] action=None anim=-
+    geom: rectangle length=50 width=16 angle=0 range=380 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- DTTManorGargoyleLeapSlam [empty_action_attack] action=LeapSlam anim=default:leap_slam_01
+- GSManorGargoyleFlameBreath [geometry_spell] action=None anim=-
+    geom: cone length=70 width=0 angle=50 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EASManorGargoyleFlameBreath [empty_action_spell] action=SpellProjectileFire anim=default:flame_breath_01
+    flags: skill_cannot_be_stunned
+- GTManorGargoyleProjectileBarrage [geometry_trigger] action=SpellAreaOfEffectFire anim=default:crouch_forward_01
+    geom: trigger count=100 delay=0 spread=140 radius=100 angle=0 anchor=3
+    triggers: MMSManorGargoyleCandleProjectile
+- GTManorGargoyleTriggeredCandleProjectile2 [geometry_trigger] action=None anim=-
+    geom: trigger count=2 delay=0 spread=70 radius=40 angle=0 anchor=4
+    flags: is_area_damage
+- GTManorGargoyleTriggeredCandleProjectile3 [geometry_trigger] action=None anim=-
+    geom: trigger count=3 delay=0 spread=70 radius=40 angle=0 anchor=4
+    flags: is_area_damage
+- GTManorGargoyleTriggeredCandleProjectile4 [geometry_trigger] action=None anim=-
+    geom: trigger count=4 delay=0 spread=70 radius=40 angle=0 anchor=4
+    flags: is_area_damage
+- GTManorGargoyleTriggeredCandleProjectile5 [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=0 spread=70 radius=40 angle=0 anchor=4
+    flags: is_area_damage
+- GSManorGargoyleFlameBreathSelfCircle [geometry_spell] action=None anim=-
+    geom: circle length=14 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAManorGargoyleLacerate [geometry_attack] action=None anim=-
+    geom: rectangle length=69 width=22 angle=0 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- MAASManorGargoyleSweep [melee] action=Sweep anim=default:sweep_01
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=-
+- MAASManorGargoyleCleave [melee] action=Cleave anim=default:cleave_01
+
+## own states and handlers
+states: firework_bone; face_flame
+- on_event_facing_for_EmptyActionSpell = { SetAnimatedTurnDuration( 0.05 ); }
+- on_end_or_destroy_EmptyActionSpell = { SetAnimatedTurnDuration( 0.4 ); }
+- on_end_ChangeToStance1 = { MakeCollidable(); }
+- on_construction_complete = { Delay( 0.1, { IfInStance( default, (){}, (){ RemoveCollidability(); } ); } ); }
+- on_event_flame_sword = { Call( FlameSword ); }
+- on_event_unflame_sword = { Call( UnflameSword ); }
+- on_emerge_01 = { SetRangeCheckingForGlobalAudioParams( true ); PlayCharacterAudioEvent( CandlemassSeenComment ); }
+- on_end_death_01 = { PlayCharacterAudioEvent( CandlemassSlainComment ); }
+- on_end_death_bwd_01 = { PlayCharacterAudioEvent( CandlemassSlainComment ); }
+- on_or_create_state_face_flame_1 = { this.mouth_flame = AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/GargoyleBoss/flamebreath.ao', mouth_flame ); this.mouth_flame.PlayAnimation( loop_01 ); }
+- on_state_face_flame_0 = { RemoveAttachedObjectFromBones( mouth_flame ); }
+- on_death = { Call( UnflameSword ); }
+- on_construction_complete = { SetRangeCheckingForGlobalAudioParams( false ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/gargoyle/gargoyleboss/gargoyleglyph: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=8] states= 
+- metadata/monsters/gargoyle/gargoyleboss/gargoyleglyphmap:  [server_only=true] states= 
+- metadata/monsters/gargoyle/gargoyleboss/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=GargoyleActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GargoyleInactive ); }}
+- Metadata/Monsters/Gargoyle/GargoyleBoss/GargoyleGlyphMap:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/SmashableProps:  [blocking=false object_size=1] states=smashed on_construction_complete{{ this.has_animation = false; IfHasAnimation( shake, (){ this.has_animation = true; }, (){ IfHasAnimation( smash, (){ th}; create_state_smashed_0{{ If( this.has_animation, (){ PlayAnimationByIndex(0); PauseAnimation(); }, (){ } ); }}; create_state_smashed_1{{ If( this.has_animation, (){ PlayAnimationByIndex(0); GoToAnimationEnd(); }, (){ } ); }}; on_state_smashed_1{{ If( this.has_animation, (){ PlayAnimationByIndex(0); }, (){ } ); If( Animation, (){ }, (){ } ); }}
+- Metadata/Monsters/Gargoyle/GargoyleBoss/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=GargoyleActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GargoyleInactive ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/CandleMassArenaTitle: ProximityTrigger [radius=60 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardCandlemassAltar, TitleCardCandlemassAltarSubtitle ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_maps_crypt_rooms_unique_boss_1.arm
+  sector ['hide_teleports', 199, 78, 346, 264, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 192, 56, 199, 337, '']
+  sector ['no_critters', 156, 79, 338, 273, '']
+  sector ['boss_sector', 199, 83, 330, 269, '']
+  point [264.0, 111.0, 'mapboss']
+  point [116.0, 125.0, 'magic']
+  point [116.0, 56.0, 'magic']
+  point [50.0, 105.0, 'magic']
+  point [123.0, 101.0, 'checkpoint']
+  obj Metadata/Monsters/Gargoyle/GargoyleBoss/GargoyleGlyphMap x1 (264,91)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (138,103)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (197,228)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (195,240) (195,246) (195,234) (195,228) (195,222) (195,216) (195,210) (195,252)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (262,171)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (297,162)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (242,116) (231,161) (296,228) (286,116)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (250,111)
+room metadata_terrain_gallows_act1_1_15_rooms_unique_chapel_02.arm
+  point [149.0, 363.0, 'mapboss1']
+  point [117.0, 103.0, 'checkpoint1']
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/SmashableProps x12 (31,96) (28,42) (157,40) (175,40) (119,24) (181,23) (265,40) (267,93) (85,102) (149,139)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (101,115)
+  obj Metadata/Monsters/Gargoyle/GargoyleBoss/Objects/BossRoomMinimapIcon x1 (149,363)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/CandleMassArenaTitle x1 (149,222)
+  obj Metadata/Decals/grungedecal3.atlas x5 (1678.38,4065.08) (1701.14,4091.58) (1510.33,4079.22) (1741.89,4179.3) (1539.28,4184.88)
+  obj Metadata/Decals/grungedecal.atlas x2 (1564.99,4117.68) (1614.84,4147.08)
+  obj Metadata/Decals/bloodtrailfresh.atlas x7 (1440.41,4104.9) (1639.91,4035.94) (1690.37,4176.04) (1449.83,4202.67) (1539.83,4269.13) (1729.09,4083.97) (1485.02,4034.01)
+room metadata_terrain_maps_crypt_rooms_unique_boss_2.arm
+  sector ['hide_teleports', 74, 198, 264, 345, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 60, 193, 341, 200, '']
+  sector ['no_critters', 85, 150, 261, 331, '']
+  sector ['boss_sector', 79, 200, 265, 331, '']
+  point [110.0, 264.0, 'mapboss']
+  point [54.0, 120.0, 'magic']
+  point [70.0, 74.0, 'magic']
+  point [125.0, 43.0, 'magic']
+  point [105.0, 103.0, 'checkpoint']
+  obj Metadata/Monsters/Gargoyle/GargoyleBoss/GargoyleGlyphMap x1 (90,264)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (90,103)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (238,196)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (237,196) (243,196) (231,196) (225,196) (219,196) (213,196) (207,196) (249,196)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (168,263)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (161,230)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (116,241) (116,284) (223,287) (160,295)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (111,272)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x2 (193,196) (148,196)

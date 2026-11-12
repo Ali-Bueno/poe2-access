@@ -1,0 +1,45 @@
+## Act 1 (16 fights)
+  with: Asinia, the Praetor's Consort [H,NP,P,U,US,W]; Candlemass, the Living Rite [H,NP,US]; Count Geonor [A,BR,H,NP,OB,P,U]; Draven, the Eternal Praetor [A,BR,H,NP,P,U,US]; Gorian, the Moving Earth [A,BR,H,NP,OB,U]; Lachlann of Endless Lament [A,H,NP,OB,U]; The Crowbell [AR,GR,H,I,NP,U]; The Devourer [A,BR,H,NP,OB,U]; The Executioner [D,H,NP,OB,U,US]; The Rotten Druid [H,NP,OB,U]; The Rust King [H,NP,P,TE,U]
+  only adds/hide/noport/unavoidable or none: Anundr, the Sandworm [A,NP]; Beira of the Rotten Pack [A,H]; The Bloated Miller [H]; The Brambleghast [A,H,NP]; Tierney, the Hateful [H]
+## Act 2 (10 fights)
+  with: Azarian, the Forsaken Son [G,H,NB,NP,OB,SH/area,U,US]; Balbala, the Traitor [A,BR,G,H,NP,S,U,US]; Jamanra, the Abomination [A,AR,BR,D,EM,G,H,NP,SH,U]; Jamanra, the Risen King [A,AR,D,EM,G,H,NP,PH,SH,TE,U]; Kabala, Constrictor Queen [A,AR,BR,EM,H,NP,OB,U,W]; Rathbreaker [A,D,H,NP,U]; Rudja, the Dread Engineer [BR,H,I,NP,U,US]; Tor Gul, the Defiler [A,BR,H,NP,SH/area,U,US]; Zalmarath, the Colossus [BR,CV,D,G,H,NP,OB,U,US]
+  only adds/hide/noport/unavoidable or none: Ekbab, Ancient Steed [H,NP,U]
+## Act 3 (22 fights)
+  with: Bahlak, the Sky Seer [G,H,NP]; Blackjaw, the Remnant [BR,H,NP]; Chetza, the Feathered Plague [A,BR,H,NP,P,US]; Doryani's Triumph [A,BR,H,NP,P]; Doryani, Royal Thaumaturge [A,BR,D,G,H,NP,P]; Ignagduk, the Bog Witch [BR,CV,D,H,MG,NP]; Ketzuli, High Priest of the Sun [H,MG,NP]; Mektul, the Forgemaster [BR,CV,D,H,NB,NP,US]; Oloton, the Remorseless [BR,H,NP]; Queen in the Mists [D,H]; Rootdredge [A,BR,H,NP,U]; The Queen of Filth [A,BR,H,MG,NP,OB,U,US]; The Trialmaster [BR,H,NP]; Viper Napuatzi [D,H]; Xalapa, Spy Master [G,H,MG]; Xilozoma, the Maw-Beast [H,NP,OB]; Xyclucian, the Chimera [H,NP,OB]; Yaota, the Loathsome [A,BR,H,MG,NP,OB,U,US]; Zicoatl, Warden of the Core [BR,D,H,NP,TE]
+  only adds/hide/noport/unavoidable or none: Mighty Silverfist [H,NP,U]; Uxmal, the Beastlord [H,NP]; Zekoa, the Headcrusher [H,U]
+## Act 4 (10 fights)
+  with: Benedictus, First Herald of Utopia [AR,BR,CV,G,H,NP,TE,U]; Captain Hartlin [A,H,NP,TE]; Diamora, Song of Death [A,BR,H,NP,SH/area,U]; Tavakai, the Chieftain [A,AR,BR,G,H,MG,NB,NP,OB,P,SH/area,U]; The Blind Beast [BR,D,H,I,NP]; The Prisoner [A,D,G,H,NB,NP,OB,TE,U,US]; Torvian, Hand of the Saviour [EM,G,H,NP,OB,SH/area]; Yama The White [CL,D,G,H]
+  only adds/hide/noport/unavoidable or none: Great White One [H]; Krutog, Lord of Kin [A,H,NP,U]
+## Interlude (19 fights)
+  with: Akthi, the Final Sting [D,H,MG,NP,U,US]; Anundr, the Sandworm [A,BR,H,NP,U]; Azmadi, the Faridun Prince [D,EM,H,NP,OB,P,U,US]; Elzarah, the Cobra Lord [A,G,H,NP,TE]; Godwin of the Shattered Creed [H,I,NP,OB,US]; Heldra of the Black Pyre [BR,H,NP]; Lady Elswyth [BR,D,H,NP,U,W]; Lythara, the Wayward Spear [D,H]; Oswin, the Dread Warden [BR,CV,GZ,H,NB,NP,OB,SH/area,U,US]; Rakkar, the Frozen Talon [AR,BR,G,H,NP]; Sigbert of the Sullied Oath [BR,H,I,NP,OB,US]; Siora, Blade of the Mists [D,H,NP,TE,U]; Stormgore, the Guardian [AR,H,NP]; Thane Wulfric [G,H,NP,U]; Vornas, the Fell Flame [BR,H,NP]; Zelina, Blood Priestess [A,AR,EL,H,MG,NP]; Zolin, Blood Priest [AR,BR,D,EL,H,MG]
+  only adds/hide/noport/unavoidable or none: Isolde of the White Shroud [A,H]; The Abominable Yeti [H,NP,U]
+## League: Abyss (4 fights)
+  with: Igrulog, the Incubator Queen [H,NP,US]; Tasgul, Swallower of Light [AR,G,H,NP,TE,U,US]; Vandroth, Blackblooded Enslaver [H,NP,U,US]; Vessel of Kulemak [A,DZ,G,H,M,NP,US]
+  only adds/hide/noport/unavoidable or none: 
+## League: Breach (4 fights)
+  with: It That Was Esh [A,BR,G,H,NP,U]; It That Was Tul [AR,G,H,NP,U]; Vruun, Marshal of Xesht [A,G,GR,H,M,NB,NP,TE,U]; Xesht, We That Are One [G,GR,H,M,NB,NP,TE,U]
+  only adds/hide/noport/unavoidable or none: 
+## League: Delirium (2 fights)
+  with: Kosis, The Revelation [A,D,H,OB,TE]; Omniphobia, Fear Manifest [H,OB,ST,U]
+  only adds/hide/noport/unavoidable or none: 
+## League: Expedition (7 fights)
+  with: Olroth, Origin of the Fall [GR,H,NP,SH/area,U]; Styrn, Fallen Knight of Aldur [CL,H,NP,US]; Tetzcatl, the Blazing Guardian [BR,D,H,NP,TE]; The Improbable Spawn [A,D,H,NP]; Uhtred, the Stardrinker [A,BR,H,NP,ST,U]; Vorana, Last to Fall [G,H,NP,U]
+  only adds/hide/noport/unavoidable or none: Medved, the Fallen Seer [H,NP,U]
+## League: Hellscape (3 fights)
+  with: The Eater of Flesh [D,GR,H,MG,OB]; The Skittermind [G,H,OB,SH/area]
+  only adds/hide/noport/unavoidable or none: The Pale Angel [H,U]
+## League: Incursion (18 fights)
+  with: Atziri, the Fell Serpent [H,P,U]; Atziri, the Red Queen [A,H,P]; Cualli, Kamasan Smith [BR,CV,D,H,NB]; Huitzil, Royal Blood Priest [BR,D,EL,H]; Kulka, Vaal Thaumaturge [A,BR,H]; Menmek, Guardian Construct [BR,D,H,TE]; Royal Colossus [BR,H]; Xipocado, Royal Architect [AR,H,SH/area,U]; Xolotl, Royal Commander [BR,H]; Xolotl, the Forgotten [BR,H]
+  only adds/hide/noport/unavoidable or none: Anub, the Pinata [H]; Corrupted Abomination [H]; High Priest [H]; Imitation Triumph [A,H]; Pakteni, Flesh Surgeon [H]; Quadrilla Sergeant [H,U]; Royal Sentinel [H]; Unchained Beast [H]
+## Map boss (20 fights)
+  with: Gorian, the Moving Earth [A,BR,H,NP,OB,U]; Ignatia, the Flame-Sworn [BR,H,NP]; Iktab, the Deathlord [A,BR,H,NP,U]; Lord of the Pit [A,BR,H,NP,U]; Phyx, Sentinel of the Spark [G,H,NP,U]; Precursor Displacer [G,H,NP,TE,U]; Precursor Extractor [H,NP,TE,U]; Precursor Refiner [H,NP,TE,U]; Tetzcatl, the Blazing Guardian [BR,D,H,NP,TE]; The Black Crow [AR,GR,H,I,NP,U]; The King in the Mists [A,D,EM,G,GR,GZ,H,M,NB,NP,P,ST,U,US]; Torrek of the Drowned Fleet [A,H,NP,TE]; Varloch, the Ashen Lord [G,H,NP,U]
+  only adds/hide/noport/unavoidable or none: Colm, the Rancorous [H]; Gelida, the Frost-Tongue [A,H]; Gressor-Kul, the Apex [H,NP]; Micata, the Remade [H]; Murtagh, the Engorged [H]; Phya, Sentinel of the Cradle [H,NP,U]; Precursor Separator [H,NP,U]
+## Other/unplaced (26 fights)
+  with: Adrienne, the Malignant Rose [NB]; Bronnach, the Manhunter [NB]; Ciara, the Curse Weaver [NB]; Doran, the Deft [NB]; Drusian, the Artillerist [NB]; Hesperia, the Arcane Tempest [NB]; Izel, Atziri's Chosen [NB]; Nisha, the Fierce [NB]; Nyassa, the Flaming Hand [NB]; Omniphobia, Fear Manifest [BR,H,ST,U]; Phanos, Last Disciple of Auria [A,D,G,H,HL]; Raok, the Bloodthirsty [NB]; Sondar, the Stormbinder [NB]; Taua, the Ruthless [NB]; Tawhani, the Ancestral Guardian [A,EL,EM,GZ,H,NB,SH]; The Immured Fury [D,G,H]; The King in the Mists [A,EM,G,GR,GZ,H,M,NB,NP,P,SH/area,ST,U,US]; Ulfred, the Afflicted [NB]; Vasa, of the Death Akhara [NB]; Yama The White [CL,D,H]; [DNT-UNUSED] Parasite Host [EM,H]; [DNT] TheBeastPhase3 [BR,CV,D,H]; [DNT] VerisiumWall [NP,US]
+  only adds/hide/noport/unavoidable or none: -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- -|- []; Phya, Sentinel of the Cradle [H,NP,U]; Phyx, Sentinel of the Spark [H,NP,U]
+## Pinnacle (5 fights)
+  with: The Aberration [A,D,H,NP,U,US]; The Arbiter of Ash [AR,BR,D,EL,EM,G,H,NB,NP,P,SH,U,US]; The Arbiter of Divinity [AR,BR,D,H,NP,P,U,US]; The Bodach [AR,D,G,H,NP,P,SH,U,US]; The Raven Trickster [BR,CL,D,H,NP,TE,U,US]
+  only adds/hide/noport/unavoidable or none: 
+## Sekhemas trial (5 fights)
+  with: Ashar, the Sand Mother [D,H,MG,NB,NP,U,US]; Hadi of the Flaming River [H,I,MG,NP,OB,US]; Rafiq of the Frozen Spring [BR,H,I,MG,NP,OB,US]; Zarokh, the Temporal [GZ,H,MG,NP,TE,U,US]
+  only adds/hide/noport/unavoidable or none: Rattlecage, the Earthbreaker [H,NP]

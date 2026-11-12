@@ -1,0 +1,254 @@
+# Doryani, Royal Thaumaturge
+content: Act 3
+monsters: Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastMap, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastStandalone_
+scripts: Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastMap_, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastStandalone
+own chain: Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastMap_, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastStandalone
+areas: G3_17 The Black Chambers act3; MapUberBoss_StoneCitadel The Stone Citadel act10; MapUberBoss_StoneCitadel_Quest Eastern Enigma Chamber act10
+ai: Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastMagicBrain.ais, Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPastMagicBrainStandalone.ais (not shipped)
+
+## skills
+- GSDoryaniHumanBossBasicLightningZap [geometry_spell] action=DoryaniHumanBossLightningZap anim=default:attack_01_additive
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSDoryaniHumanBossFlamethrower [geometry_spell] action=DoryaniHumanBossFlamethrower anim=default:attack_02_additive
+    geom: donut length=45 width=10 angle=25 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked
+- MPSDoryaniHumanBossCrystalTossLeft [monster_projectile_spell] action=DoryaniHumanBossCrystalTossLeft anim=default:soul_cores_left_01_additive
+    flags: base_deal_no_damage
+- MPSDoryaniHumanBossCrystalTossRight [monster_projectile_spell] action=DoryaniHumanBossCrystalTossRight anim=default:soul_cores_right_01_additive
+    flags: base_deal_no_damage
+- EASDoryaniHumanBossMultiLightningZap [empty_action_spell] action=DoryaniHumanBossLightningTendrils anim=default:lightning_tendrils_01_additive
+- GSDoryaniHumanBossLightningClap [geometry_spell] action=SpellAreaOfEffectLightning anim=default:epic_slam_01,stance4:mech_floating_lightning_storm_01
+    geom: cone length=48 width=0 angle=180 range=132 delay=33 anchor=3
+    flags: is_area_damage
+- SODoryaniHumanBossSolarOrb [spawn_object] action=DoryaniHumanBossSolarOrb anim=default:solar_orb_01_additive
+    objects: Metadata/Monsters/Doryani/TrueDoryani/objects/DoryaniHumanBossSolarOrb
+- MPSDoryaniHumanBossFireballPrimary [monster_projectile_spell] action=DoryaniHumanBossFireball anim=default:fireball_01_additive
+    flags: base_deal_no_damage
+- EDSDoryaniHumanBossFlameblast [effect_driven_spell] action=DoryaniHumanBossFlameblastTargeted anim=default:flameblast_targeted_01_additive
+    flags: is_area_damage
+- EDSDoryaniHumanBossFlameblastSelf [effect_driven_spell] action=DoryaniHumanBossFlameblastSelf anim=default:flameblast_self_01_additive
+    flags: is_area_damage
+- GSDoryaniHumanBossBeamBlast [geometry_spell] action=DoryaniHumanBossBeamBlast anim=default:soul_core_beam_blast_01_additive
+    geom: rectangle length=28 width=4 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- EASDoryaniHumanBossCrystalTraps [empty_action_spell] action=DoryaniHumanBossSoulCoresArena anim=default:soul_core_arena_activate_01_additive
+- EASDoryaniHumanBossActivateMechanism [empty_action_spell] action=DoryaniHumanBossActivateMechanism anim=default:soul_cores_arena_01_additive
+- DTTDoryaniHumanBossJumpAround [dash_to_target] action=DodgeBack anim=default:combat_jump_01
+- DTTDoryaniHumanBossJumpToArenaMiddle [dash_to_target] action=LeapSlam anim=default:phase_2_jump_01
+- EASDoryaniExplodeCrab [empty_action_spell] action=SpellAreaOfEffectCold anim=stance4:mech_floating_explode_mech_01
+- CGEDoryaniIonCannon [monster_cast_ground_effect_location] action=SpellAreaOfEffectFire anim=stance4:mech_floating_ion_cannon_01
+    ground: Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/spear_aura/spear_aura.ao
+- GTDoryaniLightningStorm [geometry_trigger] action=SpellAreaOfEffectLightning anim=default:epic_slam_01,stance4:mech_floating_lightning_storm_01
+    geom: trigger count=15 delay=4000 spread=15 radius=0 angle=0 anchor=1
+    triggers: GSDoryaniLightningStormBolt
+- GSDoryaniLightningStormBolt [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=850 delay=850 anchor=4
+    flags: is_area_damage
+- GSDoryaniHumanBossDecelCrystalExplode [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDoryaniHumanBossFireClap [geometry_spell] action=None anim=-
+    geom: cone length=48 width=0 angle=180 range=132 delay=33 anchor=3
+    flags: is_area_damage
+- GSDoryaniHumanBossMultiLightningZap [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSDoryaniHumanBossSolarOrbPulse [geometry_spell] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EDSDoryaniHumanBossFlameblastTriggered [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- EDSDoryaniHumanBossFlameblastTriggeredSelf [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- MPSDoryaniHumanBossFireballSecondary [monster_projectile_spell] action=None anim=-
+- GSDoryaniHumanBossFireballDirectImpactExplosion [geometry_spell] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDoryaniHumanBossMechanismBeam [geometry_spell] action=None anim=-
+    geom: cone length=120 width=0 angle=15 range=330 delay=33 anchor=12
+    flags: is_area_damage
+    GEAL 1135 on ['Metadata/Terrain/Gallows/Act3/3_17/Objects/ArenaCrystal']: self{} each{triggerer.If( GetState( active ) == 0, (){ SetStateTo( active, 1 ); } );} r=120
+- GSDoryaniHumanBossMechanismBeamFlipped [geometry_spell] action=None anim=-
+    geom: cone length=120 width=0 angle=15 range=330 delay=33 anchor=12
+    flags: is_area_damage
+    GEAL 1135 on ['Metadata/Terrain/Gallows/Act3/3_17/Objects/ArenaCrystal']: self{} each{triggerer.If( GetState( active ) == 0, (){ SetStateTo( active, 1 ); } );} r=120
+- GSDoryaniHumanBossCrystalZap [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EDSDoryaniHumanBossBeamBlastCone [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- GSDoryaniHumanBossConstantLightning [geometry_spell_channelled] action=ChannelUnleash anim=stance4:mech_return_start_01
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDoryaniLightningStormBoltConstant [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=1500 delay=1500 anchor=4
+    flags: is_area_damage
+- EASDoryaniHumanBossHoverDeath [empty_action_spell] action=DodgeForward anim=stance4:mech_death_flying_bwd_01,stance5:mech_death_ground_bwd_01,stance6:mech_death_flying_bwd_01
+- EASDoryaniHumanBossGroundDeath [empty_action_spell] action=DodgeForward anim=stance4:mech_death_flying_bwd_01,stance5:mech_death_ground_bwd_01,stance6:mech_death_flying_bwd_01
+- EASDoryaniHumanBossFloatingDeathActivate [empty_action_spell] action=SpellProjectile anim=stance5:mech_death_ground_end_01,stance6:mech_death_flying_end_01,stance7:portal_leave_01,stance8:portal_leave_01
+- EASDoryaniHumanBossGroundDeathActivate [empty_action_spell] action=SpellProjectile anim=stance5:mech_death_ground_end_01,stance6:mech_death_flying_end_01,stance7:portal_leave_01,stance8:portal_leave_01
+- DTTDoryaniHumanBossDeathJumpShort [dash_to_target] action=SpellProjectileFire anim=stance5:mech_death_jump_short_02,stance6:mech_death_jump_short_01
+- DTTDoryaniHumanBossDeathJumpMedium [dash_to_target] action=SpellProjectileCold anim=stance5:mech_death_jump_medium_02,stance6:mech_death_jump_medium_01
+- DTTDoryaniHumanBossDeathJumpLong [dash_to_target] action=SpellProjectileLightning anim=stance5:mech_death_jump_long_02,stance6:mech_death_jump_long_01
+- EAADoryaniHumanBossDeathFreeAlva [empty_action_spell] action=SpellProjectile anim=stance5:mech_death_ground_end_01,stance6:mech_death_flying_end_01,stance7:portal_leave_01,stance8:portal_leave_01
+- CGEDoryaniIonCannonTriggered [monster_cast_ground_effect_location] action=SpellAreaOfEffectFire anim=stance4:mech_floating_ion_cannon_01
+    ground: Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/spear_aura/spear_aura.ao
+- GTDoryaniIonCannonMap [geometry_trigger] action=SpellAreaOfEffectFire anim=stance4:mech_floating_ion_cannon_01
+    geom: trigger count=2 delay=0 spread=26 radius=0 angle=0 anchor=1
+    triggers: CGEDoryaniIonCannonTriggered
+
+## own states and handlers
+states: lock_on; no_collision; can_move = 1; hover_crafting; audio_param; death_float_epk; fight_done
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_or_create_state_no_collision_0 = { MakeCollidable(); }
+- on_construction_complete = { globals.doryani_chamber = this; }
+- on_state_hover_crafting_0 = { PlayAnimation( mech_attach_platform_01 ); }
+- on_or_create_state_hover_crafting_1 = { SetMovementFaceMode( DontFace ); PlayAnimationType( Idle ); Call( lock_height, floating_height ); }
+- on_construction_complete = { globals.doryanis_voicebox = this; }
+- create_state_lock_on_0 = { SetUsesDirectionalRunAnimations( false ); }
+- create_state_lock_on_1 = { SetUsesDirectionalRunAnimations( true ); }
+- on_start_ChangeToStance3Immediate = { FadeAnimations( 10, 0.0 ); }
+- on_or_create_state_hover_crafting_1 = { SetAnimatedTurnDuration( 1.0 ); }
+- on_event_hovercrashed = { DetachAllOfType( 'Metadata/Monsters/DoryaniMechSuit/Hovercraft.ao' ); DetachAllOfType( 'Metadata/Monsters/DoryaniMechSuit/attachments/HovercraftLArmBack.ao' ); DetachAllOfType( 'Metadata/Monsters/DoryaniMechSuit/attachments/HovercraftRArmBack.ao' ); DetachAllOfType( 'Metadata/Monsters/DoryaniMechS
+- on_or_create_state_death_float_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/epk/new_deathsequence.epk' ); }
+- on_state_death_float_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/epk/new_deathsequence.epk' ); }
+- on_state_fight_done_1 = { DisableRendering(); DisableAnimationSounds(); FadeOutLight( 0.2 ); DisableTargetable(); }
+- create_state_fight_done_1 = { DisableRendering(); DisableAnimationSounds(); DisableLights(); DisableTargetable(); }
+- on_effect_start_MPSDoryaniHumanBossCrystalTossLeft = { Roll( 1, 4, () { PlayTextAudio( DoryaniPastBoss_CrystalToss_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_MPSDoryaniHumanBossCrystalTossRight = { Roll( 1, 4, () { PlayTextAudio( DoryaniPastBoss_CrystalToss_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_MPSDoryaniHumanBossFireballPrimary = { Roll( 1, 4, () { PlayTextAudio( DoryaniPastBoss_UberFireball_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniHumanBossLightningClap = { Roll( 1, 1, () { PlayTextAudio( DoryaniPastBoss_LightningClap_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EDSDoryaniHumanBossFlameblast = { Roll( 1, 1, () { PlayTextAudio( DoryaniPastBoss_Flameblast_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EDSDoryaniHumanBossFlameblastSelf = { Roll( 1, 1, () { PlayTextAudio( DoryaniPastBoss_Flameblast_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_SODoryaniHumanBossSolarOrb = { Roll( 1, 3, () { PlayTextAudio( DoryaniPastBoss_SolarOrb_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniHumanBossCrystalTraps = { Roll( 1, 2, () { PlayTextAudio( DoryaniPastBoss_BringSoulCore_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniHumanBossMultiLightningZap = { Roll( 1, 2, () { PlayTextAudio( DoryaniPastBoss_LightningTendrils_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniHumanBossFlamethrower = { Roll( 1, 4, () { PlayTextAudio( DoryaniPastBoss_Flamethrower_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_GSDoryaniHumanBossBeamBlast = { Roll( 1, 1, () { PlayTextAudio( DoryaniPastBoss_FrontalLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_EASDoryaniHumanBossActivateMechanism = { Roll( 1, 1, () { PlayTextAudio( DoryaniPastBoss_ActivateLaser_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_effect_start_DTTDoryaniHumanBossJumpToArenaMiddle = { QueueTextAudio( DoryaniPastBoss_MechSuitTransform_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast', 1450 ); QueueTextAudio( DoryaniPastBoss_MechSuitTransformEnd_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast', 10500 ); PlayCharacterAudioEvent( DoryaniBossSummonMech
+- on_knockdown_01 = { Roll( 1, 2, () { PlayTextAudio( DoryaniPastBoss_Knockdown_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_mech_knockdown_bwd_01 = { Roll( 1, 1, () { PlayTextAudio( DoryaniPastBoss_MechKnockdown_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); } ); }
+- on_or_create_state_audio_param_0 = { SetGlobalAudioParam( DoryaniPhase, 0 ); }
+- on_or_create_state_audio_param_1 = { SetGlobalAudioParam( DoryaniPhase, 1 ); }
+- on_or_create_state_audio_param_2 = { SetGlobalAudioParam( DoryaniPhase, 2 ); }
+- on_or_create_state_audio_param_3 = { SetGlobalAudioParam( DoryaniPhase, 3 ); }
+- on_effect_start_DTTDoryaniHumanBossJumpToArenaMiddle = { PlayTextAudio( DoryaniPastBoss_MechSuitTransform_Random, 'Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast' ); PlayCharacterAudioEvent( DoryaniBossSummonMechResponseAlt ); }
+- on_or_create_state_hover_crafting_1 = { SetMovementFaceMode( DontFace ); PlayAnimationType( Idle ); Call( update_height ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('fight_done', 1)]
+untargetable(DisableTargetable): [('fight_done', 1)]
+seek: []  phase: ['audio_param']  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/lightningzap_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/laser_blast.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/floorgem_emerge.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/crawling_bolt.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/bloodgem_laser.ao
+- preload_animated_object Metadata/Effects/Spells/corrupted_blood_stream/BuffLoopAudio.ao
+- preload_animated_object Metadata/Monsters/DoryaniMechSuit/HovercraftCrashed.ao
+- preload_buff_visual corrupted_blood_stream
+- preload_misc_beam DoryaniHumanBossMultiZapBeam
+- preload_misc_beam DoryaniHumanBossBasicZapBeam
+- preload_environment G3_17_boss
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/epk/new_deathsequence.epk
+
+## adds and forms
+- Metadata/NPC/League/Incursion/DoryaniIncursionAccessSummon "Doryani" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing,GSDoryaniHumanBossBasicLightningZap,GSDoryaniHumanBossFlamethrower comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;hide;ritual;dialogue;skip;lock_on;can_move = 1;combat = 1;cutscene
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/Doryani/TrueDoryani/objects/DoryaniHumanBossSolarOrb:  [object_size=1] states= on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/ArenaCrystal:  [server_only=true] states=light on_initial_position_set{{ globals.arena_crystals += this; }}; on_state_light_0{{ SetLightState( off, 0.5, 0 ); }}; create_state_light_0{{ SetLightState( off, 0.0, 0 ); }}; on_state_light_1{{ SetLightState( on, 0.5, 0 ); }}; create_state_light_1{{ SetLightState( on, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker:  [server_only=true] states=glow on_change_state_glow{{ SetDynamicFloat( 'minecapsule_driver', GetState( glow ) / 100.0 ); }}; on_construction_complete{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/epk/mine_capsule_glow.epk', infinity ); }}; on_wake{{ SetDynamicFloat( 'minecapsule_driver', GetState( glow ) / 100.0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01:  [blocking=false object_size=1 server_only=true] states=light = 1 on_state_light_0{{ SetLightState( off, 0.5, 0 ); }}; create_state_light_0{{ SetLightState( off, 0.0, 0 ); }}; on_state_light_1{{ SetLightState( on, 0.5, 0 ); }}; create_state_light_1{{ SetLightState( on, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02:  [blocking=false object_size=1 server_only=true] states=light = 1 on_state_light_0{{ SetLightState( off, 0.5, 0 ); }}; create_state_light_0{{ SetLightState( off, 0.0, 0 ); }}; on_state_light_1{{ SetLightState( on, 0.5, 0 ); }}; create_state_light_1{{ SetLightState( on, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController:  [server_only=true] states= 
+- Metadata/Monsters/Doryani/TrueDoryani/objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=DoryaniBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( DoryaniBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/BossLootProxy:  [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_17/Objects/DoryaniArenaEntranceTitle: ProximityTrigger [radius=70 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardDoryaniArena, TitleCardDoryaniArenaSubtitle ); }}
+
+## lines
+- on_effect_start_MPSDoryaniHumanBossCrystalTossLeft -> DoryaniPastBoss_CrystalToss_Random: Inevitable!
+- on_effect_start_MPSDoryaniHumanBossCrystalTossRight -> DoryaniPastBoss_CrystalToss_Random: Inevitable!
+- on_effect_start_MPSDoryaniHumanBossFireballPrimary -> DoryaniPastBoss_UberFireball_Random: Pathetic!
+- on_effect_start_GSDoryaniHumanBossLightningClap -> DoryaniPastBoss_LightningClap_Random: Nothing can stand against us!
+- on_effect_start_EDSDoryaniHumanBossFlameblast -> DoryaniPastBoss_Flameblast_Random: You will burn!
+- on_effect_start_EDSDoryaniHumanBossFlameblastSelf -> DoryaniPastBoss_Flameblast_Random: You will burn!
+- on_effect_start_SODoryaniHumanBossSolarOrb -> DoryaniPastBoss_SolarOrb_Random: Catalyse fusion!
+- on_effect_start_EASDoryaniHumanBossCrystalTraps -> DoryaniPastBoss_BringSoulCore_Random: The best laid plans...
+- on_effect_start_EASDoryaniHumanBossMultiLightningZap -> DoryaniPastBoss_LightningTendrils_Random: Behold!
+- on_effect_start_GSDoryaniHumanBossFlamethrower -> DoryaniPastBoss_Flamethrower_Random: Simple!
+- on_effect_start_GSDoryaniHumanBossBeamBlast -> DoryaniPastBoss_FrontalLaser_Random: The power of the Vaal!
+- on_effect_start_EASDoryaniHumanBossActivateMechanism -> DoryaniPastBoss_ActivateLaser_Random: Sacrifice is the only path to survival!
+- on_effect_start_DTTDoryaniHumanBossJumpToArenaMiddle -> DoryaniPastBoss_MechSuitTransform_Random: I can't give up! I must save my people!
+- on_effect_start_DTTDoryaniHumanBossJumpToArenaMiddle -> DoryaniPastBoss_MechSuitTransformEnd_Random: No! I <i>{will} succeed!
+- on_knockdown_01 -> DoryaniPastBoss_Knockdown_Random: Ugh! A minor setback!
+- on_mech_knockdown_bwd_01 -> DoryaniPastBoss_MechKnockdown_Random: Ugh... inconceivable... You will pay for this!
+
+## linked buffs
+- doryani_corrupted_lightning_dot "Corrupting Fulmination": You are taking Lightning Damage over time | stats=base_lightning_damage_taken_per_minute
+- doryani_solar_orb_degen "Burning Orb": You are taking Fire Damage while near a Burning Orb | stats=base_fire_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_17_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 138, 136, 299, 299, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_env', 138, 134, 300, 300, '']
+  sector ['no_critters', 131, 132, 306, 307, '']
+  sector ['no_movement_skills', 146, 95, 289, 99, '']
+  point [218.0, 274.0, 'mapboss1']
+  point [218.0, 218.0, 'mapboss2']
+  point [217.0, 154.0, 'telepad1']
+  point [218.0, 31.0, 'checkpoint1']
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x4 (402,402) (314,380) (130,380) (34,402)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (230,29)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker x20 (218,243) (218,268) (243,243) (243,268) (193,268) (193,243) (168,243) (168,218) (193,218) (168,193)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01 x2 (155,218) (281,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02 x24 (134,219) (135,203) (141,186) (136,237) (142,253) (150,269) (162,280) (177,289) (197,298) (245,298)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (217,79)
+  obj Metadata/NPC/Four_Act3/AlvaSanctum x1 (218,305)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController x1 (217,24)
+  obj Metadata/Monsters/Doryani/TrueDoryani/objects/BossRoomMinimapIcon x1 (218,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/BossLootProxy x1 (231,277)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/DoryaniArenaEntranceTitle x1 (219,132)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (218,96)
+room metadata_terrain_maps_uberdoryani_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 141, 131, 297, 297, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_env', 138, 128, 300, 300, '']
+  sector ['no_critters', 135, 125, 303, 303, '']
+  sector ['boss_sector', 81, 89, 339, 334, '']
+  point [218.0, 274.0, 'mapboss1']
+  point [218.0, 218.0, 'mapboss2']
+  point [217.0, 154.0, 'telepad1']
+  point [228.0, 45.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x4 (402,402) (314,380) (130,380) (34,402)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker x20 (218,243) (218,268) (243,243) (243,268) (193,268) (193,243) (168,243) (168,218) (193,218) (168,193)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01 x2 (155,218) (281,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02 x24 (134,219) (135,203) (141,186) (136,237) (142,253) (150,269) (162,280) (177,289) (197,298) (245,298)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (217,79)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController x1 (217,24)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (239,45)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (167,195) (162,227) (276,223) (263,182)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (198,272)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (247,221)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (218,96)
+room metadata_terrain_maps_uberdoryani_rooms_unique_boss_holodeck.arm
+  sector ['hide_teleports', 141, 131, 297, 297, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_env', 138, 128, 300, 300, '']
+  sector ['no_critters', 135, 125, 303, 303, '']
+  point [218.0, 274.0, 'mapboss1']
+  point [218.0, 218.0, 'mapboss2']
+  point [217.0, 154.0, 'telepad1']
+  point [228.0, 45.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x4 (402,402) (314,380) (130,380) (34,402)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/SeismicCrystalTrapMarker x20 (218,243) (218,268) (243,243) (243,268) (193,268) (193,243) (168,243) (168,218) (193,218) (168,193)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight01 x2 (155,218) (281,218)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/Bosslight02 x24 (134,219) (135,203) (141,186) (136,237) (142,253) (150,269) (162,280) (177,289) (197,298) (245,298)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (217,79)
+  obj Metadata/Terrain/Gallows/Act3/3_17/Objects/ApproachConversationController x1 (217,24)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (239,45)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (168,190) (166,216) (272,222) (260,185)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (194,267)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (230,199)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckTransitionReturn x1 (233,249)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (218,96)

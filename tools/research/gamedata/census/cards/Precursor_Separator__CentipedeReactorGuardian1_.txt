@@ -1,0 +1,126 @@
+# Precursor Separator
+content: Map boss
+monsters: Metadata/Monsters/PrecursorReactorGuardians/Centipedes/CentipedeReactorGuardian1_
+scripts: Metadata/Monsters/PrecursorReactorGuardians/Centipedes/CentipedeReactorGuardian1
+own chain: Metadata/Monsters/PrecursorReactorGuardians/Centipedes/CentipedeReactorGuardian1
+areas: MapUniqueReactor_01 Western Gateway act10
+ai: Metadata/Monsters/PrecursorReactorGuardians/Centipedes/CentipedeReactorGuardian1.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=default:attack_01,stance2:run_end_02
+- CentipedeReactorGuardianFireCyclone [melee] action=GroundSlam anim=default:idle_relaxed_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- CentipedeReactorGuardianFireCombo [melee] action=Flurry anim=default:idle_relaxed_02
+- GPSCentipedeReactorGuardianFireProj [geometry_projectiles_spell] action=SpellNovaLightning anim=default:storm_ball_01
+    flags: base_deal_no_damage
+- MPSCentipedeReactorGuardianCycloneProj [monster_projectile_spell] action=SpellProjectile anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GPSCentipedeReactorGuardianFireProj2 [geometry_projectiles_spell] action=SpellNovaFire anim=default:storm_ball_02
+    flags: base_deal_no_damage
+- GPSCentipedeReactorGuardianFireProj3 [geometry_projectiles_spell] action=SpellNovaCold anim=default:storm_ball_03
+    flags: base_deal_no_damage
+- CTS1Generic [change_to_stance1] action=None anim=-
+- CentipedeReactorGuardianFireCyclone2 [melee] action=GroundSlamOffhand anim=default:idle_relaxed_01_super
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- CGECentipedeReactorGuardianBurningGround [monster_cast_ground_effect_location] action=None anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/League_Expedition_New/Devourer/acid_ground.ao
+- GSCentipedeReactorGuardianCycloneExplosion [geometry_spell] action=None anim=-
+    geom: circle length=69 width=0 angle=0 range=2700 delay=2450 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSCentipedeReactorGuardianFireComboExplosion [geometry_spell] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+- CentipedeReactorGuardianFireComboAlt [melee] action=OffMelee anim=default:idle_relaxed_03
+- GSCentipedeReactorGuardianFireProjImpact [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSCentipedeReactorGuardianFireMeleeExplosion [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=200 delay=33 anchor=4
+    flags: is_area_damage
+- GSCentipedeReactorGuardianFireMeleeFlameWave [geometry_spell] action=None anim=-
+    geom: cone length=50 width=0 angle=60 range=500 delay=33 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: damage; emerge
+- on_event_ballend = { ChangeStance( default, false, true ); }
+- on_initial_position_set = { SetExtraTileActivationDistance( 15, 15 ); }
+- on_event_ballstart = { AddWheel( 'Metadata/Monsters/PrecursorReactorGuardians/Centipedes/PrecursorCentipedeWheel.ao', wheel_center_jntBnd, 25.0 ); HideMesh( 'Art/Models/MONSTERS/PrecursorCentipede/CentipedeReactorGuardian.sm' ); this.mywheel = GetAttachedAOByType( 'Metadata/Monsters/PrecursorReactorGuardians/Centipedes/
+- on_event_ballend = { ClearWheels(); ShowMesh( 'Art/Models/MONSTERS/PrecursorCentipede/CentipedeReactorGuardian.sm' ); }
+- on_death = { ClearWheels(); ShowMesh( 'Art/Models/MONSTERS/PrecursorCentipede/CentipedeReactorGuardian.sm' ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+- on_or_create_state_emerge_0 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Reactor_Guardian_01/epks/emerge_hover.epk' ); }
+- on_or_create_state_emerge_1 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Reactor_Guardian_01/epks/emerge_hover.epk' ); }
+- on_or_create_state_damage_0 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Endgame_FOUR/Precursor_Reactor_Guardian_01/epks/idle_damage_01.epk' ); SetDynamicFloat( 'Cent_heatDriver', 0.0, true, 1.0 ); this.mywheel = GetAttachedAOByType( 'Metadata/Monsters/PrecursorReactorGuardians/Centipedes/PrecursorCentipedeWheel.
+- on_or_create_state_damage_1 = { SetDynamicFloat( 'Cent_heatDriver', 0.25, true, 1.0 ); mywheel.SetDynamicFloat( 'Cent_heatDriver', 0.25, true, 1.0 ); }
+- on_or_create_state_damage_2 = { SetDynamicFloat( 'Cent_heatDriver', 0.5, true, 1.0 ); mywheel.SetDynamicFloat( 'Cent_heatDriver', 0.5, true, 1.0 ); }
+- on_or_create_state_damage_3 = { SetDynamicFloat( 'Cent_heatDriver', 0.75, true, 1.0 ); mywheel.SetDynamicFloat( 'Cent_heatDriver', 0.75, true, 1.0 ); }
+- on_or_create_state_damage_4 = { SetDynamicFloat( 'Cent_heatDriver', 1, true, 1.0 ); mywheel.SetDynamicFloat( 'Cent_heatDriver', 1.0, true, 1.0 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/precursorreactorguardians/centipedes/spawners:  [server_only=true] states= 
+- Metadata/Monsters/PrecursorReactorGuardians/Centipedes/Spawners:  [server_only=true] states= 
+- Metadata/Terrain/Maps/UniqueReactor_01/Objects/Lifts/BossLift: TriggerableBlockage [start_blocked=false blocking=false object_size=0 server_only=true] states=unlock;fight;activated;riseanim;rise;levers on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_construction_complete{{ this.turret = GetAttachedAOByType( 'Metadata/Terrain/Gallows/EndGame/Divinity/Tiles/DivinityTurret.ao' ); this.turret.}; on_or_create_state_riseanim_1{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_01 ); Pla}; on_or_create_state_riseanim_2{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_02 ); Pla}; on_or_create_state_riseanim_3{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', emerge_together_03 ); Pla}; on_or_create_state_unlock_1{{ PlayAnimationAttached( 'Metadata/Terrain/Maps/UniqueReactor_01/Tiles/boss_arena_side_01.ao', bridge_01 ); PlayAnimatio}
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs:  [blocking=true object_size=4 server_only=true] states=stop on_state_stop_1{{ QueueAnimation( stop_01 ); }}; create_state_stop_1{{ PlayAnimation( stop_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/ItemDeviceCombinator: MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=stop;active on_construction_complete{{ globals.bossdevice = this; }}; on_or_create_state_stop_0{{ PlayAnimation( idle_01 ); }}; on_state_stop_1{{ PlayAnimation( deactivate ); }}; create_state_stop_1{{ PlayAnimation( deactivate_idle_01 ); }}; on_or_create_state_stop_1{{ DisableTargetable(); }}; on_or_create_state_active_1{{ EnableTargetable(); ShowMinimapIcon(); }}
+- Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulFemaleArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMothersoulFemaleArena, TitleCardMothersoulFemaleArenaSubtitle ); }}
+- Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulMaleArenaTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMothersoulMaleArena, TitleCardMothersoulMaleArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_maps_uniquereactor_01_rooms_unique_boss_01.arm
+  sector ['lift', 35, 35, 196, 196, '']
+  sector ['hide_teleports', 5, 6, 227, 227, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['arena_teleport', 5, 6, 227, 227, '']
+  point [146.0, 146.0, 'mapboss1']
+  point [112.0, 120.0, 'telepad4']
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x8 (17,31) (31,17) (213,31) (199,17) (199,213) (213,199) (31,213) (17,199)
+  obj Metadata/Monsters/PrecursorReactorGuardians/Centipedes/Spawners x12 (207,93) (207,115) (207,138) (23,138) (23,115) (23,93) (138,207) (115,207) (93,207) (138,23)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (93,115)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (187,184) (48,43) (44,185) (184,44)
+  obj Metadata/MiscellaneousObjects/DoodadNoWobble_Distant_Max x1 (120,107)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x4 (229,229) (229,1) (1,1) (1,229)
+  obj Metadata/Terrain/Maps/UniqueReactor_01/Objects/Lifts/BossLift x1 (115,115)
+room metadata_terrain_maps_mothersoul_rooms_female_unique_forge_01.arm
+  sector ['hide_teleports', 231, 300, 410, 546, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 225, 297, 416, 303, '']
+  sector ['boss_sector', 226, 301, 414, 548, '']
+  sector ['boss_env', 127, 17, 523, 640, '']
+  point [321.0, 427.0, 'mapboss1']
+  point [323.0, 214.0, 'checkpoint']
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs x4 (370,338) (370,415) (270,415) (270,338)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (320,419)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (323,301)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (313,299) (307,299) (319,299) (325,299) (331,299) (337,299) (343,299) (301,299)
+  obj Metadata/Monsters/MarakethSanctumTrial/ArenaCentreMarker x1 (318,385)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (298,426)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (269,392) (371,395) (343,429) (252,368)
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/ItemDeviceCombinator x1 (321,517)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (304,213)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (334,409)
+  obj Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulFemaleArenaTitle x1 (321,313)
+room metadata_terrain_maps_mothersoul_rooms_male_unique_forge_01.arm
+  sector ['hide_teleports', 231, 300, 410, 546, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 181, 297, 456, 303, '']
+  sector ['boss_sector', 226, 301, 414, 548, '']
+  sector ['boss_env', 127, 17, 523, 640, '']
+  point [321.0, 427.0, 'mapboss1']
+  point [323.0, 214.0, 'checkpoint']
+  obj Metadata/Monsters/PrecursorReactorGuardians/GeneticsScientists/LaserOrbs x4 (370,338) (370,415) (270,415) (270,338)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (316,382)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (323,299)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (313,298) (307,298) (319,298) (325,298) (331,298) (337,298) (343,298) (301,298)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (305,221)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (294,428)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (266,379) (372,378) (348,427) (346,333)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (336,404)
+  obj Metadata/Terrain/Maps/Mothersoul/Objects/MothersoulMaleArenaTitle x1 (321,313)

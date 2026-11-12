@@ -1,0 +1,204 @@
+# The King in the Mists
+content: Map boss
+monsters: Metadata/Monsters/VoodooKing/VoodooKingBoss2MAP, Metadata/Monsters/VoodooKing/VoodooKingBoss3MAP, Metadata/Monsters/VoodooKing/VoodooKingBoss3Standalone
+scripts: Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss2MAP, Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss3MAP, Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss3Standalone
+own chain: Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss2MAP, Metadata/Monsters/PinnacleBossBase, Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss3MAP, Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss3Standalone
+areas: RitualLeagueBoss Crux of Nothingness act10; RitualLeagueBoss Crux of Nothingness act10
+ai: Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss2MAP.ais, Metadata/Monsters/VoodooKing/MapBoss/VoodooKingBoss3Standalone.ais, Metadata/Monsters/VoodooKing/VoodooKingBoss3.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- MPSVoodooKing2SpellProjectile [monster_projectile_spell] action=SpellProjectile anim=default:spellcast_01
+- GTVoodooKingVineCascade [geometry_trigger] action=HeavyStrike anim=default:vine_cascade_01
+    geom: trigger count=30 delay=1200 spread=70 radius=1 angle=0 anchor=3
+- GAVoodooKingVineSlam [geometry_attack] action=GroundSlam anim=default:vine_nova_01
+    geom: circle length=40 width=0 angle=0 range=350 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASVoodooKingSummonEffigy [empty_action_spell] action=SpellAreaOfEffectFire anim=default:effigy_01
+- EASVoodooKingHexNoMovementAllowed [empty_action_spell] action=SpellAreaOfEffectCold anim=default:hex_01
+- EASVoodooKingHexNoStandingAllowed [empty_action_spell] action=SpellAreaOfEffectCold anim=default:hex_01
+- VoodooKingTeleport [teleport_no_los] action=Teleport anim=default:teleport_01
+    flags: skill_cannot_be_stunned
+- VoodooKingTeleportFlee [teleport_no_los] action=Teleport anim=default:teleport_01
+    flags: skill_cannot_be_stunned
+- VoodooKingDashForward [empty_action_spell] action=DodgeForward anim=default:move_fwd
+- VoodooKingDashBackward [empty_action_spell] action=DodgeBack anim=default:move_bwd
+- VoodooKingDashLeft [empty_action_spell] action=DodgeLeft anim=default:move_left
+- VoodooKingDashRight [empty_action_spell] action=DodgeRight anim=default:move_right
+- GSVoodooKingRitual [geometry_spell_channelled] action=ChannelUnleash anim=default:call_start_01
+    geom: circle length=2 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: skill_cannot_be_stunned
+- EASVoodooKingMazePhase [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:spellcast_03
+- GAVoodooKingVineCascadeSmall [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_blocked is_area_damage
+- GAVoodooKingVineCascadeBig [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_blocked is_area_damage
+- VoodooKingPunishment [instant_spell] action=None anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASVoodooKingBecomeATree [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:morph_01
+- EASVoodooKingReturnFromEdge [empty_action_spell] action=Teleport anim=default:teleport_01
+- CGEVoodooKing2CorrptedBloodDegen [monster_cast_ground_effect_location] action=None anim=-
+- MPSVoodooKing3SpellProjectile [monster_projectile_spell] action=SpellProjectile anim=default:spellcast_01
+- GPSVoodooKingBugBomb [geometry_projectiles_spell] action=SpellAreaOfEffectChaos anim=default:morph_01
+    flags: base_deal_no_damage base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASVoodooKingSummonDeathAuraEffigy [empty_action_spell] action=SpellAreaOfEffectFire anim=default:effigy_01
+- GSVoodooKingBugBombImpact [geometry_spell] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=300 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- VoodooKingBugRend [monster_soulrend] action=None anim=-
+- VoodooKingBugRendSingle [monster_soulrend] action=None anim=-
+- GTVoodooKingSwarmPulse [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=17 radius=19 angle=0 anchor=4
+- SOVoodooKingExplodingPod [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/VoodooKing/Objects/SporePod
+- GSVoodooKingSporeExplode [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=99 delay=33 anchor=4
+    flags: is_area_damage
+- GTVoodooKingSpores [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=300 spread=25 radius=0 angle=0 anchor=1
+    triggers: SOVoodooKingExplodingPod
+- EASVoodooKingRatnadoLeft [empty_action_spell] action=SpellBuffLightning anim=default:summon_zombies_left_01
+- EASVoodooKingRatnadoRight [empty_action_spell] action=SpellBuffChaos anim=default:summon_zombies_right_1
+- EASVoodooKingActivateBrambyForward [empty_action_spell] action=SpellBuff anim=default:summon_zombies_01
+- EASVoodooKingActivateBrambyLeft [empty_action_spell] action=SpellBuffFire anim=default:summon_zombies_left_01
+- EASVoodooKingActivateBrambyRight [empty_action_spell] action=SpellBuffCold anim=default:summon_zombies_right_1
+- MDVoodooKingRatnado [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/LeagueRitual/Daemons/RatTornadoMoveDaemon
+- MPSVoodooKingRatnadoRatMissile [monster_projectile_spell] action=SpellProjectile anim=default:spellcast_01
+
+## own states and handlers
+states: light; fix_weapon_wobble = 1; bubble_shield; emerge; hidden; invisible
+- on_or_create_state_hidden_1 = { RemoveCollidability(); }
+- create_state_light_0 = { DisableLight(); }
+- create_state_light_1 = { Delay( 0.01, { EnableLight(); } ); }
+- on_state_light_0 = { FadeOutLight(); }
+- on_state_light_1 = { FadeInLight(); }
+- on_or_create_state_fix_weapon_wobble_1 = { Call( fix_weapon_wobble, true ); }
+- on_state_fix_weapon_wobble_0 = { Call( fix_weapon_wobble, false ); }
+- on_timer_make_highlightable = { EnableHighlighting(); }
+- on_or_create_state_bubble_shield_0 = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/shield_bubble.ao' ); }
+- on_or_create_state_bubble_shield_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/shield_bubble.ao', bubble_attach ); }
+- on_or_create_state_hidden_1 = { DisableRendering(); }
+- on_event_teleport_to_ritual = { HideWeapons(); }
+- on_event_unhighlightable = { DisableHighlighting(); StartStateTimer( make_highlightable, 1.0 ); }
+- on_event_highlightable = { EnableHighlighting(); CancelStateTimer( make_highlightable ); }
+- on_effect_end_or_destroy_VoodooKingTeleport = { EnableTargetable(); EnableHighlighting(); }
+- on_effect_end_or_destroy_VoodooKingTeleportFlee = { EnableTargetable(); EnableHighlighting(); }
+- on_effect_end_EASVoodooKingMazePhase = { local the_player = GetLocalPlayer(); the_player.Delay( 2.3, { PlayCharacterAudioEvent( KingTransportToMaze ); } ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/epk/movement_bugs.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/epk/movement_bugs.epk' ); }
+- on_effect_start_GTVoodooKingVineCascade = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_CascadeRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_GAVoodooKingVineSlam = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_StaffSlamRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_EASVoodooKingSummonEffigy = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_SummonEffigyRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_EASVoodooKingHexNoMovementAllowed = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_MovementHexRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_EASVoodooKingHexNoStandingAllowed = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_StationaryHexRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_GSVoodooKingRitual = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_ActivateEffigyRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_EASVoodooKingBecomeATree = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_TransformIntoTreantRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss2' ); } ); }
+- on_effect_start_GAVoodooKingVineSlam = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_TreantSlamRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss3' ); } ); }
+- on_effect_start_EASVoodooKingHexNoMovementAllowed = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_MovementHexRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss3' ); } ); }
+- on_effect_start_EASVoodooKingHexNoStandingAllowed = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_StationaryHexRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss3' ); } ); }
+- on_effect_start_GPSVoodooKingBugBomb = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_EpicLocustsRandom, 'Metadata/Monsters/VoodooKing/VoodooKingBoss3' ); } ); }
+- on_death = { PlayTextAudio( KitM_DeathNew, 'Metadata/Monsters/VoodooKing/VoodooKingBoss3' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/monster_emissive_off.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/monster_emissive_off.epk' ); }
+- on_or_create_state_invisible_0 = { EnableRendering(); }
+- on_or_create_state_invisible_1 = { DisableRendering(); }
+- on_effect_end_or_destroy_CTS1BossFightStart = { PlayAdditiveAnimation( idle_01_back, 10 ); }
+- on_effect_start_GAVoodooKingVineSlam = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_TreantSlamRandom, _ ); } ); }
+- on_effect_start_EASVoodooKingHexNoMovementAllowed = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_MovementHexRandom, _ ); } ); }
+- on_effect_start_EASVoodooKingHexNoStandingAllowed = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_StationaryHexRandom, _ ); } ); }
+- on_effect_start_GPSVoodooKingBugBomb = { Roll( 1, 1, (){ PlayTextAudio( TheKingInTheMists_Treant_EpicLocustsRandom, _ ); } ); }
+- on_death = { PlayTextAudio( TheKingInTheMists_Treant_DeathRandom, _ ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/monster_emissive_off.epk' ); }
+- on_emerge_mapping_01 = { PlayTextAudio( TheKingInTheMists_TransformIntoTreantRandom, _, 2700 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('hidden', 1), ('invisible', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/VoodooKing/VoodooKingBoss3MAP
+- preload_monster_variety Metadata/Monsters/VoodooKing/VoodooKingDeathEffigy
+- preload_misc_beam VoodooKingRitualBloodBeam
+- preload_buff_visual voodoo_king_punishment_stationary
+- preload_buff_visual voodoo_king_punishment_moving
+- preload_object Metadata/MiscellaneousObjects/BossTargetMarker
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/shield_bubble.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/epk/movement_bugs.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/epk/teleport_dissolve_out.epk
+- preload_buff voodoo_king_platform_debuff
+- preload_buff voodoo_king_punishment_moving
+- preload_buff voodoo_king_punishment_stationary
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/deathmark_buildup.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/Impale_GrdRune.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/Impale_GrdRune_02.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/VineSpike_Impale.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/epk/slowdegen.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/epk/slowdegen_out.epk
+- preload_environment G1_12_boss
+- preload_monster_variety Metadata/Monsters/LeagueAzmeri/VoodooKingBoss/VoodooKingBoss3DeathAuraEffigy
+- preload_epk Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/monster_emissive_off.epk
+
+## adds and forms
+- Metadata/Monsters/VoodooKing/VoodooKingDeathEffigy "Affliction Totem" bossbar=0 skills=GAVoodooKingDeathEffigyPulse comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+daemons: Metadata/Monsters/LeagueRitual/Daemons/RatTornadoMoveDaemon
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/MiscellaneousObjects/BossTargetMarker:  [server_only=true] states= 
+- Metadata/Monsters/VoodooKing/Objects/SporePod:  [blocking=false object_size=0] states=explode;idle_state on_construction_complete{{ PlayAnimation( grow_slow_01 ); }}; on_state_explode_1{{ PlayAnimation( death_01 ); }}; on_state_idle_state_1{{ PlayAnimation( ramping_01 ); }}; on_event_delete{{ Delete(); }}
+- metadata/monsters/voodooking/mapboss/bossritualaltar: Life InteractionAction Targetable Stats [blocking=true object_size=5 server_only=true] states=active_pillars;lights;corpse_visible;corpse_taken on_construction_complete{{ SetVariableScale( 1.0 ); }}; on_delete{{ EnableProjectileAttaching(); }}; create_state_corpse_visible_1{{ if( GetState( corpse_taken ) == 0 ) { SetAnimatedObjectType( 'Metadata/Terrain/Doodads/Leagues/Azmeri/AoifeRitualShrin}; on_state_corpse_taken_1{{ DisableTargetable(); SetGlobalAudioParam( AoifeBody, 1 ); }}; on_or_create_state_active_pillars_0{{ PlayAnimation( idle_inactive ); }}; on_or_create_state_active_pillars_1{{ PlayAnimation( idle_active_01 ); }}
+- metadata/monsters/voodooking/mapboss/croud:  [server_only=true] states= on_construction_complete{{ globals.voodookingcroud += this; }}
+- Metadata/Monsters/VoodooKing/MapBoss/BossRitualAltar: Life InteractionAction Targetable Stats [blocking=true object_size=5 server_only=true] states=active_pillars;lights;corpse_visible;corpse_taken on_construction_complete{{ SetVariableScale( 1.0 ); }}; on_delete{{ EnableProjectileAttaching(); }}; create_state_corpse_visible_1{{ if( GetState( corpse_taken ) == 0 ) { SetAnimatedObjectType( 'Metadata/Terrain/Doodads/Leagues/Azmeri/AoifeRitualShrin}; on_state_corpse_taken_1{{ DisableTargetable(); SetGlobalAudioParam( AoifeBody, 1 ); }}; on_or_create_state_active_pillars_0{{ PlayAnimation( idle_inactive ); }}; on_or_create_state_active_pillars_1{{ PlayAnimation( idle_active_01 ); }}
+- Metadata/Terrain/Gallows/Leagues/Ritual/TreantArena/Objects/PlatformVisualBlocker:  [blocking=false object_size=2 server_only=true] states=wall_state on_construction_complete{{ SetExtraTileActivationDistance( 15 ); }}; on_or_create_state_wall_state_1{{ AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/insect_wall.ao', <root}
+- Metadata/Monsters/VoodooKing/MapBoss/Croud:  [server_only=true] states= on_construction_complete{{ globals.voodookingcroud += this; }}
+- Metadata/Terrain/Gallows/Leagues/Ritual/TreantArena/Objects/BodyCarryPortal: InteractionAction [blocking=false object_size=6 server_only=true] states=active create_state_active_0{{ DisableTargetable(); }}; on_state_active_1{{ EnableTargetable(); }}
+
+## lines
+- on_effect_start_GTVoodooKingVineCascade -> TheKingInTheMists_CascadeRandom: <i>{Lonnsaigh}!
+- on_effect_start_GAVoodooKingVineSlam -> TheKingInTheMists_StaffSlamRandom: <i>{Fàs}!
+- on_effect_start_EASVoodooKingSummonEffigy -> TheKingInTheMists_SummonEffigyRandom: Dark effigy!
+- on_effect_start_EASVoodooKingHexNoMovementAllowed -> TheKingInTheMists_MovementHexRandom: You are seen!
+- on_effect_start_EASVoodooKingHexNoStandingAllowed -> TheKingInTheMists_StationaryHexRandom: <i>{Rith}!
+- on_effect_start_GSVoodooKingRitual -> TheKingInTheMists_ActivateEffigyRandom: Nothingness approaches!
+- on_effect_start_EASVoodooKingBecomeATree -> TheKingInTheMists_TransformIntoTreantRandom: The Wildwood's power... is mine!
+- on_effect_start_GAVoodooKingVineSlam -> TheKingInTheMists_Treant_TreantSlamRandom: <i>{An dire ed}!
+- on_effect_start_EASVoodooKingHexNoMovementAllowed -> TheKingInTheMists_Treant_MovementHexRandom: You are seen!
+- on_effect_start_EASVoodooKingHexNoStandingAllowed -> TheKingInTheMists_Treant_StationaryHexRandom: <i>{Rith}!
+- on_effect_start_GPSVoodooKingBugBomb -> TheKingInTheMists_Treant_EpicLocustsRandom: The end of meaning is nigh!
+- on_death -> KitM_DeathNew: (random group)
+- on_death -> TheKingInTheMists_Treant_DeathRandom: So long as you know me, I will always exist...
+- on_emerge_mapping_01 -> TheKingInTheMists_TransformIntoTreantRandom: The Wildwood's power... is mine!
+
+## linked buffs
+- voodoo_king_death_aura_effigy "Mystic Miasma": You are taking Cold and Chaos Damage over time while standing in the Mystic Miasma. | stats=base_cold_damage_taken_per_minute,base_chaos_damage_taken_per_minute
+- voodoo_king_death_effigy_multiplying_curse "Shadow Surge": You are taking ever-increasing Physical Damage per stack of Shadow Surge. | stats=
+- voodoo_king_death_effigy_multiplying_curse_damage "":  | stats=base_physical_damage_taken_per_minute
+- voodoo_king_maze_debuff "Branching Affliction": You are taking Physical and Chaos Damage while standing in the Branching Affliction. | stats=base_physical_damage_taken_per_minute,base_chaos_damage_taken_per_minute
+- voodoo_king_plant_slow "Slowed": Enemies are Slowed | stats=base_movement_velocity_+%
+- voodoo_king_platform_debuff "Portent Vapors": You take increased damage for each stack of Portent Vapors | stats=base_damage_taken_+%
+- voodoo_king_platform_heal "":  | stats=life_regeneration_rate_per_minute_%
+- voodoo_king_punishment_moving "Ritual of Meditation": Stop moving or you will be imprisoned. | stats=dummy_stat_display_nothing
+- voodoo_king_punishment_stationary "Ritual of Dance": Keep moving or you will be imprisoned. | stats=dummy_stat_display_nothing
+- voodoo_king_ratnado_degen "Ratnado": You are taking Physical Damage over time | stats=base_physical_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_leagues_ritual_treantarena_rooms_arena.arm
+  sector ['boss_sector', 20, 318, 298, 597, '']
+  sector ['hide_teleports', 22, 323, 295, 595, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [138.0, 460.0, 'mapboss1']
+  point [154.0, 129.0, 'default']
+  point [154.0, 129.0, 'entrance']
+  point [162.0, 408.0, 'telepad']
+  point [154.0, 129.0, 'entrance']
+  point [161.0, 292.0, 'checkpoint1']
+  obj Metadata/Monsters/VoodooKing/VoodooKingBoss2RitualPillar x3 (94,421) (230,422) (160,537)
+  obj Metadata/Monsters/VoodooKing/MapBoss/BossRitualAltar x1 (162,461)
+  obj Metadata/Terrain/Gallows/Leagues/Ritual/TreantArena/Objects/PlatformVisualBlocker x1 (0,299)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (157,106)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (162,493)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_VoodooKing x1 (180,291)
+  obj Metadata/Monsters/VoodooKing/MapBoss/Croud x31 (97,162) (112,203) (104,217) (116,253) (114,229) (105,245) (94,175) (82,185) (91,233) (94,220)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x2 (180,321) (135,321)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (178,320) (172,320) (166,320) (160,320) (154,320) (148,320) (142,320) (136,320)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (154,427)
+  obj Metadata/Terrain/Gallows/Leagues/Ritual/TreantArena/Objects/BodyCarryPortal x1 (197,414)
+  obj Metadata/MiscellaneousObjects/TriggerableBlockageGeneric x6 (64,469) (101,539) (217,539) (260,472) (203,373) (120,369)

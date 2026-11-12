@@ -1,0 +1,160 @@
+# Tor Gul, the Defiler / Zar Wali, the Bone Tyrant
+content: Act 2
+monsters: Metadata/Monsters/GiantSnakeSkeletonBoss/GiantSkeletonSnakeBoss_, Metadata/Monsters/GiantSnakeSkeletonBoss/GiantSkeletonSnakeBossCampaignSTANDALONE, Metadata/Monsters/GiantSnakeSkeletonBoss/GiantSkeletonSnakeBossMap, Metadata/Monsters/GiantSnakeSkeletonBoss/GiantSkeletonSnakeBossSTANDALONE
+scripts: Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBoss, Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBossSTANDALONE, Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBossMap
+own chain: Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBoss, Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBossSTANDALONE, Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBossMap
+areas: G2_9_2 The Spires of Deshar act2; BossRush_Area3 Boss Rush Area 3 act10; MapHiddenGrotto Hidden Grotto act10; MapMarrow Marrow act10
+ai: Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBoss.ais, Metadata/Monsters/GreatSnakeSkeletonBoss/SkeletonSnakeBossSTANDALONE.ais (not shipped)
+
+## skills
+- MAASGiantSnakeBossSweepLeft [melee] action=DualStrike anim=default:arm_sweep_left_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- MAASGiantSnakeBossSweepRight [melee] action=Sweep anim=default:arm_sweep_right_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- MAASGiantSnakeBossSweepLeft90 [melee] action=SpellAreaOfEffectLightning anim=default:arm_sweep_left_90_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- MAASGiantSnakeBossSweepRight90 [melee] action=SpellAreaOfEffect anim=default:arm_sweep_right_90_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- EASGiantSnakeBossVomit [empty_action_spell] action=LayTrap anim=default:vomit_bones_01
+- EASGiantSnakeBossBasicSlamFront [empty_action_attack] action=DoubleStrike anim=default:attack_01, attack_02
+- EASGiantSnakeBossBasicSlamLeft90 [empty_action_attack] action=SpearCleaveLeft anim=default:attack_left_90_01
+- EASGiantSnakeBossBasicSlamRight90 [empty_action_attack] action=SpearCleaveRight anim=default:attack_right_90_01
+- EASGiantSnakeBossFlameBreathStart [empty_action_spell] action=SpellBuff anim=default:flame_breathe_start_01
+- GSSkeletonSnakeBossFlameBlast [geometry_spell] action=Puncture anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GASkeletonSnakeBossHeadSlamBodyDamage [geometry_attack] action=Puncture anim=-
+    geom: rectangle length=45 width=25 angle=0 range=99 delay=33 anchor=2
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GASkeletonSnakeBossHeadSlam [geometry_attack] action=HeavyStrike anim=default:head_slam_01
+    geom: circle length=28 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    GEAL 1127 on ['Metadata/Monsters/SummonRagingSpirit/RagingSpirit', 'Metadata/Monsters/Skeletons/Maraketh/MarakethSkeletonUnarmedSnakeBossMinion']: self{} each{triggerer.SetStateTo( explode, 1 );} r=0
+- GSSkeletonSnakeBossRibCageBarrageImpact [geometry_spell] action=Puncture anim=-
+    geom: circle length=12 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+- GTSkeletonSnakeBossSoulerCoasterBarrage [geometry_trigger] action=SpellAreaOfEffectChaos anim=default:open_ribcage_01
+    geom: trigger count=20 delay=0 spread=90 radius=25 angle=180 anchor=4
+- MPSSkeletonSnakeBossSoulerCoaster [monster_projectile_spell] action=SpellAreaOfEffectChaos anim=default:open_ribcage_01
+    flags: base_deal_no_damage
+- GAGiantSnakeBossAttackImpact [geometry_attack] action=GroundSlam anim=default:attack_near_01, attack_near_02
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EASGiantSnakeBossFlameBreathLeftStart [empty_action_spell] action=SpellProjectileCold anim=stance3:flame_breathe_left_01
+- EASGiantSnakeBossFlameBreathRightStart [empty_action_spell] action=SpellProjectileLightning anim=stance3:flame_breathe_right_01
+- EASGiantSnakeBossFlameBreathLeftEnd180 [empty_action_spell] action=Frenzy anim=stance4:flame_breathe_left_end_180_01
+- EASGiantSnakeBossFlameBreathLeftEnd270 [empty_action_spell] action=Impale anim=stance4:flame_breathe_left_end_270_01
+- EASGiantSnakeBossFlameBreathLeftEnd360 [empty_action_spell] action=Throw anim=stance4:flame_breathe_left_end_360_01
+- EASGiantSnakeBossFlameBreathRightEnd180 [empty_action_spell] action=SpellProjectileUpwardCold anim=stance5:flame_breathe_right_end_180_01
+- EASGiantSnakeBossFlameBreathRightEnd270 [empty_action_spell] action=SpellProjectileUpwardLightning anim=stance5:flame_breathe_right_end_270_01
+- EASGiantSnakeBossFlameBreathRightEnd360 [empty_action_spell] action=SpellProjectileUpwardChaos anim=stance5:flame_breathe_right_end_360_01
+- GSGiantSnakeBossFlameBreath [geometry_spell] action=None anim=-
+    geom: cone length=100 width=0 angle=25 range=0 delay=0 anchor=10
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1127 on ['Metadata/Monsters/SummonRagingSpirit/RagingSpirit', 'Metadata/Monsters/Skeletons/Maraketh/MarakethSkeletonUnarmedSnakeBossMinion']: self{} each{triggerer.SetStateTo( explode, 1 );} r=0
+- SSMGiantSnakeBossVomit [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/Skeletons/Maraketh/MarakethSkeletonUnarmedSnakeBossMinion
+- CGEGiantSnakeBossVomit [monster_cast_ground_effect_location] action=None anim=-
+- GASkeletonSnakeBossHeadSlam180 [geometry_attack] action=SpellAreaOfEffectFire anim=default:head_slam_180_01
+    geom: circle length=28 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    GEAL 1127 on ['Metadata/Monsters/SummonRagingSpirit/RagingSpirit', 'Metadata/Monsters/Skeletons/Maraketh/MarakethSkeletonUnarmedSnakeBossMinion']: self{} each{triggerer.SetStateTo( explode, 1 );} r=0
+- GCEGiantSnakeBossBurningGround [monster_cast_ground_effect_location] action=None anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/League_Expedition_New/AntCarrier/pheromone_cloud.ao
+- GTGiantSnakeBossFlameBlastTrap [geometry_trigger] action=None anim=-
+    geom: trigger count=6 delay=2900 spread=80 radius=50 angle=80 anchor=4
+- EASGiantSnakeBossFlameBlastTrap [empty_action_spell] action=SpellAreaOfEffectCold anim=default:arm_block_01
+- GCEGiantSnakeBossHeadSlamBurningGround [monster_cast_ground_effect_location] action=None anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/League_Expedition_New/AntCarrier/pheromone_cloud.ao
+- SSMGiantSnakeBossRagingSpirits [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/SummonRagingSpirit/RagingSpirit
+- GAGiantSnakeBossForearmSlams [geometry_attack] action=None anim=-
+    geom: rectangle length=35 width=8 angle=0 range=33 delay=33 anchor=3
+    flags: is_area_damage
+- EAAGiantSnakeBossMultiSlam [empty_action_attack] action=SpellProjectileUpwardFire anim=default:multi_slam_01
+- GAGiantSnakeBossHandSlams [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=360 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSGiantSnakeBossComboFlame [geometry_spell] action=None anim=-
+    geom: cone length=45 width=0 angle=30 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1127 on ['Metadata/Monsters/SummonRagingSpirit/RagingSpirit', 'Metadata/Monsters/Skeletons/Maraketh/MarakethSkeletonUnarmedSnakeBossMinion']: self{} each{triggerer.SetStateTo( explode, 1 );} r=0
+- GSEGGiantSnakeBossDetonateRunes [geometry_spell] action=None anim=-
+    geom: circle length=150 width=0 angle=0 range=1000 delay=100 anchor=3
+    GEAL 1126 on ['Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/GiantSnakeBossFlameBlasts']: self{} each{triggerer.SetStateTo( explode, 1 );} r=0
+- GTGiantSnakeBossFlameBlastArena [geometry_trigger] action=None anim=-
+    geom: trigger count=15 delay=2900 spread=80 radius=35 angle=250 anchor=4
+- CGEGiantSkeletonSnakeBossFlameGeyser [monster_cast_ground_effect_location] action=SpellProjectileUpwardLightning anim=stance5:flame_breathe_right_end_270_01
+    ground: Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/poison_gas_aoe.ao
+- EASGiantSnakeBossBasicSlamLeft90Near [empty_action_attack] action=Cleave anim=default:attack_left_near_90_01
+- EASGiantSnakeBossBasicSlamRight90Near [empty_action_attack] action=DoubleSlash anim=default:attack_right_near_90_01
+- EASGiantSnakeBossBasicSlamFrontNear [empty_action_attack] action=GroundSlam anim=default:attack_near_01, attack_near_02
+
+## own states and handlers
+states: emerge_time; heavy_stun_thing; standalone_effect
+- on_state_standalone_effect_0 = { PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/GreatSnakeSkeletonBoss/EnvironmentBase.ao', end ); Delay( 1.0, { standalone_effect.Delete(); } ); }
+- on_state_standalone_effect_1 = { this.standalone_effect = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/GreatSnakeSkeletonBoss/EnvironmentBase.ao', <lock> ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/GreatSnakeSkeletonBoss/EnvironmentBase.ao', loop ); }
+- create_state_standalone_effect_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/GreatSnakeSkeletonBoss/EnvironmentBase.ao', <lock> ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/GreatSnakeSkeletonBoss/EnvironmentBase.ao', loop ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_object SnakeBossFlameBlasts
+- preload_object Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/VomitSlowZone
+- preload_object Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/GiantSnakeBossFlameBlasts
+- preload_environment G2_9_2_boss
+
+## adds and forms
+- Metadata/Monsters/Skeletons/Maraketh/MarakethSkeletonUnarmedSnakeBossMinion "Risen Maraketh" bossbar=0 skills=MeleeAtAnimationSpeed comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=explode
+- Metadata/Monsters/SummonRagingSpirit/RagingSpirit "Raging Spirit" bossbar=0 skills=MeleeAtAnimationSpeedFire comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=explode
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/VomitSlowZone: Buffs Stats states= 
+- Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/GiantSnakeBossFlameBlasts:  [server_only=true] states= 
+- metadata/monsters/greatsnakeskeletonboss/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=TorGulActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( TorGulInactive ); }}
+- metadata/monsters/greatsnakeskeletonboss/objects/giantsnakebossflameblasts:  [server_only=true] states= 
+- metadata/monsters/greatsnakeskeletonboss/objects/vomitslowzone: Buffs Stats states= 
+- Metadata/QuestObjects/Four_Act2/Gates_Dreadnaught: Transitionable [blocking=false object_size=3 server_only=true] states=flee;helper_state create_untransitioned{{ PlayAnimationByIndex(0); PauseAnimation( ); }}; create_transitioned{{ PlayAnimationByIndex(0); GoToAnimationEnd( ); }}; on_transition{{ PlayAnimationByIndex(0); PlayAnimationAttached( 'Metadata/Monsters/DreadnoughtLizard/DreadnoughtLizardReduced.ao', run}; create_state_flee_0{{ PlayAnimation( Juggernaut_idle_01 ); }}; on_state_flee_1{{ PlayAnimation( Juggernaut_Departing_01 ); PlayAnimationAttached( 'Metadata/Monsters/DreadnoughtLizard/DreadnoughtLizar}; create_state_flee_1{{ PlayAnimation( Juggernaut_Departing_01 ); GoToAnimationEnd(); }}
+- Metadata/Terrain/Gallows/Act2/2_9_2/Objects/SpearWallCentre:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_9_2/Objects/FleeingKing: InteractionAction Targetable MinimapIcon [blocking=false object_size=4 server_only=true icon=3] states=flee;helper_state;flee;helper_state create_state_flee_0{{ PlayAnimation( snake_intro_idle_01 ); }}; on_state_flee_2{{ PlayAnimation( summon_skeleton_boss_01 ); }}; create_state_flee_2{{ PlayAnimation( summon_skeleton_boss_01 ); GoToAnimationEnd(); }}; on_or_create_state_helper_state_1{{ PlayAnimation( summon_skeleton_boss_01 ); GoToAnimationEnd(); }}; on_event_rant{{ snake_boss.DoAction( CTS1BossFightStart ); }}; on_construction_complete{{ HideMinimapIcon(); DisableTargetable(); }}
+- Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=TorGulActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( TorGulInactive ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_torgulthedefiler_rooms_boss_01.arm
+  sector ['boss_sector', 57, 57, 241, 241, '']
+  sector ['hide_teleports', 65, 60, 233, 236, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 54, 53, 245, 244, '']
+  sector ['no_movement_skills', 62, 26, 69, 272, '']
+  point [149.0, 149.0, 'force:mapboss2']
+  point [80.0, 150.0, 'telepad']
+  point [11.0, 149.0, 'checkpoint4']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (11,166)
+  obj Metadata/QuestObjects/Four_Act2/Gates_Dreadnaught x1 (424,360)
+  obj Metadata/Terrain/Gallows/Act2/2_9_2/Objects/SpearWallCentre x1 (149,149)
+  obj Metadata/Terrain/Gallows/Act2/2_9_2/Objects/FleeingKing x1 (172,149)
+  obj Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/BossRoomMinimapIcon x1 (150,147)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (39,149)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (221,149)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (65,149)
+room metadata_terrain_gallows_act2_2_9_2_rooms_unique_boss_01.arm
+  sector ['boss_sector', 57, 57, 241, 241, '']
+  sector ['hide_teleports', 65, 60, 233, 236, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 54, 53, 245, 244, '']
+  sector ['no_movement_skills', 62, 26, 69, 272, '']
+  point [149.0, 149.0, 'force:mapboss1']
+  point [80.0, 150.0, 'telepad']
+  point [11.0, 149.0, 'checkpoint1']
+  point [148.0, 184.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (11,166)
+  obj Metadata/QuestObjects/Four_Act2/Gates_Dreadnaught x1 (424,360)
+  obj Metadata/Terrain/Gallows/Act2/2_9_2/Objects/SpearWallCentre x1 (149,149)
+  obj Metadata/Terrain/Gallows/Act2/2_9_2/Objects/FleeingKing x1 (172,149)
+  obj Metadata/Monsters/GreatSnakeSkeletonBoss/Objects/BossRoomMinimapIcon x1 (150,147)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (39,152)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (65,149)
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_xesht_rooms_1x1upper_3open_01.arm

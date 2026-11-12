@@ -1,0 +1,50 @@
+# [DNT-UNUSED] Parasite Host
+content: Other/unplaced
+monsters: Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHostBoss
+scripts: Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHost
+own chain: Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHost
+areas: 
+ai: Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHost.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- GAParasiteHostBodySlam [geometry_attack] action=HeavyStrike anim=default:body_slam_TEMP
+    geom: circle length=18 width=0 angle=0 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- GAParasiteHostTailSwipe [geometry_attack] action=DodgeBack anim=default:tail_swipe_TEMP
+    geom: cone length=15 width=0 angle=180 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAParasiteHostFaceSwipe [geometry_attack] action=DodgeForward anim=default:face_swipe_TEMP
+    geom: cone length=15 width=0 angle=180 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAParasiteHostVomit [geometry_attack] action=SpellAreaOfEffectChaos anim=default:vomit_TEMP
+    geom: cone length=25 width=0 angle=60 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- EASParasiteHostCommandFeed [empty_action_spell] action=SpellAreaOfEffectCold anim=default:command_feed_TEMP
+- EASParasiteHostCommandProtect [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:command_protect_TEMP
+- EASParasiteHostCommandAttack [empty_action_spell] action=SpellAreaOfEffectFire anim=default:command_attack_TEMP
+- CGEParasiteHostVomit [monster_cast_ground_effect_location] action=None anim=-
+- MPWParasiteHostVomitBones [monster_projectile_weapon] action=None anim=-
+- EGParasiteHostGetShieldParasites [execute_geal] action=None anim=-
+    GEAL 1064 on ['Metadata/Monsters/ParasiteMonsters/MantaRayParasite', 'Metadata/Monsters/ParasiteMonsters/OctopusParasite', 'Metadata/Monsters/ParasiteMonsters/TurtleParasite__', 'Metadata/Monsters/ParasiteMonsters/AngerfishParasite', 'Metadata/Monsters/ParasiteMonsters/ParasiteMonster01', 'Metadata/Monsters/ParasiteMonsters/ParasiteMonster02']: self{} each{this.shield_array = Shuffle( shield_array ); triggerer.shield_section = GetVariablesFromGroup( this.shield_array, 1, Order ); this.shield_array = GetVariablesFromGroup( shield_array, 1, RemoveFirst ); triggerer.Call( host_boss_protect, this );} r=150
+
+## own states and handlers
+states: 
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_animated DischargeLightning
+- preload_misc_animated DischargeFire
+- preload_misc_animated DischargeCold
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+
+## lines
+
+## linked buffs
+
+## arena rooms

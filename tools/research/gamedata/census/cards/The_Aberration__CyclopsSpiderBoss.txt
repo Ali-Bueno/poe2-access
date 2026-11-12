@@ -1,0 +1,224 @@
+# The Aberration
+content: Pinnacle
+monsters: Metadata/Monsters/CyclopsSpiderBoss/CyclopsSpiderBoss
+scripts: Metadata/Monsters/CyclopsSpiderBoss/CyclopsSpiderBoss
+own chain: Metadata/Monsters/CyclopsSpiderBoss/CyclopsSpiderBoss, Metadata/Monsters/PinnacleBossBase
+areas: MapUberBoss_FallenStar Ruins of Kingsmarch act10
+ai: Metadata/Monsters/CyclopsSpiderBoss/CyclopsSpiderBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MAASCyclopsSpiderBossCleave [melee] action=OffMelee anim=default:stationary_slice_01,stance4:slice_01
+- MAASCyclopsSpiderBossTrampleCombo [melee] action=MeleeCombo anim=stance4:trample_combo_left_01, trample_combo_right_01
+- EAACyclopsSpiderLeapBack [empty_action_attack] action=DodgeBack anim=stance4:disengage_01
+- EAACyclopsSpiderLeapForward [empty_action_attack] action=DodgeForward anim=stance4:engage_01
+- EAACyclopsSpiderLeapForwardFar [empty_action_attack] action=DodgeLeft anim=stance4:engage_02
+- MSSCyclopsSpiderMortar [monster_mortar] action=None anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GTCyclopsSpiderMortar [geometry_trigger] action=SpellAreaOfEffectFire anim=default:absorb_verisium_barrage_01
+    geom: trigger count=22 delay=1200 spread=145 radius=20 angle=45 anchor=4
+- GSCyclopsSpiderVerisiumStormImpact [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=750 delay=750 anchor=4
+    flags: is_area_damage
+- GTCyclopsSpiderMortarOuter [geometry_trigger] action=DoryaniHumanBossFlamethrower anim=stance4:absorb_verisium_barrage_spider_01
+    geom: trigger count=60 delay=4000 spread=60 radius=30 angle=0 anchor=3
+- EASCyclopsSpiderBossTrample [empty_action_attack] action=GroundSlam anim=stance4:under_body_attack_01
+- GACyclopsSpiderBossLegStomp [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- EASCyclopsSpiderCastLeft [empty_action_spell] action=SpellAreaOfEffect anim=default:verisium_storm_01
+- EASCyclopsSpiderCastRight [empty_action_spell] action=SpellAreaOfEffectFire anim=default:absorb_verisium_barrage_01
+- EASCyclopsSpiderCastPush [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:float_cast_pull_01
+- EASCyclopsSpiderCastLift [empty_action_spell] action=SpellAreaOfEffectCold anim=default:eye_beam_big_01
+- EASCyclopsSpiderTeleport [empty_action_spell] action=Teleport anim=-
+- EASCyclopsSpiderLaunchVerisium [empty_action_spell] action=SpellProjectile anim=default:float_cast_up_01
+- GSCyclopsSpiderFloatingBeam [geometry_spell] action=SpellProjectileFire anim=-
+    geom: rectangle length=0 width=7 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSCyclopsSpiderBeam [geometry_spell] action=SpellProjectileCold anim=stance4:eye_beam_big_spider_01
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GTCyclopsSpiderSpawnVerisium [geometry_trigger] action=SpellAreaOfEffect anim=default:verisium_storm_01
+    geom: trigger count=2 delay=0 spread=100 radius=60 angle=0 anchor=4
+- GPSProcessedVerisium [geometry_projectiles_spell] action=SpellProjectileFire anim=-
+    flags: base_deal_no_damage
+- GSProcessedVerisiumProjectileImpact [geometry_spell] action=None anim=-
+    geom: cone length=40 width=0 angle=30 range=150 delay=33 anchor=12
+    flags: is_area_damage
+- EASCyclopsSpiderBossBigBeam [empty_action_spell] action=SpellAreaOfEffectCold anim=default:eye_beam_big_01
+- EASCyclopsSpiderBossSpiderBigBeam [empty_action_spell] action=SpellAreaOfEffectCold anim=default:eye_beam_big_01
+- EASCyclopsSpiderBossWorldWideWeb [empty_action_spell] action=DoubleSlam anim=stance4:spider_web_ultimate_01
+- GTCyclopsSpiderBossWorldWideWebNear [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=600 spread=30 radius=29 angle=0 anchor=4
+- GTCyclopsSpiderBossWorldWideWebMid [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=600 spread=105 radius=104 angle=0 anchor=4
+- GTCyclopsSpiderBossWorldWideWebFar [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=600 spread=200 radius=199 angle=0 anchor=4
+- GSCyclopsSpiderBossWebRockFlyingDamage [geometry_spell] action=None anim=-
+    geom: cone length=25 width=0 angle=210 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- GTCyclopsSpiderBossWorldWideWebNearMid [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=600 spread=65 radius=64 angle=0 anchor=4
+- GTCyclopsSpiderBossWorldWideWebMidFar [geometry_trigger] action=None anim=-
+    geom: trigger count=12 delay=600 spread=150 radius=149 angle=0 anchor=4
+- EASCyclopsSpiderDefensiveVerisiumWall [empty_action_spell] action=SpellBuffFire anim=default:summon_defensive_versium_01
+- EASCyclopsSpiderVerisiumTorpedo [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:float_cast_pull_01
+- GSCyclopsSpiderConnectWebEG [geometry_spell] action=DoryaniHumanBossSoulCoresArena anim=stance4:verisium_storm_spider_01
+    geom: circle length=300 width=0 angle=0 range=700 delay=33 anchor=3
+    flags: is_area_damage
+    GEAL 1203 on ['Metadata/Monsters/CyclopsSpiderBoss/VerisiumNode']: self{} each{triggerer.Call( make_beams_to_next ); triggerer.Call(make_proximity_trigger_connections);} r=300
+- GSCyclopsSpiderVerisiumTorpedoImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GACyclopsSpiderBossTrampleComboSlam [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GACyclopsSpiderBossTrampleComboBodyImpact [geometry_attack] action=None anim=-
+    geom: circle length=50 width=0 angle=0 range=0 delay=0 anchor=4
+- GSCyclopsSpiderBossComboBeamDamage [geometry_spell] action=None anim=-
+    geom: rectangle length=119 width=9 angle=0 range=222 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- MDCyclopsSpiderTorpedo [move_daemon] action=SpellProjectile anim=default:float_cast_up_01
+    daemons: Metadata/Monsters/InvisibleFire/MDCyclopsSpiderTorpedo
+- GACyclopsSpiderDontBeUnderMe [geometry_attack] action=HeavyStrike anim=default:fart_01
+    geom: circle length=45 width=0 angle=0 range=300 delay=33 anchor=3
+- GTCyclopsSpiderBossDangerZone [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=1000 spread=280 radius=140 angle=0 anchor=4
+    triggers: GSCyclopsSpiderVerisiumStormImpact
+- GTCyclopsSpiderBossDangerZoneFocused [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=1000 spread=15 radius=0 angle=0 anchor=1
+    triggers: GSCyclopsSpiderVerisiumStormImpact
+- MAASCyclopsSpiderBossShotgunCombo [melee] action=SpellNova anim=stance4:medium_combo_01
+- MAASCyclopsSpiderBossStationaryShotgunCombo [melee] action=SpellNovaChaos anim=default:floating_medium_combo_01
+- MPWCyclopsSpiderBossShotgunComboProjectile [monster_projectile_weapon] action=SpellProjectile anim=default:float_cast_up_01
+- GACyclopsSpiderBossRipSlamLeft [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GACyclopsSpiderBossRipSlamRight [geometry_attack] action=SpellNovaFire anim=stance4:slam_rip_01
+    geom: circle length=15 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GACyclopsSpiderBossRipSlamUpward [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll
+- GTCyclopsSpiderBossShotgunCombo [geometry_trigger] action=None anim=-
+    geom: trigger count=50 delay=100 spread=200 radius=15 angle=30 anchor=4
+    triggers: MPWCyclopsSpiderBossShotgunComboProjectile
+- GACyclopsSpiderDontBeUnderMeSpider [geometry_attack] action=HeavyStrike anim=default:fart_01
+    geom: circle length=45 width=0 angle=0 range=300 delay=33 anchor=3
+- GTCyclopsSpiderMortarP2 [geometry_trigger] action=SpellNovaEpic anim=stance4:absorb_verisium_barrage_spider_01
+    geom: trigger count=22 delay=1200 spread=145 radius=20 angle=45 anchor=4
+- GACyclopsSpiderBladeDamage [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll skill_can_be_active_blocked_from_all_directions
+- GTCyclopsSpiderBossDangerZonePhase2 [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=1000 spread=280 radius=200 angle=0 anchor=4
+    triggers: GSCyclopsSpiderVerisiumStormImpact
+- GPSCyclopsSpiderBossRipSlamProj [geometry_projectiles_spell] action=None anim=-
+- GACyclopsSpiderFloatingMeleeImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+
+## own states and handlers
+states: grow_legs; combat_dist = 3; barrage_time; phase_change; verisium_ready_to_process; processing_check; verisium_in_use = 0; rocks_summoned; am_beaming; initial_torpedo_direction; time_to_web; processing; clean_up_versium; phase_1_epk; blade_cooldown; lights; current_rotate_dir
+- on_state_grow_legs_1 = { SetDynamicFloat( 'GrowSpiderLegs', 1.0, true, 1.0 ); }
+- create_state_grow_legs_1 = { SetDynamicFloat( 'GrowSpiderLegs', 1.0, true, 0.0 ); }
+- on_effect_end_CTS1BossFightStart = { StartStateTimer( check_bearing ); }
+- on_state_lights_1 = { SetLightState( on, 4.0 ); }
+- create_state_lights_1 = { SetLightState( on ); }
+- on_state_lights_0 = { SetLightState( off, 3.0 ); }
+- create_state_lights_0 = { SetLightState( off ); }
+- on_movement_started = { If( GetState( current_rotate_dir ) > 0, (){ SetStateTo( current_rotate_dir, 0 ); } ); }
+- on_timer_check_bearing = { this.orientation = GetOrientation(); this.bearing = GetAnimatedBearing(); this.angle_diff = bearing - orientation; this.angle_diff = Round( EvalIf( angle_diff > 180.0, angle_diff - 360.0, EvalIf( angle_diff < -180, angle_diff + 360.0, angle_diff ) ), 2 ); If( Or( And( angle_diff <= 1.0, angle_diff
+- on_state_current_rotate_dir_0 = { FadeAnimations( 11, 0.2 ); FadeAnimations( 12, 0.2 ); }
+- on_state_current_rotate_dir_1 = { FadeAnimations( 12, 0.2 ); PlayAdditiveAnimation( turn_01_right, 11 ); }
+- on_state_current_rotate_dir_2 = { FadeAnimations( 11, 0.2 ); PlayAdditiveAnimation( turn_01_left, 12 ); }
+- on_construction_complete = { HideMeshSegments( L_leg_2_lowerShape, L_leg_2_upperShape, L_leg_3_lowerShape, L_leg_3_upperShape, L_leg_4_lowerShape, L_leg_4_upperShape, L_leg_Shape1, R_leg_2_lowerShape, R_leg_2_upperShape, R_leg_3_lowerShape, R_leg_3_upperShape, R_leg_4_lowerShape, R_leg_4_upperShape, R_leg_Shape1 ); }
+- on_state_grow_legs_1 = { ShowMeshSegments( L_leg_2_lowerShape, L_leg_2_upperShape, L_leg_3_lowerShape, L_leg_3_upperShape, L_leg_4_lowerShape, L_leg_4_upperShape, L_leg_Shape1, R_leg_2_lowerShape, R_leg_2_upperShape, R_leg_3_lowerShape, R_leg_3_upperShape, R_leg_4_lowerShape, R_leg_4_upperShape, R_leg_Shape1 ); }
+- create_state_grow_legs_1 = { Delay( 0.034, { ShowMeshSegments( L_leg_2_lowerShape, L_leg_2_upperShape, L_leg_3_lowerShape, L_leg_3_upperShape, L_leg_4_lowerShape, L_leg_4_upperShape, L_leg_Shape1, R_leg_2_lowerShape, R_leg_2_upperShape, R_leg_3_lowerShape, R_leg_3_upperShape, R_leg_4_lowerShape, R_leg_4_upperShape, R_leg_Shap
+- on_state_phase_1_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/CyclopsSpiderBoss/EPKs/Alive_Floating.epk' ); SetEPKFloat( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/CyclopsSpiderBoss/EPKs/Alive_Floating.epk', 'epkFX_FadeTIME', 0.5, true, 0.0 ); }
+- create_state_phase_1_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/CyclopsSpiderBoss/EPKs/Alive_Floating.epk' ); SetEPKFloat( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/CyclopsSpiderBoss/EPKs/Alive_Floating.epk', 'epkFX_FadeTIME', 0.5, true, 0.0 ); }
+- on_state_phase_1_epk_2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/CyclopsSpiderBoss/EPKs/Alive_Floating.epk' ); }
+- create_state_phase_1_epk_2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/CyclopsSpiderBoss/EPKs/Alive_Floating.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_beam CyclopsSpiderBossGroundBeam
+- preload_misc_beam CyclopsSpiderBossGroundBeamThick
+- preload_object Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderRocks
+- preload_object Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderRocksProcessed
+- preload_object Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderBeamOffset
+- preload_object Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderVerisumBlade
+- preload_monster_variety Metadata/Monsters/CyclopsSpiderBoss/VerisiumNode
+
+## adds and forms
+- Metadata/Monsters/CyclopsSpiderBoss/VerisiumNode "Verisium Web" bossbar=0 skills=- comps=Targetable Actor Stats [blocking=true object_size=0 attackable=true server_only=true] states=claimed;trigger_cooldown
+daemons: Metadata/Monsters/InvisibleFire/MDCyclopsSpiderTorpedo
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderRocks:  [blocking=true object_size=3 server_only=true] states=type;emerge;lift;absorb 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderRocksProcessed:  [blocking=false object_size=3 server_only=true] states=emerge;projectile;wall;submerge;busy;rock_number;direction;initial_torpedo_direction;mortar;rock_slot 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderBeamOffset:  [server_only=true] states=beam;clean_up 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderVerisumBlade:  [server_only=true] states=type;emerge;spin;end 
+- metadata/monsters/cyclopsspiderboss/objects/barrierkeyhole: InteractionAction Transitionable Targetable [server_only=true] states=bones_1;bones_socketed;activated;barrier_down on_construction_complete{{ globals.arena_key_hole = this; AddToPlayerWakeGroup( true ); }}; on_interaction_started{{ Call( hide_all_player_weapons, triggerer ); this.trig_scale = triggerer.GetScale(); SetStateTo( activated, 1 ); }}; on_interaction_stopped{{ Call( show_all_player_weapons, triggerer ); }}; create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); }}; on_state_activated_0{{ EnableTargetable(); EnableHighlighting(); }}
+- metadata/monsters/cyclopsspiderboss/objects/beachmonsterspawner:  [server_only=true] states=activate;wave_count 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderbeamoffset:  [server_only=true] states=beam;clean_up 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspideregg:  [blocking=false object_size=3 server_only=true] states=emerge 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspideregg2:  [blocking=false object_size=3 server_only=true] states=emerge 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspideremergecorruption:  [blocking=false object_size=3 server_only=true] states=emerge 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspidergroundcorruption:  [blocking=false object_size=3 server_only=true] states=emerge;absorb 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderrocks:  [blocking=true object_size=3 server_only=true] states=type;emerge;lift;absorb 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderrocksprocessed:  [blocking=false object_size=3 server_only=true] states=emerge;projectile;wall;submerge;busy;rock_number;direction;initial_torpedo_direction;mortar;rock_slot 
+- metadata/monsters/cyclopsspiderboss/objects/cyclopsspiderverisumblade:  [server_only=true] states=type;emerge;spin;end 
+- metadata/monsters/cyclopsspiderboss/objects/spiderarenamiddle: TriggerableBlockage [server_only=true] states=barrier_down on_construction_complete{{ AddToPlayerWakeGroup( true ); globals.spider_arena_barrier = this; }}
+- metadata/monsters/cyclopsspiderboss/objects/strafemarker:  [server_only=true] states= 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/StrafeMarker:  [server_only=true] states= 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg:  [blocking=false object_size=3 server_only=true] states=emerge 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/BarrierKeyHole: InteractionAction Transitionable Targetable [server_only=true] states=bones_1;bones_socketed;activated;barrier_down on_construction_complete{{ globals.arena_key_hole = this; AddToPlayerWakeGroup( true ); }}; on_interaction_started{{ Call( hide_all_player_weapons, triggerer ); this.trig_scale = triggerer.GetScale(); SetStateTo( activated, 1 ); }}; on_interaction_stopped{{ Call( show_all_player_weapons, triggerer ); }}; create_transitioned{{ DisableTargetable(); DisableHighlighting(); }}; on_transition{{ DisableTargetable(); DisableHighlighting(); }}; on_state_activated_0{{ EnableTargetable(); EnableHighlighting(); }}
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/BeachMonsterSpawner:  [server_only=true] states=activate;wave_count 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg2:  [blocking=false object_size=3 server_only=true] states=emerge 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderGroundCorruption:  [blocking=false object_size=3 server_only=true] states=emerge;absorb 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEmergeCorruption:  [blocking=false object_size=3 server_only=true] states=emerge 
+- Metadata/Monsters/CyclopsSpiderBoss/Objects/SpiderArenaMiddle: TriggerableBlockage [server_only=true] states=barrier_down on_construction_complete{{ AddToPlayerWakeGroup( true ); globals.spider_arena_barrier = this; }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_endgame_fallenstar_rooms_arena_01.arm
+  sector ['hide_teleports', 484, 510, 1014, 1138, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1014, 679, 1029, 980, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1029, 703, 1044, 999, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1044, 722, 1059, 1018, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1059, 742, 1074, 1038, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 493, 455, 979, 488, '']
+  sector ['no_movement_skills', 971, 483, 1004, 681, '']
+  sector ['no_movement_skills', 1082, 757, 1115, 955, '']
+  sector ['boss_sector', 485, 501, 996, 1139, '']
+  sector ['boss_sector', 987, 698, 1040, 1137, '']
+  sector ['boss_sector', 1034, 813, 1086, 1031, '']
+  point [805.0, 810.0, 'mapboss']
+  point [1046.0, 584.0, 'checkpoint']
+  point [736.0, 686.0, 'telepad1']
+  point [1015.0, 750.0, 'telepad3']
+  point [373.0, 228.0, 'telepad2']
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleAsh x1 (1028,592)
+  obj Metadata/MiscellaneousObjects/AreaTransitionDelete x1 (364,220)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/StrafeMarker x2 (625,661) (783,581)
+  obj Metadata/MiscellaneousObjects/RowBoatStart x1 (183,123)
+  obj Metadata/MiscellaneousObjects/RowBoatEnd x1 (370,198)
+  obj Metadata/NPC/Four_Endgame/LilyRothsCrewBrawnFallenStar x1 (370,198)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg x1 (805,810)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/BarrierKeyHole x1 (675,283)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/BeachMonsterSpawner x1 (583,256)
+  obj Metadata/Terrain/Tools/AudioTools/Leagues/Expedition/BossArenas/PinnacleFallenStar_BossStinger x1 (681,407)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEgg2 x1 (805,810)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderGroundCorruption x1 (805,810)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/CyclopsSpiderEmergeCorruption x13 (794,912) (853,899) (905,854) (915,817) (751,725) (705,849) (737,893) (895,764) (861,735) (821,709)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x28 (1043,790) (1043,796) (1043,784) (1043,778) (1043,772) (1043,766) (1043,760) (1043,802) (1044,807) (1043,736)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (931,775)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x6 (1008,696) (1026,695) (1041,712) (1042,745) (1044,800) (1043,777)
+  obj Metadata/Terrain/Tools/AudioTools/Leagues/Expedition/BossArenas/PinnacleFallenStar_BossStingerPath x1 (999,449)
+  obj Metadata/Monsters/CyclopsSpiderBoss/Objects/SpiderArenaMiddle x1 (809,816)

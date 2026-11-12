@@ -1,0 +1,266 @@
+# Styrn, Fallen Knight of Aldur
+content: League: Expedition
+monsters: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss, Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBossSTANDALONE
+scripts: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight, Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnightSTANDALONE
+own chain: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight, Metadata/Monsters/LeagueExpedition/ExpeditionMonsterBase, Metadata/Monsters/LeagueExpedition/ExpeditionMonsterEmerge, Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnightSTANDALONE
+areas: ExpeditionSubArea_BlackKnightBoss Tomb of the Fallen Knight act10
+ai: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight.ais, Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnightSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeed [melee] action=None anim=-
+- GPSStarfallKnightBossConjureSwords [geometry_projectiles_spell] action=None anim=-
+    flags: base_deal_no_damage is_area_damage
+- GPSStarfallKnightBossSwordMinigun [geometry_projectiles_spell] action=None anim=-
+    flags: is_area_damage
+- GTStarfallKnightBossConjureSwords [geometry_trigger] action=Cleave anim=default:cleave_01
+    geom: trigger count=2 delay=1000 spread=1 radius=0 angle=0 anchor=1
+- GTStarfallKnightBossConjuringMaceRemoteSlam [geometry_trigger] action=None anim=-
+    geom: trigger count=2 delay=400 spread=1 radius=0 angle=0 anchor=1
+- GTStarfallKnightBossConjuringSwordRemoteSunder [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=1 radius=0 angle=0 anchor=1
+- GSStarfallKnightBossConjuredSwordExplode [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=130 delay=33 anchor=4
+    flags: is_area_damage
+- GSStarfallKnightBossSwordMinigun [geometry_spell_channelled] action=ChannelStart anim=default:deflection_start_01
+    geom: circle length=1 width=0 angle=0 range=0 delay=0 anchor=2
+- GSStarfallKnightBossSwordMinigunImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=150 delay=50 anchor=4
+    flags: is_area_damage
+- GAStarfallKnightBossConjuringMaceSlam [geometry_attack] action=GroundSlam anim=default:slam_01
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAStarfallKnightBossConjuringMaceSlamEcho [geometry_attack] action=None anim=-
+    geom: circle length=26 width=0 angle=0 range=200 delay=50 anchor=3
+    flags: is_area_damage
+- GAStarfallKnightBossConjuringMaceRemoteSlam [geometry_attack] action=None anim=-
+    geom: circle length=24 width=0 angle=0 range=350 delay=50 anchor=4
+    flags: is_area_damage
+- GAStarfallKnightBossConjuringSwordSunder [geometry_attack] action=Sunder anim=default:slam_sword_02
+    geom: rectangle length=45 width=8 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAStarfallKnightBossConjuringSwordSunderEcho [geometry_attack] action=None anim=-
+    geom: rectangle length=48 width=12 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAStarfallKnightBossConjuringSwordRemoteSunder [geometry_attack] action=None anim=-
+    geom: rectangle length=45 width=8 angle=0 range=150 delay=33 anchor=4
+    flags: is_area_damage
+- EAAStarfallKnightBossFallingConjuredSwords [empty_action_attack] action=SpellAreaOfEffect anim=default:groundslam_aoe_01
+- GTStarfallKnightBossFallingConjuredSwords [geometry_trigger] action=None anim=-
+    geom: trigger count=2 delay=500 spread=80 radius=20 angle=0 anchor=4
+    triggers: SOStarfallKnightFallingSwords
+- GTStarfallKnightBossFallingConjuredSwordsDetonate [geometry_trigger] action=None anim=-
+    geom: trigger count=4 delay=400 spread=1 radius=0 angle=0 anchor=1
+- GTStarfallKnightBossFallingMiniSword [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=5 radius=0 angle=0 anchor=1
+    triggers: GSStarfallKnightBossFallingMiniSwordImpact
+- SOStarfallKnightFallingSwords [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/FallingSword
+- SOStarfallKnightBossConjuringMaceCopy [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/MaceSlamClone
+- SOStarfallKnightBossConjuringSwordCopy [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/SwordSlashClone
+- GSStarfallKnightBossFallingConjuredSwordImpact [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSStarfallKnightBossFallingMiniSwordImpact [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSStarfallKnightBossFallingConjuredSwordExplode [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=130 delay=33 anchor=4
+    flags: is_area_damage
+- DTTStarfallKnightBossDashStab [dash_to_target] action=DodgeForward anim=default:dash_01
+- GAStarfallKnightBossDashStab [geometry_attack] action=None anim=-
+    geom: rectangle length=30 width=6 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GAStarfallKnightBossDashLance [geometry_attack] action=None anim=-
+    geom: rectangle length=30 width=18 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GTStarfallKnightBossFallingConjuredSwordSingle [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=140 radius=0 angle=0 anchor=1
+    triggers: SOStarfallKnightFallingSwordSingle
+- SOStarfallKnightFallingSwordSingle [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/FallingSwordSingle
+
+## own states and handlers
+states: fightstarted; emerge_stage; emerge_queue; clone_slam; minigun; falling_swords; big_falling_swords; glowboost; emerge; effect; olroth
+- on_death = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); this.left_weapon = GetAttachedAOByType( 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/attachments/StarfallKnightSword.ao' ); this.right_weapon = GetAttachedAOByType( 'Metadata/Monsters/LeagueExped
+- on_spawned_dead = { RemoveEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk', true ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/on_death_epks/monster_on_death.epk' ); }
+- on_construction_complete = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/BlackKnight/epk/GlowEmerge.epk' ); }
+- on_state_emerge_stage_1 = { SetGlobalAudioParam( StarfallKnightEmerge, 1 ); }
+- on_state_emerge_stage_2 = { SetGlobalAudioParam( StarfallKnightEmerge, 2 ); }
+- on_state_emerge_stage_3 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition_New/BlackKnight/epk/GlowEmerge.epk' ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeIn.epk' ); SetGlobalAudioParam( StarfallKnightEmerge, 3 ); }
+- on_event_audio_for_cleave_01 = { PlayTextAudio( Expedition_StarfallKnight_ConjureSwords_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); }
+- on_event_audio_for_deflection_start_01 = { PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); }
+- on_event_audio_for_emerge_01c = { PlayTextAudio( Expedition_StarfallKnight_Emerge_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); }
+- on_event_audio_for_groundslam_aoe_01 = { PlayTextAudio( Expedition_StarfallKnight_FallingSwords_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); }
+- on_event_audio_for_stun_01 = { PlayTextAudio( Expedition_StarfallKnight_Knockdown_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); }
+- on_event_audio_for_attack_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_attack_02 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_sword_attack_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_dash_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_Dash_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_slam_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_MaceSlam_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_slam_sword_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_SwordSlam_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_death = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/general/EPKs/GlowFade.epk' ); SetStateTo( glowboost, 0 ); }
+- on_spawned_dead = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/general/EPKs/GlowFade.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/general/EPKs/GlowDead.epk' ); }
+- on_revive = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/general/EPKs/GlowFade.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/general/EPKs/GlowDead.epk' ); }
+- on_or_create_state_emerge_1 = { DisableRendering(); }
+- on_or_create_state_emerge_2 = { DisableRendering(); }
+- on_state_effect_1 = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/monster_emerge/emerge.ao' ); EnableRendering(); }
+- on_state_effect_2 = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/monster_emerge/emerge_relic.ao' ); EnableRendering(); }
+- create_state_effect_1 = { EnableRendering(); }
+- create_state_effect_2 = { EnableRendering(); }
+- on_or_create_state_olroth_1 = { DisableRendering(); HideAttachedMeshSegments(); }
+- on_death = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); this.left_weapon = GetAttachedAOByType( 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/attachments/StarfallKnightSword.ao' ); this.right_weapon = GetAttachedAOByType( 'Metadata/Monsters/LeagueExped
+- on_construction_complete = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeIn.epk' ); SetGlobalAudioParam( StarfallKnightEmerge, 3 ); }
+- on_event_audio_for_attack_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_attack_02 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_sword_attack_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_GenericSkill01_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_dash_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_Dash_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_slam_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_MaceSlam_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+- on_event_audio_for_slam_sword_01 = { Roll( 1, 3, (){ PlayTextAudio( Expedition_StarfallKnight_SwordSlam_Random, 'Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/StarfallKnight' ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('emerge', 1), ('emerge', 2), ('olroth', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/FallingSword:  [blocking=false object_size=1] states=collidable on_end_falling_blade_01{{ Delay( 0.034, { SetStateTo( collidable, 1 ); } ); }}; on_construction_complete{{ SetStateTo( collidable, 0 ); }}; on_or_create_state_collidable_0{{ RemoveCollidability(); }}; on_or_create_state_collidable_1{{ MakeCollidable(); }}
+- Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/FallingSwordSingle:  [blocking=false object_size=1] states=collidable on_end_falling_blade_01{{ Delay( 0.034, { SetStateTo( collidable, 1 ); } ); }}; on_construction_complete{{ SetStateTo( collidable, 0 ); }}; on_or_create_state_collidable_0{{ RemoveCollidability(); }}; on_or_create_state_collidable_1{{ MakeCollidable(); }}
+- Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/MaceSlamClone:  states= 
+- Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/SwordSlashClone:  states= 
+- metadata/monsters/leagueexpeditionnew/expedition2/starfallknightboss/arenatransition: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=5 server_only=true icon=18] states= create_transitioned{{ DisableTargetable(); }}; create_untransitioned{{ EnableTargetable(); }}; on_transition{{ DisableTargetable(); }}; on_untransition{{ EnableTargetable(); }}
+- metadata/monsters/leagueexpeditionnew/expedition2/starfallknightboss/fallingsword:  [blocking=false object_size=1] states=collidable on_end_falling_blade_01{{ Delay( 0.034, { SetStateTo( collidable, 1 ); } ); }}; on_construction_complete{{ SetStateTo( collidable, 0 ); }}; on_or_create_state_collidable_0{{ RemoveCollidability(); }}; on_or_create_state_collidable_1{{ MakeCollidable(); }}
+- metadata/monsters/leagueexpeditionnew/expedition2/starfallknightboss/fallingswordsingle:  [blocking=false object_size=1] states=collidable on_end_falling_blade_01{{ Delay( 0.034, { SetStateTo( collidable, 1 ); } ); }}; on_construction_complete{{ SetStateTo( collidable, 0 ); }}; on_or_create_state_collidable_0{{ RemoveCollidability(); }}; on_or_create_state_collidable_1{{ MakeCollidable(); }}
+- metadata/monsters/leagueexpeditionnew/expedition2/starfallknightboss/maceslamclone:  states= 
+- metadata/monsters/leagueexpeditionnew/expedition2/starfallknightboss/minigunsword:  states= on_timer_idle{{ StartStateTimer( fire, 0.2 ); }}; on_construction_complete{{ StartStateTimer( idle, 0.8 ); }}; on_construction_complete{{ AttachToGameObject( owner, sword_minigun ); SetDynamicUInt( 'SwordID', owner.sword_count ); }}; on_timer_idle{{ PlayAnimation( projectile ); }}
+- metadata/monsters/leagueexpeditionnew/expedition2/starfallknightboss/swordslashclone:  states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothRoomProximityTrigger:  [server_only=true] states= 
+- Metadata/Monsters/LeagueExpeditionNew/Uhtred/Spawner/ExpeditionApparitionSpawner:  [blocking=false object_size=0 server_only=true] states=usable 
+- Metadata/Monsters/LeagueExpeditionNew/Uhtred/MirrorMarker:  [server_only=true] states= 
+- Metadata/Monsters/LeagueExpeditionNew/Uhtred/ColumnController:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionExplosiveWall_BossEntrance: MinimapIcon [blocking=false object_size=1 server_only=true icon=ExpeditionDynamite] states=activated;exploded on_state_activated_1{{ PlayAnimation( activate_01_view ); }}; on_end_activate_01_view{{ this.effect = PlayEffect( 'Metadata/Effects/Environment/League_Expedition_New/ExpeditionExplosion/expeditionExplosion.}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk' );}; create_state_activated_1{{ PlayAnimation( activate_01_view ); GoToAnimationEnd(); PauseAnimation(); }}; on_state_activated_1{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk'}; on_or_create_state_activated_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Off.epk' );}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/ExpeditionConnectorPole_BossEntrance: MinimapIcon [blocking=false object_size=1 server_only=true icon=ExpeditionRegularMonster] states=activated;exploded on_end_close_01{{ PauseAnimation(); }}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/NoLight_Red.epk' }; on_or_create_state_activated_1{{ HideMinimapIcon(); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/}; on_or_create_state_activated_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/NoLight_Red.ep}; on_or_create_state_exploded_1{{ RandomiseExpeditionMarker( 40, 0, 30 ); SetRandomRotation(); AddEffectPack( 'Metadata/Terrain/Doodads/Leagues/Heist/Co}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Uhtred_Boss/Objects/ExpeditionDetonator_BossEntrance: MinimapIcon [blocking=true object_size=1 server_only=true icon=ExpeditionDetonator] states=activated;targetable on_end_activate_01{{ PlayAnimation( idle_activated_01 ); }}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk' );}; on_state_activated_1{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk'}; create_state_activated_1{{ HideWorldDescription(); DisableTargetable(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expeditio}; on_or_create_state_targetable_0{{ DisableTargetable(); }}; on_or_create_state_targetable_1{{ IfState( activated, 1, (){}, (){ EnableTargetable(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExplodedDoor_Blocker:  [blocking=true object_size=18 server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoorFrame:  [blocking=false object_size=1 server_only=true] states=open create_state_open_0{{ PlayAnimation( open_01 ); PauseAnimation(); }}; on_state_open_1{{ PlayAnimation( open_01 ); }}; create_state_open_1{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}; on_or_create_state_open_2{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/LeagueExpeditionNew/Uhtred/UhtredOrbTarget:  [blocking=false object_size=0] states= 
+- Metadata/Monsters/LeagueExpeditionNew/Uhtred/UhtredBeamTarget:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Uhtred_Boss/Objects/UhtredTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardUhtred, TitleCardUhtredSubtitle ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoor_Wall: TriggerableBlockage [start_blocked=true blocking=false object_size=1 server_only=true] states=open create_state_open_0{{ PlayAnimation( open_01 ); PauseAnimation(); }}; on_state_open_1{{ PlayAnimation( open_01 ); }}; create_state_open_1{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/ArenaTransition: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=5 server_only=true icon=18] states= create_transitioned{{ DisableTargetable(); }}; create_untransitioned{{ EnableTargetable(); }}; on_transition{{ DisableTargetable(); }}; on_untransition{{ EnableTargetable(); }}
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker2WG (no script)
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker1WG (no script)
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/DannigOlrothPathMarker:  [server_only=true] states= 
+- Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothAddSpawner:  [blocking=false object_size=0 server_only=true] states=exploded;active on_state_active_1{{ PlayAnimation( activate_01 ); QueueAnimation( idle_on ); }}; create_state_active_1{{ PlayAnimation( idle_on ); }}; on_state_active_0{{ PlayAnimation( deactivate_01 ); QueueAnimation( idle_off ); }}; create_state_active_0{{ PlayAnimation( idle_off ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionDetonator_BossEntrance: MinimapIcon [blocking=true object_size=1 server_only=true icon=ExpeditionDetonator] states=activated;targetable on_end_activate_01{{ PlayAnimation( idle_activated_01 ); }}; create_state_activated_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk' );}; on_state_activated_1{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expedition/mechanics/explosives/EPKs/Light_Red.epk'}; create_state_activated_1{{ HideWorldDescription(); DisableTargetable(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Expeditio}; on_or_create_state_targetable_0{{ DisableTargetable(); }}; on_or_create_state_targetable_1{{ IfState( activated, 1, (){}, (){ EnableTargetable(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardOlroth, TitleCardOlrothSubtitle ); }}
+
+## lines
+- on_event_audio_for_cleave_01 -> Expedition_StarfallKnight_ConjureSwords_Random: Sjá Ásgeir!
+- on_event_audio_for_deflection_start_01 -> Expedition_StarfallKnight_GenericSkill01_Random: Brjóta!
+- on_event_audio_for_emerge_01c -> Expedition_StarfallKnight_Emerge_Random: þú munt deyja hér!
+- on_event_audio_for_groundslam_aoe_01 -> Expedition_StarfallKnight_FallingSwords_Random: Hrósa Aldur!
+- on_event_audio_for_stun_01 -> Expedition_StarfallKnight_Knockdown_Random: Ek mun berjask.
+- on_event_audio_for_attack_01 -> Expedition_StarfallKnight_GenericSkill01_Random: Brjóta!
+- on_event_audio_for_attack_02 -> Expedition_StarfallKnight_GenericSkill01_Random: Brjóta!
+- on_event_audio_for_sword_attack_01 -> Expedition_StarfallKnight_GenericSkill01_Random: Brjóta!
+- on_event_audio_for_dash_01 -> Expedition_StarfallKnight_Dash_Random: Neinn ópa!
+- on_event_audio_for_slam_01 -> Expedition_StarfallKnight_MaceSlam_Random: Berja!
+- on_event_audio_for_slam_sword_01 -> Expedition_StarfallKnight_SwordSlam_Random: Grufla!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_expedition_subarea_uhtred_boss_rooms_feature_01.arm
+  sector ['no_movement_skills', 1414, 709, 1437, 839, '']
+  sector ['hide_teleports', 1437, 723, 1572, 954, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['dontdiehere', 1437, 816, 1483, 862, '']
+  sector ['no_movement_skills', 1414, 847, 1437, 977, '']
+  sector ['hide_teleports', 1414, 702, 1598, 978, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['indoor_env', 960, 406, 1604, 1073, '']
+  sector ['force_roof_fade', 960, 785, 1184, 893, 'Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/SectorForceRoofFade']
+  sector ['boss_sector', 1437, 725, 1572, 955, '']
+  sector ['cave_sector', 724, 655, 1000, 1000, '']
+  point [1529.0, 839.0, 'mapboss']
+  point [538.0, 560.0, 'killzone=4']
+  point [1460.0, 839.0, 'telepad']
+  point [519.0, 538.0, 'default']
+  point [1315.0, 840.0, 'checkpoint1']
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x1 (1506,839)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothRoomProximityTrigger x1 (1221,839)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionArenaMiddleReal x1 (1527,839)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionBossBeamStart x4 (1558,756) (1558,908) (1558,922) (1558,770)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionBossBeamStart2 x4 (1558,797) (1558,894) (1558,880) (1558,784)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionBossBeamStart3 x1 (1558,810)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionBossBeamStart4 x1 (1558,867)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionBossBeamEnd x50 (1431,740) (1431,754) (1431,767) (1431,780) (1431,724) (1431,737) (1431,807) (1331,756) (1331,770) (1331,784)
+  obj Metadata/MiscellaneousObjects/Expedition/ExpeditionApparitionArenaMiddle x1 (1534,839)
+  obj Metadata/Monsters/LeagueExpeditionNew/Uhtred/Spawner/ExpeditionApparitionSpawner x10 (1555,756) (1555,770) (1555,784) (1555,797) (1555,810) (1555,867) (1555,880) (1555,894) (1555,908) (1555,922)
+  obj Metadata/Monsters/LeagueExpeditionNew/Uhtred/MirrorMarker x1 (1425,839)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (506,523)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (894,1038)
+  obj Metadata/Monsters/LeagueExpeditionNew/Uhtred/ColumnController x1 (1517,840)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionExplosiveWall_BossEntrance x5 (963,857) (963,848) (963,821) (963,831) (952,840)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/ExpeditionConnectorPole_BossEntrance x3 (929,812) (915,803) (942,825)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Uhtred_Boss/Objects/ExpeditionDetonator_BossEntrance x1 (901,784)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleExpeditionOlroth x1 (1324,827)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x28 (1436,848) (1436,854) (1436,842) (1436,836) (1436,830) (1436,824) (1436,818) (1436,812) (1436,860) (1436,866)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExplodedDoor_Blocker x1 (1028,838)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (1438,840)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (1522,848)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoorFrame x1 (965,839)
+  obj Metadata/Monsters/LeagueExpeditionNew/Uhtred/UhtredOrbTarget x10 (1542,756) (1542,770) (1542,784) (1542,797) (1542,810) (1542,867) (1542,880) (1542,894) (1542,908) (1542,922)
+  obj Metadata/Monsters/LeagueExpeditionNew/Uhtred/UhtredBeamTarget x4 (1470,952) (1461,727) (1413,884) (1414,797)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (1495,839)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Uhtred_Boss/Objects/UhtredTitle x1 (1061,838)
+  obj Metadata/NPC/League/Expedition/RogUhtredIsland x1 (891,754)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoor_Wall x1 (964,839)
+room metadata_terrain_gallows_leagues_expedition_subarea_blackknight_boss_black_knight_arena_01.arm
+  sector ['emerge1', 102, 172, 312, 221, 'Metadata/MiscellaneousObjects/StarfallKnightBossEmerge1']
+  sector ['emerge2', 100, 221, 314, 278, 'Metadata/MiscellaneousObjects/StarfallKnightBossEmerge2']
+  point [205.0, 215.0, 'mapboss']
+  point [196.0, 133.0, 'telepad']
+  point [196.0, 133.0, 'default']
+  obj Metadata/Monsters/LeagueExpeditionNew/Expedition2/StarfallKnightBoss/ArenaTransition x1 (193,118)
+room metadata_terrain_gallows_leagues_expedition_subarea_olroth_boss_rooms_feature_01.arm
+  sector ['hide_teleports', 1345, 494, 1529, 678, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['env', 1352, 494, 1529, 678, '']
+  sector ['no_movement_skills', 1336, 499, 1369, 581, '']
+  sector ['no_movement_skills', 1336, 592, 1369, 671, '']
+  sector ['indoor_env', 875, 268, 1769, 889, '']
+  sector ['force_roof_fade', 891, 491, 1095, 685, 'Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/SectorForceRoofFade']
+  sector ['hide_teleports', 1363, 494, 1529, 678, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [1445.0, 586.0, 'mapbossWG']
+  point [458.0, 572.0, 'killzone=4WG']
+  point [426.0, 568.0, 'default']
+  point [1370.0, 586.0, 'telepad']
+  point [1222.0, 586.0, 'checkpoint1']
+  obj Metadata/Monsters/LeagueExpeditionNew/Olroth/OlrothRelic x1 (1477,531)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker2WG x1 (1466,640)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothRelicPositionMarker1WG x1 (1424,643)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/DannigOlrothPathMarker x6 (923,586) (1023,586) (1115,586) (1230,586) (1161,586) (1380,586)
+  obj Metadata/MiscellaneousObjects/Lights/ModularLight_BlueTorchRadiant_Trigg x6 (1367,554) (1368,622) (1437,665) (1440,505) (1510,552) (1509,620)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (1344,586)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (1000,586)
+  obj Metadata/Monsters/LeagueExpedition/Olroth/Objects/OlrothAddSpawner x3 (1385,637) (1511,586) (1385,535)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (1329,585)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (1437,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothRoomProximityTrigger x1 (998,589)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (409,568)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionExplosiveWall_BossEntrance x5 (894,603) (894,596) (894,569) (894,577) (888,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/ExpeditionConnectorPole_BossEntrance x2 (873,569) (850,562)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExpeditionDetonator_BossEntrance x1 (826,554)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x44 (851,621) (1394,650) (1398,551) (1471,523) (1316,543) (1285,669) (1290,651) (1359,700) (1417,531) (1530,724)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleExpeditionOlroth x1 (1232,574)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (1083,504) (1084,668)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x20 (1362,595) (1362,601) (1362,589) (1362,583) (1362,571) (1362,565) (1362,559) (1362,607) (1362,613) (1362,619)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (1363,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/ExplodedDoor_Blocker x1 (959,585)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoorFrame x1 (897,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/OlrothTitle x1 (1008,587)
+  obj Metadata/NPC/League/Expedition/DannigOlrothIsland x1 (802,573)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (1363,586)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Olroth_Boss/Objects/RuneDoor_Wall x1 (895,586)

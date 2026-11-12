@@ -1,0 +1,163 @@
+# Menmek, Guardian Construct
+content: League: Incursion
+monsters: Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBossIncursion_
+scripts: Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBoss/VaalStatueBoss
+own chain: Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBoss/VaalStatueBoss, Metadata/Monsters/LeagueIncursionNew/IncursionMiniBossBase
+areas: 
+ai: Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBoss/VaalStatueBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUniqueDoNotFaceTarget [melee] action=None anim=-
+- MeleeAtAnimationSpeedUniqueDoNotFaceTargetOffhand [melee] action=OffMelee anim=default:attack_02
+- EASVaalStatueBossSnakeBarrage [empty_action_spell] action=HeavyStrike anim=default:snake_barrage_01
+- EASVaalBossStatueLaserCrisCross [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:six_lasers_criscross_01
+- EGVaalStatueBossWallToBallLasers [execute_geal] action=SpellBuff anim=default:walls_to_ball_laser_01
+    GEAL 1075 on ['Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasers', 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasersSTANDALONE', 'Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBoss/Objects/VaalStatueBossWallLasers']: self{} each{this.beam_target = triggerer; triggerer.CopyState( laser_repeats, owner ); triggerer.CopyState( disco_repeats, owner ); triggerer.SetStateTo( do_a_laser, 1 );} r=10
+- GSVaalStatueBossWallToBallLaserEG [geometry_spell] action=None anim=-
+    geom: cone length=200 width=0 angle=90 range=0 delay=0 anchor=2
+    GEAL 1075 on ['Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasers', 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasersSTANDALONE', 'Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBoss/Objects/VaalStatueBossWallLasers']: self{} each{this.beam_target = triggerer; triggerer.CopyState( laser_repeats, owner ); triggerer.CopyState( disco_repeats, owner ); triggerer.SetStateTo( do_a_laser, 1 );} r=10
+- EASVaalStatueBossComboLaser [empty_action_spell] action=SpellNova anim=-
+- MDVaalBossStatueFrontToBack [move_daemon] action=SpellAreaOfEffectFire anim=default:six_lasers_front_to_back_01
+    daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserTarget
+- MDVaalBossStatueFocusExplosion [move_daemon] action=SpellAreaOfEffect anim=default:six_lasers_focus_explosion_01
+    daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserTarget
+- MDVaalBossStatueCrisCross [move_daemon] action=SpellBuff anim=default:walls_to_ball_laser_01
+    daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserCrissCrossTarget
+- MDVaalBossStatueCrisCross2 [move_daemon] action=SpellBuff anim=default:walls_to_ball_laser_01
+    daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserCrissCrossTarget
+- MDVaalBossStatueLeftRightCombo [move_daemon] action=SpellBuff anim=default:walls_to_ball_laser_01
+    daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserTarget
+- GSVaalStatueBossWallToBallLasers [geometry_spell] action=SpellBuff anim=default:walls_to_ball_laser_01
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSVaalStatueBossConcentratedBlast [geometry_spell] action=None anim=-
+    geom: circle length=35 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAVaalStatueBossSnakeBarrage [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAVaalStatueBossFootStepStomps [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSVaalStatueBossComboLaser [geometry_spell] action=None anim=-
+    geom: rectangle length=100 width=3 angle=0 range=0 delay=0 anchor=3
+- MDVaalBossStatueBallLightning [move_daemon] action=SpellBuffFire anim=default:combo_laser_01
+    daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueBallLightning
+- EASVaalStatueBossTurnLeft180 [empty_action_spell] action=DodgeRight anim=default:stomp_180_left_01
+- EASVaalStatueBossTurnRight180 [empty_action_spell] action=DodgeForward anim=default:stomp_180_right_01
+- TBVaalStatueBossBallLasers [trigger_beam] action=None anim=-
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+    beams: VaalStatueBossInvisBeam
+- GSVaalStatueBossTriangleSlam [geometry_spell] action=SpellAreaOfEffectChaos anim=default:triangle_slam_01
+    geom: triangle length=86 width=100 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSVaalStatueBossRectangleCascades [geometry_spell] action=SpellAreaOfEffectChaos anim=default:triangle_slam_01
+    geom: rectangle length=30 width=100 angle=0 range=300 delay=66 anchor=12
+    flags: is_area_damage
+- GTTriangleSlamEdgeBlasts [geometry_trigger] action=SpellAreaOfEffectChaos anim=default:triangle_slam_01
+    geom: trigger count=10 delay=0 spread=1 radius=25 angle=360 anchor=1
+    triggers: GSVaalStatueBossRectangleCascades
+- EASVaalStatueBossSnakeBarrageBwd [empty_action_spell] action=DoubleStrike anim=default:snake_barrage_bwd_01
+- EASVaalStatueBossDoubleJab [empty_action_spell] action=DualStrike anim=default:double_jab_01
+
+## own states and handlers
+states: powered; blocking; fight_start; activate; env_override
+- on_construction_complete = { SetObjectCollisionSize( 15 ); }
+- on_emerge_statue_02 = { SetObjectCollisionSize( 5 ); }
+- on_or_create_state_powered_0 = { HideMeshSegments( gemShape ); }
+- on_or_create_state_powered_1 = { ShowMeshSegments( gemShape ); }
+- on_or_create_state_powered_2 = { HideMeshSegments( gemShape ); }
+- on_state_powered_2 = { this.my_core_light = GetAttachedAOByType( 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossCoreLight.ao' ); my_core_light.SetLightState( off ); }
+- on_state_powered_1 = { this.my_core_light = GetAttachedAOByType( 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossCoreLight.ao' ); my_core_light.SetLightState( on ); SetRangeCheckingForGlobalAudioParams( true ); }
+- on_state_powered_0 = { this.my_core_light = GetAttachedAOByType( 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossCoreLight.ao' ); my_core_light.SetLightState( off ); }
+- create_state_powered_2 = { this.my_core_light = GetAttachedAOByType( 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossCoreLight.ao' ); my_core_light.SetLightState( off ); }
+- create_state_powered_1 = { this.my_core_light = GetAttachedAOByType( 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossCoreLight.ao' ); my_core_light.SetLightState( on ); }
+- create_state_powered_0 = { this.my_core_light = GetAttachedAOByType( 'Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossCoreLight.ao' ); my_core_light.SetLightState( off ); SetRangeCheckingForGlobalAudioParams( false ); }
+- on_or_create_state_blocking_1 = { IfAlive( (){ MakeCollidable(); } ); globals.disable_instant_teleport_sector_1.RenameSectorsAtLocation( hide_teleports_off, hide_teleports ); }
+- on_event_gem_explode_for_death_bwd_01 = { SetStateTo( powered, 0 ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/VaalStatue/laser_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/VaalStatue/ball_lightning_connect_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/VaalStatue/onAct_charge_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/VaalStatue/charged_shock_nova_build_up.ao
+- preload_object Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasersSTANDALONE
+- preload_misc_animated VaalStatueBossConcentratedBlastBuildUp
+- preload_animated_object Metadata/Effects/Microtransactions/Spells/Mercurial_exsanguinate/surge.ao
+- preload_misc_beam VaalStatueBossOnActBeam
+- preload_misc_beam VaalStatueBossSnakeLasers
+- preload_misc_beam VaalStatueBossWallLasers
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/MDVaalBossStatueBallLightning, Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserCrissCrossTarget, Metadata/Monsters/InvisibleFire/MDVaalBossStatueLaserTarget
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasersSTANDALONE:  [blocking=true object_size=3 server_only=true] states=active;beam_time;do_a_laser create_state_active_0{{ PlayAnimation( deactivate_idle ); }}; create_state_active_1{{ PlayAnimation( idle_01 ); }}
+- Metadata/Monsters/VaalBossStatue/Objects/VaalStatueBossWallLasers:  [blocking=true object_size=3 server_only=true] states=active;beam_time;do_a_laser create_state_active_0{{ PlayAnimation( deactivate_idle ); }}; create_state_active_1{{ PlayAnimation( idle ); }}
+- Metadata/Monsters/LeagueIncursionNew/AlchemyLab/StatueBoss/Objects/VaalStatueBossWallLasers:  [blocking=true object_size=3 server_only=true] states=active;beam_time;do_a_laser;do_another_laser;do_a_side_laser;bounce_laser;laser_repeats;disco_repeats;boss_alive = 1 
+- metadata/monsters/leagueincursionnew/alchemylab/statueboss/objects/vaalstatuebosswalllasers:  [blocking=true object_size=3 server_only=true] states=active;beam_time;do_a_laser;do_another_laser;do_a_side_laser;bounce_laser;laser_repeats;disco_repeats;boss_alive = 1 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon: MinimapIcon [server_only=true icon=IncursionViperLegionBarracksActive] states=quadrillas 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon: MinimapIcon [server_only=true icon=IncursionGarrisonActive] states= 
+- Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController: ControlZone [server_only=true] states= 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_4open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,91) (161,92) (142,92) (125,92) (112,160) (66,93)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x8 (185,71) (148,72) (129,72) (112,72) (120,179) (53,73) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,163) (98,164) (100,91) (139,166) (157,166) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (98,176) (99,72) (139,178) (157,178) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (63,215) (87,33) (166,33) (186,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (76,131) (176,132)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x12 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (31,216) (55,34) (198,33) (218,218)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x12 (22,192) (226,192) (199,50) (55,50) (55,15) (36,33) (217,32) (198,14) (237,219) (218,237)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_3open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,93) (166,95) (147,95) (128,95) (108,95) (66,95)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x6 (185,73) (153,75) (134,75) (115,75) (95,75) (53,75)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,165) (94,167) (116,167) (156,167) (135,167) (195,167)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,177) (94,179) (116,179) (156,179) (135,179) (195,179)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,143)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (186,216) (167,32) (85,33) (65,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (82,126) (177,127)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x10 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (33,218) (218,218) (53,31) (199,31)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x10 (52,50) (200,50) (23,191) (227,191) (33,236) (14,218) (218,236) (237,218) (38,35) (214,34)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_garrison_4open_03.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [153.0, 41.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion x6 (198,91) (174,97) (149,93) (120,94) (112,160) (57,97)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingShieldIncursion_ x8 (185,71) (163,73) (136,73) (110,73) (120,179) (61,71) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion x6 (57,163) (83,164) (84,85) (148,165) (170,165) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (83,176) (84,73) (148,177) (170,177) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon x1 (126,129)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController x1 (133,128)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x6 (211,90) (211,163) (41,90) (41,163) (126,62) (126,190)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionBenchCampaignCurrency x1 (126,202)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (135,54)

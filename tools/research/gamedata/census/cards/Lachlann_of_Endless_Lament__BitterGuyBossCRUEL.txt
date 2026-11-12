@@ -1,0 +1,110 @@
+# Lachlann of Endless Lament
+content: Act 1
+monsters: Metadata/Monsters/BitterGuy/BitterGuyBossCRUEL
+scripts: Metadata/Monsters/BitterGuy/BitterGuyBossCRUEL
+own chain: Metadata/Monsters/BitterGuy/BitterGuyBossCRUEL
+areas: 
+ai: Metadata/Monsters/BitterGuy/BitterGuyBoss.ais (not shipped)
+
+## skills
+- BitterGuyMelee [melee] action=None anim=-
+- BitterGuySlam [geometry_attack] action=LeapSlam anim=default:slam_01
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- BitterGuySweepMelee [melee] action=Sweep anim=default:sweep_01
+- BitterGuySwipe [geometry_attack] action=LeapSlam anim=default:slam_01
+    geom: cone length=26 width=0 angle=180 range=200 delay=50 anchor=2
+    flags: is_area_damage
+- BitterGuySlamBack [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- BitterGuyEmptyActionChildSummon [empty_action_spell] action=SpellAreaOfEffectFire anim=default:summon_01
+- BitterGuySummonWife [summon_specific_monsters_in_front] action=SpellAreaOfEffectLightning anim=default:stomp_01
+    summons: Metadata/Monsters/BitterGuy/BitterGuyWifeChasingDaemon
+- BitterGuySummonSwarm [summon_specific_monsters_in_front] action=SpellAreaOfEffectCold anim=default:spell_aoe_01
+    summons: Metadata/Monsters/BitterGuy/BitterGuyWifeSurge
+- BitterGuyChildFirestormLeft [firestorm_monster] action=None anim=-
+    flags: is_area_damage
+- BitterGuyChildFirestormRight [firestorm_monster] action=None anim=-
+    flags: is_area_damage
+- BitterGuyStomp [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEBitterGuyColdGroundDegen [monster_cast_ground_effect_location] action=None anim=-
+- GSBitterGuyStormUp [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=484 delay=484 anchor=4
+    flags: is_area_damage
+    buffs: hinder
+- GSBitterGuyStormDown [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=720 delay=720 anchor=4
+- BitterGuyBrutusSlam [brutus_ground_slam] action=GroundSlam anim=default:frontal_slam_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- BitterGuySlamIntro [geometry_attack] action=SpellProjectileUpwardLightning anim=default:emerge_slam_01
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: fight; generic1; generic2; generic3
+- on_state_fight_1 = { SetImmobile( false ); MakeCollidable(); }
+- create_state_fight_0 = { DisableTargetable(); SetImmobile( true ); RemoveCollidability(); PlayAnimation( idle ); PauseAnimation(); SetRangeCheckingForGlobalAudioParams( False ); }
+- create_state_fight_1 = { ShowAllMeshSegments( ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/light.epk' ); IfAlive( { SetRangeCheckingForGlobalAudioParams( True ); } ); }
+- on_exit_state_fight_0 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/transform_in_ribbons.epk' ); ShowAllMeshSegments( ); EnableTargetable(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/light.epk' ); SetRangeCheckingForGlobalAudioParams( T
+- on_event_adddesaturateepk = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/corpseState_Blood.epk' ); }
+- on_slam_01 = { PlayTextAudio( LachlannSlamRandom, 'Metadata/Monsters/BitterGuy/BitterGuyBoss' ); }
+- on_stomp_01 = { PlayTextAudio( LachlannStompRandom, 'Metadata/Monsters/BitterGuy/BitterGuyBoss' ); }
+- on_event_contact_for_slam_01 = { RemoveEffectPack('Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/transform_in_ribbons.epk'); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): [('fight', 0)]
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/act8/WarHero/caster/revive/rig.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/light.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/hinder_green.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/invisible.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/corpseState_Blood.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/epk/disintegrate.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/BitterGuy_Boss/hinder_green_player.epk
+- preload_environment G1_7_boss
+- preload_environment G1_7_boss_defeat
+
+## adds and forms
+- Metadata/Monsters/BitterGuy/BitterGuyWifeChasingDaemon "Daemon" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=true attackable=true server_only=true] states=epk
+- Metadata/Monsters/BitterGuy/BitterGuyWifeSurge "Isabel, Mourning Wife" bossbar=0 skills=BitterGuyWifeSwim,BitterGuyWifeDamage,CGEBitterGuyColdGroundDegen comps=Transitionable Targetable Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/NPC/BitterGuy "Lachlann, Ezomyte Rebel" bossbar=0 skills=BitterGuyTransform,BitterGuyTransformQuick comps=InteractionAction ControlZone Targetable MinimapIcon Actor Stats [blocking=true radius=0 attackable=true server_only=true icon=NPC] states=visible = 1;pathed;boss_dead;idle_talking;talking
+- Metadata/Monsters/NPC/BitterGuyMap "Lachlann, Ezomyte Rebel" bossbar=0 skills=BitterGuyTransform,BitterGuyTransformQuick comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=visible = 1
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/bitterguy/bossroomminimapicon: MinimapIcon [server_only=true icon=GraveyardBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GraveyardBossInactive ); }}
+- Metadata/QuestObjects/Four_Act1/GraveyardBitterGuyTrigger:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act1/1_7/Objects/GraveyardBossMonument:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/BitterGuy/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=GraveyardBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GraveyardBossInactive ); }}
+- Metadata/Terrain/Gallows/Act1/1_7/Objects/GraveyardArenaExitDoor: Transitionable [blocking=true object_size=3 server_only=true] states= create_transitioned{{ PlayAnimation( idle_open ); }}; on_transition{{ PlayAnimation( open ); }}
+- Metadata/Terrain/Gallows/Act1/1_7/Objects/GraveyardArenaGravestone: TriggerableBlockage Transitionable Stats [start_blocked=true blocking=true object_size=0 transition_on_damage_taken=1 server_only=true] states= create_untransitioned{{ PlayAnimation( idle_01 ); }}; create_transitioned{{ PlayAnimation( shatter_01 ); GoToAnimationEnd(); RemoveCollidability(); }}; on_transition{{ PlayAnimation( shatter_01 ); RemoveCollidability(); }}; create_untransitioned{{ PlayAnimationByIndex(0); PauseAnimation(); }}; create_transitioned{{ PlayAnimationByIndex(0); GoToAnimationEnd(); RemoveCollidability(); }}; on_transition{{ PlayAnimationByIndex(0); RemoveCollidability(); }}
+
+## lines
+- on_slam_01 -> LachlannSlamRandom: My rage burns!
+- on_stomp_01 -> LachlannStompRandom: Feel the chill of the grave!
+
+## linked buffs
+- hinder "Hinder": Movement speed [Slow|Slowed]. | stats=hinder_movement_speed_+%_final
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_7_rooms_unique_arena_flip.arm
+  sector ['hide_teleports', 45, 81, 250, 304, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 39, 75, 256, 308, '']
+  sector ['no_movement_skills', 29, 77, 265, 84, '']
+  point [152.0, 104.0, 'telepad']
+  point [159.0, 391.0, 'entrance']
+  point [107.0, 135.0, 'ritual_boss_spawn_override']
+  obj Metadata/Chests/GraveyardDungeonChests/FlameUrn01 x1 (110,27)
+  obj Metadata/Chests/GraveyardDungeonChests/FlameUrn02 x1 (192,28)
+  obj Metadata/MiscellaneousObjects/PathMarkers/BitterGuyPath_End x1 (150,171)
+  obj Metadata/MiscellaneousObjects/PathMarkers/BitterGuyPath_Start x1 (150,35)
+  obj Metadata/QuestObjects/Four_Act1/GraveyardBitterGuyTrigger x1 (152,104)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (150,66) (158,426)
+  obj Metadata/Terrain/Gallows/Act1/1_7/Objects/GraveyardBossMonument x1 (150,165)
+  obj Metadata/Monsters/BitterGuy/BossRoomMinimapIcon x1 (151,140)
+  obj Metadata/Terrain/Gallows/Act1/1_7/Objects/GraveyardArenaExitDoor x1 (149,290)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (149,79)
+  obj Metadata/Terrain/Gallows/Act1/1_7/Objects/GraveyardArenaGravestone x40 (214,140) (214,212) (237,266) (84,122) (237,140) (214,248) (84,158) (214,104) (237,158) (61,194)

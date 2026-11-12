@@ -1,0 +1,304 @@
+# The Prisoner / The Shackled Horror
+content: Act 4
+monsters: Metadata/Monsters/PrisonerBoss/PrisonerBoss, Metadata/Monsters/PrisonerBoss/PrisonerBossCampaignSTANDALONE, Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_, Metadata/Monsters/PrisonerBoss/PrisonerBossStandalone_
+scripts: Metadata/Monsters/PrisonerBoss/PrisonerBoss, Metadata/Monsters/PrisonerBoss/PrisonerBossStandalone, Metadata/Monsters/PrisonerBoss/PrisonerBossMAP
+own chain: Metadata/Monsters/PrisonerBoss/PrisonerBoss, Metadata/Monsters/PrisonerBoss/PrisonerBossStandalone, Metadata/Monsters/PrisonerBoss/PrisonerBossMAP
+areas: G4_5_2 Solitary Confinement act4; BossRush_Area3 Boss Rush Area 3 act10; MapStronghold Stronghold act10
+ai: Metadata/Monsters/PrisonerBoss/PrisonerBoss.ais, Metadata/Monsters/PrisonerBoss/PrisonerBossStandalone.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- MASPrisonerBossShortRange [melee] action=OffMelee anim=default:backhand_01,elbow_01,stomp_01,stance3:spear_attack_01,spear_cleave_01
+- DTTPrisonerBossUnarmedLeap [dash_to_target] action=DodgeForward anim=default:leapslam_01,stance3:spear_leapslam_01
+- EASPrisonerBossIceGroundPound [empty_action_spell] action=HeavyStrike anim=default:ice_groundpound_01
+- GAPrisonerBossIcePunch [geometry_attack] action=SpellAreaOfEffect anim=default:ice_punch_01
+    geom: rectangle length=57 width=14 angle=0 range=280 delay=33 anchor=3
+    flags: is_area_damage
+- GAPrisonerBossDoubleFistSlam [geometry_attack] action=SpellAreaOfEffectCold anim=default:groundslam_01
+    geom: circle length=30 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- DTTPrisonerBossSpearLeap [dash_to_target] action=DodgeForward anim=default:leapslam_01,stance3:spear_leapslam_01
+- GAPrisonerBossSpearGroundslam [geometry_attack] action=GroundSlam anim=stance3:spear_groundslam_01
+    geom: circle length=28 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- GAPrisonerBossSpearRendToss [geometry_attack] action=SpectralThrow anim=stance3:spear_throw_01
+    geom: rectangle length=120 width=20 angle=0 range=400 delay=33 anchor=3
+    flags: is_area_damage
+- EASPrisonerBossTripleIceSlam [empty_action_spell] action=SpellAreaOfEffectLightning anim=stance3:spear_ultimate_01
+- EASPrisonerBossChillDonut [empty_action_spell] action=SpellAreaOfEffectFire anim=stance3:spear_ice_organ_01
+- EDSPrisonerBossGigaCleave [effect_driven_attack] action=HeavyCleave anim=stance3:spear_charge_cleave_01
+    flags: is_area_damage
+- GAPrisonerBossGigaCleave [geometry_attack] action=HeavyCleave anim=stance3:spear_charge_cleave_01
+    geom: cone length=45 width=0 angle=150 range=0 delay=0 anchor=2
+    flags: is_area_damage
+    buffs: architect_ground_blood
+- EASPrisonerBossSpearGroundslamMega [empty_action_spell] action=GroundSlamOffhand anim=stance3:spear_groundslam_charge_01
+- EASPrisonerBossBloodTendrils [empty_action_spell] action=SpellProjectile anim=stance4:tendril_attack_01
+- GAPrisonerBossUnarmedLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAPrisonerBossSpearLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=19 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- MPSPrisonerBossBloodTendrils [monster_projectile_spell] action=None anim=-
+- MPWPrisonerBossSpearToss [monster_projectile_weapon] action=None anim=-
+- GAPrisonerBossSpearGroundslamMega [geometry_attack] action=GroundSlamOffhand anim=stance3:spear_groundslam_charge_01
+    geom: circle length=52 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    buffs: stolen_life_regen_debuff
+- GSPrisonerKneel [geometry_spell_channelled] action=ChannelUnleash anim=default:take_a_knee_start_01,stance3:spear_take_a_knee_start_01
+    geom: circle length=0 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: skill_cannot_be_stunned
+- CTS3PrisonerBossFront [change_to_stance3] action=None anim=-
+    flags: skill_cannot_be_stunned
+- CTS3PrisonerBossBack [change_to_stance3] action=DodgeBack anim=-
+    flags: skill_cannot_be_stunned
+- CTS4PrisonerBossFront [change_to_stance4] action=None anim=-
+    flags: skill_cannot_be_stunned
+- CTS4PrisonerBossBack [change_to_stance4] action=DodgeBack anim=-
+    flags: skill_cannot_be_stunned
+- EASPrisonerBossBallistaFront1 [empty_action_spell_4] action=DodgeLeft anim=default:shot_01,stance3:arm_regen_01
+    flags: skill_cannot_be_stunned
+- EASPrisonerBossBallistaFront2 [empty_action_spell_5] action=DodgeLeft anim=default:shot_01,stance3:arm_regen_01
+    flags: skill_cannot_be_stunned
+- EASPrisonerBossBallistaBack1 [empty_action_spell_4] action=DodgeRight anim=default:shot_02,stance3:arm_regen_02
+    flags: skill_cannot_be_stunned
+- EASPrisonerBossBallistaBack2 [empty_action_spell_5] action=DodgeRight anim=default:shot_02,stance3:arm_regen_02
+    flags: skill_cannot_be_stunned
+- GTPrisonerBossIceSpikes [geometry_trigger] action=None anim=-
+    geom: trigger count=75 delay=100 spread=70 radius=15 angle=0 anchor=4
+- GAPrisonerBossIceGroundPound [geometry_attack] action=None anim=-
+    geom: circle length=46 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- GAPrisonerBossIceGroundPoundBig [geometry_attack] action=None anim=-
+    geom: circle length=150 width=0 angle=0 range=1500 delay=33 anchor=3
+    flags: is_area_damage
+    GEAL 1092 on ['Metadata/Monsters/PrisonerBoss/PrisonerBossIceCrystal_']: self{} each{TriggerSkill( GSPrisonerBossIceCrystalExplode, triggerer ); triggerer.KillSelfNoDrops();} r=0
+- GSPrisonerBossIceCrystalExplode [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAPrisonerBossTripleStabImpact [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAPrisonerBossTripleStabDeepImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAPrisonerBossTripleStabExtract [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSPrisonerBossTripleStabDeathWave [geometry_spell] action=None anim=-
+    geom: circle length=130 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- TBPrisonerBossBloodTendrils [trigger_beam] action=SpellProjectile anim=stance4:tendril_attack_01
+    flags: base_skill_can_be_avoided_by_dodge_roll
+    beams: PrisonerBossBloodTendrilBeam
+- GSPrisonerBossBloodTendrilImpact [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GAPrisonerBossImpactSlam [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSPrisonerBossDoorWaterPush [geometry_spell] action=None anim=-
+    geom: rectangle length=180 width=85 angle=0 range=500 delay=100 anchor=4
+    flags: is_area_damage
+    GEAL 1177 on any: self{} each{// this does a whole bunch of garbage to make things struggle while running into the water flow direction // but also lets them surf with it if they run in the same direction this.Call( door_flood, triggerer );} r=0
+
+## own states and handlers
+states: leash = 1; arm_regrowth; L_chains_snapped; R_chains_snapped; kneeling; locked_orientation; arm_regrowth = 4; L_chains_snapped = 1; R_chains_snapped = 1
+- on_or_create_state_kneeling_0 = { RemoveCollidability(); }
+- on_or_create_state_kneeling_1 = { MakeCollidable(); }
+- on_or_create_state_locked_orientation_0 = { UnlockOrientation(); }
+- on_or_create_state_locked_orientation_1 = { LockOrientation(); }
+- on_change_to_stance3 = { ForceSkillIntoCooldown( EASPrisonerBossTripleIceSlam ); }
+- on_enter = { ShowNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn', 0 ); }
+- on_exit = { HideNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn' ); }
+- on_or_create_state_dead_1 = { SetControlZoneRadius( 200 ); }
+- on_state_leash_0 = { DetachAllOfType( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/Leash.ao' ); }
+- on_or_create_state_leash_1 = { AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/Leash.ao', aux_leash ); }
+- on_or_create_state_L_chains_snapped_1 = { If( GetState( arm_regrowth ) == 0, () { AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao', L_arm_chain_attach_top_01 ); AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao', L_arm_chain_attach_top_02 ); AddAttac
+- on_or_create_state_R_chains_snapped_1 = { AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao', R_arm_chain_attach_top_01 ); AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao', R_arm_chain_attach_top_02 ); AddAttachedObjectToBones( 'Metadata/Monsters/Pri
+- on_death = { AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/BallistaSpear.ao', L_Weapon ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/on_death_epks/monster_on_death.epk' ); }
+- on_spawned_dead = { AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/BallistaSpear.ao', L_Weapon ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/on_death_epks/monster_on_death.epk' ); }
+- on_or_create_state_arm_regrowth_0 = { DetachAllOfType( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/LForearmSeaweed.ao' ); AddAttached( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/LForearmSeaweed.ao', L_forearm_cuff_jntBnd ); HideMeshSegments( arm_skeletonShape, arm_regen1_meshShape, arm_regen2_meshShape, shoulder_gib_mes
+- on_or_create_state_arm_regrowth_1 = { RemoveAttachedObjectFromBones( L_arm_chain_attach_top_01 ); RemoveAttachedObjectFromBones( L_arm_chain_attach_top_02 ); RemoveAttachedObjectFromBones( L_arm_chain_attach_bot_01 ); RemoveAttachedObjectFromBones( L_arm_chain_attach_bot_02 ); DetachAllOfType( 'Metadata/Monsters/PrisonerMonsterBoss/at
+- on_or_create_state_arm_regrowth_2 = { DetachAllOfType( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/LForearmSeaweed.ao' ); HideMeshSegments( L_forearm_cuff_meshShape, arm_meshShape, arm_coral_meshShape, arm_regen1_meshShape, arm_regen2_meshShape ); ShowMeshSegments( shoulder_gib_meshShape_NoPhys, arm_skeletonShape ); }
+- on_or_create_state_arm_regrowth_3 = { DetachAllOfType( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/LForearmSeaweed.ao' ); HideMeshSegments( L_forearm_cuff_meshShape, arm_meshShape, arm_coral_meshShape, shoulder_gib_meshShape_NoPhys, arm_skeletonShape, arm_regen2_meshShape ); ShowMeshSegments( arm_regen1_meshShape ); }
+- on_or_create_state_arm_regrowth_4 = { DetachAllOfType( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/LForearmSeaweed.ao' ); HideMeshSegments( L_forearm_cuff_meshShape, arm_meshShape, arm_coral_meshShape, shoulder_gib_meshShape_NoPhys, arm_skeletonShape, arm_regen1_meshShape ); ShowMeshSegments( arm_regen2_meshShape ); }
+- on_effect_start_CTS1BossFightStart = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Emerge_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_DTTPrisonerBossUnarmedLeap = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_LeapSlam_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_GAPrisonerBossIcePunch = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_CascadePunch_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_GAPrisonerBossDoubleFistSlam = { Roll( 1, 2, (){ PlayTextAudio( PrisonerBoss_DoubleSlam_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_EASPrisonerBossIceGroundPound = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_MultiSlam_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_DTTPrisonerBossSpearLeap = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_LeapSlam_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_GAPrisonerBossSpearGroundslam = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_SpearSlam_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_EASPrisonerBossTripleIceSlam = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Ultimate_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_EASPrisonerBossChillDonut = { IfInStance( stance3, () { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_IceDonut_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }, () { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_BloodDonut_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); } ); }
+- on_effect_start_GSPrisonerKneel = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Kneeling_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_EASPrisonerBossBloodTendrils = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Tendrils_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_EASPrisonerBossSpearGroundslamMega = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_BloodDebuff_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); } ); }
+- on_effect_start_EASPrisonerBossBallistaFront1 = { PlayTextAudio( PrisonerBoss_Ballista1_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); }
+- on_effect_start_EASPrisonerBossBallistaBack1 = { PlayTextAudio( PrisonerBoss_Ballista1_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); }
+- on_effect_start_EASPrisonerBossBallistaFront2 = { PlayTextAudio( PrisonerBoss_Ballista2_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); }
+- on_effect_start_EASPrisonerBossBallistaBack2 = { PlayTextAudio( PrisonerBoss_Ballista2_Random, 'Metadata/Monsters/PrisonerMonsterBoss' ); }
+- on_or_create_state_L_chains_snapped_1 = { AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao', L_leg_chain_attach_01 ); AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao', L_leg_chain_attach_02 ); Delay( 0.034, { chain_beams.HideMeshSegments( chain_shor
+- on_effect_start_CTS1BossFightStart = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Emerge_Random, _ ); } ); }
+- on_effect_start_DTTPrisonerBossUnarmedLeap = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_LeapSlam_Random, _ ); } ); }
+- on_effect_start_GAPrisonerBossIcePunch = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_CascadePunch_Random, _ ); } ); }
+- on_effect_start_GAPrisonerBossDoubleFistSlam = { Roll( 1, 2, (){ PlayTextAudio( PrisonerBoss_DoubleSlam_Random, _ ); } ); }
+- on_effect_start_EASPrisonerBossIceGroundPound = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_MultiSlam_Random, _ ); } ); }
+- on_effect_start_DTTPrisonerBossSpearLeap = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_LeapSlam_Random, _ ); } ); }
+- on_effect_start_GAPrisonerBossSpearGroundslam = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_SpearSlam_Random, _ ); } ); }
+- on_effect_start_EASPrisonerBossTripleIceSlam = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Ultimate_Random, _ ); } ); }
+- on_effect_start_EASPrisonerBossChillDonut = { IfInStance( stance3, () { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_IceDonut_Random, _ ); } ); }, () { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_BloodDonut_Random, _ ); } ); } ); }
+- on_effect_start_GSPrisonerKneel = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Kneeling_Random, _ ); } ); }
+- on_effect_start_EASPrisonerBossBloodTendrils = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Tendrils_Random, _ ); } ); }
+- on_effect_start_EASPrisonerBossSpearGroundslamMega = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_BloodDebuff_Random, _ ); } ); }
+- on_effect_start_EASPrisonerBossBallistaFront1 = { PlayTextAudio( PrisonerBoss_Ballista1_Random, _ ); }
+- on_effect_start_EASPrisonerBossBallistaBack1 = { PlayTextAudio( PrisonerBoss_Ballista1_Random, _ ); }
+- on_effect_start_EASPrisonerBossBallistaFront2 = { PlayTextAudio( PrisonerBoss_Ballista2_Random, _ ); }
+- on_effect_start_EASPrisonerBossBallistaBack2 = { PlayTextAudio( PrisonerBoss_Ballista2_Random, _ ); }
+- on_effect_start_CTS1BossFightStart = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Emerge_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_DTTPrisonerBossUnarmedLeap = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_LeapSlam_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_GAPrisonerBossIcePunch = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_CascadePunch_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_GAPrisonerBossDoubleFistSlam = { Roll( 1, 2, (){ PlayTextAudio( PrisonerBoss_DoubleSlam_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_EASPrisonerBossIceGroundPound = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_MultiSlam_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_DTTPrisonerBossSpearLeap = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_LeapSlam_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_GAPrisonerBossSpearGroundslam = { Roll( 1, 4, (){ PlayTextAudio( PrisonerBoss_SpearSlam_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_EASPrisonerBossTripleIceSlam = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Ultimate_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_EASPrisonerBossChillDonut = { IfInStance( stance3, () { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_IceDonut_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }, () { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_BloodDonut_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); } ); }
+- on_effect_start_GSPrisonerKneel = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Kneeling_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_EASPrisonerBossBloodTendrils = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_Tendrils_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_EASPrisonerBossSpearGroundslamMega = { Roll( 1, 1, (){ PlayTextAudio( PrisonerBoss_BloodDebuff_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); } ); }
+- on_effect_start_EASPrisonerBossBallistaFront1 = { PlayTextAudio( PrisonerBoss_Ballista1_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); }
+- on_effect_start_EASPrisonerBossBallistaBack1 = { PlayTextAudio( PrisonerBoss_Ballista1_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); }
+- on_effect_start_EASPrisonerBossBallistaFront2 = { PlayTextAudio( PrisonerBoss_Ballista2_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); }
+- on_effect_start_EASPrisonerBossBallistaBack2 = { PlayTextAudio( PrisonerBoss_Ballista2_Random, 'Metadata/Monsters/PrisonerBoss/PrisonerBossMAP_' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/PrisonerBoss/PrisonerBossIceWall
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/ice_nova.ao
+- preload_monster_variety Metadata/NPC/Four_Act4/HoodedMentorSolitaryConfinementSummon
+- preload_monster_variety Metadata/NPC/Four_Act4/DoryaniSolitaryConfinementSummon
+- preload_misc_beam PrisonerBossChain
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/spear_hit_door_impact.ao
+- preload_animated_object Metadata/Monsters/PrisonerMonsterBoss/attachments/Leash.ao
+- preload_animated_object Metadata/Monsters/PrisonerMonsterBoss/attachments/LForearmSeaweed.ao
+- preload_animated_object Metadata/Monsters/PrisonerMonsterBoss/attachments/AttachedChain.ao
+- preload_animated_object Metadata/Monsters/PrisonerMonsterBoss/attachments/BallistaSpear.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/on_death_epks/monster_on_death.epk
+- preload_monster_variety Metadata/Monsters/PrisonerBoss/PrisonerBossIceCrystal_
+- preload_monster_variety Metadata/Monsters/PrisonerBoss/PrisonerBossIceWall
+- preload_monster_variety Metadata/Monsters/PrisonerBoss/PrisonerBossChillDonut
+- preload_object Metadata/Monsters/PrisonerBoss/PrisonerChainAnchor
+- preload_object Metadata/Monsters/PrisonerBoss/PrisonerArm
+- preload_object Metadata/Monsters/PrisonerBoss/PrisonerArmBackwards
+- preload_object Metadata/Monsters/PrisonerBoss/PrisonerBossHook
+- preload_environment G4_5_2_boss
+
+## adds and forms
+- Metadata/NPC/Four_Act4/HoodedMentorSolitaryConfinementSummon "The Hooded One" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+- Metadata/NPC/Four_Act4/DoryaniSolitaryConfinementSummon "Doryani" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+- Metadata/Monsters/PrisonerBoss/PrisonerBossIceCrystal_ "Ice Spike" bossbar=0 skills=- comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/PrisonerBoss/PrisonerBossChillDonut "Daemon" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/PrisonerBoss/PrisonerBossIceWall: TriggerableBlockage [start_blocked=false blocking=false object_size=3 server_only=true] states= 
+- Metadata/Monsters/PrisonerBoss/PrisonerChainAnchor:  [server_only=true] states= 
+- Metadata/Monsters/PrisonerBoss/PrisonerArm:  [server_only=true] states= 
+- Metadata/Monsters/PrisonerBoss/PrisonerArmBackwards:  [server_only=true] states= on_initial_position_set{{ SetMovementFaceMode( FaceAway ); }}
+- Metadata/Monsters/PrisonerBoss/PrisonerBossHook:  [server_only=true] states= 
+- metadata/monsters/prisonerboss/bossroomminimapicon: MinimapIcon [server_only=true icon=SolitaryConfinementBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SolitaryConfinementBossInactive ); }}
+- metadata/monsters/prisonerboss/prisonerarm:  [server_only=true] states= 
+- metadata/monsters/prisonerboss/prisonerarmbackwards:  [server_only=true] states= on_initial_position_set{{ SetMovementFaceMode( FaceAway ); }}
+- metadata/monsters/prisonerboss/prisonerbosshook:  [server_only=true] states= 
+- metadata/monsters/prisonerboss/prisonerbossicewall: TriggerableBlockage [start_blocked=false blocking=false object_size=3 server_only=true] states= 
+- metadata/monsters/prisonerboss/prisonerchainanchor:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallista: Life Actor Stats [blocking=false object_size=3 server_only=true] states=reload = 1;boss_aim_point on_construction_complete{{}}; on_state_reload_0{{ RemoveAttachedObjectFromBones( aux_bolt ); }}; on_or_create_state_reload_1{{ AddAttachedObjectToBones( 'Metadata/Monsters/PrisonerMonsterBoss/attachments/BallistaSpearProjectile.ao', aux_bolt ); }; on_or_create_state_boss_aim_point_0{{ If( !HasNamedTask( TargetTiltTracker ), (){ AddNamedTask( TargetTiltTracker ); } ); SetTargetTiltTrackerParams( -90, b}; on_or_create_state_boss_aim_point_1{{ If( !HasNamedTask( TargetTiltTracker ), (){ AddNamedTask( TargetTiltTracker ); } ); SetTargetTiltTrackerParams( -90, b}; on_or_create_state_boss_aim_point_2{{ If( !HasNamedTask( TargetTiltTracker ), (){ AddNamedTask( TargetTiltTracker ); } ); SetTargetTiltTrackerParams( -90, b}
+- Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallistaButton: InteractionAction Targetable [blocking=false object_size=2 server_only=true] states=fired;glowup;leverwarning on_or_create_state_fired_0{{ EnableTargetable(); }}; on_state_fired_0{{ PlayAnimation( reset_01 ); }}; create_state_fired_0{{ PlayAnimation( lever_pull_01 ); PauseAnimation(); }}; on_or_create_state_fired_1{{ DisableTargetable(); }}; on_state_fired_1{{ PlayAnimation( lever_pull_01 ); }}; create_state_fired_1{{ PlayAnimation( lever_pull_01 ); GoToAnimationEnd(); }}
+- Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLever: InteractionAction Transitionable Targetable MinimapIcon [blocking=false object_size=2 server_only=true icon=LabyrinthLever] states= create_transitioned{{ PlayAnimationByIndex( 0 ); PauseAnimation(); DisableTargetable(); HideMinimapIcon(); }}; create_untransitioned{{ PlayAnimationByIndex( 1 ); PauseAnimation(); EnableTargetable(); ShowMinimapIcon(); AddAttached( 'Metadata/Effects/Env}; on_transition{{ PlayAnimationByIndex( 1 ); DisableTargetable(); HideMinimapIcon(); this.my_effects = GetAttachedAOByType( 'Metadata/Ef}; on_untransition{{ PlayAnimationByIndex( 0 ); EnableTargetable(); ShowMinimapIcon(); }}; on_interaction_started{{ triggerer.HideWeapons(); }}; on_interaction_stopped{{ triggerer.ShowWeapons(); }}
+- Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLeverFinal: InteractionAction Transitionable Targetable MinimapIcon [blocking=false object_size=2 server_only=true icon=LabyrinthLever] states= create_transitioned{{ PlayAnimationByIndex( 0 ); PauseAnimation(); DisableTargetable(); HideMinimapIcon(); }}; create_untransitioned{{ PlayAnimationByIndex( 1 ); PauseAnimation(); EnableTargetable(); ShowMinimapIcon(); AddAttached( 'Metadata/Effects/Env}; on_transition{{ PlayAnimationByIndex( 1 ); DisableTargetable(); HideMinimapIcon(); this.my_effects = GetAttachedAOByType( 'Metadata/Ef}; on_untransition{{ PlayAnimationByIndex( 0 ); EnableTargetable(); ShowMinimapIcon(); }}; on_interaction_started{{ triggerer.HideWeapons(); }}; on_interaction_stopped{{ triggerer.ShowWeapons(); }}
+- Metadata/Terrain/Gallows/Act4/4_5_2/Objects/FirstAirlockAudio:  [server_only=true] states= 
+- Metadata/Monsters/PrisonerBoss/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=SolitaryConfinementBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SolitaryConfinementBossInactive ); }}
+
+## lines
+- on_effect_start_CTS1BossFightStart -> PrisonerBoss_Emerge_Random: Izaro... You traitor... Where are you!?
+- on_effect_start_DTTPrisonerBossUnarmedLeap -> PrisonerBoss_LeapSlam_Random: Coward!
+- on_effect_start_GAPrisonerBossIcePunch -> PrisonerBoss_CascadePunch_Random: Weak!
+- on_effect_start_GAPrisonerBossDoubleFistSlam -> PrisonerBoss_DoubleSlam_Random: I'll break you!
+- on_effect_start_EASPrisonerBossIceGroundPound -> PrisonerBoss_MultiSlam_Random: Fear my undying will!
+- on_effect_start_DTTPrisonerBossSpearLeap -> PrisonerBoss_LeapSlam_Random: Coward!
+- on_effect_start_GAPrisonerBossSpearGroundslam -> PrisonerBoss_SpearSlam_Random: You can't stop me!
+- on_effect_start_EASPrisonerBossTripleIceSlam -> PrisonerBoss_Ultimate_Random: You can hide... but you cannot run!
+- on_effect_start_EASPrisonerBossChillDonut -> PrisonerBoss_IceDonut_Random: This body... is my prison...
+- on_effect_start_EASPrisonerBossChillDonut -> PrisonerBoss_BloodDonut_Random: Pain... is meaningless!
+- on_effect_start_GSPrisonerKneel -> PrisonerBoss_Kneeling_Random: You cannot wound me... I cannot die...
+- on_effect_start_EASPrisonerBossBloodTendrils -> PrisonerBoss_Tendrils_Random: Cower before my rebirth!
+- on_effect_start_EASPrisonerBossSpearGroundslamMega -> PrisonerBoss_BloodDebuff_Random: Ah, yes!
+- on_effect_start_EASPrisonerBossBallistaFront1 -> PrisonerBoss_Ballista1_Random: I... am eternal!
+- on_effect_start_EASPrisonerBossBallistaBack1 -> PrisonerBoss_Ballista1_Random: I... am eternal!
+- on_effect_start_EASPrisonerBossBallistaFront2 -> PrisonerBoss_Ballista2_Random: Centuries drowning and you think this will stop me?
+- on_effect_start_EASPrisonerBossBallistaBack2 -> PrisonerBoss_Ballista2_Random: Centuries drowning and you think this will stop me?
+
+## linked buffs
+- architect_ground_blood "Boiling Blood": You are taking Physical Damage over time | stats=base_physical_damage_taken_per_minute
+- prisoner_boss_chill_donut "":  | stats=
+- prisoner_boss_chill_donut_bloody "":  | stats=dummy_stat_display_nothing
+- prisoner_boss_water_gate_push "Invisible":  | stats=stance_movement_speed_+%_final
+- stolen_life_regen_debuff "":  | stats= | visual: Your Life Regeneration is being siphoned
+
+## arena rooms
+room metadata_terrain_gallows_act4_4_5_2_rooms_unique_boss_01_flip.arm
+  sector ['audio_arena', 113, 9, 392, 301, '']
+  sector ['hide_teleports', 129, 27, 396, 270, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [253.0, 149.0, 'mapboss']
+  point [471.0, 149.0, 'checkpoint1']
+  point [348.0, 148.0, 'telepad1']
+  point [439.0, 149.0, 'telepad2']
+  point [229.0, 149.0, 'ritual_boss_spawn_override']
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallista x3 (254,70) (165,148) (253,228)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallistaButton x3 (253,81) (185,149) (253,217)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (253,149)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLever x2 (662,131) (544,131)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLeverFinal x1 (416,132)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/FirstAirlockAudio x1 (588,149)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (464,160)
+  obj Metadata/Monsters/PrisonerBoss/BossRoomMinimapIcon x1 (253,149)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (415,149) (372,148)
+  obj Metadata/NPC/Four_Act4/SolitaryEntranceGlyph x1 (678,127)
+room metadata_terrain_gallows_act4_4_5_2_rooms_unique_boss_01.arm
+  sector ['audio_arena', 113, 9, 392, 301, '']
+  sector ['hide_teleports', 129, 27, 397, 270, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [253.0, 149.0, 'mapboss']
+  point [471.0, 149.0, 'checkpoint1']
+  point [351.0, 150.0, 'telepad1']
+  point [435.0, 149.0, 'telepad2']
+  point [234.0, 148.0, 'ritual_boss_spawn_override']
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallista x3 (254,70) (174,149) (253,228)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallistaButton x3 (253,81) (185,149) (253,217)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (253,149)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLever x2 (662,167) (544,167)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLeverFinal x1 (416,166)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/FirstAirlockAudio x1 (588,149)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (464,160)
+  obj Metadata/Monsters/PrisonerBoss/BossRoomMinimapIcon x1 (253,149)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (414,149) (374,148)
+  obj Metadata/NPC/Four_Act4/SolitaryEntranceGlyph x1 (678,170)
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_theprisoner_rooms_unique_boss_01.arm
+  sector ['audio_arena', 12, 294, 304, 578, '']
+  sector ['hide_teleports', 30, 299, 273, 562, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [149.0, 436.0, 'mapboss3']
+  point [150.0, 336.0, 'telepad']
+  point [149.0, 218.0, 'checkpoint6']
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallista x3 (70,435) (149,515) (228,436)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonerBossArenaBallistaButton x3 (81,436) (149,504) (217,436)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (149,436)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLever x2 (167,27) (167,145)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/PrisonBossDoorLeverFinal x1 (166,273)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (148,277)
+  obj Metadata/Terrain/Gallows/Act4/4_5_2/Objects/FirstAirlockAudio x1 (149,101)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (160,225)
+  obj Metadata/Monsters/PrisonerBoss/BossRoomMinimapIcon x1 (149,436)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (149,493)

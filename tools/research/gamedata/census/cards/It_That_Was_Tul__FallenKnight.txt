@@ -1,0 +1,124 @@
+# It That Was Tul
+content: League: Breach
+monsters: Metadata/Monsters/BreachBossFallenKnight/FallenKnight, Metadata/Monsters/BreachBossFallenKnight/FallenKnightSTANDALONE
+scripts: Metadata/Monsters/BreachBossFallenKnight/FallenKnight, Metadata/Monsters/BreachBossFallenKnight/FallenKnightSTANDALONE
+own chain: Metadata/Monsters/BreachBossFallenKnight/FallenKnight, Metadata/Monsters/BreachBossFallenKnight/FallenKnightSTANDALONE
+areas: ChayulaLeague_TowerBoss Hive Colony act10
+ai: Metadata/Monsters/BreachBossFallenKnight/FallenKnight.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- GAFallenKnightCorruptingSlam [geometry_attack] action=GroundSlam anim=default:slam_01, inject_01
+    geom: circle length=30 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+    buffs: architect_ground_blood
+- MPWFallenKnightShieldThrow [monster_projectile_weapon] action=SpellProjectile anim=default:shield_throw_start_01
+- GAFallenKnightShieldCatch [geometry_attack] action=SpellAreaOfEffect anim=default:shield_throw_end_01
+    geom: rectangle length=75 width=15 angle=0 range=100 delay=100 anchor=2
+    flags: is_area_damage
+- GSFallenKnightShieldStab [geometry_spell] action=SpellAreaOfEffectCold anim=default:shield_stab_01
+    geom: cone length=90 width=0 angle=90 range=250 delay=50 anchor=3
+    flags: is_area_damage
+- EASFallenKnightIceShowerPhase [empty_action_spell] action=ChangeToStance3 anim=default:ice_shower_start_01
+- GSFallenKnightIceShowerSingle [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=1560 delay=1560 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    buffs: chilled_ground
+- GTFallenKnightIceShower [geometry_trigger] action=None anim=-
+    geom: trigger count=300 delay=4000 spread=100 radius=28 angle=0 anchor=4
+- MPSFallenKnightTentacleBarrage [monster_projectile_spell] action=SpellProjectileCold anim=default:barrage_01
+- EASFallenKnightPortalOut [empty_action_spell] action=Submerge anim=default:portal_out_01,stance5:portal_sidelines_out_01
+- TCFallenKnightPortalIn [table_charge] action=Charge anim=default:portal_in_charge_01,stance2:emerge_charge_01
+    flags: is_area_damage skill_cannot_be_stunned
+- EASFallenKnightUltimate [empty_action_spell] action=SpellAreaOfEffectFire anim=default:paired_ultimate_emerge_01
+- GAFallenKnightPostShowerSlam [geometry_attack] action=None anim=-
+    geom: circle length=24 width=0 angle=0 range=200 delay=50 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- TCFallenKnightStartFight [table_charge] action=Charge anim=default:portal_in_charge_01,stance2:emerge_charge_01
+- MPSFallenKnightTentacleProj [monster_projectile_spell] action=SpellProjectileCold anim=default:barrage_01
+- GTFallenKnightUltimatePhaseEffects [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=500 spread=35 radius=25 angle=90 anchor=2
+    triggers: GSFallenKnightUltimatePhaseEffects
+- GSFallenKnightUltimatePhaseEffects [geometry_spell] action=None anim=-
+    geom: circle length=1 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EGFallenKnightUltimatePhase [execute_geal] action=None anim=-
+    GEAL 1188 on any: self{} each{triggerer.HinderForDuration( this, 0.75, -50 );} r=30
+- EASFallenKnightPortalOutSideline [empty_action_spell] action=Submerge anim=default:portal_out_01,stance5:portal_sidelines_out_01
+- EASFallenKnightPortalInSideline [empty_action_spell] action=Emerge anim=stance5:portal_sidelines_in_01
+- MPWFallenKnightShieldThrowTriggered [monster_projectile_weapon] action=SpellProjectile anim=default:shield_throw_start_01
+
+## own states and handlers
+states: warning; render; shieldthrown; ultimate; already_sidelined; deathtalk_enabled; talk_cooldown; finalphasedialogue; handheight; barrier; epk; sectors_active
+- on_initial_position_set = { this.arenaheight = GetHeight(); }
+- on_or_create_state_render_0 = { MakeCollidable(); }
+- on_or_create_state_render_1 = { RemoveCollidability(); }
+- on_or_create_state_handheight_0 = { SetHeight( arenaheight ); }
+- on_or_create_state_handheight_1 = { SetHeight( globals.breach_twins_sideline_marker.GetHeight() ); }
+- on_or_create_state_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/epk/knight_horns_flame.epk' ); }
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/epk/knight_horns_flame.epk' ); }
+- on_death = { this.hand = AddAttached( 'Metadata/Monsters/BreachBossFallenKnight/BreachDeathArm.ao', root_jntBnd ); hand.PlayAnimation( fallenknight_death_01 ); }
+- on_or_create_state_barrier_1 = { AddAttachedObjectToBones( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/ice_rain_shield.ao', aux_shield_ccenter ); }
+- on_or_create_state_barrier_0 = { RemoveAttachedObjectFromBones( aux_shield_ccenter ); }
+- on_or_create_state_render_0 = { EnableRendering(); FadeInLight( 0.1 ); }
+- on_or_create_state_render_1 = { DisableRendering(); FadeOutLight( 0.1 ); }
+- on_event_portalin = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Breach/TulAndAshBoss/portal_in_vertical_no_momentum.ao', chest_jntBnd ); }
+- on_or_create_state_shieldthrown_0 = { AddAttachedObjectToBones( 'Metadata/Monsters/BreachBossFallenKnight/attachments/BBFKShield.ao', Shield_Socket ); }
+- on_or_create_state_shieldthrown_1 = { RemoveAttachedObjectFromBones( Shield_Socket ); }
+hides(DisableRendering): [('bb_visible', 0), ('render', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/breachbossfallenknight/eshtuldialoguetimercontroller:  [blocking=false object_size=0 server_only=true] states=talk_cooldown 
+- metadata/monsters/breachbossfallenknight/sidelinesmarker:  [server_only=true] states= on_construction_complete{{ globals.breach_twins_sideline_marker = this; }}
+- Metadata/Monsters/BreachBossFallenKnight/SidelinesMarker:  [server_only=true] states= on_construction_complete{{ globals.breach_twins_sideline_marker = this; }}
+- Metadata/Monsters/BreachBossFallenKnight/EshTulDialogueTimerController:  [blocking=false object_size=0 server_only=true] states=talk_cooldown 
+
+## lines
+
+## linked buffs
+- architect_ground_blood "Boiling Blood": You are taking Physical Damage over time | stats=base_physical_damage_taken_per_minute
+- chilled_ground "Chilled Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_leagues_breach_breachtower_rooms_boss_01.arm
+  sector ['hide_teleports', 243, 226, 408, 350, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 243, 182, 358, 226, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 358, 216, 368, 226, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 359, 216, 367, 224, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 358, 215, 366, 223, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 357, 214, 365, 222, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 356, 213, 364, 221, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 355, 212, 363, 220, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 354, 211, 362, 219, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 353, 210, 361, 218, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 352, 209, 360, 217, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 361, 217, 369, 225, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 362, 218, 370, 226, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 363, 219, 371, 227, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 364, 220, 372, 228, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 365, 221, 373, 229, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 366, 222, 374, 230, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 367, 223, 375, 231, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 368, 224, 376, 232, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_sector', 244, 196, 410, 352, '']
+  sector ['BossMusicSector', 218, 172, 425, 379, '']
+  point [322.0, 321.0, 'mapboss1']
+  point [321.0, 341.0, 'mapboss2']
+  point [386.0, 180.0, 'telepad']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (386,175)
+  obj Metadata/Monsters/BreachBossHandMage/SidelinesMarker x1 (404,275)
+  obj Metadata/Monsters/BreachBossFallenKnight/SidelinesMarker x1 (404,275)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (321,275)
+  obj Metadata/Monsters/BreachBossFallenKnight/EshTulDialogueTimerController x1 (326,276)
+  obj Metadata/Monsters/BreachBossHandMage/BirthingSack x1 (322,341)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (278,323)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x10 (389,230) (386,226) (383,223) (379,219) (376,217) (373,213) (370,210) (366,206) (363,203) (359,200)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (375,211)
+room metadata_terrain_leagues_breach_breachtower_rooms_boss_corridor_03.arm
+room metadata_terrain_leagues_breach_breachtower_rooms_boss_corridor_02.arm

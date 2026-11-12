@@ -1,0 +1,299 @@
+# Mektul, the Forgemaster / Gulzal, the Living Furnace 
+content: Act 3
+monsters: Metadata/Monsters/VaalForgeMaster/VaalForgemaster, Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP, Metadata/Monsters/VaalForgeMaster/VaalForgemasterSTANDALONE_
+scripts: Metadata/Monsters/VaalForgeMaster/VaalForgemaster, Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP_, Metadata/Monsters/VaalForgeMaster/VaalForgemasterSTANDALONE
+own chain: Metadata/Monsters/VaalForgeMaster/VaalForgemaster, Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP_, Metadata/Monsters/VaalForgeMaster/VaalForgemasterSTANDALONE
+areas: G3_9 The Molten Vault act3; MapVaalFoundry Molten Vault act10
+ai: Metadata/Monsters/VaalForgeMaster/VaalForgemaster.ais, Metadata/Monsters/VaalForgeMaster/VaalForgemasterSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MDGoldCrushTether [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaEdge
+- GAVaalForgemasterSnake [geometry_attack] action=Melee anim=default:axe_attack_01, blade_attack_01
+    geom: cone length=25 width=0 angle=210 range=100 delay=0 anchor=3
+    flags: is_area_damage
+- EASForgeMasterReset [empty_action_spell] action=SpellBuffChaos anim=default:enrage_01
+- DTTForgeBossLeap [dash_to_target] action=LeapSlam anim=default:leap_slam_01
+- GAForgemasterBossLeap [geometry_attack] action=Melee anim=default:axe_attack_01, blade_attack_01
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EASForgeBossBrandExplosion [effect_driven_spell] action=SpellBuff anim=default:epic_brand_attack_01
+- GSForgeBossBrandExplosion [geometry_spell] action=Melee anim=default:axe_attack_01, blade_attack_01
+    geom: circle length=40 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: is_area_damage
+- EAAVolcanicFissure [empty_action_attack] action=VolcanicFissure anim=default:volcanic_fissure_01
+- GTVaalForgeBossSunder1 [geometry_trigger] action=GroundSlam anim=default:underarm_waves_01
+    geom: trigger count=9 delay=600 spread=130 radius=0 angle=23 anchor=2
+- GAVaalForgeBossSunder1 [geometry_attack] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=66 delay=33 anchor=4
+    flags: is_area_damage
+- GAForgemasterBossLeapLava [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- DTTForgeBossLeapLava [dash_to_target] action=LeapSlamOffhand anim=default:leap_slam_lava_01
+- MDForgeBossWaves1 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- MDForgeBossWaves2 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- MDForgeBossWaves3 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- MDForgeBossWaves4 [move_daemon] action=SpellBuffLightning anim=default:warcry_01
+    flags: skill_can_be_active_blocked_from_all_directions
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- CTS1VaalForgeMasterClose [change_to_stance1] action=None anim=-
+- GAFissureSlamSpikeDamage [geometry_attack] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=100 delay=100 anchor=4
+    flags: is_area_damage
+- SOFissureSlamSpike [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes
+- EGDetonateWarcry [execute_geal] action=SpellBuffFire anim=default:warcry_detonate_01
+    GEAL 1132 on ['Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes', 'Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikesStandAlone']: self{} each{triggerer.SetStateTo( explode, 1 );} r=50
+- GAFissureWarcrySpikeDamage [geometry_attack] action=None anim=-
+    geom: circle length=23 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1133 on ['Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes', 'Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikesStandAlone']: self{} each{triggerer.IfState( explode, 1, (){}, (){ SetStateTo( explode, 2 ); } );} r=65
+- SOVaalForgeMasterFissureTrail [spawn_object] action=VolcanicFissure anim=default:volcanic_fissure_01
+    objects: Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterFissureTrail
+- GAVaalForgeMasterHammerImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EASVaalForgeMasterTooCool [empty_action_spell] action=SpellBuffFast anim=default:cooldown_01
+- EAAVaalForgemasterHammerSlam [empty_action_attack] action=HeavyStrike anim=default:hammer_attack_01
+- SOVaalForgeMasterFissureTrailSTANDALONE [spawn_object] action=VolcanicFissure anim=default:volcanic_fissure_01
+    objects: Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterFissureTrailStandAlone
+- SOVaalForgemasterLavaPoolSTANDALONE [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/VaalForgeMaster/Lava/SunAuraStandAlone
+- MDForgeBossWavesSTANDALONE [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+- EAAVaalForgemasterLavaSlam [empty_action_attack] action=HeavyStrike anim=default:hammer_attack_01
+
+## own states and handlers
+states: opening; weapon_state; light; epk
+- on_or_create_state_weapon_state_1 = { AddAttached( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterHammer.ao', L_wrist_jntBnd, 1.0, 0, 1, true ); DetachAllOfType( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterAxe.ao' ); DetachAllOfType( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterBlade.ao' ); }
+- on_or_create_state_weapon_state_2 = { AddAttached( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterAxe.ao', L_wrist_jntBnd, 1.0, 0, 1, true ); DetachAllOfType( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterHammer.ao' ); DetachAllOfType( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterBlade.ao' ); }
+- on_or_create_state_weapon_state_3 = { AddAttached( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterBlade.ao', L_wrist_jntBnd, 1.0, 0, 1, true ); DetachAllOfType( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterHammer.ao' ); DetachAllOfType( 'Metadata/Monsters/VaalForgeMaster/attachments/ForgeMasterAxe.ao' ); }
+- on_or_create_state_epk_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/epk/glowyMoltenyBody.epk' ); }
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/epk/glowyMoltenyBody.epk' ); }
+- create_state_light_1 = { Delay( 0.01, { SetLightState( pre_fight_light ); } ); }
+- on_state_light_1 = { SetLightState( pre_fight_light, 1.5 ); }
+- create_state_light_2 = { Delay( 0.01, { SetLightState( light ); } ); }
+- on_state_light_2 = { SetLightState( light, 1.5 ); }
+- create_state_light_3 = { Delay( 0.01, { SetLightState( on_death ); } ); }
+- on_state_light_3 = { SetLightState( on_death, 1.5 ); }
+- on_event_audio_for_hammer_attack_01 = { Roll( 1, 5, () { PlayTextAudio( Forgemaster_HammerAttack_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); } ); }
+- on_event_audio_for_volcanic_fissure_01 = { Roll( 1, 2, () { PlayTextAudio( Forgemaster_VolcanicFissure_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); Delay( 5.0, { PlayCharacterAudioEvent( GoldcrushBossFissureResponse ); } ); } ); }
+- on_event_audio_for_knockdown_bwd_01 = { PlayTextAudio( Forgemaster_Knockdown_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); }
+- on_event_audio_for_warcry_detonate_01 = { PlayTextAudio( Forgemaster_WarCry_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); }
+- on_event_audio_for_underarm_waves_01 = { PlayTextAudio( Forgemaster_Sunder_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); }
+- on_event_audio_for_epic_brand_attack_01 = { PlayTextAudio( Forgemaster_BrandSlam_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); Delay( 3.5, { PlayCharacterAudioEvent( GoldcrushBossRuneSlamResponse ); } ); }
+- on_event_audio_for_enrage_01 = { PlayTextAudio( Forgemaster_HeatUp_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); }
+- on_event_audio_for_cooldown_01 = { PlayTextAudio( Forgemaster_Cooldown_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); }
+- on_event_emerge = { PlayTextAudio( Forgemaster_Emerge_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster', 0, 250, 250 ); Delay( 5.0, { PlayCharacterAudioEvent( GoldcrushBossResponse ); } ); }
+- on_event_audio_for_pre_emerge_look_up_01 = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( player_ascendancy == 'Mercenary3', { PlayTextAudio( Forgemaster_Emerge_Gemling_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemaster' ); succeeded = true; } ); If( Or( player_ascendancy 
+- on_event_audio_for_hammer_attack_01 = { Roll( 1, 5, () { PlayTextAudio( Forgemaster_HammerAttack_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); } ); }
+- on_event_audio_for_volcanic_fissure_01 = { Roll( 1, 2, () { PlayTextAudio( Forgemaster_VolcanicFissure_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); } ); }
+- on_event_audio_for_knockdown_bwd_01 = { PlayTextAudio( Forgemaster_Knockdown_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); }
+- on_event_audio_for_warcry_detonate_01 = { PlayTextAudio( Forgemaster_WarCry_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); }
+- on_event_audio_for_underarm_waves_01 = { PlayTextAudio( Forgemaster_Sunder_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); }
+- on_event_audio_for_epic_brand_attack_01 = { PlayTextAudio( Forgemaster_BrandSlam_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); }
+- on_event_audio_for_enrage_01 = { PlayTextAudio( Forgemaster_HeatUp_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); }
+- on_event_audio_for_cooldown_01 = { PlayTextAudio( Forgemaster_Cooldown_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); }
+- on_event_emerge = { PlayTextAudio( Forgemaster_Emerge_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP', 0, 250, 250 ); }
+- on_event_audio_for_pre_emerge_look_up_01 = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( player_ascendancy == 'Mercenary3', { PlayTextAudio( Forgemaster_Emerge_Gemling_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); succeeded = true; } ); If( Or( player_ascendan
+- on_event_audio_for_pre_emerge_look_up_01 = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( player_ascendancy == 'Mercenary3', { PlayTextAudio( Forgemaster_Emerge_Gemling_Random, 'Metadata/Monsters/VaalForgeMaster/VaalForgemasterMAP' ); succeeded = true; } ); If( Or( player_ascendan
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Monsters/VaalForgeMaster/Objects/LavaBlocking.ao
+- preload_monster_variety Metadata/Monsters/InvisibleFire/MDGoldCrushLavaEdge
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/volcanicFissure_hit.ao
+
+## adds and forms
+- Metadata/Monsters/InvisibleFire/MDGoldCrushLavaEdge "Invisible" bossbar=0 skills=MDForgeBossWaves1,MDForgeBossWaves2,MDForgeBossWaves3,MDForgeBossWaves4 comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+daemons: Metadata/Monsters/InvisibleFire/MDGoldCrushLavaEdge, Metadata/Monsters/InvisibleFire/MDGoldCrushLavaSunder
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalForgeMaster/Lava/SunAuraStandAlone:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikes:  [blocking=true object_size=3 server_only=true] states=explode on_initial_position_set{{ SetVariableScale( Random( 0.9, 1.5 ), true, true ); }}; on_state_explode_1{{ PlayAnimation( explode_slow ); }}; on_state_explode_2{{ PlayAnimation( explode_fast ); }}
+- Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterFissureTrail:  states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterFissureTrailStandAlone:  states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/FissureSpikesStandAlone:  [blocking=true object_size=3 server_only=true] states=explode on_initial_position_set{{ SetVariableScale( Random( 0.9, 1.5 ), true, true ); }}; on_state_explode_1{{ PlayAnimation( explode_slow ); }}; on_state_explode_2{{ PlayAnimation( explode_fast ); }}
+- metadata/monsters/vaalforgemaster/lava/lavavisuals:  [blocking=false object_size=0 server_only=true] states=lava_flow on_or_create_state_lava_flow_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/Arena/epk/Melted_Gold_fx.epk' ); Se}; on_or_create_state_lava_flow_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/Arena/epk/Melted_Gold_fx.epk' );}
+- metadata/monsters/vaalforgemaster/lava/sunaura:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/vaalforgemaster/lava/sunaura2:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/vaalforgemaster/lava/sunaurastandalone:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/vaalforgemaster/objects/bosslootproxy: InteractionAction [blocking=false server_only=true] states= 
+- metadata/monsters/vaalforgemaster/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=GoldcrushBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GoldcrushBossInactive ); }}
+- metadata/monsters/vaalforgemaster/objects/fissurespikes:  [blocking=true object_size=3 server_only=true] states=explode on_initial_position_set{{ SetVariableScale( Random( 0.9, 1.5 ), true, true ); }}; on_state_explode_1{{ PlayAnimation( explode_slow ); }}; on_state_explode_2{{ PlayAnimation( explode_fast ); }}
+- metadata/monsters/vaalforgemaster/objects/fissurespikesstandalone:  [blocking=true object_size=3 server_only=true] states=explode on_initial_position_set{{ SetVariableScale( Random( 0.9, 1.5 ), true, true ); }}; on_state_explode_1{{ PlayAnimation( explode_slow ); }}; on_state_explode_2{{ PlayAnimation( explode_fast ); }}
+- metadata/monsters/vaalforgemaster/objects/forgemasterdam:  [blocking=false object_size=1 server_only=true] states=opening on_state_opening_1{{ PlayAnimation( jam_01 ); }}; on_state_opening_2{{ PlayAnimationAttached( 'Metadata/Terrain/Jungle/TreasureVault/BossChannelDam/attachments/L_Slab.ao', open_01_01 ); Pla}; create_state_opening_1{{ PlayAnimation( jam_01 ); GoToAnimationEnd(); }}; create_state_opening_2{{ PlayAnimationAttached( 'Metadata/Terrain/Jungle/TreasureVault/BossChannelDam/attachments/L_Slab.ao', open_01 ); GoToAt}
+- metadata/monsters/vaalforgemaster/objects/lavablocking: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=5 server_only=true] states= 
+- metadata/monsters/vaalforgemaster/objects/vaalforgemasterfissuretrail:  states= 
+- metadata/monsters/vaalforgemaster/objects/vaalforgemasterfissuretrailstandalone:  states= 
+- metadata/monsters/vaalforgemaster/objects/vaalforgemasterslucelever: InteractionAction Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=WaterwaysLever] states=lever_pulled on_state_lever_pulled_0{{ PlayAnimation( idle_01 ); }}; on_state_lever_pulled_1{{ PlayAnimation( activate_01 ); }}; create_state_lever_pulled_1{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); DisableTargetable(); HideMinimapIcon(); SetLightState( off ); }}; on_state_lever_pulled_1{{ SetLightState( off, 1.0 ); RemoveEffectPack( 'Metadata/Terrain/Dungeon/TreasureVault/TreasureVaultFloorLever/epks/leve}; on_or_create_state_lever_pulled_0{{ PlayAnimationByIndex( 1 ); EnableTargetable(); ShowMinimapIcon(); AddEffectPack( 'Metadata/Terrain/Dungeon/TreasureVau}; on_interaction_started{{ triggerer.HideWeapons(); DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Monsters/VaalForgeMaster/Lava/LavaVisuals:  [blocking=false object_size=0 server_only=true] states=lava_flow on_or_create_state_lava_flow_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/Arena/epk/Melted_Gold_fx.epk' ); Se}; on_or_create_state_lava_flow_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalForgeMaster/Arena/epk/Melted_Gold_fx.epk' );}
+- Metadata/Monsters/VaalForgeMaster/Lava/SunAura:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=GoldcrushBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( GoldcrushBossInactive ); }}
+- Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterSluceLever: InteractionAction Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=WaterwaysLever] states=lever_pulled on_state_lever_pulled_0{{ PlayAnimation( idle_01 ); }}; on_state_lever_pulled_1{{ PlayAnimation( activate_01 ); }}; create_state_lever_pulled_1{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); DisableTargetable(); HideMinimapIcon(); SetLightState( off ); }}; on_state_lever_pulled_1{{ SetLightState( off, 1.0 ); RemoveEffectPack( 'Metadata/Terrain/Dungeon/TreasureVault/TreasureVaultFloorLever/epks/leve}; on_or_create_state_lever_pulled_0{{ PlayAnimationByIndex( 1 ); EnableTargetable(); ShowMinimapIcon(); AddEffectPack( 'Metadata/Terrain/Dungeon/TreasureVau}; on_interaction_started{{ triggerer.HideWeapons(); DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states= 
+- Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLift_Platform: Transitionable [blocking=false object_size=0] states=fade on_construction_complete{{ globals.boss_elevator += this; }}; create_untransitioned{{ this.no_wobble = true; PlayAnimation( up_idle_01 ); }}; create_transitioned{{ PlayAnimation( down_idle_01 ); }}; on_transition{{ this.no_wobble = false; PlayAnimation( down ); }}; on_untransition{{ this.no_wobble = true; PlayAnimation( up ); }}; on_event_hide{{ SetStateTo( fade, 1 ); }}
+- Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown_End: InteractionAction [blocking=false object_size=0 server_only=true] states= on_construction_complete{{ If( IsCouchCoop(), {}, { this.interaction_walk_offset_allowance_x = 0.0; this.interaction_walk_offset_allowance_y = 0.}; on_interaction_started{{ If( IsLocalPlayer( triggerer ), { globals.boss_elevator.Transition(); } ); }}; on_interaction_stopped{{ If( IsLocalPlayer( triggerer ), { globals.boss_elevator.Untransition(); } ); }}
+- Metadata/Monsters/VaalForgeMaster/Lava/SunAura2:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/VaalForgeMaster/Objects/BossLootProxy: InteractionAction [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_9/Objects/VaalForgemasterBridgeAudioTrigger:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_9/Objects/ForgeBossArenaTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardForgemasterArena, TitleCardForgemasterArenaSubtitle ); }}
+- Metadata/Terrain/Maps/VaalFoundry/Objects/FoundryArenaExitPortal: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states= 
+
+## lines
+- on_event_audio_for_hammer_attack_01 -> Forgemaster_HammerAttack_Random: Forged!
+- on_event_audio_for_volcanic_fissure_01 -> Forgemaster_VolcanicFissure_Random: Molten rupture!
+- on_event_audio_for_knockdown_bwd_01 -> Forgemaster_Knockdown_Random: I will not crack!
+- on_event_audio_for_warcry_detonate_01 -> Forgemaster_WarCry_Random: Erupt!
+- on_event_audio_for_underarm_waves_01 -> Forgemaster_Sunder_Random: Gilded for all time!
+- on_event_audio_for_epic_brand_attack_01 -> Forgemaster_BrandSlam_Random: Brand of the Vaal!
+- on_event_audio_for_enrage_01 -> Forgemaster_HeatUp_Random: Molten once more!
+- on_event_audio_for_cooldown_01 -> Forgemaster_Cooldown_Random: I must fan the flames...
+- on_event_emerge -> Forgemaster_Emerge_Random: Drown... in a river of fortune...
+- on_event_audio_for_pre_emerge_look_up_01 -> Forgemaster_Emerge_Merc_Random: I can always sense those who seek gold...
+- on_event_audio_for_pre_emerge_look_up_01 -> Forgemaster_Emerge_Huntress_Random: Begone, Azmeri. You are not permitted here...
+- on_event_audio_for_pre_emerge_look_up_01 -> Forgemaster_Emerge_Witch_Random: Woman of darkened heart... You shall glow in eternal gold...
+- on_event_audio_for_pre_emerge_look_up_01 -> Forgemaster_Emerge_Sorc_Random: You know of heat, tale-woman... but not like this...
+
+## linked buffs
+- vaal_forgemaster_boss_lava "":  | stats=non_skill_base_physical_damage_%_to_gain_as_fire,action_speed_cannot_be_reduced_below_base,base_damage_taken_+%
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_9_rooms_unique_boss.arm
+  sector ['hide_teleports', 647, 201, 804, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 804, 201, 961, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 961, 201, 1118, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1118, 201, 1275, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1275, 201, 1449, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1449, 201, 1623, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['rune_sector', 1274, 280, 1449, 292, '']
+  sector ['rune_sector', 1099, 280, 1274, 292, '']
+  sector ['rune_sector', 923, 280, 1098, 292, '']
+  sector ['rune_sector', 748, 280, 923, 292, '']
+  sector ['rune_sector', 574, 280, 749, 292, '']
+  sector ['lift', 1391, 202, 1414, 279, '']
+  sector ['final_destination', 565, 200, 803, 374, '']
+  sector ['no_critters', 550, 189, 1645, 383, '']
+  sector ['no_movement_skills', 1484, 217, 1488, 360, '']
+  sector ['no_movement_skills', 1267, 217, 1488, 221, '']
+  sector ['no_movement_skills', 1435, 356, 1488, 360, '']
+  point [1471.0, 302.0, 'mapboss']
+  point [1417.0, 267.0, 'telepad']
+  point [1401.0, 173.0, 'checkpoint1']
+  point [472.0, 59.0, 'checkpoint4']
+  obj Metadata/MiscellaneousObjects/Checkpoint x2 (1402,193) (477,78)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/LavaVisuals x1 (1652,286)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/SunAura x1 (1499,301)
+  obj Metadata/MiscellaneousObjects/CameraZoom/MinorPullBack_largeRadius x1 (469,283)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/BossRoomMinimapIcon x1 (1435,285)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterSluceLever x1 (1489,196)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x63 (665,186) (710,187) (681,190) (686,190) (710,177) (768,188) (741,190) (727,190) (755,162) (755,172)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x9 (904,172) (1238,392) (901,397) (1229,168) (1356,185) (603,127) (596,453) (1632,131) (1559,70)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown x1 (1364,171)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLift_Platform x1 (1402,212)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown_End x1 (1417,267)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/SunAura2 x1 (1487,287)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x2 (379,417) (405,403)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/BossLootProxy x2 (1441,289) (658,285)
+  obj Metadata/Terrain/Tools/AudioTools/G3_9/AbyssAudio x1 (471,285)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/VaalForgemasterBridgeAudioTrigger x1 (1515,292)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/ForgeBossArenaTitle x1 (1389,287)
+room metadata_terrain_gallows_act3_3_9_rooms_unique_boss_flip.arm
+  sector ['hide_teleports', 647, 201, 804, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 804, 201, 961, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 961, 201, 1118, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1118, 201, 1275, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1275, 201, 1449, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1449, 201, 1623, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['rune_sector', 1274, 280, 1449, 292, '']
+  sector ['rune_sector', 1099, 280, 1274, 292, '']
+  sector ['rune_sector', 923, 280, 1098, 292, '']
+  sector ['rune_sector', 748, 280, 923, 292, '']
+  sector ['rune_sector', 574, 280, 749, 292, '']
+  sector ['lift', 1391, 202, 1414, 279, '']
+  sector ['final_destination', 565, 200, 803, 374, '']
+  sector ['no_critters', 550, 189, 1645, 383, '']
+  sector ['no_movement_skills', 1484, 217, 1488, 360, '']
+  sector ['no_movement_skills', 1267, 217, 1488, 221, '']
+  sector ['no_movement_skills', 1435, 356, 1488, 360, '']
+  point [1471.0, 302.0, 'mapboss']
+  point [1417.0, 267.0, 'telepad']
+  point [1401.0, 173.0, 'checkpoint1']
+  point [472.0, 59.0, 'checkpoint4']
+  obj Metadata/MiscellaneousObjects/Checkpoint x2 (1402,193) (477,78)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/LavaVisuals x1 (1652,286)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/SunAura x1 (1499,301)
+  obj Metadata/MiscellaneousObjects/CameraZoom/MinorPullBack_largeRadius x1 (469,283)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/BossRoomMinimapIcon x1 (1435,285)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterSluceLever x1 (1489,196)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x63 (665,186) (710,187) (681,190) (686,190) (710,177) (768,188) (741,190) (727,190) (755,162) (755,172)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x9 (904,172) (1238,392) (901,397) (1229,168) (1356,185) (603,127) (596,453) (1632,131) (1559,70)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown x1 (1364,171)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLift_Platform x1 (1402,212)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown_End x1 (1417,267)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/SunAura2 x1 (1487,287)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x2 (379,417) (405,403)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/BossLootProxy x2 (1441,289) (658,285)
+  obj Metadata/Terrain/Tools/AudioTools/G3_9/AbyssAudio x1 (471,285)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/VaalForgemasterBridgeAudioTrigger x1 (1515,292)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/ForgeBossArenaTitle x1 (1389,287)
+room metadata_terrain_maps_vaalfoundry_rooms_unique_boss.arm
+  sector ['hide_teleports', 647, 201, 804, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 804, 201, 961, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 961, 201, 1118, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1118, 201, 1275, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1275, 201, 1449, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 1449, 201, 1623, 375, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['rune_sector', 1274, 280, 1449, 292, '']
+  sector ['rune_sector', 1099, 280, 1274, 292, '']
+  sector ['rune_sector', 923, 280, 1098, 292, '']
+  sector ['rune_sector', 748, 280, 923, 292, '']
+  sector ['rune_sector', 574, 280, 749, 292, '']
+  sector ['lift', 1391, 202, 1414, 279, '']
+  sector ['final_destination', 565, 200, 803, 374, '']
+  sector ['no_movement_skills', 1484, 217, 1488, 360, '']
+  sector ['no_movement_skills', 1267, 217, 1488, 221, '']
+  sector ['no_movement_skills', 1435, 356, 1488, 360, '']
+  sector ['no_critters', 655, 233, 1477, 341, '']
+  sector ['outside_tiles', 1533, 407, 1582, 462, '']
+  sector ['outside_tiles', 568, 353, 1436, 520, '']
+  sector ['outside_tiles', 532, 9, 1312, 220, '']
+  point [1471.0, 302.0, 'mapboss']
+  point [471.0, 103.0, 'killzone=8']
+  point [468.0, 265.0, 'killzone=8']
+  point [1417.0, 267.0, 'telepad1']
+  point [479.0, 81.0, 'default']
+  point [491.0, 106.0, 'checkpoint']
+  point [1414.0, 180.0, 'checkpoint']
+  point [1386.0, 156.0, 'telepad2']
+  obj Metadata/Monsters/VaalForgeMaster/Lava/LavaVisuals x1 (1652,286)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/SunAura x1 (1499,301)
+  obj Metadata/MiscellaneousObjects/CameraZoom/MinorPullBack_largeRadius x1 (469,283)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/VaalForgeMasterSluceLever x1 (1489,196)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x63 (665,186) (710,187) (681,190) (686,190) (710,177) (768,188) (741,190) (727,190) (755,162) (755,172)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown x1 (1364,171)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLift_Platform x1 (1402,212)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/BossLiftTransitionDown_End x1 (1417,267)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x7 (1356,185) (1580,149) (1545,115) (1486,376) (421,113) (541,109) (1317,187)
+  obj Metadata/Monsters/VaalForgeMaster/Lava/SunAura2 x1 (1487,287)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x2 (379,417) (405,403)
+  obj Metadata/Monsters/VaalForgeMaster/Objects/BossLootProxy x2 (1441,289) (658,285)
+  obj Metadata/Terrain/Tools/AudioTools/G3_9/AbyssAudio x1 (471,285)
+  obj Metadata/Terrain/Gallows/Act3/3_9/Objects/VaalForgemasterBridgeAudioTrigger x1 (1515,292)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (503,62)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (508,107)
+  obj Metadata/Terrain/Maps/VaalFoundry/Objects/FoundryArenaExitPortal x1 (658,265)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (1430,193)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x2 (205,429) (1463,275)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x8 (159,452) (251,452) (251,383) (159,383) (1452,316) (1454,257) (1388,258) (1392,315)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (1425,300)

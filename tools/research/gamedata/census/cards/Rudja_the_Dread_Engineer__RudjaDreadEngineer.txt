@@ -1,0 +1,196 @@
+# Rudja, the Dread Engineer / Vorrik, The Infernal Engineer
+content: Act 2
+monsters: Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineer, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerCampaignSTANDALONE, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerMAP, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerSTANDALONE
+scripts: Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineer, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerSTANDALONE, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerMAP_
+own chain: Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineer, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerSTANDALONE, Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerMAP_
+areas: G2_10_2 Mawdun Mine act2; MapSlick Slick act10; MapMineshaft Mineshaft act10
+ai: Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineer.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- MPWRudjaGasGrenade [monster_projectile_weapon] action=SpellProjectile anim=default:grenade_roll_01
+    flags: base_deal_no_damage
+- MPWRudjaTarGrenade [monster_projectile_weapon] action=SpellProjectile anim=default:grenade_roll_01
+    flags: base_deal_no_damage
+- MPWRudjaFlashbang [monster_projectile_weapon] action=SpellProjectileUpward anim=default:grenade_toss_01
+    flags: base_deal_no_damage
+- MPWRudjaExplosiveGrenade [monster_projectile_weapon] action=SpellProjectileUpward anim=default:grenade_toss_01
+    flags: base_deal_no_damage
+- CGERudjaPoisonGas [monster_cast_ground_effect_location] action=None anim=-
+- CGERudjaTar [monster_cast_ground_effect_location] action=None anim=-
+- GSRudjaGrenadeExplode [geometry_spell] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1042 on ['Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource9', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource10', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource11', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource20', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource21']: self{} each{triggerer.SetStateTo( blaze, 1); } r=60
+- GSRudjaFlashbang [geometry_spell] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSRudjaSuicideExplode [geometry_spell] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    GEAL 1042 on ['Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource9', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource10', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource11', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource20', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource21']: self{} each{triggerer.SetStateTo( blaze, 1); } r=60
+- GSRudjaFlamethrower [geometry_spell] action=None anim=-
+    geom: cone length=60 width=0 angle=8 range=0 delay=0 anchor=10
+    flags: is_area_damage
+    GEAL 1042 on ['Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource9', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource10', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource11', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource20', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource21']: self{} each{triggerer.SetStateTo( blaze, 1); } r=60
+- EASRudjaFlamethrowerLeft [empty_action_spell] action=SpellAreaOfEffect anim=default:flamethrower_03
+- EASRudjaFlamethrowerRight [empty_action_spell] action=SpellAreaOfEffectFire anim=default:flamethrower_03
+- MPWRudjaExplosiveGrenadeUnderhand [monster_projectile_weapon] action=SpellProjectile anim=default:grenade_roll_01
+    flags: base_deal_no_damage
+- GARudjaEnrageAttack1 [geometry_attack] action=None anim=-
+    geom: cone length=20 width=0 angle=186 range=180 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GARudjaEnrageAttack2 [geometry_attack] action=None anim=-
+    geom: cone length=20 width=0 angle=158 range=140 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- RudjaDodgeBackward [empty_action_spell] action=DodgeBack anim=default:dodge_bwd_01
+- RudjaDodgeForward [empty_action_spell] action=DodgeForward anim=default:dodge_fwd_01
+- MPWRudjaFlashbangTriggered [monster_projectile_weapon] action=SpellProjectileUpward anim=default:grenade_toss_01
+    flags: base_deal_no_damage
+- EASRudjaFlameSpin [empty_action_spell] action=SpellNovaFire anim=default:flame_spin_01
+- MPWRudjaTarGrenadeTriggered [monster_projectile_weapon] action=SpellProjectile anim=default:grenade_roll_01
+    flags: base_deal_no_damage
+- MPWRudjaFlashbangTriggeredReference [monster_projectile_weapon] action=SpellProjectileUpward anim=default:grenade_toss_01
+    flags: base_deal_no_damage
+- MPWRudjaExplosiveGrenadeTargetLocationLow [monster_projectile_weapon] action=SpellProjectileUpward anim=default:grenade_toss_01
+    flags: base_deal_no_damage
+- MPWRudjaExplosiveGrenadeTargetLocationHigh [monster_projectile_weapon] action=SpellProjectileUpward anim=default:grenade_toss_01
+    flags: base_deal_no_damage
+- RudjaDodgeLeft [empty_action_spell] action=DodgeLeft anim=default:dodge_left_01
+- RudjaDodgeRight [empty_action_spell] action=DodgeRight anim=default:dodge_right_01
+- EASRudjaRoar [empty_action_spell] action=Engage anim=default:enrage_roar_01
+- EAARudjaEnragedAttacks [empty_action_attack] action=Flurry anim=stance2:enrage_movement
+- MAASRudjaEnragedAttacks [melee] action=Flurry anim=stance2:enrage_movement
+- GSRudjaInnerFlamethrower [geometry_spell] action=None anim=-
+    geom: rectangle length=10 width=6 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1042 on ['Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource9', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource10', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource11', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource20', 'Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource21']: self{} each{triggerer.SetStateTo( blaze, 1); } r=60
+- TriggerIgniteOilGroundRudja [trigger_ignite_oil_ground] action=None anim=-
+
+## own states and handlers
+states: enraged; flamethrower; should_fire_spin; enrage_swings; explode
+- on_event_grenade_appear_for_enrage_start_01 = { this.grenade = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/explosive_grenade.ao', L_Weapon ); }
+- on_event_grenade_fuse_for_enrage_start_01 = { this.grenade.PlayAnimation( fly ); }
+- on_event_grenade_move_for_enrage_start_01 = { MoveAttachedToBone( L_Weapon, R_can_clamp_jntBnd ); }
+- on_emerge_intro_01 = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or(player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2', player_ascendancy == 'Warrior3'), { PlayTextAudio( Rudja_Emerge_Karui, 'Metadata/Monsters/
+- create_state_enraged_1 = { this.grenade = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/explosive_grenade.ao', L_Weapon ); }
+- create_state_enraged_2 = { this.grenade = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/explosive_grenade.ao', L_Weapon ); this.grenade.PlayAnimation( fly ); }
+- create_state_enraged_2 = { this.grenade = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/explosive_grenade.ao', R_can_clamp_jntBnd ); this.grenade.PlayAnimation( fly ); }
+- on_state_enraged_0 = { RemoveAttachedObjectFromBones( R_can_clamp_jntBnd ); }
+- on_or_create_state_flamethrower_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/flamethrower.ao', flame_start_real, 1.4 ); }
+- on_or_create_state_flamethrower_2 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/flamethrower.ao', flame_start_real, 1.8 ); }
+- on_state_flamethrower_0 = { RemoveAttachedObjectFromBones( flame_start_real ); }
+- on_construction_complete = { IfAlive( () { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/epk/sword_glow.epk' ); } ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/epk/sword_glow.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/RudjaDreadEngineer/epk/sword_glow.epk' ); }
+- on_emerge_intro_01 = { PlayTextAudio( Rudja_Emerge_RisuRescued_Random, 'Metadata/Monsters/RudjaDreadEngineer/RudjaDreadEngineerMAP', 0 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_animated RudjaOilGroundBurning
+- preload_misc_animated RudjaOilGroundIgnitionTransition
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource9 (no script)
+- Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource10:  [object_size=1 server_only=true] states=blaze on_or_create_state_blaze_0{{ RemoveEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/brazier_fire/epks/VaalPot_Fire.epk' ); }}; on_or_create_state_blaze_1{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/brazier_fire/epks/VaalPot_Fire.epk' ); }}
+- Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource11 (no script)
+- Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource20 (no script)
+- Metadata/Terrain/Doodads/Jungle/VaalProps/VaalFire/VaalLightSource21 (no script)
+- metadata/monsters/rudjadreadengineer/arenaobjects/arenacentre:  [server_only=true] states= 
+- metadata/monsters/rudjadreadengineer/arenaobjects/bossroomminimapicon: MinimapIcon [server_only=true icon=RudjaActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( RudjaInactive ); }}
+- metadata/monsters/rudjadreadengineer/arenaobjects/bouncetargethigh:  [server_only=true] states= 
+- metadata/monsters/rudjadreadengineer/arenaobjects/bouncetargetlow:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RisuCage: InteractionAction MinimapIcon [blocking=false object_size=1 server_only=true icon=QuestObject] states=interactable;open on_or_create_state_interactable_0{{ DisableTargetable(); HideMinimapIcon(); this.indicator.PlayAnimation( indicator_end ); }}; on_or_create_state_interactable_1{{ IfState( open, 1, () { DisableTargetable(); HideMinimapIcon(); }, () { this.indicator = PlayEffect( 'Metadata/Effects/}; on_state_open_1{{ PlayAnimation( open_01 ); }}; create_state_open_1{{ PlayAnimation( open_01 ); GoToAnimationEnd(); }}
+- Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BounceTargetHigh:  [server_only=true] states= 
+- Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BounceTargetLow:  [server_only=true] states= 
+- Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/ArenaCentre:  [server_only=true] states= 
+- Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=RudjaActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( RudjaInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RudjaArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardRudjaArena, TitleCardRudjaArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss: InteractionAction Targetable MinimapIcon [blocking=false object_size=3 server_only=true icon=StoneAltarTall] states=helper_state;activate on_construction_complete{{ globals.checkpoint_helper3 = this; }}; on_construction_complete{{ globals.power_speed = 2.0; }}; create_state_activate_0{{ QueueAnimation( activate ); PauseAnimation(); ShowMinimapIcon(); }}; create_state_activate_1{{ PlayAnimation( activate ); GoToAnimationEnd(); DisableTargetable(); HideMinimapIcon(); AddAttached( 'Metadata/Terrain/}; on_state_activate_1{{ PlayAnimation( activate ); PlayEffect( 'Metadata/Terrain/Tools/AudioTools/G3_6_2/MachinariumEnergizeAudio.ao' ); Disab}; on_interaction_event_attach_gem{{ triggerer.AddAttached( 'Art/Models/Items/Quests/VaalBloodgems/VaalBloodgemSmall.fmt', R_Weapon ); }}
+- Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal:  [blocking=false object_size=1 server_only=true] states=activate;epk on_end_reveal{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); PauseAnimation(); }}; create_state_epk_0{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0000.epk' ); }}; on_state_epk_1{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0001.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_2{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0010.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_3{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0011.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_4{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0100.epk' ); RemoveEffectPack( 'Metadat}
+- Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLine:  [blocking=false object_size=1 server_only=true] states=activate;epk on_end_reveal{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); PauseAnimation(); }}; create_state_epk_0{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0000.epk' ); }}; on_state_epk_1{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0001.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_2{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0010.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_3{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0011.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_4{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0100.epk' ); RemoveEffectPack( 'Metadat}
+- Metadata/Terrain/Gallows/Act3/3_6_1/Objects/BlackjawArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardUpperMachinariumBossArena, TitleCardUpperMachinariumBossArenaSubtitle ); }}
+
+## lines
+- on_emerge_intro_01 -> Rudja_Emerge_Karui: A Karui? You'll burn!
+- on_emerge_intro_01 -> Rudja_Emerge_Karui: A Karui? You'll burn!
+- on_emerge_intro_01 -> Rudja_Emerge_Sorc: You'll burn, Maraketh scum!
+- on_emerge_intro_01 -> Rudja_Emerge_Random: Insane? I'll show you insane!
+- on_emerge_intro_01 -> Rudja_Emerge_RisuRescued_Random: For my king!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_10_2_rooms_unique_bossman.arm
+  sector ['risu', 214, 275, 396, 430, '']
+  sector ['boss_environment', 264, 264, 425, 471, '']
+  sector ['boss_environment', 195, 310, 264, 471, '']
+  sector ['boss_environment', 241, 287, 264, 310, '']
+  sector ['hide_teleports', 269, 259, 391, 429, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 213, 312, 269, 429, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 242, 288, 269, 312, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['spin_zone', 277, 324, 320, 367, '']
+  sector ['no_critters', 219, 262, 432, 477, '']
+  point [317.0, 351.0, 'mapboss1']
+  point [266.0, 313.0, 'telepad']
+  point [215.0, 261.0, 'checkpoint1']
+  point [295.0, 370.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (217,288)
+  obj Metadata/NPC/Four_Act2/Risu x1 (308,416)
+  obj Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RisuCage x1 (308,417)
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BounceTargetHigh x2 (383,365) (326,417)
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BounceTargetLow x2 (268,420) (378,319)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate_Toggleable x1 (235,281)
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/ArenaCentre x1 (297,346)
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BossRoomMinimapIcon x1 (297,344)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x1 (283,253)
+  obj Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RudjaArenaEntranceTitle x1 (267,315)
+room metadata_terrain_maps_mineshaft_rooms_unique_bossman.arm
+  sector ['boss_environment', 264, 264, 425, 471, '']
+  sector ['boss_environment', 195, 310, 264, 471, '']
+  sector ['boss_environment', 241, 287, 264, 310, '']
+  sector ['hide_teleports', 269, 259, 391, 429, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 213, 312, 269, 429, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 242, 288, 269, 312, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['spin_zone', 277, 324, 320, 367, '']
+  sector ['no_movement_skills', 246, 273, 321, 276, '']
+  sector ['no_movement_skills', 216, 294, 219, 380, '']
+  sector ['no_movement_skills', 216, 294, 237, 297, '']
+  sector ['no_movement_skills', 234, 288, 237, 297, '']
+  sector ['no_movement_skills', 234, 288, 243, 291, '']
+  sector ['no_movement_skills', 240, 282, 243, 291, '']
+  sector ['no_movement_skills', 240, 282, 249, 285, '']
+  sector ['no_movement_skills', 246, 273, 249, 285, '']
+  sector ['no_critters', 217, 274, 387, 427, '']
+  sector ['boss_sector', 220, 279, 424, 477, '']
+  point [317.0, 351.0, 'mapboss1']
+  point [266.0, 313.0, 'telepad1']
+  point [229.0, 261.0, 'checkpoint']
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BounceTargetHigh x2 (383,365) (326,417)
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/BounceTargetLow x2 (268,420) (378,319)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate_Toggleable x1 (235,281)
+  obj Metadata/Monsters/RudjaDreadEngineer/ArenaObjects/ArenaCentre x1 (297,346)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x1 (283,253)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (246,260)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (312,400)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (358,371) (361,346) (259,382) (279,398)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (295,316)
+room metadata_terrain_gallows_act3_3_6_1_rooms_unique_boss_office_01.arm
+  sector ['hide_teleports', 46, 103, 253, 366, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 42, 94, 257, 371, '']
+  point [150.0, 261.0, 'mapboss']
+  point [149.0, 126.0, 'telepad']
+  point [165.0, 71.0, 'checkpoint1']
+  point [152.0, 282.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinel x2 (178,56) (120,56)
+  obj Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss x1 (149,65)
+  obj Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal x1 (149,67)
+  obj Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLine x1 (149,90)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss_Blackjaw x1 (173,83)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (149,95)
+  obj Metadata/Monsters/BlackJawSuperunique/objects/BossRoomMinimapIcon x1 (149,234)
+  obj Metadata/Terrain/Gallows/Act3/3_6_1/Objects/BlackjawArenaEntranceTitle x1 (149,165)

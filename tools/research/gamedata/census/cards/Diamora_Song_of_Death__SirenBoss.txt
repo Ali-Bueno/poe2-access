@@ -1,0 +1,199 @@
+# Diamora, Song of Death / Syvora, Daughter of the Deep
+content: Act 4
+monsters: Metadata/Monsters/SirenMonster/SirenBoss, Metadata/Monsters/SirenMonster/SirenBossCampaignSTANDALONE, Metadata/Monsters/SirenMonster/SirenBossMAP_, Metadata/Monsters/SirenMonster/SirenBossSTANDALONE, Metadata/Monsters/SirenMonster/SirenBossPretty
+scripts: Metadata/Monsters/SirenMonster/SirenBoss, Metadata/Monsters/SirenMonster/SirenBossSTANDALONE, Metadata/Monsters/SirenMonster/SirenBossMap
+own chain: Metadata/Monsters/SirenMonster/SirenBoss, Metadata/Monsters/SirenMonster/SirenBossSTANDALONE, Metadata/Monsters/SirenMonster/SirenBossMap
+areas: G4_3_2 Singing Caverns act4; MapChasm Chasm act10; BossRush_Area2 Boss Rush Area 2 act10; MapRugosa Rugosa act10
+ai: Metadata/Monsters/SirenMonster/SirenBoss.ais, Metadata/Monsters/SirenMonster/SirenBossMap.ais, Metadata/Monsters/SirenMonster/SirenBossSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- SirenBossWaterSpout [tracking_slam] action=SpellAreaOfEffectCold anim=default:water_dump_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASSirenBossWaveSmash [empty_action_spell] action=SpellProjectileCold anim=default:twin_wave_crash_01
+- GTSirenBossGeysers [geometry_trigger] action=SpellProjectileUpwardLightning anim=default:super_summon_geyser_01
+    geom: trigger count=1 delay=500 spread=5 radius=0 angle=0 anchor=1
+    triggers: CGESirenBossGeyser
+- EDSSirenBossScreech [effect_driven_spell] action=SpellProjectileFire anim=default:banshee_scream_01
+    flags: is_area_damage
+- EASSirenBossJumpSlash [empty_action_spell] action=SpellAreaOfEffect anim=default:waterjet_01,stance3:dive_driveby_01,stance4:petrification_loop_01
+- EDSSirenBossDoubleWaveSmash [effect_driven_spell] action=SpellProjectileCold anim=default:twin_wave_crash_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSSirenBossWaterJet [geometry_spell] action=SpellProjectileLightning anim=default:waterjet_01
+    geom: rectangle length=130 width=15 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- CGESirenBossGeyser [monster_cast_ground_effect_location] action=SpellProjectileUpwardLightning anim=default:super_summon_geyser_01
+- SirenBossShapeshiftIn [transform] action=None anim=-
+- SirenBossShapeshiftOut [transform] action=None anim=-
+- EASSirenBossGeyserChase [empty_action_spell] action=SpellProjectileUpwardLightning anim=default:super_summon_geyser_01
+    flags: skill_can_be_active_blocked_from_all_directions
+- EDSSirenBossTripleWaveSmash [effect_driven_spell] action=SpellAreaOfEffectChaos anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSSirenArenaEmergeStalagmiteBreakInwardEG [geometry_spell] action=None anim=-
+    geom: rectangle length=25 width=15 angle=0 range=550 delay=33 anchor=3
+    GEAL 1094 on ['Metadata/Terrain/Gallows/Act4/4_3_2/Objects/StalagmiteBreakable']: self{} each{triggerer.SetStateTo(shatter, 1);} r=25
+- GSSirenArenaEmergeStalagmiteBreakOutwardEG [geometry_spell] action=None anim=-
+    geom: cone length=30 width=0 angle=60 range=500 delay=33 anchor=3
+    GEAL 1095 on ['Metadata/Terrain/Gallows/Act4/4_3_2/Objects/StalagmiteBreakable']: self{} each{triggerer.SetStateTo(shatter, 1);} r=25
+- GSSirenArenaEmergeStalagmiteBreakInwardBossDiveEG [geometry_spell] action=None anim=-
+    geom: rectangle length=70 width=15 angle=0 range=850 delay=33 anchor=3
+    GEAL 1094 on ['Metadata/Terrain/Gallows/Act4/4_3_2/Objects/StalagmiteBreakable']: self{} each{triggerer.SetStateTo(shatter, 1);} r=25
+- GSSirenWaterJetCloseRangeImpact [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSSirenBossGeyserBurstDmg [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=50 delay=50 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+
+## own states and handlers
+states: players; ugliness = 0; lighting = 3; jelly_time; delete_area_audio; audio_parameter_enabled; dead
+- on_death = { KillGroundEffectsOfType( Vortex, 1003, 1, 150 ); }
+- on_enter = { ShowNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn', 0 ); }
+- on_exit = { HideNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn' ); }
+- on_or_create_state_dead_1 = { SetControlZoneRadius( 200 ); }
+- on_or_create_state_audio_parameter_enabled_1 = { SetRangeCheckingForGlobalAudioParams( true ); }
+- on_or_create_state_audio_parameter_enabled_0 = { SetRangeCheckingForGlobalAudioParams( false ); }
+- on_state_jelly_time_1 = { this.jelly_emerge = SpawnObject( 'Metadata/Monsters/SirenMonster/objects/JellyEmerge', P, match_parent_height:true ); jelly_emerge.PlayAnimation( petrification_start_01 ); jelly_emerge.QueueAnimation( petrification_loop_01 ); }
+- create_state_jelly_time_1 = { this.jelly_emerge = SpawnObject( 'Metadata/Monsters/SirenMonster/objects/JellyEmerge', P, match_parent_height:true ); jelly_emerge.PlayAnimation( petrification_loop_01 ); }
+- on_state_jelly_time_2 = { jelly_emerge.PlayAnimation( petrification_end_01 ); }
+- on_or_create_state_ugliness_0 = { HideMeshSegments( SirenMonsterA|blend|blendShape, SirenMonsterA|doublesided|doublesidedShape, SirenMonsterA|opaque|opaqueShape ); ShowMeshSegments( SirenMonsterB|blend|blendShape, SirenMonsterB|doublesided|doublesidedShape, SirenMonsterB|opaque|opaqueShape ); }
+- on_or_create_state_ugliness_1 = { HideMeshSegments( SirenMonsterB|blend|blendShape, SirenMonsterB|doublesided|doublesidedShape, SirenMonsterB|opaque|opaqueShape ); ShowMeshSegments( SirenMonsterA|blend|blendShape, SirenMonsterA|doublesided|doublesidedShape, SirenMonsterA|opaque|opaqueShape ); }
+- on_or_create_state_ugliness_2 = { ShowMeshSegments( SirenMonsterA|blend|blendShape, SirenMonsterA|doublesided|doublesidedShape, SirenMonsterA|opaque|opaqueShape ); ShowMeshSegments( SirenMonsterB|blend|blendShape, SirenMonsterB|doublesided|doublesidedShape, SirenMonsterB|opaque|opaqueShape ); }
+- on_state_lighting_0 = { SetLightState( fish, 1.0 ); }
+- on_state_lighting_1 = { SetLightState( pretty, 1.0 ); }
+- on_state_lighting_2 = { SetLightState( off, 2.5 ); }
+- on_state_lighting_3 = { SetLightState( prettyemerge, 0.5 ); }
+- on_state_lighting_5 = { SetLightState( prettyemerge, 1.5 ); }
+- create_state_lighting_0 = { Delay( 0.01, { SetLightState( fish ); } ); }
+- create_state_lighting_1 = { Delay( 0.01, { SetLightState( pretty ); } ); }
+- create_state_lighting_2 = { Delay( 0.01, { SetLightState( off ); } ); }
+- create_state_lighting_3 = { Delay( 0.01, { SetLightState( prettyemerge ); } ); }
+- create_state_lighting_5 = { Delay( 0.01, { SetLightState( off ); } ); }
+- on_or_create_state_delete_area_audio_1 = { ForEachInRangeOfType( 20, 'Metadata/Terrain/Tools/AudioTools/G4_3_2/SirenSingingCaveAudio', (){ Delete(); } ); }
+- on_death = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/epk/death_bwd_01/stonefied.epk' ); DetachAllContainingText( HairBPretty ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/epk/death_bwd_01/stonefied_idle.epk' ); }
+- on_state_jelly_time_2 = { jelly_emerge.PlayAnimation( petrification_end_01 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_skill_art_variation stone_gaze:1
+- preload_object Metadata/Monsters/SirenMonster/objects/JellyEmerge
+- preload_object Metadata/Monsters/SirenMonster/objects/SirenMirror
+- preload_monster_variety Metadata/NPC/Four_Act4/HoodedMentorSingingCavernsSummon
+- preload_monster_variety Metadata/NPC/Four_Act4/DoryaniSingingCavernsSummon
+- preload_monster_variety Metadata/Monsters/SirenMonster/SirenBossWaterBall
+- preload_monster_variety Metadata/Monsters/TentacleDemonFemale/TentacleWhipper
+- preload_monster_variety Metadata/Monsters/BrineMaiden/BrineMaiden
+- preload_environment G4_3_2_boss
+- preload_environment G4_3_2_boss_song
+
+## adds and forms
+- Metadata/NPC/Four_Act4/HoodedMentorSingingCavernsSummon "The Hooded One" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+- Metadata/NPC/Four_Act4/DoryaniSingingCavernsSummon "Doryani" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+- Metadata/Monsters/SirenMonster/SirenBossWaterBall "[DNT-UNUSED]Water Ball" bossbar=0 skills=MeleeAtAnimationSpeed,DjinnDemonVolatileSuicideExplosion comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=invisible;time_to_die
+- Metadata/Monsters/TentacleDemonFemale/TentacleWhipper "Ghastly Siren" bossbar=0 skills=MeleeAtAnimationSpeed,MeleeAtAnimationSpeedComboTEMP2,GSSirenArenaEmergeStalagmiteBreakInwardEG comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/BrineMaiden/BrineMaiden "Brine Maiden" bossbar=0 skills=MeleeAtAnimationSpeed,GTBrineMaidenScreech,GSBrineMaidenScreech,BrineMaidenIceBarage,MPSBrineMaidenIceProjectile,GSSirenArenaEmergeStalagmiteBreakInwardEG comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/SirenMonster/objects/JellyEmerge: Buffs Stats [blocking=false object_size=0 server_only=true] states=jelly_time on_petrification_end_01{{ SetStateTo( jelly_time, 1 ); }}; on_petrification_start_01{{ StartStateTimer( spin_round, 0.03 ); }}; on_or_create_state_jelly_time_1{{ CancelStateTimer( spin_round ); }}; on_timer_spin_round{{ RotateBy( 0.1 ); StartStateTimer( spin_round, 0.03 ); }}
+- Metadata/Monsters/SirenMonster/objects/SirenMirror: Buffs Stats [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_3_2/Objects/StalagmiteBreakable: TriggerableBlockage Transitionable [start_blocked=true blocking=false object_size=3 server_only=true] states=shatter on_state_shatter_1{{ PlayAnimation( shatter_front ); }}; on_state_shatter_2{{ PlayAnimation( shatter_right ); }}; on_state_shatter_3{{ PlayAnimation( shatter_back ); }}; on_state_shatter_4{{ PlayAnimation( shatter_left ); }}; create_state_shatter_1{{ PlayAnimation( shatter_front ); GoToAnimationEnd(); PauseAnimation(); }}; create_state_shatter_2{{ PlayAnimation( shatter_right ); GoToAnimationEnd(); PauseAnimation(); }}
+- metadata/monsters/sirenmonster/objects/jellyemerge: Buffs Stats [blocking=false object_size=0 server_only=true] states=jelly_time on_petrification_end_01{{ SetStateTo( jelly_time, 1 ); }}; on_petrification_start_01{{ StartStateTimer( spin_round, 0.03 ); }}; on_or_create_state_jelly_time_1{{ CancelStateTimer( spin_round ); }}; on_timer_spin_round{{ RotateBy( 0.1 ); StartStateTimer( spin_round, 0.03 ); }}
+- metadata/monsters/sirenmonster/objects/sirenmirror: Buffs Stats [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/sirenmonster/objects/trackingeffect:  [blocking=false object_size=0] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle:  [server_only=true] states= on_construction_complete{{ globals.generic_arena_middle_object = this; }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle:  [blocking=true object_size=5 server_only=true] states=blasted create_state_blasted_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/wicker_fire.epk' ); }}; create_state_blasted_1{{ PlayAnimation( smash ); GoToAnimationEnd(); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, ds}; on_state_blasted_1{{ PlayAnimation( smash ); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, dstone_geoShape1, rope}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle: ProximityTrigger [radius=80 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardCarverBogBossArena, TitleCardCarverBogBossArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act4/4_1_2/Objects/SulphurMunchNode:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_3_2/Objects/SirenBossFightController:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_3_2/Objects/SirenBossFightNoFlyZone:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act4/4_3_1/Objects/SummonAlly: InteractionAction MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=activated;visible = 1 on_state_activated_1{{ DetachAllOfType( 'Metadata/Effects/misc/Quest_Indicator/Indicator_01.ao' ); DisableTargetable(); DisableRendering(); H}; create_state_activated_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; create_state_visible_0{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; on_construction_complete{{ IfState( visible, 1, () { PlayAnimationByIndex( 1 ); AddAttachedOffset( 'Metadata/Effects/misc/Quest_Indicator/Indicat}
+- Metadata/Terrain/Maps/Chasm/Objects/ChasmWispLight:  [blocking=false object_size=0 server_only=true] states=height on_construction_complete{{ SetExtraTileActivationDistance( 3 ); }}; on_initial_position_set{{ SetHeight( GetHeight() ); LockHeight(); SetMovementFaceMode( DontFace ); }}; on_initial_position_set{{ PlayAnimationRandom( animate ); SetRandomRotation(); IfState( height, != 0, { Call( UpdateHeight ); } ); }}; on_movement_finished{{ StartStateTimer( idle, 0.1 ); }}; on_change_state_height{{ Call( UpdateHeight ); }}; on_wake{{ SetRenderDampenHeightSpeed( 1000 ); Call( UpdateHeight ); Delay( 1.0, { SetRenderDampenHeightSpeed( 1 ); } ); }}
+- Metadata/Terrain/Gallows/Act4/4_3_2/Objects/WaterBlockingDoor: TriggerableBlockage [start_blocked=false blocking=false object_size=0 server_only=true] states=open = 0 create_state_open_1{{ PlayAnimationByName( idle ); }}; on_state_open_1{{ EnableRendering(); PlayAnimationByName( start_01 ); QueueAnimationByName( idle ); }}; on_state_open_0{{ PlayAnimationByName( end ); }}; create_state_open_0{{ DisableRendering(); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_bogwitch_rooms_boss_01.arm
+  sector ['hide_teleports', 117, 162, 341, 317, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 162, 120, 301, 162, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 125, 129, 343, 329, '']
+  sector ['no_movement_skills', 148, 149, 177, 151, '']
+  sector ['no_movement_skills', 148, 149, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 127, 324, '']
+  sector ['no_movement_skills', 175, 130, 177, 151, '']
+  sector ['no_movement_skills', 175, 130, 341, 132, '']
+  point [249.0, 246.0, 'mapboss3']
+  point [171.0, 169.0, 'telepad4']
+  point [116.0, 115.0, 'checkpoint6']
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle x1 (227,226)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/Effigy x11 (278,162) (148,186) (238,311) (157,274) (304,274) (189,147) (141,227) (305,198) (189,305) (276,304)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker x24 (257,174) (175,196) (197,278) (287,226) (279,196) (227,166) (197,174) (167,226) (175,256) (227,286)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle x1 (220,218)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (131,98)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (147,148)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon x1 (227,226)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPackProxTrigger x1 (95,98)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker x42 (292,166) (300,175) (273,149) (264,144) (252,140) (225,140) (214,141) (204,142) (177,154) (170,162)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle x1 (227,226)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (240,237)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (162,160)
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_krutog_rooms_boss.arm
+  sector ['hide_teleports', 348, 200, 543, 436, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 348, 220, 490, 413, '']
+  sector ['no_movement_skills', 344, 248, 348, 397, '']
+  point [432.0, 318.0, 'mapboss2']
+  point [357.0, 318.0, 'telepad']
+  point [242.0, 325.0, 'checkpoint4']
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSource_6_6 x2 (522,115) (523,535)
+  obj Metadata/Terrain/Gallows/Act4/4_1_2/Objects/SulphurMunchNode x4 (459,370) (446,342) (444,267) (439,299)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (330,322)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (237,347)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (231,343)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (410,324)
+  obj Metadata/Monsters/Goblins/GoblinGiantBoss/BossRoomMinimapIcon x1 (408,321)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (426,321)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (345,321)
+room metadata_terrain_maps_chasm_rooms_unique_boss.arm
+  sector ['no_movement_skills', 287, 218, 402, 333, '']
+  sector ['hide_teleports', 314, 341, 529, 376, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 276, 376, 529, 590, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 149, 356, 264, 471, '']
+  sector ['no_movement_skills', 264, 377, 287, 471, '']
+  sector ['no_movement_skills', 310, 333, 402, 356, '']
+  sector ['no_movement_skills', 287, 379, 310, 402, '']
+  sector ['no_movement_skills', 310, 356, 333, 379, '']
+  sector ['audio_sector_water', 195, 264, 609, 678, '']
+  sector ['boss_sector', 286, 394, 505, 574, '']
+  sector ['boss_sector', 298, 391, 479, 394, '']
+  sector ['boss_sector', 301, 388, 477, 391, '']
+  sector ['boss_sector', 303, 386, 466, 388, '']
+  sector ['boss_sector', 305, 383, 459, 386, '']
+  sector ['boss_sector', 308, 380, 456, 383, '']
+  sector ['boss_sector', 312, 377, 457, 380, '']
+  sector ['boss_sector', 315, 373, 462, 377, '']
+  sector ['boss_sector', 326, 359, 444, 373, '']
+  point [392.0, 460.0, 'force:mapboss']
+  point [342.0, 410.0, 'killzone=9']
+  point [174.0, 269.0, 'checkpoint']
+  point [332.0, 390.0, 'telepad']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (162,277)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (381,251)
+  obj Metadata/Terrain/Gallows/Act4/4_3_2/Objects/SirenBossFightController x1 (392,459)
+  obj Metadata/Terrain/Gallows/Act4/4_3_2/Objects/SirenBossFightNoFlyZone x1 (323,389)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (302,365)
+  obj Metadata/Terrain/Tools/AudioTools/G4_3_2/SirenSingingCaveAudio x1 (393,459)
+  obj Metadata/Terrain/Gallows/Act4/4_3_1/Objects/SummonAlly x1 (316,398)
+  obj Metadata/Terrain/Maps/Chasm/Objects/ChasmWispLight x3 (69,105) (254,12) (121,47)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (410,403)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (314,514) (463,399) (389,365) (296,439)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (357,430)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (309,374)
+  obj Metadata/Terrain/Gallows/Act4/4_3_2/Objects/WaterBlockingDoor x1 (313,374)

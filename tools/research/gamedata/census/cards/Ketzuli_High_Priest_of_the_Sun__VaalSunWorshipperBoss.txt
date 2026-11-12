@@ -1,0 +1,318 @@
+# Ketzuli, High Priest of the Sun / Tonqui, Seer of the Sun
+content: Act 3
+monsters: Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBossCampaignSTANDALONE, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperSTANDALONE
+scripts: Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBossSTANDALONE, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBossMap_
+own chain: Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBossSTANDALONE, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBossMap_
+areas: G3_12 Temple of Kopec act3; MapSunTemple Sun Temple act10
+ai: Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss.ais, Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBossSTANDALONE.ais (not shipped)
+
+## skills
+- MPSSunWorshipperBasicProj [monster_projectile_spell] action=SpellProjectile anim=default:attack_01
+- SunWorshipperFireLaser [avarius_divine_beam] action=None anim=-
+- EASSunWorshipperSummonSuns [empty_action_spell] action=SpellProjectileFire anim=default:criss_cross_01
+- EASSunWorshipperSummonSunWall [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:summon_wall_01
+- CTS3SunWorshipperEnrageDash [change_to_stance3] action=None anim=-
+- DTTSunWorshipperEnrageDash [dash_attack_to_target] action=DodgeForward anim=default:dash_fwd_short_01,stance3:enraged_dash_01
+- CTS1SunWorshipperEnrageDash [change_to_stance1] action=None anim=-
+- SGLSunWorshipperEyeLaser [single_ground_laser] action=SpellProjectileCold anim=default:eye_laser_01
+- GPSSunWorshipperStarSwarm [geometry_projectiles_spell] action=SpellProjectileChaos anim=default:super_nova_01
+- EASSunWorshipperSummonNeutronStar [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:summon_blackhole_01
+- EASSunWorshipperSummonOrbitSun [empty_action_spell] action=SpellAreaOfEffectFire anim=default:summon_sun_01
+- EASSunWorshipperDodgeForwards [empty_action_spell] action=DodgeForward anim=default:dash_fwd_short_01,stance3:enraged_dash_01
+- EASSunWorshipperDodgeBackwards [empty_action_spell] action=DodgeBack anim=default:dash_bwd_01
+- EASSunWorshipperDodgeLeft [empty_action_spell] action=DodgeLeft anim=default:dash_left_01
+- EASSunWorshipperDodgeRight [empty_action_spell] action=DodgeRight anim=default:dash_right_01
+- GPSSunWorshipperMiniSun [geometry_projectiles_spell] action=SpellProjectile anim=default:attack_01
+    flags: base_deal_no_damage
+- GSSunWorshipperBossSunExplosionObject [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSSunWorshipperBossSunExplosionOtherSun [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=1000 delay=1000 anchor=4
+    flags: is_area_damage
+- GSSunWorshipperEnrageDashExplosion [geometry_spell] action=None anim=-
+    geom: circle length=22 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSSunWorshipperSolarFlare [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=1470 delay=1470 anchor=4
+    flags: is_area_damage
+- EASSunWorshipperDodgeForwardsShort [empty_action_spell] action=ShadowDash anim=default:dash_fwd_01
+- GTSSunWorshipperSunOrbitSpawnerSTANDALONE [geometry_trigger] action=SpellProjectileLightning anim=default:temp_criss_cross_01
+    geom: trigger count=10 delay=1000 spread=7 radius=8 angle=0 anchor=4
+
+## own states and handlers
+states: no_collision; has_emerged; sun_wall_count; summon_sun_wall
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_state_no_collision_0 = { MakeCollidable(); }
+- on_event_scorch_for_death_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/epk/onDeathScorching.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/epk/onDeathScorched.epk' ); }
+- create_state_has_emerged_0 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/sunSphere.ao', FX_sunSphere ); }
+- on_state_has_emerged_1 = { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/sunSphere.ao' ); }
+- on_wake = { IfInStance( stance2, () { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2' ), { PlayTextAudio( SunWorshipper_PreEmerge_Warrior, 'Metadata/M
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( SunWorshipper_Emerge_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); }
+- on_effect_start_CTS3SunWorshipperEnrageDash = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_EnrageDash_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); } ); }
+- on_effect_start_EASSunWorshipperSummonSunWall = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_SunWall_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); } ); }
+- on_effect_start_EASSunWorshipperSummonSuns = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_CrissCross_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); } ); }
+- on_effect_start_GPSSunWorshipperStarSwarm = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_Supernova_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); } ); }
+- on_heavy_stun_01 = { PlayTextAudio( SunWorshipper_HeavyStun_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); }
+- on_scorching_ray_start_01 = { PlayTextAudio( SunWorshipper_ScorchingRay_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); }
+- on_eye_laser_01 = { PlayTextAudio( SunWorshipper_EyeLazer_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); }
+- on_summon_blackhole_01 = { PlayTextAudio( SunWorshipper_Blackhole_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); }
+- on_summon_blackhole_02 = { PlayTextAudio( SunWorshipper_Blackhole_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperBoss' ); }
+- on_wake = { IfInStance( stance2, () { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2' ), { PlayTextAudio( SunWorshipper_PreEmerge_Warrior, _, 750 ); s
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( SunWorshipper_Emerge_Random, _ ); }
+- on_effect_start_CTS3SunWorshipperEnrageDash = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_EnrageDash_Random, _ );} ); }
+- on_effect_start_EASSunWorshipperSummonSunWall = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_SunWall_Random, _ );} ); }
+- on_effect_start_EASSunWorshipperSummonSuns = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_CrissCross_Random, _ );} ); }
+- on_effect_start_GPSSunWorshipperStarSwarm = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_Supernova_Random, _ );} ); }
+- on_heavy_stun_01 = { PlayTextAudio( SunWorshipper_HeavyStun_Random, _ ); }
+- on_scorching_ray_start_01 = { PlayTextAudio( SunWorshipper_ScorchingRay_Random, _ ); }
+- on_eye_laser_01 = { PlayTextAudio( SunWorshipper_EyeLazer_Random, _ ); }
+- on_summon_blackhole_01 = { PlayTextAudio( SunWorshipper_Blackhole_Random, _ ); }
+- on_summon_blackhole_02 = { PlayTextAudio( SunWorshipper_Blackhole_Random, _ ); }
+- on_wake = { IfInStance( stance2, () { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( Or( player_ascendancy == 'Warrior', player_ascendancy == 'Warrior1', player_ascendancy == 'Warrior2' ), { PlayTextAudio( SunWorshipper_PreEmerge_Warrior, 'Metadata/M
+- on_effect_start_CTS1BossFightStart = { PlayTextAudio( SunWorshipper_Emerge_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' ); }
+- on_effect_start_CTS3SunWorshipperEnrageDash = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_EnrageDash_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' );} ); }
+- on_effect_start_EASSunWorshipperSummonSunWall = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_SunWall_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' );} ); }
+- on_effect_start_EASSunWorshipperSummonSuns = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_CrissCross_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' );} ); }
+- on_effect_start_GPSSunWorshipperStarSwarm = { Roll( 1, 1, (){ PlayTextAudio( SunWorshipper_Supernova_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' );} ); }
+- on_heavy_stun_01 = { PlayTextAudio( SunWorshipper_HeavyStun_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' ); }
+- on_scorching_ray_start_01 = { PlayTextAudio( SunWorshipper_ScorchingRay_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' ); }
+- on_eye_laser_01 = { PlayTextAudio( SunWorshipper_EyeLazer_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' ); }
+- on_summon_blackhole_01 = { PlayTextAudio( SunWorshipper_Blackhole_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' ); }
+- on_summon_blackhole_02 = { PlayTextAudio( SunWorshipper_Blackhole_Random, 'Metadata/Monsters/VaalSunWorshipper/VaalSunWorshipperMAP' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/VaalSunWorshipper/BlackHole/OrbitSun
+- preload_monster_variety Metadata/Monsters/VaalSunWorshipper/SunWorshipperBossBlackhole
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/epk/onDeathScorching.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/epk/onDeathScorched.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/sunSphere.ao
+
+## adds and forms
+- Metadata/Monsters/VaalSunWorshipper/SunWorshipperBossBlackhole "Daemon" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false object_size=0 attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalSunWorshipper/BlackHole/OrbitSun:  [blocking=false object_size=0] states= on_initial_position_set{{ LockHeight( GetHeightAtLocation() + 20.0 ); }}
+- metadata/monsters/vaalsunworshipper/blackhole/orbitsun:  [blocking=false object_size=0] states= on_initial_position_set{{ LockHeight( GetHeightAtLocation() + 20.0 ); }}
+- metadata/monsters/vaalsunworshipper/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=KaazuliBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( KaazuliBossInactive ); }}
+- metadata/monsters/vaalsunworshipper/objects/sunwallcontroller:  [blocking=false object_size=0 server_only=true] states=active 
+- metadata/monsters/vaalsunworshipper/objects/sunwallvisual:  [blocking=false object_size=1 server_only=true] states=active on_or_create_state_active_0{{ DisableRendering(); PlayAnimation( emerge ); }}; on_state_active_1{{ EnableRendering(); PlayAnimation( loop ); }}
+- metadata/monsters/vaalsunworshipper/sunbeam:  [blocking=false object_size=0] states= on_end_end{{ Delete(); }}
+- Metadata/Monsters/VaalSunWorshipper/Objects/SunWallController:  [blocking=false object_size=0 server_only=true] states=active 
+- Metadata/Monsters/VaalSunWorshipper/Objects/SunWallVisual:  [blocking=false object_size=1 server_only=true] states=active on_or_create_state_active_0{{ DisableRendering(); PlayAnimation( emerge ); }}; on_state_active_1{{ EnableRendering(); PlayAnimation( loop ); }}
+- Metadata/Monsters/VaalSunWorshipper/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=KaazuliBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( KaazuliBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_12/Objects/SummonAlva: InteractionAction [blocking=false object_size=0 server_only=true] states=activated;visible create_state_visible_0{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; on_state_visible_1{{ IfState( activated, 0, () { EnableRendering(); ShowMinimapIcon(); EnableTargetable(); } ); }}; on_state_activated_1{{ DetachAllOfType( 'Metadata/Effects/misc/Quest_Indicator/Indicator_01.ao' ); DisableTargetable(); PlayAnimationByIndex(}; create_state_activated_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; on_construction_complete{{ IfState( activated, 0, () { PlayAnimationByIndex( 1 ); AddAttachedOffset( 'Metadata/Effects/misc/Quest_Indicator/Indic}
+- Metadata/Terrain/Gallows/Act3/3_12/Objects/KetzuliBossArenaTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardKetzuliArena, TitleCardKetzuliArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_12/Objects/LiftPerimeterBlocker: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimation( idle ); }}; create_untransitioned{{ PlayAnimation( off ); GoToAnimationEnd(); }}; on_transition{{ PlayAnimation( on ); QueueAnimation( idle ); }}
+
+## lines
+- on_wake -> SunWorshipper_PreEmerge_Warrior: Great Kopec! A brave warrior approaches...
+- on_wake -> SunWorshipper_PreEmerge_Shadow: This intruder... hides in darkness. Great Kopec... show him pure light!
+- on_wake -> SunWorshipper_PreEmerge_Other_Random: My flesh burns in your honour, oh Great Kopec. 
+- on_effect_start_CTS1BossFightStart -> SunWorshipper_Emerge_Random: Let the sun curl your flesh!
+- on_effect_start_CTS3SunWorshipperEnrageDash -> SunWorshipper_EnrageDash_Random: Euphoria!
+- on_effect_start_EASSunWorshipperSummonSunWall -> SunWorshipper_SunWall_Random: Touch of Kopec!
+- on_effect_start_EASSunWorshipperSummonSuns -> SunWorshipper_CrissCross_Random: Be disintegrated!
+- on_effect_start_GPSSunWorshipperStarSwarm -> SunWorshipper_Supernova_Random: I call and the sun obeys!
+- on_heavy_stun_01 -> SunWorshipper_HeavyStun_Random: Kopec bless me!
+- on_scorching_ray_start_01 -> SunWorshipper_ScorchingRay_Random: Witness!
+- on_eye_laser_01 -> SunWorshipper_EyeLazer_Random: Now you will see!
+- on_summon_blackhole_01 -> SunWorshipper_Blackhole_Random: Be consumed!
+- on_summon_blackhole_02 -> SunWorshipper_Blackhole_Random: Be consumed!
+
+## linked buffs
+- vaal_sun_worshipper_black_hole_suck "Gravitation": Your Movement Speed is reduced due to being in range of the black hole. The Movement Speed reduction is stronger the closer you are. | stats=base_movement_velocity_+%
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_12_rooms_unique_boss_03.arm
+  sector ['lift', 331, 218, 359, 289, '']
+  sector ['lift', 314, 226, 376, 281, '']
+  sector ['hide_teleports', 253, 183, 437, 201, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 245, 201, 444, 359, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 45, 12, 668, 520, '']
+  sector ['no_movement_skills', 257, 159, 434, 161, '']
+  sector ['no_movement_skills', 257, 161, 259, 183, '']
+  sector ['no_movement_skills', 432, 161, 434, 183, '']
+  sector ['no_movement_skills', 256, 183, 258, 185, '']
+  sector ['no_movement_skills', 433, 183, 435, 185, '']
+  sector ['no_movement_skills', 255, 184, 256, 189, '']
+  sector ['no_movement_skills', 256, 185, 257, 187, '']
+  sector ['no_movement_skills', 434, 185, 436, 187, '']
+  sector ['no_movement_skills', 254, 186, 255, 190, '']
+  sector ['no_movement_skills', 435, 187, 437, 189, '']
+  sector ['no_movement_skills', 253, 188, 254, 192, '']
+  sector ['no_movement_skills', 436, 189, 438, 191, '']
+  sector ['no_movement_skills', 252, 190, 253, 194, '']
+  sector ['no_movement_skills', 438, 190, 439, 195, '']
+  sector ['no_movement_skills', 437, 191, 438, 193, '']
+  sector ['no_movement_skills', 251, 192, 252, 196, '']
+  sector ['no_movement_skills', 439, 192, 440, 197, '']
+  sector ['no_movement_skills', 250, 194, 251, 198, '']
+  sector ['no_movement_skills', 440, 194, 441, 199, '']
+  sector ['no_movement_skills', 249, 195, 250, 200, '']
+  sector ['no_movement_skills', 441, 196, 442, 201, '']
+  sector ['no_movement_skills', 248, 197, 249, 201, '']
+  sector ['no_movement_skills', 442, 198, 443, 203, '']
+  sector ['no_movement_skills', 247, 199, 248, 203, '']
+  sector ['no_movement_skills', 443, 200, 444, 205, '']
+  sector ['no_movement_skills', 246, 201, 247, 205, '']
+  sector ['no_movement_skills', 444, 202, 445, 206, '']
+  sector ['no_movement_skills', 245, 203, 246, 207, '']
+  sector ['no_movement_skills', 445, 204, 446, 208, '']
+  sector ['no_movement_skills', 244, 205, 245, 209, '']
+  sector ['no_movement_skills', 243, 206, 244, 211, '']
+  sector ['no_movement_skills', 446, 206, 447, 210, '']
+  sector ['no_movement_skills', 242, 208, 243, 212, '']
+  sector ['no_movement_skills', 447, 208, 448, 212, '']
+  sector ['no_movement_skills', 240, 210, 242, 359, '']
+  sector ['no_movement_skills', 447, 212, 449, 359, '']
+  sector ['no_movement_skills', 242, 357, 448, 359, '']
+  point [385.0, 276.0, 'mapboss']
+  point [345.0, 276.0, 'entrance']
+  point [175.0, 154.0, 'telepad']
+  point [345.0, 343.0, 'telepad6']
+  point [423.0, 207.0, 'telepad7']
+  point [265.0, 207.0, 'telepad5']
+  point [179.0, 156.0, 'checkpoint3']
+  point [349.0, 196.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x6 (385,229) (156,143) (345,252) (345,371) (447,193) (240,192)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallController x3 (345,118) (228,320) (462,320)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallVisual x3 (345,253) (345,253) (345,253)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x4 (211,320) (469,320) (343,111) (344,246)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (171,166)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (344,252)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/BossRoomMinimapIcon x1 (343,251)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/SummonAlva x1 (356,275)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/KetzuliBossArenaTitle x1 (345,252)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/LiftPerimeterBlocker x6 (309,253) (380,253) (362,284) (327,222) (327,284) (362,222)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (344,361) (439,199) (249,196)
+room metadata_terrain_gallows_act3_3_12_rooms_unique_boss_01.arm
+  sector ['lift', 331, 218, 359, 289, '']
+  sector ['lift', 314, 226, 376, 281, '']
+  sector ['hide_teleports', 245, 201, 444, 359, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 253, 162, 437, 201, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['tab', 416, 266, 458, 313, '']
+  sector ['tab', 397, 290, 428, 314, '']
+  sector ['tab', 232, 268, 274, 315, '']
+  sector ['tab', 262, 295, 293, 319, '']
+  sector ['tab', 315, 135, 369, 182, '']
+  sector ['no_critters', 45, 12, 668, 520, '']
+  sector ['no_movement_skills', 257, 159, 434, 161, '']
+  sector ['no_movement_skills', 257, 161, 259, 183, '']
+  sector ['no_movement_skills', 432, 161, 434, 183, '']
+  sector ['no_movement_skills', 256, 183, 258, 185, '']
+  sector ['no_movement_skills', 433, 183, 435, 185, '']
+  sector ['no_movement_skills', 255, 184, 256, 189, '']
+  sector ['no_movement_skills', 256, 185, 257, 187, '']
+  sector ['no_movement_skills', 434, 185, 436, 187, '']
+  sector ['no_movement_skills', 254, 186, 255, 190, '']
+  sector ['no_movement_skills', 435, 187, 437, 189, '']
+  sector ['no_movement_skills', 253, 188, 254, 192, '']
+  sector ['no_movement_skills', 436, 189, 438, 191, '']
+  sector ['no_movement_skills', 252, 190, 253, 194, '']
+  sector ['no_movement_skills', 438, 190, 439, 195, '']
+  sector ['no_movement_skills', 437, 191, 438, 193, '']
+  sector ['no_movement_skills', 251, 192, 252, 196, '']
+  sector ['no_movement_skills', 439, 192, 440, 197, '']
+  sector ['no_movement_skills', 250, 194, 251, 198, '']
+  sector ['no_movement_skills', 440, 194, 441, 199, '']
+  sector ['no_movement_skills', 249, 195, 250, 200, '']
+  sector ['no_movement_skills', 441, 196, 442, 201, '']
+  sector ['no_movement_skills', 248, 197, 249, 201, '']
+  sector ['no_movement_skills', 442, 198, 443, 203, '']
+  sector ['no_movement_skills', 247, 199, 248, 203, '']
+  sector ['no_movement_skills', 443, 200, 444, 205, '']
+  sector ['no_movement_skills', 246, 201, 247, 205, '']
+  sector ['no_movement_skills', 444, 202, 445, 206, '']
+  sector ['no_movement_skills', 245, 203, 246, 207, '']
+  sector ['no_movement_skills', 445, 204, 446, 208, '']
+  sector ['no_movement_skills', 244, 205, 245, 209, '']
+  sector ['no_movement_skills', 243, 206, 244, 211, '']
+  sector ['no_movement_skills', 446, 206, 447, 210, '']
+  sector ['no_movement_skills', 242, 208, 243, 212, '']
+  sector ['no_movement_skills', 447, 208, 448, 212, '']
+  sector ['no_movement_skills', 240, 210, 242, 359, '']
+  sector ['no_movement_skills', 447, 212, 449, 359, '']
+  sector ['no_movement_skills', 242, 357, 448, 359, '']
+  point [306.0, 275.0, 'mapboss']
+  point [345.0, 276.0, 'entrance']
+  point [515.0, 154.0, 'telepad']
+  point [345.0, 343.0, 'telepad6']
+  point [423.0, 207.0, 'telepad7']
+  point [265.0, 207.0, 'telepad5']
+  point [385.0, 273.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x6 (385,229) (533,143) (345,252) (345,371) (447,193) (240,192)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallController x3 (345,117) (228,319) (462,319)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallVisual x3 (345,253) (345,253) (345,253)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x3 (211,320) (469,320) (343,111)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (519,166)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (344,252)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/BossRoomMinimapIcon x1 (344,251)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/SummonAlva x1 (356,275)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/KetzuliBossArenaTitle x1 (344,251)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/LiftPerimeterBlocker x6 (309,253) (380,253) (362,284) (327,222) (327,284) (362,222)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (344,361) (439,199) (249,196)
+room metadata_terrain_gallows_act3_3_12_rooms_unique_boss_02.arm
+  sector ['lift', 331, 218, 359, 289, '']
+  sector ['lift', 314, 226, 376, 281, '']
+  sector ['hide_teleports', 254, 163, 438, 201, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 246, 201, 445, 359, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 45, 12, 668, 520, '']
+  sector ['no_movement_skills', 257, 159, 434, 161, '']
+  sector ['no_movement_skills', 257, 161, 259, 183, '']
+  sector ['no_movement_skills', 432, 161, 434, 183, '']
+  sector ['no_movement_skills', 256, 183, 258, 185, '']
+  sector ['no_movement_skills', 433, 183, 435, 185, '']
+  sector ['no_movement_skills', 255, 184, 256, 189, '']
+  sector ['no_movement_skills', 256, 185, 257, 187, '']
+  sector ['no_movement_skills', 434, 185, 436, 187, '']
+  sector ['no_movement_skills', 254, 186, 255, 190, '']
+  sector ['no_movement_skills', 435, 187, 437, 189, '']
+  sector ['no_movement_skills', 253, 188, 254, 192, '']
+  sector ['no_movement_skills', 436, 189, 438, 191, '']
+  sector ['no_movement_skills', 252, 190, 253, 194, '']
+  sector ['no_movement_skills', 438, 190, 439, 195, '']
+  sector ['no_movement_skills', 437, 191, 438, 193, '']
+  sector ['no_movement_skills', 251, 192, 252, 196, '']
+  sector ['no_movement_skills', 439, 192, 440, 197, '']
+  sector ['no_movement_skills', 250, 194, 251, 198, '']
+  sector ['no_movement_skills', 440, 194, 441, 199, '']
+  sector ['no_movement_skills', 249, 195, 250, 200, '']
+  sector ['no_movement_skills', 441, 196, 442, 201, '']
+  sector ['no_movement_skills', 248, 197, 249, 201, '']
+  sector ['no_movement_skills', 442, 198, 443, 203, '']
+  sector ['no_movement_skills', 247, 199, 248, 203, '']
+  sector ['no_movement_skills', 443, 200, 444, 205, '']
+  sector ['no_movement_skills', 246, 201, 247, 205, '']
+  sector ['no_movement_skills', 444, 202, 445, 206, '']
+  sector ['no_movement_skills', 245, 203, 246, 207, '']
+  sector ['no_movement_skills', 445, 204, 446, 208, '']
+  sector ['no_movement_skills', 244, 205, 245, 209, '']
+  sector ['no_movement_skills', 243, 206, 244, 211, '']
+  sector ['no_movement_skills', 446, 206, 447, 210, '']
+  sector ['no_movement_skills', 242, 208, 243, 212, '']
+  sector ['no_movement_skills', 447, 208, 448, 212, '']
+  sector ['no_movement_skills', 240, 210, 242, 359, '']
+  sector ['no_movement_skills', 447, 212, 449, 359, '']
+  sector ['no_movement_skills', 242, 357, 448, 359, '']
+  point [306.0, 275.0, 'mapboss']
+  point [345.0, 276.0, 'entrance']
+  point [175.0, 154.0, 'telepad']
+  point [345.0, 344.0, 'telepad6']
+  point [423.0, 208.0, 'telepad7']
+  point [265.0, 208.0, 'telepad5']
+  point [387.0, 274.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x6 (385,229) (155,142) (345,252) (345,372) (447,194) (240,193)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallController x3 (345,118) (228,320) (462,320)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallVisual x3 (345,253) (345,253) (345,253)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/SummonAlva x1 (356,275)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (171,166)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (344,252)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/BossRoomMinimapIcon x1 (344,252)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/KetzuliBossArenaTitle x1 (344,252)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/LiftPerimeterBlocker x6 (309,253) (380,253) (362,284) (327,222) (327,284) (362,222)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (344,362) (439,200) (249,197)

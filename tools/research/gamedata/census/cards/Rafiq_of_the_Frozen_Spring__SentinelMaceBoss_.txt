@@ -1,0 +1,188 @@
+# Rafiq of the Frozen Spring / Sigbert of the Sullied Oath
+content: Sekhemas trial
+monsters: Metadata/Monsters/MarakethSanctumTrial/Boss/SentinelMaceBoss__, Metadata/Monsters/MarakethSanctumTrial/Boss/SentinelMaceBossSTANDALONE, Metadata/Monsters/MarakethSanctumTrial/Boss/SentinelMaceBossGothicSTANDALONE, Metadata/Monsters/MarakethSanctumTrial/Boss/SentinelMaceBossGothicCampaignSTANDALONE
+scripts: Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelMaceBoss, Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelMaceBossSTANDALONE
+own chain: Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelMaceBoss, Metadata/Monsters/MarakethSanctumTrial/Boss/SanctumBossBase, Metadata/Monsters/MarakethSanctumTrial/SanctumMonsterBase, Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelMaceBossSTANDALONE
+areas: Sanctum_2 Trial of the Sekhemas act2
+ai: Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelMaceBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedCold [melee] action=MeleeCold anim=-
+- GAMarakethSentinelMaceBossBasicSlam [geometry_attack] action=OffMelee anim=default:attack_02
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAMarakethMaceBossHeavySlam [geometry_attack] action=GroundSlam anim=default:heavy_slam_01
+    geom: circle length=28 width=0 angle=0 range=265 delay=33 anchor=3
+    flags: is_area_damage
+- EAAMarakethSentinelMaceBossMarkerSlam [empty_action_attack] action=Sweep anim=default:marker_slam_01
+- GTMarakethSentinelMaceBossIceMarkers [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=0 spread=34 radius=5 angle=0 anchor=4
+    triggers: SOMarakethSentinelMaceBossIceSpike
+- GTMarakethSentinelMaceBossIceMarkersBig [geometry_trigger] action=None anim=-
+    geom: trigger count=18 delay=360 spread=74 radius=42 angle=0 anchor=4
+    triggers: SOMarakethSentinelMaceBossIceSpike
+- SOMarakethSentinelMaceBossIceSpike [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/MarakethSanctumTrial/Boss/Objects/IceSpike
+- GSMarakethSentinalMaceBossIceSpikeExplode [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAMarakethSentinalMaceBossMarkerSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EAAMarakethSentinelMaceBossEnrage [empty_action_spell] action=SpellAreaOfEffect anim=default:activate_stone_01
+- EAAMarakethSentinelMaceBossMultiSlam [empty_action_attack] action=GroundSlamMoving anim=default:slam_multi_01
+- MPWMarakethSentinalMaceBossMultiSlamImpact [monster_projectile_weapon] action=GroundSlamMoving anim=default:slam_multi_01
+- GAMarakethSentinelMaceBossFootStepSlam [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinelMaceBossMultiSlam [geometry_attack] action=GroundSlamMoving anim=default:slam_multi_01
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinalMaceBossMarkerWaveOut [geometry_spell] action=None anim=-
+    geom: circle length=100 width=0 angle=0 range=500 delay=33 anchor=3
+    flags: base_deal_no_damage is_area_damage
+    GEAL 1143 on ['Metadata/Monsters/MarakethSanctumTrial/Boss/Objects/IceSpike']: self{} each{triggerer.StartStateTimer( thrust, 0.1 );} r=0
+
+## own states and handlers
+states: active; phase; enraged; active; audio; portal_spawn; ground_spawn
+- on_construction_complete = { globals.sentinelmaceboss += this; globals.always_serialised += this; }
+- on_death = { globals.sentinelmaceboss = null; }
+- on_event_death = { globals.coldstatuedaemon.SetStateTo( triggercold, 1 ); globals.firestatuedaemon.SetStateTo( triggercold, 1 ); }
+- on_initial_position_set = { CreateCameraZoomNode( 2.5, 9.5, 1.45 ); }
+- on_state_active_1 = { Delay( 4, { ClearCameraZoomNodes(); } ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/fieryAura.epk' ); Delay( 1, { IfState( phase, 1, { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); PlayCharacterAudioEvent( AscendancyA2SentinelBossBothDefeat ); } ); PlayCharacter
+- on_event_death = { globals.sentinelunarmedboss.AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/frozenAura.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/ice_death_01.epk' ); HideMeshSegments( L_straps_armShape, L_upperarm_Sh
+- on_state_audio_1 = { SetGlobalAudioParam( SekhemaTrialsBoss, 0 ); }
+- on_state_audio_2 = { SetGlobalAudioParam( SekhemaTrialsBoss, 1 ); }
+- on_state_audio_3 = { SetGlobalAudioParam( SekhemaTrialsBoss, 2 ); }
+- on_state_portal_spawn_1 = { this.specific_object_position = this.spawn_portal.GetPositionValues(); this.specific_object_facing = this.spawn_portal.GetFacingValues(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/monster_portal/monster_exit_portal.epk', 3.0 ); }
+- on_state_ground_spawn_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/sandsummon_beetle_fadein.epk', 1 ); PlayEffect( 'Metadata/Effects/Environment/League_Sanctum/hourglass_encounter/sand_orb.ao' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/monster_portal/monster_exit_portal.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/sandsummon_beetle_fadein.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/fieryAura.epk' ); }
+- on_event_death = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/ice_death_01.epk' ); HideMeshSegments( L_straps_armShape, L_upperarm_Shape1, L_upperarm_Shape2, L_upperarm_Shape3, R_upperarm_Shape1, R_upperarm_Shape2, R_upperarm_Shape3, helm1Shape, neckShape ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: ['arena_sector_destruction, GetState']
+
+## preloads
+- preload_misc_beam HeistFreidrichBloodBeamPool
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/MarakethSanctumTrial/Boss/Objects/IceSpike:  states= 
+- metadata/monsters/marakethsanctumtrial/boss/sentinels/burninggroundmarker:  [server_only=true] states= 
+- metadata/monsters/marakethsanctumtrial/boss/sentinels/firestatuedaemon: Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=activated;triggerfire;triggercold on_construction_complete{{ globals.firestatuedaemon += this; }}; on_or_create_state_triggerfire_1{{ AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/statueSphere_Fire.ao', <root> ); }}
+- metadata/monsters/marakethsanctumtrial/boss/sentinels/statue:  [blocking=false object_size=1] states= 
+- Metadata/Terrain/Leagues/Sanctum/Objects/SanctumProxGoal:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumGenericLever: InteractionAction Targetable [blocking=false object_size=5 server_only=true] states=lever_pull on_interaction_stopped{{ IfState( lever_pull, <2, { PlayAnimationByIndex( 1 ); } ); }}; on_interaction_started{{ triggerer.HideWeapons(); }}; on_interaction_stopped{{ triggerer.ShowWeapons(); }}; create_state_lever_pull_2{{ DisableTargetable(); }}; on_or_create_state_lever_pull_1{{ DisableTargetable(); }}; on_or_create_state_lever_pull_0{{ EnableTargetable(); }}
+- Metadata/Monsters/MarakethSanctumTrial/Hazards/LaserCrossBeamSpawner:  [blocking=false object_size=1 server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpikeSpawner:  [blocking=false object_size=1 server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpikeController: Targetable Stats [attackable=false server_only=true] states=sanctum_completed;trap_speed = 2 
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumLogicIndicator:  [blocking=false object_size=5 server_only=true] states=active = 2 create_state_active_0{{ PlayAnimation( off_idle ); }}; create_state_active_1{{ PlayAnimation( on_idle ); }}; on_state_active_0{{ PlayAnimation( off ); QueueAnimation( off_idle ); }}; on_state_active_1{{ PlayAnimation( on ); QueueAnimation( on_idle ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumLogicDoor: TriggerableBlockage [start_blocked=false blocking=false object_size=5 server_only=true] states=activate;open create_state_open_1{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; create_state_open_0{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); }}; on_state_open_1{{ PlayAnimationByIndex( 1 ); }}; on_state_open_0{{ PlayAnimationByIndex( 0 ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/FloorEndPortal: InteractionAction Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=28] states= on_construction_complete{{ DispatchRulesetEvent( setup_floor_transition ); }}
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal:  [server_only=true] states=activated;emerged on_or_create_state_activated_0{{ PlayAnimation( animationPreSet ); }}; on_state_activated_1{{ PlayAnimation( townportalopen ); QueueAnimation( townportal ); }}; create_state_activated_1{{ PlayAnimation( townportal ); }}; on_state_activated_2{{ PlayAnimation( townportalclose ); QueueAnimation( pre_open_01 ); }}; create_state_activated_2{{ PlayAnimation( pre_open_01 ); }}; on_state_emerged_1{{ IfState( activated, 0, (){ PlayAnimation( emerge_01 ); }, (){} ); }}
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal2:  [server_only=true] states=activated;emerged on_or_create_state_activated_0{{ PlayAnimation( animationPreSet ); }}; on_state_activated_1{{ PlayAnimation( townportalopen ); QueueAnimation( townportal ); }}; create_state_activated_1{{ PlayAnimation( townportal ); }}; on_state_activated_2{{ PlayAnimation( townportalclose ); QueueAnimation( pre_open_01 ); }}; create_state_activated_2{{ PlayAnimation( pre_open_01 ); }}; on_state_emerged_1{{ IfState( activated, 0, (){ PlayAnimation( emerge_01 ); }, (){} ); }}
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal3:  [server_only=true] states=activated;emerged on_or_create_state_activated_0{{ PlayAnimation( animationPreSet ); }}; on_state_activated_1{{ PlayAnimation( townportalopen ); QueueAnimation( townportal ); }}; create_state_activated_1{{ PlayAnimation( townportal ); }}; on_state_activated_2{{ PlayAnimation( townportalclose ); QueueAnimation( pre_open_01 ); }}; create_state_activated_2{{ PlayAnimation( pre_open_01 ); }}; on_state_emerged_1{{ IfState( activated, 0, (){ PlayAnimation( emerge_01 ); }, (){} ); }}
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal4:  [server_only=true] states=activated;emerged on_or_create_state_activated_0{{ PlayAnimation( animationPreSet ); }}; on_state_activated_1{{ PlayAnimation( townportalopen ); QueueAnimation( townportal ); }}; create_state_activated_1{{ PlayAnimation( townportal ); }}; on_state_activated_2{{ PlayAnimation( townportalclose ); QueueAnimation( pre_open_01 ); }}; create_state_activated_2{{ PlayAnimation( pre_open_01 ); }}; on_state_emerged_1{{ IfState( activated, 0, (){ PlayAnimation( emerge_01 ); }, (){} ); }}
+- Metadata/Monsters/MarakethSanctumTrial/ArenaCentreMarker:  [server_only=true] states= on_construction_complete{{ globals.arenacentre += this; }}
+- Metadata/Monsters/MarakethSanctumTrial/TeleportMarker:  [server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/TimeTrialMarker:  [server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/TimeTrialFarMarker:  [server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/ArenaCentreButton:  [blocking=false object_size=0 server_only=true] states=readytoactivate on_construction_complete{{ SetTickWhileSimulationFrozen(); }}; on_state_readytoactivate_2{{ CreateCameraZoomNode( 25.0, 50.0, 2 ); }}; on_state_readytoactivate_3{{ ClearCameraZoomNodes(); }}; on_state_readytoactivate_4{{ ClearCameraZoomNodes(); }}
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumKeyChestMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/GenericPortal: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=5 server_only=true icon=28] states=sanctum_completed on_or_create_state_sanctum_completed_0{{ PlayAnimationAtSpeed( townportal_inactive, 1.0 ); }}; on_state_sanctum_completed_1{{ PlayAnimationAtSpeed( townportalopen, 1.0 ); QueueAnimation( townportal ); }}; create_state_sanctum_completed_1{{ PlayAnimationAtSpeed( townportal, 1.0 ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/Rewards/SanctumWaterToKeyConverter: InteractionAction MinimapIcon [blocking=false object_size=5 server_only=true icon=MarakethSanctumKeyConverterActive] states=activated;sanctum_completed on_or_create_state_activated_1{{ DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Monsters/MarakethSanctumTrial/TitanGrottoWispTorch:  [blocking=false object_size=0 server_only=true] states=activated on_construction_complete{{ globals.titangrottowisptorch += this; }}; on_or_create_state_activated_1{{ PlayAnimation( run_01 ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/SilentSpiresApparitio}; on_or_create_state_activated_0{{ PlayAnimation( idle_01 ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/SilentSpiresAppar}; on_state_activated_1{{ SetLightState( Light_ON, 1.5 ); }}; create_state_activated_1{{ SetLightState( Light_ON ); }}; on_or_create_state_activated_0{{ SetLightState( Light_OFF ); }}
+- Metadata/Monsters/MarakethSanctumTrial/TitanGrottoWispTorch2:  [blocking=false object_size=0 server_only=true] states=activated on_construction_complete{{ globals.titangrottowisptorch -= this; globals.titangrottowisptorch2 += this; }}; on_construction_complete{{ globals.titangrottowisptorch += this; }}; on_or_create_state_activated_1{{ PlayAnimation( run_01 ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/SilentSpiresApparitio}; on_or_create_state_activated_0{{ PlayAnimation( idle_01 ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/SilentSpiresAppar}; on_state_activated_1{{ SetLightState( Light_ON, 1.5 ); }}; create_state_activated_1{{ SetLightState( Light_ON ); }}
+- Metadata/Monsters/MarakethSanctumTrial/TitanGrottoWispOrbitingTorch:  [blocking=false object_size=0 server_only=true] states=activated on_initial_position_set{{ Delay( 0.033, { LockHeight( orbit_height ); } ); }}; on_construction_complete{{ SetStateTo( activated, 1 ); }}; on_construction_complete{{ globals.titangrottowisptorch += this; }}; on_or_create_state_activated_1{{ PlayAnimation( run_01 ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/SilentSpiresApparitio}; on_or_create_state_activated_0{{ PlayAnimation( idle_01 ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/SilentSpiresAppar}; on_state_activated_1{{ SetLightState( Light_ON, 1.5 ); }}
+- Metadata/Monsters/MarakethSanctumTrial/WispRotationMarker1:  [server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/WispRotationMarker2:  [server_only=true] states= 
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/EmergeSand:  [blocking=false object_size=0 server_only=true] states=activated on_construction_complete{{ globals.emergesand = this; }}; on_state_activated_1{{ PlayAnimation( fadeout_01 ); }}; create_state_activated_1{{ DisableRendering(); }}
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueTrigger:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumBossArenaAudio:  [blocking=false object_size=0 server_only=true] states=stinger 
+- Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/Hourglass:  [blocking=false object_size=0 server_only=true] states=activated on_construction_complete{{ globals.sanctumhourglass = this; SetTickWhileSimulationFrozen(); }}; on_state_activated_1{{ PlayAnimation( emerge_01 ); QueueAnimation( idle_01 ); }}; create_state_activated_1{{ PlayAnimation( idle_01 ); }}; create_state_activated_0{{ PlayAnimation( preemerege_idle_01 ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/Floor4_DecorativePortal: ControlZone Transitionable [blocking=false object_size=1 server_only=true] states= on_transition{{ PlayAnimation( townportalclose ); }}; on_untransition{{ PlayAnimation( townportal ); }}; create_transitioned{{ PlayAnimation( townportal_inactive ); }}; create_untransitioned{{ PlayAnimation( townportal ); }}; on_end_townportalclose{{ PlayAnimation( townportal_inactive ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumAscendancyDeviceFloor4: Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=MarakethSanctumAscendancyAltar] states=activated;label_description create_state_activated_1{{ AddEffectPack( MonsterNoEmissiveOff ); DisableLights(); PlayAnimationByName( off ); QueueAnimationByName( idle_off ); }; on_state_activated_1{{ AddEffectPack( MonsterNoEmissiveFadeOut ); DisableLights(); PlayAnimationByName( off ); QueueAnimationByName( idle_off}; on_or_create_state_label_description_1{{ ChangeWorldDescriptionText( body, AscendancyShrineDescriptionHaveAscendancy ); }}
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueBossMarker:  [server_only=true] states= 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_sanctum_level_1_rooms_gauntlet_gauntlet_01.arm
+  point [449.0, 233.0, 'rare']
+  point [347.0, 584.0, 'telepad']
+  obj Metadata/Terrain/Leagues/Sanctum/Objects/SanctumProxGoal x1 (1005,520)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumGenericLever x1 (726,308)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/LaserCrossBeamSpawner x1 (572,222)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpikeSpawner x72 (409,407) (421,402) (435,405) (438,418) (434,390) (423,416) (410,422) (401,416) (396,400) (410,392)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpikeController x2 (452,379) (863,396)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumLogicIndicator x5 (757,291) (486,219) (731,315) (486,189) (757,261)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x1 (738,306)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumLogicDoor x2 (758,276) (486,204)
+room metadata_terrain_gallows_leagues_sanctum_level_4_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 300, 223, 474, 405, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 252, 324, 300, 405, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 251, 223, 300, 297, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['treasure_room', 724, 195, 1345, 471, '']
+  sector ['no_movement_skills', 235, 289, 299, 301, '']
+  sector ['no_movement_skills', 235, 277, 292, 289, '']
+  sector ['no_movement_skills', 235, 265, 286, 277, '']
+  sector ['no_movement_skills', 235, 253, 283, 265, '']
+  sector ['no_movement_skills', 235, 320, 299, 332, '']
+  sector ['no_movement_skills', 235, 332, 292, 344, '']
+  sector ['no_movement_skills', 235, 344, 287, 356, '']
+  sector ['no_movement_skills', 235, 356, 284, 368, '']
+  point [410.0, 309.0, 'mapboss']
+  point [214.0, 310.0, 'telepad']
+  point [309.0, 309.0, 'telepad']
+  point [816.0, 377.0, 'entrance']
+  point [774.0, 333.0, 'telepad']
+  point [410.0, 309.0, 'telepad']
+  point [432.0, 355.0, 'deferral_chest']
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/OrbitDaemon x1 (368,310)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/FloorEndPortal x1 (814,387)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal x2 (317,243) (317,377)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal2 x2 (351,234) (351,386)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal3 x2 (384,234) (384,386)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/portals/portal4 x2 (418,243) (418,377)
+  obj Metadata/Monsters/MarakethSanctumTrial/ArenaCentreMarker x1 (368,310)
+  obj Metadata/Monsters/MarakethSanctumTrial/TeleportMarker x8 (325,277) (367,259) (409,275) (416,310) (323,310) (322,345) (367,360) (406,343)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (283,309)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (266,547)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/TimeTrialMarker x8 (331,309) (368,273) (405,310) (367,347) (404,346) (404,273) (332,274) (331,346)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/TimeTrialFarMarker x16 (423,310) (368,243) (310,309) (367,377) (431,355) (432,264) (302,355) (303,266) (405,368) (331,369)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/ArenaCentreButton x1 (368,310)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumKeyChestMarker x51 (977,419) (1005,384) (937,379) (972,315) (978,378) (948,408) (972,351) (1023,423) (1041,384) (1092,423)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/GenericPortal x1 (432,310)
+  obj Metadata/MiscellaneousObjects/PortalTransition x1 (759,333)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/Rewards/SanctumWaterToKeyConverter x1 (858,373)
+  obj Metadata/Monsters/MarakethSanctumTrial/TitanGrottoWispTorch x2 (281,365) (282,256)
+  obj Metadata/Monsters/MarakethSanctumTrial/TitanGrottoWispTorch2 x2 (454,255) (454,365)
+  obj Metadata/Monsters/MarakethSanctumTrial/TitanGrottoWispOrbitingTorch x9 (353,421) (261,357) (257,273) (365,306) (346,367) (357,213) (450,227) (404,173) (461,311)
+  obj Metadata/Monsters/MarakethSanctumTrial/WispRotationMarker1 x1 (195,310)
+  obj Metadata/Monsters/MarakethSanctumTrial/WispRotationMarker2 x1 (357,214)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/EmergeSand x1 (455,312)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueTrigger x1 (252,312)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumBossArenaAudio x1 (440,309)
+  obj Metadata/Monsters/MarakethSanctumTrial/Boss/ApparitionBoss/Hourglass x1 (483,310)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/Floor4_DecorativePortal x1 (194,309)
+  obj Metadata/NPC/Four_Act2/BalbalaReleasedMerchant x1 (858,292)
+  obj Metadata/MiscellaneousObjects/Stash x1 (789,383)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumAscendancyDeviceFloor4 x1 (816,333)
+  obj Metadata/NPC/Four_Act2/BalbalaReleasedDialogue x1 (233,303)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueBossMarker x4 (307,260) (425,259) (423,362) (312,363)
+  obj Metadata/MiscellaneousObjects/Sanctum/SanctumLocker x1 (772,381)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (294,308)
+room metadata_terrain_gallows_leagues_sanctum_level_1_rooms_gauntlet_gauntlet_03.arm
+  point [325.0, 687.0, 'magic']
+  point [206.0, 306.0, 'telepad']
+  obj Metadata/Terrain/Leagues/Sanctum/Objects/SanctumProxGoal x1 (729,520)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumLogicIndicator x11 (600,509) (600,479) (412,467) (412,497) (591,316) (379,530) (533,349) (562,349) (481,558) (511,558)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumGenericLever x2 (587,309) (380,517)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpikeSpawner x53 (342,543) (353,552) (331,537) (322,528) (317,539) (330,549) (343,558) (331,565) (318,556) (308,550)
+  obj Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpikeController x3 (356,602) (339,342) (548,204)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumLogicDoor x4 (601,494) (413,482) (548,350) (496,559)

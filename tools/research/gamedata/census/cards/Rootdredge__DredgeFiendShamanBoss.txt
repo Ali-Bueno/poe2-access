@@ -1,0 +1,219 @@
+# Rootdredge / Grudgelash, Vile Thorn
+content: Act 3
+monsters: Metadata/Monsters/TwigMonsters/DredgeFiendShamanBoss, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossCampaignSTANDALONE, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossMap, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossSTANDALONE
+scripts: Metadata/Monsters/TwigMonsters/DredgeFiendShamanBoss, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossSTANDALONE, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossMap_
+own chain: Metadata/Monsters/TwigMonsters/DredgeFiendShamanBoss, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossSTANDALONE, Metadata/Monsters/TwigMonsters/DredgeFiendShamanBossMap_
+areas: G3_1 Sandswept Marsh act3; MapBurialBog Burial Bog act10; MapReservoir Reservoir act10
+ai: Metadata/Monsters/TwigMonsters/DredgeFiendShamanBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EGDredgeFiendBossZombieCall [execute_geal] action=SpellAreaOfEffectChaos anim=default:summon_zombies_01,stance2:summon_zombies_01
+    GEAL 1096 on ['Metadata/Monsters/BogZombie/BogZombieEmitter']: self{} each{Roll(1, 3, {triggerer.Call( zomb ); triggerer.shaman = this;});} r=150
+- MMSDredgeFiendShamanBossMortar [monster_projectile_spell] action=SpellProjectile anim=default:spell_projectile_01
+- EGDredgeShamanBossDetonateDead [execute_geal] action=SpellAreaOfEffectFire anim=default:detonate_dead_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+    GEAL 1080 on ['Metadata/Monsters/BogBodies/BogCorpseUnarmed', 'Metadata/Monsters/BogBodies/BogCorpseOneHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseTwoHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon', 'Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon']: self{} each{		triggerer.If( Or( GetState( vol_dead ) == 0, GetState( det_dead ) == 0 ), () 		{ 			triggerer.boss_shaman = this; 			triggerer.SetStateTo( det_dead, 1 ); 		} );} r=41
+- GSDredgeShamanBossVolatileDeadSingle [geometry_spell] action=SpellProjectileUpward anim=default:volatile_dead_01
+    geom: cone length=50 width=0 angle=30 range=0 delay=0 anchor=3
+    flags: base_deal_no_damage
+    GEAL 1083 on ['Metadata/Monsters/BogBodies/BogCorpseUnarmed', 'Metadata/Monsters/BogBodies/BogCorpseOneHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseTwoHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon', 'Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon']: self{} each{		triggerer.If( Or( GetState( vol_dead ) == 0, GetState( det_dead ) == 0 ), () 		{ 			triggerer.boss_shaman = this; 			triggerer.SetStateTo( vol_dead, 1 ); 		} );} r=50
+- GSDredgeShamanBossVolatileDead [geometry_spell] action=SpellProjectileUpward anim=default:volatile_dead_01
+    geom: cone length=50 width=0 angle=30 range=0 delay=0 anchor=3
+    flags: base_deal_no_damage
+    GEAL 1081 on ['Metadata/Monsters/BogBodies/BogCorpseUnarmed', 'Metadata/Monsters/BogBodies/BogCorpseOneHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseTwoHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon', 'Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon']: self{} each{		triggerer.If( Or( GetState( vol_dead ) == 0, GetState( det_dead ) == 0 ), () 		{ 			triggerer.boss_shaman = this; 			triggerer.SetStateTo( vol_dead, 1 ); 		} );} r=50
+- GTDredgeFiendShamanBossZombieLeft [geometry_trigger] action=SpellBuffFire anim=default:summon_zombies_left_01
+    geom: trigger count=5 delay=500 spread=25 radius=30 angle=120 anchor=4
+    triggers: SSMDredgeFiendShamanBossZombieDefense
+- GTDredgeFiendShamanBossZombieRight [geometry_trigger] action=SpellBuffCold anim=default:summon_zombies_right_1
+    geom: trigger count=5 delay=500 spread=25 radius=30 angle=120 anchor=4
+    triggers: SSMDredgeFiendShamanBossZombieDefense
+- GSDredgeShamanBossDetonateDead [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1079 on ['Metadata/Monsters/BogBodies/BogCorpseUnarmed', 'Metadata/Monsters/BogBodies/BogCorpseOneHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseTwoHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon', 'Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon']: self{} each{triggerer.boss_shaman = this;DelayRandom( 0.03, 0.3, {triggerer.SetStateTo(det_dead, 1);} );} r=50
+- DredgeFiendShamanBossQuicksand [shakari_quicksand] action=SpellAreaOfEffectCold anim=default:quicksand_01
+- GTDredgeFiendShamanBossZombieBullrush [geometry_trigger] action=SpellAreaOfEffect anim=default:summon_zombies_01
+    geom: trigger count=6 delay=0 spread=45 radius=45 angle=0 anchor=3
+    triggers: SSMDredgeFiendShamanBossZombieOffense
+- GTDredgeFiendShamanBossZombieWall [geometry_trigger] action=SpellAreaOfEffect anim=default:summon_zombies_01
+    geom: trigger count=6 delay=0 spread=5 radius=45 angle=0 anchor=3
+    triggers: SSMDredgeFiendShamanBossZombieDefense
+- GTDredgeFiendShamanBossZombieCircleOffensive [geometry_trigger] action=SpellAreaOfEffect anim=default:summon_zombies_01
+    geom: trigger count=6 delay=0 spread=18 radius=20 angle=0 anchor=4
+    triggers: SSMDredgeFiendShamanBossZombieOffense
+- GTDredgeFiendShamanBossZombieCircleDefensive [geometry_trigger] action=SpellAreaOfEffect anim=default:summon_zombies_01
+    geom: trigger count=6 delay=0 spread=18 radius=20 angle=0 anchor=4
+    triggers: SSMDredgeFiendShamanBossZombieDefense
+- SSMDredgeFiendShamanBossZombieOffense [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon
+- SSMDredgeFiendShamanBossZombieDefense [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon
+- GSDredgeShamanBossDetonateDeadChained [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1079 on ['Metadata/Monsters/BogBodies/BogCorpseUnarmed', 'Metadata/Monsters/BogBodies/BogCorpseOneHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseTwoHandAxe', 'Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon', 'Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon']: self{} each{triggerer.boss_shaman = this;DelayRandom( 0.03, 0.3, {triggerer.SetStateTo(det_dead, 1);} );} r=50
+- GSDredgeBossMortarImpact [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=132 delay=33 anchor=12
+    flags: is_area_damage
+- GSDredgeBossMortarImpactAir [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=132 delay=33 anchor=12
+    flags: is_area_damage
+
+## own states and handlers
+states: death_epk
+- on_end_summon_zombies_01 = { PlayCharacterAudioEvent( SandsweptMarshBossSummon ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk' ); }
+- on_state_death_epk_1 = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); AddEffectPackAttached( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk', 'Metadata/Monsters/DredgeFiend/attachments/DredgeFiendMinibossWeapon.ao' ); this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/DredgeF
+- create_state_death_epk_1 = { Delay( 0.01, { SetLightState( off, 0.1 ); this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/DredgeFiend/attachments/DredgeFiendMinibossWeapon.ao' ); my_weapon.SetLightState( off, 0.1 ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_environment G3_1_boss
+
+## adds and forms
+- Metadata/Monsters/BogBodies/BogCorpseDefensiveSummon "Bogfelled Commoner" bossbar=0 skills=MeleeAtAnimationSpeed,BogCorpseVolatileExplosion comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=make_walk;det_dead;vol_dead
+- Metadata/Monsters/BogBodies/BogCorpseOffensiveSummon "Bogfelled Commoner" bossbar=0 skills=MeleeAtAnimationSpeed,BogCorpseVolatileExplosion comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=make_walk;det_dead;vol_dead
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/BogZombie/BogZombieEmitter:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/VaalSunWorshipper/Objects/SunWallController:  [blocking=false object_size=0 server_only=true] states=active 
+- Metadata/Monsters/VaalSunWorshipper/Objects/SunWallVisual:  [blocking=false object_size=1 server_only=true] states=active on_or_create_state_active_0{{ DisableRendering(); PlayAnimation( emerge ); }}; on_state_active_1{{ EnableRendering(); PlayAnimation( loop ); }}
+- Metadata/Monsters/VaalSunWorshipper/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=KaazuliBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( KaazuliBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_12/Objects/SummonAlva: InteractionAction [blocking=false object_size=0 server_only=true] states=activated;visible create_state_visible_0{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; on_state_visible_1{{ IfState( activated, 0, () { EnableRendering(); ShowMinimapIcon(); EnableTargetable(); } ); }}; on_state_activated_1{{ DetachAllOfType( 'Metadata/Effects/misc/Quest_Indicator/Indicator_01.ao' ); DisableTargetable(); PlayAnimationByIndex(}; create_state_activated_1{{ DisableRendering(); DisableTargetable(); HideMinimapIcon(); }}; on_construction_complete{{ IfState( activated, 0, () { PlayAnimationByIndex( 1 ); AddAttachedOffset( 'Metadata/Effects/misc/Quest_Indicator/Indic}
+- Metadata/Terrain/Gallows/Act3/3_12/Objects/KetzuliBossArenaTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardKetzuliArena, TitleCardKetzuliArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_12/Objects/LiftPerimeterBlocker: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimation( idle ); }}; create_untransitioned{{ PlayAnimation( off ); GoToAnimationEnd(); }}; on_transition{{ PlayAnimation( on ); QueueAnimation( idle ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_maps_reservoir_rooms_boss_01.arm
+  sector ['no_critters', 52, 50, 247, 239, '']
+  sector ['hide_teleports', 38, 85, 244, 235, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 70, 78, 221, 85, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 78, 71, 204, 78, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 97, 59, 144, 71, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['boss_sector', 53, 81, 232, 227, '']
+  sector ['boss_sector', 73, 73, 204, 81, '']
+  sector ['boss_sector', 82, 60, 140, 73, '']
+  sector ['no_movement_skills', 25, 83, 70, 85, '']
+  sector ['no_movement_skills', 84, 21, 86, 69, '']
+  sector ['no_movement_skills', 68, 81, 70, 85, '']
+  sector ['no_movement_skills', 68, 81, 72, 83, '']
+  sector ['no_movement_skills', 70, 79, 72, 83, '']
+  sector ['no_movement_skills', 70, 79, 74, 81, '']
+  sector ['no_movement_skills', 72, 77, 74, 81, '']
+  sector ['no_movement_skills', 72, 77, 76, 79, '']
+  sector ['no_movement_skills', 74, 75, 76, 79, '']
+  sector ['no_movement_skills', 74, 75, 78, 77, '']
+  sector ['no_movement_skills', 76, 73, 78, 77, '']
+  sector ['no_movement_skills', 76, 73, 80, 75, '']
+  sector ['no_movement_skills', 78, 71, 80, 75, '']
+  sector ['no_movement_skills', 78, 71, 82, 73, '']
+  sector ['no_movement_skills', 80, 69, 82, 73, '']
+  sector ['no_movement_skills', 80, 69, 84, 71, '']
+  sector ['no_movement_skills', 82, 67, 84, 71, '']
+  sector ['no_movement_skills', 82, 67, 86, 69, '']
+  point [185.0, 184.0, 'mapboss']
+  point [54.0, 50.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x10 (172,258) (176,41) (110,268) (253,150) (252,196) (225,151) (225,242) (53,161) (235,69) (149,258)
+  obj Metadata/Monsters/BogZombie/BogZombieEmitter x32 (145,59) (236,102) (162,64) (220,65) (211,88) (220,116) (223,156) (206,232) (220,134) (222,180)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (43,66)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (128,131)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (72,78) (67,82) (76,73) (80,69) (85,65) (89,61) (63,86) (59,90)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x2 (92,63) (64,90)
+  obj Metadata/MiscellaneousObjects/Endgame/AnomalyObjectMarker x1 (133,139)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (113,188)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (142,182) (173,145) (160,103) (103,160)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (160,178)
+room metadata_terrain_maps_burialbog_rooms_sand_boss_01.arm
+  sector ['hide_teleports', 127, 143, 290, 290, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 292, 141, 297, 280, '']
+  sector ['no_movement_skills', 136, 292, 281, 297, '']
+  sector ['no_critters', 144, 139, 300, 301, '']
+  sector ['boss_sector', 142, 147, 283, 298, '']
+  sector ['boss_sector', 283, 147, 297, 284, '']
+  sector ['no_movement_skills', 281, 286, 285, 297, '']
+  sector ['no_movement_skills', 287, 280, 297, 284, '']
+  sector ['no_movement_skills', 281, 286, 291, 290, '']
+  sector ['no_movement_skills', 287, 280, 291, 290, '']
+  sector ['boss_sector', 283, 284, 290, 291, '']
+  sector ['boss_sector', 297, 240, 306, 277, '']
+  point [177.0, 183.0, 'mapboss']
+  point [331.0, 329.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x5 (132,217) (281,147) (129,291) (164,292) (218,210)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (123,312) (218,218)
+  obj Metadata/Monsters/BogZombie/BogZombieEmitter x30 (186,324) (251,301) (319,153) (326,209) (272,135) (246,135) (237,111) (189,137) (166,115) (152,120)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (315,330)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x2 (272,297) (299,269)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (292,282) (296,278) (288,286) (283,291) (279,295) (275,299) (301,274) (304,270)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (236,235)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (207,184)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (183,252) (230,261) (261,204) (249,182)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (187,179)
+room metadata_terrain_gallows_act3_3_12_rooms_unique_boss_03.arm
+  sector ['lift', 331, 218, 359, 289, '']
+  sector ['lift', 314, 226, 376, 281, '']
+  sector ['hide_teleports', 253, 183, 437, 201, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 245, 201, 444, 359, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 45, 12, 668, 520, '']
+  sector ['no_movement_skills', 257, 159, 434, 161, '']
+  sector ['no_movement_skills', 257, 161, 259, 183, '']
+  sector ['no_movement_skills', 432, 161, 434, 183, '']
+  sector ['no_movement_skills', 256, 183, 258, 185, '']
+  sector ['no_movement_skills', 433, 183, 435, 185, '']
+  sector ['no_movement_skills', 255, 184, 256, 189, '']
+  sector ['no_movement_skills', 256, 185, 257, 187, '']
+  sector ['no_movement_skills', 434, 185, 436, 187, '']
+  sector ['no_movement_skills', 254, 186, 255, 190, '']
+  sector ['no_movement_skills', 435, 187, 437, 189, '']
+  sector ['no_movement_skills', 253, 188, 254, 192, '']
+  sector ['no_movement_skills', 436, 189, 438, 191, '']
+  sector ['no_movement_skills', 252, 190, 253, 194, '']
+  sector ['no_movement_skills', 438, 190, 439, 195, '']
+  sector ['no_movement_skills', 437, 191, 438, 193, '']
+  sector ['no_movement_skills', 251, 192, 252, 196, '']
+  sector ['no_movement_skills', 439, 192, 440, 197, '']
+  sector ['no_movement_skills', 250, 194, 251, 198, '']
+  sector ['no_movement_skills', 440, 194, 441, 199, '']
+  sector ['no_movement_skills', 249, 195, 250, 200, '']
+  sector ['no_movement_skills', 441, 196, 442, 201, '']
+  sector ['no_movement_skills', 248, 197, 249, 201, '']
+  sector ['no_movement_skills', 442, 198, 443, 203, '']
+  sector ['no_movement_skills', 247, 199, 248, 203, '']
+  sector ['no_movement_skills', 443, 200, 444, 205, '']
+  sector ['no_movement_skills', 246, 201, 247, 205, '']
+  sector ['no_movement_skills', 444, 202, 445, 206, '']
+  sector ['no_movement_skills', 245, 203, 246, 207, '']
+  sector ['no_movement_skills', 445, 204, 446, 208, '']
+  sector ['no_movement_skills', 244, 205, 245, 209, '']
+  sector ['no_movement_skills', 243, 206, 244, 211, '']
+  sector ['no_movement_skills', 446, 206, 447, 210, '']
+  sector ['no_movement_skills', 242, 208, 243, 212, '']
+  sector ['no_movement_skills', 447, 208, 448, 212, '']
+  sector ['no_movement_skills', 240, 210, 242, 359, '']
+  sector ['no_movement_skills', 447, 212, 449, 359, '']
+  sector ['no_movement_skills', 242, 357, 448, 359, '']
+  point [385.0, 276.0, 'mapboss']
+  point [345.0, 276.0, 'entrance']
+  point [175.0, 154.0, 'telepad']
+  point [345.0, 343.0, 'telepad6']
+  point [423.0, 207.0, 'telepad7']
+  point [265.0, 207.0, 'telepad5']
+  point [179.0, 156.0, 'checkpoint3']
+  point [349.0, 196.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x6 (385,229) (156,143) (345,252) (345,371) (447,193) (240,192)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallController x3 (345,118) (228,320) (462,320)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/SunWallVisual x3 (345,253) (345,253) (345,253)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x4 (211,320) (469,320) (343,111) (344,246)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (171,166)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (344,252)
+  obj Metadata/Monsters/VaalSunWorshipper/Objects/BossRoomMinimapIcon x1 (343,251)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/SummonAlva x1 (356,275)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/KetzuliBossArenaTitle x1 (345,252)
+  obj Metadata/Terrain/Gallows/Act3/3_12/Objects/LiftPerimeterBlocker x6 (309,253) (380,253) (362,284) (327,222) (327,284) (362,222)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x3 (344,361) (439,199) (249,196)

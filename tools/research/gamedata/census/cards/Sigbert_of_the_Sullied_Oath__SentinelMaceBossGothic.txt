@@ -1,0 +1,86 @@
+# Sigbert of the Sullied Oath
+content: Interlude
+monsters: Metadata/Monsters/MarakethSanctumTrial/Boss/SentinelMaceBossGothic
+scripts: Metadata/Monsters/GothicSentinels/SentinelMaceBoss
+own chain: Metadata/Monsters/GothicSentinels/SentinelMaceBoss, Metadata/Monsters/GothicSentinels/GothicSentinelsBase
+areas: P1_4 Holten act6
+ai: Metadata/Monsters/MarakethSanctumTrial/Boss/Sentinels/SentinelMaceBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedCold [melee] action=MeleeCold anim=-
+- GAMarakethSentinelMaceBossBasicSlam [geometry_attack] action=OffMelee anim=default:attack_02
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAMarakethMaceBossHeavySlam [geometry_attack] action=GroundSlam anim=default:heavy_slam_01
+    geom: circle length=28 width=0 angle=0 range=265 delay=33 anchor=3
+    flags: is_area_damage
+- EAAMarakethSentinelMaceBossMarkerSlam [empty_action_attack] action=Sweep anim=default:marker_slam_01
+- GTMarakethSentinelMaceBossIceMarkers [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=0 spread=34 radius=5 angle=0 anchor=4
+    triggers: SOMarakethSentinelMaceBossIceSpike
+- GTMarakethSentinelMaceBossIceMarkersBig [geometry_trigger] action=None anim=-
+    geom: trigger count=18 delay=360 spread=74 radius=42 angle=0 anchor=4
+    triggers: SOMarakethSentinelMaceBossIceSpike
+- SOMarakethSentinelMaceBossIceSpike [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/MarakethSanctumTrial/Boss/Objects/IceSpike
+- GSMarakethSentinalMaceBossIceSpikeExplode [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GAMarakethSentinalMaceBossMarkerSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EAAMarakethSentinelMaceBossEnrage [empty_action_spell] action=SpellAreaOfEffect anim=default:activate_stone_01
+- EAAMarakethSentinelMaceBossMultiSlam [empty_action_attack] action=GroundSlamMoving anim=default:slam_multi_01
+- MPWMarakethSentinalMaceBossMultiSlamImpact [monster_projectile_weapon] action=GroundSlamMoving anim=default:slam_multi_01
+- GAMarakethSentinelMaceBossFootStepSlam [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinelMaceBossMultiSlam [geometry_attack] action=GroundSlamMoving anim=default:slam_multi_01
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAMarakethSentinalMaceBossMarkerWaveOut [geometry_spell] action=None anim=-
+    geom: circle length=100 width=0 angle=0 range=500 delay=33 anchor=3
+    flags: base_deal_no_damage is_area_damage
+    GEAL 1143 on ['Metadata/Monsters/MarakethSanctumTrial/Boss/Objects/IceSpike']: self{} each{triggerer.StartStateTimer( thrust, 0.1 );} r=0
+
+## own states and handlers
+states: active; phase; enraged
+- on_construction_complete = { globals.sentinelmaceboss += this; }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/fieryAura.epk' ); }
+- on_event_death = { globals.sentinelunarmedboss.IfAlive( (){ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/frozenAura.epk' ); } ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/epk/ice_death_01.epk' ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/MarakethSanctumTrial/Boss/Objects/IceSpike:  states= 
+- metadata/monsters/gothicsentinels/gargoyleglyphinterlude: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=8] states= 
+- metadata/monsters/gothicsentinels/gargoyleinterlude:  [server_only=true] states=active on_end_emerge_head_look_01{{ PlayAnimation( emerge_idle_02 ); }}; create_state_active_0{{ PlayAnimation( emerge_idle_01 ); }}; on_state_active_1{{ PlayAnimation( emerge_head_look_01 ); }}; create_state_active_1{{ PlayAnimation( emerge_idle_02 ); }}
+- metadata/monsters/gothicsentinels/gothicsentinelsbase: Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=active;phase;enraged 
+- Metadata/Monsters/GothicSentinels/GargoyleGlyphInterlude: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=8] states= 
+- Metadata/Monsters/GothicSentinels/GargoyleInterlude:  [server_only=true] states=active on_end_emerge_head_look_01{{ PlayAnimation( emerge_idle_02 ); }}; create_state_active_0{{ PlayAnimation( emerge_idle_01 ); }}; on_state_active_1{{ PlayAnimation( emerge_head_look_01 ); }}; create_state_active_1{{ PlayAnimation( emerge_idle_02 ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act4_interlude_part1_p1_4_rooms_unique_boss_1.arm
+  sector ['hide_teleports', 160, 142, 422, 440, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 160, 142, 422, 440, '']
+  point [220.0, 323.0, 'mapboss1']
+  point [353.0, 322.0, 'mapboss2']
+  point [353.0, 77.0, 'magic']
+  point [289.0, 101.0, 'checkpoint3']
+  point [286.0, 161.0, 'telepad1']
+  point [285.0, 332.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (313,108)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x23 (258,404) (316,403) (384,117) (460,90) (460,34) (253,122) (468,47) (469,96) (453,122) (440,123)
+  obj Metadata/Monsters/GothicSentinels/GargoyleGlyphInterlude x1 (287,409)
+  obj Metadata/Monsters/GothicSentinels/GargoyleInterlude x1 (288,389)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (286,133)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (287,143)

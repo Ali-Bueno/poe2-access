@@ -1,0 +1,211 @@
+# The Trialmaster
+content: Act 3
+monsters: Metadata/Monsters/TrialMaster/TheTrialmaster_
+scripts: Metadata/Monsters/TrialMaster/TheTrialmaster
+own chain: Metadata/Monsters/TrialMaster/TheTrialmaster
+areas: G3_10 The Trial of Chaos act3
+ai: Metadata/Monsters/TrialMaster/TheTrialmaster.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- MASTrialmasterSpinningCombo [melee] action=OffMelee anim=default:melee_combo_01
+- EASTheTrialMasterElementalProjectiles [empty_action_spell] action=SpellProjectileUpwardFire anim=stance3:caster_attack_01,caster_attack_02
+    flags: is_area_damage
+- MPSTheTrialMasterFireProjectile [monster_projectile_spell] action=SpellProjectile anim=-
+- MPSTheTrialMasterColdProjectile [monster_projectile_spell] action=SpellProjectile anim=-
+- MPSTheTrialMasterLightningProjectile [monster_projectile_spell] action=SpellProjectile anim=-
+- TheTrialMasterBossAbyssSlam [proto_abyss_slam] action=OffFrenzy anim=default:melee_time_teleport_loop_01
+    flags: is_area_damage
+- TheTrialMasterBossAbyssSlamNormal [proto_abyss_slam] action=Frenzy anim=default:melee_groundslam_01
+    flags: is_area_damage
+- MPSTheTrialMasterOmegaBolt [monster_projectile_spell] action=SpellNovaChaos anim=stance3:caster_time_teleport_loop_01
+- EASTheTrialMasterSummonSpear [empty_action_spell] action=SpellAreaOfEffectCold anim=stance3:caster_summon_spear_01
+- GPATrialMasterBossThrowWeapon [geometry_projectiles_attack] action=Throw anim=default:melee_spearthrow_01
+- GATheTrialMasterBossBloodSlam [geometry_attack] action=None anim=-
+    geom: circle length=55 width=0 angle=0 range=700 delay=33 anchor=3
+    flags: is_area_damage
+- GATheTrialMasterBossGroundSpearNova [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=420 delay=33 anchor=4
+    flags: is_area_damage
+    GEAL 1136 on ['Metadata/Monsters/TrialMaster/Objects/TeleportMarker']: self{} each{triggerer.If( GetState( valid_teleport ) == 1, (){ SetStateTo( valid_teleport, 0 ); } );} r=0
+- GATheTrialMasterBossGroundSpearImpact [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1136 on ['Metadata/Monsters/TrialMaster/Objects/TeleportMarker']: self{} each{triggerer.If( GetState( valid_teleport ) == 1, (){ SetStateTo( valid_teleport, 0 ); } );} r=0
+- TrialmasterTetherSpike [trialmaster_tether_spike] action=SpellAreaOfEffectFire anim=stance3:caster_summon_spike_01
+- TheTrialmasterTimestopSlam [trialmaster_timestop] action=OffFrenzy anim=default:melee_time_teleport_loop_01
+    flags: base_deal_no_damage
+- TheTrialmasterTimestopProjectile [trialmaster_timestop] action=SpellNovaChaos anim=stance3:caster_time_teleport_loop_01
+    flags: base_deal_no_damage
+- TeleportTrialMasterBoss [marker_warp] action=Teleport anim=stance3:caster_teleport_01
+    flags: skill_cannot_be_stunned
+- MPSTheTrialMasterOmegaBoltTriggered [monster_projectile_spell] action=SpellProjectileChaos anim=stance3:caster_omega_projectile_01
+- GSTrialmasterFireBoltImpact [geometry_spell] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSTrialmasterColdBoltImpact [geometry_spell] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSTrialmasterLightningBoltImpact [geometry_spell] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSTrialMasterBossOmegaProjectileExplode [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GATrialmasterLacerate [geometry_attack] action=None anim=-
+    geom: rectangle length=60 width=35 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- GATrialmasterBloodSlamBuildUp [geometry_attack] action=DoubleSlam anim=default:melee_spear_slam_01
+    geom: circle length=55 width=0 angle=0 range=2000 delay=2000 anchor=3
+    flags: base_deal_no_damage is_area_damage
+- EASTrialMasterTimeStopCaster [empty_action_spell] action=SpellProjectileUpward anim=stance3:caster_time_teleport_start_01
+- EASTrialMasterTimeStopMelee [empty_action_spell] action=SpellProjectileUpwardLightning anim=default:melee_time_teleport_start_01
+- EASTrialMasterTimeStartMelee [empty_action_spell] action=SpellProjectileLightning anim=default:melee_time_teleport_end_01
+- EASTrialMasterTimeStartCaster [empty_action_spell] action=SpellProjectileUpwardCold anim=stance3:caster_time_teleport_end_01
+- MPSTheTrialMasterOmegaBoltNormal [monster_projectile_spell] action=SpellProjectileChaos anim=stance3:caster_omega_projectile_01
+- CGETheTrialMasterSpearSlamBloodDegen [monster_cast_ground_effect_location] action=None anim=-
+- EASTrialMasterElementalLob [empty_action_spell] action=SpellBuff anim=stance3:caster_lob_orb_01
+- GATrialmasterAbyssSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: npctransform; castermode
+- on_construction_complete = { SetTickWhileSimulationFrozen(); }
+- on_start_ChangeToStance1 = { StartStateTimer( update_box, 0.125 ); }
+- on_start_ChangeToStance2 = { StartStateTimer( update_box, 0.125 ); }
+- on_start_ChangeToStance3 = { StartStateTimer( update_box, 0.125 ); }
+- on_end_ChangeToStance1 = { CancelStateTimer( update_box ); UpdateBoundingBox(); ForceUpdateSelectionBoundingBox(); }
+- on_end_ChangeToStance2 = { CancelStateTimer( update_box ); UpdateBoundingBox(); ForceUpdateSelectionBoundingBox(); }
+- on_end_ChangeToStance3 = { CancelStateTimer( update_box ); UpdateBoundingBox(); ForceUpdateSelectionBoundingBox(); }
+- on_timer_update_box = { UpdateBoundingBox(); ForceUpdateSelectionBoundingBox(); StartStateTimer( update_box, 0.125 ); }
+- on_initial_position_set = { HideWeapons( true, false ); }
+- on_event_add_weapon_for_npc_start_trial_melee_01 = { AddAttached( 'Metadata/Monsters/TrialMaster/Attachments/TrialMaster_Weapon_Transition.ao', R_Weapon ); }
+- on_event_skin_removal_for_npc_start_trial_melee_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/NPC_FakeSkin.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/SkinRemoval.epk' ); ShowMeshSegment( head_meshShape ); DetachAllOfType( 'Metadata/
+- on_event_show_weapon_for_npc_start_trial_melee_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/SkinRemoval.epk' ); }
+- on_end_npc_start_trial_melee_01 = { DetachAllOfType( 'Metadata/Monsters/TrialMaster/Attachments/TrialMaster_Weapon_Transition.ao' ); }
+- on_event_add_weapon_for_intro_prefight_01 = { AddAttached( 'Metadata/Monsters/TrialMaster/Attachments/TrialMaster_Weapon_Transition.ao', R_Weapon ); }
+- on_event_skin_removal_for_intro_prefight_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/NPC_FakeSkin.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/SkinRemoval.epk' ); ShowMeshSegment( head_meshShape ); DetachAllOfType( 'Metadata/
+- on_event_show_weapon_for_intro_prefight_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/SkinRemoval.epk' ); }
+- on_end_intro_prefight_01 = { DetachAllOfType( 'Metadata/Monsters/TrialMaster/Attachments/TrialMaster_Weapon_Transition.ao' ); }
+- on_effect_event_contact_for_TrialMasterBossAbyssSlam = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/crystal_slam_audio.ao' ); }
+- create_state_npctransform_0 = { HideMeshSegment( head_meshShape ); AddAttachedObjectToBones( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/trialmasterhelm.ao', head_jntBnd ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/NPC_FakeSkin.epk' ); }
+- on_or_create_state_npctransform_1 = { ShowMeshSegment( head_meshShape ); DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/trialmasterhelm.ao' ); }
+- on_state_castermode_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/boss_caster_mode.epk' ); }
+- on_or_create_state_castermode_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/boss_caster_mode.epk' ); }
+- on_death = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/TrialMaster/Attachments/TrialMaster_Weapon_01.ao' ); my_weapon.MoveToBone( aux_R_Weapon_attachment_02, 0 ); AddEffectPack( GenericNoEmiissive ); SetLightState( off, 1 ); }
+- on_effect_start_MPSTheTrialMasterOmegaBoltNormal = { Roll( 1, 3, () { PlayTextAudio( TrialmasterBoss_OmegaBolt_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC', 400 ); } ); }
+- on_effect_start_GPATrialMasterBossThrowWeapon = { Roll( 1, 1, () { PlayTextAudio( TrialmasterBoss_ThrowSpear_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC', 300 ); } ); }
+- on_effect_start_EASTrialMasterTimeStopMelee = { Roll( 1, 1, () { PlayTextAudio( TrialmasterBoss_Timestop_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_effect_start_EASTrialMasterTimeStopCaster = { Roll( 1, 1, () { PlayTextAudio( TrialmasterBoss_Timestop_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_effect_start_MASTrialmasterSpinningCombo = { Roll( 1, 2, () { PlayTextAudio( TrialmasterBoss_SpinCombo_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_effect_start_GATrialmasterBloodSlamBuildUp = { Roll( 1, 2, () { PlayTextAudio( TrialmasterBoss_BloodSlam_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_effect_start_TheTrialMasterBossAbyssSlamNormal = { Roll( 1, 4, () { PlayTextAudio( TrialmasterBoss_AbyssSlam_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC', 500 ); } ); }
+- on_effect_start_TeleportTrialMasterBoss = { Roll( 1, 1, () { PlayTextAudio( TrialmasterBoss_Teleport_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_effect_start_EASTheTrialMasterSummonSpear = { Roll( 1, 1, () { PlayTextAudio( TrialmasterBoss_SummonSpear_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC', 300 ); } ); }
+- on_effect_start_TrialmasterTetherSpike = { Roll( 1, 1, () { PlayTextAudio( TrialmasterBoss_TetherSpike_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC', 400 ); } ); }
+- on_caster_knockdown_bwd_01 = { Roll( 1, 2, () { PlayTextAudio( TrialmasterBoss_CasterKnockdown_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_melee_knockdown_bwd_01 = { Roll( 1, 2, () { PlayTextAudio( TrialmasterBoss_MeleeKnockdown_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); } ); }
+- on_death = { QueueTextAudio( TrialmasterBoss_DeathA_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC' ); QueueTextAudio( TrialmasterBoss_DeathB_Random, 'Metadata/NPC/League/Ultimatum/UltimatumNPC', 11200 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/NPC/League/Ultimatum/UltimatumNPC
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/weapon_proj_object.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/Audio/omegaProjReboundAudio.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/NPC/League/Ultimatum/UltimatumNPC: InteractionAction Targetable MinimapIcon [blocking=true object_size=4 server_only=true icon=3] states=in_area;talking;never_leave;in_boss_room;summon_direction on_emerge_portal_01{{ MakeCollidable(); }}; on_end_emerge_portal_01{{ SetStateTo( in_area, 2 ); }}; on_end_teleport_01_begin{{ RemoveCollidability(); }}; on_end_start_trial_01{{ RemoveCollidability(); }}; on_end_start_trial_02{{ RemoveCollidability(); }}; on_teleport_01_end{{ MakeCollidable(); }}
+- Metadata/Monsters/TrialMaster/Objects/TeleportMarker:  [server_only=true] states=valid_teleport = 1 
+- metadata/monsters/trialmaster/objects/arenamiddle:  [server_only=true] states=emerge on_state_emerge_1{{ this.timestop_wave = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/ao/ArenaT}
+- metadata/monsters/trialmaster/objects/arenamiddle2:  [server_only=true] states=emerge on_state_emerge_1{{ this.timestop_wave = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/ao/ArenaT}
+- metadata/monsters/trialmaster/objects/teleportmarker:  [server_only=true] states=valid_teleport = 1 
+- metadata/monsters/trialmaster/objects/tetherbeam: Transitionable [blocking=false object_size=0] states= on_end_tether_chain_attach_01{{ PlayAnimation(tether_chain_idle_01); }}; on_transition{{ PlayAnimation( tether_chain_snap_01 ); }}; create_transitioned{{ PlayAnimation( tether_chain_snap_01 ); }}; on_event_attach_for_tether_chain_attach_01{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/tether_chain_attach.ep}; on_tether_chain_idle_01{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/tether_chain.epk' ); }}; on_tether_chain_snap_01{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/EPKs/tether_chain.epk' )}
+- metadata/monsters/trialmaster/objects/tetherspike: Transitionable [server_only=true] states= on_construction_complete{{ PlayAnimation( tether_heart_appear_01 ); QueueAnimation( tether_heart_idle_01 ); }}; on_transition{{ PlayAnimation( tether_heart_snap_01 ); }}; create_transitioned{{ PlayAnimation( tether_heart_snap_01 ); }}
+- metadata/monsters/trialmaster/objects/timestopprojectilemarker: Transitionable [blocking=false object_size=0] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); PlayAnimation( marker_01 ); }}; on_transition{{ Delete(); }}; on_timer_transition{{ Transition(); }}
+- metadata/monsters/trialmaster/objects/timestopslammarker: Transitionable [blocking=false object_size=0] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); PlayAnimation( fadein ); QueueAnimation( loop ); }}; on_end_fadeout{{ Delete(); }}; on_transition{{ PlayAnimation( fadeout ); }}; on_timer_transition{{ Transition(); }}
+- metadata/monsters/trialmaster/objects/timestopteleport:  [blocking=false object_size=0] states= on_construction_complete{{ SetTickWhileSimulationFrozen(); }}
+- metadata/monsters/trialmaster/objects/trialmastergroundspear: Transitionable states= on_initial_position_set{{ this.from_projectile = FindClosestObject( 'Metadata/Projectiles/TheTrialmasterThrownWeapon', 20 ); IfExists( this.from}; on_transition{{ PlayAnimation( weapon_retrieve_01 ); }}
+- Metadata/Monsters/TrialMaster/Objects/ArenaMiddle2:  [server_only=true] states=emerge on_state_emerge_1{{ this.timestop_wave = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/ao/ArenaT}
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/UltimatumTrialmasterPedestal: Targetable MinimapIcon [blocking=true object_size=5 server_only=true icon=MarakethSanctumAscendancyAltar] states=boss_dead;activated;label_description on_or_create_state_boss_dead_0{{ PlayAnimation( off ); DisableTargetable(); HideMinimapIcon(); }}; on_or_create_state_boss_dead_1{{ PlayAnimation( idle_on ); EnableTargetable(); ShowMinimapIcon(); }}; on_or_create_state_label_description_1{{ ChangeWorldDescriptionText( body, AscendancyShrineDescriptionHaveAscendancy ); }}
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/BossLiftTransitionTop: InteractionAction [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/TrialMaster/Objects/ArenaMiddle:  [server_only=true] states=emerge on_state_emerge_1{{ this.timestop_wave = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/League_Ultimatum/trialmaster_boss/ao/ArenaT}
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/PlayerRespawnPosition:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/EncounterTelepadMarker:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerTurret:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerBloodFog:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerCentralObject:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerPetrify:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarkerBalcony:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraMidPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraLowPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraHighPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/LedgeForceField: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 0 ); }}; create_untransitioned{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; on_transition{{ PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 0 ); }}; on_untransition{{ PlayAnimationByIndex( 1 ); }}
+
+## lines
+- on_effect_start_MPSTheTrialMasterOmegaBoltNormal -> TrialmasterBoss_OmegaBolt_Random: Embrace Chaos!
+- on_effect_start_GPATrialMasterBossThrowWeapon -> TrialmasterBoss_ThrowSpear_Random: Chaos aid me!
+- on_effect_start_EASTrialMasterTimeStopMelee -> TrialmasterBoss_Timestop_Random: Ultimatum!
+- on_effect_start_EASTrialMasterTimeStopCaster -> TrialmasterBoss_Timestop_Random: Ultimatum!
+- on_effect_start_MASTrialmasterSpinningCombo -> TrialmasterBoss_SpinCombo_Random: Shred!
+- on_effect_start_GATrialmasterBloodSlamBuildUp -> TrialmasterBoss_BloodSlam_Random: Be obliterated!
+- on_effect_start_TheTrialMasterBossAbyssSlamNormal -> TrialmasterBoss_AbyssSlam_Random: Be crushed!
+- on_effect_start_TeleportTrialMasterBoss -> TrialmasterBoss_Teleport_Random: Farcical!
+- on_effect_start_EASTheTrialMasterSummonSpear -> TrialmasterBoss_SummonSpear_Random: Chaos, aid me!
+- on_effect_start_TrialmasterTetherSpike -> TrialmasterBoss_TetherSpike_Random: Be still!
+- on_caster_knockdown_bwd_01 -> TrialmasterBoss_CasterKnockdown_Random: Ugh... insolence!
+- on_melee_knockdown_bwd_01 -> TrialmasterBoss_MeleeKnockdown_Random: Ugh... tah! You'll need more than that!
+- on_death -> TrialmasterBoss_DeathA_Random: Ugh... my service is finally over...
+- on_death -> TrialmasterBoss_DeathB_Random: ... And my service continues.
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_10_rooms_arena_trialmaster_pristine.arm
+  sector ['env', 8, 4, 475, 479, '']
+  obj Metadata/Monsters/TrialMaster/Objects/ArenaMiddle2 x1 (242,241)
+  obj Metadata/MiscellaneousObjects/CameraZoom/TrialmasterBoss x2 (244,234) (244,234)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/UltimatumTrialmasterPedestal x1 (307,298)
+  obj Metadata/Monsters/TrialMaster/Objects/TeleportMarker x8 (217,185) (185,217) (182,265) (218,299) (265,298) (298,266) (298,219) (264,185)
+  obj Metadata/MiscellaneousObjects/TargetMarker2 x8 (279,259) (253,278) (225,276) (202,256) (202,225) (226,204) (256,204) (278,225)
+  obj Metadata/MiscellaneousObjects/TargetMarker3 x1 (241,242)
+room metadata_terrain_gallows_act3_3_10_rooms_arena_trialmaster.arm
+  sector ['env', 8, 4, 475, 479, '']
+  sector ['hide_teleports', 114, 130, 358, 360, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports3']
+  point [241.0, 303.0, 'mapboss4']
+  point [241.0, 241.0, 'telepad']
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/BossLiftTransitionTop x1 (241,241)
+  obj Metadata/Monsters/TrialMaster/Objects/ArenaMiddle x1 (241,241)
+  obj Metadata/MiscellaneousObjects/TargetMarker3 x1 (241,242)
+  obj Metadata/MiscellaneousObjects/CameraZoom/TrialmasterBoss x1 (244,234)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/UltimatumTrialmasterPedestal x1 (307,298)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (317,217)
+room metadata_terrain_gallows_act3_3_10_rooms_boss_chimaera_02.arm
+  sector ['AudioIndoorEnv', 722, 80, 828, 784, '']
+  sector ['AudioIndoorEnv', 0, 80, 241, 784, '']
+  sector ['combat', 241, 333, 724, 793, '']
+  sector ['square2', 483, 382, 667, 552, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector2']
+  sector ['square1', 299, 382, 483, 552, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector1']
+  sector ['square4', 299, 552, 483, 737, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector4']
+  sector ['square3', 483, 552, 667, 737, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector3']
+  point [565.0, 636.0, 'mapboss1']
+  obj Metadata/MiscellaneousObjects/HealingWell x1 (129,497)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/PlayerRespawnPosition x1 (171,469)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/EncounterTelepadMarker x1 (331,483)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerTurret x9 (613,683) (615,431) (343,413) (346,690) (459,610) (620,599) (528,439) (446,438) (418,408)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerBloodFog x1 (422,601)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerCentralObject x1 (546,486)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerPetrify x6 (446,475) (509,489) (510,687) (375,584) (595,583) (632,503)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarkerBalcony x2 (461,618) (558,516)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarker x1 (210,499)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraMidPlatform x1 (390,643)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraLowPlatform x1 (576,645)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraHighPlatform x1 (578,459)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraPlatform x1 (391,457)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/LedgeForceField x4 (294,440) (297,482) (297,443) (297,514)

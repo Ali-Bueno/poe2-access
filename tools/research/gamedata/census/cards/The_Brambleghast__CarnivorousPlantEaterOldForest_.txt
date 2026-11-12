@@ -1,0 +1,87 @@
+# The Brambleghast / Rootgrasp, the Hateful Forest
+content: Act 1
+monsters: Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterOldForest_, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterOldForestCampaignSTANDALONE, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterOldForestMap, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterOldForestSTANDALONE
+scripts: Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEater, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterSTANDALONE, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterMap
+own chain: Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEater, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterSTANDALONE, Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterMap
+areas: G1_4 The Grelwood act1; MapSpiderWoods Spider Woods act10; MapGreenhouse Greenhouse act10
+ai: Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEater.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- GTAzmeriCarnivorousPlantVineCascade [geometry_trigger] action=SpellAreaOfEffectFire anim=default:root_cascade_01
+    geom: trigger count=5 delay=1500 spread=106 radius=6 angle=0 anchor=3
+    triggers: GAAzmeriCarnivorousPlantVineCascade
+- CarnivorousPlantOrbProjectile [oshabi_orb_projectile] action=SpellAreaOfEffect anim=default:orb_projectile_01
+- EASAzmeriCarnivorousPlantScreechVines [empty_action_spell] action=SpellBuffFire anim=default:roar_01
+- EASCarnivorousPlantBossHammerSlam [empty_action_spell] action=SpellAreaOfEffectCold anim=default:wall_01
+- GTCarnivorousPlantBossVolatileTrees [geometry_trigger] action=SpellAreaOfEffectLightning anim=default:wall_02
+    geom: trigger count=9 delay=0 spread=27 radius=7 angle=260 anchor=4
+    triggers: SOCarnivorousPlantBossVolatileTrees
+- GAAzmeriCarnivorousPlantVineCascade [geometry_attack] action=None anim=-
+    geom: rectangle length=37 width=14 angle=0 range=500 delay=50 anchor=4
+    flags: is_area_damage
+- SOCarnivorousPlantBossVolatileTrees [spawn_object] action=SpellAreaOfEffectLightning anim=default:wall_02
+    objects: Metadata/Monsters/CarnivorousPlantEater/OldForest/TreeVolatileSpawner
+- EASOldForestPlantVolatiles [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:wall_02
+
+## own states and handlers
+states: faded = 1; arms; faded
+- on_or_create_state_faded_1 = { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk' ); }
+- on_or_create_state_faded_0 = { RemoveEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk' ); }
+- on_state_arms_1 = { HideMeshSegment( R_vine_misc_Shape1 ); HideMeshSegment( R_vine_Shape1 ); }
+- on_or_create_state_arms_0 = { ShowMeshSegment( R_vine_misc_Shape1 ); ShowMeshSegment( R_vine_Shape1 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_epk Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk
+- preload_monster_variety Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterVineOldForest
+- preload_monster_variety Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterHammerVine
+- preload_animated_object Metadata/Monsters/CarnivorousPlantEater/CarnivorousPlantEaterVineR.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarnivorousPlantEater/spikeProj_impact.ao
+
+## adds and forms
+- Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterVineOldForest "Vicious Vine" bossbar=0 skills=MeleeAtAnimationSpeedChaos comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+- Metadata/Monsters/CarnivorousPlantEater/OldForest/CarnivorousPlantEaterHammerVine "Vicious Vine" bossbar=0 skills=GACarnivorousPlantBossHammerSlam comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/CarnivorousPlantEater/OldForest/TreeVolatileSpawner:  states= 
+- metadata/monsters/carnivorousplanteater/oldforest/bossroomminimapicon: MinimapIcon [server_only=true icon=CarnivorousPlantActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( CarnivorousPlantInactive ); }}
+- metadata/monsters/carnivorousplanteater/oldforest/treevolatilespawner:  states= 
+- Metadata/Monsters/CarnivorousPlantEater/OldForest/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=CarnivorousPlantActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( CarnivorousPlantInactive ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_4_rooms_bossman_01.arm
+  sector ['hide_teleports', 31, 43, 171, 163, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 28, 40, 174, 168, '']
+  point [102.0, 151.0, 'mapboss']
+  point [49.0, 103.0, 'telepad']
+  point [151.0, 90.0, 'telepad']
+  point [12.0, 48.0, 'checkpoint2']
+  point [99.0, 85.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (28,57)
+  obj Metadata/Monsters/CarnivorousPlantEater/OldForest/BossRoomMinimapIcon x1 (108,103)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (15,108) (180,82)
+room metadata_terrain_maps_greenhouse_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 74, 147, 212, 298, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 84, 142, 223, 145, '']
+  sector ['no_critters', 79, 139, 213, 311, '']
+  sector ['boss_sector', 78, 145, 209, 309, '']
+  point [188.0, 214.0, 'mapboss']
+  point [147.0, 95.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (147,84)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x2 (165,142) (129,142)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x10 (166,141) (172,141) (160,141) (154,141) (148,141) (142,141) (136,141) (130,141) (178,141) (184,141)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (147,287)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (158,262)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (123,237) (127,264) (120,184) (120,210)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (163,205)
+room metadata_terrain_maps_spiderwoods_rooms_no_boss_01.arm
+  point [153.0, 156.0, 'rare']
+  point [242.0, 198.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame x1 (230,192)

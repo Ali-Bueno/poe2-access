@@ -1,0 +1,64 @@
+# Doran, the Deft
+content: Other/unplaced
+monsters: Metadata/Monsters/RogueExiles/DexInt/ExileMonk2
+scripts: Metadata/Monsters/RogueExiles/DexInt/ExileMonk2
+own chain: Metadata/Monsters/RogueExiles/DexInt/ExileMonk2, Metadata/Monsters/RogueExiles/RogueExileBase
+areas: 
+ai: Metadata/Monsters/RogueExiles/DexInt/ExileMonk2.ais (not shipped)
+
+## skills
+- MeleeQuarterstaffRogueExile [player_melee_quarterstaff] action=Melee anim=-
+    flags: is_area_damage
+- CometRogueExileMonk2 [comet] action=CometStationary anim=-
+    flags: is_area_damage
+- MetaCastOnDodgeRogueExileMonk2 [cast_on_dodge] action=None anim=-
+    flags: base_deal_no_damage
+- LingeringIllusionRogueExileMonk2 [lingering_illusion] action=None anim=-
+    flags: base_deal_no_damage
+- LingeringIllusionSpawnRogueExileMonk2 [create_illusion] action=None anim=-
+    flags: base_deal_no_damage
+- FrostBombExileMonk2 [frost_bomb] action=FrostBomb anim=-
+    flags: is_area_damage
+- ShatteringPalmRogueExileMonk2 [shattering_palm] action=PalmStrike anim=-
+    flags: is_area_damage
+- ShatteringPalmExplosionRogueExileMonk2 [triggered_freezing_word_explosion] action=None anim=-
+    flags: is_area_damage
+- TemporalChainsRogueExileMonk2 [temporal_chains] action=TemporalChains anim=-
+    flags: base_deal_no_damage
+- DodgeRollRogueExileGeneric [dodge_roll] action=DodgeRoll anim=-
+    flags: base_deal_no_damage
+- WalkEmergeRogueExile [walk_emerge] action=None anim=-
+
+## own states and handlers
+states: boss_life_bar; disable_life_bar; light; no_talk; fleeing; lock_on
+- on_state_lock_on_0 = { SetUsesDirectionalRunAnimations( false ); }
+- on_state_lock_on_1 = { SetUsesDirectionalRunAnimations( true ); }
+- on_death = { HideMinimapIcon(); }
+- on_revive = { ShowMinimapIcon(); RemoveEffectPack( 'Metadata/Effects/Spells/hit_and_blood/EPKs/corpseState_Blood.epk' ); PlayTextAudio( 'AbyssVoice_RogueExileRevive_Random', 'Metadata/Monsters/Abyss/AbyssVoice_' ); SetStateTo( no_talk, 1 ); }
+- on_state_boss_life_bar_1 = { IfAlive( { SetStaticLifeBarVisibilty( True ); ShowMinimapIcon(); } ); }
+- on_or_create_state_boss_life_bar_0 = { HideMinimapIcon(); }
+- on_state_disable_life_bar_0 = { IfAlive( { SetStaticLifeBarVisibilty( True ); ShowMinimapIcon(); } ); }
+- on_state_disable_life_bar_1 = { IfAlive( { SetStaticLifeBarVisibilty( False ); } ); }
+- create_state_light_0 = { this.exile_light = AddAttached( 'Metadata/Monsters/RogueExiles/RogueExileLight.ao', root_jntBnd ); DisableLight(); }
+- create_state_light_1 = { Delay( 0.01, { this.exile_light = AddAttached( 'Metadata/Monsters/RogueExiles/RogueExileLight.ao', root_jntBnd ); EnableLight(); } ); }
+- on_state_light_0 = { exile_light.FadeOutLight(); }
+- on_state_light_1 = { exile_light.FadeInLight(); }
+- on_construction_complete = { Delay( 0.01, { IfState( boss_life_bar, 1, { IfState( disable_life_bar, 0, { IfAlive( { SetStaticLifeBarVisibilty( True ); ShowMinimapIcon(); } ); } ); } ); } ); }
+hides(DisableRendering): []
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/portal/portal2.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+
+## lines
+- on_revive -> 'AbyssVoice_RogueExileRevive_Random': (random group)
+
+## linked buffs
+- rogue_exiles_shrine_buff_effect_buff "":  | stats=shrine_buff_effect_on_self_+%
+
+## arena rooms

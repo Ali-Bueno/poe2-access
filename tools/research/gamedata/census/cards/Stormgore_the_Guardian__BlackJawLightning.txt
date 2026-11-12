@@ -1,0 +1,154 @@
+# Stormgore, the Guardian
+content: Interlude
+monsters: Metadata/Monsters/BlackJawSuperunique/BlackJawLightning, Metadata/Monsters/BlackJawSuperunique/BlackJawLightningCampaignSTANDALONE, Metadata/Monsters/BlackJawSuperunique/BlackJawLightningMap, Metadata/Monsters/BlackJawSuperunique/BlackJawLightningSTANDALONE
+scripts: Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightning, Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE, Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningMap
+own chain: Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightning, Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE, Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningMap
+areas: P3_6 Etched Ravine act6; MapSwampTower Sinking Spire act10
+ai: Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJaw.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedLightning [melee] action=MeleeLightning anim=-
+- GABlackJaw2Slam [geometry_attack] action=SpellAreaOfEffectFire anim=default:slam_phase01_01
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EASBlackJaw2FireBreathR [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:fire_breath_right_01
+- EASBlackJaw2FireBreathL [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:fire_breath_left_01
+- EAABlackJaw2TripleSlam [empty_action_attack] action=SpellAreaOfEffectCold anim=default:slam_triple_phase01_01
+    flags: skill_cannot_be_stunned
+- EASBlackJaw2FireBreathLacerate [empty_action_attack] action=SpellProjectileFire anim=stance3:fire_breath_lacerate_01
+    flags: skill_cannot_be_stunned
+- DTTBlackJaw2Leap [dash_attack_to_target] action=DodgeForward anim=stance3:leap_slam_phase02_01
+- GABlackJaw2SlamFire [geometry_attack] action=SpellAreaOfEffectFire anim=default:slam_phase01_01
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- EASBlackJaw2FireBreathSpin [empty_action_attack] action=SpellNovaFire anim=stance3:fire_breath_spin_cleave_01
+- GSBlackJaw2FireBreath [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- GABlackJaw2TripleSlam1 [geometry_attack] action=None anim=-
+    geom: cone length=60 width=0 angle=32 range=500 delay=33 anchor=3
+    flags: is_area_damage
+- GABlackJaw2TripleSlam2 [geometry_attack] action=None anim=-
+    geom: cone length=60 width=0 angle=32 range=500 delay=33 anchor=3
+    flags: is_area_damage
+- GABlackJaw2TripleSlam3 [geometry_attack] action=None anim=-
+    geom: cone length=70 width=0 angle=50 range=333 delay=33 anchor=3
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- GABlackJaw2SlamImpactCones [geometry_attack] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSBlackJaw2FireDonut [geometry_spell] action=None anim=-
+    geom: donut length=13 width=9 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- MPSBlackjaw2Fireball [monster_projectile_spell] action=SpellProjectile anim=-
+    flags: base_deal_no_damage
+- GSBlackJaw2ProjectileExplosion [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- GSBlackJaw2FireLacerateL [geometry_attack] action=None anim=-
+    geom: rectangle length=82 width=15 angle=0 range=415 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSBlackJaw2FireLacerateR [geometry_attack] action=None anim=-
+    geom: rectangle length=82 width=15 angle=0 range=415 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GABlackJaw2FireSpinRight [geometry_attack] action=None anim=-
+    geom: cone length=15 width=0 angle=270 range=200 delay=33 anchor=2
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- GABlackJaw2LeapImpactMace [geometry_attack] action=None anim=-
+    geom: circle length=17 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- GABlackJaw2FireSpin [geometry_attack] action=None anim=-
+    geom: cone length=46 width=0 angle=180 range=180 delay=33 anchor=3
+    flags: is_area_damage
+    GEAL 1154 on ['Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelSpawned', 'Metadata/Monsters/VaalConstructs/Pyramid/VaalConstructPyramidSpawned', 'Metadata/Monsters/VaalConstructs/Golem/VaalConstructGolemSpawned', 'Metadata/Monsters/VaalConstructs/Skitterbot/VaalConstructSkitterbotSpawned', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructSpawned', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallSpawned', 'Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinelInert', 'Metadata/Monsters/VaalConstructs/Ball/VaalBowlingBallInert', 'Metadata/Monsters/VaalConstructs/Cycloning/VaalCycloneConstructInert']: self{} each{triggerer.Call( do_emerge );} r=0
+- GSBlackJaw2FireBreathNoEG [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=5 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+
+## own states and handlers
+states: weapon_health = 3; death; lightning_effects; enable_no_portal_sector
+- on_effect_end_CTS1BossFightStart = { ForceSkillIntoCooldown( EASBlackJaw2FireBreathR ); ForceSkillIntoCooldown( EASBlackJaw2FireBreathL ); }
+- on_or_create_state_weapon_health_2 = { HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Top_shard_InnerShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Top_shardShape ); }
+- on_or_create_state_weapon_health_1 = { HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Left_shard_innerShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Top_shard_InnerShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Left_shardShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Top_shardShape ); }
+- on_or_create_state_weapon_health_0 = { HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Left_shard_innerShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Right_shard_InnerShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Top_shard_InnerShape ); HideAttachedMeshSegments( BlackJawSuperuniqueWeapon_Left_shardShape
+- on_or_create_state_death_1 = { HideMeshSegmentsBySubstring( Shape ); AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/League_Delve/general/engaging_light/no_emissive_texture.epk', R_Weapon ); }
+- on_or_create_state_lightning_effects_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/Lightning/epk/lightning_aura.epk' ); AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/Lightning/epk/lightning_aura_weapon.epk', R_Weapon ); }
+- on_state_lightning_effects_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/Lightning/epk/lightning_aura.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/Lightning/epk/lightning_aura_weapon.epk' ); }
+- on_or_create_state_enable_no_portal_sector_1 = { globals.disable_instant_teleport_sector_1.RenameSectorsAtLocation( hide_teleports_off, hide_teleports ); }
+- on_emerge_statue_01 = { PlayTextAudio( StormGore_Emerge_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningMap' ); }
+- on_fire_breath_spin_cleave_01 = { PlayTextAudio( StormGore_Spin_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningMap' ); }
+- on_leap_slam_phase02_01 = { PlayTextAudio( StormGore_LeapSlam_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningMap' ); }
+- on_slam_phase01_01 = { Roll( 1, 4, { PlayTextAudio( StormGore_AxeSlam_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningMap' ); } ); }
+- on_fire_breath_lacerate_01 = { PlayTextAudio( StormGore_Triple_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/epk/emerge_emissive_on.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/epk/emissive_off.epk' ); }
+- on_emerge_statue_01 = { PlayTextAudio( StormGore_Emerge_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE' ); }
+- on_fire_breath_spin_cleave_01 = { PlayTextAudio( StormGore_Spin_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE' ); }
+- on_leap_slam_phase02_01 = { PlayTextAudio( StormGore_LeapSlam_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE' ); }
+- on_slam_phase01_01 = { Roll( 1, 4, { PlayTextAudio( StormGore_AxeSlam_Random, 'Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSTANDALONE' ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_beam BlackJaw2LightningBreathZap
+- preload_animated_object Metadata/Monsters/BlackJawSuperunique/BlackjawLightning/BlackJawLightningSuperunique_break.ao
+- preload_environment G3_6_1_boss
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/Lightning/epk/lightning_aura.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/Lightning/epk/lightning_aura_weapon.epk
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss: InteractionAction Targetable MinimapIcon [blocking=false object_size=3 server_only=true icon=StoneAltarTall] states=helper_state;activate on_construction_complete{{ globals.checkpoint_helper3 = this; }}; on_construction_complete{{ globals.power_speed = 2.0; }}; create_state_activate_0{{ QueueAnimation( activate ); PauseAnimation(); ShowMinimapIcon(); }}; create_state_activate_1{{ PlayAnimation( activate ); GoToAnimationEnd(); DisableTargetable(); HideMinimapIcon(); AddAttached( 'Metadata/Terrain/}; on_state_activate_1{{ PlayAnimation( activate ); PlayEffect( 'Metadata/Terrain/Tools/AudioTools/G3_6_2/MachinariumEnergizeAudio.ao' ); Disab}; on_interaction_event_attach_gem{{ triggerer.AddAttached( 'Art/Models/Items/Quests/VaalBloodgems/VaalBloodgemSmall.fmt', R_Weapon ); }}
+- Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal:  [blocking=false object_size=1 server_only=true] states=activate;epk on_end_reveal{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); PauseAnimation(); }}; create_state_epk_0{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0000.epk' ); }}; on_state_epk_1{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0001.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_2{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0010.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_3{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0011.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_4{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0100.epk' ); RemoveEffectPack( 'Metadat}
+- Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLine:  [blocking=false object_size=1 server_only=true] states=activate;epk on_end_reveal{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); PauseAnimation(); }}; create_state_epk_0{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0000.epk' ); }}; on_state_epk_1{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0001.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_2{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0010.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_3{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0011.epk' ); RemoveEffectPack( 'Metadat}; on_state_epk_4{{ AddEffectPack( 'Metadata/Terrain/Doodads/Jungle/VaalProps/epks/Glyphrails/glow_0100.epk' ); RemoveEffectPack( 'Metadat}
+- Metadata/Monsters/BlackJawSuperunique/objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=BlackjawBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( BlackjawBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_6_1/Objects/BlackjawArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardUpperMachinariumBossArena, TitleCardUpperMachinariumBossArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Leagues/BossRush/WorldArea1/SubArea_Blackjaw/Objects/ArenaDoorProximityTrigger:  [server_only=true] states= 
+
+## lines
+- on_emerge_statue_01 -> StormGore_Emerge_Random: Stormgore... Hungers!
+- on_fire_breath_spin_cleave_01 -> StormGore_Spin_Random: Taste lightning!
+- on_leap_slam_phase02_01 -> StormGore_LeapSlam_Random: Crackling blade!
+- on_fire_breath_lacerate_01 -> StormGore_Triple_Random: Lightning rends flesh!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_6_1_rooms_unique_boss_office_01.arm
+  sector ['hide_teleports', 46, 103, 253, 366, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 42, 94, 257, 371, '']
+  point [150.0, 261.0, 'mapboss']
+  point [149.0, 126.0, 'telepad']
+  point [165.0, 71.0, 'checkpoint1']
+  point [152.0, 282.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinel x2 (178,56) (120,56)
+  obj Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss x1 (149,65)
+  obj Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal x1 (149,67)
+  obj Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLine x1 (149,90)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss_Blackjaw x1 (173,83)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (149,95)
+  obj Metadata/Monsters/BlackJawSuperunique/objects/BossRoomMinimapIcon x1 (149,234)
+  obj Metadata/Terrain/Gallows/Act3/3_6_1/Objects/BlackjawArenaEntranceTitle x1 (149,165)
+room metadata_terrain_gallows_leagues_bossrush_worldarea1_subarea_blackjaw_rooms_boss_office_01.arm
+  sector ['no_critters', 42, 94, 257, 371, '']
+  sector ['hide_teleports', 46, 103, 253, 366, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [150.0, 261.0, 'mapboss2']
+  point [166.0, 71.0, 'checkpoint4']
+  point [149.0, 126.0, 'telepad']
+  obj Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinel x2 (178,56) (120,56)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (173,83)
+  obj Metadata/Monsters/BlackJawSuperunique/objects/BossRoomMinimapIcon x1 (149,234)
+  obj Metadata/Terrain/Gallows/Act3/3_6_1/Objects/BlackjawArenaEntranceTitle x1 (149,165)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (149,290)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (149,95)
+  obj Metadata/Terrain/Gallows/Leagues/BossRush/WorldArea1/SubArea_Blackjaw/Objects/ArenaDoorProximityTrigger x1 (149,87)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (149,103)
+room metadata_terrain_maps_swamptower_rooms_outerupper_side_04_01_noboss.arm

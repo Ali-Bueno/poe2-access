@@ -1,0 +1,145 @@
+# Zolin, Blood Priest / Maztli, Flesh-Shaper
+content: Interlude
+monsters: Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss_, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossSTANDALONE
+scripts: Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossSTANDALONE
+own chain: Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossSTANDALONE
+areas: P3_7 The Cuachic Vault act6; MapVaalVault Sealed Vault act10
+ai: Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss.ais, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP.ais, Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EASVaalBloodPriestBodySwap [empty_action_spell] action=SpellBuffChaos anim=default:body_swap_01
+- EASVaalBloodPriestLifeDrain [empty_action_spell] action=SpellBuffFire anim=default:blood_drain_01
+- VaalBloodPriestMiniBossSoulrend [monster_soulrend] action=SpellProjectile anim=default:blood_exsanguinate_01
+- EASBloodPriestBossTeleport [empty_action_spell] action=Teleport anim=default:teleport_01
+- EASBloodPriestBossVolley [empty_action_spell] action=SpellProjectileCold anim=default:blood_volley_01
+- EASBloodPriestBossVolleyEnraged [empty_action_spell] action=SpellProjectileLightning anim=default:blood_volley_02
+- EAABloodPriestBossSacrifice [empty_action_attack] action=SpellProjectileUpward anim=default:teleport_wall_01
+- MPSBloodPriestBossBloodProj [monster_projectile_spell] action=SpellProjectile anim=default:blood_exsanguinate_01
+- MDBloodPriestBossBloodPool [move_daemon] action=SpellNova anim=default:blood_pool_01
+    daemons: Metadata/Monsters/VaalMonsters/Living/BloodPriests/BloodPool
+- EGBloodPriestBossSacrifice [execute_geal] action=None anim=-
+    GEAL 1172 on ['Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/sacrifice_marker']: self{} each{triggerer.Call(blood_flow); this.sacrifice_victims -= triggerer;} r=10
+- MDBloodPriestBossSoulCoreBeam [move_daemon] action=None anim=-
+- GSBloodTwinsSoulCoreBeamImpact [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1179 on ['Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/AltarGoliathSocket']: self{} each{triggerer.SetStateTo(burnt, 1);} r=150
+- GSBloodPriestTransformBreathe [geometry_spell] action=None anim=-
+    geom: rectangle length=49 width=6 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: invisible; elemental = 1; soul_core_empowered; FightStartShout; im_dead
+- on_state_invisible_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/teleport/quick_step_out.epk' ); }
+- on_state_invisible_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/teleport/quick_step_out.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/teleport/quick_step_in.epk' ); }
+- on_state_disable_life_bar_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/Defeated_Bleeding.epk' ); }
+- on_defeat = { If( And( GetState( am_final_boss_in_fight ) == 1, GetState( use_custom_sector_removal_handling ) == 0 ), (){ TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); } ); SetGlobalAudioParam( FourBossAggro, 0.0 ); }
+- on_blood_exsanguinate_01 = { Roll( 2, 10, () { PlayTextAudio( BloodPriest_SoulRendRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss' ); } ); }
+- on_blood_pool_01 = { PlayTextAudio( BloodPriest_BloodPoolRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_blood_drain_01 = { PlayTextAudio( BloodPriest_LifeDrainRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_teleport_wall_01 = { PlayTextAudio( BloodPriest_TeleportSacrificeRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 2400 ); }
+- on_teleport_01 = { PlayTextAudio( BloodPriest_TeleportRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_blood_volley_01 = { PlayTextAudio( BloodPriest_BloodVolleyRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 1200 ); }
+- on_blood_volley_02 = { PlayTextAudio( BloodPriest_BloodVolleyEnrageRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 2800 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_knockdown_claw_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_knockdown_fwd_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_knockdown_knife_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBoss', 0 ); }
+- on_state_im_dead_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/Defeated_Bleeding.epk' ); }
+- on_blood_exsanguinate_01 = { Roll( 2, 10, () { PlayTextAudio( BloodPriest_SoulRendRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_' ); } ); }
+- on_blood_pool_01 = { PlayTextAudio( BloodPriest_BloodPoolRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_blood_drain_01 = { PlayTextAudio( BloodPriest_LifeDrainRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_teleport_wall_01 = { PlayTextAudio( BloodPriest_TeleportSacrificeRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 2400 ); }
+- on_teleport_01 = { PlayTextAudio( BloodPriest_TeleportRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_blood_volley_01 = { PlayTextAudio( BloodPriest_BloodVolleyRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 1200 ); }
+- on_blood_volley_02 = { PlayTextAudio( BloodPriest_BloodVolleyEnrageRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 2800 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_knockdown_claw_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_knockdown_fwd_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_knockdown_knife_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, 'Metadata/Monsters/VaalMonsters/Living/BloodPriests/VaalBloodPriestBossMAP_', 0 ); }
+- on_defeat = { SetGlobalAudioParam( FourBossAggro, 0.0 ); }
+- on_blood_exsanguinate_01 = { Roll( 2, 10, () { PlayTextAudio( BloodPriest_SoulRendRandom, _ ); } ); }
+- on_blood_pool_01 = { PlayTextAudio( BloodPriest_BloodPoolRandom, _, 0 ); }
+- on_blood_drain_01 = { PlayTextAudio( BloodPriest_LifeDrainRandom, _, 0 ); }
+- on_teleport_wall_01 = { PlayTextAudio( BloodPriest_TeleportSacrificeRandom, _, 2400 ); }
+- on_teleport_01 = { PlayTextAudio( BloodPriest_TeleportRandom, _, 0 ); }
+- on_blood_volley_01 = { PlayTextAudio( BloodPriest_BloodVolleyRandom, _, 1200 ); }
+- on_blood_volley_02 = { PlayTextAudio( BloodPriest_BloodVolleyEnrageRandom, _, 2800 ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, _, 0 ); }
+- on_knockdown_claw_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, _, 0 ); }
+- on_knockdown_fwd_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, _, 0 ); }
+- on_knockdown_knife_01 = { PlayTextAudio( BloodPriest_KnockdownRandom, _, 0 ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: ['arena_sector_destruction, GetState']
+
+## preloads
+- preload_object Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/SoulCoreBeamMoveObject
+- preload_misc_beam BloodPriestBloodDrainBeam
+
+## adds and forms
+daemons: Metadata/Monsters/VaalMonsters/Living/BloodPriests/BloodPool
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/SoulCoreBeamMoveObject:  states=time_to_move;clean_up on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}
+- Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/sacrifice_marker:  [server_only=true] states=sac on_state_sac_1{{ PlayAnimation(bloodpriests_stab_01); QueueAnimation( bloodpriests_stab_idle_01 ); }}; on_state_sac_2{{ PlayAnimation(bloodpriests_stab_02); QueueAnimation( bloodpriests_stab_idle_02 ); }}; create_state_sac_1{{ PlayAnimation( bloodpriests_stab_idle_01 ); }}; create_state_sac_2{{ PlayAnimation( bloodpriests_stab_idle_02 ); }}
+- Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/AltarGoliathSocket:  [blocking=false object_size=3 server_only=true] states=burnt;emerge on_construction_complete{{ IfState( emerge, 0, () { this.ritual = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_In}; on_state_burnt_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_Interlude/EPKs/GoliathDisintegrate.epk'}; create_state_burnt_1{{ Delete(); }}; on_state_emerge_1{{ ritual.PlayAnimation( end ); Delay( 5.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodp}; create_state_emerge_1{{ Delay( 0.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_Interlude/AO/Emerge_Blo}
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/altargoliathsocket:  [blocking=false object_size=3 server_only=true] states=burnt;emerge on_construction_complete{{ IfState( emerge, 0, () { this.ritual = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_In}; on_state_burnt_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_Interlude/EPKs/GoliathDisintegrate.epk'}; create_state_burnt_1{{ Delete(); }}; on_state_emerge_1{{ ritual.PlayAnimation( end ); Delay( 5.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodp}; create_state_emerge_1{{ Delay( 0.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_Interlude/AO/Emerge_Blo}
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/approachconversationcontroller:  [server_only=true] states= 
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/approachconversationcontrollermap:  [server_only=true] states= 
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/bloodchannels:  [server_only=true] states= 
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/sacrifice_marker:  [server_only=true] states=sac on_state_sac_1{{ PlayAnimation(bloodpriests_stab_01); QueueAnimation( bloodpriests_stab_idle_01 ); }}; on_state_sac_2{{ PlayAnimation(bloodpriests_stab_02); QueueAnimation( bloodpriests_stab_idle_02 ); }}; create_state_sac_1{{ PlayAnimation( bloodpriests_stab_idle_01 ); }}; create_state_sac_2{{ PlayAnimation( bloodpriests_stab_idle_02 ); }}
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/soulcorebeammoveobject:  states=time_to_move;clean_up on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/test_beam_origin:  [server_only=true] states= 
+- metadata/monsters/vaalmonsters/living/bloodpriests/objects/twinsarenamiddle:  [server_only=true] states= 
+- metadata/monsters/vaalmonsters/living/bloodpriests/runemarked/bloodorb/vaalbloodpriestrunemarkedbloodorb:  states=progress;fadeout on_construction_complete{{ IfState( progress, <1, { PlayAnimation( fadein ); QueueAnimation( loop ); } ); }}; create_state_progress_1{{ PlayAnimation( loop ); }}
+- metadata/monsters/vaalmonsters/living/bloodpriests/vaalbloodpriestrevivemarker:  [server_only=true] states= 
+- metadata/monsters/vaalmonsters/living/bloodpriests/vaalbloodpriestvolatilerevivebase:  states=volatile on_state_volatile_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriest/shrivel/epk/Shrivel.epk' ); }}; create_state_volatile_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriest/shrivel/epk/Shrivel_IDLE.epk' ); }}; on_state_volatile_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriest/shrivel/epk/Shrivel.epk' ); }}; create_state_volatile_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriest/shrivel/epk/Shrivel_IDLE.epk' ); }}
+- Metadata/Terrain/Gallows/Act3/3_16/Objects/AtziriStatueTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardAggoratAtziriStatue, TitleCardAggoratAtziriStatueSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_16/Objects/BloodTrailTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardAggoratBloodyArea, TitleCardAggoratBloodyAreaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Monsters/VaalMonsters/Living/objects/Marker:  [blocking=false object_size=0 server_only=true] states= 
+
+## lines
+- on_blood_exsanguinate_01 -> BloodPriest_SoulRendRandom: No sacrifice is too great!
+- on_blood_pool_01 -> BloodPriest_BloodPoolRandom: Bathe in a pool of your doom! 
+- on_blood_drain_01 -> BloodPriest_LifeDrainRandom: We live for one another!
+- on_teleport_wall_01 -> BloodPriest_TeleportSacrificeRandom: Our sacrifice is long remembered!
+- on_teleport_01 -> BloodPriest_TeleportRandom: You are too slow!
+- on_blood_volley_01 -> BloodPriest_BloodVolleyRandom: Coiling misery!
+- on_blood_volley_02 -> BloodPriest_BloodVolleyEnrageRandom: Lineage of the Vaal!
+- on_knockdown_bwd_01 -> BloodPriest_KnockdownRandom: Ugh... you vile dog!
+- on_knockdown_claw_01 -> BloodPriest_KnockdownRandom: Ugh... you vile dog!
+- on_knockdown_fwd_01 -> BloodPriest_KnockdownRandom: Ugh... you vile dog!
+- on_knockdown_knife_01 -> BloodPriest_KnockdownRandom: Ugh... you vile dog!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_16_rooms_unique_divider_gate_01.arm
+  point [218.0, 445.0, 'checkpoint2']
+  obj Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLivingSacrificeGuide x7 (196,335) (241,335) (218,356) (251,320) (184,319) (204,343) (232,343)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotSpearColdSacrifice x6 (276,116) (176,140) (204,280) (239,280) (217,266) (253,241)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrifice x13 (255,125) (186,131) (204,294) (230,291) (226,277) (191,270) (177,268) (182,251) (169,235) (178,222)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotKnifestickColdSacrifice x8 (257,105) (178,120) (192,286) (234,270) (193,256) (167,256) (249,263) (191,182)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersBannerSacrifice x3 (218,306) (256,224) (243,182)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrificePray x4 (224,174) (233,178) (213,177) (202,180)
+  obj Metadata/Monsters/VaalMonsters/Living/VaalOverseerLivingSacrificeGuard x2 (209,365) (227,365)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrificeWorship x1 (218,211)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (218,149)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (218,494)
+  obj Metadata/NPC/Four_Act3/AggoratPastAtziriGlyph x1 (218,223)
+  obj Metadata/MiscellaneousObjects/PatrolPathFinalNode x1 (218,448)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (218,425)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x8 (310,126) (310,172) (310,241) (310,57) (126,126) (126,172) (126,241) (126,57)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x3 (325,424) (112,414) (111,314)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x2 (356,586) (80,586)
+  obj Metadata/Terrain/Gallows/Act3/3_16/Objects/AtziriStatueTitle x1 (217,218)
+  obj Metadata/Terrain/Gallows/Act3/3_16/Objects/BloodTrailTitle x1 (218,477)
+room metadata_terrain_gallows_act3_3_15_rooms_library_libraryh_4open_01.arm
+  obj Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller x4 (57,13) (377,149) (13,149) (149,285)
+  obj Metadata/Monsters/VaalMonsters/Living/objects/Marker x38 (47,237) (250,52) (81,112) (307,132) (225,204) (291,56) (166,94) (232,94) (164,178) (308,70)
+room metadata_terrain_gallows_act3_3_15_rooms_library_libraryv_4open_01.arm
+  obj Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller x4 (13,149) (286,149) (57,13) (149,377)
+  obj Metadata/Monsters/VaalMonsters/Living/objects/Marker x37 (89,161) (177,54) (59,109) (177,159) (245,129) (169,296) (238,296) (65,299) (59,250) (175,205)

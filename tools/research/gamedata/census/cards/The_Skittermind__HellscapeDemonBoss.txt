@@ -1,0 +1,75 @@
+# The Skittermind
+content: League: Hellscape
+monsters: Metadata/Monsters/LeagueHellscape/DemonFaction/HellscapeDemonBoss
+scripts: Metadata/Monsters/LeagueHellscape/DemonFaction/HellscapeDemonBoss
+own chain: Metadata/Monsters/LeagueHellscape/DemonFaction/HellscapeDemonBoss, Metadata/Monsters/LeagueHellscape/HellscapeBossBase
+areas: 
+ai: Metadata/Monsters/LeagueHellscape/DemonFaction/HellscapeDemonBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedFire [melee] action=MeleeFire anim=-
+- EAAHellscapeDemonBossFissureSlam [empty_action_attack] action=SpellProjectileCold anim=default:blood_geyser_01
+- GAHellscapeDemonBossFissureDMG [geometry_attack] action=None anim=-
+    geom: circle length=3 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- SOHellscapeDemonSpawnVolcano [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueHellscape/DemonFaction/DemonBossFissures/HellscapeDemonVolcano
+- MPSHellscapeDemonVolcano [monster_projectile_spell] action=SpellProjectile anim=default:blood_vomit_01
+- DTTHellscapeDemonBossLeap [dash_to_target] action=Flurry anim=default:leap_01
+- GAHellscapeDemonBossFissureSlam [geometry_attack] action=None anim=-
+    geom: cone length=30 width=0 angle=100 range=120 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- MPSHellscapeDemonBossSpray [monster_projectile_spell] action=SpellProjectileFire anim=default:spit_01
+- GAHellscapeDemonBossSuckDebuff [geometry_spell] action=SpellAreaOfEffectCold anim=default:blood_siphon_01
+    geom: cone length=50 width=0 angle=90 range=300 delay=60 anchor=3
+    flags: base_deal_no_damage is_area_damage
+    buffs: hellscape_blood_drain_debuff
+- GAHellscapeDemonBossLeapSlamDamage [geometry_attack] action=None anim=-
+    geom: circle length=32 width=0 angle=0 range=260 delay=33 anchor=3
+    flags: is_area_damage
+- GAHellscapeDemonBossMelee [geometry_attack] action=Melee anim=default:attack_01
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GAHellscapeDemonBossMelee2 [geometry_attack] action=OffMelee anim=default:attack_02
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MPSHellscapeDemonBossSiphonProj [monster_projectile_spell] action=SpellAreaOfEffectCold anim=default:blood_siphon_01
+    flags: base_deal_no_damage
+- GSHellscapeDemonBossSiphonProjAOE [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- MPSHellscapeDemonBossSiphonProjSlow [monster_projectile_spell] action=SpellAreaOfEffectCold anim=default:blood_siphon_01
+    flags: base_deal_no_damage
+
+## own states and handlers
+states: spawned; cleansed
+- on_death = { HideMinimapIcon(); }
+- on_spawned_dead = { HideMinimapIcon(); }
+- on_start_ChangeToStance1 = { SetGlobalAudioParam( CorruptPhase, 1 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/OnActs/death_grd.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/entrance_idle_blood_grd.ao
+- preload_object Metadata/NPC/Four_Act3/DoryaniMapCorruptedBoss
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/boss_warcry.ao
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/NPC/Four_Act3/DoryaniMapCorruptedBoss (no script)
+- Metadata/Monsters/LeagueHellscape/DemonFaction/DemonBossFissures/HellscapeDemonVolcano:  states= on_event_delete{{ Delete( ); }}; on_construction_complete{{ PlayAnimation( fadein ); QueueAnimation( loop ); }}; on_timer_lifetime{{ Call( end ); }}
+- metadata/monsters/leaguehellscape/demonfaction/demonbossfissures/hellscapedemonbossfissureline: Buffs [server_only=true] states= 
+- metadata/monsters/leaguehellscape/demonfaction/demonbossfissures/hellscapedemonbossfissurelineend: Buffs [server_only=true] states= 
+- metadata/monsters/leaguehellscape/demonfaction/demonbossfissures/hellscapedemonbossfissurelinestart: Buffs [server_only=true] states= 
+- metadata/monsters/leaguehellscape/demonfaction/demonbossfissures/hellscapedemonvolcano:  states= on_event_delete{{ Delete( ); }}; on_construction_complete{{ PlayAnimation( fadein ); QueueAnimation( loop ); }}; on_timer_lifetime{{ Call( end ); }}
+- metadata/monsters/leaguehellscape/demonfaction/hellscapedemonbase: Life states=remove_glow = 1 on_death{{ IfState( remove_glow, 1, { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); } ); }}; on_spawned_dead{{ IfState( remove_glow, 1, { AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_OFF.epk' ); } ); }}
+
+## lines
+
+## linked buffs
+- hellscape_blood_drain_debuff "Blood Drained": You are taking physical damage and have reduced movement speed. | stats=base_physical_damage_taken_per_minute,base_movement_velocity_+%
+
+## arena rooms

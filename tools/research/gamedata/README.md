@@ -14,3 +14,15 @@ minutes instead of a new reverse-engineering pass. They are not part of the buil
 They expect, beside this folder's parent as they were run: `dat/data_balance_<table>.datc64` (the tables under
 `data/balance/` of the game's bundles, dumped with a scratch bulk dumper that was not kept) and
 `schema_dl/schema.min.json`. Set `S` in `dat.py` to the folder that holds both.
+
+## The census of every boss (2026-11-12)
+
+- `cards.py` (with `scripts.py`, `armidx.py`, `summary.py`) builds, in about 20 s from the local dumps, one card per
+  fight (`census/cards/*.txt`: skills, ExecuteGEAL rows, adds, objects with their components and states, own states and
+  handlers, lines, linked buffs, the arena room) and `census/mechanics.tsv`: one row per (fight, mechanic) with its class,
+  what the player must do, the evidence, the run-time signal and the catalog line. `census/content.txt` lists the
+  fights by content group. The classes and their data signatures: docs/research/boss-mechanics.md §14.
+- `dumper/` is the bulk dumper the dumps were made with (`dumper <gameDir> <outDir> <path prefix>…`, extensions in the
+  `EXTS` environment variable, `BIN=1` for binary files such as the `.datc64` tables). The scripts expect, in the folder
+  `S` of `dat.py`: `dat/` (tables), `ot/` (scripts), `armall/` (rooms), `all.txt` (every bundled path) and
+  `schema_dl/schema.min.json`. Regenerate the census after a patch that adds bosses.

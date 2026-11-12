@@ -1,0 +1,147 @@
+# Lythara, the Wayward Spear / Morwyn, the Kinslayer
+content: Interlude
+monsters: Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeri, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriCampaignSTANDALONE, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriMap_, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriStandalone
+scripts: Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeri, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriStandalone, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriMap
+own chain: Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeri, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriStandalone, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriMap
+areas: P3_2 Kriar Village act6; MapAzmerianRanges Azmerian Ranges act10; MapDeforestation Deforestation act10
+ai: Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeri.ais, Metadata/Monsters/VaalMonsters/ViperNapuatzi/ViperNapuatziAzmeriStandalone.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MPSViperNapuatziFastProjectile [monster_projectile_spell] action=SpellProjectileFire anim=default:spear_attack_jump_01,stance3:caster_attack_02
+- GSViperNapuatziSpinSlam [geometry_spell] action=SpellAreaOfEffectChaos anim=stance3:caster_spinning_slam_01
+    geom: circle length=32 width=0 angle=0 range=100 delay=100 anchor=3
+    flags: is_area_damage
+- EGViperNapuatziSnakeSacrifice [execute_geal] action=None anim=-
+    GEAL 1049 on ['Metadata/Monsters/VaalMonsters/ViperLegionnaire/ViperLegionnaireShield_']: self{} each{triggerer.SetStateTo( snaked, 1 );} r=3
+- ViperNapuatziSnakeSpark [monster_spark] action=SpellProjectileUpward anim=stance3:caster_snake_release_01
+- GSViperNapuatziFireRain [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=3100 delay=3000 anchor=4
+    flags: is_area_damage
+- GSViperNapuatziChaosRain [geometry_spell] action=None anim=-
+    geom: circle length=22 width=0 angle=0 range=3100 delay=3100 anchor=4
+    flags: is_area_damage
+- GTViperNapuatziFireRain [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=1350 spread=150 radius=75 angle=0 anchor=3
+    triggers: GSViperNapuatziFireRain
+- GTViperNapuatziChaosRain [geometry_trigger] action=None anim=-
+    geom: trigger count=4 delay=1350 spread=150 radius=75 angle=0 anchor=3
+    triggers: GSViperNapuatziChaosRain
+- EASViperNapuatziCrissCrossCascade [empty_action_spell] action=SpellAreaOfEffect anim=stance3:caster_rain_02
+- EAAViperNapuatziDashForward [empty_action_attack] action=DodgeForward anim=default:spear_dash_fwd_01,stance3:caster_dash_fwd_01
+- EAAViperNapuatziDashBackward [empty_action_attack] action=DodgeBack anim=default:spear_dash_bwd_01,stance3:caster_dash_bwd_01
+- EAAViperNapuatziDashLeft [empty_action_attack] action=DodgeLeft anim=default:spear_dash_left_01,stance3:caster_dash_left_01
+- EAAViperNapuatziDashRight [empty_action_attack] action=DodgeRight anim=default:spear_dash_right_01,stance3:caster_dash_right_01
+- MAASViperNapuatziCombo [melee] action=Flurry anim=default:spear_combo_01
+- MAASViperNapuatziSerpentStrike [melee] action=WeaponAreaOfEffect anim=default:spear_serpent_strike_01
+- ViperNapuatziLightningSpear [viper_napuatzi_lightning_spear] action=SpellProjectileLightning anim=default:spear_throw_01
+- GAViperNapuatziSnakeWave [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=16 angle=0 range=600 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- CGEViperNapuatziSpear [monster_cast_ground_effect_location] action=None anim=-
+- EASViperNapuatziCommandSoliders [empty_action_spell] action=SpellAreaOfEffectCold anim=stance3:caster_rain_02,stance4:caster_soldier_empower_combined_01
+- EASViperNapuatziProjectileBarrage [empty_action_spell] action=SpellProjectileCold anim=default:spear_attack_jump_move_01,stance3:caster_snake_barrage_01
+- EASViperNapuatziSnakeRelease [empty_action_spell] action=SpellProjectileUpward anim=stance3:caster_snake_release_01
+- MAASViperNapuatziCombo2 [melee] action=ComboAttack anim=default:spear_cyclone_start_01
+- GAViperComboEndSlam [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MAASViperNapuatziStepThrust [melee] action=Puncture anim=default:spear_combo_03
+- MAASViperNapuatziStepSwipes [melee] action=OffPuncture anim=default:spear_sweep_01
+- MAASViperNapuatziDashThrust [melee] action=SliceAndDice anim=default:spear_dash_fwd_02
+- MPSViperNapuatziPoisonSpray [monster_projectile_spell] action=None anim=-
+- CGEViperNapuatziGasGround [monster_cast_ground_effect_location] action=None anim=-
+- EASViperNapuatziDashForward [empty_action_spell] action=DodgeForward anim=default:spear_dash_fwd_01,stance3:caster_dash_fwd_01
+- EASViperNapuatziDashBackward [empty_action_spell] action=DodgeBack anim=default:spear_dash_bwd_01,stance3:caster_dash_bwd_01
+- EASViperNapuatziDashLeft [empty_action_spell] action=DodgeLeft anim=default:spear_dash_left_01,stance3:caster_dash_left_01
+- EASViperNapuatziDashRight [empty_action_spell] action=DodgeRight anim=default:spear_dash_right_01,stance3:caster_dash_right_01
+- MAASViperNapuatziJumpStab [melee] action=SpellProjectileFire anim=default:spear_attack_jump_01,stance3:caster_attack_02
+- MAASViperNapuatziJumpStabMoving [melee] action=SpellProjectileCold anim=default:spear_attack_jump_move_01,stance3:caster_snake_barrage_01
+- EAAViperNapuatziCycloneEndNoTurn [empty_action_attack] action=StampedeEnd anim=default:spear_cyclone_end_02
+- EAAViperNapuatziCycloneEndTurn [empty_action_attack] action=StampedeStart anim=default:spear_cyclone_end_01
+- MAASViperNapuatziStepSweep [melee] action=Sweep anim=default:spear_attack_move_03
+- MPSViperNapuatziProjectileBarrage [monster_projectile_spell] action=SpellProjectileCold anim=default:spear_attack_jump_move_01,stance3:caster_snake_barrage_01
+- SSMViperSummonWispPrimal [summon_specific_monsters_on_target] action=None anim=-
+- SSMViperSummonWispWild [summon_specific_monsters_on_target] action=None anim=-
+- SSMViperSummonWispVivid [summon_specific_monsters_on_target] action=None anim=-
+- MDAzmerianViperTornado [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/AzmerianViperTornado
+- SOAzmerianViperWhirlingSlash [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/VaalMonsters/ViperNapuatzi/Objects/WhirlingSlash
+- GSAzmerianViperWhirlingSlash [geometry_spell] action=None anim=-
+    geom: circle length=27 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- GSAzmerianViperTornado [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+- GSAzmerianViperWhirlingSlashAppear [geometry_spell] action=None anim=-
+    geom: circle length=27 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+
+## own states and handlers
+states: emerging; spear_visible = 1; invisible_after_death; commands_left; float_epk; skip_death; collidable = 1
+- on_or_create_state_collidable_1 = { MakeCollidable(); }
+- on_or_create_state_collidable_0 = { RemoveCollidability(); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperAzmeri/epk/idle_fx.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperAzmeri/epk/idle_fx.epk' ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+- on_spawned_dead = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperAzmeri/epk/idle_fx.epk' ); }
+- on_wake = { IfState( dead, 1, { DisableRendering(); } ); }
+- on_wake = { IfState( dead, 1, { DisableRendering(); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/ViperAssembleAudio.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/ViperShieldsUpAudio.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/ViperChargeAudio.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/ao/ViperDeathAudio.ao
+- preload_object Metadata/Monsters/VaalMonsters/ViperNapuatzi/Objects/WhirlingSlash
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/AzmerianViperTornado
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalMonsters/ViperNapuatzi/Objects/WhirlingSlash:  [blocking=false object_size=0] states=make_walk on_construction_complete{{ PlayAnimation( whirlingSlash_04 ); }}; on_timer_lifetime{{ Call( end ); }}; on_or_create_state_make_walk_1{{ OverrideBaseHullType( walk ); }}
+- metadata/monsters/vaalmonsters/vipernapuatzi/objects/azmerianvictim:  [server_only=true] states=die on_state_die_1{{ PlayAnimation( vipernapuatzi_interlude_01 ); }}; create_state_die_0{{ PlayAnimation( vipernapuatzi_interlude_idle_01 ); }}; create_state_die_1{{ PlayAnimation( vipernapuatzi_interlude_01 ); GoToAnimationEnd(); PauseAnimation(); }}
+- metadata/monsters/vaalmonsters/vipernapuatzi/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=ViperNapuatziBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( ViperNapuatziBossInactive ); }}
+- metadata/monsters/vaalmonsters/vipernapuatzi/objects/legioninitiator:  [blocking=false object_size=3] states=obelisk on_or_create_state_obelisk_0{{ PlayAnimation( shatter_01 ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Legion/flashlight}; create_state_obelisk_1{{ PlayAnimation( idle_shatter_01 ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Legion/flash}; on_state_obelisk_2{{ PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Legion/flashlight/flash_light.ao', shatter_01,}
+- metadata/monsters/vaalmonsters/vipernapuatzi/objects/plantedspear:  [blocking=false object_size=3] states= 
+- metadata/monsters/vaalmonsters/vipernapuatzi/objects/whirlingslash:  [blocking=false object_size=0] states=make_walk on_construction_complete{{ PlayAnimation( whirlingSlash_04 ); }}; on_timer_lifetime{{ Call( end ); }}; on_or_create_state_make_walk_1{{ OverrideBaseHullType( walk ); }}
+- metadata/monsters/vaalmonsters/vipernapuatzi/objects/wispspawnlocator:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_16/Objects/AtziriStatueTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardAggoratAtziriStatue, TitleCardAggoratAtziriStatueSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_16/Objects/BloodTrailTitle: ProximityTrigger [radius=90 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardAggoratBloodyArea, TitleCardAggoratBloodyAreaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/Monsters/VaalMonsters/Living/objects/Marker:  [blocking=false object_size=0 server_only=true] states= 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_16_rooms_unique_divider_gate_01.arm
+  point [218.0, 445.0, 'checkpoint2']
+  obj Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLivingSacrificeGuide x7 (196,335) (241,335) (218,356) (251,320) (184,319) (204,343) (232,343)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotSpearColdSacrifice x6 (276,116) (176,140) (204,280) (239,280) (217,266) (253,241)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrifice x13 (255,125) (186,131) (204,294) (230,291) (226,277) (191,270) (177,268) (182,251) (169,235) (178,222)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotKnifestickColdSacrifice x8 (257,105) (178,120) (192,286) (234,270) (193,256) (167,256) (249,263) (191,182)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersBannerSacrifice x3 (218,306) (256,224) (243,182)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrificePray x4 (224,174) (233,178) (213,177) (202,180)
+  obj Metadata/Monsters/VaalMonsters/Living/VaalOverseerLivingSacrificeGuard x2 (209,365) (227,365)
+  obj Metadata/Monsters/VaalMonsters/Zealots/VaalZealotDaggersColdSacrificeWorship x1 (218,211)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (218,149)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (218,494)
+  obj Metadata/NPC/Four_Act3/AggoratPastAtziriGlyph x1 (218,223)
+  obj Metadata/MiscellaneousObjects/PatrolPathFinalNode x1 (218,448)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (218,425)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_3 x8 (310,126) (310,172) (310,241) (310,57) (126,126) (126,172) (126,241) (126,57)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x3 (325,424) (112,414) (111,314)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_6_4 x2 (356,586) (80,586)
+  obj Metadata/Terrain/Gallows/Act3/3_16/Objects/AtziriStatueTitle x1 (217,218)
+  obj Metadata/Terrain/Gallows/Act3/3_16/Objects/BloodTrailTitle x1 (218,477)
+room metadata_terrain_gallows_act3_3_15_rooms_library_libraryh_4open_01.arm
+  obj Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller x4 (57,13) (377,149) (13,149) (149,285)
+  obj Metadata/Monsters/VaalMonsters/Living/objects/Marker x38 (47,237) (250,52) (81,112) (307,132) (225,204) (291,56) (166,94) (232,94) (164,178) (308,70)
+room metadata_terrain_gallows_act3_3_15_rooms_library_libraryv_4open_01.arm
+  obj Metadata/Terrain/Gallows/Act3/3_15/Objects/ArchivesRoomLabel_Controller x4 (13,149) (286,149) (57,13) (149,377)
+  obj Metadata/Monsters/VaalMonsters/Living/objects/Marker x37 (89,161) (177,54) (59,109) (177,159) (245,129) (169,296) (238,296) (65,299) (59,250) (175,205)

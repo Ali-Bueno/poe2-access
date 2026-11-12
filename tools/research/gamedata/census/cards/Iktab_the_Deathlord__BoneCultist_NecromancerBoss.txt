@@ -1,0 +1,205 @@
+# Iktab, the Deathlord / Lord of the Pit
+content: Map boss
+monsters: Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBoss, Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossCampaignSTANDALONE, Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossMAP, Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSTANDALONE
+scripts: Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss, Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE, Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossMAP
+own chain: Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss, Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE, Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossMAP
+areas: MapSulphuricCaverns Sulphuric Caverns act10
+ai: Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss.ais, Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE.ais (not shipped)
+
+## skills
+- BoneCultistClusterBurst [monster_projectile_spell] action=SpellProjectileLightning anim=default:spell_cast_right_float_01
+- GABoneCultistBossLightStrike [geometry_spell] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEBoneCultistShockedGround [monster_cast_ground_effect_location] action=None anim=-
+- EGBoneCultistStormCall [execute_geal] action=None anim=-
+    GEAL 1022 on ['Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/StormcallArenaMarker']: self{this.arena_markers -= stormcall; SetStateTo( stormcall, 0 ); SetStateTo( startstormcall, 0);} each{TriggerSkill(CGEBoneCultistShockedGround, triggerer); TriggerSkill( GABoneCultistBossLightStrike, triggerer);} r=10
+- SOBoneStorm [spawn_object] action=SpellAreaOfEffectChaos anim=default:spell_aoe_bonestorm_01
+    objects: Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/bone_storm
+- GSBoneStorm [geometry_spell] action=SpellAreaOfEffectChaos anim=default:spell_aoe_bonestorm_01
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+- GTBoneStorm [geometry_trigger] action=HeavyStrike anim=default:spell_aoe_bullet_hell_01
+    geom: trigger count=4 delay=4500 spread=62 radius=10 angle=360 anchor=4
+    triggers: SOBoneStorm
+- GTBoneStormSingle [geometry_trigger] action=SpellAreaOfEffectChaos anim=default:spell_aoe_bonestorm_01
+    geom: trigger count=1 delay=0 spread=20 radius=0 angle=0 anchor=1
+- GTNecroMeteor [geometry_trigger] action=SpellAreaOfEffectFire anim=default:spell_aoe_meteor_01
+    geom: trigger count=1 delay=0 spread=60 radius=0 angle=0 anchor=1
+    triggers: SONecroMeteorMarker
+- SONecroMeteorMarker [spawn_object] action=SpellAreaOfEffectFire anim=default:spell_aoe_meteor_01
+    objects: Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/MeteorMarker
+- MastodonNecroMeteor [comet] action=SpellAreaOfEffectFire anim=default:spell_aoe_meteor_01
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- SONecroLightningMarker [spawn_object] action=Revive anim=default:spell_aoe_storm_calls_01
+    objects: Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/StormcallArenaMarker
+- TeleportMastodonNecromancerBoss [teleport] action=Teleport anim=default:teleport_01
+    flags: skill_cannot_be_stunned
+- GTNecroLightningMarker [geometry_trigger] action=Revive anim=default:spell_aoe_storm_calls_01
+    geom: trigger count=20 delay=350 spread=75 radius=26 angle=360 anchor=4
+    triggers: SONecroLightningMarker
+- EDSNecroExplodingBall [effect_driven_spell] action=HeavyStrike anim=default:spell_aoe_bullet_hell_01
+    flags: is_area_damage skill_cannot_be_stunned
+- GPSNecroExplodingBall [geometry_projectiles_spell] action=None anim=-
+- GTNecroMateorEnraged [geometry_trigger] action=SpellAreaOfEffectFire anim=default:spell_aoe_meteor_01
+    geom: trigger count=3 delay=600 spread=110 radius=120 angle=0 anchor=3
+- GTNecroLightningEnraged [geometry_trigger] action=Revive anim=default:spell_aoe_storm_calls_01
+    geom: trigger count=8 delay=300 spread=140 radius=15 angle=115 anchor=2
+    triggers: SONecroLightningMarker
+- SSMNecroBulletHellOrb [summon_specific_monsters_on_target] action=HeavyStrike anim=default:spell_aoe_bullet_hell_01
+    summons: Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSoulOrbLarge
+- GSGealNecroStormcall [geometry_spell] action=None anim=-
+    geom: circle length=150 width=0 angle=0 range=1000 delay=50 anchor=2
+    GEAL 1089 on ['Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/StormcallArenaMarker']: self{} each{triggerer.SetStateTo( activated, 1 );} r=150
+- SSMNecroBulletHellOrbDeath [summon_specific_monsters_on_target] action=SpellNovaLightning anim=-
+    summons: Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSoulOrb
+- GSBoneCultistClusterBurst [geometry_spell] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTBoneCultistClusterBurst [geometry_trigger] action=None anim=-
+    geom: trigger count=5 delay=600 spread=15 radius=0 angle=0 anchor=1
+    triggers: GSBoneCultistClusterBurst
+- SSMNecroBulletHellOrbVolatile [summon_specific_monsters_on_target] action=SpellNovaLightning anim=-
+    summons: Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSoulOrbVolatile_
+
+## own states and handlers
+states: spawnritual; mastodondeath; necromancerdeath; epk; stormcall; startstormcall; dead
+- on_construction_complete = { globals.necroboss = this; }
+- on_or_create_state_spawnritual_0 = { IfAlive( () { DisableTargetable(); PlayAnimation( ritual_01 ); this.rune = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/necromancer_boss_summon_rune.ao', default, 1.0, inherit, 0.0, inherit, 1, 1, 0, SelfLocation ); this.energy = PlayEffect( 'Metadata/Effects/Spe
+- on_state_spawnritual_1 = { IfAlive( (){ PlayAnimation( ritual_start_01 ); } ); }
+- on_state_spawnritual_2 = { this.rune.PlayAnimation( end ); this.energy.PlayAnimation( end ); }
+- create_state_spawnritual_2 = { this.rune.Delete(); this.energy.Delete(); }
+- on_state_spawnritual_3 = { EnableTargetable(); SetStaticLifeBarVisibilty( True ); }
+- create_state_spawnritual_3 = { EnableTargetable(); Delay( 0.1, { SetStaticLifeBarVisibilty( True ); } ); }
+- on_or_create_state_epk_1 = { PlayAttachedEffect( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/onact_first_death_idle.ao', <root> ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/onact/death_first_01/shadow_skin_idle.epk' ); }
+- on_state_epk_2 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/onact/death_first_01/shadow_skin_fadeout.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/onact/death_first_01/shadow_skin_idle.epk' ); DetachAllOfType( 'Metadata/Effec
+- on_effect_start_GTNecroLightningEnraged = { PlayTextAudio( BoneCultistDeathlordGralRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss' ); }
+- on_effect_start_GTNecroMateorEnraged = { PlayTextAudio( BoneCultistDeathlordHakgrumRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss' ); }
+- on_effect_start_GTBoneStormSingle = { PlayTextAudio( BoneCultistDeathlordNirHagokRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss' ); }
+- on_effect_start_SSMNecroBulletHellOrb = { PlayTextAudio( BoneCultistDeathlordDaGokRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBoss' ); }
+- on_death = { SetStaticLifeBarVisibilty( false ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/NecromancerBoss_hovering.epk' ); IfState( mastodondeath, 1, { MastodonBoss.TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); } ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/NecromancerBoss_hovering.epk' ); }
+- on_effect_start_GTNecroLightningEnraged = { PlayTextAudio( BoneCultistDeathlordGralRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE' ); }
+- on_effect_start_GTNecroMateorEnraged = { PlayTextAudio( BoneCultistDeathlordHakgrumRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE' ); }
+- on_effect_start_GTBoneStormSingle = { PlayTextAudio( BoneCultistDeathlordNirHagokRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE' ); }
+- on_effect_start_SSMNecroBulletHellOrb = { PlayTextAudio( BoneCultistDeathlordDaGokRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossSTANDALONE' ); }
+- on_death = { SetStaticLifeBarVisibilty( false ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/NecromancerBoss_hovering.epk' ); }
+- on_effect_start_GTNecroLightningEnraged = { PlayTextAudio( BoneCultistDeathlordGralRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossMAP' ); }
+- on_effect_start_GTNecroMateorEnraged = { PlayTextAudio( BoneCultistDeathlordHakgrumRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossMAP' ); }
+- on_effect_start_GTBoneStormSingle = { PlayTextAudio( BoneCultistDeathlordNirHagokRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossMAP' ); }
+- on_effect_start_SSMNecroBulletHellOrb = { PlayTextAudio( BoneCultistDeathlordDaGokRandom, 'Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/BoneCultists_NecromancerBossMAP' ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): [('spawnritual', 0)]
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/MeteorMarker
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/necromancer_ball_pulse.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/necromancer_boss_summon_rune.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/onact_ritual.ao
+- preload_environment G2_5_boss
+
+## adds and forms
+- Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSoulOrb "Iktab, the Deathlord" bossbar=0 skills=GPSNecroExplodingBall comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=projectiles;large
+- Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSoulOrbLarge "Iktab, the Deathlord" bossbar=0 skills=GPSNecroExplodingBall comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=projectiles;large
+- Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossSoulOrbVolatile_ "Iktab, the Deathlord" bossbar=0 skills=GPSNecroExplodingBall,GSBoneCultistVolatile comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=projectiles;large
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/MeteorMarker:  [server_only=true] states=activated;enrage 
+- Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/bone_storm:  [server_only=true] states= 
+- Metadata/Monsters/BoneCultists/BoneCultists_Necromancer/ArenaObjects/StormcallArenaMarker:  [server_only=true] states=activated;enrage 
+- metadata/monsters/bonecultists/bonecultists_necromancer/arenaobjects/meteormarker:  [server_only=true] states=activated;enrage 
+- metadata/monsters/bonecultists/bonecultists_necromancer/arenaobjects/stormcallarenamarker:  [server_only=true] states=activated;enrage 
+- metadata/monsters/bonecultists/bonecultists_necromancer/bonecultistnecroendgameaddonfix:  states= 
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossRitualAudioMarker:  [server_only=true] states= 
+- Metadata/Monsters/MastodonBoss/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=MastodonActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( MastodonInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/HyenaMedallionDrop:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/MastodonBossArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMastodonArena, TitleCardMastodonArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossEntranceRune:  [server_only=true] states=on on_end_activate{{ PlayAnimation( idle ); }}; on_state_on_1{{ PlayAnimation( activate ); }}; create_state_on_1{{ PlayAnimation( idle ); }}; create_state_on_0{{ PlayAnimation( idle_off ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/G2_5_BossArenaGate: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= on_construction_complete{{ globals.ArenaGate = this; }}; on_untransition{{ PlayAnimation( end ); }}; on_transition{{ PlayAnimation( start ); QueueAnimation( loop ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/PlayerGetup:  [blocking=true server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/MedvedTitle: ProximityTrigger [radius=30 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMedved, TitleCardMedvedSubtitle ); }}
+- Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/EmergeBlocker: TriggerableBlockage [start_blocked=true blocking=false object_size=0 server_only=true] states= 
+
+## lines
+- on_effect_start_GTNecroLightningEnraged -> BoneCultistDeathlordGralRandom: <i>{Gral}!
+- on_effect_start_GTNecroMateorEnraged -> BoneCultistDeathlordHakgrumRandom: <i>{Hak-grum}.
+- on_effect_start_GTBoneStormSingle -> BoneCultistDeathlordNirHagokRandom: <i>{Nir hagok}.
+- on_effect_start_SSMNecroBulletHellOrb -> BoneCultistDeathlordDaGokRandom: <i>{Dagok}!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_5_2_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 183, 200, 394, 381, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 178, 173, 402, 388, '']
+  sector ['no_movement_skills', 217, 203, 355, 210, '']
+  point [286.0, 287.0, 'mapboss1']
+  point [285.0, 234.0, 'telepad']
+  point [306.0, 109.0, 'checkpoint2']
+  point [287.0, 315.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/BoneCultists/BoneCultist_Zealots/BoneCultistZealotSummoner_02 x5 (328,287) (258,321) (309,321) (256,252) (310,253)
+  obj Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBoss x1 (240,287)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (286,174)
+  obj Metadata/MiscellaneousObjects/ArenaLocatorGlobalVariable x1 (286,287)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x16 (285,237) (320,250) (340,288) (322,326) (234,287) (250,250) (286,340) (250,323) (329,265) (330,308)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (287,154)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (286,206)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x7 (242,124) (331,117) (236,316) (359,293) (329,342) (223,252) (351,244)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (325,112)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossRitualAudioMarker x1 (285,201)
+  obj Metadata/Monsters/MastodonBoss/Objects/BossRoomMinimapIcon x1 (287,289)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/HyenaMedallionDrop x1 (286,260)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/MastodonBossArenaEntranceTitle x1 (285,250)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossEntranceRune x1 (387,49)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/G2_5_BossArenaGate x1 (287,197)
+room metadata_terrain_gallows_leagues_expedition_subarea_medved_boss_rooms_feature_01.arm
+  sector ['norock', 530, 140, 646, 250, '']
+  sector ['boss_sector', 468, 69, 656, 316, '']
+  sector ['hide_teleports', 468, 70, 647, 316, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [589.0, 195.0, 'force:mapboss']
+  point [185.0, 196.0, 'telepad']
+  point [489.0, 195.0, 'telepad']
+  point [454.0, 196.0, 'checkpoint2']
+  obj Metadata/Monsters/BoneCultists/BoneCultist_Zealots/MedvedSummoner x5 (589,155) (559,168) (558,224) (589,235) (546,194)
+  obj Metadata/Monsters/LeagueExpeditionNew/Medved/IntroPool x1 (589,195)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/PlayerGetup x1 (185,196)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleExpeditionOlroth x1 (456,208)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x17 (467,173) (467,215) (467,224) (467,209) (467,203) (467,197) (467,191) (467,185) (467,179) (469,215)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (470,193)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (553,201)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/MedvedTitle x1 (386,194)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (537,194)
+  obj Metadata/Terrain/Gallows/Leagues/Expedition/SubArea_Medved_Boss/Objects/EmergeBlocker x1 (587,195)
+room metadata_terrain_maps_sulphuriccaverns_rooms_unique_boss.arm
+  sector ['hide_teleports', 225, 248, 419, 428, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 244, 220, 387, 248, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 252, 225, 255, 245, '']
+  sector ['no_movement_skills', 242, 242, 255, 245, '']
+  sector ['no_movement_skills', 242, 242, 245, 252, '']
+  sector ['no_movement_skills', 235, 249, 245, 252, '']
+  sector ['no_movement_skills', 235, 249, 238, 267, '']
+  sector ['no_movement_skills', 252, 225, 310, 228, '']
+  sector ['no_movement_skills', 218, 264, 238, 267, '']
+  sector ['no_movement_skills', 218, 264, 221, 320, '']
+  sector ['no_critters', 228, 221, 424, 416, '']
+  sector ['boss_sector', 255, 228, 418, 425, '']
+  sector ['boss_sector', 245, 245, 255, 384, '']
+  sector ['boss_sector', 238, 252, 245, 373, '']
+  sector ['boss_sector', 228, 267, 238, 359, '']
+  sector ['boss_sector', 221, 306, 228, 343, '']
+  point [324.0, 320.0, 'mapboss1']
+  point [347.0, 358.0, 'mapboss2']
+  point [66.0, 53.0, 'magic']
+  point [196.0, 194.0, 'checkpoint']
+  obj Metadata/Monsters/BoneCultists/BoneCultist_Zealots/BoneCultistZealotSummoner_02 x4 (364,325) (333,283) (310,368) (279,324)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x14 (130,257) (130,257) (176,474) (176,475) (310,488) (310,488) (377,547) (377,548) (356,127) (356,127)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x36 (494,149) (494,218) (425,218) (425,149) (356,149) (356,218) (356,287) (425,287) (494,287) (287,149)
+  obj Metadata/MiscellaneousObjects/ArenaLocatorGlobalVariable x1 (323,319)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x16 (322,269) (357,282) (377,320) (359,358) (271,319) (287,282) (323,372) (287,355) (366,297) (367,340)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (188,204)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (241,244)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x10 (242,250) (237,254) (246,245) (250,241) (254,237) (259,233) (263,229) (233,258) (267,224) (229,262)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (310,306)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (363,265)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (266,366) (395,304) (307,243) (246,304)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (325,305)

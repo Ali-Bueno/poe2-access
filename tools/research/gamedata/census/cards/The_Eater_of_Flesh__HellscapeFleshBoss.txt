@@ -1,0 +1,69 @@
+# The Eater of Flesh
+content: League: Hellscape
+monsters: Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshBoss
+scripts: Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshBoss
+own chain: Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshBoss, Metadata/Monsters/LeagueHellscape/HellscapeBossBase
+areas: 
+ai: Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- SSMHellscapeFleshBossTentacleField [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshGiantTentacleSlam
+- MMSHellscapeFleshBossMortar [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- HellscapeFleshBossTentacleGrab [hellscape_tentacle_grab] action=SpellProjectileFire anim=default:tentacle_grab_01
+    flags: skill_cannot_be_stunned
+- GTHellscapeFleshBossSummonTentacleField [geometry_trigger] action=None anim=-
+    geom: trigger count=6 delay=4680 spread=95 radius=20 angle=270 anchor=4
+    triggers: SSMHellscapeFleshBossTentacleField
+- GTHellscapeFleshBossMortar [geometry_trigger] action=SpellProjectileLightning anim=default:vomit_01
+    geom: trigger count=12 delay=0 spread=70 radius=45 angle=0 anchor=3
+    triggers: MMSHellscapeFleshBossMortar
+- GAHellscapeFleshBossSlamNearby [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- GAHellscapeFleshBossSlam [geometry_attack] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- GAHellscapeFleshBossRangedMelee2 [geometry_attack] action=Frenzy anim=default:attack_tentacle_02
+    geom: cone length=23 width=0 angle=105 range=0 delay=0 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked
+- GAHellscapeFleshBossRangedMelee1 [melee] action=HeavyStrike anim=default:attack_tentacle_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked
+- EAHellscapeFleshBossTentacle [empty_action_spell_loop] action=None anim=-
+- CGEHellscapeFleshBossCastGroundEffect [monster_cast_ground_effect_location] action=None anim=-
+- GSHellscapeFleshBossMortar [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=150 delay=50 anchor=12
+    flags: is_area_damage
+
+## own states and handlers
+states: death; tentacle_field; slam; spawned; cleansed
+- on_state_tentacle_field_0 = { DispatchActionEvent( end ); }
+- on_death = { DetachAllOfType( 'Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshBossLArmTentacle.ao' ); DetachAllOfType( 'Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshBossRArmTentacle.ao' ); }
+- on_death = { HideMinimapIcon(); }
+- on_spawned_dead = { HideMinimapIcon(); }
+- on_start_ChangeToStance1 = { SetGlobalAudioParam( CorruptPhase, 1 ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/NPC/Four_Act3/DoryaniMapCorruptedBoss
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/boss_warcry.ao
+
+## adds and forms
+- Metadata/Monsters/LeagueHellscape/FleshFaction/HellscapeFleshGiantTentacleSlam "Invisible" bossbar=0 skills=GAHellscapeFleshBossTentacleSlam comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/NPC/Four_Act3/DoryaniMapCorruptedBoss (no script)
+- metadata/monsters/leaguehellscape/fleshfaction/hellscapefleshbase: Life states=remove_glow = 1 on_death{{ IfState( remove_glow, 1, { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/monst}; on_spawned_dead{{ IfState( remove_glow, 1, { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Hellscape/league_EPKs/monst}
+- metadata/monsters/leaguehellscape/fleshfaction/objects/fleshelite1bloodorbbomb:  states=explode;fadeout;progress on_state_explode_1{{ PlayAnimation( end ); }}; on_state_fadeout_1{{ PlayAnimation( fadeout ); }}; on_construction_complete{{ IfState( progress, <1, { PlayAnimation( start ); QueueAnimation( idle ); } ); }}; create_state_progress_1{{ PlayAnimation( idle ); }}; create_state_progress_2{{ PlayAnimation( end ); }}; create_state_progress_3{{ PlayAnimation( fadeout ); }}
+- metadata/monsters/leaguehellscape/fleshfaction/objects/fleshfodderbloodground:  [blocking=false object_size=0] states= 
+- metadata/monsters/leaguehellscape/fleshfaction/objects/hellscapepustule:  states=pop on_initial_position_set{{ PlayAnimation( start ); QueueAnimation( idle ); }}; create_state_pop_1{{ PlayAnimation( idle ); }}; on_state_pop_2{{ PlayAnimation( end_01 ); }}; on_state_pop_3{{ PlayAnimation( deflate ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms

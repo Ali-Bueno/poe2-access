@@ -1,0 +1,200 @@
+# Rattlecage, the Earthbreaker / Volkhar, the Emberborn
+content: Sekhemas trial
+monsters: Metadata/Monsters/SaltGolem/SaltGolemBoss, Metadata/Monsters/SaltGolem/SaltGolemBossMAP, Metadata/Monsters/SaltGolem/SaltGolemBossSTANDALONE
+scripts: Metadata/Monsters/SaltGolem/SaltGolemRattlecage, Metadata/Monsters/SaltGolem/SaltGolemRattlecageMAP, Metadata/Monsters/SaltGolem/SaltGolemRattlecageSTANDALONE
+own chain: Metadata/Monsters/SaltGolem/SaltGolemRattlecage, Metadata/Monsters/MarakethSanctumTrial/Boss/SanctumBossBase, Metadata/Monsters/MarakethSanctumTrial/SanctumMonsterBase, Metadata/Monsters/SaltGolem/SaltGolemRattlecageMAP, Metadata/Monsters/SaltGolem/SaltGolemRattlecageSTANDALONE
+areas: Sanctum_1 Trial of the Sekhemas act2; MapGeode Geode act10; MapCrimsonShores Crimson Shores act10; MapSwarm Swarm act10
+ai: Metadata/Monsters/SaltGolem/SaltGolemRattlecage.ais (not shipped)
+
+## skills
+- GARattleCageMelee [geometry_attack] action=Melee anim=default:attack_01
+    geom: circle length=14 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAARattleCageSlamRuckus [empty_action_attack] action=GroundSlam anim=default:barrage_01
+- SORattleCageGroundFissure [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/SaltGolem/GroundFissureBoss
+- GARattleCageEarthquakeSmallImpact [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GARattleCageEarthquakeLargeImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GARattleCageSlam [geometry_attack] action=GroundSlamOffhand anim=default:groundslam_01
+    geom: circle length=20 width=0 angle=0 range=200 delay=33 anchor=3
+- GSRattleCagePulse [geometry_spell] action=Frenzy anim=default:epic_aoe_01
+    geom: circle length=34 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EARattleCagePulse [empty_action_attack_2] action=Frenzy anim=default:epic_aoe_01
+- RattleCageChangeStance [change_to_stance1] action=ChangeToStance1 anim=stance2:boss_inert_activate_01
+- RattleCageDeathExplode [geometry_spell] action=None anim=-
+    geom: circle length=43 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GARattleCageSingleRock [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=3600 delay=3600 anchor=4
+    flags: is_area_damage
+- GTRattleCageFallingRocks [geometry_trigger] action=None anim=-
+    geom: trigger count=30 delay=20000 spread=80 radius=30 angle=0 anchor=4
+    triggers: GARattleCageSingleRock
+- EAARattleCageFissureSlams [empty_action_attack_3] action=GroundSlamMoving anim=default:groundslam_02
+- GARattleCageFissureDamage [geometry_attack] action=None anim=-
+    geom: circle length=3 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GARattleCageBossFissureExplosion [geometry_attack] action=None anim=-
+    geom: circle length=5 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- MPSRattlecageVolcano [monster_projectile_spell] action=None anim=-
+- GSRattlecageVolcanoImpact [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSRattleCagePulse2 [geometry_spell] action=Frenzy anim=default:epic_aoe_01
+    geom: circle length=48 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSRattleCagePulse3 [geometry_spell] action=Frenzy anim=default:epic_aoe_01
+    geom: circle length=62 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MeleeAtAnimationSpeed2 [melee] action=OffMelee anim=default:attack_03
+- GTRattleCageFallingRocksTargetPlayers [geometry_trigger] action=None anim=-
+    geom: trigger count=3 delay=1500 spread=15 radius=0 angle=0 anchor=1
+    triggers: GARattleCageSingleRock
+- MPSRattlecageVolcanoNova [monster_projectile_spell] action=None anim=-
+- SORattelcageSpawnVolcanno [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/SaltGolem/RattlecageVolcano
+
+## own states and handlers
+states: first_aggro; light; active; audio; portal_spawn; ground_spawn
+- on_or_create_state_first_aggro_0 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_inert.epk' ); }
+- on_or_create_state_first_aggro_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_aggro.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_inert.epk' ); }
+- on_state_first_aggro_2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_aggro.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_inert.epk' ); }
+- create_state_first_aggro_2 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_inert.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/bossgolem_glow_aggro.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Sa
+- on_state_light_1 = { SetLightState( idle, 2 ); }
+- create_state_light_1 = { SetLightState( idle ); }
+- on_or_create_state_light_0 = { SetLightState( on_death ); }
+- on_death_boss_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/death_buildup.epk' ); }
+- on_event_contact_for_death_boss_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/pulse.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/slam_buildup.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/death_build
+- on_state_audio_1 = { SetGlobalAudioParam( SekhemaTrialsBoss, 0 ); }
+- on_state_audio_2 = { SetGlobalAudioParam( SekhemaTrialsBoss, 1 ); }
+- on_state_audio_3 = { SetGlobalAudioParam( SekhemaTrialsBoss, 2 ); }
+- on_state_portal_spawn_1 = { this.specific_object_position = this.spawn_portal.GetPositionValues(); this.specific_object_facing = this.spawn_portal.GetFacingValues(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/monster_portal/monster_exit_portal.epk', 3.0 ); }
+- on_state_ground_spawn_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/sandsummon_beetle_fadein.epk', 1 ); PlayEffect( 'Metadata/Effects/Environment/League_Sanctum/hourglass_encounter/sand_orb.ao' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Sanctum/monster_portal/monster_exit_portal.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/sandsummon_beetle_fadein.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/perma_scorchcrack.ao
+- preload_misc_animated RattleCageEruptionCracks
+- preload_object Metadata/Monsters/SaltGolem/SaltGolemRattlecageFissureLine
+- preload_object Metadata/Monsters/SaltGolem/SaltGolemRattlecageFissureLineStart
+- preload_object Metadata/Monsters/SaltGolem/SaltGolemRattlecageFissureLineEnd
+- preload_environment G2_2_rattlecage
+- preload_misc_beam HeistFreidrichBloodBeamPool
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/SaltGolem/SaltGolemRattlecageFissureLine:  [server_only=true] states= 
+- Metadata/Monsters/SaltGolem/SaltGolemRattlecageFissureLineStart:  [server_only=true] states= 
+- Metadata/Monsters/SaltGolem/SaltGolemRattlecageFissureLineEnd:  [server_only=true] states= 
+- Metadata/Monsters/SaltGolem/GroundFissureBoss: Transitionable [server_only=true] states= on_end_start{{ PlayAnimation( loop ); }}; on_transition{{ PlayAnimation( end ); }}
+- Metadata/Monsters/SaltGolem/RattlecageVolcano:  states= on_event_delete{{ Delete( ); }}; on_construction_complete{{ PlayAnimation( fadein ); QueueAnimation( loop ); }}; on_timer_lifetime{{ Call( end ); }}
+- metadata/monsters/saltgolem/groundfissure: Transitionable [server_only=true] states= on_end_start{{ PlayAnimation( loop ); }}; on_transition{{ PlayAnimation( end ); }}
+- metadata/monsters/saltgolem/groundfissureboss: Transitionable [server_only=true] states= on_end_start{{ PlayAnimation( loop ); }}; on_transition{{ PlayAnimation( end ); }}
+- metadata/monsters/saltgolem/groundfissurevolcanic: Transitionable [server_only=true] states= on_end_start{{ PlayAnimation( loop ); }}; on_transition{{ PlayAnimation( end ); }}
+- metadata/monsters/saltgolem/landmark/objects/fissurelineend:  [server_only=true] states= 
+- metadata/monsters/saltgolem/landmark/objects/fissurelinemid:  [server_only=true] states= 
+- metadata/monsters/saltgolem/landmark/objects/fissurelinestart:  [server_only=true] states= 
+- metadata/monsters/saltgolem/landmark/objects/fissurevolcano:  states= on_event_delete{{ Delete( ); }}; on_construction_complete{{ PlayAnimation( fadein ); QueueAnimation( loop ); }}; on_timer_lifetime{{ Call( end ); }}
+- metadata/monsters/saltgolem/moltensaltgolemglow:  states= on_or_create_state_first_aggro_0{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolem/saltgolem_glow_inert.epk' ); }}; on_or_create_state_first_aggro_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolem/saltgolem_glow_aggro.epk' ); RemoveEffect}; on_state_first_aggro_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolem/saltgolem_glow_aggro.epk' ); AddEffect}; create_state_first_aggro_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolem/saltgolem_glow_aggro.epk' ); RemoveEff}
+- metadata/monsters/saltgolem/rattlecageemergerocks:  [server_only=true] states= on_construction_complete{{ PauseAnimation( ); }}
+- metadata/monsters/saltgolem/rattlecagevolcano:  states= on_event_delete{{ Delete( ); }}; on_construction_complete{{ PlayAnimation( fadein ); QueueAnimation( loop ); }}; on_timer_lifetime{{ Call( end ); }}
+- metadata/monsters/saltgolem/saltgolemrattlecagefissureline:  [server_only=true] states= 
+- metadata/monsters/saltgolem/saltgolemrattlecagefissurelineend:  [server_only=true] states= 
+- metadata/monsters/saltgolem/saltgolemrattlecagefissurelinestart:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumAscendancyDeviceFloor1: Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=MarakethSanctumAscendancyAltar] states=activated;label_description create_state_activated_1{{ AddEffectPack( MonsterNoEmissiveOff ); DisableLights(); PlayAnimationByName( off ); QueueAnimationByName( idle_off ); }; on_state_activated_1{{ AddEffectPack( MonsterNoEmissiveFadeOut ); DisableLights(); PlayAnimationByName( off ); QueueAnimationByName( idle_off}; on_or_create_state_label_description_1{{ ChangeWorldDescriptionText( body, AscendancyShrineDescriptionHaveAscendancy ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/FloorEndPortal: InteractionAction Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=28] states= on_construction_complete{{ DispatchRulesetEvent( setup_floor_transition ); }}
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumKeyChestMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumEntranceTransition: InteractionAction Targetable MinimapIcon [blocking=false object_size=5 server_only=true icon=18] states=sanctum_ready on_construction_complete{{ DispatchRulesetEvent( setup_sanctum_entrance ); }}; on_or_create_state_sanctum_ready_0{{ DisableTargetable(); HideMinimapIcon(); DisableRendering(); }}; create_state_sanctum_ready_1{{ EnableRendering(); EnableTargetable(); ShowMinimapIcon(); }}; on_state_sanctum_ready_1{{ Delay( 3.0, { EnableRendering(); EnableTargetable(); ShowMinimapIcon(); } ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumBossArenaAudio:  [blocking=false object_size=0 server_only=true] states=stinger 
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueTrigger:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/SaltGolem/RattlecageEmergeRocks:  [server_only=true] states= on_construction_complete{{ PauseAnimation( ); }}
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/Rewards/SanctumWaterToKeyConverter: InteractionAction MinimapIcon [blocking=false object_size=5 server_only=true icon=MarakethSanctumKeyConverterActive] states=activated;sanctum_completed on_or_create_state_activated_1{{ DisableTargetable(); HideMinimapIcon(); }}
+- Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueBossMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/FloorTransitionDoor: TriggerableBlockage Targetable MinimapIcon [start_blocked=true blocking=false object_size=6 server_only=true icon=MarakethSanctumRoomSelector] states=door_opened;open on_construction_complete{{ DispatchRulesetEvent( setup_floor_transition ); Call( SetNextFloorTitle, floor ); }}; on_or_create_state_door_opened_0{{ EnableTargetable(); }}; on_or_create_state_door_opened_1{{ DisableTargetable(); IfState( open, 0, () { PlayAnimation( dialing ); PlayAnimationAttached( 'Metadata/Terrain/Doodads}; on_state_open_1{{ QueueAnimation( open_end ); QueueAnimationAttached( 'Metadata/Terrain/Doodads/Desert/KethAscendancy/EntranceDoor02.ao'}; create_state_open_1{{ PlayAnimation( open_01 ); PlayAnimationAttached( 'Metadata/Terrain/Doodads/Desert/KethAscendancy/EntranceDoor02.ao', o}; on_state_open_0{{ PlayAnimation( close_01 ); PlayAnimationAttached( 'Metadata/Terrain/Doodads/Desert/KethAscendancy/EntranceDoor02.ao', }
+- Metadata/Terrain/Gallows/Act2/2_2/Objects/CollapsingCeiling: Transitionable [blocking=false object_size=3 server_only=true] states= create_untransitioned{{ PlayAnimationByIndex( 0 ); PauseAnimation(); }}; on_transition{{ PlayAnimationByIndex( 0 ); AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/fallingrock_}; create_transitioned{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); PlayAnimationAttachedByIndex( 'Metadata/Effects/Spells/monsters_effects}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_sanctum_level_1_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 247, 259, 481, 518, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['treasure_room', 366, 510, 638, 762, '']
+  point [356.0, 393.0, 'mapboss1']
+  point [126.0, 379.0, 'telepad']
+  point [264.0, 379.0, 'telepad']
+  point [619.0, 586.0, 'entrance']
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumAscendancyDeviceFloor1 x1 (449,643)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/FloorEndPortal x1 (414,636)
+  obj Metadata/NPC/Four_Act2/BalbalaReleasedMerchant x1 (480,587)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumKeyChestMarker x10 (581,611) (531,611) (581,558) (531,558) (606,611) (606,558) (556,611) (556,558) (506,611) (506,558)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (235,377)
+  obj Metadata/Monsters/MarakethSanctumTrial/ArenaCentreMarker x1 (356,394)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumEntranceTransition x1 (641,587)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumBossArenaAudio x1 (393,414)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueTrigger x1 (156,380)
+  obj Metadata/Terrain/Gallows/Act2/2_4_1/Objects/LightTrigger x2 (449,643) (449,554)
+  obj Metadata/Monsters/SaltGolem/RattlecageEmergeRocks x1 (370,432)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/Rewards/SanctumWaterToKeyConverter x1 (517,648)
+  obj Metadata/MiscellaneousObjects/Stash x1 (490,632)
+  obj Metadata/NPC/Four_Act2/BalbalaReleasedDialogue x1 (151,440)
+  obj Metadata/Terrain/Gallows/Act2/2_13/Objects/SanctumBalbalaDialogueBossMarker x7 (307,326) (400,343) (427,399) (272,362) (276,411) (324,434) (353,330)
+  obj Metadata/MiscellaneousObjects/Sanctum/SanctumLocker x1 (472,631)
+  obj Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/FloorTransitionDoor x1 (640,586)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (247,382)
+room metadata_terrain_maps_geode_rooms_unique_golemboss_01.arm
+  point [194.0, 405.0, 'mapboss1']
+  point [196.0, 119.0, 'checkpoint2']
+  obj Metadata/Terrain/Gallows/Act2/2_2/Objects/CollapsingCeiling x34 (243,387) (167,361) (222,379) (193,354) (247,408) (233,398) (226,439) (213,455) (201,374) (155,384)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (215,135)
+  obj Metadata/MiscellaneousObjects/DoodadNoOverlap x4 (11,103) (103,11) (287,11) (379,103)
+room metadata_terrain_maps_swarm_rooms_unique_bossroom_01.arm
+  sector ['hide_teleports', 140, 161, 366, 359, '']
+  sector ['hide_teleports', 153, 152, 345, 161, '']
+  sector ['hide_teleports', 213, 138, 299, 152, '']
+  sector ['boss_sector', 134, 168, 366, 369, '']
+  sector ['boss_sector', 147, 159, 358, 168, '']
+  sector ['boss_sector', 155, 145, 341, 159, '']
+  sector ['boss_sector', 150, 154, 155, 159, '']
+  sector ['boss_sector', 142, 162, 147, 168, '']
+  sector ['no_movement_skills', 156, 144, 275, 146, '']
+  sector ['no_movement_skills', 138, 165, 140, 281, '']
+  sector ['no_movement_skills', 138, 165, 142, 167, '']
+  sector ['no_movement_skills', 140, 163, 142, 167, '']
+  sector ['no_movement_skills', 140, 163, 144, 165, '']
+  sector ['no_movement_skills', 142, 161, 144, 165, '']
+  sector ['no_movement_skills', 142, 161, 146, 163, '']
+  sector ['no_movement_skills', 144, 159, 146, 163, '']
+  sector ['no_movement_skills', 144, 159, 148, 161, '']
+  sector ['no_movement_skills', 146, 157, 148, 161, '']
+  sector ['no_movement_skills', 146, 157, 150, 159, '']
+  sector ['no_movement_skills', 148, 155, 150, 159, '']
+  sector ['no_movement_skills', 148, 155, 152, 157, '']
+  sector ['no_movement_skills', 150, 153, 152, 157, '']
+  sector ['no_movement_skills', 150, 153, 154, 155, '']
+  sector ['no_movement_skills', 152, 151, 154, 155, '']
+  sector ['no_movement_skills', 152, 151, 156, 153, '']
+  sector ['no_movement_skills', 154, 149, 156, 153, '']
+  sector ['no_movement_skills', 154, 149, 158, 151, '']
+  sector ['no_movement_skills', 156, 144, 158, 151, '']
+  point [233.0, 237.0, 'mapboss']
+  point [123.0, 114.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (109,128)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (150,159)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x8 (143,163) (139,167) (147,159) (151,155) (156,150) (160,146) (164,142) (134,171)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (239,242)
+  obj Metadata/Critters/Ant/Ants x26 (180,291) (180,271) (240,320) (301,233) (243,190) (247,270) (295,183) (173,219) (216,295) (210,224)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (218,244)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (235,289) (295,247) (234,175) (166,244)

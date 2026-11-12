@@ -430,3 +430,81 @@ have held 0.6 s: "Muros: sigue el latido hasta la salida, <dirección>" / "Muros
 uno, <dirección>", then "Fuera de los muros"; the weak point's heartbeat leads there (`BossMechanicsWatch.WayOut`). Log:
 `Boss walls: N walls, Open|Closed|Out, to x,y, …`. **Unknown until a fight shows it** (the log will, no one is asked to
 play for it): how many of the 80 places get a wall, and whether the grid's walkable cells match the arena's real openings.
+
+## 14. The census: every boss's mechanics, by class (2026-11-12)
+
+The method of §13 run over all 409 boss-bar rows: 183 fights (variants merged by script name once Map / STANDALONE /
+Invasion / Spring is removed, forms joined to the boss that preloads them), 154 with their arena room, 1,503 rows of
+(fight, mechanic). Data: `tools/research/gamedata/census/` (`mechanics.tsv`, `cards/`, `content.txt`), rebuilt by `cards.py`.
+Each class is a **data signature** the extractor can apply, so one rule and one handler cover every fight that shares
+it. "Linked buff" = a buff reached from the fight's own data (a skill's area buff, a ground-effect stat, a summon buff, an
+ExecuteGEAL `AddBuff`, `preload_buff`, a `*Buff(x)` call, an `on_gain_x` handler), or LIKELY one whose id holds the script's name.
+
+| Class | Signature | Fights | Run-time signal → what the mod does | State |
+|---|---|---|---|---|
+| H gone/back | a state handler calling `DisableRendering(` or `DisableTargetable(` | 147 | the state → "desaparecido" / "ha vuelto" | done (`hide\|`); `DisableTargetable` not yet |
+| NP no teleport | a room sector `hide_teleports` / `disable_instant_portals` / `no_portals`, or a `*portal*` state | 104 | the player inside the sector | not worth a word |
+| U unavoidable | skill implicit `base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked` | 71 | the skill's action → the area's word | check against the unblockable cue |
+| BR boss acts on an object | a boss skill's ExecuteGEAL listing non-monster objects | 53 | the object's state (shatter, explode, destroyed) | todo |
+| A adds | preloads, summon stats | 45 | done (`add\|`) | done |
+| US use | an arena or preloaded object with `InteractionAction` / `Interactable` | 37 | the entity → lead to it | todo (the scanner names some) |
+| G hazard ground | a linked buff with `*_damage_taken_per_minute` | 32 | the buff on the player | done (hazard cue) |
+| OB break | an object or skill-less add with `Life`, `transition_on_damage_taken=1` or `attackable` | 26 | the entity and its states → lead to the nearest | todo (LIKELY: breaking is not always good, Azarian's censers) |
+| D hidden attack | a skill whose action is in a stance the boss takes while out of play | 23 | not judged today (`BossWatch.WatchNear` skips hidden monsters) | todo |
+| AR arena change | a state handler with `TriggerBracket(` (not on death), or a state named arena, burn, dark, flood, lava, collapse, shrink, sandstorm, maze, retreat, platform | 17 | the state → "the arena…" | todo |
+| D daemon attack | an area skill owned by an invisible helper or move-daemon monster | 16 | the attacker is not the boss: not judged today | todo |
+| MG progress | a state named progress, collect, timetrial, readytoactivate, count | 14 | the value → say it | todo |
+| P phase / form | `SetGlobalAudioParam(*Phase)`; a preloaded boss-bar monster | 9 / 9 | done | done |
+| I enrage | a state or buff whose last word is enrage(d) | 8 | done | done |
+| GR grab | a skill id with Grab / Cocoon / Entomb / Devour / Imprison, or a linked buff "imprisoned" | 7 | the action or the buff → "atrapado" | todo |
+| CV cover | the boss's `spawn_object` makes a `TriggerableBlockage` that starts blocked (and it has a skill of length ≥ 60) | 7 | the entity → lead to its far side from the boss | todo |
+| EM empowered | a linked buff saying "are empowering", "protected by", "while … live"; or a GEAL on adds that changes the boss | 7 + 2 | the buff on the boss → say its text | todo |
+| EL element | a state named element / infuse | 5 | the value → the damage to come | todo |
+| GZ buff zone | a GEAL `AddBuff(x)` on whoever is inside, no object list | 4 | the buff on the player | todo |
+| SH shelter | a GEAL `AddBuff` of a shield buff, or "You are within …, gaining …" | 3 (+2) | the buff = sheltered; lead to its source | todo |
+| W wall | a skill-less add extending InanimateObject, `blocking = true` | 3 (Asinia, Kabala, Lady Elswyth by the census's looser reading; the catalog has Kabala) | done (`wall\|`) | done; see why the other two are missing |
+| ST stacking | a linked buff with `ShowCount=1` and stack text | 3 | its count on the player | todo |
+| M stop / keep | the description patterns | 2 / 3 | done | done |
+| CL clones | a state named clone, chosen, real, fake, decoy (Yama's `YamaFutureClone`: `chosen_one`) | 3 | the clone holding it → lead to it | todo |
+| TE tether | buff text tether / chain / leash | 2 | the buff | partly (`move\|`) |
+| DZ damage rule | "deal no Damage while in …", "only … inside …" | 1 | the buff on the player | named by the harmful buffs |
+| S seek | `fade_by_player_dist` | 1 | done | done |
+
+`BuffVisuals.BuffDescription` holds three instructions in the whole game, one a monster's and linked to no boss: no rule.
+Invulnerability cannot be tied to a boss offline (the server decides); it stays a run-time buff check.
+
+**Fights with such mechanics, by content** (letters as above; without = only A, H, NP, U).
+Act 1: Asinia W P US, Candlemass US, Count Geonor BR OB P, Draven BR P US, Gorian BR OB, Lachlann OB, the Crowbell AR GR I,
+the Devourer BR OB, the Executioner D OB US, the Rotten Druid OB, the Rust King P TE; without: Anundr, Beira, the Bloated
+Miller, the Brambleghast, Tierney. Act 2: Azarian G OB US, Balbala S BR G US, Jamanra the Abomination AR BR D EM G SH, the
+Risen King AR D EM G PH SH TE, Kabala W AR BR EM OB, Rathbreaker D, Rudja BR I US, Tor Gul BR US, Zalmarath BR CV D G OB US;
+without: Ekbab. Act 3: Bahlak G, Blackjaw BR, Chetza BR P US, Doryani BR D G P, Doryani's Triumph BR P, Ignagduk BR CV D MG,
+Ketzuli MG, Mektul BR CV D US, Oloton BR, the Queen in the Mists D, Rootdredge BR, the Queen of Filth BR MG OB US, Viper
+Napuatzi D, Xalapa G MG, Xilozoma OB, Xyclucian OB, Yaota BR MG OB US, Zicoatl BR D TE; without: Silverfist, Uxmal, Zekoa.
+Act 4: Benedictus AR BR CV G TE, Hartlin TE, Diamora BR, Tavakai AR BR G MG OB P, the Blind Beast BR D I, the Prisoner D G OB
+TE US, Torvian EM G OB, Yama CL D G; without: the Great White One, Krutog. Interludes: Akthi D MG US, Azmadi D EM OB P US,
+Elzarah G TE, Godwin I OB US, Heldra BR, Lady Elswyth W BR D, Lythara D, Oswin BR CV GZ OB US, Rakkar AR BR G, Sigbert BR I OB
+US, Siora D TE, Stormgore AR, Thane Wulfric G, Vornas BR, Zelina AR EL MG, Zolin AR BR D EL MG; without: Isolde, the Yeti.
+Sekhemas: Ashar D MG US, Hadi I MG OB US, Rafiq BR I MG OB US, Zarokh GZ MG TE US; without: Rattlecage. The Trialmaster BR
+(the census filed him under Act 3 by his area). Pinnacles: the Aberration D US, the Arbiter of Ash AR BR D EL EM G P US, the
+Arbiter of Divinity AR BR D P US, the Bodach AR D G P SH US, the Raven Trickster BR CL D TE US. Breach: Esh BR G, Tul AR G,
+Vruun and Xesht G GR M TE. Abyss: Igrulog US, Tasgul AR G TE US, Vandroth US, Kulemak DZ G M US. Delirium: Kosis D OB TE,
+Omniphobia OB ST. Expedition: Olroth GR, Styrn CL US, Tetzcatl BR D TE, the Improbable Spawn D, Uhtred BR ST, Vorana G.
+Hellscape: the Eater of Flesh D GR MG OB, the Skittermind G OB. Incursion: both Atziri P, Cualli BR CV D, Huitzil BR D EL,
+Kulka BR, Menmek BR D TE, the Royal Colossus BR, Xipocado AR, both Xolotl BR. Maps: Gorian BR OB, Ignatia BR, Iktab BR, the
+Lord of the Pit BR, Phyx G, the Precursors TE, the Black Crow AR GR I, the King in the Mists EM G GR GZ M P ST US, Torrek TE,
+Varloch G. Unplaced: Tawhani EL EM GZ, Phanos D G, the Immured Fury D G; fifteen rogue exiles, nothing.
+
+**Lost today because only the boss's own current attack is judged.** Daemon attacks: Jamanra's obsidian storm, Zalmarath's
+laser target, Menmek's and Tetzcatl's lasers, Kosis's weapon slams, the Bodach's mothballs, Siora's `DarknessDaemon`, the
+Forgemaster's lava sunder, the Raven Trickster's spells, the King in the Mists' rat tornado. Attacks made while out of
+play (23 fights, UNSURE): Ashar's and Akthi's `burrow_leap_01`, Azmadi's `chrono_leap_slam_end_01`, Doryani's mech stance.
+
+**Not knowable offline.** Which buff the server gives to whom and when; where it puts its own objects (Kabala's gap,
+Asala's shelter among 8 markers, Yama's chosen clone, Zarokh's hourglasses: the files give the candidates and the paths);
+whether a server-only object with a client section reaches the client; whether a cover stops a blast; a room's rotation.
+
+**Order of work** (most fights first, each a rule plus a handler): 1. D: judge the attacks of a fought boss's daemons and
+of a boss out of play (39 fights). 2. EM: say the text of a boss's buff that has one (the game's own words; Torvian,
+Tawhani, Azmadi, the Arbiter). 3. AR: the arena changing, by its state. 4. Places to lead to, one handler: SH shelter, CV
+cover, CL the true clone, US use, OB break (each said with the object's own name). 5. MG, EL, ST, GR: values and holds.

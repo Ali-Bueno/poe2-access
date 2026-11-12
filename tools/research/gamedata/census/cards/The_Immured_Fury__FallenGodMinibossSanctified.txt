@@ -1,0 +1,93 @@
+# The Immured Fury
+content: Other/unplaced
+monsters: Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified
+scripts: Metadata/Monsters/FallenGodMiniboss/Sanctified/FallenGodMinibossSanctified
+own chain: Metadata/Monsters/FallenGodMiniboss/Sanctified/FallenGodMinibossSanctified
+areas: 
+ai: Metadata/Monsters/FallenGodMiniboss/Sanctified/FallenGodMinibossSanctified.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- FallenGodMinibossEmergeLeap [empty_action_spell_no_los] action=LeapSlam anim=default:emerge_wild_01
+    flags: is_area_damage
+- EASFallenGodChaosBeam [empty_action_spell] action=SpellProjectileFire anim=stance3:chaos_throw_01
+- EASFallenGodExaltBeam [empty_action_spell] action=SpellProjectileCold anim=stance3:exalt_throw_01
+- EASFallenGodDivineBeam [empty_action_spell] action=SpellProjectileLightning anim=stance3:divine_throw_01
+- EASFallenGodBossGigaSlam [empty_action_spell] action=SpellAreaOfEffectFire anim=default:divine_buff_01,stance3:fire_beam_big_01
+- FallenGodBossDodgeFwd [monster_dodge] action=DodgeForward anim=stance3:dash_fwd_01
+- FallenGodBossDodgeBwd [monster_dodge] action=DodgeBack anim=stance3:dash_bwd_01
+- FallenGodBossDodgeLeft [monster_dodge] action=DodgeLeft anim=stance3:dash_left_01
+- FallenGodBossDodgeRight [monster_dodge] action=DodgeRight anim=stance3:dash_right_01
+- MDFallenGodBossFireBeamSanctified [move_daemon] action=SpellAreaOfEffect anim=default:bubble_dispel_01,stance3:fire_beam_01
+    daemons: Metadata/Monsters/InvisibleFire/MDFallenGodFireBeamSanctified
+- GAFallenGodBossFireSlamSanctified [geometry_spell] action=SpellAreaOfEffectCold anim=default:exalt_buff_01,stance3:fire_circle_01
+    geom: circle length=40 width=0 angle=0 range=561 delay=38 anchor=3
+    flags: is_area_damage
+- CGEFallenGodBossFireBeamSanctified [monster_cast_ground_effect_location] action=SpellAreaOfEffect anim=default:bubble_dispel_01,stance3:fire_beam_01
+    buffs: abyss_desecrated_ground
+    ground: Metadata/Effects/Spells/cold_frozen_vortex/frozen_vortex_01.ao
+- GSFallenGodDivineProjImpactSanctified [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSFallenGodBossBeamSlamSanctified [geometry_spell] action=None anim=-
+    geom: circle length=55 width=0 angle=0 range=250 delay=33 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: immune; enter_combat; emerge_dialogue; revealed
+- on_or_create_state_hidden_0 = { SetImmobile( false ); }
+- on_or_create_state_hidden_1 = { SetImmobile( true ); }
+- on_construction_complete = { If( Not( IsAlive() ), () { RemoveAttachedObjectFromBones( L_Weapon_a ); RemoveAttachedObjectFromBones( R_Weapon_a ); RemoveAttachedObjectFromBones( L_Weapon_b ); RemoveAttachedObjectFromBones( L_Weapon_c ); RemoveAttachedObjectFromBones( R_Weapon_b ); } ); }
+- on_effect_start_MDFallenGodBossFireBeamSanctified = { Roll( 1, 2, (){ PlayTextAudio( SanctifiedBoss_FireBeam_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+- on_effect_start_GAFallenGodBossFireSlamSanctified = { Roll( 1, 2, (){ PlayTextAudio( SanctifiedBoss_FireSlam_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+- on_effect_start_EASFallenGodChaosBeam = { Roll( 1, 1, (){ PlayTextAudio( SanctifiedBoss_Chaos_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+- on_effect_start_EASFallenGodExaltBeam = { Roll( 1, 1, (){ PlayTextAudio( SanctifiedBoss_Exalt_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+- on_effect_start_EASFallenGodDivineBeam = { Roll( 1, 1, (){ PlayTextAudio( SanctifiedBoss_Divine_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+- on_start_ChangeToStance3 = { SetGlobalAudioParam( SanctifiedPhase, 1 ); }
+- on_death = { Roll( 1, 1, (){ PlayTextAudio( SanctifiedBoss_Death_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+- on_or_create_state_revealed_0 = { DisableRendering(); }
+- on_or_create_state_revealed_1 = { EnableRendering(); }
+- on_emerge_wild_01 = { PlayTextAudio( SanctifiedBoss_Emerge_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); }
+- on_heavy_stun_01 = { PlayTextAudio( SanctifiedBoss_Knockdown_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); }
+- on_fire_beam_big_01 = { Roll( 1, 1, (){ PlayTextAudio( SanctifiedBoss_FireBeamBig_Random, 'Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctified' ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('revealed', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_environment G5_7_boss
+- preload_monster_variety Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctifiedChaos
+- preload_monster_variety Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctifiedExalt
+- preload_monster_variety Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctifiedDivine
+- preload_misc_object FallenGodMinibossGigaSlam
+- preload_object Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossGigaSlam
+- preload_misc_beam FallenGodBossGigaSlamBeam
+- preload_misc_beam FallenGodCurrencySpawnBeam
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act5_FOUR/FallenGods/Miniboss/corr_fire_laser_impact.ao
+- preload_misc_beam FallenGodSweepBeam
+
+## adds and forms
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctifiedChaos "Invisible" bossbar=0 skills=TCFallenGodChaosChargeSanctified,CGEFallenGodBossChaosChargeFireSanctified comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden = 1
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctifiedExalt "Invisible" bossbar=0 skills=CGEFallenGodBossExaltSkybeamSanctified comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden = 1
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossSanctifiedDivine "Invisible" bossbar=0 skills=MPSFallenGodDivineProjSpam comps=Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden = 1
+daemons: Metadata/Monsters/InvisibleFire/MDFallenGodFireBeamSanctified
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/FallenGodMiniboss/FallenGodMinibossGigaSlam:  [server_only=true] states= 
+- metadata/monsters/fallengodminiboss/sanctified/fallengodminibossdivineproj:  [blocking=false server_only=true] states=die on_initial_position_set{{ LockHeight( GetHeight() ); }}; on_state_die_1{{ PlayAnimation( impact ); }}
+
+## lines
+- on_effect_start_MDFallenGodBossFireBeamSanctified -> SanctifiedBoss_FireBeam_Random: Fire cleanses! 
+- on_effect_start_GAFallenGodBossFireSlamSanctified -> SanctifiedBoss_FireSlam_Random: Ash beneath me! 
+- on_effect_start_EASFallenGodChaosBeam -> SanctifiedBoss_Chaos_Random: Chaos blooms!
+- on_effect_start_EASFallenGodExaltBeam -> SanctifiedBoss_Exalt_Random: Face judgement! 
+- on_effect_start_EASFallenGodDivineBeam -> SanctifiedBoss_Divine_Random: Divine wrath! 
+- on_death -> SanctifiedBoss_Death_Random: I am unmade...and yet.... unchanged
+- on_emerge_wild_01 -> SanctifiedBoss_Emerge_Random: Corruption... unshackled! 
+- on_heavy_stun_01 -> SanctifiedBoss_Knockdown_Random: Strike me again... and you will suffer!
+- on_fire_beam_big_01 -> SanctifiedBoss_FireBeamBig_Random: First your flesh, then your bones!
+
+## linked buffs
+- abyss_desecrated_ground "Desecrated Ground": You are taking [Physical] damage over time and cannot recover Life or Energy Shield. | stats=base_physical_damage_taken_per_minute
+
+## arena rooms

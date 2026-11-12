@@ -1,0 +1,181 @@
+# Xesht, We That Are One
+content: League: Breach
+monsters: Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned
+scripts: Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned
+own chain: Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned, Metadata/Monsters/PinnacleBossBase
+areas: BreachDomain_01 Twisted Domain act10; BossRush_Area3 Boss Rush Area 3 act10
+ai: Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EASBreachBossHandSlam [empty_action_spell] action=SpellAreaOfEffect anim=default:handprint_slam_01
+- MPSBreachBossFlickProjectile [monster_projectile_spell] action=SpellProjectile anim=default:pistol_flick_01
+- EASBreachBossSummonEsh [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:summon_esh_01
+- EASBreachBossSummonTul [empty_action_spell] action=SpellProjectileCold anim=default:summon_tul_01
+- MPSBreachBossMultiFlick [monster_projectile_spell] action=SpellProjectileLightning anim=default:barrage_flick_01
+- GSBreachBossMultiFlickImpact [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- MPSBreachBossHeadFireball [monster_projectile_spell] action=SpellProjectileFire anim=default:head_fireball_01
+    flags: base_deal_no_damage
+- GSBreachBossHeadFireballImpact [geometry_spell] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- EASBreachBossSummonEshTul [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:summon_esh_tul_01
+- GABreachBossHandSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=99 delay=33 anchor=4
+    flags: is_area_damage
+- GTBreachBossFlickCascade [geometry_trigger] action=None anim=-
+    geom: trigger count=7 delay=1000 spread=100 radius=1 angle=0 anchor=3
+    triggers: GSBreachBossMultiFlickImpact
+- EASBreachBossOpenPortals [empty_action_spell] action=SpellAreaOfEffectFire anim=default:begin_arm_portals_01
+- EDABreachBossHandSlamLeft [effect_driven_attack] action=GroundSlam anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSBreachBossPistolFlickSonicWave [geometry_spell] action=SpellProjectile anim=default:pistol_flick_01
+    geom: rectangle length=110 width=20 angle=0 range=200 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GPSBreachBossHeadFireball [geometry_projectiles_spell] action=SpellProjectileFire anim=default:head_fireball_01
+    flags: base_deal_no_damage
+- GSBreachBossHandClapBlast [geometry_spell] action=None anim=-
+    geom: rectangle length=40 width=16 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EDABreachBossHandSlamRight [effect_driven_attack] action=GroundSlam anim=-
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASBreachBossMultiFlick [empty_action_spell] action=SpellProjectileLightning anim=default:barrage_flick_01
+- EASBreachBossTeleportStart [empty_action_spell] action=TeleportForward anim=default:teleport_start_01
+- EASBreachBossTeleportEnd [empty_action_spell] action=TeleportBackward anim=default:teleport_end_01
+- CGEBreachBossHeadFireballGround [monster_cast_ground_effect] action=None anim=-
+    flags: is_area_damage
+- CTS1Generic [change_to_stance1] action=None anim=-
+
+## own states and handlers
+states: strafe_movement = 1; collidable = 1; invis_handle; can_talk
+- on_or_create_state_strafe_movement_1 = { SetUsesDirectionalRunAnimations( true ); }
+- on_or_create_state_strafe_movement_0 = { SetUsesDirectionalRunAnimations( false ); }
+- on_or_create_state_collidable_0 = { RemoveCollidability(); }
+- on_or_create_state_collidable_1 = { MakeCollidable(); }
+- on_construction_complete = { IfState( invis_handle, 0, (){ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/breach_clip.epk' ); }, (){} ); }
+- on_or_create_state_invis_handle_1 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/breach_clip.epk' ); }
+- on_event_spawn_death_hand = { this.hand = PlayEffect( 'Metadata/Monsters/Breach/BreachOverseerBoss/Hands/BreachArm.ao', 5 ); this.hand.SetOrientation( this.GetOrientation(), false, true ); this.hand.specific_object_position = this.GetPositionValues(); this.hand.specific_object_facing = this.GetFacingValues(); this.hand.SetCurr
+- on_emerge_01 = { SetGlobalAudioParam( Breach_Boss, 1 ); }
+- on_death_bwd_01 = { SetGlobalAudioParam( Breach_Boss, 2 ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/epk/alive.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/epk/alive.epk' ); }
+- on_emerge_01 = { PlayTextAudio( XeshtBoss_Emerge_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); }
+- on_death_bwd_01 = { PlayTextAudio( XeshtBoss_Death_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); }
+- on_summon_tul_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_TulPuppet_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); } ); } ); }
+- on_summon_esh_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_EshPuppet_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); } ); } ); }
+- on_summon_esh_tul_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_EshTulPuppet_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); } ); } ); }
+- on_barrage_flick_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_MultiFlick_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned', 600 ); } ); } ); }
+- on_begin_arm_portals_01 = { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_TalismanOpen_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned', 400 ); } ); }
+- on_charge_start_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_Burrow_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); } ); } ); }
+- on_handprint_slam_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_HandSlam_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned', 100 ); } ); } ); }
+- on_head_fireball_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_HeadFireball_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned', 400 ); } ); } ); }
+- on_knockdown_bwd_01 = { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_Knockdown_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned' ); } ); }
+- on_pistol_flick_01 = { IfState( can_talk, 1, { Roll( 1, 1, (){ PlayTextAudio( XeshtBoss_PistolFlick_Random, 'Metadata/Monsters/Breach/BreachOverseerBoss/ItThatReturned', 400 ); } ); } ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/Breach/BreachOverseerBoss/Corpses/EshCorpse
+- preload_monster_variety Metadata/Monsters/Breach/BreachOverseerBoss/Corpses/TulCorpse
+- preload_monster_variety Metadata/Monsters/Breach/BreachOverseerBoss/HandSlamRight
+- preload_monster_variety Metadata/Monsters/Breach/BreachOverseerBoss/HandSlamLeft
+- preload_monster_variety Metadata/Monsters/Breach/BreachOverseerBoss/HandPortal
+- preload_buff_visual time_stop_debuff
+- preload_epk Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/epk/alive.epk
+
+## adds and forms
+- Metadata/Monsters/Breach/BreachOverseerBoss/Corpses/EshCorpse "Daemon" bossbar=0 skills=GSBreachBossEshCorpseNova,GTBreachBossEshCorpseNova comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=beams_active
+- Metadata/Monsters/Breach/BreachOverseerBoss/Corpses/TulCorpse "Daemon" bossbar=0 skills=MPSBreachBossTulProjectile,EASBreachBossTulBarrage comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=beams_active
+- Metadata/Monsters/Breach/BreachOverseerBoss/HandSlamRight "Daemon" bossbar=0 skills=EAABreachBossHandSlamPuppeteer comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/Breach/BreachOverseerBoss/HandSlamLeft "Daemon" bossbar=0 skills=EAABreachBossHandSlamPuppeteer comps=Targetable Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/Breach/BreachOverseerBoss/HandPortal "Daemon" bossbar=0 skills=MAASNoLineOfSight,GABreachBossTitanHandSlam,GABreachBossTitanHandSlamBelow comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/breach/breachoverseerboss/hands/handportal:  [object_size=0 server_only=true] states=activate 
+- metadata/monsters/breach/breachoverseerboss/hands/handportalmega:  [object_size=0 server_only=true] states=activate 
+- metadata/monsters/breach/breachoverseerboss/hands/wallhands:  [blocking=false server_only=true] states=emerge on_state_emerge_1{{ PlayAnimation(emerge_01); }}; create_state_emerge_1{{ PlayAnimation(emerge_01); GoToAnimationEnd( ); }}
+- metadata/monsters/breach/breachoverseerboss/objects/ailithdeathlocation:  [blocking=false object_size=2 server_only=true] states= 
+- metadata/monsters/breach/breachoverseerboss/spider/spawner:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal:  [object_size=0 server_only=true] states=activate 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands:  [blocking=false server_only=true] states=emerge on_state_emerge_1{{ PlayAnimation(emerge_01); }}; create_state_emerge_1{{ PlayAnimation(emerge_01); GoToAnimationEnd( ); }}
+- Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega:  [object_size=0 server_only=true] states=activate 
+- Metadata/Monsters/Breach/BreachOverseerBoss/Objects/AilithDeathLocation:  [blocking=false object_size=2 server_only=true] states= 
+
+## lines
+- on_emerge_01 -> XeshtBoss_Emerge_Random: We that dreamed... We in nightmare... We that are One!
+- on_death_bwd_01 -> XeshtBoss_Death_Random: Ugh...! We That Failed...
+- on_summon_tul_01 -> XeshtBoss_TulPuppet_Random: She is Tul...
+- on_summon_esh_01 -> XeshtBoss_EshPuppet_Random: She is Esh...
+- on_summon_esh_tul_01 -> XeshtBoss_EshTulPuppet_Random: The fight... once more...
+- on_barrage_flick_01 -> XeshtBoss_MultiFlick_Random: Curse of a Broken Sun!
+- on_begin_arm_portals_01 -> XeshtBoss_TalismanOpen_Random: We split the thread of reality's coiling lies!
+- on_charge_start_01 -> XeshtBoss_Burrow_Random: Infinite pursuit...
+- on_handprint_slam_01 -> XeshtBoss_HandSlam_Random: We watch... we wait... we dream!
+- on_head_fireball_01 -> XeshtBoss_HeadFireball_Random: The red pyre blooms...
+- on_knockdown_bwd_01 -> XeshtBoss_Knockdown_Random: Ugh... the Hive shall spill forth... like a Mother's blood!
+- on_pistol_flick_01 -> XeshtBoss_PistolFlick_Random: We tire...
+
+## linked buffs
+- breach_boss_spider_tether "Webbed": Movement speed [Slow|Slowed]. Moving far enough away from the web  will break it. | stats=movement_speed_+%_final_from_breach_boss_spider_tether
+- breach_discharge "":  | stats=capped_actor_scale_+%_from_soul_eater_if_not_player,skill_speed_+%,base_additional_physical_damage_reduction_%,base_resist_all_elements_%
+- breach_discharge_aura "":  | stats=grant_actor_scale_+%_to_aura_owner_on_death,grant_attack_speed_+%_to_aura_owner_on_death,grant_damage_reduction_%_to_aura_owner_on_death,soul_is_consumed_on_death
+- breach_hand_mage_storm_lightning_aura "Esh's Storm": You are taking Lightning Damage over time | stats=base_lightning_damage_taken_per_minute
+- breach_monster_potency "":  | stats=monster_potency_+%
+- breach_team_warp_buff "":  | stats=lightning_damage_+%,base_movement_velocity_+%,base_damage_taken_+%
+- breach_waking_nightmare "Waking Nightmare": You take 10% increased Damage and have 10% reduced Light Radius for 10 seconds per stack | stats=light_radius_+%,base_damage_taken_+%
+- breach_walk_buff "Into the Breach": Allows you to see nearby [FlamesOfChayula|Flames of Chayula] | stats=
+- breach_wild_boss_explode_on_death "":  | stats=
+- mtx_mantra_of_destruction_breach_on_kill_debuff "":  | stats=
+- purple_breach_flame_buff "Purple Flame of Chayula": [Gain] Damage as [Chaos] Damage per stack. | stats=non_skill_base_all_damage_%_to_gain_as_chaos
+
+## arena rooms
+room metadata_terrain_gallows_leagues_breach_breachdomain_01_rooms_unique_boss_02.arm
+  sector ['hide_teleports', 57, 341, 381, 647, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 1, 251, 437, 713, '']
+  sector ['boss_room', 75, 235, 380, 637, '']
+  point [218.0, 532.0, 'mapboss']
+  point [218.0, 359.0, 'telepad1']
+  point [231.0, 274.0, 'checkpoint']
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal x5 (305,481) (272,408) (327,520) (168,582) (137,606)
+  obj Metadata/MiscellaneousObjects/Breach/BreachMapLootMarker x1 (237,52)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (211,53)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands x1 (218,562)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner x1 (339,589)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega x2 (362,605) (84,612)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (218,314)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Objects/AilithDeathLocation x1 (219,506)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_BreachBoss x1 (218,262)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (219,340)
+room metadata_terrain_gallows_leagues_breach_breachdomain_01_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 57, 341, 381, 647, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 1, 251, 437, 713, '']
+  point [218.0, 532.0, 'mapboss']
+  point [219.0, 363.0, 'telepad']
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal x5 (305,481) (272,408) (327,520) (168,582) (137,606)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (219,317)
+  obj Metadata/MiscellaneousObjects/PortalToggleable x1 (218,90)
+  obj Metadata/MiscellaneousObjects/Breach/BreachMapLootMarker x1 (237,52)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (211,53)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands x1 (218,562)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner x1 (339,589)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega x2 (362,605) (84,612)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (219,340)
+room metadata_terrain_gallows_leagues_bossrush_worldarea3_subarea_xesht_rooms_boss_02.arm
+  sector ['hide_teleports', 57, 341, 381, 647, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['sector', 1, 251, 437, 713, '']
+  point [218.0, 532.0, 'mapboss5']
+  point [218.0, 359.0, 'telepad9']
+  point [218.0, 257.0, 'checkpoint10']
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortal x5 (305,481) (272,408) (327,520) (168,582) (137,606)
+  obj Metadata/MiscellaneousObjects/Breach/BreachMapLootMarker x1 (237,52)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (211,53)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/WallHands x1 (218,562)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Spider/Spawner x1 (339,589)
+  obj Metadata/Monsters/Breach/BreachOverseerBoss/Hands/HandPortalMega x2 (362,605) (84,612)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (218,282)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_BreachBoss x1 (240,261)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (220,322)

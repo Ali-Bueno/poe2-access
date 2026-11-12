@@ -1,0 +1,126 @@
+# Kosis, The Revelation
+content: League: Delirium
+monsters: Metadata/Monsters/LeagueDelirium/DeliriumDemonBossFinal
+scripts: Metadata/Monsters/LeagueDelirium/Demons/DeliriumDemonFinalBoss
+own chain: Metadata/Monsters/LeagueDelirium/Demons/DeliriumDemonFinalBoss, Metadata/Monsters/LeagueDelirium/Demons/DeliriumDemonBossBase
+areas: 
+ai: Metadata/Monsters/LeagueDelirium/Demons/DeliriumDemonFinalBoss.ais (not shipped)
+
+## skills
+- DeliriumDemonMeleeLeft [melee] action=Melee anim=default:attack_01
+    flags: is_area_damage
+- DeliriumDemonOrbDetonation [teleport] action=GroundSlam anim=default:beam_jump_break_01
+    flags: skill_cannot_be_stunned
+- DeliriumDemonBeam [affliction_boss_final_grow_beam] action=BarrageStart anim=default:beam_shoot_start_01
+    flags: skill_cannot_be_stunned
+- MPWDeliriumDemonWeaponThrowLeft [monster_projectile_weapon] action=None anim=-
+- MPWDeliriumDemonWeaponThrowRight [monster_projectile_weapon] action=None anim=-
+- MPSDeliriumDemonProjectileSpammableFire [monster_projectile_spell] action=SpellProjectileFire anim=default:attack_04
+- MPSDeliriumDemonFlurryProjectileFire [monster_projectile_spell] action=None anim=-
+    flags: base_deal_no_damage
+- GSDeliriumDemonFlurryProjectileFireImpact [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- DeliriumDemonTeleportAttack [teleport] action=Teleport anim=default:attack_01, attack_02
+    flags: skill_cannot_be_stunned
+- MPSDeliriumDemonProjectileSpammableLightning [monster_projectile_spell] action=SpellProjectileLightning anim=default:attack_03
+    flags: base_deal_no_damage
+- MPSDeliriumDemonFlurryProjectileLightning [monster_projectile_spell] action=SpellProjectileLightning anim=default:attack_03
+    flags: base_deal_no_damage
+- MPSDeliriumDemonFlurryProjectileFireSmall [monster_projectile_spell] action=SpellProjectileFire anim=default:attack_04
+    flags: base_deal_no_damage
+- GADeliriumDemonTeleportAttackTriggeredCone [geometry_attack] action=None anim=-
+    geom: cone length=22 width=0 angle=183 range=153 delay=33 anchor=3
+    flags: is_area_damage
+- GADeliriumDemonTeleportAttackTriggeredCone2 [geometry_attack] action=None anim=-
+    geom: cone length=22 width=0 angle=183 range=215 delay=33 anchor=3
+    flags: is_area_damage
+- EGDeliriumBossDetonateBall [execute_geal] action=None anim=-
+    GEAL 55 on ['Metadata/Monsters/InvisibleFire/DeliriumBossFinalDeathZone']: self{} each{triggerer.Transition();} r=40
+- GADeliriumDemonWeaponThrowLeftImpact [geometry_attack] action=None anim=-
+    geom: circle length=22 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GADeliriumDemonWeaponThrowRightImpact [geometry_attack] action=None anim=-
+    geom: circle length=22 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- TBDeliriumDemonLeftLightningBeam [trigger_beam] action=None anim=-
+    beams: AfflictionBossLightningBeam1, AfflictionBossLightningBeam2, AfflictionBossLightningBeam3, AfflictionBossLightningBeam4, AfflictionBossLightningBeam5
+- TBDeliriumDemonRightLightningBeam [trigger_beam] action=None anim=-
+    beams: AfflictionBossLightningBeam6, AfflictionBossLightningBeam7, AfflictionBossLightningBeam8, AfflictionBossLightningBeam9, AfflictionBossLightningBeam10
+- SODeliriumDemonSpawnLightningVolatile [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/LeagueAffliction/Demons/FinalBossDeathZones/LightningVolatileObject
+- GSDeliriumDemonLightningVolatileExplosion [geometry_spell] action=None anim=-
+    geom: circle length=14 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    buffs: lightning_volatile_slow
+- GTDeliriumFinalBossFireProjectileSpam [geometry_trigger] action=SpellProjectileFire anim=default:attack_04
+    geom: trigger count=3 delay=0 spread=30 radius=5 angle=0 anchor=3
+    triggers: MPSDeliriumDemonProjectileSpammableFire
+- GTDeliriumFinalBossLightningProjectileSpam [geometry_trigger] action=SpellProjectileLightning anim=default:attack_03
+    geom: trigger count=8 delay=0 spread=70 radius=10 angle=0 anchor=3
+    triggers: MPSDeliriumDemonProjectileSpammableLightning
+- DeliriumDemonSummonDeathZone [affliction_boss_final_grow_beam] action=BarrageStart anim=default:beam_shoot_start_01
+- DeliriumDemonMeleeRight [melee] action=Sweep anim=default:attack_02
+    flags: is_area_damage
+- GSDeliriumBossFireFlurry [geometry_spell_channelled] action=DeliriumBossFireStart anim=default:barrage_start_01
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDeliriumBossLightningFlurry [geometry_spell_channelled] action=DeliriumBossLightningStart anim=default:barrage_start_02
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSDeliriumDemonProjectileLightningImpact [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+
+## own states and handlers
+states: hidden_weapon_left; hidden_weapon_right; fire_barrage; lightning_barrage; visible; boss_type; players; point_light
+- on_event_portalfadeout_for_Teleport = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/Teleport_Out.epk' ); DisableHighlighting(); }
+- on_event_portalfadein_for_Teleport = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/Teleport_Out.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/Teleport_In.epk' ); Delay( 1.5, { EnableHighlighting(); RemoveEffectPack( 'Metad
+- on_state_hidden_weapon_right_1 = { HideMeshSegment( AbaxothSwords_1Shape ); }
+- on_state_hidden_weapon_right_0 = { ShowMeshSegment( AbaxothSwords_1Shape ); }
+- on_state_hidden_weapon_left_1 = { HideMeshSegment( AbaxothSwords_4Shape ); }
+- on_state_hidden_weapon_left_0 = { ShowMeshSegment( AbaxothSwords_4Shape ); }
+- create_state_hidden_weapon_left_1 = { HideMeshSegmentsBySubstring( AbaxothSwords ); }
+- create_state_hidden_weapon_right_1 = { HideMeshSegmentsBySubstring( AbaxothSwords ); }
+- on_state_point_light_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/boss_light.ao', aux_LightAttach ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/boss_light.ao', final_boss_start ); QueueAnimationAttached( 'Me
+- create_state_point_light_1 = { AddAttached( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/boss_light.ao', aux_LightAttach ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/boss_light.ao', final_boss_idle ); }
+- on_state_point_light_0 = { PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/boss_light.ao', final_boss_end ); }
+- on_event_portal_Jump_Out_for_beam_jump_break_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/Teleport_Out_Jump.epk' ); HideMeshSegment( eye_meshShape ); DisableHighlighting(); }
+- on_event_portal_Jump_In_for_beam_jump_break_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/Teleport_Out_Jump.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/Teleport_In_Jump.epk' ); Delay( 1.5, { EnableHighlighting(); ShowMeshSegmen
+- on_event_apply_ES_for_beam_shoot_start_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/EnergyShield_Barrier.epk' ); }
+- on_event_remove_ES_for_beam_shoot_flinch_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/EnergyShield_Barrier.epk' ); }
+- on_event_remove_ES_for_beam_shoot_end_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/EnergyShield_Barrier.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/EnergyShield_Barrier.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/on_Act/AbaxothWisps.epk' ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/on_Act/AbaxothWisps.epk' ); }
+- on_death = { HideMinimapIcon(); }
+- on_spawned_dead = { HideMinimapIcon(); }
+- on_state_visible_0 = { DisableRendering(); }
+- on_state_visible_1 = { EnableRendering(); ShowMinimapIcon( ); AddEffectPack( AfflictionSpawn ); }
+- create_state_visible_0 = { DisableRendering(); HideMinimapIcon(); }
+- create_state_visible_1 = { EnableRendering(); ShowMinimapIcon(); }
+hides(DisableRendering): [('bb_visible', 0), ('visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/InvisibleFire/DeliriumBossRightWeapon
+- preload_monster_variety Metadata/Monsters/InvisibleFire/DeliriumBossLeftWeapon
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/warcry.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/League_Affliction/affliction_boss_final/warcry_finalboss.ao
+
+## adds and forms
+- Metadata/Monsters/InvisibleFire/DeliriumBossRightWeapon "Right Weapon" bossbar=0 skills=DeliriumGroundWeaponRightAttack comps=Life Transitionable Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+- Metadata/Monsters/InvisibleFire/DeliriumBossLeftWeapon "Left Weapon" bossbar=0 skills=DeliriumGroundWeaponLeftAttack comps=Life Transitionable Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/LeagueAffliction/Demons/FinalBossDeathZones/LightningVolatileObject:  [server_only=true] states=angry on_state_angry_1{{ PlayAnimation( static_spellcast_01 ); }}; on_state_angry_1{{ PlayAnimation( static_spellcast_01 ); }}
+- metadata/monsters/leaguedelirium/demons/deliriumdemonbossbase: Life Actor Stats states=visible;boss_type;players;point_light on_death{{ HideMinimapIcon(); }}; on_spawned_dead{{ HideMinimapIcon(); }}; on_state_visible_0{{ DisableRendering(); }}; on_state_visible_1{{ EnableRendering(); ShowMinimapIcon( ); AddEffectPack( AfflictionSpawn ); }}; create_state_visible_0{{ DisableRendering(); HideMinimapIcon(); }}; create_state_visible_1{{ EnableRendering(); ShowMinimapIcon(); }}
+- metadata/monsters/leaguedelirium/demons/deliriumdemonbosswildbase: Life Stats states= on_death{{ RemoveEffects(); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Affliction/split/epk/demon_fadeOut.ep}
+- metadata/monsters/leaguedelirium/demons/deliriumsummoneddemonbase: Life Targetable Actor Stats [blocking=false attackable=true server_only=true] states=hidden_weapons;emerging;emerged;alternate_fade;emerge_effect on_event_despawn{{ IfState( alternate_fade, 0, { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/League_Delirium/generalfx/EPKs/}; on_spawned_dead{{ HideAllMeshSegments(); }}; on_state_emerging_1{{ SetStateToRandomRange( emerge_effect, 1, 6 ); }}; create_state_emerging_0{{ DisableRendering(); }}; on_or_create_state_emerging_1{{ EnableRendering(); }}
+
+## lines
+
+## linked buffs
+- lightning_volatile_slow "Electrifying Gaze": You have 30% less action speed. | stats=beam_bomb_action_speed_+%_final
+
+## arena rooms

@@ -1,0 +1,252 @@
+# The Arbiter of Ash
+content: Pinnacle
+monsters: Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss, Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBossStandalone
+scripts: Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss, Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBossStandalone
+own chain: Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss, Metadata/Monsters/PinnacleBossBase, Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBossStandalone
+areas: MapUberBoss_Monolith The Burning Monolith act10
+ai: Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss.ais, Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBossStandalone.ais (not shipped)
+
+## skills
+- MASDemonClawBossFire [melee] action=None anim=-
+- MPSDemonClawBossFireball [monster_projectile_spell] action=SpellProjectileFire anim=default:ranged_01 ,stance3:deploy_pulsing_fireball_01
+    flags: base_deal_no_damage
+- GPSDemonClawBossWingBombMega [geometry_projectiles_spell] action=SpellAreaOfEffectFire anim=default:wing_spirit_bomb_01 ,stance3:chasm_special_01
+- GSDemonClawBossFireVortex [geometry_spell] action=SpellProjectileUpwardFire anim=default:flame_vortex_beam_01 ,stance3:phase_two_beam_01 
+    geom: rectangle length=150 width=9 angle=0 range=0 delay=0 anchor=3
+    flags: base_deal_no_damage is_area_damage
+- EASDemonClawBossFlameSeedSpawn [empty_action_spell] action=SpellAreaOfEffectCold anim=default:flame_seed_spawn_01 ,stance3:dash_slash_to_front_01
+- EASDemonClawBossFlameSeedMultiSpawn [empty_action_spell] action=SpellAreaOfEffectLightning anim=default:mass_flame_seed_spawn_01 ,stance3:dash_slash_to_left_01
+- GSDemonClawBossBulletHell [geometry_spell_channelled] action=ChannelStart anim=default:bullet_hell_start_01
+    geom: circle length=0 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASDemonClawBossTeleport [empty_action_spell] action=SpellBuffFire anim=default:teleport_01 ,stance3:chasm_special_end_short_01
+- EAADemonClawBossDodgeForwards [empty_action_attack] action=DodgeForward anim=default:dash_fwd_01
+- EAADemonClawBossDodgeBackwards [empty_action_attack] action=DodgeBack anim=default:dash_bwd_01
+- EAADemonClawBossDodgeLeft [empty_action_attack] action=DodgeLeft anim=default:dash_left_01
+- EAADemonClawBossDodgeRight [empty_action_attack] action=DodgeRight anim=default:dash_right_01
+- EASDemonClawBossTeleportTransform [empty_action_spell] action=SpellBuffFire anim=default:teleport_01 ,stance3:chasm_special_end_short_01
+- MASDemonClawBossDoubleSlash [melee] action=HeavyStrike anim=stance3:sword_double_dash_01
+- MASDemonClawBossTripleSlash [melee] action=Cleave anim=stance3:sword_triple_slash_01
+- EAADemonClawBossDashSlashLeft [empty_action_attack] action=SpellAreaOfEffectLightning anim=default:mass_flame_seed_spawn_01 ,stance3:dash_slash_to_left_01
+- EAADemonClawBossDashSlashRight [empty_action_attack] action=SpellAreaOfEffectChaos anim=stance3:dash_slash_to_right_01
+- EAADemonClawBossDashSlashForward [empty_action_attack] action=SpellAreaOfEffectCold anim=default:flame_seed_spawn_01 ,stance3:dash_slash_to_front_01
+- EAADemonClawBossChasmShenanigans [empty_action_attack] action=SpellAreaOfEffectFire anim=default:wing_spirit_bomb_01 ,stance3:chasm_special_01
+- MASDemonClawBossJumpSlamCombo [melee] action=SpellProjectileCold anim=stance3:fly_slam_01,stance4:fly_slam_01
+- EAADemonClawBossJumpSlamCombo [empty_action_attack] action=SpellProjectileCold anim=stance3:fly_slam_01,stance4:fly_slam_01
+- GADemonClawBossSwordSlam [geometry_attack] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GSDemonClawBossFireVortexGiga [geometry_spell] action=SpellProjectileUpwardFire anim=default:flame_vortex_beam_01 ,stance3:phase_two_beam_01 
+    geom: rectangle length=0 width=10 angle=0 range=0 delay=0 anchor=3
+    flags: base_deal_no_damage is_area_damage
+- EASDemonClawBossPulsingBall [empty_action_spell] action=SpellProjectileFire anim=default:ranged_01 ,stance3:deploy_pulsing_fireball_01
+- EASDemonClawBossSeedInfusion [empty_action_spell] action=SpellProjectileChaos anim=stance3:teleport_infuse_01
+- EAADemonClawBossMeleeSlamSeeds [empty_action_attack] action=SpellAreaOfEffect anim=stance3:melee_ruckus_01
+- EAADemonClawBossChasmSlamShort [empty_action_attack] action=SpellBuffFire anim=default:teleport_01 ,stance3:chasm_special_end_short_01
+- EAADemonClawBossChasmSlamMid [empty_action_attack] action=SpellBuffCold anim=stance3:chasm_special_end_medium_01
+- EAADemonClawBossChasmSlamLong [empty_action_attack] action=SpellBuffLightning anim=stance3:chasm_special_end_long_01
+- GSDemonClawBossFireballImpact [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- MPSDemonClawBossWingBombsMini [monster_projectile_spell] action=None anim=-
+- GSDemonClawBossFlameSeedDonutNuke [geometry_spell] action=None anim=-
+    geom: donut length=500 width=28 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSDemonClawBossBulletHellDamageLow [geometry_spell] action=None anim=-
+    geom: rectangle length=500 width=500 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GSDemonClawBossBulletHellDamageHigh [geometry_spell] action=None anim=-
+    geom: rectangle length=500 width=500 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GADemonClawBossDashSlashLeft [geometry_attack] action=None anim=-
+    geom: cone length=30 width=0 angle=180 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GADemonClawBossDashSlashRight [geometry_attack] action=None anim=-
+    geom: cone length=30 width=0 angle=180 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GADemonClawBossDashSlashForward [geometry_attack] action=None anim=-
+    geom: rectangle length=124 width=15 angle=0 range=240 delay=33 anchor=3
+    flags: is_area_damage
+- GADemonClawBossBigOlChasmSlash [geometry_attack] action=None anim=-
+    geom: rectangle length=988 width=10 angle=0 range=2100 delay=33 anchor=2
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GADemonClawBossChasmBurst [geometry_attack] action=None anim=-
+    geom: circle length=35 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GADemonClawBossChasmSlam [geometry_attack] action=None anim=-
+    geom: circle length=50 width=0 angle=0 range=350 delay=33 anchor=3
+    flags: is_area_damage
+- GADemonClawBossOffscreenSlam [geometry_attack] action=SpellProjectileLightning anim=-
+    geom: circle length=40 width=0 angle=0 range=350 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- MPSDemonClawBossPulsingBall [monster_projectile_spell] action=None anim=-
+- GSDemonClawBossBlackflameSeedBlanket [geometry_spell] action=None anim=-
+    geom: circle length=280 width=0 angle=0 range=500 delay=33 anchor=4
+    buffs: demon_claw_boss_blackflame_ground
+- GSDemonClawBossChillSeedBlanket [geometry_spell] action=None anim=-
+    geom: circle length=280 width=0 angle=0 range=500 delay=33 anchor=4
+    flags: is_area_damage
+    buffs: chilled_ground
+- GSDemonClawBossPulsingBallExplosion [geometry_spell] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=200 delay=33 anchor=4
+    flags: is_area_damage
+    GEAL 1145 on ['Metadata/Projectiles/DemonClawBossPulsingBall']: self{} each{triggerer.CallOnBoth( explode );} r=0
+- GADemonClawBossMeleeSlamSeedsFwdBlast [geometry_spell] action=None anim=-
+    geom: rectangle length=230 width=50 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GADemonClawBossMeleeSlamSeedsSwordCleave [geometry_attack] action=None anim=-
+    geom: cone length=25 width=0 angle=160 range=70 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- GADemonClawBossMeleeSlamSeedsStabSeed [geometry_attack] action=None anim=-
+    geom: circle length=32 width=0 angle=0 range=150 delay=33 anchor=3
+    flags: is_area_damage
+- GADemonClawBossMeleeSlamSeedsGroundSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=133 width=15 angle=0 range=240 delay=33 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: no_collision; instant_turning; locked_height; proj_hull; audio_param; sword_visible; no_portals_sector_enabled; infuse_buff_type
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_state_no_collision_0 = { MakeCollidable(); }
+- on_or_create_state_instant_turning_1 = { SetAnimatedTurnDuration( 0.01 ); }
+- on_state_instant_turning_0 = { ResetAnimatedTurnDuration(); }
+- on_or_create_state_locked_height_1 = { LockHeight( og_height ); }
+- on_or_create_state_no_portals_sector_enabled_1 = { globals.disable_instant_teleport_sector_1.RenameSectorsAtLocation( hide_teleports_off, hide_teleports ); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/backflames_01.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/backflames_01.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/death_ash.epk' ); PlayTextAudio( FlameSeedBoss_Death_Random, 'Metadata/Monsters
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/death_ash.epk' ); SetLightState( off, 0.0 ); }
+- on_or_create_state_sword_visible_0 = { HideAttachedMeshSegments( blade_meshShape ); }
+- on_state_sword_visible_1 = { ShowAttachedMeshSegments( blade_meshShape ); }
+- on_state_infuse_buff_type_0 = { RemoveEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/infused_fire.epk', 'Metadata/Monsters/AtlasBosses/DemonClawBoss/attachments/DemonClawWeapon.ao' ); RemoveEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/Bre
+- on_or_create_state_infuse_buff_type_1 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/infused_fire.epk', 'Metadata/Monsters/AtlasBosses/DemonClawBoss/attachments/DemonClawWeapon.ao' ); }
+- on_or_create_state_infuse_buff_type_2 = { AddEffectPackAttached( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/infused_ice.epk', 'Metadata/Monsters/AtlasBosses/DemonClawBoss/attachments/DemonClawWeapon.ao' ); }
+- on_effect_start_MPSDemonClawBossFireball = { Roll( 1, 4, (){ PlayTextAudio( FlameSeedBoss_FireBall_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_GPSDemonClawBossWingBombMega = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_WingSpiritBomb_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss', 500 ); } ); }
+- on_effect_start_GSDemonClawBossFireVortex = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_FlameVortex_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_EASDemonClawBossFlameSeedSpawn = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_FlameSeedSpawn_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_EASDemonClawBossFlameSeedMultiSpawn = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_MassFlameSeedSpawn_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_GSDemonClawBossBulletHell = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_BulletHell_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss', 800 ); } ); }
+- on_effect_start_GSDemonClawBossFireVortexGiga = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_GigaFlameVortexBeam_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_EASDemonClawBossSeedInfusion = { Roll( 1, 1, (){ PlayTextAudio( FlameSeedBoss_TeleportInfuse_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_emerge_01 = { PlayTextAudio( FlameSeedBoss_Emerge, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_deploy_pulsing_fireball_01 = { PlayTextAudio( FlameSeedBoss_DeployStationary_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_transform_01 = { PlayTextAudio( FlameSeedBoss_PhaseChange_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss', 1650 ); }
+- on_sword_double_dash_01 = { PlayTextAudio( FlameSeedBoss_DoubleDash_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_sword_triple_slash_01 = { PlayTextAudio( FlameSeedBoss_TripleSlash_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss', 1500 ); }
+- on_fly_slam_01 = { PlayTextAudio( FlameSeedBoss_FlySlam_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_chasm_special_01 = { PlayTextAudio( FlameSeedBoss_ChasmBurst_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( FlameSeedBoss_Knockdown_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_sword_knockdown_bwd_01 = { PlayTextAudio( FlameSeedBoss_Knockdown_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); }
+- on_or_create_state_audio_param_0 = { SetGlobalAudioParam( SacredFlamePhase, 0 ); }
+- on_or_create_state_audio_param_1 = { SetGlobalAudioParam( SacredFlamePhase, 1 ); }
+- on_or_create_state_audio_param_2 = { SetGlobalAudioParam( SacredFlamePhase, 2 ); }
+- on_or_create_state_audio_param_3 = { SetGlobalAudioParam( SacredFlamePhase, 3 ); }
+- on_effect_start_MPSDemonClawBossFireball = { Roll( 1, 4, () { PlayTextAudio( FlameSeedBoss_FireBall_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_GPSDemonClawBossWingBombMega = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_WingSpiritBomb_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss', 500 ); } ); }
+- on_effect_start_GSDemonClawBossFireVortex = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_FlameVortex_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_EASDemonClawBossFlameSeedSpawn = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_FlameSeedSpawn_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_EASDemonClawBossFlameSeedMultiSpawn = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_MassFlameSeedSpawn_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_GSDemonClawBossBulletHell = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_BulletHell_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss', 2500 ); } ); }
+- on_effect_start_GSDemonClawBossFireVortexGiga = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_GigaFlameVortexBeam_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+- on_effect_start_EASDemonClawBossSeedInfusion = { Roll( 1, 1, () { PlayTextAudio( FlameSeedBoss_TeleportInfuse_Random, 'Metadata/Monsters/AtlasBosses/DemonClawBoss/DemonClawBoss' ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: ['audio_param']  brackets: []
+
+## preloads
+- preload_epk Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/backflames_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/death_ash.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/chasmslash_slam.ao
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossFlameSeedMulti
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossFlameWall
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossPulsingBall
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossDegenPlane
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossBlackflameSeed
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossChillSeed
+- preload_object Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossFlameSeed
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossFlameSeedMulti:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossFlameWall:  [server_only=true] states= 
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossPulsingBall:  [server_only=true] states= 
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossDegenPlane:  [server_only=true] states=fire_x;fire_y;fire_z;fire_w;ice_x;ice_y;ice_z;ice_w on_construction_complete{{ SetExtraTileActivationDistance( 15 ); }}; on_wake{{ SetDynamicFloat4( 'grdFire_PosXY_DriversZW', GetState( fire_x ) / 0.092, GetState( fire_y ) / 0.092, GetState( fire_z }
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossBlackflameSeed:  [server_only=true] states=activated on_or_create_state_activated_1{{ DisableRendering(); }}
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossChillSeed:  [server_only=true] states=activated on_or_create_state_activated_1{{ DisableRendering(); }}
+- Metadata/Monsters/AtlasBosses/DemonClawBoss/objects/DemonClawBossFlameSeed:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- Metadata/Projectiles/DemonClawBossPulsingBall:  [blocking=false object_size=1 server_only=true] states= 
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbossblackflameseed:  [server_only=true] states=activated on_or_create_state_activated_1{{ DisableRendering(); }}
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbosschillseed:  [server_only=true] states=activated on_or_create_state_activated_1{{ DisableRendering(); }}
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbossdegenplane:  [server_only=true] states=fire_x;fire_y;fire_z;fire_w;ice_x;ice_y;ice_z;ice_w on_construction_complete{{ SetExtraTileActivationDistance( 15 ); }}; on_wake{{ SetDynamicFloat4( 'grdFire_PosXY_DriversZW', GetState( fire_x ) / 0.092, GetState( fire_y ) / 0.092, GetState( fire_z }
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbossflameseed:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbossflameseedmulti:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbossflameseedslow:  [server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbossflamewall:  [server_only=true] states= 
+- metadata/monsters/atlasbosses/demonclawboss/objects/demonclawbosspulsingball:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/SacredFlame:  [server_only=true] states=dramatic_camera_tilt;boss_phase = 1;visible = 1 on_emerge_cinematic_start_01{{ this.ball = GetAttachedAOByType( 'Metadata/Terrain/Maps/Arenas/Sacredflame/FlameSeedContainer01.ao' ); this.ball.SetLi}; on_or_create_state_boss_phase_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/flameseedorb_phase1_n}; on_state_boss_phase_2{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/flameseedorb_phase}; create_state_boss_phase_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/flameseedorb_phase2_n}; on_state_boss_phase_3{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/flameseedorb_phase}; create_state_boss_phase_3{{ SetLightState( off, 0.5 ); }}
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/PrayerStatue:  [blocking=false object_size=1 server_only=true] states= 
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/MysteriousEntity:  [blocking=false object_size=1 server_only=true] states=active on_or_create_state_active_0{{ DisableRendering(); }}; on_or_create_state_active_1{{ EnableRendering(); }}; on_emerge_cinematic_01{{ QueueTextAudio( Tecrod_ArbiterOfAsh_Cinematic, 'Metadata/Monsters/FourHorsemenOfkalguur/Death/Horseman/DeathArbiter', }
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/SacredFlameInteractionLocation: InteractionAction MinimapIcon [server_only=true icon=FlameSeed] states=interactable;dramatic_camera_tilt on_or_create_state_interactable_0{{ DisableTargetable(); HideMinimapIcon(); }}; on_or_create_state_interactable_1{{ EnableTargetable(); ShowMinimapIcon(); }}; on_or_create_state_dramatic_camera_tilt_1{{ PlayInterlude( 'Audio/Music/Endgame/Boss/SacredFlameBoss/SacredFlameEvent', 0.5 ); SetCustomCameraSpeed( 0.25 ); Creat}; on_state_dramatic_camera_tilt_0{{ SetCustomCameraSpeed( 0.75 ); ClearCameraZoomNodes(); ClearCameraPanNodes( 3.0 ); Delay( 3.0, { RemoveCustomCameraSpee}
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/TransformMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ExitTransition: InteractionAction Transitionable Targetable MinimapIcon Stats [blocking=false object_size=5 server_only=true icon=18] states=visible on_construction_complete{{ globals.arena_exit = this; }}; on_interaction_started{{ If( IsLocalPlayer( triggerer ), { SetStateTo( visible, 0 ); Delay( 1.2, { globals.exit_lift.SetStateTo( animation, 2 )}; on_or_create_state_visible_0{{ DisableTargetable(); }}; on_or_create_state_visible_1{{ EnableTargetable(); }}; create_untransitioned{{ HideMinimapIcon(); }}; on_transition{{ Delay( 16.0, { SetStateTo( visible, 1 ); ShowMinimapIcon(); } ); }}
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ExitLift_PlayerSpawn: InteractionAction [blocking=false object_size=0 server_only=true] states= on_interaction_started{{ If( IsLocalPlayer( triggerer ), { globals.exit_lift.SetStateTo( animation, 3 ); globals.arena_exit.SetStateTo( visible}; on_interaction_stopped{{ If( IsLocalPlayer( triggerer ), { globals.arena_exit.SetStateTo( visible, 1 ); } ); }}
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/CorpseSheath: TriggerableBlockage [start_blocked=true blocking=false object_size=5 server_only=true] states=pre_emerge_blocking = 1;epkd;disintegrated create_state_disintegrated_0{{ this.fake_sword = PlayEffect( 'Metadata/Terrain/Gallows/EndGame/SacredFlame/Tiles/Arena/SacredFlameArena_01_HollowKnig}; on_state_disintegrated_1{{ fake_sword.Delete(); }}; create_state_disintegrated_1{{ DisableRendering(); }}; on_state_epkd_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/hollowknight_ash.epk'}
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ArenaLiftBridge: TriggerableBlockage [start_blocked=true blocking=false object_size=7 server_only=true] states=walkable;disintegrate on_construction_complete{{ globals.arena_lift_blocking += this; }}; create_state_walkable_0{{ PlayAnimation( rise ); PauseAnimation(); }}; on_state_walkable_1{{ PlayAnimation( rise ); }}; on_state_disintegrate_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/AtlasofWorldsBosses/BreachClawBoss/epks/statue_disintegrate.e}; create_state_disintegrate_1{{ DisableRendering( ); }}
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/PrayingBlocker: TriggerableBlockage [start_blocked=true blocking=false object_size=1 server_only=true] states= 
+- Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ExitLiftBlocking: TriggerableBlockage [start_blocked=false blocking=false object_size=3 server_only=true] states= on_construction_complete{{ globals.exit_lift_blocking += this; }}
+
+## lines
+- on_death -> FlameSeedBoss_Death_Random: The Mother Soul... must prevail...
+- on_effect_start_MPSDemonClawBossFireball -> FlameSeedBoss_FireBall_Random: Engulf!
+- on_effect_start_GPSDemonClawBossWingBombMega -> FlameSeedBoss_WingSpiritBomb_Random: Endless ravaging pain!
+- on_effect_start_GSDemonClawBossFireVortex -> FlameSeedBoss_FlameVortex_Random: Accept your finality...
+- on_effect_start_EASDemonClawBossFlameSeedSpawn -> FlameSeedBoss_FlameSeedSpawn_Random: A predetermined outcome.
+- on_effect_start_EASDemonClawBossFlameSeedMultiSpawn -> FlameSeedBoss_MassFlameSeedSpawn_Random: Fields of Ash... and chasms of Flame... shall restore Her glory.
+- on_effect_start_GSDemonClawBossBulletHell -> FlameSeedBoss_BulletHell_Random: A plague-born... hungry for Her milk... Yet ruthlessly pillaging her... of all she could give.
+- on_effect_start_GSDemonClawBossFireVortexGiga -> FlameSeedBoss_GigaFlameVortexBeam_Random: You have failed... Humanity has failed... It must start again.
+- on_effect_start_EASDemonClawBossSeedInfusion -> FlameSeedBoss_TeleportInfuse_Random: Let fear of the void... control you... so She may be reborn.
+- on_emerge_01 -> FlameSeedBoss_Emerge: You are too late. The Fourth Edict already burns for your world.
+- on_deploy_pulsing_fireball_01 -> FlameSeedBoss_DeployStationary_Random: The Fourth Edict awaits you...
+- on_transform_01 -> FlameSeedBoss_PhaseChange_Random: Her only salvation... is written in ash.
+- on_sword_double_dash_01 -> FlameSeedBoss_DoubleDash_Random: Concede to fate.
+- on_sword_triple_slash_01 -> FlameSeedBoss_TripleSlash_Random: Bound by destiny!
+- on_fly_slam_01 -> FlameSeedBoss_FlySlam_Random: Acquiesce, mortal.
+- on_chasm_special_01 -> FlameSeedBoss_ChasmBurst_Random: Her Anguish... must be healed... in burning vengeance!
+- on_knockdown_bwd_01 -> FlameSeedBoss_Knockdown_Random: Ugh... Improbable... But inconsequential... 
+- on_sword_knockdown_bwd_01 -> FlameSeedBoss_Knockdown_Random: Ugh... Improbable... But inconsequential... 
+
+## linked buffs
+- chilled_ground "Chilled Ground":  | stats=
+- demon_claw_boss_beam "Ancient Flame": You are taking Fire Damage over Time while standing in the Flame | stats=base_fire_damage_taken_per_minute
+- demon_claw_boss_beam_GIGA "Ancient Flame": You are taking Fire Damage over Time and have reduced Skill and Movement Speed while standing in the Flame | stats=base_fire_damage_taken_per_minute,skill_speed_+%,base_movement_velocity_+%
+- demon_claw_boss_beam_safe_zone "":  | stats=
+- demon_claw_boss_blackflame_debuff "Blackflame": You have no Life or Energy Shield Recovery | stats=cannot_recover_life,base_no_energy_shield_recovery
+- demon_claw_boss_blackflame_ground "Blackflame Ground": You have no Life or Energy Shield Recovery | stats= | visual: You have no Life or Energy Shield Recovery
+- demon_claw_boss_blackflame_sword "":  | stats=non_skill_base_all_damage_%_to_gain_as_chaos
+- demon_claw_boss_chill_sword "":  | stats=all_damage_can_chill,non_skill_base_all_damage_%_to_gain_as_cold
+
+## arena rooms
+room metadata_terrain_gallows_endgame_sacredflame_rooms_sacredflame_boss_01.arm
+  sector ['hide_teleports_off', 22, 41, 502, 331, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['lift', 43, 143, 117, 225, '']
+  sector ['lift', 480, 144, 539, 226, '']
+  sector ['no_minimap', 453, 142, 539, 227, '']
+  point [406.0, 184.0, 'mapboss']
+  point [210.0, 184.0, 'checkpoint']
+  point [208.0, 184.0, 'telepad']
+  point [79.0, 183.0, 'telepad']
+  point [498.0, 184.0, 'telepad']
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (325,184)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/SacredFlame x1 (441,227)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/PrayerStatue x38 (344,91) (297,162) (334,146) (321,295) (228,206) (242,139) (311,208) (267,156) (391,149) (417,164)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/MysteriousEntity x1 (441,227)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/SacredFlameInteractionLocation x1 (435,224)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/TransformMarker x1 (336,184)
+  obj Metadata/MiscellaneousObjects/Checkpoints/CheckpointBoss_PinnacleAsh x1 (196,193)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ExitTransition x1 (498,184)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ExitLift_PlayerSpawn x1 (498,184)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/CorpseSheath x1 (336,184)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ArenaLiftBridge x1 (153,184)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/PrayingBlocker x3 (330,105) (330,264) (441,184)
+  obj Metadata/Terrain/Gallows/EndGame/SacredFlame/Objects/ExitLiftBlocking x1 (496,184)

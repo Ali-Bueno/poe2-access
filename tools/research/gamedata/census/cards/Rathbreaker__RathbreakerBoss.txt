@@ -1,0 +1,192 @@
+# Rathbreaker / Caedron, the Hyena Lord
+content: Act 2
+monsters: Metadata/Monsters/HyenaMonster/RathbreakerBoss, Metadata/Monsters/HyenaMonster/RathbreakerBossCampaignSTANDALONE, Metadata/Monsters/HyenaMonster/RathbreakerBossMap, Metadata/Monsters/HyenaMonster/RathbreakerBossSTANDALONE
+scripts: Metadata/Monsters/HyenaMonster/Rathbreaker, Metadata/Monsters/HyenaMonster/RathbreakerSTANDALONE
+own chain: Metadata/Monsters/HyenaMonster/Rathbreaker, Metadata/Monsters/HyenaMonster/RathbreakerSTANDALONE
+areas: G2_1 Vastiri Outskirts act2; MapWetlands Wetlands act10; MapSavanna Savannah act10
+ai: Metadata/Monsters/HyenaMonster/Rathbreaker.ais, Metadata/Monsters/HyenaMonster/RathbreakerSTANDALONE.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- RathbreakerCharge [drive_by_charge] action=None anim=-
+- GARathbreakerEnrageSlam [geometry_attack] action=GroundSlam anim=stance3:enraged_overhead_chop_01
+    geom: rectangle length=55 width=13 angle=0 range=330 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GARathbreakerChargeSlash [geometry_attack] action=None anim=-
+    geom: cone length=22 width=0 angle=180 range=100 delay=33 anchor=3
+    flags: is_area_damage
+- EGHyenaDogpileBig [execute_geal] action=SpellAreaOfEffect anim=-
+    GEAL 1030 on ['Metadata/Monsters/HyenaMonster/HyenaMonster']: self{} each{DelayRandom( 0.2, 0.6, { triggerer.DoAction(ChangeToStance1); } );} r=60
+- GTRathbreakerBossSpawnPack [geometry_trigger] action=None anim=-
+    geom: trigger count=15 delay=0 spread=100 radius=70 angle=120 anchor=4
+- TCRathbreakerDrivebyCharge [table_charge] action=ChargeStart anim=default:axe_charge_start_01
+    flags: is_area_damage skill_cannot_be_stunned
+- GARathbreakerSpearRain [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=500 delay=500 anchor=12
+    flags: is_area_damage
+- GTRathbreakerSpearRainCascade [geometry_trigger] action=None anim=-
+    geom: trigger count=40 delay=2000 spread=160 radius=25 angle=0 anchor=3
+- EAARathbreakerLacerateSlam [empty_action_attack] action=Flurry anim=default:axe_slam_01
+- GARathbreakerLacerateLeft [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=3 angle=0 range=225 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GARathbreakerSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=55 width=13 angle=0 range=330 delay=33 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GARathbreakerLacerateRight [geometry_attack] action=None anim=-
+    geom: rectangle length=100 width=3 angle=0 range=225 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+
+## own states and handlers
+states: fight; epk; leash
+- on_state_epk_1 = { AddEffectPack( 'Metadata/Monsters/HyenaMonster/Effects/Epk/charge_start.epk' ); }
+- create_state_epk_1 = { AddEffectPack( 'Metadata/Monsters/HyenaMonster/Effects/Epk/charge.epk' ); }
+- on_or_create_state_epk_2 = { AddEffectPack( 'Metadata/Monsters/HyenaMonster/Effects/Epk/charge_fadeout.epk' ); }
+- on_or_create_state_epk_0 = { RemoveEffectPack( 'Metadata/Monsters/HyenaMonster/Effects/Epk/charge_start.epk' ); RemoveEffectPack( 'Metadata/Monsters/HyenaMonster/Effects/Epk/charge_fadeout.epk' ); RemoveEffectPack( 'Metadata/Monsters/HyenaMonster/Effects/Epk/charge.epk' ); }
+- on_state_light_0 = { SetLightState( off, 3.0 ); }
+- on_state_light_1 = { SetLightState( on, 0.5 ); }
+- create_state_light_0 = { Delay( 0.01, { SetLightState( off, 1.0 ); } ); }
+- create_state_light_1 = { Delay( 0.01, { SetLightState( on, 1.0 ); } ); }
+- on_event_footstep_for_axe_charge_01 = { PlayEffect( 'Metadata/Monsters/HyenaMonster/Effects/Ao/footstep.ao', default, 1.0, inherit, 0.0, inherit, 0, 0, 0, ContactPosition ); }
+- on_event_footstep_for_axe_charge_attack_01 = { PlayEffect( 'Metadata/Monsters/HyenaMonster/Effects/Ao/footstep.ao', default, 1.0, inherit, 0.0, inherit, 1, 1, 0, ContactPosition ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/Monsters/HyenaMonster/HyenaMonsterBossMinion
+- preload_epk Metadata/Monsters/HyenaMonster/Effects/Epk/charge_start.epk
+- preload_epk Metadata/Monsters/HyenaMonster/Effects/Epk/charge_fadeout.epk
+- preload_epk Metadata/Monsters/HyenaMonster/Effects/Epk/charge.epk
+- preload_animated_object Metadata/Monsters/HyenaMonster/Effects/Ao/footstep.ao
+- preload_animated_object Metadata/Monsters/HyenaMonster/Effects/Ao/strike_decal.ao
+- preload_environment G2_1_boss
+- preload_monster_variety Metadata/Monsters/HyenaMonster/HyenaCentaurSpear
+- preload_monster_variety Metadata/Monsters/HyenaMonster/HyenaMonster
+
+## adds and forms
+- Metadata/Monsters/HyenaMonster/HyenaMonsterBossMinion "Hyena Demon" bossbar=0 skills=MeleeAtAnimationSpeed,EASHyenaMonsterWhoop,EASHyenaMonsterWhoopFlipped,EGHyenaDogpile,WalkEmergeHyena comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=minion
+- Metadata/Monsters/HyenaMonster/HyenaCentaurSpear "Sun Clan Scavenger" bossbar=0 skills=HyenaCentaurMeleeStab,HyenaCentaurMeleeSwipe,HyenaCentaurSpearThrow,EGHyenaDogpile,EGHyenaDogpileBig comps=Transitionable Targetable Actor Stats [blocking=false attackable=true server_only=true] states=minion
+- Metadata/Monsters/HyenaMonster/HyenaMonster "Hyena Demon" bossbar=0 skills=MeleeAtAnimationSpeed,EASHyenaMonsterWhoop,EASHyenaMonsterWhoopFlipped,EGHyenaDogpile,WalkEmergeHyena comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=minion
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/hyenamonster/hyenabossfightminionpackaggro:  [server_only=true] states=aggro on_state_aggro_1{{ PlayEffect( 'Metadata/Monsters/HyenaMonster/HyenaMonsterAggroAudioRathbreakerMinion.ao' ); }}
+- metadata/monsters/hyenamonster/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=RathbreakerActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( RathbreakerInactive ); }}
+- metadata/monsters/hyenamonster/rathbreakerquest:  states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/DropRamp: TriggerableBlockage Transitionable [start_blocked=true blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 0 ); GoToAnimationEnd(); }}; create_untransitioned{{ PlayAnimationByIndex( 0 ); PauseAnimation(); }}; on_transition{{ PlayAnimationByIndex( 0 ); }}
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/RampCivilian: ControlZone [server_only=true] states=open on_state_open_1{{ PlayAnimation( crank ); PlayAnimationAttached( 'Metadata/NPC/Four_Act2/MarakethCivilian1.ao', drop_ramp_01 ); QueueAni}; create_state_open_0{{ PlayAnimationAttached( 'Metadata/NPC/Four_Act2/MarakethCivilian1.ao', idle_01_wounded_01 ); PlayAnimation( crank ); Pa}; create_state_open_1{{ PlayAnimationAttached( 'Metadata/NPC/Four_Act2/MarakethCivilian1.ao', idle_03 ); PlayAnimation( crank ); }}
+- Metadata/QuestObjects/Four_Act2/Town_StandAsideGuard:  [server_only=true] states= 
+- Metadata/QuestObjects/Four_Act2/Town_BlockingGuard:  [blocking=true object_size=4 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/VisitedQuestFlag:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/MarakethBazaarTitle: ProximityTrigger [radius=40 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMarakethOutpost, TitleCardMarakethOutpostSubtitle ); }}
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaCaveSpawnerBoss:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaBossFightController:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaLowerHeight:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaCentaurLeapTarget:  [server_only=true] states= 
+- Metadata/Monsters/HyenaMonster/HyenaBossFightMinionPackAggro:  [server_only=true] states=aggro on_state_aggro_1{{ PlayEffect( 'Metadata/Monsters/HyenaMonster/HyenaMonsterAggroAudioRathbreakerMinion.ao' ); }}
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/VisitedQuestFlagRathbreaker:  [server_only=true] states= 
+- Metadata/Monsters/HyenaMonster/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=RathbreakerActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( RathbreakerInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaBossFightCascadeMarker:  [object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_1/Objects/RathbreakerArenaEntranceTitle: ProximityTrigger [radius=120 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardRathbreakerArena, TitleCardRathbreakerArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_1_rooms_caravan1.arm
+  point [117.0, 149.0, 'mapboss']
+  point [133.0, 201.0, 'entrance ']
+  obj Metadata/Monsters/HyenaMonster/HyenaMonster x4 (117,129) (97,134) (135,132) (82,151)
+  obj Metadata/Monsters/MarakethGuards/MarakethGuard02 x3 (127,176) (107,181) (94,192)
+  obj Metadata/Monsters/HyenaMonster/HyenaCentaurSpear x2 (129,112) (84,165)
+  obj Metadata/Monsters/MarakethGuards/MarakethHeroGuard02 x1 (170,233)
+  obj Metadata/Monsters/MarakethGuards/MarakethHeroGuard01___ x1 (177,216)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/DropRamp x1 (165,220)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/RampCivilian x1 (181,201)
+  obj Metadata/Monsters/MarakethGuards/HeroGuard/HeroGuardMarker x2 (122,217) (138,186)
+  obj Metadata/Monsters/MarakethGuards/HeroGuard/HeroGuardControllerLarge x1 (98,183)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (159,282)
+room metadata_terrain_gallows_act2_2_1_rooms_tradingtown_01.arm
+  sector ['no_portals', 24, 27, 597, 702, '']
+  sector ['hoodedmentormove', 559, 389, 602, 447, 'Metadata/Terrain/Gallows/Act2/2_1/Objects/HoodedMentorMoveSector']
+  sector ['low_aggro', 60, 36, 559, 635, 'Metadata/MiscellaneousObjects/SectorLowAggro']
+  sector ['music', 12, 26, 601, 689, '']
+  point [187.0, 86.0, 'default']
+  point [249.0, 432.0, 'entrance2']
+  point [190.0, 84.0, 'entrance1']
+  point [557.0, 424.0, 'checkpoint3']
+  point [249.0, 432.0, 'entrance3']
+  obj Metadata/Monsters/MarakethGuards/MarakethGuard02 x2 (605,440) (622,418)
+  obj Metadata/Monsters/HyenaMonster/HyenaMonster x5 (614,478) (650,439) (682,426) (626,438) (658,423)
+  obj Metadata/Monsters/HyenaMonster/HyenaCentaurSpear x1 (682,369)
+  obj Metadata/Monsters/MarakethGuards/MarakethHeroGuard01___ x1 (235,422)
+  obj Metadata/Monsters/MarakethGuards/MarakethHeroGuard02 x1 (267,445)
+  obj Metadata/NPC/Four_Act2/HoodedMentorDock x1 (205,137)
+  obj Metadata/MiscellaneousObjects/Waypoint x1 (455,342)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x6 (53,432) (29,344) (136,370) (308,562) (326,637) (110,460)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (148,71) (231,461)
+  obj Metadata/MiscellaneousObjects/Stash x1 (350,428)
+  obj Metadata/MiscellaneousObjects/GuildStash x1 (360,432)
+  obj Metadata/NPC/Four_Act2/MarakethCaravanGuard3 x4 (410,209) (306,425) (326,280) (208,486)
+  obj Metadata/QuestObjects/Four_Act2/Town_StandAsideGuard x2 (313,168) (355,157)
+  obj Metadata/NPC/Four_Act2/RisuCaravan x1 (413,350)
+  obj Metadata/QuestObjects/Four_Act2/Town_BlockingGuard x2 (423,440) (432,444)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x3 (321,435) (400,251) (341,486)
+  obj Metadata/NPC/Four_Act2/MarakethCaravanGuardStances x3 (443,327) (235,486) (202,465)
+  obj Metadata/NPC/Four_Act2/DogTrader x1 (216,88)
+  obj Metadata/NPC/Four_Act2/MarakethVastiriOutskirts x1 (278,447)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/VisitedQuestFlag x1 (325,362)
+  obj Metadata/Monsters/MarakethGuards/HeroGuard/HeroGuardMarker x2 (235,422) (267,445)
+  obj Metadata/Monsters/MarakethGuards/HeroGuard/HeroGuardControllerLarge x1 (292,410)
+  obj Metadata/MiscellaneousObjects/TownPortal x6 (284,380) (293,358) (323,355) (336,379) (323,403) (296,402)
+  obj Metadata/NPC/Four_Act2/CrimsonShoresGlyph x1 (366,253)
+  obj Metadata/MiscellaneousObjects/ServerDoodadHidden x10 (253,135) (301,136) (349,198) (337,349) (359,363) (345,244) (346,283) (322,146) (340,167) (346,361)
+  obj Metadata/NPC/Four_Act2/HoodedMentor x1 (359,363)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/MarakethBazaarTitle x1 (330,333)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (553,439)
+room metadata_terrain_gallows_act2_2_1_rooms_arena_r270.arm
+  sector ['rock_outcrop_lower', 6, 305, 138, 548, '']
+  sector ['rock_outcrop_lower', 138, 414, 239, 548, '']
+  sector ['lowland', 196, 138, 414, 295, '']
+  sector ['lowland', 254, 295, 414, 353, '']
+  sector ['lowland', 151, 139, 197, 271, '']
+  sector ['lowland', 277, 353, 414, 405, '']
+  sector ['leash', 35, 295, 254, 474, '']
+  sector ['leash', 254, 413, 279, 474, '']
+  sector ['home', 219, 307, 243, 330, '']
+  sector ['leash', 109, 258, 196, 295, '']
+  sector ['disable_instant_portals', 35, 295, 254, 474, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 34, 293, 262, 494, '']
+  point [233.0, 319.0, 'mapboss']
+  point [216.0, 315.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [235.0, 339.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [15.0, 324.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [20.0, 350.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [19.0, 369.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [16.0, 389.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [21.0, 411.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [20.0, 451.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [50.0, 464.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [76.0, 463.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [99.0, 467.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [128.0, 465.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [152.0, 470.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [154.0, 506.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [164.0, 530.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [195.0, 533.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [221.0, 534.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [46.0, 332.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  point [40.0, 367.0, 'force:Metadata/Monsters/HyenaMonster/HyenaCentaurSpearBossMinion_']
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x2 (227,258) (301,162)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaCaveSpawnerBoss x2 (154,237) (310,397)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaBossFightController x1 (194,357)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaLowerHeight x1 (266,275)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaCentaurLeapTarget x14 (72,335) (59,374) (95,422) (131,412) (41,355) (161,423) (68,345) (37,373) (108,443) (62,381)
+  obj Metadata/Monsters/HyenaMonster/HyenaBossFightMinionPackAggro x1 (277,267)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (226,322)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/VisitedQuestFlagRathbreaker x2 (116,319) (234,437)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (384,121)
+  obj Metadata/Monsters/HyenaMonster/Objects/BossRoomMinimapIcon x1 (209,342)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/HyenaBossFightCascadeMarker x3 (210,386) (195,358) (161,347)
+  obj Metadata/Terrain/Gallows/Act2/2_1/Objects/RathbreakerArenaEntranceTitle x1 (164,391)

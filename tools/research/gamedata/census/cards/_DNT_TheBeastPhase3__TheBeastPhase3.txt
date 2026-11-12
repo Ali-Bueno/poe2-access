@@ -1,0 +1,51 @@
+# [DNT] TheBeastPhase3
+content: Other/unplaced
+monsters: Metadata/Monsters/TheBeast/Phase3/TheBeastPhase3
+scripts: Metadata/Monsters/TheBeast/Phase3/TheBeastPhase3
+own chain: Metadata/Monsters/TheBeast/Phase3/TheBeastPhase3
+areas: 
+ai: Metadata/Monsters/TheBeast/Phase3/TheBeastPhase3.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- GATheBeastPhase3SplitRibsImpact [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=1000 delay=1000 anchor=4
+- GTTheBeastPhase3SplitRibs [geometry_trigger] action=SpellAreaOfEffect anim=default:bombard_01,stance2:floating_bombard_01
+    geom: trigger count=300 delay=2000 spread=200 radius=25 angle=0 anchor=4
+- GSTheBeastPhase3PustulesExplode [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=99 delay=33 anchor=4
+    flags: is_area_damage
+- GSTheBeastPhase3HeartBeam [geometry_spell] action=None anim=-
+    geom: rectangle length=250 width=30 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+    GEAL 1212 on ['Metadata/Monsters/TheBeast/Phase3/Objects/FleshPillar']: self{} each{triggerer.SetStateTo( broken, 1 );} r=250
+- GTTheBeastPhase3SummonPillars [geometry_trigger] action=SpellProjectile anim=default:charged_cannon_01,stance2:floating_charged_cannon_01
+    geom: trigger count=4 delay=800 spread=120 radius=25 angle=0 anchor=4
+    triggers: SOTheBeastPhase3SummonPillars
+- SOTheBeastPhase3SummonPillars [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/TheBeast/Phase3/Objects/FleshPillar
+- GSTheBeastPhase3BlastBeam [geometry_spell] action=None anim=-
+    geom: rectangle length=150 width=15 angle=0 range=3200 delay=3200 anchor=12
+    flags: is_area_damage
+    GEAL 1213 on ['Metadata/Monsters/TheBeast/Phase3/Objects/FleshPillar']: self{} each{triggerer.SetStateTo( broken, 1 );} r=150
+
+## own states and handlers
+states: 
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/TheBeast/Phase3/Objects/FleshPillar: TriggerableBlockage [start_blocked=true blocking=false object_size=3 server_only=true] states=broken create_state_broken_0{{ FaceObject( owner.bodytosummon, true, true ); }}; create_state_broken_0{{ PlayAnimation( open ); PauseAnimation(); }}; create_state_broken_1{{ PlayAnimation( open ); GoToAnimationEnd(); SetStateTo( broken, 1 ); }}; on_state_broken_1{{ PlayAnimation( open ); }}; on_end_open{{ Delete(); }}
+- metadata/monsters/thebeast/phase3/objects/beastpustules:  [blocking=false object_size=0] states=explode;idle_state on_state_explode_1{{ PlayAnimation( charge ); }}; on_event_delete{{ Delete(); }}; on_event_primed{{ SetStateTo( idle_state, 1 ); }}
+- metadata/monsters/thebeast/phase3/objects/fleshpillar: TriggerableBlockage [start_blocked=true blocking=false object_size=3 server_only=true] states=broken create_state_broken_0{{ FaceObject( owner.bodytosummon, true, true ); }}; create_state_broken_0{{ PlayAnimation( open ); PauseAnimation(); }}; create_state_broken_1{{ PlayAnimation( open ); GoToAnimationEnd(); SetStateTo( broken, 1 ); }}; on_state_broken_1{{ PlayAnimation( open ); }}; on_end_open{{ Delete(); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms

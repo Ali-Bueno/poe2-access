@@ -1,0 +1,74 @@
+# Zekoa, the Headcrusher
+content: Act 3
+monsters: Metadata/Monsters/Quadrilla/QuadrillaBossSTANDALONEExpedition
+scripts: Metadata/Monsters/Quadrilla/QuadrillaBossSTANDALONEExpedition
+own chain: Metadata/Monsters/Quadrilla/QuadrillaBossSTANDALONEExpedition, Metadata/Monsters/Quadrilla/QuadrillaBossExpeditionEncased
+areas: 
+ai: Metadata/Monsters/Quadrilla/QuadrillaBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EAAQuadrillaBossCleaveLeft [melee] action=HeavyStrike anim=default:sweep_slam_pillar_left_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossCleaveRight [melee] action=OffHeavyStrike anim=default:sweep_slam_pillar_right_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossSpin [melee] action=GroundSlamOffhand anim=default:spin_slam_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- EAAQuadrillaBossSlam [empty_action_attack] action=GroundSlam anim=default:heavy_slam_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAQuadrillaBossSlamCircle [geometry_attack] action=GroundSlam anim=default:heavy_slam_pillar_01
+    geom: circle length=30 width=0 angle=0 range=210 delay=70 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAQuadrillaBossRectSlam [geometry_attack] action=None anim=-
+    geom: rectangle length=41 width=22 angle=0 range=66 delay=33 anchor=3
+    flags: base_skill_can_be_blocked base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAQuadrillaBossSunder [geometry_attack] action=None anim=-
+    geom: rectangle length=63 width=27 angle=0 range=400 delay=40 anchor=3
+    flags: base_skill_can_be_blocked base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- DTTQuadrillaCommandoRoll [melee] action=DodgeForward anim=default:roll_pillar_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+
+## own states and handlers
+states: death; aggro; be_free
+- on_state_aggro_1 = { PlayEffect( 'Metadata/Monsters/Quadrilla/QuadrillaBossAggroAudio.ao' ); }
+- on_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); }
+- create_state_death_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SilverBack/epk/death_blood.epk' ); }
+- on_construction_complete = { DisableHighlighting(); AddEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk', infinity ); }
+- on_state_be_free_1 = { EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk' ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/MiscellaneousObjects/Expedition/ExpeditionEncasedMonster
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/MiscellaneousObjects/Expedition/ExpeditionEncasedMonster:  [server_only=true] states=expedition_detonated on_state_expedition_detonated_1{{ PlayAnimation( explode ); }}; create_state_expedition_detonated_1{{ PlayAnimation( explode ); GoToAnimationEnd(); }}
+- metadata/monsters/quadrilla/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=SilverbackBlackfistBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SilverbackBlackfistBossInactive ); }}
+- metadata/monsters/quadrilla/quadrillabossexpeditionencased: MinimapIcon Actor [icon=ExpeditionPOI] states=be_free on_construction_complete{{ DisableHighlighting(); AddEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk', infinity ); }}; on_state_be_free_1{{ EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk' ); }}
+- Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=SilverbackBlackfistBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( SilverbackBlackfistBossInactive ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_silverbackblackfist_rooms_bossclearing_01.arm
+  sector ['no_critters', 69, 0, 345, 276, '']
+  point [178.0, 133.0, 'mapboss1']
+  point [214.0, 38.0, 'killzone=6']
+  point [175.0, 138.0, 'killzone=8']
+  point [207.0, 48.0, 'checkpoint2']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (229,55)
+  obj Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon x1 (205,129)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (205,115)
+room metadata_terrain_gallows_act3_3_3_rooms_clearingfeatures_bossclearing_01.arm
+  point [143.0, 119.0, 'mapboss']
+  point [107.0, 214.0, 'killzone=6']
+  point [146.0, 114.0, 'killzone=8']
+  point [107.0, 217.0, 'checkpoint9']
+  point [161.0, 67.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (92,197)
+  obj Metadata/Monsters/Quadrilla/Objects/BossRoomMinimapIcon x1 (116,123)

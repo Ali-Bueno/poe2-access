@@ -1,0 +1,281 @@
+# Ignagduk, the Bog Witch / Brakka, the Withered Crone / Heldra of the Black Pyre / Ignatia, the Flame-Sworn
+content: Act 3
+monsters: Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitch, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchCampaignSTANDALONE, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchMap, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchSTANDALONE, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchHagBattleInterludeCampaignSTANDALONE, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchHagBattleMapSTANDALONE
+scripts: Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitch, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchSTANDALONE, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchMap_
+own chain: Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitch, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchSTANDALONE, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchMap_
+areas: G3_7 The Azak Bog act3; BossRush_Area2 Boss Rush Area 2 act10; MapSump Sump act10
+ai: Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitch.ais, Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchSTANDALONE.ais (not shipped)
+
+## skills
+- GSIgnagdukBoneBlast [geometry_spell] action=SpellAreaOfEffectLightning anim=default:bone_blast_01,stance3:phase2_bone_blast_01
+    geom: circle length=20 width=0 angle=0 range=900 delay=900 anchor=4
+    flags: is_area_damage
+    GEAL 1082 on ['Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick']: self{} each{triggerer.SetStateTo( explode, 2 );} r=0
+- GTIgnagdukSpikeCascadeLeft [geometry_trigger] action=SpellAreaOfEffectFire anim=default:spike_cascade_left_01,stance3:fire_wave_01
+    geom: trigger count=13 delay=400 spread=1 radius=90 angle=0 anchor=3
+    triggers: GSIgnagdukSpikeCascade
+- GTIgnagdukSpikeCascadeRight [geometry_trigger] action=SpellAreaOfEffectCold anim=default:spike_cascade_right_01,stance3:phase2_double_firewall_01
+    geom: trigger count=13 delay=400 spread=1 radius=90 angle=0 anchor=3
+    triggers: GSIgnagdukSpikeCascade2
+- GTIgnagdukBoneWall1 [geometry_trigger] action=SpellProjectileUpwardCold anim=default:circular_wall_01,stance3:phase2_double_firebolt_left_01
+    geom: trigger count=10 delay=1000 spread=45 radius=44 angle=0 anchor=4
+    triggers: SOIgnagdukBoneWall
+- GTIgnagdukBoneWall2 [geometry_trigger] action=SpellProjectileUpwardLightning anim=default:multi_wall_01
+    geom: trigger count=10 delay=1000 spread=45 radius=44 angle=180 anchor=4
+    triggers: SOIgnagdukBoneWall
+- GTIgnagdukBoneWall3 [geometry_trigger] action=SpellProjectileUpwardCold anim=default:circular_wall_01,stance3:phase2_double_firebolt_left_01
+    geom: trigger count=10 delay=1000 spread=1 radius=60 angle=0 anchor=3
+    triggers: SOIgnagdukBoneWall
+- DTTIgnagdukBogWitchDashBone [dash_to_target] action=DodgeForward anim=default:flame_dash_01,stance3:phase2_flame_dash_01
+- GTIgnagdukBoneBlast [geometry_trigger] action=SpellAreaOfEffectChaos anim=default:multi_bone_blast_01
+    geom: trigger count=20 delay=5000 spread=80 radius=0 angle=0 anchor=1
+    triggers: GSIgnagdukBoneBlast
+- EASIgnagdukBoomTheWalls [empty_action_spell] action=SpellAreaOfEffectChaos anim=default:multi_bone_blast_01
+- TCIgnadukBroomChargeNoEnd [table_charge] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- TCIgnadukBroomChargeNoStartNoEnd [table_charge] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- TCIgnadukBroomChargeNoStart [table_charge] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- TCIgnadukBroomChargeCrash [table_charge] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- TCIgnadukBroomChargeIntro [table_charge] action=None anim=-
+    flags: is_area_damage skill_cannot_be_stunned
+- EASIgnagdukBogWitchLeftDrift [empty_action_spell] action=DodgeLeft anim=default:broomstick_charge_turn_90_left_01
+- EASIgnagdukBogWitchRightDrift [empty_action_spell] action=DodgeRight anim=default:broomstick_charge_turn_90_right_01
+- MPSIgnagdukBasicFireProj [monster_projectile_spell] action=SpellProjectileFire anim=stance3:phase2_firebolt_left_01
+- MPSIgnagdukBigFireProj [monster_projectile_spell] action=SpellProjectileUpwardFire anim=default:vertical_wall_01,stance3:phase2_double_firebolt_right_01
+- MPSIgnagdukBigFireProj2 [monster_projectile_spell] action=SpellProjectileUpwardCold anim=default:circular_wall_01,stance3:phase2_double_firebolt_left_01
+- EASIgnagdukFirewall [empty_action_spell] action=SpellAreaOfEffectCold anim=default:spike_cascade_right_01,stance3:phase2_double_firewall_01
+- GPSIgnagdukFireSpray [geometry_projectiles_spell] action=SpellAreaOfEffectFire anim=default:spike_cascade_left_01,stance3:fire_wave_01
+- GTIgnagdukFireSuck [geometry_trigger] action=HeavyStrike anim=stance3:phase2_bonewall_fire_pull_01
+    geom: trigger count=180 delay=1500 spread=200 radius=40 angle=0 anchor=3
+- DTTIgnagdukBogWitchDashFlame [dash_to_target] action=DodgeForward anim=default:flame_dash_01,stance3:phase2_flame_dash_01
+- EGIgnadukBoneBreaker [execute_geal] action=None anim=-
+    GEAL 1037 on ['Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick']: self{} each{If( GetCurrentMoveSpeed() > 65, (){  triggerer.SetStateTo( explode, 1 ); }, (){  triggerer.SetStateTo( explode, 3 ); } );} r=20
+- EGIgnadukBoneBreaker2 [execute_geal] action=None anim=-
+    GEAL 1146 on ['Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick']: self{} each{If( GetCurrentMoveSpeed() > 65, (){  triggerer.SetStateTo( explode, 1 ); }, (){  triggerer.SetStateTo( explode, 3 ); } );} r=7
+- GSIgnadukBoneSmash [geometry_spell] action=None anim=-
+    geom: cone length=40 width=0 angle=45 range=300 delay=33 anchor=4
+    flags: is_area_damage
+- SOIgnagdukBoneWall [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall
+- GSIgnagdukSpikeCascade [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSIgnagdukSpikeCascade2 [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GTIgnagdukBoneWallStrafe1 [geometry_trigger] action=None anim=-
+    geom: trigger count=10 delay=1000 spread=90 radius=1 angle=0 anchor=3
+    triggers: SOIgnagdukBoneWall
+- GTIgnagdukBoneWallStrafe2 [geometry_trigger] action=None anim=-
+    geom: trigger count=20 delay=1000 spread=60 radius=0 angle=0 anchor=1
+    triggers: SOIgnagdukBoneWall
+- GSIgnadukFireSuck [geometry_spell] action=None anim=-
+    geom: rectangle length=5 width=5 angle=0 range=150 delay=33 anchor=4
+    flags: is_area_damage
+- SOIgnagdukFireBoneWall1 [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallCorridor
+- SOIgnagdukFireBoneWall2 [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallCorridor
+- SOIgnagdukFireBoneWall3 [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallCorridor
+- EGIgnagdukGatherFireWave [execute_geal] action=None anim=-
+    GEAL 1043 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy']: self{} each{triggerer.MakeBeam( IgnagdukFireWaveBeam, this, FollowFrom|FollowTo, face_beam, gather_all ); triggerer.SetStateTo( burnin, 1 );} r=120
+- EGIgnagdukGatherFireBoltLeft [execute_geal] action=None anim=-
+    GEAL 1044 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy']: self{} each{triggerer.beam = triggerer.MakeBeam( IgnagdukBasicProjBeam, this, FollowFrom|FollowTo, face_beam, gather_left_01 ); triggerer.beam.SetCurrentAnimationSpeed( this.GetCurrentAnimationSpeed() ); triggerer.SetStateTo( burnin, 1 );} r=120
+- EGIgnagdukGatherFireBoltRight [execute_geal] action=None anim=-
+    GEAL 1045 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy']: self{} each{triggerer.beam = triggerer.MakeBeam( IgnagdukBasicProjBeam, this, FollowFrom|FollowTo, face_beam, gather_right_01 ); triggerer.beam.SetCurrentAnimationSpeed( this.GetCurrentAnimationSpeed() ); triggerer.SetStateTo( burnin, 1 );} r=120
+- EGIgnagdukGatherFireDoubleBoltRight [execute_geal] action=None anim=-
+    GEAL 1046 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy']: self{} each{triggerer.beam = triggerer.MakeBeam( IgnagdukDoubleFireboltBeam, this, FollowFrom|FollowTo, face_beam, gather_right_02 ); triggerer.beam.SetCurrentAnimationSpeed( this.GetCurrentAnimationSpeed() ); triggerer.SetStateTo( burnin, 1 );} r=120
+- EGIgnagdukGetFlamewallSource [execute_geal] action=None anim=-
+    GEAL 1047 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy']: self{} each{this.flamewall_sources += triggerer;} r=220
+- GTIgnagdukFlamewall [geometry_trigger] action=None anim=-
+    geom: trigger count=20 delay=2000 spread=200 radius=1 angle=0 anchor=3
+- GSIgnagdukFlamewallBurninate [geometry_spell] action=None anim=-
+    geom: circle length=8 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- SOIgnagdukFirewall [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/FlameWallSegment
+- GSIgnagdukBoneSmashUpwards [geometry_spell] action=None anim=-
+    geom: cone length=20 width=0 angle=45 range=300 delay=33 anchor=4
+    flags: is_area_damage
+- GAIgnagdukDashImpactBone [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=10 angle=0 range=230 delay=33 anchor=2
+    flags: is_area_damage
+    GEAL 1037 on ['Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick']: self{} each{If( GetCurrentMoveSpeed() > 65, (){  triggerer.SetStateTo( explode, 1 ); }, (){  triggerer.SetStateTo( explode, 3 ); } );} r=20
+- GAIgnagdukDashImpactFire [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=10 angle=0 range=230 delay=33 anchor=2
+    flags: is_area_damage
+    GEAL 1037 on ['Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick']: self{} each{If( GetCurrentMoveSpeed() > 65, (){  triggerer.SetStateTo( explode, 1 ); }, (){  triggerer.SetStateTo( explode, 3 ); } );} r=20
+- GSIgnagdukBogWitchBurninate [geometry_spell] action=None anim=-
+    geom: circle length=256 width=0 angle=0 range=1200 delay=33 anchor=2
+    GEAL 1084 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall', 'Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick']: self{} each{triggerer.If( TypeContains( "Metadata/Monsters/IgnagdukBogWitch/objects/Effigy" ), { SetStateTo( burning, 2 ); }, { SetStateTo( explode, 4 ); } );} r=256
+- MPSIgnagdukBasicFireProjSpam [monster_projectile_spell] action=None anim=-
+- EGIgnagdukGatherFireDoubleBoltLeft [execute_geal] action=None anim=-
+    GEAL 1085 on ['Metadata/Monsters/IgnagdukBogWitch/objects/Effigy']: self{} each{triggerer.beam = triggerer.MakeBeam( IgnagdukDoubleFireboltBeam, this, FollowFrom|FollowTo, face_beam, gather_left_02 ); triggerer.beam.SetCurrentAnimationSpeed( this.GetCurrentAnimationSpeed() ); triggerer.SetStateTo( burnin, 1 );} r=120
+- TranslateRotateIgnagdukBoss [translate_rotate] action=None anim=-
+- GSIngagdukFireWaveFull [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=40 angle=0 range=140 delay=33 anchor=12
+- GSIngagdukFireWaveHalf [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=20 angle=0 range=140 delay=33 anchor=12
+- EASIgnagdukBossFireWave [empty_action_spell_2] action=HeavyStrike anim=stance3:phase2_bonewall_fire_pull_01
+- GSIgnagdukFlamethrower [geometry_spell] action=SpellAreaOfEffectFire anim=default:spike_cascade_left_01,stance3:fire_wave_01
+    geom: donut length=110 width=5 angle=10 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GTIgnagdukBogWitchDashWalls [geometry_trigger] action=None anim=-
+    geom: trigger count=8 delay=250 spread=30 radius=0 angle=180 anchor=2
+    triggers: SOIgnagdukBoneWallQuick
+- SOIgnagdukBoneWallQuick [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick
+- GPSIgnagdukBoneSpear [geometry_projectiles_spell] action=None anim=-
+- GTIgnagdukBoneSpearArc [geometry_trigger] action=SpellWall anim=default:bone_spear_wave_01
+    geom: trigger count=10 delay=500 spread=15 radius=20 angle=180 anchor=4
+- EASIgnagdukArenaBoneSpearSummon [empty_action_spell] action=SpellProjectileUpwardChaos anim=default:bone_spear_summon_01
+- GPSIgnagdukBoneSpearBig [geometry_projectiles_spell] action=None anim=-
+- GSIgnagdukStaffSlam [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+- SOIgnagdukEffigyStandAlone [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/IgnagdukBogWitch/objects/EffigySTANDALONE
+- GSHagBattleMidExplosion [geometry_spell] action=None anim=-
+    geom: circle length=32 width=0 angle=0 range=200 delay=33 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: broombreak; charge_count
+- on_change_to_default = { ResetBaseHullType(); Call( reset_sizes ); }
+- on_change_to_stance3 = { ResetBaseHullType(); Call( reset_sizes ); }
+- on_change_to_stance4 = { OverrideBaseHullType( projectile ); SetObjectSize( 2 ); SetObjectCollisionSize( 3 ); }
+- on_state_charge_count_0 = { ForceSkillIntoCooldown( TCIgnadukBroomChargeNoEnd ); }
+- on_initial_position_set = { this.og_size = GetObjectSize(); this.og_collision_size = GetObjectCollisionSize(); }
+- on_or_create_state_broombreak_1 = { DetachAllOfType( 'Metadata/Monsters/IgnagdukBogWitch/attachments/IgnagdukBogWitchWeapon.ao' ); }
+- on_multi_bone_blast_01 = { PlayTextAudio( Ignagduk_Skill4_Random, 'Metadata/Monsters/IgnagdukBogWitch' ); }
+- on_phase2_bonewall_fire_pull_01 = { PlayTextAudio( Ignagduk_Skill3_Random, 'Metadata/Monsters/IgnagdukBogWitch' ); }
+- on_effect_start_EASIgnagdukBossFireWave = { SetCurrentAnimationSpeed( 0.8 ); }
+- on_construction_complete = { DetachAllOfType( 'Metadata/Monsters/IgnagdukBogWitch/attachments/IgnagdukBogWitchWeapon.ao' ); }
+- on_multi_bone_blast_01 = { PlayTextAudio( Ignagduk_Skill4_Random, _ ); }
+- on_phase2_bonewall_fire_pull_01 = { PlayTextAudio( Ignagduk_Skill3_Random, _ ); }
+- on_multi_bone_blast_01 = { PlayTextAudio( Ignagduk_Skill4_Random, 'Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchMap' ); }
+- on_phase2_bonewall_fire_pull_01 = { PlayTextAudio( Ignagduk_Skill3_Random, 'Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchMap' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/bone_spike_cascade_start.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/firebolt_absorb_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/double_firebolt_absorb_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/flame_wall_front_audio.ao
+- preload_animated_object Metadata/Monsters/IgnagdukBogWitch/IgnagdukBogWitchSpirit.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/fire_wave_cascade2.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/fire_wave_bonewall_audio.ao
+- preload_environment G3_7_boss
+- preload_environment G3_7_boss_fire
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/IgnagdukBogWitch/objects/BoneWall:  [blocking=false object_size=3] states=die;explode on_initial_position_set{{ MakeCollidable(); }}; on_end_bone_emerge{{ QueueAnimation( bone_wall ); }}; on_end_bone_gounder{{ Delete(); }}; on_end_bone_wall_burn{{ Delete(); }}; on_state_die_1{{ PlayAnimation( bone_gounder ); }}; on_state_explode_1{{ RemoveCollidability(); PlayAnimation( bone_gounder ); }}
+- Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallCorridor:  [blocking=false object_size=4] states=die;explode on_initial_position_set{{ PlayAnimation( emerge ); QueueAnimation( idle ); SetXYScale( Random( 0.8, 1.2 ) ); RotateBy( Random( -5, 5 ), false, t}; on_emerge{{ Delay( 0.04, { MakeCollidable(); } ); }}; on_end_submerge{{ Delete(); }}; on_state_die_1{{ PlayAnimation( submerge ); RemoveCollidability(); }}; on_state_explode_1{{ PlayAnimation( submerge ); RemoveCollidability(); }}
+- Metadata/Monsters/IgnagdukBogWitch/objects/BoneWallQuick:  [blocking=false object_size=3] states=die;explode on_initial_position_set{{ MakeCollidable(); }}; on_end_bone_emerge{{ QueueAnimation( bone_wall ); }}; on_end_bone_gounder{{ Delete(); }}; on_end_bone_wall_burn{{ Delete(); }}; on_state_die_1{{ PlayAnimation( bone_gounder ); }}; on_state_explode_1{{ RemoveCollidability(); PlayAnimation( bone_gounder ); }}
+- Metadata/Monsters/IgnagdukBogWitch/objects/EffigySTANDALONE:  [blocking=true object_size=3 server_only=true] states=burning;clean_up;emerge on_initial_position_set{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/epks/effigy_reveal.epk' ); }}; on_state_emerge_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/epks/effigy_reveal.epk' ); }}; on_state_emerge_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/epks/effigy_disintegrate.epk' ); R}; on_state_clean_up_1{{ PlayAnimation( break_01 ); RemoveEffectPack( 'Metadata/Terrain/Doodads/Jungle/CarverProps/CarverWickerConstructs/Carve}
+- Metadata/Monsters/IgnagdukBogWitch/objects/FlameWallSegment:  [blocking=false object_size=1] states=die on_initial_position_set{{ PlayAnimation( start ); QueueAnimation( loop ); }}; on_end_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( end ); }}
+- Metadata/Monsters/IgnagdukBogWitch/objects/Effigy:  [blocking=true object_size=3 server_only=true] states=burning on_state_burning_0{{ RemoveEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/loop_flame.epk' ); Remove}; create_state_burning_0{{ SetLightState( off_loop_state ); }}; on_state_burning_1{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/dull_loop.epk' ); RemoveEffe}; create_state_burning_1{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/dull_loop.epk' ); SetLightSt}; on_state_burning_2{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/loop_flame.epk' ); RemoveEff}; create_state_burning_2{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/loop_flame.epk' ); SetLightS}
+- metadata/monsters/ignagdukbogwitch/objects/bonewall:  [blocking=false object_size=3] states=die;explode on_initial_position_set{{ MakeCollidable(); }}; on_end_bone_emerge{{ QueueAnimation( bone_wall ); }}; on_end_bone_gounder{{ Delete(); }}; on_end_bone_wall_burn{{ Delete(); }}; on_state_die_1{{ PlayAnimation( bone_gounder ); }}; on_state_explode_1{{ RemoveCollidability(); PlayAnimation( bone_gounder ); }}
+- metadata/monsters/ignagdukbogwitch/objects/bonewallcorridor:  [blocking=false object_size=4] states=die;explode on_initial_position_set{{ PlayAnimation( emerge ); QueueAnimation( idle ); SetXYScale( Random( 0.8, 1.2 ) ); RotateBy( Random( -5, 5 ), false, t}; on_emerge{{ Delay( 0.04, { MakeCollidable(); } ); }}; on_end_submerge{{ Delete(); }}; on_state_die_1{{ PlayAnimation( submerge ); RemoveCollidability(); }}; on_state_explode_1{{ PlayAnimation( submerge ); RemoveCollidability(); }}
+- metadata/monsters/ignagdukbogwitch/objects/bonewallquick:  [blocking=false object_size=3] states=die;explode on_initial_position_set{{ MakeCollidable(); }}; on_end_bone_emerge{{ QueueAnimation( bone_wall ); }}; on_end_bone_gounder{{ Delete(); }}; on_end_bone_wall_burn{{ Delete(); }}; on_state_die_1{{ PlayAnimation( bone_gounder ); }}; on_state_explode_1{{ RemoveCollidability(); PlayAnimation( bone_gounder ); }}
+- metadata/monsters/ignagdukbogwitch/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=IgnagdukBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( IgnagdukBossInactive ); }}
+- metadata/monsters/ignagdukbogwitch/objects/effigy:  [blocking=true object_size=3 server_only=true] states=burning on_state_burning_0{{ RemoveEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/loop_flame.epk' ); Remove}; create_state_burning_0{{ SetLightState( off_loop_state ); }}; on_state_burning_1{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/dull_loop.epk' ); RemoveEffe}; create_state_burning_1{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/dull_loop.epk' ); SetLightSt}; on_state_burning_2{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/loop_flame.epk' ); RemoveEff}; create_state_burning_2{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/Effigy_Large/loop_flame.epk' ); SetLightS}
+- metadata/monsters/ignagdukbogwitch/objects/effigystandalone:  [blocking=true object_size=3 server_only=true] states=burning;clean_up;emerge on_initial_position_set{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/epks/effigy_reveal.epk' ); }}; on_state_emerge_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/epks/effigy_reveal.epk' ); }}; on_state_emerge_2{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/IgnagdukBogWitch/epks/effigy_disintegrate.epk' ); R}; on_state_clean_up_1{{ PlayAnimation( break_01 ); RemoveEffectPack( 'Metadata/Terrain/Doodads/Jungle/CarverProps/CarverWickerConstructs/Carve}
+- metadata/monsters/ignagdukbogwitch/objects/flamewallsegment:  [blocking=false object_size=1] states=die on_initial_position_set{{ PlayAnimation( start ); QueueAnimation( loop ); }}; on_end_end{{ Delete(); }}; on_state_die_1{{ PlayAnimation( end ); }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle:  [server_only=true] states= on_construction_complete{{ globals.generic_arena_middle_object = this; }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle:  [blocking=true object_size=5 server_only=true] states=blasted create_state_blasted_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/wicker_fire.epk' ); }}; create_state_blasted_1{{ PlayAnimation( smash ); GoToAnimationEnd(); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, ds}; on_state_blasted_1{{ PlayAnimation( smash ); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, dstone_geoShape1, rope}
+- Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=IgnagdukBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( IgnagdukBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle: ProximityTrigger [radius=80 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardCarverBogBossArena, TitleCardCarverBogBossArenaSubtitle ); }}
+
+## lines
+- on_multi_bone_blast_01 -> Ignagduk_Skill4_Random: Tek mekh, ma-looah!
+- on_phase2_bonewall_fire_pull_01 -> Ignagduk_Skill3_Random: Mok-mok, ebaat!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_bogwitch_rooms_boss_01.arm
+  sector ['hide_teleports', 117, 162, 341, 317, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 162, 120, 301, 162, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 125, 129, 343, 329, '']
+  sector ['no_movement_skills', 148, 149, 177, 151, '']
+  sector ['no_movement_skills', 148, 149, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 127, 324, '']
+  sector ['no_movement_skills', 175, 130, 177, 151, '']
+  sector ['no_movement_skills', 175, 130, 341, 132, '']
+  point [249.0, 246.0, 'mapboss3']
+  point [171.0, 169.0, 'telepad4']
+  point [116.0, 115.0, 'checkpoint6']
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle x1 (227,226)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/Effigy x11 (278,162) (148,186) (238,311) (157,274) (304,274) (189,147) (141,227) (305,198) (189,305) (276,304)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker x24 (257,174) (175,196) (197,278) (287,226) (279,196) (227,166) (197,174) (167,226) (175,256) (227,286)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle x1 (220,218)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (131,98)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (147,148)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon x1 (227,226)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPackProxTrigger x1 (95,98)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker x42 (292,166) (300,175) (273,149) (264,144) (252,140) (225,140) (214,141) (204,142) (177,154) (170,162)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle x1 (227,226)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (240,237)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (162,160)
+room metadata_terrain_gallows_act3_3_7_rooms_feature_boss_01.arm
+  sector ['hide_teleports', 117, 162, 341, 317, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 162, 120, 301, 162, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 125, 129, 343, 329, '']
+  sector ['no_movement_skills', 148, 149, 177, 151, '']
+  sector ['no_movement_skills', 148, 149, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 127, 324, '']
+  sector ['no_movement_skills', 175, 130, 177, 151, '']
+  sector ['no_movement_skills', 175, 130, 341, 132, '']
+  point [249.0, 246.0, 'mapboss']
+  point [171.0, 169.0, 'telepad']
+  point [116.0, 115.0, 'checkpoint1']
+  point [217.0, 237.0, 'ritual_boss_spawn_override']
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle x1 (227,226)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/Effigy x11 (278,162) (148,186) (238,311) (157,274) (304,274) (189,147) (141,227) (305,198) (189,305) (276,304)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker x24 (257,174) (175,196) (197,278) (287,226) (279,196) (227,166) (197,174) (167,226) (175,256) (227,286)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle x1 (220,218)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (131,98)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (147,148)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon x1 (227,226)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPackProxTrigger x1 (95,98)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker x42 (292,166) (300,175) (273,149) (264,144) (252,140) (225,140) (214,141) (204,142) (177,154) (170,162)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle x1 (227,226)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (162,160)
+room metadata_terrain_gallows_act3_3_7_rooms_feature_boss_02.arm
+  sector ['hide_teleports', 133, 165, 323, 317, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 166, 140, 290, 165, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 125, 129, 343, 329, '']
+  sector ['no_movement_skills', 148, 149, 177, 151, '']
+  sector ['no_movement_skills', 148, 149, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 127, 324, '']
+  sector ['no_movement_skills', 175, 130, 177, 151, '']
+  sector ['no_movement_skills', 175, 130, 339, 132, '']
+  point [247.0, 251.0, 'mapboss']
+  point [171.0, 169.0, 'telepad']
+  point [114.0, 115.0, 'checkpoint1']
+  point [210.0, 243.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/Effigy x11 (263,151) (185,148) (237,312) (157,279) (313,232) (220,141) (143,231) (297,184) (187,311) (276,302)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker x24 (254,178) (172,200) (194,282) (284,230) (276,200) (224,170) (194,178) (164,230) (172,260) (224,290)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle x1 (224,230)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle x1 (218,222)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (149,150)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (130,98)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon x1 (224,230)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPackProxTrigger x1 (99,101)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker x47 (289,162) (297,170) (281,154) (255,138) (243,138) (233,138) (211,141) (203,142) (195,144) (176,156)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle x1 (224,230)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (164,162)

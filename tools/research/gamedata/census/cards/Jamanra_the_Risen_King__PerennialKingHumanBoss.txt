@@ -1,0 +1,199 @@
+# Jamanra, the Risen King / Ishtaroth, the Perennial
+content: Act 2
+monsters: Metadata/Monsters/PerennialKingHumanBoss, Metadata/Monsters/PerennialKingHumanBossCampaignSTANDALONE, Metadata/Monsters/PerennialKingHumanBossMAP, Metadata/Monsters/PerennialKingHumanBossStandalone
+scripts: Metadata/Monsters/PerennialKing/PerennialKingHuman, Metadata/Monsters/PerennialKing/PerennialKingHumanStandalone, Metadata/Monsters/PerennialKing/PerennialKingHumanMAP
+own chain: Metadata/Monsters/PerennialKing/PerennialKingHuman, Metadata/Monsters/PerennialKing/PerennialKingHumanStandalone, Metadata/Monsters/PerennialKing/PerennialKingHumanMAP
+areas: G2_3 The Halani Gates act2; MapOasis Oasis act10
+ai: Metadata/Monsters/PerennialKing/PerennialKingHuman.ais, Metadata/Monsters/PerennialKing/PerennialKingHumanStandalone.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- DTTPerennialKingDash [dash_to_target] action=SpellAreaOfEffectFire anim=default:double_dash_01
+- GSPerennialKingBigBeamIntro [geometry_spell] action=None anim=-
+    geom: rectangle length=200 width=17 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSPerennialKingBigBeam [geometry_spell] action=SpellAreaOfEffectCold anim=default:epic_spellcast_01
+    geom: rectangle length=200 width=17 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAPerennialKingSwordSlam [geometry_attack] action=SpellAreaOfEffectLightning anim=default:groundslam_01
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- GAPerennialKingDashSlash [geometry_attack] action=None anim=-
+    geom: cone length=24 width=0 angle=180 range=132 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GAPerennialKingDashSlash2 [geometry_attack] action=None anim=-
+    geom: cone length=24 width=0 angle=180 range=132 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- CTSPerennialKingStance2 [change_to_stance2] action=None anim=-
+- CTSPerennialKingStance3 [change_to_stance3] action=None anim=-
+- DoLiterallyNothing [do_nothing] action=None anim=-
+- DPPerennialKingCorruptionBall [decelerating_projectile] action=SpellProjectileFire anim=default:sand_orb_01
+- GTPerennialKingCorruptionTotems [geometry_trigger] action=None anim=-
+    geom: trigger count=1 delay=0 spread=50 radius=0 angle=0 anchor=1
+    triggers: SSMPerennialKingCorruptionTotem
+- SSMPerennialKingCorruptionTotem [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/PerennialKingTotem/PerennialKingCorruptionTotem
+- GSPerennialKingCorruptionBallExplode [geometry_spell] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=760 delay=760 anchor=4
+    flags: is_area_damage
+- TBPerennialKingBall [trigger_beam] action=SpellProjectileFire anim=default:sand_orb_01
+    flags: base_deal_no_damage
+    beams: PerennialKingBallBeam
+- MAASPerennialKingTripleSlash [melee] action=SpellAreaOfEffect anim=default:triple_slash_01
+- SSMPerennialKingVolatileBeetle [summon_specific_monsters_on_target] action=None anim=-
+    summons: Metadata/Monsters/EtchedBeetles/MediumEtchedBeetleSummon
+- GTPerennialKingVolatileBeetles [geometry_trigger] action=None anim=-
+    geom: trigger count=30 delay=15000 spread=50 radius=0 angle=0 anchor=1
+    triggers: SSMPerennialKingVolatileBeetle
+- GAPerennialKingSwordSlamCascade [geometry_spell] action=None anim=-
+    geom: donut length=70 width=20 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MDPerennialKingObsidianBall [move_daemon] action=SpellProjectileFire anim=default:sand_orb_01
+    daemons: Metadata/Monsters/InvisibleFire/MDPerennialKingObsidianStorm_
+
+## own states and handlers
+states: flipped; retreat_arena; begin_fight; end_fight; retreat_caravan; path; flying_escape; asala_present; corrupting; hide_me
+- on_or_create_state_hide_me_1 = { RemoveCollidability(); }
+- on_event_retarget_for_DashToTarget = { SetTarget( FindNearestPlayer() ); }
+- on_construction_complete = { globals.NPCPerennialKing = this; IfState( begin_fight, 1, { SetStaticLifeBarVisibilty( true ); } ); }
+- on_exit_state_retreat_arena_0 = { PlayTextAudio( FaridunKingG2_3FightOpeningLineNoAsala, 'Metadata/Monsters/PerennialKing/PerennialKingHuman', 0 ); }
+- on_exit_state_begin_fight_0 = { IfState( asala_present, 1, { PlayConversation( AsalaVsKingAtGates, NPCPerennialKing, NPCAsala ); }, { PlayTextAudio( FaridunKingG2_3FightOpeningLineNoAsala, 'Metadata/Monsters/PerennialKing/PerennialKingHuman', 0 ); } ); }
+- on_exit_state_end_fight_0 = { IfState( asala_present, 1, { PlayTextAudio( FaridunKingG2_3FightEscapeLine, 'Metadata/Monsters/PerennialKing/PerennialKingHuman', 0 ); }, { PlayTextAudio( FaridunKingG2_3FightEscapeLineNoAsala, 'Metadata/Monsters/PerennialKing/PerennialKingHuman', 0 ); } ); }
+- create_state_begin_fight_0 = { DisableTargetable(); }
+- on_state_begin_fight_1 = { SetStaticLifeBarVisibilty( true ); }
+- create_state_begin_fight_1 = { Delay( 0.1, { SetStaticLifeBarVisibilty( True ); } ); }
+- on_state_end_fight_1 = { SetStaticLifeBarVisibilty( false ); PlayCharacterAudioEvent( PerennialKingRunsAwayComment ); }
+- on_or_create_state_begin_fight_1 = { EnableTargetable(); }
+- on_or_create_state_end_fight_1 = { DisableTargetable(); }
+- on_or_create_state_corrupting_1 = { DisableTargetable(); }
+- on_state_corrupting_0 = { EnableTargetable(); }
+- on_or_create_state_retreat_caravan_1 = { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); }
+- on_or_create_state_hide_me_1 = { DisableRendering(); }
+- on_or_create_state_dead_1 = { Delay( 0.1, { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); } ); }
+- on_corruption_start_01 = { PlayTextAudio( FaridunKingG2_3_PhaseChange, 'Metadata/Monsters/PerennialKing/PerennialKingHuman' ); }
+- on_event_sandstormstart = { this.sandstorm = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/beetlephase_arena.ao' ); sandstorm.QueueAnimation( idle_01 ); }
+- on_event_sandstormend = { sandstorm.PlayAnimation( end_01 ); }
+- on_groundslam_01 = { PlayTextAudio( FaridunKingG2_3AttackThreeRandom, 'Metadata/Monsters/PerennialKing/PerennialKingHuman' ); }
+- on_epic_spellcast_01 = { PlayTextAudio( FaridunKingG2_3AttackThreeRandom, 'Metadata/Monsters/PerennialKing/PerennialKingHuman' ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( FaridunKingG2_3AttackThreeRandom, 'Metadata/Monsters/PerennialKing/PerennialKingHuman' ); }
+- on_sand_orb_01 = { PlayTextAudio( FaridunKingG2_3AttackTwoRandom, 'Metadata/Monsters/PerennialKing/PerennialKingHuman' ); }
+- on_event_hide_me = { DisableRendering(); }
+- on_event_contact_for_groundslam_01 = { ForEachInRange( 60, { IfType( 'Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaTowerFallingDebris', { Transition(); } ); } ); }
+- on_epic_spellcast_01 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/hand_glow.epk' ); }
+- on_end_epic_spellcast_01 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/hand_glow.epk' ); }
+- on_groundslam_01 = { PlayTextAudio( Ishtaroth_ChargeUp_Random, _ ); }
+- on_epic_spellcast_01 = { Roll( 1, 2, { PlayTextAudio( Ishtaroth_BeamSkill_Random, _ ); } ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( Ishtaroth_Knockdown_Random, _ ); }
+- on_sand_orb_01 = { Roll( 1, 1, { PlayTextAudio( Ishtaroth_SandOrb_Random, _ ); } ); }
+- on_corruption_start_01 = { PlayTextAudio( Ishtaroth_Scarab_Random, _ ); }
+- on_groundslam_01 = { PlayTextAudio( Ishtaroth_ChargeUp_Random, 'Metadata/Monsters/PerennialKing/PerennialKingHumanMAP' ); }
+- on_epic_spellcast_01 = { Roll( 1, 2, { PlayTextAudio( Ishtaroth_BeamSkill_Random, 'Metadata/Monsters/PerennialKing/PerennialKingHumanMAP' ); } ); }
+- on_knockdown_bwd_01 = { PlayTextAudio( Ishtaroth_Knockdown_Random, 'Metadata/Monsters/PerennialKing/PerennialKingHumanMAP' ); }
+- on_sand_orb_01 = { Roll( 1, 1, { PlayTextAudio( Ishtaroth_SandOrb_Random, 'Metadata/Monsters/PerennialKing/PerennialKingHumanMAP' ); } ); }
+- on_corruption_start_01 = { PlayTextAudio( Ishtaroth_Scarab_Random, 'Metadata/Monsters/PerennialKing/PerennialKingHumanMAP' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('hide_me', 1)]
+untargetable(DisableTargetable): [('begin_fight', 0), ('corrupting', 1), ('end_fight', 1)]
+seek: []  phase: []  brackets: ['arena_sector_destruction, GetState']
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/slam_decal.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/corruption_phase.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/corruption_idle.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/totem_beam_02.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/totem_beam.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/totem_beam_01.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/hand_glow.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/bodyfx.epk
+- preload_environment G2_3_boss
+
+## adds and forms
+- Metadata/Monsters/EtchedBeetles/MediumEtchedBeetleSummon "Volatile Scarab" bossbar=0 skills=MeleeAtAnimationSpeed,GSVolatileScarabExplode,CGEVolatileScarabExplode comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=visible;collidable
+- Metadata/Monsters/PerennialKingTotem/PerennialKingCorruptionTotem "Vile Idol" bossbar=0 skills=CGEPerennialKingCorruption1,CGEPerennialKingCorruption2,CGEPerennialKingCorruption3,CGEPerennialKingCorruption4,CGEPerennialKingCorruption5,CGEPerennialKingCorruption6,CGEPerennialKingCorruption7,CGEPerennialKingCorruption8 comps=Life Targetable DiesAfterTime Actor Stats [blocking=true attackable=true server_only=true] states=pulsing
+- Metadata/Monsters/NPC/MarakethMatriarchGate "Sekhema Asala" bossbar=0 skills=MeleeAtAnimationSpeedUnique,MarakethMatriarchBeamBarrageGT,MarakethMatriarchBeamBarrageTB,MarakethMatriarchBeamBarrageGS,MarakethMatriarchBeamBarrageEAS,GSAsalaLightningStrike,GSPerennialKingAsalaLightningBolt,EGPerennialKingAsalaStun,EASAsalaGateCrankPush comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=false server_only=true icon=NPC] states=path;follow;met_risu
+- Metadata/Monsters/NPC/MarakethMatriarchDreadnought_ "Sekhema Asala" bossbar=0 skills=MeleeAtAnimationSpeedUnique,MarakethMatriarchBeamBarrageGT,MarakethMatriarchBeamBarrageTB,MarakethMatriarchBeamBarrageGS,MarakethMatriarchBeamBarrageEAS,GSAsalaLightningStrike,GSPerennialKingAsalaSandstormDefense,EASMarakethMatriarchMurderMove comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=false server_only=true icon=NPC] states=has_pks_head;unconscious;sandstorm_defence;oi_get_up;locked_orientation;spawned
+daemons: Metadata/Monsters/InvisibleFire/MDPerennialKingObsidianStorm_
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/perennialking/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=PerennialHumanActive] states=boss_dead on_or_create_state_boss_dead_1{{ SetMinimapIcon( PerennialHumanInactive ); }}; on_or_create_state_boss_dead_1{{ SetMinimapIcon( LootFilterLargeGreyUpsideDownHouse ); }}
+- Metadata/QuestObjects/Four_Act2/G2_3_Gate3Trigger:  [server_only=true] states= 
+- Metadata/QuestObjects/Four_Act2/Gates_Dreadnaught: Transitionable [blocking=false object_size=3 server_only=true] states=flee;helper_state create_untransitioned{{ PlayAnimationByIndex(0); PauseAnimation( ); }}; create_transitioned{{ PlayAnimationByIndex(0); GoToAnimationEnd( ); }}; on_transition{{ PlayAnimationByIndex(0); PlayAnimationAttached( 'Metadata/Monsters/DreadnoughtLizard/DreadnoughtLizardReduced.ao', run}; create_state_flee_0{{ PlayAnimation( Juggernaut_idle_01 ); }}; on_state_flee_1{{ PlayAnimation( Juggernaut_Departing_01 ); PlayAnimationAttached( 'Metadata/Monsters/DreadnoughtLizard/DreadnoughtLizar}; create_state_flee_1{{ PlayAnimation( Juggernaut_Departing_01 ); GoToAnimationEnd(); }}
+- Metadata/QuestObjects/Four_Act2/Gates_Gate3: Transitionable [blocking=false object_size=3 server_only=true] states=open create_transitioned{{ PlayAnimationByIndex(0); GoToAnimationEnd(); }}; create_untransitioned{{ PlayAnimationByIndex(0); PauseAnimation(); }}; on_transition{{ PlayAnimationByIndex(0); }}
+- Metadata/QuestObjects/Four_Act2/Gates_CaravanWaypoint_02:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/QuestObjects/Four_Act2/Gates_Matriarch_Telepad_1:  [blocking=false object_size=3 server_only=true] states= 
+- Metadata/QuestObjects/Four_Act2/Gates_King_Telepad_1:  [blocking=false object_size=3 server_only=true] states= on_construction_complete{{ globals.king_teleport_1 = this; }}
+- Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaVines_1b:  [server_only=true] states=open=1 create_state_open_0{{ PlayAnimation( blocked_idle_01 ); }}; on_exit_state_open_0{{ PlayAnimation( blocking_stop_01 ); }}; create_state_open_1{{ PlayAnimation( blocking_stop_01 ); GoToAnimationEnd( ); }}; on_state_open_0{{ PlayAnimation( blocking_start_01 ); QueueAnimation( blocked_idle_01 ); }}
+- Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaVines_2:  [server_only=true] states=open=1 create_state_open_0{{ PlayAnimation( blocked_idle_02 ); }}; on_exit_state_open_0{{ PlayAnimation( blocking_stop_02 ); }}; create_state_open_1{{ PlayAnimation( blocking_stop_02 ); GoToAnimationEnd( ); }}; on_state_open_0{{ PlayAnimation( blocking_start_02 ); QueueAnimation( blocked_idle_02 ); }}
+- Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaVines_1:  [server_only=true] states=open=1 create_state_open_0{{ PlayAnimation( blocked_idle_01 ); }}; on_exit_state_open_0{{ PlayAnimation( blocking_stop_01 ); }}; create_state_open_1{{ PlayAnimation( blocking_stop_01 ); GoToAnimationEnd( ); }}; on_state_open_0{{ PlayAnimation( blocking_start_01 ); QueueAnimation( blocked_idle_01 ); }}
+- Metadata/Monsters/PerennialKingTotem/Objects/CorruptionTotemTargetMarker:  [server_only=true] states= 
+- Metadata/Monsters/PerennialKing/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=PerennialHumanActive] states=boss_dead on_or_create_state_boss_dead_1{{ SetMinimapIcon( PerennialHumanInactive ); }}; on_or_create_state_boss_dead_1{{ SetMinimapIcon( LootFilterLargeGreyUpsideDownHouse ); }}
+
+## lines
+- on_exit_state_retreat_arena_0 -> FaridunKingG2_3FightOpeningLineNoAsala: Doing a <i>{Sekhema's} dirty work, foreigner?
+- on_exit_state_begin_fight_0 -> FaridunKingG2_3FightOpeningLineNoAsala: Doing a <i>{Sekhema's} dirty work, foreigner?
+- on_exit_state_end_fight_0 -> FaridunKingG2_3FightEscapeLineNoAsala: Leave our culture be, meddler!
+- on_corruption_start_01 -> FaridunKingG2_3_PhaseChange: I tried to seek peace, and the <i>{Sekhemas} disgraced me! Left my corpse to rot in the sand! This time, we choose war.
+- on_groundslam_01 -> FaridunKingG2_3AttackThreeRandom: I shall dethrone you, <i>{Sekhema}... and leave you to the sands!
+- on_epic_spellcast_01 -> FaridunKingG2_3AttackThreeRandom: I shall dethrone you, <i>{Sekhema}... and leave you to the sands!
+- on_knockdown_bwd_01 -> FaridunKingG2_3AttackThreeRandom: I shall dethrone you, <i>{Sekhema}... and leave you to the sands!
+- on_sand_orb_01 -> FaridunKingG2_3AttackTwoRandom: You are unworthy!
+- on_groundslam_01 -> Ishtaroth_ChargeUp_Random: The weak shall kneel... before my wrath! 
+- on_knockdown_bwd_01 -> Ishtaroth_Knockdown_Random: Argh... You forget your place, worm! 
+- on_corruption_start_01 -> Ishtaroth_Scarab_Random: Swarm! 
+
+## linked buffs
+- perennial_king_corrupted_ground "Corrupted Ground": You are taking Physical Damage over time | stats=base_physical_damage_taken_per_minute,base_fire_damage_taken_per_minute
+- perennial_king_lightning_tornado "Charged Tornado": You take increased damage while standing in the Charged Tornado | stats=base_damage_taken_+%_from_shock
+- perennial_king_sand_storm "Sandstorm": You are taking Physical damage over time while standing in the Sandstorm. | stats=base_physical_damage_taken_per_minute
+- perennial_king_shock_move_penalty "Slowed": Your Movement Speed is reduced due to being damaged by the Electric Fence skill | stats=base_movement_velocity_+%
+- perennial_king_tornado_degen "Tornado": You are taking Physical Damage over time and your Movement Speed is being reduced due to being inside the Tornado. An additional stack of this effect is applied when deep inside the Tornado. | stats=base_physical_damage_taken_per_minute,base_movement_velocity_+%
+- rooted_spore_ground "[DNT-UNUSED] Spore Ground": You are taking lightning and chaos damage over time. | stats=base_lightning_damage_taken_per_minute,base_chaos_damage_taken_per_minute
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_3_rooms_unique_boss_endcap.arm
+  sector ['arena', 564, 334, 745, 477, '']
+  sector ['hide_teleports', 581, 331, 701, 454, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 579, 316, 726, 460, '']
+  sector ['no_movement_skills', 574, 325, 732, 329, '']
+  point [655.0, 379.0, 'mapboss1']
+  point [542.0, 89.0, 'G2_3-mutewindbridgeguards']
+  point [622.0, 409.0, 'telepad']
+  point [656.0, 347.0, 'telepad']
+  point [675.0, 194.0, 'checkpoint3']
+  point [655.0, 389.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/PathMarkers/MatriarchGatesPath_Tower x1 (610,424)
+  obj Metadata/MiscellaneousObjects/PathMarkers/MatriarchGatesPath_Start x1 (464,89)
+  obj Metadata/QuestObjects/Four_Act2/G2_3_Gate3Trigger x1 (476,91)
+  obj Metadata/QuestObjects/Four_Act2/Gates_Dreadnaught x1 (503,484)
+  obj Metadata/QuestObjects/Four_Act2/Gates_Gate3 x1 (519,148)
+  obj Metadata/QuestObjects/Four_Act2/Gates_CaravanWaypoint_02 x1 (517,114)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x2 (608,425) (654,210)
+  obj Metadata/QuestObjects/Four_Act2/Gates_Matriarch_Telepad_1 x1 (655,342)
+  obj Metadata/QuestObjects/Four_Act2/Gates_King_Telepad_1 x1 (622,381)
+  obj Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaVines_1b x1 (655,327)
+  obj Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaVines_2 x1 (609,425)
+  obj Metadata/Terrain/Gallows/Act2/2_3/Objects/ArenaVines_1 x1 (655,224)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (655,379)
+  obj Metadata/Monsters/PerennialKingTotem/Objects/CorruptionTotemTargetMarker x27 (625,411) (643,411) (662,411) (681,411) (689,398) (671,397) (653,398) (635,398) (620,398) (625,386)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (675,210)
+  obj Metadata/Monsters/PerennialKing/Objects/BossRoomMinimapIcon x1 (655,380)
+room metadata_terrain_maps_oasis_rooms_unique_bossman.arm
+  sector ['Boss', 103, 11, 402, 276, '']
+  sector ['hide_teleports', 86, 20, 424, 235, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 87, 11, 413, 221, '']
+  sector ['no_movement_skills', 98, 216, 417, 222, '']
+  sector ['no_movement_skills', 102, 7, 111, 225, '']
+  sector ['no_movement_skills', 102, 46, 395, 49, '']
+  sector ['boss_sector', 111, 49, 374, 216, '']
+  point [252.0, 131.0, 'mapboss']
+  point [258.0, 372.0, 'magic']
+  point [189.0, 337.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x2 (54,168) (75,88)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (184,329)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (208,218)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x16 (211,219) (217,219) (205,219) (199,219) (193,219) (187,219) (181,219) (175,219) (223,219) (229,219)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (209,141)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (330,132)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (184,181) (283,178) (258,180) (159,161)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (225,138)
+room metadata_terrain_maps_oasis_rooms_unique_mini_boss2.arm
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x12 (75,128) (243,184) (191,235) (247,147) (169,242) (167,237) (149,213) (269,204) (240,252) (186,253)

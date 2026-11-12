@@ -1,0 +1,168 @@
+# Yaota, the Loathsome
+content: Act 3
+monsters: Metadata/Monsters/QueenOfFilth/QueenofFilfthBossSTANDALONEExpedition
+scripts: Metadata/Monsters/QueenOfFilth/QueenofFilfthSTANDALONEExpedition
+own chain: Metadata/Monsters/QueenOfFilth/QueenofFilfthSTANDALONEExpedition, Metadata/Monsters/QueenOfFilth/QueenOfFilthBossExpeditionEncased
+areas: 
+ai: Metadata/Monsters/QueenOfFilth/QueenofFilfth.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- GSAntiAttackDebuff [geometry_spell] action=SpellAreaOfEffectFire anim=default:curse_nuke_01_vulnerability
+    geom: circle length=28 width=0 angle=0 range=1500 delay=1500 anchor=4
+- GSAntiCasterDebuff [geometry_spell] action=SpellAreaOfEffectCold anim=default:curse_nuke__01_enfeeble
+    geom: circle length=28 width=0 angle=0 range=1500 delay=1500 anchor=4
+- GSAntiMinionDebuff [geometry_spell] action=SpellAreaOfEffectLightning anim=default:curse_nuke_01_temporal_chains
+    geom: circle length=28 width=0 angle=0 range=1500 delay=1500 anchor=4
+- EASSummonSpecificInbreds [empty_action_spell] action=SpellAreaOfEffect anim=default:summon_minions_01
+- SOMushroomOriginPoint [spawn_object] action=None anim=-
+    objects: Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroomBlood
+- GSMushroomPuff [geometry_spell] action=SpellAreaOfEffectLightning anim=default:curse_nuke_01_temporal_chains
+    geom: circle length=9 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GPSQueenOfFilthCorpseBall [geometry_projectiles_attack] action=SpellProjectileChaos anim=default:corpse_ball_01
+    flags: base_deal_no_damage
+- GSCorpseBallSplat [geometry_attack] action=None anim=-
+    geom: cone length=37 width=0 angle=145 range=230 delay=33 anchor=4
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+- EASQueenOfFilthDoubleSlam [empty_action_attack] action=HeavyStrike anim=default:double_slam_01
+- EASQueenOfFilthRollSlam [empty_action_attack] action=OffHeavyStrike anim=default:roll_slam_01
+- GAQueenOfFilthDoubleSlam1 [geometry_attack] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1117 on ['Metadata/Monsters/QueenOfFilth/Objects/QueenOfFilthBossMushroomLine', 'Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroom', 'Metadata/Monsters/QueenOfFilth/TaintedLifeDaemon', 'Metadata/Monsters/QueenOfFilth/TaintedManaDaemon']: self{} each{triggerer.IfTypeContains( Mushroom, (){ SetStateTo( explode, 2 ); } ); triggerer.IfTypeContains( Tainted, (){ triggerer.SetStateTo( detonate, 1 ); } );} r=21
+- GAQueenOfFilthDoubleSlam2 [geometry_attack] action=None anim=-
+    geom: circle length=16 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1117 on ['Metadata/Monsters/QueenOfFilth/Objects/QueenOfFilthBossMushroomLine', 'Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroom', 'Metadata/Monsters/QueenOfFilth/TaintedLifeDaemon', 'Metadata/Monsters/QueenOfFilth/TaintedManaDaemon']: self{} each{triggerer.IfTypeContains( Mushroom, (){ SetStateTo( explode, 2 ); } ); triggerer.IfTypeContains( Tainted, (){ triggerer.SetStateTo( detonate, 1 ); } );} r=21
+- GAQueenOfFilthRollSlam1 [geometry_attack] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked is_area_damage
+    GEAL 1117 on ['Metadata/Monsters/QueenOfFilth/Objects/QueenOfFilthBossMushroomLine', 'Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroom', 'Metadata/Monsters/QueenOfFilth/TaintedLifeDaemon', 'Metadata/Monsters/QueenOfFilth/TaintedManaDaemon']: self{} each{triggerer.IfTypeContains( Mushroom, (){ SetStateTo( explode, 2 ); } ); triggerer.IfTypeContains( Tainted, (){ triggerer.SetStateTo( detonate, 1 ); } );} r=21
+- GAQueenOfFilthOverheadSlam [geometry_attack] action=GroundSlam anim=default:overhead_slam_01
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+    GEAL 1117 on ['Metadata/Monsters/QueenOfFilth/Objects/QueenOfFilthBossMushroomLine', 'Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroom', 'Metadata/Monsters/QueenOfFilth/TaintedLifeDaemon', 'Metadata/Monsters/QueenOfFilth/TaintedManaDaemon']: self{} each{triggerer.IfTypeContains( Mushroom, (){ SetStateTo( explode, 2 ); } ); triggerer.IfTypeContains( Tainted, (){ triggerer.SetStateTo( detonate, 1 ); } );} r=21
+- SSMQueenOfFilthVulnerability [summon_specific_monsters_on_target] action=SpellAreaOfEffectFire anim=default:curse_nuke_01_vulnerability
+    summons: Metadata/Monsters/QueenOfFilth/QueenOfFilthAuraVulnerability
+- SSMQueenOfFilthEnfeeble [summon_specific_monsters_on_target] action=SpellAreaOfEffectCold anim=default:curse_nuke__01_enfeeble
+    summons: Metadata/Monsters/QueenOfFilth/QueenOfFilthAuraEnfeeble
+- CGEQueenOfFilthFilth [monster_cast_ground_effect_location] action=None anim=-
+- GAQueenOfFilthRollImpact [geometry_attack] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=99 delay=33 anchor=3
+    flags: is_area_damage
+- MAASQueenOfFilthCombo [melee] action=OffMelee anim=default:slap_slam_01
+- SSMQueenOfFilthTempChains [summon_specific_monsters_on_target] action=SpellAreaOfEffectLightning anim=default:curse_nuke_01_temporal_chains
+    summons: Metadata/Monsters/QueenOfFilth/QueenOfFilthAuraTempChains
+- GSCorpseBallCircleSplat [geometry_attack] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+
+## own states and handlers
+states: intro_block; life_curses; mana_curses; be_free
+- on_event_tree_face_for_GeometryProjectilesAttack = { FaceObject( corpseball_target ); }
+- on_event_start_tracking_for_GeometryProjectilesAttack = { SetTarget( corpseball_target, true ); }
+- on_event_stop_tracking_for_GeometryProjectilesAttack = { SetTargetLocation( corpseball_target, _, _, true ); }
+- on_death = { this.my_weapon = GetAttachedAOByType( 'Metadata/Monsters/QueenOfFilth/attachments/QueenOfFilthWeapon.ao' ); my_weapon.MoveToBone( R_Weapon_02, 0 ); }
+- on_emerge_01 = { local player = GetLocalPlayer(); local succeeded; this.player_ascendancy = player.GetAscendancyName(); If( !VariableExists( succeeded ), () { If( player.IsMalePlayer(), { PlayTextAudio( QueenOfFilth_Map_Emerge_Male, 'Metadata/Monsters/QueenOfFilth/QueenofFilfthBossSTANDALONE' ); succeeded = true; 
+- on_slap_slam_01 = { PlayTextAudio( QueenOfFilth_SlapSlam_Random, 'Metadata/Monsters/QueenOfFilth/QueenofFilfthBossSTANDALONE' ); }
+- on_construction_complete = { DisableHighlighting(); AddEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk', infinity ); }
+- on_state_be_free_1 = { EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk' ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMushroom01.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMushroom02.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMushroom03.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMushroom04.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMushroom05.ao
+- preload_object Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroomSpawnPoint
+- preload_monster_variety Metadata/Monsters/Anchorite/AnchoriteSpawn_
+- preload_monster_variety Metadata/Monsters/Anchorite/AnchoriteFlathead
+- preload_monster_variety Metadata/Monsters/Cenobite/CenobiteSwarmUgly/CenobiteSwarm
+- preload_monster_variety Metadata/Monsters/Cenobite/CenobiteHighborn/CenobitePawn
+- preload_object Metadata/MiscellaneousObjects/Expedition/ExpeditionEncasedMonster
+
+## adds and forms
+- Metadata/Monsters/Anchorite/AnchoriteSpawn_ "Hunchback Clubber" bossbar=0 skills=MeleeAtAnimationSpeed,WalkEmergeAnchoriteSpawn,WalkEmergeAnchoriteSpawn2,WalkEmergeAnchoriteSpawn3,WalkEmergeQoFMinions,WalkEmergeQoFMinionsMap comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=minion
+- Metadata/Monsters/Anchorite/AnchoriteFlathead "Flathead Clubber" bossbar=0 skills=WalkEmergeAnchoriteFlathead,WalkEmergeAnchoriteFlathead2,WalkEmergeAnchoriteFlathead3,MeleeAtAnimationSpeed,MASExtraAttackDistance6,WalkEmergeQoFMinions,WalkEmergeQoFMinionsMap comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=minion
+- Metadata/Monsters/Cenobite/CenobiteSwarmUgly/CenobiteSwarm "Flathead Warrior" bossbar=0 skills=MeleeAtAnimationSpeed,WalkEmergeCenobiteSwarm,WalkEmergeCenobiteSwarm2,WalkEmergeCenobiteSwarm3,WalkEmergeQoFMinions,WalkEmergeQoFMinionsMap comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=minion
+- Metadata/Monsters/Cenobite/CenobiteHighborn/CenobitePawn "Flathead Youngling" bossbar=0 skills=MeleeAtAnimationSpeed,WalkEmergeCenobiteSwarm,WalkEmergeQoFMinions,WalkEmergeQoFMinionsMap comps=Transitionable Targetable Actor Stats [blocking=true attackable=true server_only=true] states=mushroom;minion
+- Metadata/Monsters/QueenOfFilth/QueenOfFilthAuraEnfeeble "Queen of Filth's Curse" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=clean_up
+- Metadata/Monsters/QueenOfFilth/QueenOfFilthAuraTempChains "Queen of Filth's Curse" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=clean_up
+- Metadata/Monsters/QueenOfFilth/QueenOfFilthAuraVulnerability "Queen of Filth's Curse" bossbar=0 skills=- comps=Life Targetable DiesAfterTime Actor Stats [blocking=false attackable=true server_only=true] states=clean_up
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroomSpawnPoint:  [server_only=true] states= 
+- Metadata/MiscellaneousObjects/Expedition/ExpeditionEncasedMonster:  [server_only=true] states=expedition_detonated on_state_expedition_detonated_1{{ PlayAnimation( explode ); }}; create_state_expedition_detonated_1{{ PlayAnimation( explode ); GoToAnimationEnd(); }}
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroomBlood:  [server_only=true] states= 
+- Metadata/Monsters/QueenOfFilth/Objects/QueenOfFilthBossMushroomLine:  [server_only=true] states=anim_progress on_construction_complete{{ DoRandom( { SetAnimatedObjectType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMus}
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroom:  [server_only=true] states= on_construction_complete{{ DoRandom( { SetAnimatedObjectType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMus}
+- Metadata/Monsters/QueenOfFilth/TaintedLifeDaemon (no script)
+- Metadata/Monsters/QueenOfFilth/TaintedManaDaemon (no script)
+- metadata/monsters/queenoffilth/objects/bosslootproxy: InteractionAction [blocking=false server_only=true] states= 
+- metadata/monsters/queenoffilth/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=QueenOfFilthBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( QueenOfFilthBossInactive ); }}
+- metadata/monsters/queenoffilth/objects/queenoffilthbossmushroomline:  [server_only=true] states=anim_progress on_construction_complete{{ DoRandom( { SetAnimatedObjectType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/QueenOfFilth/ao/QueenOfFilthMus}
+- metadata/monsters/queenoffilth/queenoffilthbossexpeditionencased: MinimapIcon Actor [icon=ExpeditionPOI] states=be_free on_construction_complete{{ DisableHighlighting(); AddEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk', infinity ); }}; on_state_be_free_1{{ EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk' ); }}
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/CorpseBallSourceMarker: Transitionable [server_only=true] states= 
+- Metadata/Monsters/QueenOfFilth/Objects/BossLootProxy: InteractionAction [blocking=false server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/BossFightWaveSpawner:  [blocking=false server_only=true] states= 
+- Metadata/Monsters/QueenOfFilth/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=QueenOfFilthBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( QueenOfFilthBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthArenaEntranceTitle: ProximityTrigger [radius=70 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardQueenOfFilthArena, TitleCardQueenOfFilthArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act3/3_11/Objects/BossFightWaveSpawnerMaps:  [blocking=false server_only=true] states= 
+
+## lines
+- on_emerge_01 -> QueenOfFilth_Map_Emerge_Male: Welcome to my swamp... why not take a little dip? Your body shall not go to waste!
+- on_emerge_01 -> QueenOfFilth_Map_Emerge_Female: What brought you here woman? Your beauty is skin deep.... and soon, it shall be mine!
+- on_slap_slam_01 -> QueenOfFilth_SlapSlam_Random: Grind you up!
+
+## linked buffs
+- queen_of_filth_life_curse "Tainting Flesh": Your flesh has been tainted. You reserve life equal to the upfront cost of skills. | stats=
+- queen_of_filth_mana_curse "Tainting Soul": Your soul has been tainted. You reserve mana equal to the upfront cost of skills. | stats=
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_11_rooms_unique_filth_pools_01.arm
+  sector ['hide_teleports', 130, 186, 304, 387, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [218.0, 347.0, 'force:mapboss']
+  point [216.0, 204.0, 'telepad1']
+  point [216.0, 133.0, 'checkpoint2']
+  point [229.0, 264.0, 'ritual_boss_spawn_override']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (216,116)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroomSpawnPoint x4 (186,320) (253,320) (180,212) (251,210)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/CorpseBallSourceMarker x1 (217,368)
+  obj Metadata/Monsters/QueenOfFilth/Objects/BossLootProxy x1 (218,275)
+  obj Metadata/NPC/Four_Act3/AggoratPresentGlyph01 x1 (274,171)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (216,176)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/BossFightWaveSpawner x7 (232,198) (203,198) (207,201) (212,203) (223,203) (228,201) (217,204)
+  obj Metadata/Monsters/QueenOfFilth/Objects/BossRoomMinimapIcon x1 (218,261)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthArenaEntranceTitle x1 (217,246)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (217,186)
+room metadata_terrain_maps_backwash_rooms_boss.arm
+  sector ['hide_teleports', 149, 172, 323, 327, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 223, 175, 314, 177, '']
+  sector ['no_movement_skills', 142, 160, 225, 162, '']
+  sector ['no_movement_skills', 223, 160, 225, 177, '']
+  sector ['no_movement_skills', 163, 325, 262, 327, '']
+  sector ['no_movement_skills', 312, 175, 314, 251, '']
+  sector ['no_critters', 151, 113, 319, 362, '']
+  sector ['boss_sector', 209, 177, 312, 325, '']
+  sector ['boss_sector', 209, 162, 223, 177, '']
+  sector ['boss_sector', 151, 162, 209, 325, '']
+  sector ['hide_teleports', 163, 164, 215, 172, '']
+  point [152.0, 273.0, 'force:mapboss']
+  point [248.0, 74.0, 'checkpoint']
+  obj Metadata/Chests/CarverTribeWickerBasket03 x1 (211,86)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/QueenOfFilthMushroomSpawnPoint x4 (192,304) (269,295) (170,183) (283,207)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/CorpseBallSourceMarker x1 (150,274)
+  obj Metadata/Monsters/QueenOfFilth/Objects/BossLootProxy x1 (237,266)
+  obj Metadata/Terrain/Gallows/Act3/3_11/Objects/BossFightWaveSpawnerMaps x7 (290,223) (161,214) (161,209) (223,312) (289,218) (202,307) (207,308)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x5 (119,327) (96,240) (212,348) (175,169) (317,191)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (260,84)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (236,177)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x4 (228,173) (234,173) (240,173) (246,173)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (237,253)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (218,282)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (253,276) (279,252) (267,219) (191,204)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (218,218)

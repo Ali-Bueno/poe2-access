@@ -1,0 +1,201 @@
+# Xyclucian, the Chimera / Xilozoma, the Maw-Beast
+content: Act 3
+monsters: Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBoss, Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBossCampaignSTANDALONE, Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBossSTANDALONE
+scripts: Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBoss, Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBossSTANDALONE
+own chain: Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBoss, Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBossSTANDALONE
+areas: G3_5 Chimeral Wetlands act3; BossRush_Area2 Boss Rush Area 2 act10
+ai: Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- GAChimeraBossGroundslam [geometry_attack] action=HeavyStrike anim=default:ground_rage_triggered_01
+    geom: circle length=50 width=0 angle=0 range=200 delay=33 anchor=3
+    flags: is_area_damage
+- DTTChimeraBossLeap [dash_to_target] action=DodgeForward anim=default:ground_leap_slam_01
+- MPSChimeraWetlandsBossLightningBreath [monster_projectile_spell] action=SpellBuffCold anim=default:ground_lightning_bolt_01
+- MPSChimeraWetlandsBossChaosSpray [monster_projectile_spell] action=SpellAreaOfEffectChaos anim=default:ground_poison_spray_01,stance3:pillar_poison_spray_01
+    flags: base_deal_no_damage
+- MPSChimeraWetlandsBossChaosSprayPillar [monster_projectile_spell] action=SpellAreaOfEffectChaos anim=default:ground_poison_spray_01,stance3:pillar_poison_spray_01
+    flags: base_deal_no_damage
+- GSChimeraWetlandsBossFrostBreath [geometry_spell] action=SpellAreaOfEffectCold anim=default:ground_cold_breath_01
+    geom: cone length=64 width=0 angle=300 range=2600 delay=35 anchor=3
+    flags: base_deal_no_damage is_area_damage
+    buffs: chilled_ground
+- GSChimeraWetlandsBossFireSpray [geometry_spell] action=SpellAreaOfEffectFire anim=default:ground_melee_fire_breath_01
+    geom: cone length=50 width=0 angle=15 range=198 delay=33 anchor=10
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- MPSChimeraWetlandsBossFireball [monster_projectile_spell] action=SpellProjectile anim=default:ground_fire_ball_01,stance3:pillar_fire_ball_01
+    flags: base_deal_no_damage
+- MPSChimeraWetlandsBossFireballPillar [monster_projectile_spell] action=SpellProjectile anim=default:ground_fire_ball_01,stance3:pillar_fire_ball_01
+    flags: base_deal_no_damage
+- EASChimeraWetlandsBossDragonBreath [empty_action_spell] action=SpellProjectileFire anim=default:ground_dragon_breath_01
+- EAAChimeraBossForwardDash180 [empty_action_attack] action=SpellProjectileCold anim=default:ground_dodge_fwd_180_01
+- EAAChimeraBossWindBlast180 [empty_action_attack] action=SpellProjectileLightning anim=default:ground_180_flap_attack_01
+- EAAChimeraBossDodgeBackwards [empty_action_attack] action=SpellProjectileChaos anim=default:ground_dodge_bwd_01
+- CTS5ChimeraBossGroundToOffscreen [change_to_stance5] action=None anim=-
+- CTS4ChimeraBossPillarToGround [change_to_stance4] action=None anim=-
+- CTS5ChimeraBossPillarToOffscreen [change_to_stance5] action=None anim=-
+- CTS1ChimeraBossCollapsedPillarToGround [change_to_stance1] action=None anim=-
+- CTS1ChimeraBossOffScreenToGround [change_to_stance1] action=None anim=-
+- CTS3ChimeraBossOffScreenToPillar [change_to_stance3] action=None anim=-
+- GAChimeraBossLeapImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- GSChimeraBossLightningBreath [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=3 angle=0 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GSChimeraBossLightningOrbArc [geometry_spell] action=None anim=-
+    geom: rectangle length=0 width=2 angle=0 range=0 delay=0 anchor=12
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSChimeraBossLightningOrbExplosion [geometry_spell] action=None anim=-
+    geom: circle length=18 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEChimeraBossLightningBreath [monster_cast_ground_effect_location] action=None anim=-
+- GSChimeraWetlandsBossChaosSprayImpact [geometry_spell] action=None anim=-
+    geom: circle length=9 width=0 angle=0 range=132 delay=33 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- CGEChimeraBossPoisonSpray [monster_cast_ground_effect_location] action=None anim=-
+- GSChimeraWetlandsBossFrostBreathImpact [geometry_spell] action=None anim=-
+    geom: circle length=13 width=0 angle=0 range=66 delay=33 anchor=3
+    flags: is_area_damage
+- CGEChimeraBossFireSpray [monster_cast_ground_effect_location] action=None anim=-
+    ground: Metadata/Effects/Spells/monsters_effects/League_Azmeri/monsters/ScreecherMiniboss/teleport_cold_degen.ao
+- GSChimeraWetlandsBossFireballImpactGround [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSChimeraWetlandsBossFireballImpactWall [geometry_spell] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+- GSChimeraBossDragonBreath [geometry_spell] action=SpellProjectileFire anim=default:ground_dragon_breath_01
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    buffs: ignited_ground
+    ground: Metadata/Effects/Spells/supports/RunicSupports/Leylines/ground_effect.ao
+- EDSChimeraBossFrozenHalfpipe [effect_driven_spell] action=SpellAreaOfEffect anim=-
+    flags: is_area_damage
+- GAChimeraBossWindBlast [geometry_attack] action=None anim=-
+    geom: cone length=40 width=0 angle=160 range=150 delay=33 anchor=3
+    flags: base_skill_can_be_blocked is_area_damage
+
+## own states and handlers
+states: no_collision; floating
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_state_no_collision_0 = { MakeCollidable(); }
+- on_effect_event_landing_for_CTS1ChimeraBossOffScreenToGround = { ForceSkillIntoCooldown( CTS5ChimeraBossGroundToOffscreen ); }
+- on_state_floating_0 = { MakeCollidable(); }
+- on_state_floating_1 = { RemoveCollidability(); }
+- on_spawned_alive = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lightning.ep
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lig
+- on_spawned_dead = { IfInStance( stance4, (){}, () { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ground_death_idle.epk' ); } ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lig
+- on_spawned_dead = { IfInStance( stance4, (){}, () { IfStat( is_player_minion, 0, () { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ground_death_idle.epk' ); } ); } ); AddEffectPack( 'Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk' ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/ao/ice_halfpipe_main.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/ao/lightning_zap.ao
+- preload_misc_object ChimeraIceWall
+- preload_object Metadata/Monsters/ChimeraWetlandsBoss/Objects/ChimeraBossIceWallSegment
+- preload_misc_beam ChimeraDragonBreathGroundBurnBeam
+- preload_environment G3_5_boss
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_fire.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_ice.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_lightning.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ambient_chaos.epk
+- preload_epk Metadata/Effects/Utility/EPKs/EmissiveChannel_FadeOut.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Chimera/epk/ground_death_idle.epk
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/ChimeraWetlandsBoss/Objects/ChimeraBossIceWallSegment: Life Targetable Actor Stats [blocking=true object_size=3 server_only=true] states= on_death{{ RemoveCollidability(); }}; on_shatter{{ more_ice.PlayAnimation( shatter ); }}
+- metadata/monsters/chimerawetlandsboss/chimerabossexpeditionencased: MinimapIcon Actor [icon=ExpeditionPOI] states=be_free on_construction_complete{{ DisableHighlighting(); AddEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk', infinity ); }}; on_state_be_free_1{{ EnableHighlighting(); RemoveEffectPack( 'Metadata/Effects/Spells/debuff_fx/EPKs/debuff_Chilled.epk' ); }}
+- metadata/monsters/chimerawetlandsboss/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=XyclucianBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( XyclucianBossInactive ); }}
+- metadata/monsters/chimerawetlandsboss/objects/chimerabossicewallsegment: Life Targetable Actor Stats [blocking=true object_size=3 server_only=true] states= on_death{{ RemoveCollidability(); }}; on_shatter{{ more_ice.PlayAnimation( shatter ); }}
+- Metadata/Terrain/Gallows/Act3/3_5/Objects/Machinarium_AreaTransition: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states= on_construction_complete{{ SetExtraTileActivationDistance( 15 ); }}
+- Metadata/Monsters/ChimeraWetlandsBoss/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=XyclucianBossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( XyclucianBossInactive ); }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle:  [server_only=true] states= on_construction_complete{{ globals.generic_arena_middle_object = this; }}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle:  [blocking=true object_size=5 server_only=true] states=blasted create_state_blasted_0{{ AddEffectPack( 'Metadata/Effects/Environment/Act3_FOUR/G3_7/wicker_fire/epks/wicker_fire.epk' ); }}; create_state_blasted_1{{ PlayAnimation( smash ); GoToAnimationEnd(); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, ds}; on_state_blasted_1{{ PlayAnimation( smash ); HideMeshSegments( bogstick_geoShape, dstone_geoShape3, debris_geoShape, dstone_geoShape1, rope}
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle: ProximityTrigger [radius=80 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardCarverBogBossArena, TitleCardCarverBogBossArenaSubtitle ); }}
+
+## lines
+
+## linked buffs
+- chilled_ground "Chilled Ground":  | stats=
+- ignited_ground "Ignited Ground":  | stats=
+
+## arena rooms
+room metadata_terrain_gallows_act3_3_5_rooms_unique_exit_01.arm
+  sector ['hide_teleports', 149, 264, 370, 474, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 149, 241, 356, 264, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 172, 208, 335, 241, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 307, 193, 334, 214, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 318, 221, 347, 251, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 123, 203, 373, 474, '']
+  sector ['no_movement_skills', 350, 191, 357, 334, '']
+  sector ['no_movement_skills', 194, 191, 357, 198, '']
+  point [306.0, 287.0, 'mapboss']
+  point [399.0, 178.0, 'checkpoint1']
+  point [171.0, 391.0, 'entrance']
+  point [327.0, 232.0, 'telepad']
+  point [256.0, 297.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsPillar x3 (215,370) (337,312) (272,238)
+  obj Metadata/Terrain/Gallows/Act3/3_5/Objects/Machinarium_AreaTransition x1 (170,417)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (356,193)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x5 (310,343) (215,309) (175,254) (252,349) (274,347)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (351,217)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (427,197)
+  obj Metadata/Monsters/ChimeraWetlandsBoss/Objects/BossRoomMinimapIcon x1 (253,304)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x4 (349,229) (335,213) (375,254) (314,193)
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_thechimera_rooms_exit_01.arm
+  sector ['hide_teleports', 149, 264, 370, 474, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 149, 241, 356, 264, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 172, 208, 335, 241, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 307, 193, 334, 214, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 318, 221, 347, 251, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 123, 203, 373, 474, '']
+  sector ['no_movement_skills', 354, 191, 361, 240, '']
+  sector ['no_movement_skills', 194, 191, 361, 198, '']
+  sector ['no_movement_skills', 354, 233, 395, 240, '']
+  sector ['no_movement_skills', 388, 233, 395, 331, '']
+  point [306.0, 287.0, 'mapboss5']
+  point [399.0, 178.0, 'checkpoint10']
+  point [341.0, 235.0, 'telepad']
+  point [174.0, 347.0, 'entrance']
+  obj Metadata/Monsters/ChimeraWetlandsBoss/ChimeraWetlandsPillar x3 (215,370) (337,312) (272,238)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (356,193)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x5 (310,343) (215,309) (175,254) (252,349) (274,347)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (368,206)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (427,197)
+  obj Metadata/Monsters/ChimeraWetlandsBoss/Objects/BossRoomMinimapIcon x1 (253,304)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (173,358)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x2 (353,226) (340,213)
+room metadata_terrain_gallows_leagues_bossrush_worldarea2_subarea_bogwitch_rooms_boss_01.arm
+  sector ['hide_teleports', 117, 162, 341, 317, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 162, 120, 301, 162, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 125, 129, 343, 329, '']
+  sector ['no_movement_skills', 148, 149, 177, 151, '']
+  sector ['no_movement_skills', 148, 149, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 150, 179, '']
+  sector ['no_movement_skills', 125, 177, 127, 324, '']
+  sector ['no_movement_skills', 175, 130, 177, 151, '']
+  sector ['no_movement_skills', 175, 130, 341, 132, '']
+  point [249.0, 246.0, 'mapboss3']
+  point [171.0, 169.0, 'telepad4']
+  point [116.0, 115.0, 'checkpoint6']
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaMiddle x1 (227,226)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/Effigy x11 (278,162) (148,186) (238,311) (157,274) (304,274) (189,147) (141,227) (305,198) (189,305) (276,304)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossArenaRotateMarker x24 (257,174) (175,196) (197,278) (287,226) (279,196) (227,166) (197,174) (167,226) (175,256) (227,286)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/WickerConstructMiddle x1 (220,218)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (131,98)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (147,148)
+  obj Metadata/Monsters/IgnagdukBogWitch/objects/BossRoomMinimapIcon x1 (227,226)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPackProxTrigger x1 (95,98)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BossBoneSpearMarker x42 (292,166) (300,175) (273,149) (264,144) (252,140) (225,140) (214,141) (204,142) (177,154) (170,162)
+  obj Metadata/Terrain/Gallows/Act3/3_7/Objects/BogWitchBossArenaTitle x1 (227,226)
+  obj Metadata/MiscellaneousObjects/AreaTransition_ArenaPortal x1 (240,237)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (162,160)

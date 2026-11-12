@@ -1,0 +1,68 @@
+# Count Geonor
+content: Act 1
+monsters: Metadata/Monsters/Baron/BaronBossHumanFormWolf, Metadata/Monsters/Baron/BaronBossHumanFormWolfMap
+scripts: Metadata/Monsters/Baron/BaronHumanFormWolf, Metadata/Monsters/Baron/BaronHumanFormWolfMap
+own chain: Metadata/Monsters/Baron/BaronHumanFormWolf, Metadata/Monsters/Baron/BaronHumanFormWolfMap
+areas: 
+ai: Metadata/Monsters/Baron/BaronHumanFormWolf.ais (not shipped)
+
+## skills
+
+## own states and handlers
+states: 
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/baron/objects/baroncorruptwolfformgroundice:  [blocking=false object_size=0] states= 
+- metadata/monsters/baron/objects/baroncorruptwolfformicicle:  states= 
+- metadata/monsters/baron/objects/baronhumanformicewalll: Life Targetable Actor Stats [blocking=true object_size=4] states= on_death{{ RemoveCollidability(); }}
+- metadata/monsters/baron/objects/baronhumanformicewallr: Life Targetable Actor Stats [blocking=true object_size=4] states= on_death{{ RemoveCollidability(); }}
+- metadata/monsters/baron/objects/baronhumanformsword:  states=active 
+- metadata/monsters/baron/objects/baronwolfbloodorb:  states= 
+- metadata/monsters/baron/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=CountActive] states=boss_dead on_or_create_state_boss_dead_1{{ SetMinimapIcon( CountInactive ); }}; on_or_create_state_boss_dead_1{{ SetMinimapIcon( LootFilterLargeGreyUpsideDownHouse ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionUp: InteractionAction Targetable MinimapIcon Stats [blocking=false object_size=3 server_only=true icon=18] states= on_interaction_started{{ If( IsLocalPlayer( triggerer ), { Delay( 1.7, { globals.boss_elevator.Transition(); } ); } ); }}; on_state_hidden_1{{ DisableTargetable(); }}; on_state_hidden_0{{ EnableTargetable(); }}; on_interaction_started{{ If( IsLocalPlayer( triggerer ), { SetStateTo( hidden, 1 ); } ); }}; on_interaction_stopped{{ If( IsLocalPlayer( triggerer ), { Delay( 2.0, { SetStateTo( hidden, 0 ); } ); } ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/SubsceneArena:  [blocking=false object_size=0] states= 
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossArenaTorch:  [blocking=false object_size=1 server_only=true] states=torchness = 1 on_state_torchness_0{{ SetLightState( off, 0.5, 0 ); }}; on_state_torchness_1{{ SetLightState( torch_pLight, 0.5, 0 ); }}; create_state_torchness_0{{ SetLightState( off, 0.0, 0 ); }}; create_state_torchness_1{{ SetLightState( torch_pLight, 0.0, 0 ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/TastyCorpse:  [blocking=false object_size=1 server_only=true] states=thrown on_state_thrown_1{{ PlayAnimation( feed_throw_01 ); }}; on_state_thrown_2{{ PlayAnimation( feed_beast_01 ); }}; create_state_thrown_1{{ PlayAnimation( feed_throw_01 ); GoToAnimationEnd(); }}; create_state_thrown_2{{ Delete(); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevator: Transitionable [blocking=false object_size=0] states= on_construction_complete{{ globals.boss_elevator += this; }}; on_untransition{{ PlayAnimationByName( down_01 ); SetCurrentAnimationSpeed( 0.4 ); }}; on_transition{{ PlayAnimationByName( up_01 ); SetCurrentAnimationSpeed( 0.4 ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/PanController:  [blocking=false object_size=1 server_only=true] states=intro_zoom;intro_pan on_state_intro_zoom_0{{ ClearCameraZoomNodes(); Delay( 3.5, { RemoveCustomCameraSpeed(); } ); }}; on_state_intro_pan_0{{ ClearCameraPanNode( boss_emerge, clear_camera_pan_duration ); }}
+- Metadata/Monsters/Baron/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=CountActive] states=boss_dead on_or_create_state_boss_dead_1{{ SetMinimapIcon( CountInactive ); }}; on_or_create_state_boss_dead_1{{ SetMinimapIcon( LootFilterLargeGreyUpsideDownHouse ); }}
+- Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionDownEnd: InteractionAction [blocking=false object_size=0 server_only=true] states= 
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_15_rooms_unique_boss.arm
+  sector ['lift', 227, 98, 240, 119, '']
+  sector ['hide_teleports', 56, 59, 234, 225, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports2']
+  sector ['no_critters', 36, 22, 258, 242, '']
+  point [145.0, 148.0, 'mapboss2']
+  point [220.0, 108.0, 'telepad5']
+  obj Metadata/Monsters/Baron/BaronMinerPlebThrower1 x1 (135,215)
+  obj Metadata/Monsters/Baron/BaronMinerPlebThrower2 x1 (126,188)
+  obj Metadata/Monsters/Baron/BaronMinerPleb_ x4 (88,161) (205,151) (193,121) (194,164)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionUp x1 (221,108)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/SubsceneArena x1 (140,153)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (145,145)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossArenaTorch x5 (81,83) (74,167) (162,67) (222,152) (130,238)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x1 (221,83)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/TastyCorpse x1 (168,189)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevator x1 (233,108)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/PanController x1 (146,296)
+  obj Metadata/Monsters/Baron/Objects/BossRoomMinimapIcon x1 (146,148)
+  obj Metadata/Terrain/Gallows/Act1/1_15/Objects/BossElevatorTransitionDownEnd x1 (220,108)
+room metadata_terrain_maps_ubercount_rooms_unique_holodeck.arm
+  sector ['environment_inner', 287, 11, 1230, 379, '']
+  point [199.0, 209.0, 'default']
+  obj Metadata/Monsters/Baron/EndgameBaronFragmentSurrogate x1 (563,206)
+  obj Metadata/MiscellaneousObjects/MapReturnPortal x1 (188,209)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckTransition x1 (577,206)
+  obj Metadata/Terrain/Maps/Arenas/Holodeck/HolodeckCube x1 (578,206)

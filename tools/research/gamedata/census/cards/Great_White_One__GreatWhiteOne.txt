@@ -1,0 +1,128 @@
+# Great White One / The Sandstrider
+content: Act 4
+monsters: Metadata/Monsters/GreatWhiteOne/GreatWhiteOne, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneCampaignSTANDALONE, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneMAP_, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneStandalone_
+scripts: Metadata/Monsters/GreatWhiteOne/GreatWhiteOne, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneStandalone, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneMAP
+own chain: Metadata/Monsters/GreatWhiteOne/GreatWhiteOne, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneStandalone, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneMAP
+areas: G4_3_1 Whakapanu Island act4; BossRush_Area1 Boss Rush Area 1 act10; MapSandspit Sandspit act10
+ai: Metadata/Monsters/GreatWhiteOne/GreatWhiteOne.ais, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneMAP.ais, Metadata/Monsters/GreatWhiteOne/GreatWhiteOneStandalone.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedBoss [melee] action=None anim=-
+- MAASSharkBossMeleeCombo [melee] action=SpellAreaOfEffect anim=default:combo_01
+- MAASSharkBossMeleeCombo2 [melee] action=SpellAreaOfEffectChaos anim=default:combo_02
+- MAASSharkBossTailSpin [melee] action=OffMelee anim=default:tail_whip_01
+- MAASSharkBossMelee180 [melee] action=HeavyStrike anim=default:attack_180_01
+- EAASharkBossDiveCloseRange [empty_action_attack] action=SpellBuffFire anim=default:submerge_01
+- EAASharkBossDiveMediumRange [empty_action_attack] action=SpellBuffLightning anim=default:dive_burrow_mid_01
+- EAASharkBossDiveLongRange [empty_action_attack] action=SpellBuffCold anim=default:dive_burrow_long_01
+- EAASharkBossDiveMediumRangeNoBurrow [empty_action_attack] action=SpellBuffChaos anim=default:dive_land_mid_01
+- GASharkBossBurrowedBite [geometry_attack] action=SpellAreaOfEffectFire anim=default:consume_01
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- EAASharkBossBurrowEmerge [empty_action_attack] action=SpellAreaOfEffectCold anim=default:emerge_01
+- EAASharkBossBurrowEmergeFast [empty_action_attack] action=SpellBuffFast anim=default:emerge_03
+- EAASharkBossSandnado [empty_action_attack] action=SpellAreaOfEffectLightning anim=default:sharknado_01
+- EAASharkBossBurrowedFinSinkTelegraph [empty_action_attack] action=SpellProjectile anim=stance3:submerged_end_01
+    flags: skill_can_be_active_blocked_from_all_directions
+- EAASharkBossBurrowedFinRaise [empty_action_attack] action=SpellBuff anim=stance3:submerged_start_01
+    flags: skill_can_be_active_blocked_from_all_directions
+- MAASSharkBossMediumRangeJumpEndAttack [melee] action=Cleave anim=default:dive_land_mid_attack_01
+- MAASSharkBossMediumRangeJumpEndAttack180 [melee] action=Frenzy anim=default:dive_land_mid_attack_02
+- GASharkBossMeleeComboTailHit [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GASharkBossTailSpinSandSpray [geometry_attack] action=None anim=-
+    geom: cone length=69 width=0 angle=75 range=500 delay=33 anchor=3
+    flags: is_area_damage
+- GASharkBossDiveCloseRangeImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GASharkBossDiveMediumRangeCharge [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=10 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GASharkBossDiveMediumRangeImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GASharkBossDiveLongRangeCharge [geometry_attack] action=None anim=-
+    geom: rectangle length=0 width=10 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GASharkBossDiveLongRangeImpact [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- CGESharkBossBurstPuddle [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- CGESharkBossSandnadoQuicksand [monster_cast_ground_effect_location] action=None anim=-
+    flags: is_area_damage
+- GASharkBossSandnadoBurstUp [geometry_attack] action=None anim=-
+    geom: circle length=20 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- GASharkBossSandnadoLand [geometry_attack] action=None anim=-
+    geom: circle length=40 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MDSharkBossSandnadoFishnado [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDSharkBossFishnado
+- MPWSharkBossSandnadoFishProjectile [monster_projectile_weapon] action=None anim=-
+- MDSharkBossFinTracker [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDSharkBossFin
+- MDSharkBossFinTrackerBackwards [move_daemon] action=None anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDSharkBossFin
+
+## own states and handlers
+states: collidable = 1; visible; head_tracking; visible = 1
+- on_or_create_state_collidable_0 = { RemoveCollidabilityWithSubobjects();}
+- on_or_create_state_collidable_1 = { MakeCollidable(); }
+- on_or_create_state_visible_0 = { DisableRendering(); }
+- on_or_create_state_visible_1 = { EnableRendering(); }
+- on_initial_position_set = { If( GetState( head_tracking ) == 1, () { AppendAnimation( walk_01_turn_right, 1.0, true, 0.0, 0, 4 ); AppendAnimation( walk_01_turn_left, 1.0, true, 0.0, 0, 5 ); SetLayerAnimationWeight( 4, 0.0, 0.0 ); SetLayerAnimationWeight( 5, 0.0, 0.0 ); this.current_angle_offset = 0.0; this.fallback_tracking_
+- on_timer_head_tracker = { this.my_target = GetTarget(); If( And( VariableExists( my_target ), my_target != this ), (){ this.tracking_target = my_target; }, () { fallback_tracking_target.SetLocation( this.GetLocation() + RotateLocation( [0, -40] ), 1 ); this.tracking_target = fallback_tracking_target; } ); If( VariableExist
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1), ('visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_buff shark_boss_blood_hunt
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/epk/degen_player_sandstorm.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GreatWhiteOne/epk/quicksand.epk
+- preload_environment G4_3_1_boss
+
+## adds and forms
+daemons: Metadata/Monsters/InvisibleFire/MDSharkBossFin, Metadata/Monsters/InvisibleFire/MDSharkBossFishnado
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- metadata/monsters/greatwhiteone/hideoutswimloop/greatwhiteonehideout:  [blocking=false object_size=0 server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_initial_position_set{{ SetHeight( GetHeight() ); LockHeight(); }}; on_construction_complete{{ DisableRendering(); }}; on_timer_activate{{ EnableRendering(); PlayAnimationRandom( submerged_water_01 ); }}; on_timer_deactivate{{ DisableRendering(); PauseAnimation(); }}
+- metadata/monsters/greatwhiteone/hideoutswimloop/sharkpath:  states= 
+- metadata/monsters/greatwhiteone/hideoutswimloop/sharkpathend:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/greatwhiteone/piranhaground:  [blocking=false object_size=0] states= 
+- Metadata/Terrain/Hideouts/BeaconOfSalvation/Objects/DoodadAlwaysAwake:  [blocking=false object_size=1] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}
+- Metadata/Monsters/GreatWhiteOne/HideoutSwimLoop/GreatWhiteOneHideout:  [blocking=false object_size=0 server_only=true] states= on_construction_complete{{ AddToPlayerWakeGroup( true ); }}; on_initial_position_set{{ SetHeight( GetHeight() ); LockHeight(); }}; on_construction_complete{{ DisableRendering(); }}; on_timer_activate{{ EnableRendering(); PlayAnimationRandom( submerged_water_01 ); }}; on_timer_deactivate{{ DisableRendering(); PauseAnimation(); }}
+- Metadata/Monsters/GreatWhiteOne/HideoutSwimLoop/SharkPathEnd:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Monsters/GreatWhiteOne/HideoutSwimLoop/SharkPath:  states= 
+
+## lines
+
+## linked buffs
+- shark_boss_blood_hunt "Prey": The scent of blood lures your foe | stats=
+
+## arena rooms
+room metadata_terrain_hideouts_shipwreck_rooms_shipwreckhideout.arm
+  point [345.0, 404.0, 'default']
+  obj Metadata/MiscellaneousObjects/Waypoint x1 (346,405)
+  obj Metadata/Terrain/Hideouts/BeaconOfSalvation/Objects/DoodadAlwaysAwake x87 (839,126) (839,195) (908,195) (839,264) (839,333) (839,402) (908,402) (908,333) (908,264) (977,264)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_Max x19 (333,885) (402,885) (402,954) (471,954) (471,885) (540,885) (540,954) (609,954) (609,885) (678,885)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x3 (540,747) (609,747) (678,747)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_4 x7 (540,816) (609,816) (678,816) (747,816) (471,816) (402,816) (333,816)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSource_30_0 x1 (1115,954)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSink_10_10 x8 (563,310) (540,195) (586,287) (494,172) (425,149) (333,195) (448,448) (586,241)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSource_20_0 x3 (356,931) (724,931) (1000,126)
+  obj Metadata/MiscellaneousObjects/Environment/NonDefaultFlows/FlowSource_6_6 x1 (218,34)
+  obj Metadata/Critters/Seagull/SeagullStatic x10 (642,270) (477,409) (290,217) (785,456) (781,455) (643,208) (499,223) (238,364) (394,417) (391,418)
+  obj Metadata/Critters/Seagull/SeagullProximityTrigger x5 (765,463) (632,267) (278,225) (238,376) (494,222)
+  obj Metadata/Critters/Seagull/HideoutShadowLoop/FlyLoopTriggered x3 (371,786) (359,794) (380,797)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x3 (360,130) (370,130) (347,130)
+  obj Metadata/Critters/Seagull/HideoutShadowLoop/FlyLoopProximityTrigger x1 (380,515)
+  obj Metadata/Monsters/GreatWhiteOne/HideoutSwimLoop/GreatWhiteOneHideout x1 (751,702)
+  obj Metadata/Monsters/GreatWhiteOne/HideoutSwimLoop/SharkPathEnd x2 (628,0) (755,708)
+  obj Metadata/Monsters/GreatWhiteOne/HideoutSwimLoop/SharkPath x43 (837,534) (813,314) (790,257) (789,366) (827,470) (869,688) (841,439) (831,373) (810,419) (841,522)
+room metadata_terrain_gallows_leagues_bossrush_worldarea1_subarea_sharkboss_rooms_ocean_border_st.arm
+room metadata_terrain_gallows_leagues_bossrush_worldarea1_subarea_blackjaw_rooms_forgeway_mid_quad_02.arm
+  obj Metadata/Monsters/VaalConstructs/Sentinel/VaalConstructSentinel x2 (160,37) (46,112)

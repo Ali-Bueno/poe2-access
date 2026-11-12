@@ -1,0 +1,130 @@
+# Huitzil, Royal Blood Priest
+content: League: Incursion
+monsters: Metadata/Monsters/LeagueIncursionNew/SacrificialChamber/BloodPriestBossIncursionTier3
+scripts: Metadata/Monsters/LeagueIncursionNew/SacrificialChamber/Boss/Tier3/VaalBloodPriestBoss
+own chain: Metadata/Monsters/LeagueIncursionNew/SacrificialChamber/Boss/Tier3/VaalBloodPriestBoss, Metadata/Monsters/LeagueIncursionNew/IncursionMiniBossBase
+areas: 
+ai: Metadata/Monsters/LeagueIncursionNew/SacrificialChamber/Boss/Tier3/VaalBloodPriestBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EASVaalBloodPriestBodySwap [empty_action_spell] action=SpellBuffChaos anim=default:body_swap_01
+- EASVaalBloodPriestLifeDrain [empty_action_spell] action=SpellBuffFire anim=default:blood_drain_01
+- VaalBloodPriestMiniBossSoulrend [monster_soulrend] action=SpellProjectile anim=default:blood_exsanguinate_01
+- EASBloodPriestBossTeleport [empty_action_spell] action=Teleport anim=default:teleport_01
+- EASBloodPriestBossVolley [empty_action_spell] action=SpellProjectileCold anim=default:blood_volley_01
+- EASBloodPriestBossVolleyEnraged [empty_action_spell] action=SpellProjectileLightning anim=default:blood_volley_02
+- EAABloodPriestBossSacrifice [empty_action_attack] action=SpellProjectileUpward anim=default:teleport_wall_01
+- MPSBloodPriestBossBloodProj [monster_projectile_spell] action=SpellProjectile anim=default:blood_exsanguinate_01
+- MDBloodPriestBossBloodPool [move_daemon] action=SpellNova anim=default:blood_pool_01
+    daemons: Metadata/Monsters/VaalMonsters/Living/BloodPriests/BloodPool
+- EGBloodPriestBossSacrifice [execute_geal] action=None anim=-
+    GEAL 1172 on ['Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/sacrifice_marker']: self{} each{triggerer.Call(blood_flow); this.sacrifice_victims -= triggerer;} r=10
+- MDBloodPriestBossSoulCoreBeam [move_daemon] action=None anim=-
+- GSBloodTwinsSoulCoreBeamImpact [geometry_spell] action=None anim=-
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1179 on ['Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/AltarGoliathSocket']: self{} each{triggerer.SetStateTo(burnt, 1);} r=150
+- GSBloodPriestTransformBreathe [geometry_spell] action=None anim=-
+    geom: rectangle length=49 width=6 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: invisible; elemental = 1; soul_core_empowered; im_dead; FightStartShout; env_override
+- on_state_invisible_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/teleport/quick_step_out.epk' ); }
+- on_state_invisible_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/teleport/quick_step_out.epk' ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/teleport/quick_step_in.epk' ); }
+- on_state_im_dead_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BloodPriestess/epks/Defeated_Bleeding.epk' ); }
+- on_blood_exsanguinate_01 = { Roll( 2, 10, () { PlayTextAudio( IncursionBloodTwinMale_SoulRend_Random ); } ); }
+- on_blood_pool_01 = { PlayTextAudio( IncursionBloodTwinMale_BloodPool_Random ); }
+- on_blood_drain_01 = { PlayTextAudio( IncursionBloodTwinMale_DrainLife_Random ); }
+- on_teleport_wall_01 = { PlayTextAudio( IncursionBloodTwinMale_Teleport_Random ); }
+- on_teleport_01 = { PlayTextAudio( IncursionBloodTwinMale_Teleport_Random ); }
+- on_blood_volley_01 = { PlayTextAudio( IncursionBloodTwinMale_BloodVolley_Random ); }
+- on_blood_volley_02 = { PlayTextAudio( IncursionBloodTwinMale_BloodVolley_Random ); }
+- on_knockdown_knife_01 = { PlayTextAudio( IncursionBloodTwinMale_Knockdown_Random ); }
+- on_death = { SetLightState( off, 0.0 ); }
+hides(DisableRendering): [('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/SoulCoreBeamMoveObject
+- preload_misc_beam BloodPriestBloodDrainBeam
+
+## adds and forms
+daemons: Metadata/Monsters/VaalMonsters/Living/BloodPriests/BloodPool
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/SoulCoreBeamMoveObject:  states=time_to_move;clean_up on_initial_position_set{{ SetMovementFaceMode( DontFace ); }}
+- Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/sacrifice_marker:  [server_only=true] states=sac on_state_sac_1{{ PlayAnimation(bloodpriests_stab_01); QueueAnimation( bloodpriests_stab_idle_01 ); }}; on_state_sac_2{{ PlayAnimation(bloodpriests_stab_02); QueueAnimation( bloodpriests_stab_idle_02 ); }}; create_state_sac_1{{ PlayAnimation( bloodpriests_stab_idle_01 ); }}; create_state_sac_2{{ PlayAnimation( bloodpriests_stab_idle_02 ); }}
+- Metadata/Monsters/VaalMonsters/Living/BloodPriests/Objects/AltarGoliathSocket:  [blocking=false object_size=3 server_only=true] states=burnt;emerge on_construction_complete{{ IfState( emerge, 0, () { this.ritual = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_In}; on_state_burnt_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_Interlude/EPKs/GoliathDisintegrate.epk'}; create_state_burnt_1{{ Delete(); }}; on_state_emerge_1{{ ritual.PlayAnimation( end ); Delay( 5.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodp}; create_state_emerge_1{{ Delay( 0.0, { DetachAllOfType( 'Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Bloodpriest_Interlude/AO/Emerge_Blo}
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon: MinimapIcon [server_only=true icon=IncursionViperLegionBarracksActive] states=quadrillas 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon: MinimapIcon [server_only=true icon=IncursionGarrisonActive] states= 
+- Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController: ControlZone [server_only=true] states= 
+
+## lines
+- on_blood_exsanguinate_01 -> IncursionBloodTwinMale_SoulRend_Random: Blood pact!
+- on_blood_pool_01 -> IncursionBloodTwinMale_BloodPool_Random: Behold, the power of death!
+- on_blood_drain_01 -> IncursionBloodTwinMale_DrainLife_Random: Your life... is mine!
+- on_teleport_wall_01 -> IncursionBloodTwinMale_Teleport_Random: Open your eyes!
+- on_teleport_01 -> IncursionBloodTwinMale_Teleport_Random: Open your eyes!
+- on_blood_volley_01 -> IncursionBloodTwinMale_BloodVolley_Random: Bow before your betters!
+- on_blood_volley_02 -> IncursionBloodTwinMale_BloodVolley_Random: Bow before your betters!
+- on_knockdown_knife_01 -> IncursionBloodTwinMale_Knockdown_Random: Uh! ... that means nothing!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_4open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,91) (161,92) (142,92) (125,92) (112,160) (66,93)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x8 (185,71) (148,72) (129,72) (112,72) (120,179) (53,73) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,163) (98,164) (100,91) (139,166) (157,166) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (98,176) (99,72) (139,178) (157,178) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (63,215) (87,33) (166,33) (186,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (76,131) (176,132)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x12 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (31,216) (55,34) (198,33) (218,218)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x12 (22,192) (226,192) (199,50) (55,50) (55,15) (36,33) (217,32) (198,14) (237,219) (218,237)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_viperlegionbarracks_3open_02.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [126.0, 30.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion x6 (198,93) (166,95) (147,95) (128,95) (108,95) (66,95)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireShieldIncursion_ x6 (185,73) (153,75) (134,75) (115,75) (95,75) (53,75)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardClawsIncursion x6 (57,165) (94,167) (116,167) (156,167) (135,167) (195,167)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,177) (94,179) (116,179) (156,179) (135,179) (195,179)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,143)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaCaged x4 (186,216) (167,32) (85,33) (65,217)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionBarracks/QuadrillaIncursion x2 (82,126) (177,127)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/ViperLegionBarracksRoomT2MinimapIcon x1 (126,126)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x10 (57,62) (57,190) (195,190) (195,62) (103,62) (149,62) (213,103) (213,149) (39,103) (39,149)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/QuadrillaCage x4 (33,218) (218,218) (53,31) (199,31)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x10 (52,50) (200,50) (23,191) (227,191) (33,236) (14,218) (218,236) (237,218) (38,35) (214,34)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (145,54)
+room metadata_terrain_gallows_leagues_incursion_rooms_past_rooms_garrison_4open_03.arm
+  sector ['no_movement_skills', 9, 239, 239, 243, '']
+  sector ['no_movement_skills', 9, 13, 13, 239, '']
+  sector ['no_movement_skills', 9, 9, 243, 13, '']
+  sector ['no_movement_skills', 239, 13, 243, 239, '']
+  point [153.0, 41.0, 'checkpoint']
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion x6 (198,91) (174,97) (149,93) (120,94) (112,160) (57,97)
+  obj Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingShieldIncursion_ x8 (185,71) (163,73) (136,73) (110,73) (120,179) (61,71) (105,129) (145,130)
+  obj Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion x6 (57,163) (83,164) (84,85) (148,165) (170,165) (195,165)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummyIncursion x6 (57,175) (83,176) (84,73) (148,177) (170,177) (195,177)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursionRare x1 (126,141)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/MinimapIcons/GarrisonRoomT3MinimapIcon x1 (126,129)
+  obj Metadata/Monsters/LeagueIncursionNew/Garrison/OverseerConversationController x1 (133,128)
+  obj Metadata/MiscellaneousObjects/Doodad_Distant_2 x6 (211,90) (211,163) (41,90) (41,163) (126,62) (126,190)
+  obj Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionBenchCampaignCurrency x1 (126,202)
+  obj Metadata/Terrain/Gallows/Leagues/Incursion/Objects/CheckpointLocation x1 (135,54)

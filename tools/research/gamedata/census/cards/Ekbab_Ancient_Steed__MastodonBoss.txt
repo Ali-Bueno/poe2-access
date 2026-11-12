@@ -1,0 +1,126 @@
+# Ekbab, Ancient Steed / The Bone Colossus
+content: Act 2
+monsters: Metadata/Monsters/MastodonBoss/MastodonBoss, Metadata/Monsters/MastodonBoss/MastodonBossCampaignSTANDALONE, Metadata/Monsters/MastodonBoss/MastodonBossMAP, Metadata/Monsters/MastodonBoss/MastodonBossSTANDALONE
+scripts: Metadata/Monsters/MastodonBoss/MastodonBoss, Metadata/Monsters/MastodonBoss/MastodonBossSTANDALONE, Metadata/Monsters/MastodonBoss/MastodonBossMAP_
+own chain: Metadata/Monsters/MastodonBoss/MastodonBoss, Metadata/Monsters/MastodonBoss/MastodonBossSTANDALONE, Metadata/Monsters/MastodonBoss/MastodonBossMAP_
+areas: G2_5_2 The Bone Pits act2; MapSulphuricCaverns Sulphuric Caverns act10
+ai: Metadata/Monsters/MastodonBoss/MastodonBoss.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeed [melee] action=None anim=-
+- MastodonCharge [shield_charge] action=None anim=-
+    flags: base_deal_no_damage
+- MastodonSlam [empty_action_attack_3] action=HeavyStrike anim=default:groundslam_01
+    flags: is_area_damage
+- MastodonAttackLeftTurn [empty_action_attack_4] action=GlacialHammer anim=default:step_turn_90_left_01
+- MastodonAttackRightTurn [empty_action_attack_4] action=OffGlacialHammer anim=default:step_turn_90_right_01
+- MastodonSlamBackTurn [brutus_ground_slam] action=GroundSlam anim=default:180_right_groundslam_01
+- GTMastodonSpikes [geometry_trigger] action=None anim=-
+    geom: trigger count=15 delay=350 spread=34 radius=0 angle=85 anchor=2
+    triggers: MastodonCreateSpike
+- MastodonCreateSpike [spawn_object] action=None anim=-
+    objects: Metadata/Monsters/MastodonBoss/effects/MastodonSpikes2, Metadata/Monsters/MastodonBoss/effects/MastodonSpikes
+- MastodonLeftTurn [empty_action_attack] action=Frenzy anim=default:turnleft_01
+- MastodonRightTurn [empty_action_attack_2] action=OffFrenzy anim=default:turnright_01
+- MastodonSlamTriggered [geometry_attack] action=None anim=-
+    geom: cone length=40 width=0 angle=100 range=330 delay=110 anchor=3
+- MastodonSlamComboLeftTurn [empty_action_attack_4] action=DoubleSlash anim=default:attack_turnleft_slam_01
+- MastodonSlamComboRightTurn [empty_action_attack_4] action=DoubleSlashOffhand anim=default:attack_turnright_slam_01
+- MastodonDualSwipe [empty_action_attack_4] action=DoubleStrike anim=default:epic_double_swipe_01
+- GAMastodonLeftShape [geometry_attack] action=None anim=-
+    geom: rectangle length=27 width=43 angle=0 range=160 delay=33 anchor=3
+- GAMastodonRightShape [geometry_attack] action=None anim=-
+    geom: rectangle length=27 width=43 angle=0 range=160 delay=33 anchor=3
+- MastodonAttackRightTurnHalf [empty_action_attack_4] action=Puncture anim=default:attack_45_turnright_01
+- MastodonAttackLeftTurnHalf [empty_action_attack_4] action=OffPuncture anim=default:attack_45_turnleft_01
+- GAMastodonChargeShape [geometry_attack] action=None anim=-
+    geom: rectangle length=20 width=20 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked
+- GAMastodonSlamImpact [geometry_attack] action=None anim=-
+    geom: circle length=15 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+
+## own states and handlers
+states: spawnritual; mastodondeath; necromancerdeath; epks; shieldcharge
+- on_event_contact_for_Emerge = { SetStateTo( spawnritual, 1 ); summoners.SetStateTo( spawnritual, 1 ); summonerboss.SetStateTo( spawnritual, 1 ); }
+- on_construction_complete = { globals.MastodonBoss = this; }
+- create_state_spawnritual_0 = { DisableTargetable(); }
+- on_state_spawnritual_1 = { EnableTargetable(); SetStaticLifeBarVisibilty( True ); AddAttachedObjectToBones( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_light.ao', root ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_light.ao', fadein ); 
+- create_state_spawnritual_1 = { AddAttachedObjectToBones( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_light.ao', root ); PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_light.ao', idle ); Delay( 0.1, { SetStaticLifeBarVisibilty( True ); } ); }
+- on_or_create_state_epks_2 = { }
+- on_or_create_state_epks_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/mastaton_idle_02.epk' ); }
+- on_state_epks_0 = { PlayAnimationAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_light.ao', fadeout ); AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/mastadon_death.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR
+- on_or_create_state_shieldcharge_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_start.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_idle.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/
+- on_or_create_state_shieldcharge_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_start.epk' ); }
+- on_or_create_state_shieldcharge_2 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_idle.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_start.epk' ); }
+- on_or_create_state_shieldcharge_3 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_end.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/charge_idle.epk' ); RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/epk/c
+- on_construction_complete = { HideMeshSegment( bandagesShape ); HideMeshSegment( TentaclesShape ); }
+- on_event_show_segment_for_emerge_01 = { ShowMeshSegment( bandagesShape ); ShowMeshSegment( TentaclesShape ); }
+- on_event_hide_segment_for_death_01 = { HideMeshSegment( bandagesShape ); HideMeshSegment( TentaclesShape ); ShowMeshSegments( Tentacles_split1Shape, Tentacles_split2Shape ); }
+- on_event_footstep1_for_ShieldCharge = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_stomp.ao', default, 1.0, inherit, 0.0, inherit, 165, -60, 0, SelfLocation ); }
+- on_event_footstep2_for_ShieldCharge = { PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_stomp.ao', default, 1.0, inherit, 0.0, inherit, 165, 60, 0, SelfLocation ); }
+- create_untransitioned = { IfAlive( () { PlayAnimation( emerge_01 ); PauseAnimation(); } ); }
+- on_death = { SetStaticLifeBarVisibilty( false ); IfState( necromancerdeath, 1, { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); } ); }
+- on_or_create_state_epks_2 = { }
+- on_death = { SetStaticLifeBarVisibilty( false ); }
+- on_death = { SetStaticLifeBarVisibilty( false ); IfState( necromancerdeath, 1, { TriggerBracket( arena_sector_destruction, GetState( arena_sector_id ) ); } ); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): [('spawnritual', 0)]
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_object Metadata/QuestObjects/Four_Act2/G2_5_BossComment
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/mastadon_stomp.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MastadonBoss/ao/prefight.ao
+- preload_environment G2_5_boss
+
+## adds and forms
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/QuestObjects/Four_Act2/G2_5_BossComment:  [server_only=true] states= 
+- Metadata/Monsters/MastodonBoss/effects/MastodonSpikes:  [server_only=true] states=activated create_state_activated_0{{ PlayAnimation( emerge ); }}; on_state_activated_1{{ PlayAnimation( idle ); }}; on_state_activated_2{{ PlayAnimation( submerge ); }}
+- Metadata/Monsters/MastodonBoss/effects/MastodonSpikes2:  [server_only=true] states=activated create_state_activated_0{{ PlayAnimation( emerge ); }}; on_state_activated_1{{ PlayAnimation( idle ); }}; on_state_activated_2{{ PlayAnimation( submerge ); }}
+- metadata/monsters/mastodonboss/effects/mastodonspikes:  [server_only=true] states=activated create_state_activated_0{{ PlayAnimation( emerge ); }}; on_state_activated_1{{ PlayAnimation( idle ); }}; on_state_activated_2{{ PlayAnimation( submerge ); }}
+- metadata/monsters/mastodonboss/effects/mastodonspikes2:  [server_only=true] states=activated create_state_activated_0{{ PlayAnimation( emerge ); }}; on_state_activated_1{{ PlayAnimation( idle ); }}; on_state_activated_2{{ PlayAnimation( submerge ); }}
+- metadata/monsters/mastodonboss/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=MastodonActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( MastodonInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossRitualAudioMarker:  [server_only=true] states= 
+- Metadata/Monsters/MastodonBoss/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=MastodonActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( MastodonInactive ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/HyenaMedallionDrop:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/MastodonBossArenaEntranceTitle: ProximityTrigger [radius=50 server_only=true] states= on_triggered{{ ShowTitleCard( TitleCardMastodonArena, TitleCardMastodonArenaSubtitle ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossEntranceRune:  [server_only=true] states=on on_end_activate{{ PlayAnimation( idle ); }}; on_state_on_1{{ PlayAnimation( activate ); }}; create_state_on_1{{ PlayAnimation( idle ); }}; create_state_on_0{{ PlayAnimation( idle_off ); }}
+- Metadata/Terrain/Gallows/Act2/2_5_2/Objects/G2_5_BossArenaGate: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= on_construction_complete{{ globals.ArenaGate = this; }}; on_untransition{{ PlayAnimation( end ); }}; on_transition{{ PlayAnimation( start ); QueueAnimation( loop ); }}
+
+## lines
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_5_2_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 183, 200, 394, 381, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_critters', 178, 173, 402, 388, '']
+  sector ['no_movement_skills', 217, 203, 355, 210, '']
+  point [286.0, 287.0, 'mapboss1']
+  point [285.0, 234.0, 'telepad']
+  point [306.0, 109.0, 'checkpoint2']
+  point [287.0, 315.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/BoneCultists/BoneCultist_Zealots/BoneCultistZealotSummoner_02 x5 (328,287) (258,321) (309,321) (256,252) (310,253)
+  obj Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBoss x1 (240,287)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (286,174)
+  obj Metadata/MiscellaneousObjects/ArenaLocatorGlobalVariable x1 (286,287)
+  obj Metadata/MiscellaneousObjects/BossTargetMarkerSerialized2 x16 (285,237) (320,250) (340,288) (322,326) (234,287) (250,250) (286,340) (250,323) (329,265) (330,308)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineEnd x1 (287,154)
+  obj Metadata/MiscellaneousObjects/Environment/EnvLineStart x1 (286,206)
+  obj Metadata/MiscellaneousObjects/DoodadNoBlocking x7 (242,124) (331,117) (236,316) (359,293) (329,342) (223,252) (351,244)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (325,112)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossRitualAudioMarker x1 (285,201)
+  obj Metadata/Monsters/MastodonBoss/Objects/BossRoomMinimapIcon x1 (287,289)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/HyenaMedallionDrop x1 (286,260)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/MastodonBossArenaEntranceTitle x1 (285,250)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossEntranceRune x1 (387,49)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/G2_5_BossArenaGate x1 (287,197)
+room metadata_terrain_gallows_act2_2_5_2_rooms_bossleadup_bonepassage_bossleadup_quad_01.arm
+  point [142.0, 111.0, 'checkpoint4']
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (114,110)
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossEntranceRune x1 (158,137)
+room metadata_terrain_gallows_act2_2_5_2_rooms_bossleadup_bossleadup_tri_2.arm
+  obj Metadata/Terrain/Gallows/Act2/2_5_2/Objects/BossEntranceRune x2 (111,158) (143,75)

@@ -1,0 +1,245 @@
+# Chetza, the Feathered Plague / Scourge of the Skies / Plagueling
+content: Act 3
+monsters: Metadata/Monsters/Bird2/MutantBird2, Metadata/Monsters/Bird2/MutantBird2NOUltimatum, Metadata/Monsters/Bird2/MutantBird2NOUltimatumCampaignSTANDALONE, Metadata/Monsters/Bird2/MutantBird2Map, Metadata/Monsters/Bird2/MutantBird2Standalone, Metadata/Monsters/Bird2/MutantBirdDog2_, Metadata/Monsters/Bird2/MutantBirdDog2_Standalone, Metadata/Monsters/Bird2/MutantBirdDog2_Minion
+scripts: Metadata/Monsters/Bird2/MutantBird2, Metadata/Monsters/Bird2/MutantBird2NotUltimatum, Metadata/Monsters/Bird2/MutantBird2BossStandalone, Metadata/Monsters/Bird2/MutantBird2MapBoss, Metadata/Monsters/Bird2/MutantBirdDog2, Metadata/Monsters/Bird2/MutantBirdDog2Standalone
+own chain: Metadata/Monsters/Bird2/MutantBird2, Metadata/Monsters/LeagueUltimatum/UltimatumBossBase, Metadata/Monsters/Bird2/MutantBird2NotUltimatum, Metadata/Monsters/Bird2/MutantBird2BossStandalone, Metadata/Monsters/Bird2/MutantBird2MapBoss, Metadata/Monsters/Bird2/MutantBirdDog2, Metadata/Monsters/Bird2/MutantBirdDog2Standalone
+areas: G3_10 The Trial of Chaos act3; G4_7 Shrike Island act4; MapLostTowers Lost Towers act10
+ai: Metadata/Monsters/Bird2/MutantBird2.ais, Metadata/Monsters/Bird2/MutantBird2BossStandalone.ais, Metadata/Monsters/Bird2/MutantBirdDog2.ais, Metadata/Monsters/Bird2/MutantBirdDog2Standalone.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- EAAMutantBirdVomitPeck [empty_action_attack] action=HeavyStrike anim=default:peck_01
+- MeleeAtAnimationSpeedMutantBirdFace [melee] action=GroundSlam anim=default:multi_peck_01,multi_peck_02
+- EASMutantBirdSpit [empty_action_spell] action=SpellProjectileUpward anim=default:mortar_01
+- EASBirdStorm [empty_action_spell] action=SpellAreaOfEffect anim=default:bird_storm_01
+- EDAMutantBirdVomitSpray [effect_driven_spell] action=SpellAreaOfEffectChaos anim=default:vomit_01
+    flags: base_skill_can_be_blocked is_area_damage
+- EDAMutantBirdVomitSpray2 [effect_driven_spell] action=SpellProjectileChaos anim=default:vomit_02
+    flags: base_skill_can_be_blocked is_area_damage
+- EASBirdBeakSpiral [empty_action_spell] action=SpellProjectile anim=default:peck_spiral_01
+- EASMutantBirdSummonDog [empty_action_spell] action=SpellBuff anim=default:emerge_dog_short_01
+- EASMutantBirdSummonDogFirst [empty_action_spell] action=SpellBuffFire anim=default:emerge_dog_long_01
+- EASMutantBird180Left [empty_action_spell] action=SpellBuffChaos anim=default:turn_180_left_01
+- EASMutantBird180Right [empty_action_spell] action=OffHeavyStrike anim=default:turn_180_right_01
+- EASMutantBird90Left [empty_action_spell] action=DualStrike anim=default:turn_90_left_01
+- EASMutantBird90Right [empty_action_spell] action=DoubleStrike anim=default:turn_90_right_01
+- DTTBirdRetreatNOTDTT [monster_dodge] action=DodgeBack anim=default:jump_back_01
+- EASMutantBirdDodgeBack [empty_action_spell] action=DodgeBack anim=default:jump_back_01
+- MPWMutantBirdBossSpit [monster_projectile_weapon] action=SpellProjectileUpward anim=default:mortar_01
+    flags: base_deal_no_damage base_skill_can_be_avoided_by_dodge_roll
+- MPWMutantBirdBossSpitFlip [monster_projectile_weapon] action=SpellProjectileUpward anim=default:mortar_01
+    flags: base_deal_no_damage base_skill_can_be_avoided_by_dodge_roll
+- GAMutantBirdVomitSplat [geometry_attack] action=None anim=-
+    geom: circle length=30 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GTBirdStorm [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=1 delay=500 spread=15 radius=0 angle=0 anchor=1
+    triggers: GAMutantBirdBirdStorm
+- GAMutantBirdBirdStorm [geometry_attack] action=SpellAreaOfEffect anim=default:bird_storm_01
+    geom: circle length=7 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GTSpiralAbility1 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility2 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility3 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility4 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility5 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility6 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility7 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility8 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility9 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility10 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility11 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GTSpiralAbility12 [geometry_trigger] action=SpellProjectile anim=default:peck_spiral_01
+    geom: trigger count=30 delay=1000 spread=100 radius=0 angle=0 anchor=1
+- GAMutantBirdSpikeImpale [geometry_attack] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage skill_can_be_active_blocked_from_all_directions
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GAMutantBird180Slam [geometry_attack] action=None anim=-
+    geom: cone length=24 width=0 angle=180 range=99 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GAMutantBird90SwipeLeft [geometry_attack] action=None anim=-
+    geom: cone length=29 width=0 angle=90 range=166 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GAMutantBird90SwipeRight [geometry_attack] action=None anim=-
+    geom: cone length=29 width=0 angle=90 range=166 delay=33 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GAMutantBirdFaceSmashImpact [geometry_attack] action=None anim=-
+    geom: circle length=6 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- EAAMutantBirdFaceSmash [empty_action_attack] action=GroundSlam anim=default:multi_peck_01,multi_peck_02
+- GSMutantBirdPopHatchling [geometry_spell] action=None anim=-
+    geom: rectangle length=4 width=3 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- CGEMutantBirdPeckDetritus [monster_cast_ground_effect_location] action=None anim=-
+- GSMutantBirdFlap [geometry_attack] action=None anim=-
+    geom: cone length=80 width=0 angle=60 range=300 delay=33 anchor=2
+    flags: is_area_damage
+- EGMutantBirdNestDestruction [execute_geal] action=None anim=-
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- GAMutantBirdVomitSplat2 [geometry_attack] action=None anim=-
+    geom: circle length=12 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked is_area_damage
+    GEAL 1097 on ['Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest']: self{} each{triggerer.SetStateTo( destroyed, 1);} r=30
+- MutantBirdDogLeapAttack [geometry_attack] action=HeavyStrike anim=default:peck_01
+    geom: circle length=25 width=0 angle=0 range=0 delay=0 anchor=3
+    flags: is_area_damage
+- MutantBirdDogEnterBird [empty_action_spell] action=Frenzy anim=default:flinch_small_01
+- EASMutantBirdDogSadnessTime [empty_action_spell] action=Warcry anim=stance3:sad_01
+
+## own states and handlers
+states: dead; weapon_part_extracted
+- on_death = { KillGroundEffectsOfType( Sulphite, 1001, 1, 150 ); }
+- on_enter = { ShowNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn', 0 ); }
+- on_exit = { HideNPCSummon( triggerer, 'Metadata/NPC/Four_Act4/BoatReturn' ); }
+- on_state_light_0 = { SetLightState( off, 3.0 ); }
+- on_state_light_1 = { SetLightState( on, 0.5 ); }
+- create_state_light_0 = { Delay( 0.01, { SetLightState( off, 1.0 ); } ); }
+- create_state_light_1 = { Delay( 0.01, { SetLightState( on, 1.0 ); } ); }
+- on_or_create_state_dead_1 = { SetControlZoneRadius( 200 ); }
+- on_death = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/epk/corpseState_Blood.epk' ); }
+- on_spawned_dead = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/epk/corpseState_Blood.epk' ); }
+- on_or_create_state_weapon_part_extracted_1 = { AddEffectPack( 'Metadata/Effects/Environment/Act1_FOUR/HoodedMentor/epk/monster_wound.epk' ); }
+- on_end_despawn_dog_start_01 = { globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_BirdDogIn_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrappedShrikeIsland' ); } ); }
+- on_effect_start_EDAMutantBirdVomitSpray = { globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_BirdSpew_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrappedShrikeIsland' ); } ); }
+- on_effect_start_EAAMutantBirdVomitPeck = { globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_BirdPeck_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrappedShrikeIsland' ); } ); }
+- on_effect_end_EASMutantBirdSummonDogFirst = { globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_BirdDogOut_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrappedShrikeIsland', 1800 ); } ); }
+- on_effect_start_EASBirdStorm = { globals.karuielder.IfState( hidden, 1, (){}, (){ PlayTextAudio( Matiki_Wild_BirdFalling_Random, 'Metadata/NPC/Four_Act4/KaruiElderTrappedShrikeIsland' ); } ); }
+- on_initial_position_set = { RemoveCollidability(); }
+- on_event_landed = { MakeCollidable(); }
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_monster_variety Metadata/NPC/Four_Act4/HoodedMentorShrikeIslandSummon
+- preload_monster_variety Metadata/Monsters/Bird2/MutantBirdDog2_
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/carrion_hit.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/baby_bird_pop.ao
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/epk/baby_bird_pop.epk
+- preload_object Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/Objects/CascadeSpikes1
+- preload_environment G4_7_boss
+- preload_monster_variety Metadata/NPC/Four_Act4/DoryaniShrikeIslandSummon
+- preload_monster_variety Metadata/Monsters/Bird2/MutantBirdDog2_Standalone
+- preload_misc_beam MutantBirdDogUmbilicalCord
+
+## adds and forms
+- Metadata/NPC/Four_Act4/HoodedMentorShrikeIslandSummon "The Hooded One" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+- Metadata/NPC/Four_Act4/DoryaniShrikeIslandSummon "Doryani" bossbar=0 skills=MeleeAtAnimationSpeedUnique,WalkEmergeNPCExplorer,DoLiterallyNothing comps=InteractionAction Targetable MinimapIcon Actor Stats [blocking=true attackable=true server_only=true icon=NPC] states=spawned;leave1;leave2;leave3
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/Objects/CascadeSpikes1:  states= 
+- Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest:  [blocking=false object_size=0 server_only=true] states=destroyed create_state_destroyed_1{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/epk/nest_dissolve.epk' ); }}; on_state_destroyed_1{{ PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/nest_break.ao' ); AddEffectPack( 'Metada}
+- Metadata/Terrain/Gallows/Act4/4_7/Objects/Seagull: ProximityTrigger [blocking=false object_size=0 radius=0] states= on_construction_complete{{ PlayAnimationRandom( idle_stand_relaxed_01 ); SetProximityTriggerRadius( Random( 17, 25 ) ); SetRandomRotation(); SetV}; on_end_fly_up_01{{ Delete(); }}; on_end_fly_up_02{{ Delete(); }}; on_end_fly_up_03{{ Delete(); }}; on_movement_started{{ If( CurrentAnimationIndex() != 26, { PlayAnimation( walk_01 ); } ); }}; on_movement_finished{{ If( flee == 1, { StartStateTimer( amble, 2.0, 15.0 ); StartStateTimer( idle, 0.1 ); } ); }}
+- Metadata/Terrain/Gallows/Act4/4_7/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=G4_7_BossActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( G4_7_BossInactive ); }}
+- Metadata/Terrain/Gallows/Act4/4_7/Objects/KaruiElderCage: InteractionAction MinimapIcon [blocking=false object_size=0 server_only=true icon=QuestObject] states=open = 1;interactable;hidden;hide on_state_interactable_1{{ }}; on_or_create_state_hide_1{{ HideMinimapIcon(); }}
+- Metadata/Terrain/Gallows/Act4/4_7/Objects/Hatchling:  [blocking=false object_size=0 server_only=true] states=hidden;kicked on_or_create_state_hidden_1{{ DisableRendering(); }}; on_state_kicked_1{{ PlayAnimation( matiki_trapped_standup_01 ); }}; create_state_kicked_1{{ PlayAnimation( matiki_trapped_standup_01 ); PauseAnimation(); GoToAnimationEnd(); }}
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/PlayerRespawnPosition:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/EncounterTelepadMarker:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerTurret:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerCentralObject:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerBloodFog:  [server_only=true] states= 
+- Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerPetrify:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarkerBalcony:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarker:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraMidPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraLowPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraHighPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraPlatform:  [server_only=true] states= 
+- Metadata/Terrain/Gallows/Act3/3_10/Objects/LedgeForceField: TriggerableBlockage Transitionable [start_blocked=false blocking=false object_size=3 server_only=true] states= create_transitioned{{ PlayAnimationByIndex( 0 ); }}; create_untransitioned{{ PlayAnimationByIndex( 1 ); GoToAnimationEnd(); }}; on_transition{{ PlayAnimationByIndex( 2 ); QueueAnimationByIndex( 0 ); }}; on_untransition{{ PlayAnimationByIndex( 1 ); }}
+
+## lines
+- on_end_despawn_dog_start_01 -> Matiki_Wild_BirdDogIn_Random: Okay... now I've seen everything.
+- on_effect_start_EDAMutantBirdVomitSpray -> Matiki_Wild_BirdSpew_Random: Ah! It's gonna puke!
+- on_effect_start_EAAMutantBirdVomitPeck -> Matiki_Wild_BirdPeck_Random: It's gonna peck!
+- on_effect_end_EASMutantBirdSummonDogFirst -> Matiki_Wild_BirdDogOut_Random: What the bloody heck is that?!
+- on_effect_start_EASBirdStorm -> Matiki_Wild_BirdFalling_Random: Birds incoming!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act4_4_7_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 323, 315, 465, 483, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 301, 385, 323, 454, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 307, 371, 323, 385, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 318, 360, 323, 371, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 312, 366, 318, 371, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  point [413.0, 440.0, 'mapboss']
+  point [326.0, 375.0, 'telepad']
+  point [255.0, 307.0, 'checkpoint2']
+  point [387.0, 388.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Hatchling/Hatchling x27 (364,453) (391,448) (387,444) (397,454) (397,458) (390,456) (392,464) (438,364) (433,355) (437,349)
+  obj Metadata/Terrain/Gallows/Act4/4_7/Objects/Seagull x38 (44,322) (56,317) (56,323) (130,297) (121,293) (107,301) (109,294) (129,288) (178,285) (171,297)
+  obj Metadata/Terrain/Gallows/Act4/4_7/Objects/DestructableNest x23 (364,453) (352,450) (343,443) (351,440) (336,436) (323,393) (332,398) (328,416) (329,407) (322,401)
+  obj Metadata/MiscellaneousObjects/AreaTransition_Animate x1 (301,353)
+  obj Metadata/MiscellaneousObjects/CheckpointBoss x1 (248,320)
+  obj Metadata/MiscellaneousObjects/ArenaMiddle x1 (381,396)
+  obj Metadata/Terrain/Gallows/Act4/4_7/Objects/BossRoomMinimapIcon x1 (380,400)
+  obj Metadata/NPC/Four_Act4/KaruiElderTrappedShrikeIsland x1 (419,329)
+  obj Metadata/Terrain/Gallows/Act4/4_7/Objects/KaruiElderCage x1 (422,332)
+  obj Metadata/Terrain/Gallows/Act4/4_7/Objects/Hatchling x1 (425,331)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x2 (400,327) (444,342)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoor x1 (315,365)
+room metadata_terrain_gallows_act3_3_10_rooms_boss_chimaera_01.arm
+  sector ['AudioIndoorEnv', 0, 80, 174, 784, '']
+  sector ['AudioIndoorEnv', 653, 80, 828, 784, '']
+  sector ['combat', 172, 57, 655, 517, '']
+  sector ['square2', 414, 106, 598, 276, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector2']
+  sector ['square1', 230, 106, 414, 276, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector1']
+  sector ['square4', 230, 276, 414, 461, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector4']
+  sector ['square3', 414, 276, 598, 461, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector3']
+  point [501.0, 362.0, 'mapboss1']
+  obj Metadata/MiscellaneousObjects/HealingWell x1 (106,256)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/PlayerRespawnPosition x1 (103,213)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/EncounterTelepadMarker x1 (256,206)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerTurret x9 (544,406) (546,154) (274,136) (277,413) (390,333) (551,322) (459,162) (377,161) (349,131)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerCentralObject x1 (300,328)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerBloodFog x1 (475,327)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerPetrify x6 (378,198) (441,212) (442,410) (307,307) (527,306) (564,226)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarkerBalcony x2 (393,339) (490,237)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarker x1 (133,224)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraMidPlatform x1 (323,367)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraLowPlatform x1 (509,369)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraHighPlatform x1 (511,183)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraPlatform x1 (324,181)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/LedgeForceField x4 (225,164) (226,212) (226,173) (226,244)
+room metadata_terrain_gallows_act3_3_10_rooms_boss_chimaera_04.arm
+  sector ['AudioIndoorEnv', 653, 80, 828, 784, '']
+  sector ['AudioIndoorEnv', 0, 80, 174, 784, '']
+  sector ['combat', 172, 126, 655, 586, '']
+  sector ['square3', 414, 346, 598, 531, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector3']
+  sector ['square4', 230, 346, 414, 531, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector4']
+  sector ['square1', 230, 176, 414, 346, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector1']
+  sector ['square2', 414, 176, 598, 346, 'Metadata/Monsters/ChaosGodChimera/Objects/Sector2']
+  point [494.0, 434.0, 'mapboss1']
+  obj Metadata/MiscellaneousObjects/HealingWell x1 (105,329)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/PlayerRespawnPosition x1 (114,276)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/EncounterTelepadMarker x1 (255,272)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerTurret x9 (543,476) (545,224) (273,206) (276,483) (389,403) (550,392) (458,232) (376,231) (348,201)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerBloodFog x1 (465,391)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerCentralObject x1 (359,286)
+  obj Metadata/Terrain/Leagues/Ultimatum/Objects/Encounter/DaemonMarkerPetrify x6 (376,270) (439,284) (440,482) (305,379) (525,378) (562,298)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarkerBalcony x2 (392,415) (489,313)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/TrialmasterMarker x1 (131,293)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraMidPlatform x1 (323,436)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraLowPlatform x1 (509,438)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraHighPlatform x1 (511,252)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/ChimeraPlatform x1 (321,253)
+  obj Metadata/Terrain/Gallows/Act3/3_10/Objects/LedgeForceField x4 (225,233) (227,277) (227,238) (227,309)

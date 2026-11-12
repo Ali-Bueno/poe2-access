@@ -1,0 +1,136 @@
+# Gelida, the Frost-Tongue / Rael, the Frost Hand
+content: Map boss
+monsters: Metadata/Monsters/Hags/UrchinHagBossHagBattleMap, Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2
+scripts: Metadata/Monsters/Hags/HagBossHagBattleMap
+own chain: Metadata/Monsters/Hags/HagBossHagBattleMap
+areas: MapAlpineRidge Alpine Ridge act10; MapRazedFields Razed Fields act10
+ai: Metadata/Monsters/Hags/HagBoss.ais (not shipped)
+
+## skills
+- HagBossDetonateDead [monster_detonate_dead_area] action=None anim=-
+    flags: is_area_damage
+- HagBossIceSpear [monster_projectile_spell] action=None anim=-
+- HagBossIceShard [monster_projectile_spell] action=Puncture anim=default:charged_cleave_01
+- HagBossIceSpearBarrage [empty_action_spell] action=SpellProjectileCold anim=default:ice_spear_combo_01
+- HagBossSummonWolves [effect_driven_spell] action=SpellProjectileFire anim=default:raise_01
+- GAHagBossIcicleCleave [geometry_attack] action=None anim=-
+    geom: cone length=15 width=0 angle=194 range=140 delay=33 anchor=2
+    flags: is_area_damage
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- HagExpandingConeTest [expanding_cone_waves] action=SpellAreaOfEffectChaos anim=default:ice_nova_01
+    flags: is_area_damage skill_cannot_be_stunned
+- GSCarrionCroneIceNova [geometry_spell] action=None anim=-
+    geom: circle length=25 width=0 angle=0 range=350 delay=33 anchor=2
+    flags: is_area_damage
+- SOCarrionCroneIceSpike [spawn_object] action=None anim=-
+    objects: Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarrionCrone/IceSpike
+- GTCarrionCroneIceSpikeField [geometry_trigger] action=Revive anim=default:raise_01
+    geom: trigger count=10 delay=1000 spread=125 radius=20 angle=0 anchor=4
+    triggers: SOCarrionCroneIceSpike
+- GSCarrionCroneSpikeExplode [geometry_spell] action=None anim=-
+    geom: circle length=10 width=0 angle=0 range=100 delay=33 anchor=4
+    flags: is_area_damage
+    GEAL 1109 on ['Metadata/Monsters/Wolves/RottenWolfHagSummonedDead']: self{} each{triggerer.KillSelfNoDrops();} r=0
+- SSMCarrionCroneRaiseWolves [summon_specific_monsters_on_target] action=RaiseSpectre anim=default:raise_freeze_01
+    summons: Metadata/Monsters/Wolves/RottenWolfHagSummonedDead
+- EGCarrionCroneRevive [execute_geal] action=None anim=-
+    GEAL 1108 on ['Metadata/Monsters/Wolves/RottenWolfHagSummonedDead']: self{} each{triggerer.DoAction(ChangeToStance2);} r=100
+- GTCarrionCroneWolfSummon [geometry_trigger] action=RaiseSpectre anim=default:raise_freeze_01
+    geom: trigger count=5 delay=0 spread=80 radius=30 angle=0 anchor=4
+    triggers: SSMCarrionCroneRaiseWolves
+- EGCarrionCroneCorpseDetonate [execute_geal] action=SpellAreaOfEffect anim=default:detonate_corpses_01
+    GEAL 1113 on any: self{} each{this.possible_corpses += triggerer;} r=50
+- MDCarrionCroneWave [move_daemon] action=SpellBuffLightning anim=-
+    daemons: Metadata/Monsters/InvisibleFire/MDCarrionCroneWave
+- GTCarrionCroneFrostWaves [geometry_trigger] action=SpellAreaOfEffectChaos anim=default:ice_nova_01
+    geom: trigger count=8 delay=0 spread=11 radius=10 angle=360 anchor=4
+    triggers: MDCarrionCroneWave
+- GSCarrionCroneWaveDamageShape [geometry_spell] action=SpellAreaOfEffect anim=default:detonate_corpses_01
+    geom: donut length=20 width=10 angle=85 range=0 delay=0 anchor=12
+    flags: is_area_damage
+- GTCarrionCroneIceSpikeFieldEnemyTargeted [geometry_trigger] action=Revive anim=default:raise_01
+    geom: trigger count=6 delay=1000 spread=45 radius=0 angle=0 anchor=1
+    triggers: SOCarrionCroneIceSpike
+- EGCarrionCroneMinionKill [execute_geal] action=None anim=-
+    GEAL 1123 on ['Metadata/Monsters/Wolves/RottenWolfHagSummoned', 'Metadata/Monsters/Wolves/RottenWolfHagSummonedDead']: self{} each{triggerer.Call(killself);} r=85
+
+## own states and handlers
+states: generic1; intro; raising_wolves
+- on_effect_start_GTCarrionCroneWolfSummon = { IfInArea( MapAlpineRidge, () { PlayTextAudio( Gelida_Combat_Summon_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap' ); }, () { PlayTextAudio( Gelida_Combat_Summon_Random, '/Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2' ); } ); }
+- on_effect_start_EGCarrionCroneCorpseDetonate = { IfInArea( MapAlpineRidge, () { PlayTextAudio( Gelida_Combat_CorpseDetonate_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap' ); }, () { PlayTextAudio( Gelida_Combat_CorpseDetonate_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2' ); } ); }
+- on_effect_start_GTCarrionCroneIceSpikeField = { IfInArea( MapAlpineRidge, () { PlayTextAudio( Gelida_Combat_IceSpike_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap', 2700 ); }, () { PlayTextAudio( Gelida_Combat_IceSpike_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2', 2700 ); } ); }
+- on_effect_start_GTCarrionCroneFrostWaves = { IfInArea( MapAlpineRidge, () { PlayTextAudio( Gelida_Combat_FrostWaves_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap', 1500 ); }, () { PlayTextAudio( Gelida_Combat_FrostWaves_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2', 1500 ); } ); }
+- on_death = { SpawnObject( 'Metadata/Monsters/Hags/WolfHead', Parent, 6, -2, Relative ); DetachAllOfType( 'Metadata/Items/Weapons/OneHandWeapons/OneHandMaces/WolfHeadHeld.ao' ); SetLightState( off, 1.0 ); IfInArea( MapAlpineRidge, () { PlayTextAudio( CarrionCroneDeath, 'Metadata/Monsters/Hags/UrchinHagBoss' ); 
+- on_spawned_dead = { DetachAllOfType( 'Metadata/Items/Weapons/OneHandWeapons/OneHandMaces/WolfHeadHeld.ao' ); SetLightState( off ); }
+- on_spawned_alive = { SetLightState( on ); }
+- on_charged_cleave_01 = { IfInArea( MapAlpineRidge, () { PlayTextAudio( Gelida_Combat_ChargedCleave_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap', 0 ); }, () { PlayTextAudio( Gelida_Combat_ChargedCleave_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2', 0 ); } ); }
+- on_charged_cleave_01 = { IfInArea( MapAlpineRidge, () { PlayTextAudio( Gelida_Combat_IceSpear_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap', 0 ); }, () { PlayTextAudio( Gelida_Combat_IceSpear_Random, 'Metadata/Monsters/Hags/UrchinHagBossHagBattleMap2', 0 ); } ); }
+hides(DisableRendering): [('bb_visible', 0)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_buff_visual blackwood_entrance_buff
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarrionCrone/FreezeCorpse.epk
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarrionCrone/IceCorpse_Explode.ao
+- preload_animated_object Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarrionCrone/IceCorpse_Explode_Cast.ao
+- preload_animated_object Metadata/Monsters/Hags/CarrionClone.ao
+- preload_animated_object Metadata/Items/Weapons/OneHandWeapons/OneHandMaces/WolfHeadDropHeld.ao
+- preload_environment G1_2_boss
+
+## adds and forms
+- Metadata/Monsters/Wolves/RottenWolfHagSummonedDead "Rotten Wolf" bossbar=0 skills=MeleeAtAnimationSpeed comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=raising
+daemons: Metadata/Monsters/InvisibleFire/MDCarrionCroneWave
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarrionCrone/IceSpike:  states= on_offering_start_01{{ this.marker = PlayEffect( 'Metadata/Effects/Spells/monsters_effects/Act1_FOUR/CarrionCrone/IceSpikeMarker.ao' ); }}; on_event_contact_for_offering_start_01{{ IfExists( marker, (){ this.marker.Delete(); } ); }}
+- metadata/monsters/hags/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=CroneActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( CroneInactive ); }}
+- metadata/monsters/hags/wolfhead: Transitionable [blocking=false object_size=1 server_only=true] states= 
+- Metadata/Monsters/Hags/Objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=CroneActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( CroneInactive ); }}
+
+## lines
+- on_effect_start_GTCarrionCroneWolfSummon -> Gelida_Combat_Summon_Random: Arise my pack!
+- on_effect_start_GTCarrionCroneWolfSummon -> Gelida_Combat_Summon_Random: Arise my pack!
+- on_effect_start_EGCarrionCroneCorpseDetonate -> Gelida_Combat_CorpseDetonate_Random: Your blood runs cold!
+- on_effect_start_EGCarrionCroneCorpseDetonate -> Gelida_Combat_CorpseDetonate_Random: Your blood runs cold!
+- on_effect_start_GTCarrionCroneIceSpikeField -> Gelida_Combat_IceSpike_Random: Brittle and broken!
+- on_effect_start_GTCarrionCroneIceSpikeField -> Gelida_Combat_IceSpike_Random: Brittle and broken!
+- on_effect_start_GTCarrionCroneFrostWaves -> Gelida_Combat_FrostWaves_Random: Your heartbeat slows!
+- on_effect_start_GTCarrionCroneFrostWaves -> Gelida_Combat_FrostWaves_Random: Your heartbeat slows!
+- on_death -> CarrionCroneDeath: 
+- on_death -> CarrionCroneDeath: 
+- on_charged_cleave_01 -> Gelida_Combat_ChargedCleave_Random: Frozen solid!
+- on_charged_cleave_01 -> Gelida_Combat_ChargedCleave_Random: Frozen solid!
+- on_charged_cleave_01 -> Gelida_Combat_IceSpear_Random: Turn to ice!
+- on_charged_cleave_01 -> Gelida_Combat_IceSpear_Random: Turn to ice!
+
+## linked buffs
+
+## arena rooms
+room metadata_terrain_gallows_act1_1_2_rooms_unique_boss_hagwitch_4.arm
+  sector ['no_critters', 36, 67, 171, 256, '']
+  point [104.0, 160.0, 'mapboss']
+  point [125.0, 56.0, 'checkpoint2']
+  point [91.0, 191.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Wolves/RottenWolfDead x13 (184,99) (179,253) (171,68) (119,46) (75,135) (85,118) (79,166) (106,191) (81,207) (25,208)
+  obj Metadata/Terrain/Tools/AudioTools/G1_2/HagArena x1 (105,161)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (144,68)
+  obj Metadata/Monsters/Hags/Objects/BossRoomMinimapIcon x1 (106,158)
+room metadata_terrain_gallows_act1_1_2_rooms_unique_boss_hagwitch_2.arm
+  sector ['no_critters', 26, 44, 161, 233, '']
+  point [106.0, 137.0, 'mapboss']
+  point [120.0, 36.0, 'checkpoint2']
+  point [99.0, 170.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Wolves/RottenWolfDead x12 (190,186) (170,246) (15,175) (71,194) (119,50) (96,26) (114,102) (71,139) (101,195) (128,169)
+  obj Metadata/Terrain/Tools/AudioTools/G1_2/HagArena x1 (103,135)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (137,50)
+  obj Metadata/Monsters/Hags/Objects/BossRoomMinimapIcon x1 (106,138)
+room metadata_terrain_gallows_act1_1_2_rooms_unique_boss_hagwitch_1.arm
+  sector ['no_critters', 26, 44, 161, 233, '']
+  point [107.0, 137.0, 'mapboss']
+  point [122.0, 29.0, 'checkpoint2']
+  point [98.0, 159.0, 'ritual_boss_spawn_override']
+  obj Metadata/Monsters/Wolves/RottenWolfDead x12 (49,178) (24,171) (162,208) (183,224) (108,64) (122,38) (87,105) (70,153) (111,180) (122,154)
+  obj Metadata/Terrain/Tools/AudioTools/G1_2/HagArena x1 (103,134)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (135,48)
+  obj Metadata/Monsters/Hags/Objects/BossRoomMinimapIcon x1 (107,137)

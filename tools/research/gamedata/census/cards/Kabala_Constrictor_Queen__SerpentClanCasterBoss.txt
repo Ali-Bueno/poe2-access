@@ -1,0 +1,174 @@
+# Kabala, Constrictor Queen / Manassa, the Serpent Queen
+content: Act 2
+monsters: Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE
+scripts: Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap_, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring_, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE
+own chain: Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBase, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap_, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring_, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE
+areas: G2_4_1 Keth act2; MapSteamingSprings Steaming Springs act10; MapSevenWaters Confluence act10; MapSpring_ Spring act10
+ai: Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss.ais, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE.ais, Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSpring.ais (not shipped)
+
+## skills
+- MeleeAtAnimationSpeedUnique [melee] action=None anim=-
+- SerpentClanCurseBoss [vulnerability] action=SpellBuff anim=default:spellcast_curse_01
+- DeceleratingProjectileSerpentClanBoss [decelerating_projectile] action=SpellProjectile anim=default:spellcast_projectile_01
+- GSSerpentClanSpellNovaBoss [geometry_spell] action=None anim=-
+    geom: circle length=11 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+- GSSerpentCasterBossSnakeSwarm [geometry_spell_channelled] action=ChannelUnleash anim=default:summon_start_01
+    geom: circle length=10 width=0 angle=0 range=0 delay=0 anchor=2
+    flags: skill_cannot_be_stunned
+- GTSerpentClanBossDeceleratingProjectiles [geometry_trigger] action=RainOfArrows anim=default:spin_detonate_01
+    geom: trigger count=15 delay=1000 spread=25 radius=120 angle=360 anchor=4
+    triggers: DeceleratingProjectileSerpentClanBossIdleForImpact
+- GASerpentCasterBossTailSwipeDetonation [geometry_attack] action=SpellAreaOfEffectCold anim=default:tail_whip_01
+    geom: cone length=120 width=0 angle=360 range=600 delay=100 anchor=2
+    flags: base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked skill_cannot_be_stunned
+    GEAL 1087 on ['Metadata/Projectiles/DeceleratingProjectileSerpentClanBossIdleForImpact']: self{} each{triggerer.PlayAnimation(impact);} r=0
+- GSSerpentCasterBossBoneBarrierEG [geometry_spell] action=SpellAreaOfEffectLightning anim=default:spellcast_bone_barrier_01
+    geom: circle length=50 width=0 angle=0 range=700 delay=0 anchor=2
+    GEAL 1088 on ['Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinion']: self{} each{triggerer.MakeBeam( SerpentCasterBossBoneBarrierBeam, snake_boss, Flip|FollowFrom|FollowTo|SerialiseAnimationProgress|NoDeleteOnSleep, 0, 4 ); triggerer.Delay(1.5, {Delete();}); snake_boss.SetStateTo( bone_armour, 1 ); || triggerer.AddEffectPack('Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/epk/skeletonSnake/snake_fade.epk');} r=40
+- DeceleratingProjectileSerpentClanBossIdleForImpact [decelerating_projectile] action=SpellProjectile anim=default:spellcast_projectile_01
+- GSSerpentCasterBossVulnRuneOnHit [geometry_spell] action=None anim=-
+    geom: circle length=48 width=0 angle=0 range=0 delay=0 anchor=4
+    flags: is_area_damage
+    GEAL 1149 on ['Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinion']: self{} each{triggerer.KillSelf();} r=0
+- SerpentClanTailWhip [melee] action=Frenzy anim=default:tail_whip_01
+    flags: base_skill_can_be_avoided_by_dodge_roll base_skill_can_be_blocked
+- GASerpentCasterBossTailSwipeDamage [geometry_attack] action=None anim=-
+    geom: cone length=24 width=0 angle=300 range=300 delay=33 anchor=2
+    flags: base_skill_can_be_avoided_by_dodge_roll is_area_damage
+- EASSerpentBossCurseWallNuke [empty_action_spell] action=SpellAreaOfEffectFire anim=default:spellcast_curse_01
+- GTSerpentBossWall [geometry_trigger] action=None anim=-
+    geom: trigger count=80 delay=200 spread=52 radius=50 angle=0 anchor=4
+- GTSerpentClanCasterBossSummonSnakesSTANDALONE [geometry_trigger] action=None anim=-
+    geom: trigger count=20 delay=1000 spread=43 radius=45 angle=0 anchor=4
+
+## own states and handlers
+states: players = 0; vuln; retreating; intro_dialog; kabala_life_bar; disable_kabala_life_bar; no_collision; beamin
+- on_or_create_state_no_collision_1 = { RemoveCollidability(); }
+- on_state_no_collision_0 = { MakeCollidable(); }
+- on_construction_complete = { IfState( kabala_life_bar, 1, { IfState( disable_kabala_life_bar, 0, { IfAlive( { SetStaticLifeBarVisibilty( True ); } ); } ); } ); }
+- on_start_Vulnerability = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/cast_curse.epk' ); }
+- on_end_or_destroy_Vulnerability = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/cast_curse.epk' ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanMonster/epk/spellcast_curse_01.epk' ); summon_fx.Delete(); }
+- on_summon_start_01 = { this.summon_fx = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/onact/summon/summon.ao', root_jntBnd ); IfInArea( G2_4_1, () { PlayTextAudio( Kabala_Summon_Random, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss' ); },() { PlayTextAudio( Kabala_Summ
+- on_summon_end_01 = { summon_fx.PlayAnimation( close ); }
+- on_spin_detonate_01 = { IfInArea( G2_4_1, () { PlayTextAudio( Kabala_Succumb_Random, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss', 250 ); },() { PlayTextAudio( Kabala_Succumb_Random, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap', 250 ); }); }
+- on_state_intro_dialog_1 = { this.my_hiss_audio = FindClosestObject( 'Metadata/Terrain/Tools/AudioTools/G2_4_1/KabalaHiss' ); this.my_hiss_audio.Delete(); IfInArea( G2_4_1, () { PlayTextAudio( Kabala_PreEmerge, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss' ); PlayTextAudio( Kabala_Emerge, 'Metadata/Monsters/Ser
+- on_state_kabala_life_bar_1 = { IfAlive( { SetStaticLifeBarVisibilty( True ); } ); }
+- on_state_disable_kabala_life_bar_0 = { IfAlive( { SetStaticLifeBarVisibilty( True ); } ); }
+- on_state_disable_kabala_life_bar_1 = { IfAlive( { SetStaticLifeBarVisibilty( False ); } ); }
+- on_death = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanMonster/epk/spellcast_curse_01.epk' ); summon_fx.DetachFromGameObject(); }
+- on_summon_start_01 = { this.summon_fx = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/onact/summon/summon.ao', root_jntBnd ); PlayTextAudio( Kabala_Summon_Random, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE' ); }
+- on_summon_end_01 = { summon_fx.PlayAnimation( close ); }
+- on_spin_detonate_01 = { PlayTextAudio( Kabala_Succumb_Random, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE', 250 ); }
+- on_state_intro_dialog_1 = { this.my_hiss_audio = FindClosestObject( 'Metadata/Terrain/Tools/AudioTools/G2_4_1/KabalaHiss' ); this.my_hiss_audio.Delete(); IfInArea( G2_4_1, () { PlayTextAudio( Kabala_PreEmerge, 'Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE' ); PlayTextAudio( Kabala_Emerge, 'Metadata/Mo
+hides(DisableRendering): [('bb_visible', 0), ('deli_clone', 1)]
+untargetable(DisableTargetable): []
+seek: []  phase: []  brackets: []
+
+## preloads
+- preload_misc_beam SerpentCasterBossSummonBeam
+- preload_misc_beam SerpentCasterBossBoneBarrierBeam
+- preload_monster_variety Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanMonster/epk/spellcast_curse_01.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/summon_fadein.epk
+- preload_epk Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/summon_fadeout.epk
+- preload_environment G2_4_1_boss
+- preload_buff serpent_boss_bone_armour
+- preload_object Metadata/Monsters/SerpentClanMonster/objects/ground_rune_standalone
+- preload_monster_variety Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinionSTANDALONE
+
+## adds and forms
+- Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall "Bone Wall" bossbar=0 skills=- comps=Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=tilted
+- Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinionSTANDALONE "Gilded Cobra" bossbar=0 skills=MeleeAtAnimationSpeed,GSSerpentCasterBossMinionEmerge comps=Targetable Actor Stats [blocking=true attackable=true server_only=true] states=
+
+## objects (preloaded, spawned, acted on by GEAL, placed in room)
+- Metadata/Monsters/SerpentClanMonster/objects/ground_rune_standalone:  [blocking=false object_size=0 server_only=true] states= 
+- Metadata/Projectiles/DeceleratingProjectileSerpentClanBossIdleForImpact:  [blocking=false object_size=1 server_only=true] states= on_projectile{{ StartStateTimer( time_to_blow, 6 ); }}
+- metadata/monsters/serpentclanmonster/objects/bonewallgapfinder:  [server_only=true] states=emerging 
+- metadata/monsters/serpentclanmonster/objects/bossroomminimapicon: MinimapIcon [server_only=true icon=KabalaActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( KabalaInactive ); }}
+- metadata/monsters/serpentclanmonster/objects/ground_rune:  [blocking=false object_size=0 server_only=true] states=enabled;players;exploding;deactivate 
+- metadata/monsters/serpentclanmonster/objects/ground_rune_standalone:  [blocking=false object_size=0 server_only=true] states= 
+- metadata/monsters/serpentclanmonster/objects/snakepot:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- metadata/monsters/serpentclanmonster/objects/snakepot1:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_initial_position_set{{ this.my_smoke = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/pot/pot_01_smoke.a}; on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- metadata/monsters/serpentclanmonster/objects/snakepot2:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_initial_position_set{{ this.my_smoke = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/pot/pot_02_smoke.a}; on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- metadata/monsters/serpentclanmonster/objects/snakepot4:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_initial_position_set{{ this.my_smoke = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/pot/pot_04_smoke.a}; on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- metadata/monsters/serpentclanmonster/serpentclancasterbossbase: Life Targetable Actor Stats [blocking=true attackable=true server_only=true] states=players = 0;vuln;retreating;intro_dialog;kabala_life_bar;disable_kabala_life_bar;no_collision on_or_create_state_no_collision_1{{ RemoveCollidability(); }}; on_state_no_collision_0{{ MakeCollidable(); }}; on_construction_complete{{ IfState( kabala_life_bar, 1, { IfState( disable_kabala_life_bar, 0, { IfAlive( { SetStaticLifeBarVisibilty( True ); } }; on_start_Vulnerability{{ AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/cast_curse.epk' ); }}; on_end_or_destroy_Vulnerability{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/cast_curse.epk' ); }}; on_death{{ RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanMonster/epk/spellcast_curse_01.epk' )}
+- Metadata/Monsters/SerpentClanMonster/objects/SnakePot1:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_initial_position_set{{ this.my_smoke = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/pot/pot_01_smoke.a}; on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- Metadata/Monsters/SerpentClanMonster/objects/SnakePot2:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_initial_position_set{{ this.my_smoke = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/pot/pot_02_smoke.a}; on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- Metadata/Monsters/SerpentClanMonster/objects/SnakePot4:  [blocking=true object_size=1 server_only=true] states=emerging;boss_dead on_initial_position_set{{ this.my_smoke = AddAttached( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/pot/pot_04_smoke.a}; on_change_state_emerging{{ AddEffectPack( SnakePotSpawn ); }}; on_state_boss_dead_1{{ IfExists( my_smoke, (){ my_smoke.PlayAnimation( close ); }, (){} ); }}
+- Metadata/Monsters/SerpentClanMonster/objects/ground_rune:  [blocking=false object_size=0 server_only=true] states=enabled;players;exploding;deactivate 
+- Metadata/Monsters/SerpentClanMonster/objects/BossRoomMinimapIcon: MinimapIcon [server_only=true icon=KabalaActive] states= on_or_create_state_boss_dead_1{{ SetMinimapIcon( KabalaInactive ); }}
+- Metadata/Monsters/SerpentClanMonster/objects/BoneWallGapFinder:  [server_only=true] states=emerging 
+
+## lines
+- on_summon_start_01 -> Kabala_Summon_Random: Feast!
+- on_summon_start_01 -> Kabala_Summon_Random: Feast!
+- on_spin_detonate_01 -> Kabala_Succumb_Random: Succumb!
+- on_spin_detonate_01 -> Kabala_Succumb_Random: Succumb!
+- on_state_intro_dialog_1 -> Kabala_PreEmerge: Kabala...
+- on_state_intro_dialog_1 -> Kabala_Emerge: Wakes!
+
+## linked buffs
+- serpent_boss_bone_armour "":  | stats=monster_base_block_%,additional_maximum_block_%,can_block_from_all_directions
+
+## arena rooms
+room metadata_terrain_gallows_act2_2_4_rooms_unique_miniboss.arm
+  sector ['no_critters', 73, 84, 236, 226, '']
+  point [142.0, 142.0, 'mapboss']
+  point [49.0, 49.0, 'checkpoint1']
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot1 x8 (153,185) (118,186) (159,187) (180,183) (188,129) (185,154) (162,89) (90,156)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot2 x10 (163,191) (125,188) (184,148) (184,134) (185,179) (112,195) (155,90) (168,89) (90,163) (108,118)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot4 x6 (176,187) (188,121) (188,160) (116,192) (148,92) (91,168)
+  obj Metadata/Terrain/Tools/AudioTools/G2_4_1/KabalaHiss x1 (151,154)
+  obj Metadata/MiscellaneousObjects/Checkpoint x1 (57,58)
+  obj Metadata/Monsters/SerpentClanMonster/objects/ground_rune x1 (142,142)
+  obj Metadata/Monsters/SerpentClanMonster/objects/BossRoomMinimapIcon x1 (142,142)
+  obj Metadata/Monsters/SerpentClanMonster/objects/BoneWallGapFinder x4 (128,96) (99,126) (104,179) (175,108)
+  obj Metadata/MiscellaneousObjects/GenericLandmarkObjects/SingleMagicPack x2 (154,37) (37,151)
+  obj Metadata/MiscellaneousObjects/DoodadInvisible x13 (159,21) (20,160) (160,72) (70,160) (54,81) (83,55) (70,105) (71,154) (107,71) (232,81)
+room metadata_terrain_maps_sevenwaters_rooms_boss_01.arm
+  sector ['hide_teleports', 104, 142, 265, 282, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 140, 282, 230, 285, '']
+  sector ['boss_sector', 107, 145, 262, 279, '']
+  point [184.0, 213.0, 'mapboss']
+  point [183.0, 343.0, 'checkpoint']
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (169,347)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot1 x8 (201,158) (223,173) (208,161) (177,156) (121,205) (147,157) (135,243) (224,250)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot2 x10 (212,168) (230,174) (140,155) (121,199) (168,154) (244,222) (140,247) (132,231) (226,243) (206,265)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot4 x6 (188,156) (123,212) (161,155) (240,228) (148,254) (232,238)
+  obj Metadata/Terrain/Tools/AudioTools/G2_4_1/KabalaHiss x1 (190,196)
+  obj Metadata/Monsters/SerpentClanMonster/objects/ground_rune x1 (184,213)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x9 (189,281) (195,281) (183,281) (177,281) (171,281) (165,281) (159,281) (201,281) (207,281)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (184,202)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (186,277)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (224,195)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (202,184) (154,174) (138,186) (175,177)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (202,233)
+room metadata_terrain_maps_steamingsprings_rooms_unique_boss_01.arm
+  sector ['hide_teleports', 223, 244, 370, 369, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['hide_teleports', 239, 227, 339, 244, 'Metadata/MiscellaneousObjects/SectorDisableInstantTeleports']
+  sector ['no_movement_skills', 237, 227, 343, 230, '']
+  sector ['no_movement_skills', 237, 227, 240, 237, '']
+  sector ['no_movement_skills', 219, 241, 222, 331, '']
+  sector ['no_movement_skills', 230, 234, 240, 237, '']
+  sector ['no_movement_skills', 230, 234, 233, 244, '']
+  sector ['no_movement_skills', 219, 241, 233, 244, '']
+  sector ['no_critters', 222, 228, 359, 366, '']
+  sector ['boss_sector', 240, 230, 367, 371, '']
+  sector ['boss_sector', 233, 237, 240, 360, '']
+  sector ['boss_sector', 222, 244, 233, 351, '']
+  point [282.0, 284.0, 'mapboss']
+  point [209.0, 52.0, 'checkpoint']
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot1 x8 (308,335) (283,344) (301,339) (327,321) (331,249) (342,299) (296,234) (231,284)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot2 x10 (294,338) (277,344) (346,293) (336,253) (333,313) (232,319) (289,232) (306,234) (229,293) (230,259)
+  obj Metadata/Monsters/SerpentClanMonster/objects/SnakePot4 x6 (318,327) (326,245) (339,310) (233,313) (279,230) (232,300)
+  obj Metadata/Terrain/Tools/AudioTools/G2_4_1/KabalaHiss x1 (289,301)
+  obj Metadata/Monsters/SerpentClanMonster/objects/ground_rune x1 (282,284)
+  obj Metadata/MiscellaneousObjects/Checkpoints/Checkpoint_Endgame_Boss x1 (207,65)
+  obj Metadata/MiscellaneousObjects/BossArenaBlocker x9 (230,239) (226,243) (235,235) (239,231) (243,226) (248,222) (252,218) (222,247) (217,251)
+  obj Metadata/MiscellaneousObjects/BossArenaController x1 (289,292)
+  obj Metadata/MiscellaneousObjects/BossForceFieldDoorVisuals x1 (235,240)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarkerMain x1 (321,297)
+  obj Metadata/MiscellaneousObjects/BossLeagueContentMarker x4 (325,265) (294,248) (243,277) (264,331)
+  obj Metadata/MiscellaneousObjects/BossLeaguePrecursorBeacon x1 (263,288)
