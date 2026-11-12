@@ -536,7 +536,37 @@ namespace Poe2Accessibility.Services
 
             var parts = new List<string> { Announcements.HonourAmount(this.HonourLabel!.Invoke(), honour.Now, honour.Most) };
             parts.AddRange(this.TrialCounterParts(TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>())));
+            parts.AddRange(this.TrialEffectParts(line.Address));
             return Announcements.Sentences(parts);
+        }
+
+        /// <summary>The afflictions and boons a run carries, as catalog keys, from the slots beside the counters; null when none are found there.</summary>
+        public Func<IntPtr, IReadOnlyList<string>?>? TrialEffectsBeside { get; set; }
+
+        /// <summary>What the run carried at the last look, null before the first: a gain is said, the first reading is not.</summary>
+        private HashSet<string>? trialEffects;
+
+        /// <summary>Each affliction and boon carried, by name and with what it does: the HUD shows an icon a kind and names none.</summary>
+        private IEnumerable<string> TrialEffectParts(IntPtr beside) =>
+            (this.TrialEffectsBeside?.Invoke(beside) ?? Array.Empty<string>())
+            .Select(key => Announcements.TrialEntry(TrialCatalog.KindOf(key), this.Trials.Text(key), this.Trials.About(key)))
+            .Where(part => part.Length > 0);
+
+        /// <summary>Says an affliction or boon as the run gains it ("Desventaja: Niebla roja. …"): nothing on screen names it then.</summary>
+        public void CheckTrialEffects(ScreenSnapshot snapshot)
+        {
+            if (this.HonourLine(snapshot) is not { } line || this.TrialEffectsBeside?.Invoke(line.Address) is not { } carried)
+            {
+                return;
+            }
+
+            var gained = this.trialEffects == null ? new List<string>() : carried.Where(key => !this.trialEffects.Contains(key)).ToList();
+            this.trialEffects = carried.ToHashSet();
+            var news = gained.Select(key => Announcements.TrialEntry(TrialCatalog.KindOf(key), this.Trials.Text(key), this.Trials.About(key))).Where(part => part.Length > 0).ToList();
+            if (news.Count > 0)
+            {
+                this.Speak("trial effects", Announcements.Sentences(news), false);
+            }
         }
 
         /// <summary>Which of the Trial's counters a number's element is (<see cref="UiSemantics.TrialCounterKind"/>), negative for none.</summary>
@@ -554,15 +584,19 @@ namespace Poe2Accessibility.Services
             }
 
             var counts = new string?[TrialHud.CounterCount];
+            var beside = IntPtr.Zero;
             foreach (var text in layer.Texts.Where(text => IsNumber(text.Text)))
             {
                 if (kindOf(text.Address) is >= 0 and var kind && kind < counts.Length)
                 {
                     counts[kind] = text.Text;
+                    beside = text.Address;
                 }
             }
 
-            return counts.All(count => count != null) ? Announcements.Sentences(this.TrialCounterParts(TrialHud.Parse(counts!))) : string.Empty;
+            return counts.All(count => count != null)
+                ? Announcements.Sentences(this.TrialCounterParts(TrialHud.Parse(counts!)).Concat(this.TrialEffectParts(beside)))
+                : string.Empty;
         }
 
         private IEnumerable<string> TrialCounterParts(TrialCounters? counters)

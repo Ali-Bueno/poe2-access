@@ -169,6 +169,11 @@ namespace Poe2Accessibility.Services
 
                 // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing, and must stand out (user 2026-11-07).
                 sound = Switches.IsSwitch(path) ? MinimapMarks.QuestObjectKind : sound;
+                if (name.Length == 0 && TrialWater.IsDrop(path))
+                {
+                    name = this.landmarks.WaterLabel; // the game's own word for what the drop is: "Agua sagrada"
+                }
+
                 if (name.Length == 0)
                 {
                     // Named only in a WorldDescription, which the mod cannot read: the real Relic Altar, after its named stand-in leaves

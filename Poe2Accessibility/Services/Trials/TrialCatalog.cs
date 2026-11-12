@@ -103,6 +103,10 @@ namespace Poe2Accessibility.Services
             return this.icons.TryGetValue(art, out var key) ? key : null;
         }
 
+        /// <summary>The key of an affliction or boon by its SanctumPersistentEffects Id; null for an Id the tables do not hold.</summary>
+        public string? KeyOfEffect(string id) =>
+            id.Length > 0 && EffectPrefix + id is var key && KindOf(key) is TrialEntryKind.Affliction or TrialEntryKind.Boon && this.Text(key).Length > 0 ? key : null;
+
         public static TrialEntryKind KindOf(string key) => key switch
         {
             _ when key.StartsWith(AfflictionPrefix, StringComparison.Ordinal) => TrialEntryKind.Affliction,

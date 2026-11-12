@@ -45,6 +45,7 @@ namespace Poe2Accessibility.Services
                 .Concat(TrialTraps.FilesMatched.SelectMany(trap => trap.Firing.Count == 0
                     ? new[] { new GameName(GameNameKind.ObjectFile, trap.File, null, nameof(TrialTraps)) }
                     : trap.Firing.Select(state => new GameName(GameNameKind.ObjectFile, trap.File, state, nameof(TrialTraps)))))
-                .Append(new GameName(GameNameKind.ObjectFile, TrialDoors.DoorFile, TrialDoors.OpenState, nameof(TrialDoors)));
+                .Append(new GameName(GameNameKind.ObjectFile, TrialDoors.DoorFile, TrialDoors.OpenState, nameof(TrialDoors)))
+                .Append(new GameName(GameNameKind.ObjectFile, TrialWater.DropFile, null, nameof(TrialWater)));
     }
 }

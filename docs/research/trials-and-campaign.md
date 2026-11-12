@@ -148,6 +148,40 @@ New this session (commit "Name the trials' icons and counters from the game's ta
 - Trap timing: `TrapWatch` warns at 400 world units on the state names from the `.ot`; the real lead time is unknown.
 - The "(+N)" water and what the Offer defers: UNSURE.
 
+### 1.5 The floor in memory: links, the rooms taken, what the run carries (MEASURED live 2026-11-12, 0.5.5f)
+Read-only, on the user's open map (floor 1, columns of 1, 3, 3, 4, 5, 4, 6, 1 rooms), against a picture of the map taken
+without focusing the game (`tools/research/trialfloor/bgshot.py`, PrintWindow): 45 links of 45. The decoder with every
+check is `tools/research/trialfloor/trialfloor.py`. This solves the first two gaps of §1.4, which stay as the history.
+- **The floor object.** The window's content element (the room buttons' fifth ancestor: room, column, columns' container,
+  the element holding the canvas and the container, one more, then it) holds its pointer at `+0x3A0`; the HUD's row
+  (the honour line's parent) holds the same pointer at `+0x330`. Both were read and agree.
+- **Links** (`+0x1F8`): a std::vector of columns of 0x20 bytes, each a std::vector of rooms of 0x38 bytes; a room is a
+  small byte vector (begin `+0x0`, end `+0x8`, its three bytes inline at `+0x18`), each byte the row it leads to in the
+  next column, ascending. The boss's room has none. The same links, with a room list of the floor's start, stand 0x48
+  lower (`+0x1B0`): **that block holds more than the screen shows** (rooms hidden since) and is never to be read.
+- **The rooms taken** (`+0x230`): a byte a column, the row taken, `0xFF` from the first column not reached
+  (`00 01 02 03 FF FF FF FF` on the user's walk). `+0x238` read 4, LIKELY the next column.
+- **What the map shows of each room** (`+0x210`): a std::vector of 0x40-byte entries, one a room that has an icon now
+  (column `+0x0`, row `+0x1`, keys to its encounter `+0x8` and reward `+0x18`, both rows of SanctumRooms, to its
+  affliction `+0x28`, visited `+0x39`); a room under "Red Smoke" has a null encounter. Not read by the plugin: the
+  tooltip says the same.
+- **How each link is drawn**: the canvas element holds at `+0x2C8` a std::vector of one 0x18-byte segment a link, in the
+  links' order (four floats, then a u32 state at `+0x10`): 0 red, 2 gold (a way still open from the player's room), 3
+  taken. The plugin computes the same from the links and the rooms taken (`TrialMap.View`), so it does not read it.
+- **What the run carries**: each of the five slots beside the counters (HUD row, and again in the map window) holds at
+  `+0x2F0` a std::vector of 0x10-byte keys, each a row of SanctumPersistentEffects then its table; the row's first field
+  points to its Id ("AfflictionHideRoomEncounter" = "Red Smoke", "Niebla roja"). A slot is drawn while its vector holds
+  something; an empty slot's vector is null. `+0x2D0` read the kind's row plus one (LIKELY). A scan of the whole process
+  for that row found no other list. The relics' effects were not found in any of these objects (their text is the
+  tooltip of the map's button).
+- **In the plugin** (`UiSemantics.TrialMap.cs`, offsets in `GameLayout.TrialFloor`): nothing is believed alone. The links
+  must fit the map on screen (`TrialMap.Fits`: as many columns and rooms as the buttons, every target a room of the next
+  column, every room led to); the rooms taken must be a walk along them (`TrialMap.Walk`); an effect's Id must be one
+  `trials.json` holds. A reading that fails falls back to the standing by column, and a log line says what was read
+  ("Trial floor: …"). Each room then says how it stands ("tu sala", "en tu camino", "sin camino desde tu sala"), the
+  rooms to enter it is reached through when there is a choice, and the rooms it leads to; the vitals and the map's
+  screen reading name what the run carries, and a gain is said as it comes. Not heard in a game yet.
+
 ## 2. Trial of Chaos (Ultimatum)
 
 ### 2.1 Mechanics

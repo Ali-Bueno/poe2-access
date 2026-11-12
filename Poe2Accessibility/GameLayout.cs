@@ -118,6 +118,48 @@ namespace Poe2Accessibility
             ///     measured 2026-11-12).
             /// </summary>
             public static readonly string[] TrialCounterArtMarkers = { "/Sanctum/GoldIcon", "/Sanctum/BronzeKeyIcon", "/Sanctum/SilverKeyIcon", "/Sanctum/GoldKeyIcon" };
+
+            /// <summary>
+            ///     The icon of a slot of what a run carries, one slot a kind (minor and major affliction, minor and major boon, pact):
+            ///     "…/InGame/Sanctum/BoonCurseIcons/MinorCurseIcon.dds", the first child of the slot (measured 2026-11-12).
+            /// </summary>
+            public const string TrialEffectSlotArtMarker = "/Sanctum/BoonCurseIcons/";
+        }
+
+        /// <summary>
+        ///     The Trial of the Sekhemas' floor in memory (measured live 2026-11-12 on 0.5.5f against a picture of the map: 45 links
+        ///     of 45; docs/research/trials-and-campaign.md §1.5). Nothing here is believed alone: the links must fit the map on
+        ///     screen (<see cref="Services.TrialMap.Fits"/>) and an effect's Id must be one the game's tables hold, so a field a
+        ///     patch moves reads as nothing instead of as something else.
+        /// </summary>
+        public static class TrialFloor
+        {
+            /// <summary>On an ancestor of the room buttons (the window's content, three above the columns' container): the floor's pointer.</summary>
+            public const int HolderOffset = 0x3A0;
+
+            /// <summary>How far up from a room the holder is looked for.</summary>
+            public const int HolderHops = 7;
+
+            /// <summary>The floor's std::vector of columns, each a std::vector of rooms followed by 8 bytes.</summary>
+            public const int ColumnsOffset = 0x1F8;
+            public const int ColumnSize = 0x20;
+
+            /// <summary>A room: the begin and end of its ways at +0x0 and +0x8, a byte each, the row it leads to in the next column.</summary>
+            public const int RoomSize = 0x38;
+            public const int MaxWays = 8;
+
+            /// <summary>A byte a column: the row of the room the player took there, <see cref="NoRoom"/> where none yet.</summary>
+            public const int PathOffset = 0x230;
+            public const int PathColumns = 8;
+            public const byte NoRoom = 0xFF;
+
+            /// <summary>On a slot of what a run carries: a std::vector of keys, each a row of SanctumPersistentEffects then its table.</summary>
+            public const int SlotEffectsOffset = 0x2F0;
+            public const int KeySize = 0x10;
+            public const int MaxEffects = 32;
+
+            /// <summary>The most characters of a row's Id ("AfflictionHideRoomEncounter"), the string its first field points to.</summary>
+            public const int EffectIdChars = 96;
         }
 
         /// <summary>

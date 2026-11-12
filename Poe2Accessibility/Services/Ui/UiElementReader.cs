@@ -568,6 +568,17 @@ namespace Poe2Accessibility.Services
             return this.reader.TryReadBytes(address, block) ? WStringDecoder.TryDecode(this.reader, block, 0, MaxTextLength, allowEmpty: true) : null;
         }
 
+        /// <summary>A pointer stored at an address, false when unreadable or not an address of the game's.</summary>
+        public bool TryReadPointer(IntPtr address, out IntPtr value) =>
+            this.reader.TryRead(address, out value) && this.reader.IsValidAddress(value);
+
+        /// <summary>The pointer-sized value stored at an address, whatever it is (null too); false when unreadable.</summary>
+        public bool TryReadWord(IntPtr address, out IntPtr value) => this.reader.TryRead(address, out value);
+
+        /// <summary>Bytes at an address, fewer than asked (none) when unreadable.</summary>
+        public byte[] ReadBytesAt(IntPtr address, int count) =>
+            count > 0 && this.reader.IsValidAddress(address) ? this.reader.ReadBytes(address, count) : Array.Empty<byte>();
+
         /// <summary>Reads a NUL-terminated UTF-16 buffer at an arbitrary address; null when not printable text.</summary>
         public string? ReadUtf16BufferAt(IntPtr address, int maxChars)
         {

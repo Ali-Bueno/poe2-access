@@ -34,3 +34,4 @@ ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/ProjectileTurret		TrialTrap
 ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/PetrificationStatue		TrialTraps
 ObjectFile	Metadata/Monsters/LeagueUltimatum/Daemon/LaserPyramid		TrialTraps
 ObjectFile	Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor	open	TrialDoors
+ObjectFile	Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote		TrialWater

@@ -73,6 +73,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />

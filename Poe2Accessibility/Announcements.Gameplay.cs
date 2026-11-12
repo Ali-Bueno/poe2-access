@@ -294,11 +294,33 @@ namespace Poe2Accessibility
         public static string HiddenRoom => T("Hidden room", "Sala oculta");
 
         /// <summary>A room's place on the Trial's map, columns running from the entrance to the boss; to enter a room, its tooltip says so.</summary>
-        public static string TrialRoomPlace(int column, int columns, int room, int rooms, Services.TrialRoomStanding standing)
+        /// <param name="through">With the links known: the rooms to enter that lead to this one, when there is a choice (rows from 0).</param>
+        /// <param name="leadsTo">With the links known: the rooms of the next column this one leads to (rows from 0).</param>
+        public static string TrialRoomPlace(
+            int column, int columns, int room, int rooms, Services.TrialRoomStanding standing, IReadOnlyList<int>? through = null, IReadOnlyList<int>? leadsTo = null)
+        {
+            var parts = new List<string> { TrialRoomStands(column, columns, room, rooms, standing) };
+            if (through is { Count: > 0 })
+            {
+                var list = string.Join(", ", through.Select(each => each + 1));
+                parts.Add(through.Count == 1 ? T($"through room {list}", $"por la sala {list}") : T($"through rooms {list}", $"por las salas {list}"));
+            }
+
+            if (leadsTo is { Count: > 0 })
+            {
+                var list = string.Join(", ", leadsTo.Select(each => each + 1));
+                parts.Add(leadsTo.Count == 1 ? T($"leads to room {list}", $"lleva a la sala {list}") : T($"leads to rooms {list}", $"lleva a las salas {list}"));
+            }
+
+            return string.Join(", ", parts);
+        }
+
+        private static string TrialRoomStands(int column, int columns, int room, int rooms, Services.TrialRoomStanding standing)
         {
             var place = T($"column {column} of {columns}, room {room} of {rooms}", $"columna {column} de {columns}, sala {room} de {rooms}");
             return standing switch
             {
+                Services.TrialRoomStanding.Reachable => $"{place}, {T("on your way", "en tu camino")}",
                 Services.TrialRoomStanding.Here => $"{place}, {T("your column", "tu columna")}",
                 Services.TrialRoomStanding.Current => $"{place}, {T("your room", "tu sala")}",
                 Services.TrialRoomStanding.Behind => $"{place}, {T("left behind", "ya quedó atrás")}",

@@ -382,6 +382,8 @@ namespace Poe2Accessibility
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;
                 this.narrator.TrialCounterKind = this.semantics.TrialCounterKind;
+                this.narrator.TrialEffectsBeside = this.semantics.TrialEffects;
+                this.semantics.TrialFloorNote = note => this.log?.Info(note);
                 this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
@@ -696,6 +698,7 @@ namespace Poe2Accessibility
             if (this.Settings.AnnounceTrialCounters)
             {
                 this.Isolated("trial counters", snapshot, static (core, snapshot) => core.narrator?.CheckTrialCounters(snapshot));
+                this.Isolated("trial effects", snapshot, static (core, snapshot) => core.narrator?.CheckTrialEffects(snapshot));
             }
 
             if (this.Settings.AnnounceTrialProgress)

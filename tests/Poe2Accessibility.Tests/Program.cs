@@ -3183,6 +3183,9 @@ namespace Poe2Accessibility.Tests
             Equal(TrialTrap.Laser, TrialTraps.KindOf(Hazards + "LaserCrossBeamTurret@22"), "whatever its level");
             Equal(null, TrialTraps.KindOf(Hazards + "GroundSpikeSpawner"), "what spawns them is no trap");
             Equal(null, TrialTraps.KindOf(Hazards + "HourglassLethal"), "the Death Crystal is its own object");
+            Equal(true, TrialWater.IsDrop("Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote"), "the sacred water a monster drops");
+            Equal(true, TrialWater.IsDrop("Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote@22"), "whatever its level");
+            Equal(false, TrialWater.IsDrop("Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMoteSpawner"), "and nothing merely named after it");
             Equal(null, TrialTraps.KindOf("Metadata/Monsters/Wolves/Wolf"), "a monster");
             Equal(false, TrialTraps.IsSeenBeforeItStrikes(TrialTrap.Spikes), "spikes lie hidden");
             Equal(true, TrialTraps.IsSeenBeforeItStrikes(TrialTrap.Laser), "a turret stands in the open");
@@ -3210,6 +3213,49 @@ namespace Poe2Accessibility.Tests
             Equal(false, TrialMap.IsMap(new[] { 1, 2, 1 }), "too few columns");
             Equal(false, TrialMap.IsMap(new[] { 1, 0, 3, 1 }), "and every column holds rooms");
             Equal(false, TrialMap.IsMap(Enumerable.Repeat(1, 31).ToArray()), "no choice of rooms: the Cosmetics panel's 31 slots (2026-11-10)");
+            // The user's floor of 2026-11-12 as the game drew it: columns of 1, 3, 3, 4, 5, 4, 6 and 1 rooms.
+            var floor = new[] { 1, 3, 3, 4, 5, 4, 6, 1 };
+            var links = new IReadOnlyList<int>[][]
+            {
+                new IReadOnlyList<int>[] { new[] { 0, 1, 2 } },
+                new IReadOnlyList<int>[] { new[] { 0, 1 }, new[] { 1, 2 }, new[] { 2 } },
+                new IReadOnlyList<int>[] { new[] { 0, 1, 2 }, new[] { 2 }, new[] { 2, 3 } },
+                new IReadOnlyList<int>[] { new[] { 0, 1, 2 }, new[] { 2 }, new[] { 2, 3, 4 }, new[] { 4 } },
+                new IReadOnlyList<int>[] { new[] { 0, 1 }, new[] { 1 }, new[] { 1, 2 }, new[] { 2 }, new[] { 2, 3 } },
+                new IReadOnlyList<int>[] { new[] { 0, 1, 2 }, new[] { 2, 3 }, new[] { 3, 4 }, new[] { 4, 5 } },
+                new IReadOnlyList<int>[] { new[] { 0 }, new[] { 0 }, new[] { 0 }, new[] { 0 }, new[] { 0 }, new[] { 0 } },
+            };
+            Equal(true, TrialMap.Fits(floor, links), "links that fit the map on screen");
+            Equal(false, TrialMap.Fits(new[] { 1, 3, 4, 3, 5, 3, 6, 1 }, links), "another floor's are not this map's");
+            Equal(false, TrialMap.Fits(floor, links.Take(6).ToArray()), "nor a column short");
+            Equal("4", string.Join(",", TrialMap.WaysTo(links, 4, new[] { 4 }, 6, 5)), "the one room to enter leads on to the last of the sixes");
+            Equal(string.Empty, string.Join(",", TrialMap.WaysTo(links, 4, new[] { 4 }, 6, 0)), "and by no way to the first");
+            Equal("0,1", string.Join(",", TrialMap.WaysTo(links, 1, new[] { 0, 1, 2 }, 2, 1)), "two of the three first rooms lead to the middle of the next");
+            Equal("0", string.Join(",", TrialMap.WaysTo(links, 1, new[] { 0, 1, 2 }, 3, 1)), "and one alone to a room two columns on");
+            Equal("4", string.Join(",", TrialMap.WaysTo(links, 4, new[] { 4 }, 4, 4)), "a room leads to itself");
+
+            // The rooms taken as the game keeps them, a byte a column, and what the map then says of each room.
+            const byte NoRoom = 0xFF;
+            var walk = TrialMap.Walk(links, new byte[] { 0, 1, 2, 3, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom);
+            Equal("0,1,2,3", string.Join(",", walk), "the walk of 2026-11-12");
+            Equal(0, TrialMap.Walk(links, new byte[] { 0, 1, 0, 3, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom).Count, "rooms no link joins are no walk");
+            Equal(0, TrialMap.Walk(links, new byte[] { 0, 1, NoRoom, 3, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom).Count, "nor a walk with a gap");
+            Equal(0, TrialMap.Walk(links, new byte[] { NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom).Count, "nor none at all");
+            var open = new[] { 4 };
+            string View(int column, int room) =>
+                TrialMap.View(links, walk, column, room, open) is var view ? $"{view.Standing} through {string.Join(",", view.Through)} to {string.Join(",", view.LeadsTo)}" : string.Empty;
+            Equal("Current through  to 4", View(3, 3), "the player's room, and the one room it leads to");
+            Equal("Here through  to ", View(3, 0), "another room of its column");
+            Equal("Behind through  to ", View(2, 2), "a room taken before");
+            Equal("Open through  to 2,3", View(4, 4), "the room to enter, and where it leads");
+            Equal("Beside through  to ", View(4, 0), "a room beside it no way leads to");
+            Equal("Reachable through  to 3,4", View(5, 2), "a room further on the gold lines reach: one room to enter, so no choice to tell");
+            Equal("Beside through  to ", View(5, 0), "and one the red lines alone reach");
+            Equal("Reachable through  to ", View(6, 5), "the last rooms lead to the boss alone");
+            Equal("Reachable through  to ", View(7, 0), "the boss");
+            var start = TrialMap.Walk(links, new byte[] { 0, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom);
+            var choice = TrialMap.View(links, start, 3, 1, new[] { 0, 1, 2 });
+            Equal("Reachable 0", $"{choice.Standing} {string.Join(",", choice.Through)}", "at the entrance, a room two columns on is reached through the first room alone");
             Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1), "the room offers to enter");
             Equal(TrialRoomStanding.Here, TrialMap.Standing(0, false, 1), "the column before the first to enter is the player's");
             Equal(TrialRoomStanding.Current, TrialMap.Standing(0, false, 1, true), "the room of that column with the game's mark is where the player stands");
