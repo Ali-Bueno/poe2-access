@@ -199,6 +199,10 @@ namespace Poe2Accessibility.Services
                 this.arriving = false;
                 this.arrivedAt = here;
             }
+            else if (this.arrivedAt is { } stood && Vector2.Distance(here, stood) > ReachWorld)
+            {
+                this.arrivedAt = null; // walked off: coming back to that spot is a move like any other
+            }
 
             if (current != null && current.Id == this.targetSpoken)
             {
@@ -254,13 +258,12 @@ namespace Poe2Accessibility.Services
             // ("Ballesta tensa, A" heard while A already held a bow, 2026-10-26). A queued name of it is skipped later.
             // The player's own move: it waited out "Inventario lleno" and the quest page (user 2026-11-11). Not where the
             // player arrived and still stands: there it waits for the area's line, which it used to replace.
-            if (this.arrivedAt is { } place && Vector2.Distance(here, place) <= ReachWorld)
+            if (this.arrivedAt != null)
             {
                 this.output.Speak(this.Label(current), true);
                 return;
             }
 
-            this.arrivedAt = null;
             this.output.Moved(this.Label(current));
         }
 
