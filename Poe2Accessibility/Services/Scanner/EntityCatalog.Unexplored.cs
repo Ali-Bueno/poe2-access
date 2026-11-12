@@ -1,0 +1,125 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Numerics;
+    using System.Threading.Tasks;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
+    using GameOffsets.Natives;
+    using GameOffsets.Objects.States.InGameState;
+
+    /// <summary>The scanner's unexplored ground and the death place: the frontier places to walk to and where the player last died.</summary>
+    public sealed partial class EntityCatalog
+    {
+        /// <summary>Unexplored entries: this base plus their block (row in the high half), above the tile landmarks.</summary>
+        private const uint UnexploredIdBase = 0xC0000000;
+
+        /// <summary>The place of the last death: one id between the tile landmarks and the unexplored blocks.</summary>
+        private const uint DeathPlaceId = UnexploredIdBase - 1;
+
+        /// <summary>
+        ///     Where the player last died (D2R death place), with the area instance it belongs to: listed among the exits
+        ///     whenever that instance is current, until the next death.
+        /// </summary>
+        private (string Area, ScanEntry Entry)? deathPlace;
+
+        private const int MaxUnexplored = 8;
+
+        /// <summary>The frontier scans the whole grid: recomputed at most this often (the many Entries() callers share it).</summary>
+        private const int UnexploredRefreshMs = 2000;
+
+        private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
+        private long unexploredAt = long.MinValue / 2;
+
+        /// <summary>The frontier being worked out, with the map it reads and what its places need to become entries.</summary>
+        private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height)? frontierSearch;
+
+        /// <summary>How much of the ground the player can reach has been seen, in percent; null outside gameplay or without a grid.</summary>
+        public int? ExploredPercent()
+        {
+            return Seats.Followed.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
+                ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y))
+                : null;
+        }
+
+        /// <summary>Where unseen ground begins, in grid cells, nearest first; pockets only once nothing else is left (the radar's mark, the loop).</summary>
+        public IReadOnlyList<Vector2> UnexploredCells()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var toWorld = area.WorldToGridConvertor;
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return Array.Empty<Vector2>();
+            }
+
+            var places = this.Unexplored(area, player);
+            var onward = places.Where(entry => entry.Kind != ExplorationMap.PocketKind).ToList();
+            return (onward.Count > 0 ? onward : places).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
+        }
+
+        /// <summary>The line from <paramref name="from"/> along <paramref name="axis"/> (grid cells) soon leaves the seen ground: the radar's mark.</summary>
+        public bool LeadsToUnseen(Vector2 from, Vector2 axis)
+        {
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return false;
+            }
+
+            this.Unexplored(Core.States.InGameStateObject.CurrentAreaInstance, player); // keeps the reachable ground fresh
+            return this.explored.LeavesTheSeen(from, axis, ExplorationMap.MarkReachCells);
+        }
+
+        /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>) as last worked out; a new search starts every UnexploredRefreshMs.</summary>
+        private IReadOnlyList<ScanEntry> Unexplored(AreaInstance area, Render player)
+        {
+            var now = Environment.TickCount64;
+            if (this.frontierSearch is { Places.IsCompleted: true } found)
+            {
+                this.frontierSearch = null;
+                if (found.Places.IsFaulted)
+                {
+                    this.log.Info($"Unexplored ground not found: {found.Places.Exception?.GetBaseException().Message}");
+                }
+                else if (this.explored.Adopt(found.Map))
+                {
+                    this.unexplored = found.Places.Result
+                        .Select(place => new ScanEntry(
+                            UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells),
+                            ScanCategory.Unexplored,
+                            place.Pocket ? Announcements.UnexploredPocket : Announcements.UnexploredArea,
+                            place.Cell.X * found.ToWorld,
+                            place.Cell.Y * found.ToWorld,
+                            found.Height,
+                            place.Pocket ? ExplorationMap.PocketKind : string.Empty))
+                        .ToList();
+                }
+            }
+
+            if (this.frontierSearch != null || now - this.unexploredAt < UnexploredRefreshMs || !this.TryLiveGrid(out var grid, out var row))
+            {
+                return this.unexplored;
+            }
+
+            // Off the frame thread: every two seconds it held a frame for 30 ms, 140 ms on a Trial's floor (docs/research/performance.md).
+            this.unexploredAt = now;
+            var map = this.explored.Snapshot();
+            var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
+            this.frontierSearch = (Task.Run(() => map.Frontier(grid, row, from, MaxUnexplored)), map, area.WorldToGridConvertor, player.WorldPosition.Z);
+            return this.unexplored;
+        }
+
+        /// <summary>Notes where the player stands as the place of the death that just happened.</summary>
+        public void RememberDeath()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if (area.AreaHash.Length > 0 && Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                var at = player.WorldPosition;
+                this.deathPlace = (area.AreaHash, new ScanEntry(DeathPlaceId, ScanCategory.Exits, Announcements.DeathPlace, at.X, at.Y, at.Z));
+            }
+        }
+    }
+}
