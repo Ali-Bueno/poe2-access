@@ -469,10 +469,13 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>A build not judged before, with nothing lost: the player hears the mod came through the patch.</summary>
+        /// <summary>
+        ///     A build not judged before, with nothing lost here nor in the other checks: the player hears the mod came through
+        ///     the patch. With a part missing the build stays unjudged, so the line is said once it is found again.
+        /// </summary>
         private void NoteBuild(IReadOnlyList<StructOutcome> outcomes)
         {
-            if (this.GameBuild.Length == 0 || outcomes.Any(outcome => outcome.Health == StructHealth.Lost))
+            if (this.GameBuild.Length == 0 || this.report.AnyMissing || outcomes.Any(outcome => outcome.Health == StructHealth.Lost))
             {
                 return;
             }

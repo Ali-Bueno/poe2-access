@@ -125,8 +125,10 @@ namespace Poe2Accessibility.Tests
             }
 
             Equal(false, report.IsMissing(part), "one dropdown that never reads (an empty list): five misses, no warning");
+            Equal(false, report.AnyMissing, "and nothing missing holds back the line of a patch come through");
             controls.Shift(ControlGroup.ComboBox, 2, _ => false);
             Equal(true, report.IsMissing(part), "a second dropdown does not read either: the layout is lost");
+            Equal(true, report.AnyMissing, "one part missing: the patch was not come through whole");
 
             var healthy = new CompatibilityReport(log);
             var fine = new ControlFields(healthy, () => 0, () => now);

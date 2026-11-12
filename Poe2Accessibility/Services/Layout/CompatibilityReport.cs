@@ -55,6 +55,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the part is recorded as not found now.</summary>
         public bool IsMissing(string part) => this.outcomes.TryGetValue(part, out var outcome) && outcome == "missing";
 
+        /// <summary>Gets whether any part is recorded as not found now.</summary>
+        public bool AnyMissing => this.outcomes.ContainsValue("missing");
+
         /// <summary>The game process changed: everything is checked again.</summary>
         public void Reset()
         {
