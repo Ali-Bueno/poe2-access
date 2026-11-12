@@ -72,6 +72,31 @@ the web is UNSURE until seen).
   affliction/boon icons in `SanctumHUDDisplay` (LIKELY their place); the clock "MM:SS"; the crystals line.
 - Map window: columns of room buttons (8 on floor 1: 1,3,4,3,5,3,6,1), a canvas with the links (not readable), tooltip
   per room (name, reward/affliction, "Entrar, A" when enterable); a tutorial paragraph (`label:map`).
+- The map window mid-run (MEASURED 2026-11-12 on the user's open map, floor 1, the player in column 4 with one room to
+  enter; a visible-only dump and `focusinfo` on each element — a full dump runs out of its 20,000 nodes in the passive
+  tree before reaching the window):
+  - `panels_parent` child 13. The links' canvas is one element with no children: **which room links to which is not in
+    the UI tree**.
+  - Each column is an element, its rooms buttons of 108 by 108. What a room shows is images among its children:
+    its reward or kind (`Sanctum/HealingFountainIcon`, `MoreHealingFountainIcon`, `SilverKeyIcon`,
+    `RattlecageBossIcon` on the boss, `MarakethStatueIcon` on the entrance), `CurseRoomFrame` on an afflicted room, and on
+    the room the player stands in `ValidPathGlow` with a second image named `public_icon` (the statue again). A room not
+    revealed has no children. Rooms walked through kept their icons (key, afflicted fountain); the others behind had none.
+  - A room's tooltip exists only once it was hovered: "Otorga una llave de plata | Encuentro desconocido" (the kind
+    unknown, the reward known), and "Entrar" on the room that can be entered.
+  - The counters row: four pairs of an icon and a number, `Sanctum/GoldIcon` (the water), `BronzeKeyIcon`,
+    `SilverKeyIcon`, `GoldKeyIcon`; the numbers alone are texts ("78", "0", "1", "0").
+  - Bottom left, two buttons without text: one whose tooltip is "Salir de las pruebas | El progreso de las pruebas se
+    guardará y podrás regresar más tarde", one whose tooltip lists the relics' effects ("Efectos de reliquias: Armadura,
+    evasión y escudo de energía aumentados un 25% | Los monstruos tienen un 6% de probabilidad de dar el doble de agua
+    sagrada"). In the title bar an `Info` button holds the tutorial paragraph. Whether the pad's focus reaches the three
+    is not known: the button bar showed only "Cerrar [B]".
+- The HUD row past the honour line (same dump): the honour bar's fills (`HonourBarFill`, `HonourBarFillHurt`), then a
+  container of five slots, each an icon and its frame (`Sanctum/BoonCurseIcons/MajorBoonIcon` + `MajorBoonIconFrame`,
+  `MinorCurseIcon` + `CurseIconFrame`, …), a slot visible while the player carries one of its kind (only the minor
+  affliction's was), and a sixth child with the pad hint `RightStickButton2` "+" `DPadLeft`: the game's own shortcut,
+  LIKELY to the list of what is carried. The icons are the kind's, not the effect's: **the HUD does not name an
+  affliction**, so the names are in that list or nowhere.
 - Shrine/merchant/pledge windows, the run summary, the relic altar (relic grid + slots): ordinary windows (LIKELY: the
   generic widget readers; the relic altar dump of 10:41 was taken but not studied here — see the protocol).
 
@@ -98,11 +123,18 @@ New this session (commit "Name the trials' icons and counters from the game's ta
   target; the first door's states are logged once ("Trial room door seen: open=…, wall=…").
 
 ### 1.4 Gaps
-- Afflictions/boons gained: no change announcement yet (the HUD icon appearing is a texture, not a text). Once the HUD
-  element is known (protocol below), diff the icon list under `SanctumHUDDisplay` and speak `TrialIcon` of each new one
-  (LIKELY one evening of work; the data is already in the catalog).
-- Map links: the canvas is not readable; the standing by column stays the best offline answer (UNSURE if the game
-  marks the current room by a frame texture — check the dump of a mid-run map).
+- Afflictions/boons gained: no announcement yet, and nothing said the user's on 2026-11-12 (they knew it only by its
+  effect, the map's rooms hidden). The HUD's slots give the kind alone (§1.2), so a new slot can be said as "minor
+  affliction gained" at once; its name needs the list behind R3 + D-pad left, a window not dumped yet (is it read by the
+  generic reader? does it exist hidden while closed, so the name can be read without opening it?).
+- Map links: not in the UI tree (§1.2), so they need the map's own data in memory, a layout not known; a picture of an
+  open map beside its room buttons' rectangles would be the ground truth to find it by. Until then the standing by
+  column, with since 2026-11-12 the player's own room ("tu sala", by `ValidPathGlow`) and "sin camino desde tu sala" for
+  the rooms beside the one to enter (they were "aún no puedes entrar", as if they opened later). With no room to
+  enter (the map opened before the room is done) every room still reads "aún no puedes entrar": is the glow drawn then?
+- The map's counters read as bare numbers in the screen reading ("78, 0, 1, 0"): the icon before each names it.
+- The map's three text-less buttons (leave the Trial, the relics' effects, the tutorial): to check whether the pad
+  reaches them and what is said there; the relics' effects are worth a line on opening the map or in the vitals.
 - Honour per hit: nothing says what drained it; the honour buffs above could be named as they begin (they are harmful
   buffs: `HarmfulBuffs` may already say them, LIKELY).
 - Relic altar and locker: unseen windows (dumps 10:41/10:52 exist); the relic grid is probably an inventory-like grid

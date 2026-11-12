@@ -300,8 +300,10 @@ namespace Poe2Accessibility
             return standing switch
             {
                 Services.TrialRoomStanding.Here => $"{place}, {T("your column", "tu columna")}",
+                Services.TrialRoomStanding.Current => $"{place}, {T("your room", "tu sala")}",
                 Services.TrialRoomStanding.Behind => $"{place}, {T("left behind", "ya quedó atrás")}",
                 Services.TrialRoomStanding.Ahead => $"{place}, {T("not reachable yet", "aún no puedes entrar")}",
+                Services.TrialRoomStanding.Beside => $"{place}, {T("no way to it from your room", "sin camino desde tu sala")}",
                 _ => place,
             };
         }

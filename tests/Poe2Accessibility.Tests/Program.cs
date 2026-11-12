@@ -3212,9 +3212,12 @@ namespace Poe2Accessibility.Tests
             Equal(false, TrialMap.IsMap(Enumerable.Repeat(1, 31).ToArray()), "no choice of rooms: the Cosmetics panel's 31 slots (2026-11-10)");
             Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1), "the room offers to enter");
             Equal(TrialRoomStanding.Here, TrialMap.Standing(0, false, 1), "the column before the first to enter is the player's");
+            Equal(TrialRoomStanding.Current, TrialMap.Standing(0, false, 1, true), "the room of that column with the game's mark is where the player stands");
             Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, false, 3), "before it, left behind");
+            Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, false, 3, true), "a mark further back is not believed");
+            Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1, true), "nor on a room that offers to enter");
             Equal(TrialRoomStanding.Ahead, TrialMap.Standing(2, false, 1), "after it, not reachable");
-            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(1, false, 1), "nor is a room beside the open ones that does not offer");
+            Equal(TrialRoomStanding.Beside, TrialMap.Standing(1, false, 1), "a room beside the open ones that does not offer has no way from the player's");
             Equal(TrialRoomStanding.Ahead, TrialMap.Standing(0, false, -1), "with nothing open nothing can be told");
         }
 

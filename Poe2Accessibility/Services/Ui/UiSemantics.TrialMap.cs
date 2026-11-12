@@ -56,9 +56,16 @@ namespace Poe2Accessibility.Services
             }
 
             var firstOpen = rooms.FindIndex(inColumn => inColumn.Any(this.TrialRoomIsOpen));
-            var standing = TrialMap.Standing(column, this.TrialRoomIsOpen(address), firstOpen);
+            var standing = TrialMap.Standing(column, this.TrialRoomIsOpen(address), firstOpen, this.TrialRoomIsMarked(address));
             return Announcements.TrialRoomPlace(column + 1, columns.Length, row + 1, rooms[column].Length, standing);
         }
+
+        /// <summary>Whether the game draws the player's glow under the room: an image among the button's children.</summary>
+        private bool TrialRoomIsMarked(IntPtr room) =>
+            this.elements.TryReadElement(room, out var info) &&
+            this.elements.ReadChildren(info).Any(child =>
+                this.elements.TryReadElement(child, out var mark) && this.elements.ReadTextureKey(mark) is { } art &&
+                art.Contains(GameLayout.Image.TrialCurrentRoomArtMarker, StringComparison.OrdinalIgnoreCase));
 
         private bool TrialRoomIsOpen(IntPtr room) =>
             this.elements.TryReadElement(room, out var info) &&
