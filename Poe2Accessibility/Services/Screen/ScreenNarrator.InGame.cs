@@ -531,21 +531,53 @@ namespace Poe2Accessibility.Services
         {
             if (this.HonourLine(snapshot) is not { } line || TrialHud.HonourOf(line.Text) is not { } honour)
             {
-                return string.Empty;
+                return this.TrialMapCounters(snapshot);
             }
 
             var parts = new List<string> { Announcements.HonourAmount(this.HonourLabel!.Invoke(), honour.Now, honour.Most) };
-            if (TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>()) is { } counters)
-            {
-                if (this.WaterLabel?.Invoke() is { Length: > 0 } label)
-                {
-                    parts.Add(Announcements.SacredWater(label, counters.Water, counters.WaterToCome));
-                }
+            parts.AddRange(this.TrialCounterParts(TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>())));
+            return Announcements.Sentences(parts);
+        }
 
-                parts.Add(Announcements.TrialKeys(counters.Bronze, counters.Silver, counters.Gold));
+        /// <summary>Which of the Trial's counters a number's element is (<see cref="UiSemantics.TrialCounterKind"/>), negative for none.</summary>
+        public Func<IntPtr, int>? TrialCounterKind { get; set; }
+
+        /// <summary>
+        ///     The water and the keys from the window over the game, empty when it shows none: the Trial's map hides the HUD and
+        ///     its own counters are bare numbers behind icons ("78, 0, 1, 0", user's map 2026-11-12).
+        /// </summary>
+        private string TrialMapCounters(ScreenSnapshot snapshot)
+        {
+            if (!this.inGame || this.TrialCounterKind is not { } kindOf || snapshot.TopInteractive is not { } layer || layer.Address == this.HudLayer)
+            {
+                return string.Empty;
             }
 
-            return Announcements.Sentences(parts);
+            var counts = new string?[TrialHud.CounterCount];
+            foreach (var text in layer.Texts.Where(text => IsNumber(text.Text)))
+            {
+                if (kindOf(text.Address) is >= 0 and var kind && kind < counts.Length)
+                {
+                    counts[kind] = text.Text;
+                }
+            }
+
+            return counts.All(count => count != null) ? Announcements.Sentences(this.TrialCounterParts(TrialHud.Parse(counts!))) : string.Empty;
+        }
+
+        private IEnumerable<string> TrialCounterParts(TrialCounters? counters)
+        {
+            if (counters == null)
+            {
+                yield break;
+            }
+
+            if (this.WaterLabel?.Invoke() is { Length: > 0 } label)
+            {
+                yield return Announcements.SacredWater(label, counters.Water, counters.WaterToCome);
+            }
+
+            yield return Announcements.TrialKeys(counters.Bronze, counters.Silver, counters.Gold);
         }
 
         /// <summary>The tracker's quests, each its title and the lines under it, as they are said.</summary>

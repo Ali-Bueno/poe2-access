@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     /// <summary>The numbers of a Trial's HUD (dump 2026-11-07). Pure.</summary>
     public static class TrialHud
     {
-        private const int CounterCount = 4;
+        public const int CounterCount = 4;
 
         /// <summary>WorldAreas ids of a run's floors ("Sanctum_1_Foyer_1"), not the hub before them.</summary>
         private const string RunAreaPrefix = "Sanctum_";

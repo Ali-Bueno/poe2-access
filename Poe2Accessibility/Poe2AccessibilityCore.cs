@@ -381,6 +381,7 @@ namespace Poe2Accessibility
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;
+                this.narrator.TrialCounterKind = this.semantics.TrialCounterKind;
                 this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;

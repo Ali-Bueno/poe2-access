@@ -29,6 +29,23 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     Which of the Trial's counters a number is, by the icon before it: its place in
+        ///     <see cref="GameLayout.Image.TrialCounterArtMarkers"/>, negative for any other text. The map window shows them
+        ///     while it hides the HUD's.
+        /// </summary>
+        public int TrialCounterKind(IntPtr number)
+        {
+            if (!this.elements.TryReadElement(number, out var text) || !this.elements.TryReadElement(text.Raw.ParentPtr, out var pair) ||
+                this.elements.ReadChildren(pair) is not { Length: 2 } parts || parts[1] != number ||
+                !this.elements.TryReadElement(parts[0], out var icon) || this.elements.ReadTextureKey(icon) is not { } art)
+            {
+                return -1;
+            }
+
+            return Array.FindIndex(GameLayout.Image.TrialCounterArtMarkers, marker => art.Contains(marker, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
         ///     "columna 2 de 8, sala 3 de 3" and how the room stands, or empty for any other button. Each column of the map is a
         ///     child of one element, its rooms buttons; only a room the player can enter has the interact button in its tooltip.
         /// </summary>

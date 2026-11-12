@@ -658,7 +658,8 @@ namespace Poe2Accessibility.Services
             var layer = snapshot.Find(focusLayer) ?? snapshot.TopInteractive;
             var texts = layer?.Texts.Where(text => !ScreenWatcher.IsLegend(text) && !IsNumber(text.Text)).ToList() ?? new List<ScreenText>();
             var hints = withHints ? snapshot.Layers.SelectMany(each => each.Texts).Where(ScreenWatcher.IsLegend).ToList() : new List<ScreenText>();
-            var spoken = Announcements.Sentences(new[] { Describe(texts), Describe(hints) }.Where(part => part.Length > 0));
+            var counters = layer?.Address == snapshot.TopInteractive?.Address ? this.TrialMapCounters(snapshot) : string.Empty;
+            var spoken = Announcements.Sentences(new[] { Describe(texts), counters, Describe(hints) }.Where(part => part.Length > 0));
             this.Speak("screen", spoken.Length == 0 ? Announcements.NothingToRead : spoken, true);
         }
 

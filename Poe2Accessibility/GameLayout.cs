@@ -111,6 +111,13 @@ namespace Poe2Accessibility
             ///     only room of the player's column with it, the player's marker beside it; docs/research/trials-and-campaign.md §1.2).
             /// </summary>
             public const string TrialCurrentRoomArtMarker = "/Sanctum/ValidPathGlow";
+
+            /// <summary>
+            ///     The icons before the Trial of the Sekhemas' counters, in the counters' order: the sacred water, then the bronze,
+            ///     silver and gold keys ("…/InGame/Sanctum/GoldIcon.dds" before "78(+0)" on the HUD and "78" on the map window,
+            ///     measured 2026-11-12).
+            /// </summary>
+            public static readonly string[] TrialCounterArtMarkers = { "/Sanctum/GoldIcon", "/Sanctum/BronzeKeyIcon", "/Sanctum/SilverKeyIcon", "/Sanctum/GoldKeyIcon" };
         }
 
         /// <summary>

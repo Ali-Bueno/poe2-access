@@ -25,8 +25,9 @@ namespace Poe2Accessibility
 
             return kind switch
             {
-                TrialEntryKind.Affliction => T($"Affliction: {text}", $"Aflicción: {text}"),
-                TrialEntryKind.Boon => T($"Boon: {text}", $"Bendición: {text}"),
+                // The Spanish client's own words: "Te aplica la desventaja Niebla roja al entrar", "te aplica una ventaja" (2026-11-12).
+                TrialEntryKind.Affliction => T($"Affliction: {text}", $"Desventaja: {text}"),
+                TrialEntryKind.Boon => T($"Boon: {text}", $"Ventaja: {text}"),
                 TrialEntryKind.Modifier => T($"Modifier: {text}", $"Modificador: {text}"),
                 TrialEntryKind.Ascendancy => T($"Ascendancy: {text}", $"Ascendencia: {text}"),
                 _ => text,

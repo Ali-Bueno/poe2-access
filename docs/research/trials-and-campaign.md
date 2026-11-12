@@ -114,7 +114,7 @@ New this session (commit "Name the trials' icons and counters from the game's ta
   the HUD formats `label:round`, `label:crystals`, `label:modifiers`, `label:map`. Columns found again near the measured
   offsets by content (`TrialDataExtractor`); launcher step "trial data" v1 (optional).
 - `TrialCatalog` (loads it; `PatternOf` turns "Round <ultimatumnumber>{{{0}/{1}}}" into a pattern) +
-  `UiSemantics.TrialIcon`: an icon-only element whose art the catalog knows reads "Aflicción: Garras afiladas. Los
+  `UiSemantics.TrialIcon`: an icon-only element whose art the catalog knows reads "Desventaja: Garras afiladas. Los
   monstruos infligen un 30% más de daño" (hooked beside the quest-reward art rule).
 - `ScreenNarrator.CheckTrialLines` + `TrialLines`/`CounterWatch`: the crystals line said (the game's own text) every
   time it falls, the Chaos round said on change ("Ronda 3 de 10"); setting `AnnounceTrialProgress`.
@@ -132,7 +132,9 @@ New this session (commit "Name the trials' icons and counters from the game's ta
   column, with since 2026-11-12 the player's own room ("tu sala", by `ValidPathGlow`) and "sin camino desde tu sala" for
   the rooms beside the one to enter (they were "aún no puedes entrar", as if they opened later). With no room to
   enter (the map opened before the room is done) every room still reads "aún no puedes entrar": is the glow drawn then?
-- The map's counters read as bare numbers in the screen reading ("78, 0, 1, 0"): the icon before each names it.
+- The map's counters are bare numbers behind icons, which the screen reading drops, and the map hides the HUD the vitals
+  read them from: since 2026-11-12 each is named by the icon before it (`UiSemantics.TrialCounterKind`,
+  `ScreenNarrator.TrialMapCounters`), in the screen reading and in the vitals while the map is open. Not heard yet.
 - The map's three text-less buttons (leave the Trial, the relics' effects, the tutorial): to check whether the pad
   reaches them and what is said there; the relics' effects are worth a line on opening the map or in the vitals.
 - Honour per hit: nothing says what drained it; the honour buffs above could be named as they begin (they are harmful
@@ -279,7 +281,7 @@ Each: where, what to do, what `accessibility.log` ("Speech") must show. Take an 
    `TrialDoors.IsOpen` to the `wall` state and record the values here.
 3. **Trial icons**: with an affliction gained (an afflicted room), focus the HUD icons if the focus reaches them, else
    `dump` and find under `SanctumHUDDisplay` the elements with `str@…="Art/2DArt/UIImages/InGame/Sanctum/BoonCurseIcons/…"`;
-   note the parent's name for the diff announcement (gap 1.4). Expected speech on focus: "Aflicción: <name>. <description>".
+   note the parent's name for the diff announcement (gap 1.4). Expected speech on focus: "Desventaja: <name>. <description>" (the Spanish client's word for an affliction; a boon is "ventaja").
 4. **Chaos**: Act 3 Chimeral Wetlands, Temple of Chaos with an Inscribed Ultimatum: `dump` the choice window (three
    cards: are they buttons with texts? icon + tooltip?), accept; the log must show "Ronda 1 de 10" only from round 2 on
    ("Ronda 2 de 10", interrupting); note the timer's rendered form (if not "MM:SS", extend `CountdownWatch`); `dump` the
