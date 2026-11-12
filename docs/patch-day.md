@@ -74,6 +74,9 @@ What a patch could move without the mod telling (2026-11-10), with the reason ea
   float means was not verified against the game, so `gems.json` does not carry it.
 
 ## 2. Before playing: check the new exe
+`pwsh tools/Check-Patch.ps1` does this section and the log reading of the next in one list (the copy of the build, the two
+exe checks, then what each log says since the mod last attached) and exits 0 when nothing needs a look. By hand:
+
 1. Keep a copy of every build: `D:\code\decompilers\projects\poe2-research\builds\<build id>\PathOfExileSteam.exe` (the build id
    and the depot manifest are in Steam's `logs/content_log.txt`; an older build: `steam://open/console`, then
    `download_depot 2694490 2694492 <manifest>`, [how](research/exe-layouts.md#measured-on-five-builds)).

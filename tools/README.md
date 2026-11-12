@@ -18,6 +18,11 @@ the first failure prints its errors and `FAILED at step <name>: ...`, exit code 
 recompiled. It refuses while the mod runs from that build folder. The steps live in `BuildSteps.ps1`, shared with the
 package scripts.
 
+## Check-Patch.ps1 — after a game patch
+`pwsh tools/Check-Patch.ps1` keeps a copy of the new build's exe, judges the exe (`Check-GameExe.ps1`, then
+`exe_reader/reader.py`) and lists what each plugin log says was lost, moved or failing since the mod last attached; exit 0
+when nothing needs a look ([patch day](../docs/patch-day.md)).
+
 ## Poe2UiExtract
 .NET 10 console app that opens the Steam install's `Bundles2\_.index.bin` with `LibGGPK3.LibBundle3` and
 extracts every `metadata/ui/**` script (`.ui`, `.xml`, ...) into an output folder. Read-only on the game.
