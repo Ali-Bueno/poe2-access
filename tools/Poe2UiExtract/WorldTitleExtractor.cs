@@ -55,11 +55,26 @@ internal static class WorldTitleExtractor
         ("metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal", "Disable the Crystals before time runs out"),
     };
 
+    /// <summary>
+    ///     Titles no script names, the game's code drawing the object's box. The medallion of the Valley of the Titans (where the
+    ///     clans' relics are set; "Objeto sin nombre, Medallion UI" in the user's logs of 2026-11-11) has one string of its own,
+    ///     taken for its name: INFERRED from the key, no file ties the two (docs/research/sweep-2026-11-12.md).
+    /// </summary>
+    private static readonly (string Path, string Key)[] UnscriptedTitles =
+    {
+        ("metadata/terrain/gallows/act2/2_6/objects/medallionui", "MedallionWorldObjectDescription"),
+    };
+
     public static int Run(string gameDir, string outFile)
     {
         using var lease = SharedBundles.OpenParsed(gameDir);
         var index = lease.Index;
         var keys = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (path, key) in UnscriptedTitles)
+        {
+            keys[path] = key;
+        }
+
         var bodies = new SortedDictionary<string, string>(StringComparer.Ordinal);
         foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(ObjectExtension, StringComparison.Ordinal)))
         {
