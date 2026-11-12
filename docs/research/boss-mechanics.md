@@ -15,7 +15,7 @@ existing readers), **LIKELY** (consistent data, not yet seen live), **UNSURE**. 
 | It enraged | buff ids with "enrage" (44), states named enrage(d) | "Enfurecido" | 8 by state, any by buff |
 | Adds | monsters its script preloads (203 links) | counted with "Invulnerable"; "3 esbirros" only while the enemy news (which names them) is off | 44 |
 | Where to go inside a danger area | the current skill's GeometryAttack/GeometryTrigger row | one word at the wind-up: "¡Sal!", "¡Al centro!", "¡Detrás!", "¡Muévete!", or the stick way "¡Izquierda!" | 198 have area skills |
-| Stand still / keep moving | buff descriptions ("Stop moving or…", "Keep moving…", "Moving breaks the vines") | "¡Quédate quieto!" / "¡Sigue moviéndote!" (15 buffs; was 2 by hand) | King in the Mists, Kulemak, vines, tethers |
+| Stand still / keep moving | buff descriptions ("Stop moving or…", "Keep moving…", "Moving breaks the vines") | "¡Quédate quieto!" / "¡Sigue moviéndote!" (21 buffs; was 2 by hand) | King in the Mists, Kulemak, vines, tethers |
 | The boss hides until the player finds it | a state whose handler adds the effect pack `fade_by_player_dist` (4 monsters, all Balbala) | "El jefe se esconde: sigue el latido, abajo a la izquierda" and the weak point's heartbeat from its side | Balbala / Pirasha ([§11](#11-hide-and-seek-balbala-2026-11-11)) |
 | The boss's line announcing a turn | `PlayTextAudio(line)` in its script, on a skill start or a function | let through the fight's chat mute (41 line groups, 97 variants, 10 languages) | 27 |
 
@@ -245,3 +245,59 @@ launcher step "boss mechanics" 3). Plugin: such a boss out of play, or in that s
 `IsSeekState`): its leaving is said as `Announcements.BossHiding` with the screen direction, and `BossMechanicsWatch.Hiding` gives
 its place to `WeakPointGuide`, whose heartbeat leads there (setting `BossWeakPoint`, no new sound) until it is back in play.
 The log has `Boss hiding: … at x,y`, `… moved to x,y` and `… back after N ms …`, and `Boss facts:` for each reading while away.
+
+## 12. Boss by boss: the mechanics still unspoken (sweep of 2026-11-12)
+
+After Balbala the user asked for the other bosses' own mechanics: the work of §1-§9 covered the shared types, not each
+boss's script. Two sweeps: the guides (poe-vault for every act, maxroll for Act 2 and the pinnacles; mostly one source, so
+LIKELY at best) and the game's files (every state the boss scripts define, their arena objects, the buff texts). The dumps
+were scratch files and are gone; the signals below are what to read again. Nothing here is implemented unless it says so.
+The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2026-11-12).
+
+**Done from this sweep.** Six buffs whose text says to move away to break them had no `move` rule (`toxic_grasping_vines`,
+`sanctum_binding_chains`, `legionnaire_arrow_tether`, `flask_draining_lasso`, `archnemesis_voodoo_doll_debuff`, and the unused
+`tumour_spider_goo_tether`): the extractor's keep-moving pattern now takes "(move|run) … to break" (21 rules, step 4).
+
+| Boss | What the guides say the player must do | Signal in the files (PROVEN unless marked) | State |
+|---|---|---|---|
+| Draven and Asinia (Act 1) | walk over the souls drifting to Draven; break a wall of Asinia's bone cage (75 %) | state `spirits` (meaning UNSURE); cage not looked up | todo |
+| King in the Mists | totems; red circle = stand still, purple = keep moving | `voodoo_king_punishment_*` | done (move rules) |
+| Count Geonor | the Wolf jumps out of the freezing fog after each poem line; a sigil freezes for 5 s | `faded` (hide state), voice lines | partly (vanish/back, lines); sigil todo |
+| Crowbell | the arena breaks away in three stages | states `first/second/third_arena_complete` run `TriggerBracket(arena_sector_destruction, n)` | todo |
+| Jamanra, the Risen King (Act 2) | at 25-30 % immune under a sandstorm: stand in the small circle by the sword, kill the scarabs | `Monsters/PerennialKing/PerennialKingHuman`: `end_fight`, `corrupting` (untargetable, bar hidden), `retreat_caravan`; player buff `perennial_king_tornado_degen` | todo: the safe circle's entity not found yet |
+| Kabala | bone cage at ~70 % with one opening, then an arena-wide blast | Bone Wall is a monster (an add); the opening not looked up | todo |
+| Zalmarath | a beam over the whole arena at 50-65 %: stand behind the dagger | `Monsters/TitanBoss`: blockages `Shatter1-4Blocking`, `RoofTarget1-4`, `BrainStalagmite` state `shattered` (LIKELY the cover) | todo |
+| Jamanra, the Abomination | sandstorm at ~85 %: stand behind Sekhema Asala's shield | not looked up (the shield's entity) | todo |
+| Azarian | the arena shrinks; censers | `Monsters/ForsakenSon/BossArenaObjects/ForsakenSonCenser`: `transition_on_damage_taken=1`, state `hits` 0..3; boss states `flaming_censer_l/r` (use LIKELY) | todo |
+| Xyclucian (Act 3) | from 90 % it perches on one of 4 pillars: break the pillar | `Monsters/ChimeraWetlandsBoss/ChimeraPillar` (Life, state `damage` 1/2) | todo |
+| Mektul | lava fills the arena; he stands in it at 75 % and 40 % | `Monsters/VaalForgeMaster/Objects/VaalForgemasterSluceLever` (interactable, `lever_pulled`), `ForgemasterDam` state `opening` | todo |
+| Queen of Filth | (guides: nothing) | player buffs `queen_of_filth_life_curse` / `_mana_curse`: skills reserve life or mana | named by the harmful-buff reading |
+| Ketzuli | (guides: nothing) | states `sun_wall_count`, `summon_sun_wall`; objects `SunWall*`, `BlackHole/OrbitSun` (LIKELY) | todo |
+| Viper Napuatzi | invulnerable while the arena shrinks: stand where the guards' spears glow | not looked up | todo |
+| Doryani | stay inside the lightning cage | not looked up | todo |
+| Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | todo: the only buffs whose text is an instruction |
+| The Prisoner | use the ballista to stop his regeneration (50 %, 20 %) | not looked up | todo |
+| Diamora | her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | not looked up | todo |
+| Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) (LIKELY) | todo |
+| Yama | at 75 % clones on the pillars: run to the one that does not react; at 65 % to the clone with the circle | `chosen_one` clone state, not read | todo |
+| Tavakai | which totem the player stands nearest decides his power; the room burns | state `room_burning_progress` 0..100; `KaruiCaptainBossJadeWall` (Life); `GodTotem` state `current_phase` | todo |
+| Siora (Ogham interlude) | at 90 % the arena goes dark and hurts: run to the glowing monolith | not looked up | todo |
+| Zarokh (Sekhemas) | at 60 % and 30 %: enter the centre, collect every hourglass before the clock turns | state `timetrialprogress`; entities `TimeTrialCollectable`, `Hourglass`, `ArenaCentreButton` (`readytoactivate`); player buff `sanctum_chronomancer` | todo |
+| Tawhani | (files only) invulnerable while the ancestral warriors live; its element | buff `cannot_be_damaged_sudoku_boss_display`; state `element` 1 fire, 2 cold, 3 lightning | invulnerable: done; element todo |
+| The Trialmaster | stay inside the heart's circle | `trialmaster_tether_debuff_display` | done (move rule) |
+| Bodach (Ritual) | (files only) a darkness pulls in; Viridi's Sanctum is safe | state `darkness_vacuum_range`; player buffs `darkness_vacuum_aura_damaging`, `ritual_wendigo_tree_sanctuary`; `RitualWendigoViridiTree` | todo |
+| Arbiter of Ash | stand in the Flame Seed's circle; two arena-wide blasts with one gap; orbs | state `infuse_buff_type` 1 fire, 2 ice; `no_portals_sector_enabled`; the gap not found | todo |
+| Kulemak and the Abyss bosses | (files only) no damage in the darkness; only targets inside the Void take damage | player buffs `kulemak_boss_darkness`, `abyss_lightless_well` | named by the harmful-buff reading |
+
+**Patterns worth a generic rule (files).** Arena objects by component: Life + Pathfinding = something to break (the Baron's
+ice walls, the jade wall, bone walls, the Chimera's pillar); `TriggerableBlockage` (42 objects) = walls that rise or shatter;
+`InteractionAction` on a fight's object = something to use (the Forgemaster's lever, the Aberration's `BarrierKeyhole`).
+`*_arena_complete` / `retreat_caravan` = the arena breaking away. 13 bosses forbid teleports in a sector (`blocking`,
+`enable_no_portal_sector`, `no_portals_sector_enabled`). Nothing in the data marks cover ("hide behind this"): UNSURE.
+
+**Not determined.** What Blackjaw's `out_of_breath`, the Vaal statue's `powered` and the King in the Mists' `bubble_shield`
+mean for the player; which boss grants which buff (only Torvian's script names its own); thresholds and timings (AI scripts
+are not shipped). Not found in the guides: Ashar, Rattlecage, Atziri, the Arbiter of Divinity, the other Sekhemas floors.
+
+**Order.** The user's Warrior is in Act 2 past Balbala: Kabala, Zalmarath, Azarian and both Jamanra fights come first, each
+needing its place to go to (an entity's position, as Balbala's) read from the files and then heard live.

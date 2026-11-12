@@ -19,7 +19,7 @@ internal static class BossMechanicsExtractor
     private const char Field = '|';
 
     private static readonly Regex StopMoving = new(@"\b(stop moving|stand still|remain still|stay still|do not move|don't move)\b", RegexOptions.IgnoreCase);
-    private static readonly Regex KeepMoving = new(@"\b(keep moving|moving breaks|moving .{0,40}\bbreak)", RegexOptions.IgnoreCase);
+    private static readonly Regex KeepMoving = new(@"\b(keep moving|moving breaks|moving .{0,40}\bbreak|(move|run)\b.{0,40}\bto break\b)", RegexOptions.IgnoreCase);
 
     private static readonly string[] Header =
     {
