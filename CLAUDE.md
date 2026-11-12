@@ -185,6 +185,8 @@ The user's standing rules; the same list, with the PoE2 commands, is in [`AGENTS
   virtual pad (`AGENTS.md` rule 21).
 - **Nothing pending:** fix every finding of a test or sweep before reporting, then commit, push and deploy;
   leave something open only when truly blocked, and say why.
+- **Never plan on the user's play:** no "fight it first and I read the log", no learning from how the user plays;
+  mechanics are found beforehand from the game's data and other sources (`AGENTS.md` rule 26).
 - **New sounds:** render candidates from the mod's own synth code and publish one Artifact page with a
   "Reproducir" button per clip, beside the sounds it must not be confused with; iterate on the same URL. The
   user listens on an iPhone; rising tones sound cartoonish, serious cues suit.

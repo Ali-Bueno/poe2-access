@@ -300,7 +300,7 @@ mean for the player; which boss grants which buff (only Torvian's script names i
 are not shipped). Not found in the guides: Ashar, Rattlecage, Atziri, the Arbiter of Divinity, the other Sekhemas floors.
 
 **Order.** The user's Warrior is in Act 2 past Balbala: Kabala, Zalmarath, Azarian and both Jamanra fights come first, each
-needing its place to go to (an entity's position, as Balbala's) read from the files and then heard live.
+needing its place to go to (an entity's position, as Balbala's) read from the files before the user meets it (`AGENTS.md` rule 26).
 
 ### Act 2, from the files (second pass, 2026-11-12)
 
@@ -332,7 +332,7 @@ Thresholds and triggers are in the AI scripts, not shipped; skill-to-animation p
   `CGEForsakenSonBurningGround`. UNSURE: what a censer out does for the player, and any shrinking signal.
 - **Tor Gul, Rathbreaker.** Nothing beyond attacks and hazards (Tor Gul's `caustic_cloud_snake_boss_vomit`).
 
-**The arena log (`BossArenaLog`).** What the files leave open (Kabala's gap, the Risen King's circle, which objects stand
-where) a fight answers: while a boss is fought, every entity within 2000 units of it is logged once (`Boss arena: + path #id
+**The arena log (`BossArenaLog`).** Silent evidence to confirm a finding with, never the way to one (the user refused
+"fight it and I read the log", `AGENTS.md` rule 26): while a boss is fought, every entity within 2000 units of it is logged once (`Boss arena: + path #id
 (type) at x,y, N from the boss states […]`, 24 per path) and again at each new reading of its states (`Boss arena: path #id …`),
-800 lines a fight at most. Read it after each new boss the user fights.
+800 lines a fight at most.
