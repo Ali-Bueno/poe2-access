@@ -99,6 +99,7 @@ namespace Poe2Accessibility
             "pad buttons" => T("the controller's buttons", "los botones del mando"),
             "passive tree links" or "passive tree allocations" => T("the passive tree's links and allocated nodes", "las conexiones y los nodos asignados del árbol de pasivas"),
             "quest marker" => T("which characters have a quest", "qué personajes tienen misión"),
+            "trial map links" => T("the ways between the rooms of the Trial's map", "los caminos entre las salas del mapa de la Prueba"),
             "interactive flag" or "text input flag" or "navigable flag" or "enabled flag" => T("the kinds of interface controls", "los tipos de controles de la interfaz"),
             "game states" or "game state stack" or "game state list" or "in-game state" or "area loading state" => T("the game's state", "el estado del juego"),
             // A part with no wording of its own is an internal name ("no encuentro EntityOffsets" was heard, 2026-11-08): the log has it.

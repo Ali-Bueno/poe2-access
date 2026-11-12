@@ -153,6 +153,7 @@ namespace Poe2Accessibility.Services
                         this.trialFloorShapes.RemoveAt(known);
                         this.trialFloorShapes.Insert(0, shape);
                         this.CheckTrialLines(ancestors, rooms, links);
+                        this.NoteTrialLinks(null);
                         return this.TrialFloorRead((long)floor, shape, links, rooms);
                     }
                 }
@@ -171,16 +172,19 @@ namespace Poe2Accessibility.Services
                     $"Trial floor: found by shape: holder +0x{found.Shape.HolderOffset:X}, " +
                     $"columns +0x{found.Shape.ColumnsOffset:X} of 0x{found.Shape.ColumnSize:X} bytes, rooms +0x{found.Shape.RoomsOffset:X} " +
                     $"of 0x{found.Shape.RoomSize:X} bytes, ways +0x{found.Shape.WaysOffset:X} ({this.trialFloorShapes.Count} places known)");
+                this.NoteTrialLinks(null);
                 return this.TrialFloorRead(found.Floor, found.Shape, found.Links, rooms);
             }
 
             if (drawn is not null)
             {
                 this.NoteTrialFloor($"Trial floor: not found, links from the lines the map draws: columns {string.Join(",", rooms)}, links {LinksText(drawn)}");
+                this.NoteTrialLinks(null);
                 return (drawn, Array.Empty<int>());
             }
 
             this.NoteTrialFloor($"Trial floor: no links fit the map of columns {string.Join(",", rooms)} ({ancestors.Count} ancestors, {this.trialFloorShapes.Count} places known, no lines found)");
+            this.NoteTrialLinks(map.Item2);
             return null;
         }
 
@@ -263,6 +267,38 @@ namespace Poe2Accessibility.Services
         public Action<string>? TrialFloorNote { get; set; }
 
         private string lastTrialFloorNote = string.Empty;
+
+        /// <summary>The report's part for the map's links: neither the floor nor the lines drawn gave them.</summary>
+        public const string TrialLinksPart = "trial map links";
+
+        /// <summary>
+        ///     A map still without links this long after it first had none is no window half built: the report says it, where
+        ///     before only the log did and the map was read without its ways, in silence (sweep of 2026-11-12).
+        /// </summary>
+        private const int TrialLinksGraceMs = 5000;
+
+        private (string Rooms, long Since)? trialMapWithoutLinks;
+
+        /// <summary>The map's links were read (null), or the map of these rooms gave none.</summary>
+        private void NoteTrialLinks(string? roomsWithout)
+        {
+            if (roomsWithout == null)
+            {
+                this.trialMapWithoutLinks = null;
+                CompatibilityReport.Current?.Found(TrialLinksPart);
+                return;
+            }
+
+            var now = Environment.TickCount64;
+            if (this.trialMapWithoutLinks is not { } without || without.Rooms != roomsWithout)
+            {
+                this.trialMapWithoutLinks = (roomsWithout, now);
+            }
+            else if (now - without.Since >= TrialLinksGraceMs)
+            {
+                CompatibilityReport.Current?.Missing(TrialLinksPart);
+            }
+        }
 
         private void NoteTrialFloor(string note)
         {
