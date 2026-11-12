@@ -336,3 +336,83 @@ Thresholds and triggers are in the AI scripts, not shipped; skill-to-animation p
 "fight it and I read the log", `AGENTS.md` rule 26): while a boss is fought, every entity within 2000 units of it is logged once (`Boss arena: + path #id
 (type) at x,y, N from the boss states […]`, 24 per path) and again at each new reading of its states (`Boss arena: path #id …`),
 800 lines a fight at most.
+
+## 13. Where a boss's mechanics are written (third pass, 2026-11-12)
+
+The user will not fight a boss so that its log can be read (`AGENTS.md` rule 26): every mechanic is found beforehand. The
+first two passes read only the monsters' `.ot` scripts and the buff texts. These sources hold the rest; sizes in the skill
+tables are grid cells (× 250/23 = world units). Scripts and the ExecuteGEAL table: `tools/research/gamedata/`.
+
+### The sources
+
+- **The skill chain — PROVEN** (community `dat-schema` layouts, row sizes checked on this patch). `MonsterVarieties.GrantedEffects`
+  (+0xD0) → `GrantedEffects` (ActiveSkill +0x4F, Animation +0x71, StatSet +0xA8, SkillID +0x9B). The SkillID points into a
+  table chosen by the skill's kind: `geometry_*` → GeometryAttack.Id; `geometry_trigger` → GeometryTrigger; `spawn_object` →
+  SpawnObject (MiscObjects +0x4, whose `EffectVirtualPath` is the entity's path); `move_daemon` → MoveDaemon
+  (MonsterVarieties +0x18); `trigger_beam` → TriggerBeam; `effect_driven_*` → EffectDrivenSkill; `execute_geal` →
+  ExecuteGEAL by its text id. Summons carry the stat `alternate_minion` (a SummonedSpecificMonsters id); ground effects
+  `ground_fire_art_variation` (GroundEffects +0x10 → its buff +0x65). Stats with values: `GrantedEffectStatSets`
+  ConstantStats +0x28 / values +0x38, ImplicitStats +0x18; per-level stats are empty for monster skills.
+- **ExecuteGEAL — PROVEN, the source the earlier passes missed.** 335 rows of 0xDF bytes: "this skill's area does this to
+  that object". GeometryAttack +0x101 is a row index into it (96 rows have one; two have no skill at all, the areas the
+  server casts for Asala's shelter). Columns: MetadataIDs +0x7B (the object kinds acted on), Script +0x60 (run on the
+  caster), ScriptCommand +0x8B (run on each object hit), more commands at +0x9B / +0xAB; +0x24 LIKELY the search radius.
+  It says what is broken or used, what ends a phase and what shelters the player.
+- **GeometryTrigger — PROVEN.** +0x24 count, +0x28 delay, +0x34 spread, +0x38 radius, +0x3C angle (0 and 360 both on full
+  rings). The enum at +0x2C of both geometry tables (anchor: 2 self, 3 towards the target within range, 4 the point handed
+  to the skill, 12 the object that triggered it) is LIKELY, from naming.
+- **Animations — PROVEN.** `GrantedEffects.Animation` → the monster's `.act` (action → animation) → the monster's `.ao`
+  (that animation's timed events): the lead between a cast's start and its hit.
+- **Arena room files — PROVEN.** WorldAreas.Bosses → `Metadata/Terrain/…/Rooms/**/*.arm`, UTF-16 text: object lines (`x y z
+  rot … "ao" "object path"`), named points (`x y rot "name"`), sectors (`"arena" x1 y1 x2 y2`), in cells of the room. The
+  arena markers (ArenaMiddle, SandstormDefenceMarker) are server-only and LIKELY never reach the client; `BossRoomMinimapIcon`
+  does and sits within a cell of the arena's middle: the run-time anchor, though a room may be placed rotated.
+- **The game's words — PROVEN, weak.** NPCTextAudio (Text +0x18) through the scripts' `PlayTextAudio`; `BuffVisuals.BuffDescription`
+  (+0x69), a second buff text the mod does not read (e.g. `corrupted_blood_rain`: "Move to the safe area to escape the rain").
+- **NOT USABLE.** Effect files (`.ao`/`.pet`/`.epk` of arena effects hold emitters, no radius). AI scripts: `MonsterVarieties.AISFile`
+  (+0xE0) names them and none of the 1,438,656 bundled paths is an `.ais`; poe2db's "AI script" block is state names and flags.
+  So life thresholds, the order of phases and where the server puts its own objects cannot be known offline.
+- **Outside the files.** poe2db.tw (`https://poe2db.tw/us/<Name>%2C_<Title>`): each boss's skills with internal ids, cast
+  times, cooldowns and "cannot be dodged/blocked" flags; reliable for ids. poe2wiki blocks fetches; maxroll and poe-vault
+  are short prose (thresholds come only from there).
+
+### The method, for any boss (to become an extractor step)
+
+1. Its MonsterVarieties row: skills, `.act` / `.ao`, the `.ot` chain (states, lines, preloads). 2. Each skill through its
+kind's table: shape, size, anchor, count, delay; the monster it summons, the object it spawns, its daemon, its ground buff;
+the cannot-be-dodged flags. 3. Each GeometryAttack with an ExecuteGEAL: the objects it acts on and what it does; and the
+ExecuteGEAL rows no skill uses. 4. Skill animation → `.act` → `.ao` events: the warning's lead. 5. The arena's `.arm`: the
+placed objects around the `BossRoomMinimapIcon`, the sectors. 6. Texts: both buff descriptions, the scripts' lines. 7. Per
+mechanic, the run-time signal: a state, a buff id, an entity path, the skill's animation.
+
+### Act 2, answered
+
+- **Kabala's cage.** `EASSerpentBossCurseWallNuke` (animation `spellcast_curse_01`, event `walls` at 0.74 s); `GTSerpentBossWall`:
+  80 points, 200 ms apart, spread 52, radius 50 (Asinia's `GTWifeMonsterBoneWall`: 38 at 26/27). 80 walls of size 4 on a ring
+  of ~51 cells stand ~4 cells (4.5°) apart, a closed ring: the opening is walls that are missing. Which ones is the
+  server's choice. **At run time:** the wall monsters (`…/SerpentClanCasterBossBoneWall`; script extends
+  `Metadata/Utility/InanimateObject` with `Positioned { blocking = true }` and Life) lie on a circle of ~545-565 world units;
+  the widest hole between neighbours is the way out. The blast after it: `spin_detonate_01` (`detonate` at 2.86 s) throws 15
+  orbs within 25 cells, then `GASerpentCasterBossTailSwipeDetonation` (360°, length 120, cannot be dodged, evaded or blocked)
+  sets them off. Also `GSSerpentCasterBossBoneBarrierEG`: each nearby `SkeletonSnakeSerpentCasterMinion` beams into her and
+  she gets `serpent_boss_bone_armour` (blocks from every side).
+- **Jamanra, the Risen King.** The room (`2_3/Rooms/Unique/boss_endcap.arm`) has the arena's middle, 27 totem markers and no
+  sword or circle. The sandstorm phase is stance 3 (`sandstormstart` at 0.48 s): 30 beetles over 15 s within 50 cells
+  (`GTPerennialKingVolatileBeetles`), totems casting corrupted ground (`perennial_king_corrupted_ground`); it ends when Asala's
+  `EGPerennialKingAsalaStun` sets `corrupting` to 0 (ExecuteGEAL 1025). The guides' "circle around the sword, the arena
+  explodes outside it" is another skill, not found: `GAPerennialKingSwordSlam` is a plain circle of 20 at the target, not to
+  be dodged, evaded or blocked. Open.
+- **Jamanra, the Abomination.** The shelter is two server-cast areas, GeometryAttack 10796 (circle, radius 25 = 272 world
+  units) and 10797 (rectangle 200 × 20 = 2174 × 217), whose ExecuteGEAL rows 246/247 run `triggerer.AddBuff( asala_sand_shield,
+  0.15 )`: the buff on the player means sheltered, refreshed every 0.15 s. Asala's state `sandstorm_defence`=1 plays her line
+  `AsalaWildGatesTen` ("Quickly! He conjures the very sands against us!") and her barrier (`shields_up` at 1.43 s). The room
+  (`2_12_2/…/boss_cart.arm`) has 8 defence markers in two rows ~315 world units either side of the middle. **At run time:**
+  lead to Asala while `sandstorm_defence`=1; say the shelter reached when the buff appears.
+- **Zalmarath.** The sword is `SOTitanBossStalagmite` → `Metadata/Monsters/TitanBoss/BrainStalagmite` (a blockage). The
+  blast is `GSTitanBossMegaBlast`, a 90° cone of length 150 on `sword_blast_0x` (`plant_sword` at 1.29 s, `nuke` at 5.77 s,
+  then a hit every 0.1-0.2 s); the eye beam's hits (`GSTitanBossLaserImpact`) "can be blocked from all directions".
+  `GATitanBossRockFallLarge` shatters the platforms `shatter1-4`; `EGTitanBossSpawnWisps` starts the 8 `VolatileSpawner`.
+  Whether the sword stops the blast is the server's (two guides say to stand behind it).
+- **Azarian.** Four `ForsakenSonCenser` in a square around the arena's middle. ExecuteGEAL 1021 on a censer: `TriggerSkill(
+  CGEForsakenBurningGround, triggerer ); triggerer.Delete();` and on the boss `AddLifeThreshold( -20 )`: a censer that goes
+  out leaves lasting fire where it stood and moves his next threshold. Keep away from the censers' corners.
