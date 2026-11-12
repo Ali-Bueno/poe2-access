@@ -435,7 +435,7 @@
   moves nothing says the control again: pure `BlockedMove`, `Poe2AccessibilityCore.WatchBlockedMove` (heard live 2026-11-10: the guild tab, a dialogue list's end, an item page).
 - Local co-op: `Seats` (followed, partner, asking player; `InputSeat` picks whose pad and cursor, `PlayerStride`), `LocalPlayers`,
   `LocalInventories` (player 2's server inventories), `PlayerAlerts` + `SeatOutput` (named per-player news), `CoopDowns`.
-- Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers; `BarrierWatch` says one that opens and keeps it in pure `OpenedWays` until walked to) → `RoutePlanner` (A*, corners,
+- Scanner: `EntityCatalog` (shared state; `.Listing` entries and sighting, `.Describe` routes and spoken places, `.Classify` categories and names, `.Tiles` tile landmarks and arenas, `.Unexplored` frontier and death place, `.Memory` areas come back to, `.Terrain` live grid and barriers; `BarrierWatch` says one that opens and keeps it in pure `OpenedWays` until walked to) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Map marks: pure `MinimapMarks` (signs, boss
   rooms by icon or tile, pointer reach), `MinimapIconLabel` (an icon's translated label). Exploring: `ExplorationMap`
   (frontier, pockets, `WayOn`), `MapCorner` (the part of the map, for the area's line), `LostHint` + `LostWatch` (the sound for a lost player, `assets/loops/`), `MapHintNarrator` + `MapHintTable` (GGG's cues), the radar's unexplored mark. Memory: `AreaMemory` (instance + layout; `Frame`/`Inherit`/`Framed`: a fixed map's exits into a new instance). Warnings: `VitalAlarm`.
@@ -467,7 +467,7 @@
   starts, names; files first, the rows and the edge list in memory as fallback and cross-check, pure `CatalogCrossCheck`), `GemCatalog`
   (`catalog/gems.json`) with `GemIndex`/`GemInfo` (a gem's identity by any of its Ids or its name, for the Build Planner) and pure
   `SkillNameCheck` (the game's skill names first, the files' when its read is no text or judged moved); pure `StatKeyCheck` (the stat key rule on the character's level).
-- Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
+- Passive tree: `UiSemantics.PassiveTree` (a node's line and links; `.PassiveStick` places and the stick rule, `.PassiveRows` node state and dat rows, `.PassiveGraph` the graph read once per canvas) + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
   (Build Planner files, the tree's match kept per character; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames` over `GemIndex`, `ServerInventory`, dev command `inventories`; the build's gear: `UiSemantics.BuildGear` + pure `BuildGear` (file entries, piece per level, slot by id folder, modifier match) over `IItemBases`/`IModTexts` (`GearCatalogs.cs`), set at `BuildGear.Bases`/`BuildGear.Texts`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
 - Values that must not go stale ([audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10)): pure `FocusNews` (a number or a row changing under
   the cursor, a Skills row's captioned figure), `BareHover` (a control under the free cursor with no tooltip, read by `FocusTracker`), `ItemReadings` (moved items), `GroundTooltip`, `BeaconMath.Gone`, `ScanBrowser.InArea`, `SpeechFloor` readings, `MinimapMarks.RoomDefeated`.
@@ -499,114 +499,8 @@ unblocks it). The audit's own lists, entry by entry:
 [robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
 
 ### Fixed
-- **A worn weapon said twice on its first focus** (base name, then the tooltip's name 170 ms later). An item its
-  tooltip names waits up to 300 ms for a tooltip not up yet (`TooltipSettle.NameWaitMs`; a normal item never waits) and
-  a rare or unique item is named from its own words at once. Heard, one line on each set: "Mano principal, Filo
-  quimérico, raro, Build: 0 de 3 modificadores. …" and "Segundo set de armas, mano principal, Lanza de guerra dentada,
-  mágico, Build: 1 de 3 modificadores. …".
-- **Rare and unique items named by their base where no tooltip was read.** The item keeps its name as Words.dat keys in
-  its Mods component (`GameLayout.ItemNameWords`, [item mods](docs/research/item-mods.md#the-items-own-name-without-the-tooltip-2026-11-10),
-  [evidence](docs/research/evidence/item-name-words-2026-11-10.txt)). Seen live: with no tooltip read, yarkey's worn
-  pieces by their names ("Égida de glifo, raro", "Estallido repentino, único"…), then "56 titles agree, 0 differ" (dev
-  `layout`); on malgdhler "Estrella quimérica", "Banda de kraken", "Zarpa de apocalipsis" and "212 titles agree, 0
-  differ" (his helm first read "Estrella quimérico": a singular noun's row gives its gender alone, fixed the same
-  evening). Ground labels and moves use the same call; none was seen (no item on the ground in a town, moves not
-  allowed). A magic item keeps no words: by its base until its tooltip is read.
-- **Item modifiers without the tooltip** (the other agent's work, merged and checked live; procedure and results in
-  [item mods](docs/research/item-mods.md#live-check-2026-11-10)). With no slot focused since the mod started the
-  inventory opens with "Build: 3 de 6 piezas con su base, 3 de 15 modificadores, leídos en 6 de 6 piezas. Más lejos de
-  la build: Mano principal", and the line is the same after every slot was focused. `itemmodscheck`: yarkey 15 items,
-  54 lines equal, 1 differ (a charm's own "No te pueden aturdir", the base's line), 2 uncertain (the two spears' skill
-  grant, outside the description file); malgdhler 10 items, 27 equal, 0 differ, 0 uncertain; hairin 9 items, 20 equal,
-  2 differ, 3 uncertain, her belt equal after the fix; 12 stash items, no difference logged. Four faults found and
-  fixed on the way: a spear's skill grant made the whole piece "not compared" (the summary read "3 de 9" before the
-  slots were focused); "+1.4%" and "+1.12%" (hundredths) were in doubt; 201 a minute was written "3.4" where the
-  tooltip shows "3.3"; a regeneration rounding to 3.0 was written "3.0" where it shows "3". A unique helm's line whose
-  stat is in two blocks of the description file is certain since both blocks write it alike (`ModTextCatalog.AlikeBlock`,
-  2026-11-10); the spears' grant stays in doubt: no file links `local_display_grants_spear_throw_skill` to a skill
-  ([item mods](docs/research/item-mods.md)). Still unseen: a piece with a rune socketed, an
-  enchanted or corrupted item, one stat on an implicit and an explicit, a modifier of three values, a number over 999.
-- **The passive list's "4 más de la build no están en este árbol".** They are the four nodes of the file's ascendancy
-  ("ascendancy": "Mercenary3": `AscendancyMercenary3Small1`, `…Notable1_`, `…Small4`, `…Notable4`; 60 + 4 = the file's
-  64 nodes; every ascendancy row of the game's files is named `Ascendancy…`, 669 of them). Heard: "Build, 16 de 60
-  asignados, 13 puntos fuera de la build, 4 más de la build son pasivas de ascendencia, que este árbol aún no muestra";
-  the ids are logged once (`Build nodes not on this tree (4 of an ascendancy): …`).
-- **`SpeechPriority.IsReading` ageing events** under a reading kind: only a number that is not urgent and not marked
-  as something that happened is a reading, at every level (`OnlyANumberIsAReadingAtEveryKindAndLevel`). Unit tests.
-- **The mod ended when the game window was not up in 240 s.** It waits while Steam or the game runs and says so.
-  Heard on the patch of 2026-11-10 21:17, while Steam verified the install: "Sigo esperando la ventana del juego" at
-  30 s, then every 60 s (`Poe2Access.log`: `Spoken (0): Sigo esperando la ventana del juego`, five times).
-- **A game restarted patched under the running mod** left it on the old build's game data without a word: the plugin
-  says "El juego se actualizó. Reinicia el mod para actualizar sus datos" (`GameBuildChange`), the host logs it. Unit
-  tests; on that evening's patch the mod was started again with the game, which regenerated the data ("Actualizando
-  los datos del juego tras el parche; tarda unos minutos", 28 steps in 30 s, `Code fields: 52 of 52; moved: none`).
-- **The launcher silent while a data step hangs.** "Sigo trabajando en <paso>, unos N min" after 30 s without the
-  count moving, then every 60 s (`SilenceReminder`). Unit tests; not heard, no step stalled on that evening's patch.
-- **`InventoryItemStruct` log bursts on area load.** A cell that cannot be read is skipped without a line
-  (`Inventory.UpdateData`). Code only; no such line is in the logs at hand (the host log is rewritten at each start).
-- **The Beacon's "way stops short" when the search only ran out of budget**, and **an object named by its file's
-  English words**: decided and built, see "Decisions the owner can overrule". Unit tests; the second heard in the Act 2
-  town's scanner: "Objeto sin nombre, Chair, 9 pasos, arriba a la izquierda 2, luego arriba a la derecha".
-- **The status line named the last character's area at the login screen** ("Inicio de sesión. Área: La caravana de los
-  ardura", heard): the area is said only in a game (`TheAreaIsSaidOnlyInAGame`).
-- **A beside another player opened that player's menu with no word that it is a player.** Heard: "Jugador:
-  Tejetormentas Niv. 27, Liga Forbidden Rites, Bleidz. Invitar al grupo, 1 de 5" (`Announcements.ButtonMenuContext`,
-  when a player of that name is in the area). In a crowded town a player can step onto the spot between the A target's
-  line and the press: the menu then says whose it is, and B closes it.
-- **The character's name after a change of character:** yarkey, malgdhler, yarkey in one session, each time the build
-  summary of the character in play. **The stash, the salvage bench and a merchant in turn:** each title on its first
-  line ("Alijo, pestaña 1. Inventario. …", "Mesa de reciclaje. Aquí puedes reciclar … Orbe de transmutación, 6, columna
-  1, fila 1", Zarka's "pestaña 1. Inventario. Pergamino de sabiduría, 8, columna 1, fila 2, 16 oro", then "4.776 oro").
-  **No screen snapshot cut short** with the tree at every zoom from x0,4 to x1,9. **The tree's place after a restart**
-  of game and mod, on hairin, who follows no build: "Evasión, asignado, Donde lo dejaste, Armadura: izquierda, 2"
-  (with a build active the build's next node leads instead, by design).
-- **A slider at its minimum focused first could be read with another number.** Read where measured, nothing searched
-  (`UiElementReader.ReadSliderState`). Heard (late session): the ground labels' size taken from 100 to its minimum, 80
-  (no slider outside Sound goes to 0), and the mod started on it, the first slider that process read: "Interfaz.
-  Escalado de la IU. Tamaño de las ventanas emergentes de los objetos del suelo, 80, control deslizante, 3 de 6, …";
-  put back and heard, "…, 100, control deslizante, 3 de 6".
-- **Exit tins flapping to "open" and back:** a confirmed exit holds for 1.5 s (`RadarSensor.ExitHoldMs`). Unit tests.
-  Beside Clearfell's exit in the encampment (malgdhler, dev `sounds`): 22 s standing, no radar cue at all; 16 small
-  steps to and fro over 3 cells in 26 s, `radar_exit` once, `radar_wall` 7, `radar_open` 6.
-- **Late session (2026-11-10, 22:10 to 22:58), found on the way and fixed, each heard:**
-  - **The Cosmetics slots were read as a trial's rooms** ("Efecto para arma, botón, columna 4 de 31, sala 1 de 1, aún
-    no puedes entrar"): 31 columns of one button each fitted the Trial map's shape. A map has a choice of rooms
-    (`TrialMap.IsMap`, unit-tested). Now "Efecto para arma, botón, 11 de 19".
-  - **Options: "Guardar X" turning usable was never said** (only "Cancelar B"); its text does not change. A panel's
-    control whose availability flips is news, the HUD's never (`ScreenDiffer`, `APadButtonTurningUsableIsNews`). After
-    a change: "96", "Guardar X. Cancelar B"; back: "100", "Guardar X, no disponible. Cerrar B".
-  - **The hints named the tab and heading beside the tab bar's shoulder icons** ("Entrada, RB. Idioma, LB"), which
-    also dropped them from the panel's reading. The two icons a tab control holds at its ends are their own legends
-    (`TabBar`, `ScreenWatcher`; two new phrases in the ten languages): "Pestaña anterior, LB. Pestaña siguiente, RB.
-    Seleccionar, A. …", and the Options read "… Cerrar B. Entrada. Sonido. Juego. Gráficos. Interfaz. Escalado de la
-    IU. …".
-  - **A plugin that is missing:** the development host started with its plugin DLL set aside said "El plugin de
-    accesibilidad falta o no se cargó, así que el juego no se leerá" (`Poe2Access.log`: `plugin missing`, `Spoken (0)`).
-  - **The dropdown latch** with two owners: `Combo entry layout resolved` by the chat's channel list ("Global"),
-    `settled` by the Options' renderer list ("Vulkan"); the language list then read all ten entries.
-  - **Item modifiers on the English client:** the same counts as in Spanish
-    ([item mods](docs/research/item-mods.md#live-check-on-the-english-client-2026-11-10)).
-- **A Skills row's figure that changes under the cursor** (audit N2). The rows read live in both languages: "NIVEL: 8,
-  Lanzamiento de lanza, DPS: 205,1", "NIVEL: 5, Heraldo de trueno, Daño: 16,1", "NIVEL: 5, Atrición", "vacío" ("LVL:
-  8, Spear Throw, DPS: 205,1"); none holds a clock or a cooldown. A `Panel` row's captioned figure that changes is said
-  alone ("DPS: 211,3"; `FocusNews.ChangedNumbers`, `StaleValueTests`); a panel's other numbers stay quiet. Not heard:
-  see Blocked.
-- **From the audit's lists, code and unit tests** (each named there): `ui-catalog` failing when it loses more than 2
-  files in 100; a language lost from `gems` or `passive-tree` refusing the catalog; a spoken line when the plugin does
-  not load; one log line for a burst of failed reads; a timed-out batch stopped; the parallel map walk bounded; the
-  GGPK closed; the dropdown latch by name, not address; the screen watcher's reset race; the route planner's memory;
-  checkpoints named past the pairing budget; object cues without the game's sounds; a grace for charges after an
-  area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test; a known
-  row from the game's files for every key column of the endgame and skill tables; the data step "game names", which
-  fails naming any buff, animation, trap or door state or boss tail a rule matches that a patch removed; the rules of
-  host-bound classes lifted into tested pure code (the guide's way lines, boss life, the target's name, the data step's
-  plan, the update offer, the game process's watch, the layout's loss counters, flag bit rounds, skill name check).
-- **Character selection after a quick login** (the login's bar said again after the character): the bar is dropped
-  when the state changes (`2840bbb`); heard again that evening, the bar once, before the character.
-- **Microtransaction shop, too few points:** "Comprar puntos, Esta compra requiere 250 puntos, tienes 150 puntos,
-  botón" (heard 2026-11-10).
-- **The quest tracker between characters:** `QuestTrackerPage.Reset` runs at character selection
-  (`ScreenNarrator.CharacterChanged`); it was listed as open by mistake.
+The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
+[status history](docs/status-history.md#known-issues-fixed-up-to-2026-11-12): read one there before fixing it again.
 
 ### Not a fault
 - **Closing a full-screen panel reads the whole quest tracker again:** not inside one run. Of 113 quest pages in two
