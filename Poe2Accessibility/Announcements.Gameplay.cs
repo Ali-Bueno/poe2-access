@@ -372,6 +372,9 @@ namespace Poe2Accessibility
         /// <summary>The Trial's honour: "Honor 25 por ciento", in the game's word for it.</summary>
         public static string HonourLeft(string label, int percent) => T($"{label} {percent} percent", $"{label} {percent} por ciento");
 
+        /// <summary>The Trial's honour restored, by a shrine or a fountain: "Honor recuperado, 80 por ciento".</summary>
+        public static string HonourRestored(string label, int percent) => T($"{label} restored, {percent} percent", $"{label} recuperado, {percent} por ciento");
+
         /// <summary>A clock falling on the HUD: "Quedan 10 segundos".</summary>
         public static string SecondsLeft(int seconds) => T($"{seconds} seconds left", $"Quedan {seconds} segundos");
 

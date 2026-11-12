@@ -955,6 +955,7 @@
  "{0} refilled, 1 use": "{0} 已補充，剩 1 次",
  "{0} refilled, {1} charges": "{0} 已補充，{1} 充能",
  "{0} refilled, {1} uses": "{0} 已補充，剩 {1} 次",
+ "{0} restored, {1} percent": "{0}已恢復，百分之 {1}",
  "{0} seconds left": "剩餘 {0} 秒",
  "{0} spirit charges": "靈體能量球 {0} 個",
  "{0} steps": "{0} 步",

@@ -3320,12 +3320,21 @@ namespace Poe2Accessibility.Tests
             Equal(77, watch.Heard("Honor: 400/513"), "past 90 and 80, said once");
             Equal(null, watch.Heard("Honor: 370/513"), "not again above the next");
             Equal(24, watch.Heard("Honor: 125/513"), "marks passed at one blow say the amount once");
+            Equal(null, watch.Rose, "a fall is no rise");
             Equal(null, watch.Heard("Honor: 400/513"), "a fountain raises it");
+            Equal(77, watch.Rose, "and what it rose to is said (user 2026-11-12: a shrine restored honour with nothing said)");
+            Equal(null, watch.Heard("Honor: 410/513"), "two points more, a relic's kill");
+            Equal(null, watch.Rose, "are not worth a line");
+            Equal(null, watch.Heard("Honor: 430/513"), "until they add up");
+            Equal(83, watch.Rose, "to a shrine's worth");
             Equal(49, watch.Heard("Honor: 255/513"), "and the marks count again");
+            Equal(null, watch.Rose, "with no rise in a fall");
             Equal(null, watch.Heard("Honor"), "a line with no amount says nothing");
             Equal(9, watch.Heard("Honor: 50/513"), "and leaves the last reading");
             Equal(0, watch.Heard("Honor: 0/513"), "running out is said");
             Equal(null, watch.Heard("Honor: 0/513"), "once, and the hub's stale line after the failed run stays silent");
+            Equal(null, watch.Heard("Honor: 513/513"), "the next run starts whole");
+            Equal(null, watch.Rose, "which is no honour restored");
         }
 
         private static void TakingTheFloorCutsAKeptLine()

@@ -495,12 +495,21 @@ namespace Poe2Accessibility.Services
                 ? snapshot.Find(this.HudLayer)?.Texts.FirstOrDefault(text => text.Text.StartsWith(label + ":", StringComparison.Ordinal))
                 : null;
 
-        /// <summary>Says the Trial's honour as it falls past a mark, cutting in: at nothing the run ends.</summary>
+        /// <summary>Says the Trial's honour as it falls past a mark, cutting in: at nothing the run ends. And as a shrine or a fountain restores it, in its turn.</summary>
         public void CheckHonour(ScreenSnapshot snapshot)
         {
-            if (this.HonourLine(snapshot) is { } line && this.honour.Heard(line.Text) is { } percent)
+            if (this.HonourLine(snapshot) is not { } line)
+            {
+                return;
+            }
+
+            if (this.honour.Heard(line.Text) is { } percent)
             {
                 this.output.Urge(Announcements.HonourLeft(this.HonourLabel!.Invoke(), percent));
+            }
+            else if (this.honour.Rose is { } risen)
+            {
+                this.Speak("honour restored", Announcements.HonourRestored(this.HonourLabel!.Invoke(), risen), false);
             }
         }
 

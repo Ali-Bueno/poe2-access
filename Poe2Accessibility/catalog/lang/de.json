@@ -955,6 +955,7 @@
  "{0} refilled, 1 use": "{0} aufgefüllt, 1 Anwendung",
  "{0} refilled, {1} charges": "{0} aufgefüllt, {1} Ladungen",
  "{0} refilled, {1} uses": "{0} aufgefüllt, {1} Anwendungen",
+ "{0} restored, {1} percent": "{0} wiederhergestellt, {1} Prozent",
  "{0} seconds left": "{0} Sekunden übrig",
  "{0} spirit charges": "{0} Seelen-Ladungen",
  "{0} steps": "{0} Schritte",

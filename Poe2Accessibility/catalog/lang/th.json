@@ -955,6 +955,7 @@
  "{0} refilled, 1 use": "{0} เติมแล้ว ใช้ได้ 1 ครั้ง",
  "{0} refilled, {1} charges": "{0} เติมแล้ว, {1} ชาร์จ",
  "{0} refilled, {1} uses": "{0} เติมแล้ว ใช้ได้ {1} ครั้ง",
+ "{0} restored, {1} percent": "{0}ฟื้นฟู {1} เปอร์เซ็นต์",
  "{0} seconds left": "เหลือ {0} วินาที",
  "{0} spirit charges": "Spirit Charge {0} อัน",
  "{0} steps": "{0} ก้าว",

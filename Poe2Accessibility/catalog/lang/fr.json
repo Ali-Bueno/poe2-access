@@ -955,6 +955,7 @@
  "{0} refilled, 1 use": "{0} rechargé, 1 utilisation",
  "{0} refilled, {1} charges": "{0} rechargé, {1} charges",
  "{0} refilled, {1} uses": "{0} rechargé, {1} utilisations",
+ "{0} restored, {1} percent": "{0} restauré, {1} pour cent",
  "{0} seconds left": "{0} secondes restantes",
  "{0} spirit charges": "{0} charges d'esprit",
  "{0} steps": "{0} pas",

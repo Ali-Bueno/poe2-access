@@ -955,6 +955,7 @@
  "{0} refilled, 1 use": "{0}が回復、残り1回",
  "{0} refilled, {1} charges": "{0}補充、チャージ{1}",
  "{0} refilled, {1} uses": "{0}が回復、残り{1}回",
+ "{0} restored, {1} percent": "{0}回復、{1}パーセント",
  "{0} seconds left": "残り{0}秒",
  "{0} spirit charges": "スピリットチャージ{0}個",
  "{0} steps": "{0}歩",
