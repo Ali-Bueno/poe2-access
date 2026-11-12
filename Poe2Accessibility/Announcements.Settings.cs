@@ -183,6 +183,7 @@ namespace Poe2Accessibility
             "checkpoint" => T("Checkpoint", "Punto de control"),
             Services.MinimapMarks.StashKind => T("Stash", "Alijo"),
             Services.MinimapMarks.WellKind => T("Well", "Pozo"),
+            Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
             "npc_quest" => T("Character with a quest", "Personaje con misión"),
             Services.DiscoveryNarrator.SoundKey => T("Discovery", "Descubrimiento"),
             _ => key,

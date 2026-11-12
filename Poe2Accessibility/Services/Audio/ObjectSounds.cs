@@ -79,6 +79,8 @@ namespace Poe2Accessibility.Services
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("stashes", 1, entry => entry.Kind == MinimapMarks.StashKind),
             ("wells", 1, entry => entry.Kind == MinimapMarks.WellKind),
+            // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
+            ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
@@ -292,6 +294,7 @@ namespace Poe2Accessibility.Services
             "checkpoint" => this.sounds.Get("checkpoint"),
             MinimapMarks.StashKind => this.sounds.Get(MinimapMarks.StashKind),
             MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
+            MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,

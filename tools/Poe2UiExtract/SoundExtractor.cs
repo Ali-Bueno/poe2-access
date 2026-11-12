@@ -71,6 +71,9 @@ internal static class SoundExtractor
         // What each is heard to do when used: the stash's lid, the well's water (docs/research/game-audio.md).
         new("stash",      "PlayerStash_4.0",   "Open_1", Rms: 0.10),
         new("well",       "General_Gameplay",  "Wellwell_FX_Well_03", Rms: 0.10),
+        // A sign to read: pages turned, from a book pet's idle (user's pick 2026-11-12 of eight page, quill, book and
+        // scroll sounds; the game plays nothing at a sign).
+        new("sign",       "BookandQuillPetMTX", "BookandQuillPet_IdleRelaxed01_FlipPages_01"),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.

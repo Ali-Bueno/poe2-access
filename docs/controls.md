@@ -400,7 +400,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   nearest portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's low drone,
   a checkpoint's bright ring), louder as you get closer; the nearest exit is a low rush of air from the game, repeated
   faster and louder as you get closer, so it stands out beside a checkpoint. The nearest stash sounds with its lid and the
-  nearest well with its water, the sounds each makes when you use it. Walking off any of them, the sound dies away
+  nearest well with its water, the sounds each makes when you use it; the nearest sign to read sounds with pages being
+  turned. Walking off any of them, the sound dies away
   over about six steps past the edge of the screen. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique, the quest sound over a quest item, over whatever the quest's icon marks and on the campaign's named barriers, such as the Ancient Seal; the generic item,
   currency, gold and quest sounds alone only for bases without one). They need the sounds extracted once from your game (see

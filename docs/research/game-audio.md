@@ -36,6 +36,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | checkpoint | BossCheckpoints | BossCheckpoints_Activate_01 |
 | stash | PlayerStash_4.0 | Open_1 (the lid; six `Open_`, six `Close_`, 1.5 to 2 s, low: centroid 330-450 Hz; levelled to RMS 0.10 or its peak) |
 | well | General_Gameplay | Wellwell_FX_Well_03 (water, 0.8 s, bright: centroid 5 kHz, apart from every other cue; the heal `WellRefill_UI_HealNew_*` sits in the chest's band and was not taken) |
+| sign | BookandQuillPetMTX | BookandQuillPet_IdleRelaxed01_FlipPages_01 (pages turned, 0.9 s; see [signs](#signs-2026-11-12)) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
@@ -188,6 +189,16 @@ Balbala's door (`Act2/2_2/Objects/BossDoor`), with secret doors, the Mawdun expl
 271 `.ot` with `TriggerableBlockage` have a `display_text`; the
 plain doors of dungeons, hideouts, leagues and maps stay silent. Such an entry keeps the kind "barrier", which the guide reads, and marks
 the sound in `ScanEntry.Sound`.
+
+## Signs (2026-11-12)
+A sign to read (a story glyph: typed NPC, minimap icon `StoryGlyph`, scanner kind `sign`) was listed and named but had no proximity
+sound: "Letrero: Testamento final" stood six steps away in silence (user). The game plays nothing at one: `Metadata/NPC/Info/StoryGlyphBase.ot`
+sets only the icon and the interaction, and no bank is named for glyphs. Eight samples about reading were put on an
+[audition page](https://claude.ai/artifact/YT4puFNUv9kTSDQGHvWdQz) beside the scroll drop, the chest, the lever, the stash, the quest
+item and the checkpoint; the user picked the pages turned. The others: the same pet's quill (`QuillA_01`, `QuillB_01`), `BookOpen_01`,
+`BookClose_01`; `ItemDrops` `Scroll_Interact_01` and `SkillBook_Move_01`; `General_Gameplay` `IdentifyAll_UI_Book`. The bank is a pet
+cosmetic's, shipped with every install like the other banks (as `power_charge`'s is). The nearest sign sounds, repeated as the
+other one-shots are (`ObjectSounds`, group `signs`); one the quest names keeps the quest sound. Not heard in a game yet.
 
 ## How sounds end (2026-11-07)
 A tester: every sound stopped dead on walking off it, gold in both sets, town portals, waypoints; they remembered it fading. The
