@@ -234,16 +234,30 @@ namespace Poe2Accessibility.Tests
 
             // Full vitals with the total 4 bytes early: the measured places read each current as a total and a 0 after it.
             var early = new byte[0x600];
-            foreach (var at in new[] { 0x1B0, 0x208, 0x248 })
+            foreach (var (at, pool) in new[] { (0x1B0, 500), (0x208, 120), (0x248, 30) })
             {
                 Put(early, at + 8, component);
-                BitConverter.TryWriteBytes(early.AsSpan(at + 0x28), 500);
-                BitConverter.TryWriteBytes(early.AsSpan(at + 0x2C), 500);
+                BitConverter.TryWriteBytes(early.AsSpan(at + 0x28), pool);
+                BitConverter.TryWriteBytes(early.AsSpan(at + 0x2C), pool);
             }
 
             var measuredReads = StructShapes.Vitals(early, component, 8, 0x2C, 0x30);
             Equal(0, StructShapes.Full(early, measuredReads, 0x2C, 4), "no vital reads full one field late");
             Equal(((int, int)?)(8, 0x28), StructShapes.VitalLayout(early, component, 8, 0x2C, 4, 3, true), "full vitals place the total");
+
+            // 0.5.5f, a hurt player with mana spent: no vital is full where measured, and each opens with one equal pair.
+            const int opening = 27300;
+            var hurt = new byte[0x600];
+            foreach (var (at, total, current) in new[] { (0x1B0, 504, 361), (0x208, 302, 105), (0x248, 0, 0), (0x2A0, 30, 0), (0x2E8, 0, 0), (0x338, 0, 0) })
+            {
+                BitConverter.TryWriteBytes(hurt.AsSpan(at), opening);
+                BitConverter.TryWriteBytes(hurt.AsSpan(at + 4), opening);
+                Put(hurt, at + 8, component);
+                BitConverter.TryWriteBytes(hurt.AsSpan(at + 0x2C), total);
+                BitConverter.TryWriteBytes(hurt.AsSpan(at + 0x30), current);
+            }
+
+            Equal(((int, int)?)null, StructShapes.VitalLayout(hurt, component, 8, 0x2C, 4, 3, true), "the pair every vital opens with is no full vital");
         }
 
         private static void TheFocusIsTheSlotThatTakesEachElementFirst()

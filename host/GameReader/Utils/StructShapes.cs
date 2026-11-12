@@ -249,8 +249,8 @@ namespace GameReader.Utils
         /// <summary>
         ///     Where a vital keeps its back-pointer and its total (the current follows the total) when the measured places
         ///     find too few vitals: the pair nearest them under which <paramref name="minVitals"/> vitals point back with a
-        ///     total above zero; with <paramref name="full"/>, two of them full (as at rest in town), which a total read one field
-        ///     late never is. Null when none does.
+        ///     total above zero; with <paramref name="full"/>, two of them full with different totals (as at rest in town), which
+        ///     neither a total read one field late nor the equal pair every vital opens with is. Null when none does.
         /// </summary>
         public static (int BackPointer, int Total)? VitalLayout(byte[] block, long component, int backPointer, int total, int currentAfterTotal, int minVitals, bool full = false)
         {
@@ -269,7 +269,7 @@ namespace GameReader.Utils
                     var vitals = Vitals(block, component, back, place, place + currentAfterTotal);
                     return vitals.Count(vital => BitConverter.ToInt32(block, vital + place) > 0) >= minVitals &&
                            vitals.Any(vital => BitConverter.ToInt32(block, vital + place + currentAfterTotal) > 0) &&
-                           (!full || Full(block, vitals, place, currentAfterTotal) >= MinFullVitals);
+                           (!full || FullTotals(block, vitals, place, currentAfterTotal) >= MinFullVitals);
                 }
 
                 var at = Nearest(total, sizeof(int), MaxVitalField, Fits);
@@ -281,7 +281,14 @@ namespace GameReader.Utils
 
         /// <summary>How many of <paramref name="vitals"/> are full: life above zero and as high as its total.</summary>
         public static int Full(byte[] block, IEnumerable<int> vitals, int total, int currentAfterTotal) =>
-            vitals.Count(vital => BitConverter.ToInt32(block, vital + total) > 0 && BitConverter.ToInt32(block, vital + total) == BitConverter.ToInt32(block, vital + total + currentAfterTotal));
+            vitals.Count(vital => IsFull(block, vital, total, currentAfterTotal));
+
+        /// <summary>How many different totals the full ones read: one number on every vital is a constant of the struct, not a pool.</summary>
+        public static int FullTotals(byte[] block, IEnumerable<int> vitals, int total, int currentAfterTotal) =>
+            vitals.Where(vital => IsFull(block, vital, total, currentAfterTotal)).Select(vital => BitConverter.ToInt32(block, vital + total)).Distinct().Count();
+
+        private static bool IsFull(byte[] block, int vital, int total, int currentAfterTotal) =>
+            BitConverter.ToInt32(block, vital + total) > 0 && BitConverter.ToInt32(block, vital + total) == BitConverter.ToInt32(block, vital + total + currentAfterTotal);
 
         /// <summary>
         ///     Where each measured vital stands among those found (the game has more vitals than GameHelper reads): the
