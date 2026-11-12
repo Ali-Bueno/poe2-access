@@ -138,6 +138,22 @@ try {
     $published = @(Invoke-Native gh @('release', 'view', $tag, '--repo', $repository, '--json', 'assets', '--jq', '.assets[].name'))
     $missing = @($assets | ForEach-Object { Split-Path $_ -Leaf } | Where-Object { $_ -notin $published })
     if ($missing) { throw "$tag was created but lacks $($missing -join ', '): upload them with gh release upload $tag, or delete the release." }
+
+    # What players download must be what was built: the zip as GitHub serves it is hashed again and set against the manifest
+    # served beside it, by which the launcher accepts or refuses the package (tried against v2026.11.12-4 on 2026-11-12).
+    Start-Step 'verify published'
+    $check = Join-Path ([IO.Path]::GetTempPath()) "Poe2AccessRelease-$tag"
+    if (Test-Path $check) { Remove-Item $check -Recurse -Force }
+    Invoke-Native gh @('release', 'download', $tag, '--repo', $repository, '--pattern', 'Poe2Access.zip', '--pattern', 'release.json', '--dir', $check) | Out-Null
+    $stream = [System.IO.File]::OpenRead((Join-Path $check 'Poe2Access.zip'))
+    try { $served = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash($stream)) -replace '-', '' }
+    finally { $stream.Dispose() }
+    $servedManifest = Get-Content (Join-Path $check 'release.json') -Raw | ConvertFrom-Json
+    Remove-Item $check -Recurse -Force
+    if ($served -ne $hash -or $servedManifest.sha256 -ne $hash -or $servedManifest.tag -ne $tag) {
+        throw "$tag is published, but what GitHub serves is not what was built (zip $served, manifest $($servedManifest.sha256) for $($servedManifest.tag), built $hash): the mod will refuse that update. Upload the assets again with gh release upload $tag --clobber, or delete the release."
+    }
+
     Remove-Item $output -Recurse -Force
     Write-Host "Released $tag. Always the newest: https://github.com/$repository/releases/latest/download/Poe2Access.zip"
     Complete-Run

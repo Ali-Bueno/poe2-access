@@ -203,7 +203,9 @@ A release refuses (a dry run lists it and goes on) a checkout not on `main`, unc
 without an upstream or not in step with it, `gh` not signed in, a tag not newer than the latest release, or no commits
 since it; it needs 7-Zip. The tag is `vYYYY.MM.DD`, with `-2`, `-3`... for later releases the same day (`ReleaseTag.cs`
 parses it); it goes into `app/version.txt`. The assets are always `Poe2Access.zip`, `Poe2Access.7z` and `release.json`
-(tag, the zip's SHA-256, notes: what the installed mod reads to update); after publishing it checks all three are on the release.
+(tag, the zip's SHA-256, notes: what the installed mod reads to update); after publishing it checks all three are on the release,
+downloads the zip and the manifest as GitHub serves them and fails, saying what to do, unless the zip's hash is the one it built
+and the manifest names that hash and the tag (since 2026-11-12).
 Updating an install made by the previous layout (`Poe2Access.exe` plus ~250 runtime files, `Poe2AccessHost.exe` and `Poe2UiExtract.exe`
 in `app/`): the update copies the new package over it and the next start deletes what the new layout never ships from the top of `app/`.
 ## localization — the mod's phrases in the game's other languages

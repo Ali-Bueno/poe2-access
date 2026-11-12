@@ -406,6 +406,11 @@
 
 ## Code map
 - Sources: `Poe2Accessibility/Services/<folder>/` by subject, one namespace ([folders](Poe2Accessibility/Services/README.md)); `Announcements*.cs`, `GameLayout.cs` and the core's parts at the plugin's root.
+- Large classes are partial files by topic, `<Class>.<Topic>.cs` beside the class (split 2026-11-12, pure moves): `Announcements`
+  (`.Status`, `.World`, `.Landmarks`, `.Items`, `.Focus`, `.Controls`, `.Gameplay`, `.Settings`, `.Radar`, `.Compatibility`…), `CueSynth`
+  (`.Enemy`, `.Guidance`, `.Skills`, `.States`), `ScreenNarrator` (`.Hooks`, `.Hud`, `.Hints`, `.Speech`, `.Text`, `.InGame`), `RoutePlanner`
+  (`.Search`, `.Shaping`, `.Workspace`), `UiSemantics` (some thirty), `EntityCatalog` (below). A new partial of a class the tests link
+  must be linked in `tests/Poe2Accessibility.Tests/Poe2Accessibility.Tests.csproj` too.
 - `Poe2AccessibilityCore` — wiring + per-frame tick (GameHelper `DrawUI`), no logic; partial files `.Gameplay` (service
   ticks isolated per service, vitals and skill bar readouts, `QuestTexts`), `.States` (game states), `.Input` (the pad),
   `.Creation` (pre-game help, `CreationNameGuide`), `.DevCommands` (command file, status), `.Compatibility` (layout
