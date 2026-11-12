@@ -26,3 +26,11 @@ They expect, beside this folder's parent as they were run: `dat/data_balance_<ta
   `EXTS` environment variable, `BIN=1` for binary files such as the `.datc64` tables). The scripts expect, in the folder
   `S` of `dat.py`: `dat/` (tables), `ot/` (scripts), `armall/` (rooms), `all.txt` (every bundled path) and
   `schema_dl/schema.min.json`. Regenerate the census after a patch that adds bosses.
+
+## The Trial's "find the exit" rooms (2026-11-12)
+
+- `trial-rooms/armlinks.py` reads a room's `.arm`: its objects in order, each one's variables, and the links between them
+  (`<from> <to> "<label>"`); `rules2.py` checks that a door's levers are told by the pillar its indicators draw; `table.py`
+  writes `find_the_exit_rooms.tsv`. `wiring_by_room.txt` is every lever, indicator and door of the 28 rooms for 0.5.5f.
+  They expect the Trial's terrain files dumped beside them (`dumper <gameDir> <out> metadata/terrain/gallows/leagues/sanctum/`,
+  `EXTS=.arm`). What they showed: docs/research/trials-and-campaign.md §1.6.

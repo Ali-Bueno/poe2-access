@@ -46,6 +46,11 @@ namespace Poe2Accessibility.Tests
                 ["en"] = new() { ["CurrencyLesserJeweller"] = "Lesser Jeweller's Orb" },
                 ["es"] = new() { ["CurrencyLesserJeweller"] = "Orbe de joyero menor" },
             }));
+            File.WriteAllText(Path.Join(directory, "world-titles.json"), JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, string>>
+            {
+                ["en"] = new() { ["icon:TitanActive"] = "Dais of Reckoning", ["label:water"] = "Sacred Water", ["body:metadata/x"] = "Grants Sacred Water" },
+                ["es"] = new() { ["icon:TitanActive"] = "Tarima del juicio final", ["label:water"] = "Agua sagrada", ["body:metadata/x"] = "Otorga agua sagrada" },
+            }));
             return LandmarkTable.Load(new PluginLog(Path.Join(Path.GetTempPath(), "poe2access-tests"), false), landmarks);
         }
 
@@ -68,6 +73,9 @@ namespace Poe2Accessibility.Tests
             Expect("Zelina & Zolin", table.Localize("Zelina & Zolin"), "two names");
             Expect("Orok Campfire (Orbe de joyero menor)", table.Localize("Orok Campfire (Lesser Jeweller's Orb)"), "an item in brackets");
             Expect("Arena / El final del viaje", table.Localize("Arena / Journey's End"), "a place after a slash");
+            Expect("Tarima del juicio final", table.Localize("Dais of Reckoning"), "a place the game names only on a minimap icon");
+            Expect("Sacred Water", table.Localize("Sacred Water"), "a word of the mod's own tables is no name of a place");
+            Expect("Otorga agua sagrada", table.WorldBody("Metadata/X"), "what a box says under its title");
             Localization.Detect("en");
         }
 

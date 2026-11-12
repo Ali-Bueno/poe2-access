@@ -1,0 +1,29 @@
+room	levers	multi_use	doors	doors_start_open	doors_2_levers	indicators	plates(gas/dart)	ambush_levers	lever_other_targets	blocker	goal_cell	goal_to_blocker	telepad_to_goal	hazards	single_lever_door_dist
+Caverns_Gauntlet_01	1	0	2	0	0	5	0(0/0)	0	-	0	(1005,520)	-	661	laser1 spike72	
+Caverns_Gauntlet_02	2	0	2	0	0	6	0(0/0)	0	-	0	(1005,796)	-	589	laser2 spike32	
+Caverns_Gauntlet_03	2	0	4	1	0	11	0(0/0)	0	-	0	(729,520)	-	565	spike53	
+Caverns_Gauntlet_04	1	0	1	0	0	3	0(0/0)	0	-	0	(1005,520)	-	692	laser3 spike29	65
+Caverns_Gauntlet_05	1	0	2	0	0	5	0(0/0)	0	-	0	(1005,520)	-	629	laser3 spike31	
+Caverns_Gauntlet_06	1	0	1	0	0	3	0(0/0)	0	-	0	(728,241)	-	651	laser2 spike16	98
+Caverns_Gauntlet_07	1	0	1	0	0	3	0(0/0)	0	-	0	(1005,520)	-	661	laser2 spike35	34
+Ruins_Gauntlet_01	4	0	5	0	0	14	0(0/0)	0	-	1	(576,310)	7	519	bullethell8	
+Ruins_Gauntlet_02	2	0	5	1	0	13	0(0/0)	1	-	1	(576,310)	7	559	bullethell9	
+Ruins_Gauntlet_03	2	0	4	0	0	10	0(0/0)	1	-	1	(576,310)	7	559	mine17	
+Ruins_Gauntlet_04	4	0	5	0	0	14	0(0/0)	2	BulletHellSpawner:next x3	1	(576,310)	7	519	bullethell5	
+Ruins_Gauntlet_05	2	0	4	0	0	10	0(0/0)	1	BulletHellSpawner:next x2	1	(576,310)	7	559	bullethell10	
+Ruins_Gauntlet_06	2	0	3	0	0	8	0(0/0)	1	-	1	(576,310)	7	664	bullethell10	
+Ruins_Gauntlet_07	2	0	4	0	0	10	0(0/0)	2	BulletHellSpawner:next x3	1	(576,310)	7	519	bullethell8 mine12	
+Depths_Gauntlet_01	1	0	2	0	0	5	5(2/1)	0	-	1	(960,313)	21	732	beetles4 dartplate4 laser1 mine8 quicksand2	
+Depths_Gauntlet_02	2	0	4	0	0	10	2(1/1)	0	SanctumSpawnerFloor3_TrapBeetles:next x5	1	(1023,517)	0	864	beetles5 dartplate3 laser1 mine9 quicksand2 spike31	
+Depths_Gauntlet_03	2	0	4	1	0	10	2(1/0)	0	SanctumSpawnerFloor3_TrapBeetles:next x4	1	(816,310)	0	710	beetles10 bullethell4 laser1 mine4 quicksand2	
+Depths_Gauntlet_04	2	0	3	0	0	8	5(1/2)	0	-	1	(816,310)	0	722	beetles11 bullethell9 dartplate6 mine6 quicksand1	
+Depths_Gauntlet_05	2	0	2	0	0	6	1(0/1)	0	-	1	(732,310)	0	606	dartplate4 laser2 mine5 quicksand2 spike24	
+Depths_Gauntlet_06	1	0	3	0	0	7	1(1/0)	0	LaserCrossBeamSpawner:next x1,SanctumSpawnerFloor3_TrapBeetles:next x12	1	(732,310)	0	644	beetles12 bullethell4 laser1 mine3 quicksand1	
+Depths_Gauntlet_07	2	0	2	0	0	6	2(0/1)	0	-	1	(724,310)	8	649	beetles10 bullethell6 dartplate2 laser1 mine4 quicksand4 spike28	
+Abyss_Gauntlet_01	2	2	2	0	1	7	0(0/0)	0	-	1	(804,378)	22	685	laser1 mine6 projportal12 rewind1	
+Abyss_Gauntlet_02	2	0	2	0	0	6	0(0/0)	1	LaserCrossBeamSpawner:switch_dir x1	1	(804,378)	22	684	bullethell2 laser1 mine3 projportal24	
+Abyss_Gauntlet_03	1	0	1	0	0	3	0(0/0)	0	-	1	(1080,378)	22	845	bullethell2 laser1 mine7 projportal28	129
+Abyss_Gauntlet_04	3	3	3	0	1	10	0(0/0)	0	-	1	(804,378)	22	735	bullethell4 mine8 projportal6 rewind1	
+Abyss_Gauntlet_05	2	1	3	1	0	9	4(4/0)	0	-	1	(804,378)	22	684	laser3 projportal8 rewind1	
+Abyss_Gauntlet_06	2	0	1	0	1	4	1(1/0)	2	-	1	(1080,378)	22	268	laser1 projportal12	
+Abyss_Gauntlet_07	1	1	3	2	0	8	0(0/0)	0	-	1	(804,378)	23	301	bullethell8 laser1 projportal4 rewind1	

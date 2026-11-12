@@ -40,6 +40,9 @@ internal static class WorldTitleExtractor
     private static readonly Regex BodyKey = new("body_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
     private const string BodyPrefix = "body:";
 
+    /// <summary>A minimap icon's label by its Id: a name of the game's that no object carries.</summary>
+    private const string IconPrefix = "icon:";
+
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
     private static readonly Regex Colour = new(@"^<\w+>\{(.*)\}$", RegexOptions.Compiled);
 
@@ -87,6 +90,16 @@ internal static class WorldTitleExtractor
         var strings = ClientStringColumns.Find(english, search);
         var objectiveColumn = search.Find(englishObjectives, "QuestStates.Objective", ObjectiveColumn, offset =>
             DatColumnSearch.IsText(englishObjectives, offset, _ => true) && Objectives.All(wanted => DatAnchors.RowWith(englishObjectives, offset, wanted.Objective) >= 0));
+        // A minimap icon's label ("Dais of Reckoning"): what the radar table's own labels are often copied from.
+        var iconAnchor = NameAnchor.MinimapIcons;
+        var englishIcons = DatTable.Open(index, iconAnchor.Table);
+        if (englishIcons == null)
+        {
+            Say.Out.WriteLine("MinimapIcons not found: world-titles left out.");
+            return 1;
+        }
+
+        var iconLabel = search.Text(englishIcons, iconAnchor.Column, iconAnchor.Measured, known: (DatColumnSearch.RowOf(englishIcons, iconAnchor.Id), text => text == iconAnchor.Name));
         if (!search.Report("world-titles") || strings is not { } columns)
         {
             return 1;
@@ -155,6 +168,21 @@ internal static class WorldTitleExtractor
                 titles[PinTownEntry] = pinTown;
             }
 
+            var icons = folder == null ? englishIcons : DatTable.OpenTranslated(index, iconAnchor.Table, folder);
+            if (icons != null && !ClientStringColumns.SameShape(englishIcons, icons))
+            {
+                Say.Out.WriteLine($"  {code}: MinimapIcons differs from the English table in rows or row size: world-titles left out");
+                return 1;
+            }
+
+            for (var row = 0; icons != null && row < icons.RowCount; row++)
+            {
+                if (icons.String(row, 0) is { Length: > 0 } id && icons.StringOrNull(row, iconLabel)?.Trim() is { Length: > 0 } shownOnMap)
+                {
+                    titles[IconPrefix + id] = shownOnMap;
+                }
+            }
+
             var objectives = folder == null ? englishObjectives : DatTable.OpenTranslated(index, ObjectivesTable, folder);
             if (objectives != null && !ClientStringColumns.SameShape(englishObjectives, objectives))
             {
@@ -170,7 +198,7 @@ internal static class WorldTitleExtractor
                 }
             }
 
-            Say.Out.WriteLine($"  {code}: {titles.Count} of {keys.Count + Objectives.Length} titles");
+            Say.Out.WriteLine($"  {code}: {titles.Count} entries ({keys.Count} objects with a title)");
             result[code] = titles;
         }
 

@@ -253,6 +253,38 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   is the one shown when two that fit differ; with the floor read, the log says once a floor whether the lines agree
   ("Trial lines: the lines the map draws say the floor's links"), so each source proves the other.
 
+### 1.6 The "find the exit" rooms: the exit, the levers and the doors (game files, 2026-11-12; nothing built on it yet)
+
+From the 277 terrain files of the Trial (`metadata/terrain/gallows/leagues/sanctum/`, the rooms' `.arm`) and its tables. Scripts and
+tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's objects and links, `rules2.py` checks the colour rule,
+`find_the_exit_rooms.tsv` and `wiring_by_room.txt` are their output for 0.5.5f).
+
+- **The rooms** (MEASURED): the objective "Find the Exit" is QuestStates row 661; its flag `Sanctum-PuzzleEntered` is the enter flag of the
+  room types Maze, Gauntlet and Puzzle, and only Gauntlet has rooms: 28, seven a floor (Caverns, Ruins, Depths, Abyss).
+- **The exit** (MEASURED): one `Metadata/Terrain/Leagues/Sanctum/Objects/SanctumProxGoal` a room, at the room's only opening, on its east
+  side. It is `server_only` and `no_serialise`: the client never has it. The player arrives at a point named "telepad", 268 to 864 cells
+  from it. On floors 2 to 4 every room has one `SanctumAirlockBlocker` 0 to 23 cells before the goal, which the client has: blocked at
+  the start, state `sanctum_completed` 0 then 1. On floor 1 there is none: the exit is the opening toward the reward room's
+  `SanctumMapDevice`, which lies 215 cells past the goal on the same line (INFERRED from lining the two rooms' openings up, 28 of 28).
+  `SanctumRoomSelectorDoor` is no exit: it stands before each way out of a reward room.
+- **Lever to door** (MEASURED): after its objects a room's `.arm` lists links, `<from> <to> "<label>"`, by the objects' order. Always
+  lever, then indicator (`SanctumLogicIndicator`), then door (`SanctumLogicDoor`): a door has exactly two indicators, 9 to 16 cells either
+  side of it (the third nearest is over 20 away, 78 doors of 78), and a lever one of its own 7 to 13 cells from it. All of a lever's
+  indicators draw the same pillar (`KethUnlockPillar01` to `04.ao`) and a room's levers draw different ones: the levers whose own
+  indicator matches a door's two are the door's, right for 78 doors of 78. 52 levers, 78 doors, 214 indicators in all.
+- **What else a lever does** (MEASURED): 13 start an ambush (`SanctumGenericAmbushTrigger`, never sent to the client), others turn
+  turrets, beetle spawners and lasers. A pressure plate never opens a door: it is a trap (gas, darts, beetles).
+- **How a door opens** (INFERRED, the logic runs on the server): a lever turns its indicators over and a door is open while both of its
+  are lit. Six doors start open, so a pull shuts them; one room's door needs two levers; the Abyss has levers used more than once.
+- **What the client can read**: a lever's `lever_pull` (0, then 1 or 2 and no longer targetable), an indicator's `active`, a door's
+  `open`, the blocker's `sanctum_completed`.
+- **A guide from this**, to be judged before it is built: in a room whose objective is "Find the Exit", lead to the blocker still shut
+  (floor 1: toward the next map device); where the way is cut, to the nearest lever not pulled among those of a shut door on the cut,
+  then search again. Never to a plate.
+- **Needs one look in a run**: whether an indicator's entity tells its pillar (its animated object), else the room is told by the
+  distances between its levers and doors (all 28 differ) and the wiring comes from a table; whether the next room's map device is
+  among the entities from inside the room; `lever_pull` 1 against 2; an indicator's `active` when the room does not set it.
+
 ## 2. Trial of Chaos (Ultimatum)
 
 ### 2.1 Mechanics

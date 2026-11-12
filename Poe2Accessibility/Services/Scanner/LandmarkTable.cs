@@ -23,6 +23,9 @@ namespace Poe2Accessibility.Services
     {
         private static readonly IReadOnlyDictionary<string, string> None = new Dictionary<string, string>();
 
+        /// <summary>The entries of world-titles.json that are a minimap icon's label, by the icon's Id.</summary>
+        private const string IconLabelPrefix = "icon:";
+
         private readonly Dictionary<string, Dictionary<string, string>> areas = new(StringComparer.Ordinal);
         private readonly Dictionary<string, Dictionary<string, string>> names = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> englishToId = new(StringComparer.Ordinal);
@@ -225,7 +228,8 @@ namespace Poe2Accessibility.Services
                 {
                     foreach (var (path, english) in titlesEn)
                     {
-                        if (!path.Contains(':') && titlesLocal.TryGetValue(path, out var local))
+                        // An object's title, or a minimap icon's label ("Dais of Reckoning"), which the radar table often copies.
+                        if ((!path.Contains(':') || path.StartsWith(IconLabelPrefix, StringComparison.Ordinal)) && titlesLocal.TryGetValue(path, out var local))
                         {
                             AddName(map, english, local);
                         }
