@@ -278,6 +278,7 @@ namespace Poe2Accessibility.Services
                 (label, namedById) = (Announcements.NewsBanner, false);
             }
 
+            var titledByTooltip = false;
             var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
             // The shop's item page keeps its title in a label: the item's name, and under it what the page says of it.
@@ -301,6 +302,7 @@ namespace Poe2Accessibility.Services
                 label = tooltip[0];
                 tooltip.RemoveAt(0);
                 namedById = false;
+                titledByTooltip = true;
             }
             else if (tooltip.Count > 0 && (label == tooltip[0] || label.StartsWith(tooltip[0] + ", ", StringComparison.Ordinal)))
             {
@@ -347,8 +349,9 @@ namespace Poe2Accessibility.Services
             {
                 (label, position) = (label.Length > 0 ? label : Announcements.HiddenRoom, room);
             }
-            else if (role == UiRole.Panel && label.Length > MaxCellText && longestCell > MaxCellText)
+            else if ((role == UiRole.Panel && label.Length > MaxCellText && longestCell > MaxCellText) || (titledByTooltip && label.Length > MaxCellText))
             {
+                // Nor is an icon whose tooltip is a paragraph: the map's Info button read its place between two of them (2026-11-12).
                 // A card of short cells keeps its place: the spirit tab's "Herald of Thunder, …, 30 spirit" is 82 long (2026-11-08).
                 position = string.Empty; // a paragraph is no cell: the Trial map's tutorial was read with "columna 1, fila 1" inside (2026-11-07)
             }

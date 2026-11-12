@@ -135,8 +135,11 @@ New this session (commit "Name the trials' icons and counters from the game's ta
 - The map's counters are bare numbers behind icons, which the screen reading drops, and the map hides the HUD the vitals
   read them from: since 2026-11-12 each is named by the icon before it (`UiSemantics.TrialCounterKind`,
   `ScreenNarrator.TrialMapCounters`), in the screen reading and in the vitals while the map is open. Not heard yet.
-- The map's three text-less buttons (leave the Trial, the relics' effects, the tutorial): to check whether the pad
-  reaches them and what is said there; the relics' effects are worth a line on opening the map or in the vitals.
+- The map's three text-less buttons (leave the Trial, the relics' effects, the tutorial): the pad reaches them (user
+  2026-11-12) and leaving works. Both of the first two were read as "Estás viendo la prueba de las sekhemas del dueño del
+  mapa, botón, …": a text of the row the game hides from the map's owner, taken as their label (`FindRowLabel` now skips
+  a hidden text, so the tooltip's title names them: "Salir de las pruebas", "Efectos de reliquias:"). The tutorial read
+  "columna 1, fila 1" between two of its paragraphs (no place is said now for an icon titled by a paragraph). Not heard yet.
 - Honour per hit: nothing says what drained it; the honour buffs above could be named as they begin (they are harmful
   buffs: `HarmfulBuffs` may already say them, LIKELY).
 - Relic altar and locker: unseen windows (dumps 10:41/10:52 exist); the relic grid is probably an inventory-like grid

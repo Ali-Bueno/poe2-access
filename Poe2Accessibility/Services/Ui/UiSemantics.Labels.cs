@@ -65,8 +65,10 @@ namespace Poe2Accessibility.Services
                 var index = Array.IndexOf(siblings, child.Address);
                 for (var i = index - 1; i >= 0; i--)
                 {
-                    // Another widget (combo box, button) is never our label, whatever text it shows.
-                    if (this.elements.TryReadElement(siblings[i], out var sibling) &&
+                    // Another widget (combo box, button) is never our label, whatever text it shows; nor is a text the game
+                    // hides: the Trial map's "leave" and "relic effects" buttons were both named by the line shown only to a
+                    // guest, "Estás viendo la prueba de las sekhemas del dueño del mapa" (user 2026-11-12).
+                    if (this.elements.TryReadElement(siblings[i], out var sibling) && sibling.IsVisibleFlag &&
                         !sibling.HasFlagBit(GameLayout.Element.InteractiveFlagBit) &&
                         sibling.Name.Length == 0)
                     {
