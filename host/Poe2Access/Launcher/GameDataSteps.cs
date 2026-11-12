@@ -24,7 +24,7 @@ internal static class GameDataSteps
     [
         new Step(ItemSounds, 1, "item-sounds.json", "item-sounds"),
         new Step("area names", 1, "area-names.json", "areas"),
-        new Step("dat columns", 6, "dat-columns.json", "dat-columns"), // 6: each table's row size, by which the plugin judges a compiled offset
+        new Step("dat columns", 7, "dat-columns.json", "dat-columns"), // 7: a skill's stats at its gem's level (GrantedEffectStatSetsPerLevel)
         new Step("experience", 1, "experience.json", "experience"),
         new Step("hit times", 4, "hit-times.txt", "hit-times", true),
         new Step("hazards", 3, "hazards.txt", "hazards", true),

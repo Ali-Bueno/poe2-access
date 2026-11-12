@@ -202,6 +202,14 @@ namespace Poe2Accessibility.Tests
                 Expect(true, grown.Single(column => column.StartsWith("Mods.Name", StringComparison.Ordinal)).Contains("0x2BD bytes, 0x2B5 when it was measured", StringComparison.Ordinal), "a table that grew");
                 Expect(null, Poe2Accessibility.Services.DatColumns.Doubt("Mods", new Dictionary<string, int> { ["Mods.RowSize"] = 693 }), "no doubt at the measured size");
 
+                // A skill's stats at its gem's level were read at compiled offsets no file could move until 2026-11-12.
+                var moved = With("{\"GrantedEffectStatSetsPerLevel.AdditionalStats\": 137, \"GrantedEffectStatSetsPerLevel.AdditionalStatsValues\": 52, \"GrantedEffectStatSetsPerLevel.RowSize\": 193}");
+                Expect(137, GameLayout.StatSetLevelRow.StatKeysOffset, "the stat keys follow the file");
+                Expect(52, GameLayout.StatSetLevelRow.ValuesOffset, "and their values");
+                Expect(false, moved.Any(column => column.StartsWith("GrantedEffectStatSetsPerLevel.", StringComparison.Ordinal)), "a column the file gives is judged");
+                With("{\"GrantedEffectStatSetsPerLevel.RowSize\": 185}");
+                Expect(0x81, GameLayout.StatSetLevelRow.StatKeysOffset, "a file without them leaves the compiled offset");
+
                 // Said when the catalogs are loaded, before any key is read, once per game process.
                 var report = new Poe2Accessibility.Services.CompatibilityReport(log);
                 Poe2Accessibility.Services.DatColumns.Report(report);

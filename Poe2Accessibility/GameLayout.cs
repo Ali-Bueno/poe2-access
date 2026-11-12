@@ -364,6 +364,19 @@ namespace Poe2Accessibility
             public const int ElementPinOffset = 0x2D0;
         }
 
+        /// <summary>
+        ///     A GrantedEffectStatSetsPerLevel row's additional stats: (count, pointer) to 16-byte keys into Stats.dat, and (count,
+        ///     pointer) to their int32 values. Offsets of the dat file (rows of 0xB9 bytes; Rapid Shot's set, rows 8685-8724, one
+        ///     per level), which a loaded row keeps; followed by DatColumns since 2026-11-12 (the data step's anchor is Rapid
+        ///     Shot's maximum Heat, 25 + the gem's level).
+        /// </summary>
+        public static class StatSetLevelRow
+        {
+            public static int StatKeysOffset { get; internal set; } = 0x81;
+
+            public static int ValuesOffset { get; internal set; } = 0x2C;
+        }
+
         /// <summary>A WorldAreas row's level and town flag (dat columns followed by DatColumns).</summary>
         public static class WorldAreaRow
         {

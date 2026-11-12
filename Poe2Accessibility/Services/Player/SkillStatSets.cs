@@ -19,14 +19,10 @@ namespace Poe2Accessibility.Services
 
         public const string StatsTable = "Data/Balance/Stats.dat";
 
-        /// <summary>
-        ///     The level row's additional stats: (count, pointer) to 16-byte keys into Stats.dat, and (count, pointer) to their
-        ///     int32 values. Offsets of the dat file (rows of 0xB9 bytes; Rapid Shot's set, rows 8685-8724, one per level), which
-        ///     a loaded row keeps (PassiveSkills' unaligned columns read so: <see cref="GameLayout.PassiveTree"/>).
-        /// </summary>
-        public const int StatKeysOffset = 0x81;
+        /// <summary>The level row's additional stats and their values (<see cref="GameLayout.StatSetLevelRow"/>).</summary>
+        private static int StatKeysOffset => GameLayout.StatSetLevelRow.StatKeysOffset;
 
-        public const int ValuesOffset = 0x2C;
+        private static int ValuesOffset => GameLayout.StatSetLevelRow.ValuesOffset;
 
         /// <summary>Where in an ActiveSkillDetails its stat set's key is looked for (8-byte steps; not measured live yet).</summary>
         private const int DetailsSearchBytes = 0x100;

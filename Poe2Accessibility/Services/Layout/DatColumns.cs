@@ -22,7 +22,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Each table's row size when its compiled offsets were measured (0.5.x files, 2026-11-10, `dat-columns`).</summary>
         private static readonly Dictionary<string, int> MeasuredRowSizes = new(StringComparer.Ordinal)
         {
-            ["ActiveSkills"] = 338, ["Characters"] = 640, ["GrantedEffects"] = 297, ["GrantedEffectsPerLevel"] = 116, ["MapPins"] = 202,
+            ["ActiveSkills"] = 338, ["Characters"] = 640, ["GrantedEffects"] = 297, ["GrantedEffectsPerLevel"] = 116,
+            ["GrantedEffectStatSetsPerLevel"] = 185, ["MapPins"] = 202,
             ["MinimapIcons"] = 42, ["Mods"] = 693, ["PassiveSkills"] = 487, ["WorldAreas"] = 736,
         };
 
@@ -72,6 +73,8 @@ namespace Poe2Accessibility.Services
             ("WorldAreas.AreaLevel", GameLayout.WorldAreaRow.LevelOffset, offset => GameLayout.WorldAreaRow.LevelOffset = offset),
             ("WorldAreas.IsTown", GameLayout.WorldAreaRow.IsTownOffset, offset => GameLayout.WorldAreaRow.IsTownOffset = offset),
             ("WorldAreas.Name", GameLayout.WorldAreaRow.NameOffset, offset => GameLayout.WorldAreaRow.NameOffset = offset),
+            ("GrantedEffectStatSetsPerLevel.AdditionalStats", GameLayout.StatSetLevelRow.StatKeysOffset, offset => GameLayout.StatSetLevelRow.StatKeysOffset = offset),
+            ("GrantedEffectStatSetsPerLevel.AdditionalStatsValues", GameLayout.StatSetLevelRow.ValuesOffset, offset => GameLayout.StatSetLevelRow.ValuesOffset = offset),
         };
 
         /// <summary>

@@ -46,6 +46,9 @@ internal static class DatColumnKinds
     private const int KeyBytes = 8;
     private const int WideKeyBytes = 16;
     private const int ListBytes = 16;
+
+    /// <summary>A list this short shows its items in the research aid.</summary>
+    private const int ShownListItems = 8;
     private const int SampledLists = 64;
     private const int DistinctEnough = 2;
 
@@ -319,7 +322,10 @@ internal static class DatColumnKinds
             DatColumnKind.Key => table.Key(row, offset) is >= 0 and var key ? $"row {key}" : string.Empty,
             DatColumnKind.TextList => string.Join(" | ", table.StringList(row, offset)),
             DatColumnKind.KeyList => table.KeyList(row, offset) is { Count: > 0 } keys ? "rows " + string.Join(", ", keys) : string.Empty,
-            DatColumnKind.List => table.Raw64(row, offset) is > 0 and var count ? $"{count} items" : string.Empty,
+            // A short list's items as int32s too: which of two lists of one length holds a known value (2026-11-12).
+            DatColumnKind.List => table.Raw64(row, offset) is > 0 and var count
+                ? $"{count} items" + (count <= ShownListItems ? " as int32: " + string.Join(", ", table.Int32List(row, offset)) : string.Empty)
+                : string.Empty,
             DatColumnKind.Flag => table.RawByte(row, offset).ToString(),
             DatColumnKind.Number => string.Join(' ', Enumerable.Range(0, width).Select(at => table.RawByte(row, offset + at).ToString("X2"))) +
                                     (width == sizeof(int) ? $" = {table.Int32(row, offset)}" : string.Empty),

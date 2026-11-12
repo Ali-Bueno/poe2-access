@@ -30,8 +30,15 @@ internal static class DatContentColumns
         "PassiveSkills.GraphId", "PassiveSkills.Characters", "PassiveSkills.IsKeystone", "PassiveSkills.IsNotable", "PassiveSkills.IsIconOnly",
         "PassiveSkills.IsJewelSocket", "Characters.Id", "GrantedEffects.Id", "WorldAreas.Id", "WorldAreas.IsTown", "WorldAreas.AreaLevel",
         "MapPins.WorldArea", "MapPins.Name", "MapPins.Description", "MapPins.Content", "GrantedEffectsPerLevel.GrantedEffect",
-        "GrantedEffects.ActiveSkill",
+        "GrantedEffects.ActiveSkill", "GrantedEffectStatSetsPerLevel.AdditionalStats", "GrantedEffectStatSetsPerLevel.AdditionalStatsValues",
     };
+
+    /// <summary>The stat that tells a skill's additional stats apart from the table's other lists of Stats keys: Rapid Shot's.</summary>
+    private const string HeatStat = "maximum_number_of_crossbow_heat_stacks";
+
+    /// <summary>Its value on a level row is 25 + the gem's level (30 at level 5, as the gem's text says); the table has 40 levels a skill.</summary>
+    private const int HeatBase = 25;
+    private const int MaxGemLevel = 40;
 
     public static IEnumerable<(string Column, int? Offset, int Measured)> Find(Index index)
     {
@@ -88,6 +95,52 @@ internal static class DatContentColumns
         {
             yield return ("GrantedEffects.ActiveSkill", NamedKey(effects, skills), 0x4F);
         }
+
+        // A skill's own stats at its gem's level (the plugin's SkillStatSets): keys into Stats and their values, two lists
+        // that pair on every row. The table has other lists of Stats keys, so the keys are the list that names the Heat.
+        if (DatTable.Open(index, "grantedeffectstatsetsperlevel") is { } levelSets && DatTable.Open(index, "stats") is { } stats)
+        {
+            var heat = DatColumnSearch.RowOf(stats, HeatStat);
+            var keys = heat < 0 ? null : Nearest(levelSets, 0x81, offset => DatColumnSearch.IsKeyList(levelSets, offset, stats.RowCount) && HeatValues(levelSets, offset, null, heat));
+            yield return ("GrantedEffectStatSetsPerLevel.AdditionalStats", keys, 0x81);
+            yield return ("GrantedEffectStatSetsPerLevel.AdditionalStatsValues",
+                keys is { } listed ? Nearest(levelSets, 0x2C, offset => offset != listed && HeatValues(levelSets, listed, offset, heat)) : null, 0x2C);
+        }
+    }
+
+    /// <summary>
+    ///     Whether some rows' key list at <paramref name="keys"/> names the Heat stat and, with <paramref name="values"/>, whether
+    ///     that column is the keys' values: an int list as long as the keys on every row (the list after it is as long as two
+    ///     key lists together), with Rapid Shot's Heat in the Heat's place on some rows. Other skills give the stat other values.
+    /// </summary>
+    private static bool HeatValues(DatTable levelSets, int keys, int? values, long heat)
+    {
+        var (named, rapidShot) = (0, 0);
+        for (var row = 0; row < levelSets.RowCount; row++)
+        {
+            var listed = levelSets.KeyList(row, keys);
+            var at = -1;
+            for (var i = 0; i < listed.Count && at < 0; i++)
+            {
+                at = listed[i] == heat ? i : -1;
+            }
+
+            named += at >= 0 ? 1 : 0;
+            if (values is not { } offset)
+            {
+                continue;
+            }
+
+            var read = levelSets.Int32List(row, offset);
+            if (read.Count != listed.Count)
+            {
+                return false;
+            }
+
+            rapidShot += at >= 0 && read[at] is > HeatBase and <= HeatBase + MaxGemLevel ? 1 : 0;
+        }
+
+        return named > 0 && (values == null || rapidShot >= MaxGemLevel);
     }
 
     /// <summary>The fitting offset nearest to where the column was measured.</summary>
