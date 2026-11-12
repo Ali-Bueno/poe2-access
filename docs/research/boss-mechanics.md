@@ -228,12 +228,20 @@ then nothing for 22 s and 17 s while the life fell.
   room's centre), its buff `caustic_cloud_balbala` "Caustic Ground" (chaos damage). No other monster script uses the pack.
 - **LIKELY (guides: maxroll, game8).** From 90 % life: she vanishes, the gas seeps from the centre, she waits at a place of the
   arena and coming near her ends it with her slam.
-- **UNSURE, to read off the next fight's log:** whether `hiding` is 1 through the phase (`Boss facts` now logs each reading while
-  a boss is away); whether her entity stands at the hiding place all along and within the boss watch's 1400 units (`Boss hiding:
-  … at x,y, N world units from the player`, then `… back after N ms …`); whether the reveal slam passes the dodge gate (attacks
-  of a `hidden_monster` are not judged, `BossWatch.WatchNear`), so that "¡Sal!" can follow.
+- **PROVEN (live, 2026-11-12, the development host's log 06:25-06:28, the user playing by ear).** Three hidings in one fight,
+  won: `hidden_monster` first, "El jefe se esconde: sigue el latido, <dirección>" 0.9 s later, `hiding=1` one poll after that
+  and through the phase (`visible` drops for a poll and is back to 1 while she hides, so it tells nothing). She was back in play
+  after 5.7 s, 7.3 s and 6.4 s (17 s and more than 22 s the night before, without the line and the beat). Her entity stayed
+  within the boss watch's range all along.
+- **PROVEN (live): she does not hide where she vanishes.** Said at 193, 162 and 253 world units from the player (she vanishes
+  out of the melee), she was back 890, 907 and 478 units from that place, 96, 337 and 307 units from the player. So the spoken
+  direction may be that of the place she left; the beat follows her entity at every poll.
+- **UNSURE:** when she moves to her hiding place (`Boss hiding: … moved to x,y` now logs each 150 units of it), which decides
+  whether the direction should wait for her to stop; and her reveal slam: no dodge-gate line for it in the three reveals
+  (attacks of a `hidden_monster` are not judged, `BossWatch.WatchNear`), so no "¡Sal!" follows it.
 
 **Implementation.** Extractor: `seek|monster|state` for a non-zero state whose handler adds that pack (`BossScripts.SeekStates`;
 launcher step "boss mechanics" 3). Plugin: such a boss out of play, or in that state, is hiding (`BossMechanicsCatalog.HidesToBeFound`,
 `IsSeekState`): its leaving is said as `Announcements.BossHiding` with the screen direction, and `BossMechanicsWatch.Hiding` gives
 its place to `WeakPointGuide`, whose heartbeat leads there (setting `BossWeakPoint`, no new sound) until it is back in play.
+The log has `Boss hiding: … at x,y`, `… moved to x,y` and `… back after N ms …`, and `Boss facts:` for each reading while away.

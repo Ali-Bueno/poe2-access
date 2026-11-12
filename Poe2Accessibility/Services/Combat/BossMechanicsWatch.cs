@@ -35,6 +35,9 @@ namespace Poe2Accessibility.Services
         /// <summary>How long a counterplay word holds the speech against other interruptions (ms).</summary>
         private const int WordHoldMs = 700;
 
+        /// <summary>A hiding boss this far (world units) from where the log last had it gets a new line there.</summary>
+        private const float HidingStepWorld = 150f;
+
         /// <summary>The probe step (world units) that turns a way out into a stick direction on screen.</summary>
         private const float ProbeWorld = 100f;
 
@@ -207,9 +210,13 @@ namespace Poe2Accessibility.Services
             }
 
             this.others.Clear();
-            this.Hiding = this.bosses.Values.FirstOrDefault(boss => boss.SeenAt == now && boss.HidingSince != null && boss.Facts.Gone) is { } hidden
-                ? (hidden.At, hidden.Radius)
-                : null;
+            var hidden = this.bosses.Values.FirstOrDefault(boss => boss.SeenAt == now && boss.HidingSince != null && boss.Facts.Gone);
+            this.Hiding = hidden == null ? null : (hidden.At, hidden.Radius);
+            if (hidden != null && Vector2.Distance(hidden.At, hidden.HidingAt) > HidingStepWorld)
+            {
+                this.log.Info($"Boss hiding: {hidden.Monster} moved to {hidden.At.X:0},{hidden.At.Y:0}");
+                hidden.HidingAt = hidden.At;
+            }
         }
 
         /// <summary>
@@ -225,6 +232,7 @@ namespace Poe2Accessibility.Services
 
             var offset = boss.At - new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             boss.HidingSince = now;
+            boss.HidingAt = boss.At;
             this.log.Info($"Boss hiding: {boss.Monster} at {boss.At.X:0},{boss.At.Y:0}, {offset.Length():0} world units from the player");
             return Announcements.BossHiding(multi ? boss.Name : null, ScreenProjection.Octant(player.WorldPosition, offset), this.Heartbeat());
         }
@@ -385,6 +393,9 @@ namespace Poe2Accessibility.Services
 
             /// <summary>When it was said to be hiding until found; null once it is back.</summary>
             public long? HidingSince { get; set; }
+
+            /// <summary>Where it was at the log's last line of its hiding.</summary>
+            public Vector2 HidingAt { get; set; }
 
             /// <summary>It came into play as an engaged boss's next form: its "Phase N: name" is due.</summary>
             public bool FormNews { get; set; }
