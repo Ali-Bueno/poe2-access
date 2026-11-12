@@ -32,6 +32,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ASlowDownloadThatKeepsComingIsTakenWhole), ASlowDownloadThatKeepsComingIsTakenWhole),
             (nameof(AnUpdatePutsThePackageOverTheInstallAndKeepsTheSettings), AnUpdatePutsThePackageOverTheInstallAndKeepsTheSettings),
             (nameof(AFailedUpdateLeavesTheInstallAsItWas), AFailedUpdateLeavesTheInstallAsItWas),
+            (nameof(AnUpdateRemovesWhatTheLastVersionShippedAndThisOneDoesNot), AnUpdateRemovesWhatTheLastVersionShippedAndThisOneDoesNot),
+            (nameof(AnInstallWithoutAListLosesNothing), AnInstallWithoutAListLosesNothing),
             (nameof(AFileThatCannotBePutBackDoesNotStrandTheLauncherOrTheOthers), AFileThatCannotBePutBackDoesNotStrandTheLauncherOrTheOthers),
             (nameof(ATornLoopInASubtreeLeftUnreadStopsAtTheMapsSize), ATornLoopInASubtreeLeftUnreadStopsAtTheMapsSize),
             (nameof(AKeyIntoAnotherTableIsNotTakenFromTheZeroHalfOfTheKeyBeforeIt), AKeyIntoAnotherTableIsNotTakenFromTheZeroHalfOfTheKeyBeforeIt),
@@ -101,6 +103,49 @@ namespace Poe2Accessibility.Tests
             Expect("new e", folders.Read(@"app\e.txt"), "a file added");
             Expect("the player's", folders.Read(@"app\config\settings.txt"), "the settings kept");
             Equal(0, Directory.EnumerateFiles(folders.Root, "*.new", SearchOption.AllDirectories).Count(), "nothing left half way");
+        }
+
+        private static void AnUpdateRemovesWhatTheLastVersionShippedAndThisOneDoesNot()
+        {
+            using var folders = new UpdateFolders();
+            folders.Put(@"app\old\gone.txt", "shipped once");
+            folders.Put(@"app\mine.txt", "the player's own");
+            folders.Put(@"app\config\old-default.txt", "kept whatever the package holds");
+            folders.Put(@"..\outside.txt", "outside the installation, listed by a path that climbs out");
+            folders.Put(@"app\inside.txt", "inside it, listed by a path that climbs and comes back");
+            folders.Put(PackageInstall.FileList, string.Join("\n", new[]
+            {
+                "app/a.txt", "app/old/gone.txt", "app/config/old-default.txt", "../outside.txt", "app/../app/inside.txt", Launcher, "app/never-there.txt",
+            }));
+            var shipped = PackageInstall.ShippedFiles(folders.Root);
+            Equal(7, shipped.Count, "the list is read before the package replaces it");
+            folders.Replace();
+            folders.Prune(shipped);
+            Expect(false, File.Exists(folders.Path(@"app\old\gone.txt")), "a file the last version shipped and this one does not is removed");
+            Expect(false, Directory.Exists(folders.Path(@"app\old")), "and the folder it left empty");
+            Expect("new a", folders.Read(@"app\a.txt"), "a file the package still holds stays");
+            Expect("the player's own", folders.Read(@"app\mine.txt"), "a file no package listed stays");
+            Expect(true, File.Exists(folders.Path(@"app\config\old-default.txt")), "a kept folder is never pruned");
+            Expect(true, File.Exists(folders.Path(@"..\outside.txt")), "a path that climbs out of the installation removes nothing");
+            Expect(true, File.Exists(folders.Path(@"app\inside.txt")), "nor one that climbs at all");
+            Expect("new launcher", folders.Read(Launcher), "the launcher stays");
+            Expect(true, folders.Log.Any(line => line.Contains("gone.txt", StringComparison.Ordinal)), "what was removed is logged");
+
+            PackageInstall.WriteShippedFiles(folders.PackageRoot, folders.Root, folders.Log.Add);
+            var now = PackageInstall.ShippedFiles(folders.Root);
+            Expect(true, now.Contains(System.IO.Path.Join("app", "e.txt")) && now.Contains(PackageInstall.FileList) && !now.Contains(System.IO.Path.Join("app", "old", "gone.txt")),
+                "the list is written again from the package installed");
+        }
+
+        private static void AnInstallWithoutAListLosesNothing()
+        {
+            using var folders = new UpdateFolders();
+            folders.Put(@"app\stale.txt", "from a version before the list");
+            var shipped = PackageInstall.ShippedFiles(folders.Root);
+            Equal(0, shipped.Count, "no list, nothing known to be the mod's");
+            folders.Replace();
+            folders.Prune(shipped);
+            Expect(true, File.Exists(folders.Path(@"app\stale.txt")), "nothing is removed on a guess");
         }
 
         private static void AFailedUpdateLeavesTheInstallAsItWas()
@@ -339,6 +384,13 @@ namespace Poe2Accessibility.Tests
 
             public void Replace(Func<string, bool>? isKept = null) => PackageInstall.Replace(
                 this.package, this.Root, this.backup, this.Path(Launcher), isKept ?? (relative => relative.StartsWith(@"app\config\", StringComparison.OrdinalIgnoreCase)), this.Log.Add);
+
+            public string PackageRoot => this.package;
+
+            public void Put(string relative, string text) => Write(this.Root, relative, text);
+
+            public void Prune(IReadOnlyList<string> shippedBefore) => PackageInstall.Prune(
+                this.package, this.Root, shippedBefore, this.Path(Launcher), relative => relative.StartsWith(@"app\config\", StringComparison.OrdinalIgnoreCase), this.Log.Add);
 
             public void Dispose() => Directory.Delete(this.Work, true);
 

@@ -162,6 +162,13 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
     Copy-Item (Join-Path $RepoRoot 'docs\controls.md') (Join-Path $stage 'Controls.md')
     Set-Content -Path (Join-Path $stage 'Stop the mod.bat') -Value "@start `"`" `"%~dp0Poe2Access.exe`" stop" -Encoding ascii
 
+    # The package's own files, a path a line: what the next update removes when its package no longer holds one
+    # (PackageInstall.Prune in the launcher). Written last, itself listed.
+    $list = Join-Path $app 'package-files.txt'
+    Set-Content -Path $list -Value '' -Encoding ascii
+    $files = Get-ChildItem $stage -File -Recurse | ForEach-Object { [IO.Path]::GetRelativePath($stage, $_.FullName).Replace('\', '/') }
+    [IO.File]::WriteAllLines($list, [string[]]($files | Sort-Object))
+
     Start-Step 'package layout'
     Test-PackageLayout $stage $Version
 
@@ -190,7 +197,12 @@ function Test-PackageLayout([string]$Stage, [string]$Version) {
     $problems += $expected | Where-Object { $_ -notin $top } | ForEach-Object { "missing $_" }
     $problems += $top | Where-Object { $_ -notin $expected } | ForEach-Object { "unexpected $_ at the top" }
     $app = Join-Path $Stage 'app'
-    $problems += Get-ChildItem $app | Where-Object Name -notin 'oo2core.dll', 'version.txt', 'Plugins' | ForEach-Object { "unexpected app\$($_.Name)" }
+    $problems += Get-ChildItem $app | Where-Object Name -notin 'oo2core.dll', 'version.txt', 'package-files.txt', 'Plugins' | ForEach-Object { "unexpected app\$($_.Name)" }
+    $listed = @(Get-Content (Join-Path $app 'package-files.txt') -ErrorAction SilentlyContinue)
+    $shipped = @(Get-ChildItem $Stage -File -Recurse)
+    if ($listed.Count -ne $shipped.Count -or 'Poe2Access.exe' -notin $listed -or 'app/package-files.txt' -notin $listed) {
+        $problems += "app\package-files.txt lists $($listed.Count) files, the package holds $($shipped.Count)"
+    }
     $plugin = Join-Path $app 'Plugins\Poe2Accessibility'
     foreach ($file in 'Poe2Accessibility.dll', 'prism.dll', 'catalog\lang', 'catalog\ui-catalog.json', 'assets', 'wine', 'licenses\prism\NOTICE', 'config\settings.txt') {
         if (-not (Test-Path (Join-Path $plugin $file))) { $problems += "missing Plugins\Poe2Accessibility\$file" }

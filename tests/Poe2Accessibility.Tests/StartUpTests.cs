@@ -64,7 +64,7 @@ namespace Poe2Accessibility.Tests
         {
             var names = new[]
             {
-                "Poe2Access.log", "Poe2Access.log.old", "Poe2AccessHost.log", "version.txt", "oo2core.dll", "OO2CORE.DLL",
+                "Poe2Access.log", "Poe2Access.log.old", "Poe2AccessHost.log", "version.txt", "oo2core.dll", "OO2CORE.DLL", "package-files.txt",
                 "Poe2AccessHost.exe", "Poe2UiExtract.exe", "System.Private.CoreLib.dll", "coreclr.dll", "GameReader.dll",
                 "Poe2AccessHost.deps.json", "Poe2Access.copies.txt", "tempFileLocations.dat",
             };

@@ -234,8 +234,12 @@ internal static class Updater
             .Select(Path.GetDirectoryName)
             .FirstOrDefault(folder => folder is not null && Directory.Exists(Path.Join(folder, "app")))
             ?? throw new InvalidDataException($"{ReleaseManifest.PackageAsset} holds no {LauncherExe} beside an app folder");
+        var shippedBefore = PackageInstall.ShippedFiles(InstallRoot); // read first: the package brings its own list
+        var running = Environment.ProcessPath ?? string.Empty;
         stopRunning();
-        PackageInstall.Replace(package, InstallRoot, Path.Join(work, "backup"), Environment.ProcessPath ?? string.Empty, IsKept, Log.Write);
+        PackageInstall.Replace(package, InstallRoot, Path.Join(work, "backup"), running, IsKept, Log.Write);
+        PackageInstall.Prune(package, InstallRoot, shippedBefore, running, IsKept, Log.Write);
+        PackageInstall.WriteShippedFiles(package, InstallRoot, Log.Write);
     }
 
     private static bool IsKept(string relative) =>

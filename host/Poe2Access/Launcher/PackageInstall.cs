@@ -17,6 +17,117 @@ internal static class PackageInstall
     private const int CopyBytes = 81920;
 
     /// <summary>
+    ///     The list of the installed package's own files, a path a line, relative to the installation and with forward
+    ///     slashes: what the next update may remove. Without it a file a release no longer shipped stayed for good, a plugin
+    ///     library or a catalog among them, and could still be loaded (sweep of 2026-11-12). The package carries it
+    ///     (tools/BuildSteps.ps1) and every update writes it again from the package it installed.
+    /// </summary>
+    public static readonly string FileList = Path.Join("app", "package-files.txt");
+
+    /// <summary>The files the installed package came with; none when it kept no list (a package from before the list).</summary>
+    public static IReadOnlyList<string> ShippedFiles(string installRoot)
+    {
+        var shipped = new List<string>();
+        try
+        {
+            var path = Path.Join(installRoot, FileList);
+            if (File.Exists(path))
+            {
+                foreach (var line in File.ReadAllLines(path))
+                {
+                    if (line.Trim() is { Length: > 0 } relative)
+                    {
+                        shipped.Add(relative.Replace('/', Path.DirectorySeparatorChar));
+                    }
+                }
+            }
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            shipped.Clear(); // half a list is no list: nothing is removed by it
+        }
+
+        return shipped;
+    }
+
+    /// <summary>
+    ///     After a package is in place: removes the files the last package came with and this one does not hold. Only
+    ///     those: never a file no package listed (the player's, the game data made on this computer), one kept
+    ///     (<paramref name="isKept"/>), one outside the installation, or this launcher. A file that will not go is said
+    ///     and left; the update stands.
+    /// </summary>
+    public static void Prune(string package, string installRoot, IReadOnlyList<string> shippedBefore, string running, Func<string, bool> isKept, Action<string> log)
+    {
+        var root = Path.GetFullPath(installRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        foreach (var relative in shippedBefore)
+        {
+            // A list is a file anyone can write: a line that is no plain path under the installation removes nothing.
+            if (Path.IsPathRooted(relative) || Array.IndexOf(relative.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), "..") >= 0 ||
+                isKept(relative) || File.Exists(Path.Join(package, relative)))
+            {
+                continue;
+            }
+
+            var target = Path.GetFullPath(Path.Join(root, relative));
+            if (!target.StartsWith(root, StringComparison.OrdinalIgnoreCase) || string.Equals(target, running, StringComparison.OrdinalIgnoreCase) ||
+                !File.Exists(target))
+            {
+                continue;
+            }
+
+            Try(() => File.Delete(target), $"remove {target}, which the new version no longer has", log);
+            if (!File.Exists(target))
+            {
+                log($"Removed {relative}: the new version no longer has it.");
+                RemoveEmptyFolders(Path.GetDirectoryName(target), root);
+            }
+        }
+    }
+
+    /// <summary>Writes the list of the package now installed, for the next update's <see cref="Prune"/>.</summary>
+    public static void WriteShippedFiles(string package, string installRoot, Action<string> log)
+    {
+        var shipped = new List<string>();
+        foreach (var source in Directory.EnumerateFiles(package, "*", SearchOption.AllDirectories))
+        {
+            shipped.Add(Path.GetRelativePath(package, source).Replace(Path.DirectorySeparatorChar, '/'));
+        }
+
+        var list = FileList.Replace(Path.DirectorySeparatorChar, '/');
+        if (!shipped.Contains(list))
+        {
+            shipped.Add(list);
+        }
+
+        shipped.Sort(StringComparer.Ordinal);
+        Try(() => File.WriteAllLines(Path.Join(installRoot, FileList), shipped), "write the list of this version's files", log);
+    }
+
+    /// <summary>A folder the removed file left empty goes too, and its parents while they are empty, up to the installation.</summary>
+    private static void RemoveEmptyFolders(string? folder, string root)
+    {
+        while (folder != null && (folder + Path.DirectorySeparatorChar).StartsWith(root, StringComparison.OrdinalIgnoreCase) &&
+               (folder + Path.DirectorySeparatorChar).Length > root.Length)
+        {
+            try
+            {
+                if (Directory.GetFileSystemEntries(folder).Length > 0)
+                {
+                    return;
+                }
+
+                Directory.Delete(folder);
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                return;
+            }
+
+            folder = Path.GetDirectoryName(folder);
+        }
+    }
+
+    /// <summary>
     ///     Copies a download to its file and gives up (a <see cref="TimeoutException"/>) once nothing has arrived for
     ///     <paramref name="quiet"/>: the client's own timeout ends with the response's headers, so a connection gone
     ///     silent held the start for ever, with nothing said and the game not started.

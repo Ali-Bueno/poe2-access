@@ -143,8 +143,14 @@ Poe2Access.exe [start|restart|stop|update|extract ...]  # start (default): open 
   data (`Poe2Access.log` + `.old`, `version.txt`, `GameData`) lives next to Plugins. One log with the launcher's and the host's
   lines (4 MB cap, the previous one kept as `.old`); the per-minute `Frames:` line stays.
 - Each `start`/`restart` deletes GameHelper's leftovers (`LegacyHost.cs`) and, in the package, every file at the top of `app\`
-  the layout does not ship (`AppCleanup.cs`: only `*.log`, `*.log.old`, `version.txt`, `oo2core.dll` stay; folders `Plugins`, `GameData`),
+  the layout does not ship (`AppCleanup.cs`: only `*.log`, `*.log.old`, `version.txt`, `package-files.txt`, `oo2core.dll` stay; folders `Plugins`, `GameData`),
   and the plugin folder's files no version ships any more (`AppCleanup.UnshippedPluginFiles`: `Prismatoid.dll`).
+- An update also removes what the last version shipped and the new one does not (`PackageInstall.Prune`, since 2026-11-12): the
+  package carries the list of its own files (`app\package-files.txt`, a path a line, written by `New-ModPackage` and checked by
+  `Test-PackageLayout`), the launcher reads the installed list before the new package replaces it, deletes the listed files the new
+  package no longer holds, and writes the list again from the package it installed. Never a file no list named (the player's own,
+  `GameData`), one in the kept settings folder, the launcher, or a line that is not a plain path under the installation. An
+  install from before the list loses nothing at its first update and is pruned from the second on.
 - The update writes each file beside its target (`.new`) and moves it over, so a library a process still maps (a Wine
   bridge's `.dll.so` under Proton) is never truncated in place; a file Windows refuses to replace rolls the update back.
 - Elevation: with the Korean client, a game whose memory Windows denies the launcher (Steam run as administrator), or an instance left running as administrator, it runs itself again as administrator (`--parent <pid>` keeps the child from killing it).
@@ -186,7 +192,7 @@ so a new catalog ships with nothing to list, then PRISM's licenses, research mod
 updater and `AppCleanup.cs` rely on before anything is archived. It needs `external/oodle/oo2core.dll`.
 The top folder holds `Poe2Access.exe` (one self-contained, single-file, not trimmed, uncompressed, ReadyToRun build, ~94 MB: the plugin
 is loaded at run time and uses framework APIs the exe does not, so trimming is off), `README.txt`, the controls and the stop shortcut.
-`app/` holds only `oo2core.dll` (bundle reading), `version.txt` and `Plugins/Poe2Accessibility` (dll, catalogs including
+`app/` holds only `oo2core.dll` (bundle reading), `version.txt`, `package-files.txt` (the package's own files, for the next update to prune by) and `Plugins/Poe2Accessibility` (dll, catalogs including
 `important_tgt_files.txt`, research mode off, and PRISM v0.18.3 from `third_party/prism`: `prism.dll`, the Wine bridges'
 placeholders `prism_{orca,speech_dispatcher,spiel}_bridge.dll` beside it, their Unix halves in `wine/*.dll.so`, its
 licenses in `licenses/prism`; [Proton](../docs/proton.md)): nothing of the .NET runtime. All of it sits under `Plugins`,
