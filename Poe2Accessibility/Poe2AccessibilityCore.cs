@@ -593,6 +593,11 @@ namespace Poe2Accessibility
 
             this.Isolated("hotkeys", static core =>
             {
+                if (core.hotkeys.WentDown(core.Settings.StopSpeechHotKey))
+                {
+                    core.output.Stop();
+                }
+
                 if (core.hotkeys.Pressed(core.Settings.DumpUiTreeHotKey))
                 {
                     core.DumpUiTree(core.Settings.UiDumpVisibleOnly);

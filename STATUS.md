@@ -49,7 +49,7 @@
 - **Autonomous testing (controller only):** virtual DualShock 4 + speech log oracle — `tools/computer_use/README.md`. Plugin logs: `Plugins/Poe2Accessibility/logs/accessibility.log`;
   UI dumps: `Plugins/Poe2Accessibility/debug/ui-tree-<State>-<timestamp>.txt`;
   settings: `Plugins/Poe2Accessibility/config/settings.txt` (hotkeys by key name).
-- **Hotkeys (defaults):** F6 dump UI tree, F7 repeat last announcement, F8 speak status (the host has no keys of
+- **Hotkeys (defaults):** F6 dump UI tree, F7 repeat last announcement, F8 speak status, Ctrl stop speech (the host has no keys of
   its own). `settings.txt` is re-read automatically when edited while the host runs.
 - **Cost:** `Poe2Access.log` says what the frames cost once a minute; dev command `costs` logs the plugin's parts.
 

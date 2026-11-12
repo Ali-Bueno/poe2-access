@@ -30,6 +30,10 @@ namespace Poe2Accessibility
         [JsonConverter(typeof(StringEnumConverter))]
         public VK SpeakStatusHotKey = VK.F8;
 
+        /// <summary>Stops the speech at once, like a screen reader's Ctrl; "0" turns it off.</summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public VK StopSpeechHotKey = VK.CONTROL;
+
         /// <summary>Read texts that appear on screen after the focus moves (tooltips, descriptions).</summary>
         public bool AnnounceAppearingText = true;
 
