@@ -148,6 +148,18 @@ New this session (commit "Name the trials' icons and counters from the game's ta
 - Trap timing: `TrapWatch` warns at 400 world units on the state names from the `.ot`; the real lead time is unknown.
 - The "(+N)" water and what the Offer defers: UNSURE.
 
+Settled on 2026-11-12 (evening, from the game's files and the review of the day's code; none heard in a run):
+- **The rewards with no sound** (shrines, fountains, key plinths, the forge, the pledge): they draw icons of their own, not the base
+  reward's, and were silent league devices; they sound as quest objects now ([minimap](minimap.md), "The Trial's rewards draw icons of their own").
+- **What an object is for**: the game's box has a body under the title (`body_text`, a ClientStrings key): "Derrota a todos los monstruos
+  raros del área para llenar el cáliz", "Restaura {0} de honor / Obtienes una desventaja menor aleatoria", "Convierte el agua sagrada que te
+  sobra en llaves". Said once an area with the button ([proximity](../proximity.md)). The `{0}` is an amount the game fills in (LIKELY a
+  percentage: "Restaure {0} de votre Honneur"), not found in the files: said as "algo". A shrine's cost in sacred water is its shared state
+  `interact_cost` (5 in the `.ot`), readable at run time and not said yet.
+- **"Honor recuperado" at the start of a run** after one left with honour to spare: the watch starts over in each area (`HonourWatch.Reset`).
+- **An affliction or boon said gained again** when its slot read empty for one reading: it is lost only after four readings without it
+  (`TrialEffectNews`).
+
 ### 1.5 The floor in memory: links, the rooms taken, what the run carries (MEASURED live 2026-11-12, 0.5.5f)
 Read-only, on the user's open map (floor 1, columns of 1, 3, 3, 4, 5, 4, 6, 1 rooms), against a picture of the map taken
 without focusing the game (`tools/research/trialfloor/bgshot.py`, PrintWindow): 45 links of 45. The decoder with every

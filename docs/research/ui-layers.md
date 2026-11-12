@@ -235,6 +235,20 @@ colour to apply …"), so the
   pointer) and the compatibility warning. `AreaLayoutSearch.IsHeader` now reads one byte, as `Compose` always did.
 - OPEN: what the flag means.
 
+## The caravan's desert map ("Viajar", 0.5.5f, MEASURED live 2026-11-12, yarkey in G2_town)
+
+- Opened at the "Mapa del desierto" beside Sekhema Asala. The act's canvas holds 39 pin buttons; the D-pad moves between them.
+- A pin can draw a button of its own: `canvas > pins > pin [10] > container > button` (72 x 72 under the pin; the pin keeps its
+  address at pin+0x300). The button has no text, art, tooltip or pin key (+0x2D0 is 0; +0x2D8 and +0x2F8 are its click sounds):
+  it read "Vacío, botón, 21 de 39" (21 times in the user's logs). It is named by the pin above it, within two parents:
+  "Keth, botón, 21 de 39" (`UiSemantics.PinNameAbove`, the pin's MapPins row through `DatKey.Row`).
+- The hovered pin of this map is a stop of the caravan: MapPins Ids `G2_town_marker_keth`, `…_gates`, `…_badlands`, with a
+  name, no words, and the town's own area (WorldAreas `IsTown`). So "Pueblo" followed every destination (46 times in a
+  session). A pin of a town's area is the town only when it carries the area's name (`GameLayout.WorldAreaRow.NameOffset`,
+  dat column `WorldAreas.Name`); a stop has no kind. Heard after: "Páramo de los mastodontes. Nivel de monstruos: 22. …" and no more.
+- Not known: what the pin's own button does that A on the pin does not ("Seleccionar, A"); whether the other four pins
+  that have one read the same (only pin 10's was reached with the D-pad).
+
 ## HUD during an area load (0.5.5f, 2026-11-06)
 
 - MEASURED: on an area change or a respawn, `AreaLoadingState` can still show the in-game layers: a `TopLayerChanged` with the

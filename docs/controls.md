@@ -396,7 +396,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   else, it is named with the button: "Finn, A", then "Stash, A" one step further. A name said this way is not said
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
   exit in an area adds the game's own hint: "Clearfell Encampment, A. hold A for options". Setting
-  `AnnounceInteractTarget` ("What the interact button uses").
+  `AnnounceInteractTarget` ("What the interact button uses"). An object the game explains in a box of its own says, the first
+  time in an area, what the game writes it is for: "Blood Chalice, A. Defeat all Rare Monsters in the area to fill the Chalice".
 - **Things worth walking to:** the game's own sounds repeat for every chest in range at once (a body to search, such
   as the Ogham village's victims, with the game's rummage through a corpse instead), the nearest shrine (a hand on a
   lever for switches), ritual altar (not one already done, which the scanner still lists), every breakable in range at once (each with its material's breaking sound,

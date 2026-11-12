@@ -230,6 +230,20 @@ low-level fight with few monsters: a late-game pack is still to measure.
 - *Not this pass's files*: `Poe2AccessibilityCore.Isolated(service, () => ...)` makes a closure per part per frame;
   `EnemyStateWatch.Primed` reads two 4-byte arrays per monster (`TryRead<int>` would not allocate); `StdMapWalk`'s own lists.
 
+## The unexplored ground, off the frame thread (2026-11-12)
+
+- MEASURED (the user's play logs of 2026-11-11 and 11-12, 5416 slow ticks of the parts that list entities): 77% follow
+  the last one by a multiple of 2.0 s. Every `UnexploredRefreshMs` (2000) `ExplorationMap.Frontier` ran inside
+  `EntityCatalog.Entries()`, on whichever part asked first (sounds, nearby, enemy news, object sounds, radar): a scan of
+  every cell of the walkable grid and a cell-level flood fill from the player. Median 33 ms; about 140 ms on a Trial of
+  the Sekhemas' floor, one instance holding every room (120 of `nearby`'s 143 ticks of 100 ms or more were there).
+- Now the search runs on the pool, on a map sharing the seen blocks (`ExplorationMap.Snapshot`), and its ground is taken
+  on the frame thread once found (`Adopt`; a search another area's map started is dropped). The scanner's places lag
+  the search by its length. Heard live (yarkey, the Ardura caravan): "Sin explorar. Zona sin explorar, 7 pasos…", and
+  no slow tick of those parts in 40 s of walking.
+- Not explained: single ticks of 0.7 to 1.3 s (`sounds` and `nearby` 1337 ms at 17:24:19 in a Trial, the host's worst
+  frame 1342 ms; a collection of 427 ms at 17:13). Six in two days; no pattern found.
+
 ## Not done, and why
 
 - The screen watcher's 150 ms snapshot: its interval is the speech latency after a screen change (two snapshots confirm
