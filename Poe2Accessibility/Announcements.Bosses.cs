@@ -25,6 +25,27 @@ namespace Poe2Accessibility
             return heartbeat ? $"{hiding}: {T("follow the heartbeat", "sigue el latido")}, {way}" : $"{hiding}, {way}";
         }
 
+        /// <summary>
+        ///     The walls a boss raised around the player, and the way out of them: "Walls: follow the heartbeat to the way out,
+        ///     up", or with no way out on foot "Walls all around: follow the heartbeat and break one, left".
+        /// </summary>
+        public static string BossWalls(bool open, int octant, bool heartbeat)
+        {
+            var way = StickDirections[((octant % StickDirections.Length) + StickDirections.Length) % StickDirections.Length];
+            var walls = open ? T("Walls", "Muros") : T("Walls all around", "Muros por todos lados");
+            var act = (open, heartbeat) switch
+            {
+                (true, true) => T("follow the heartbeat to the way out", "sigue el latido hasta la salida"),
+                (true, false) => T("the way out", "la salida"),
+                (false, true) => T("follow the heartbeat and break one", "sigue el latido y rompe uno"),
+                _ => T("break one", "rompe uno"),
+            };
+            return $"{walls}: {act}, {way}";
+        }
+
+        /// <summary>The player walked out of a boss's walls.</summary>
+        public static string BossWallsLeft() => T("Out of the walls", "Fuera de los muros");
+
         /// <summary>"3 adds": the monsters a boss brought, in play.</summary>
         public static string BossAdds(int count) => count == 1 ? T("1 add", "1 esbirro") : T($"{count} adds", $"{count} esbirros");
 

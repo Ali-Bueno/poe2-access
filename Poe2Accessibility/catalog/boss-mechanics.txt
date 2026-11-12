@@ -1,7 +1,7 @@
 # What the mod tells of boss fights, from the game's files (tools/Poe2UiExtract boss-mechanics), regenerated after patches.
 # boss|monster|name   hide|monster|state=value (stops drawing it)   phase|monster|state (its value is the fight's phase)
 # enrage|monster|state   seek|monster|state (it hides until the player comes near)   add|monster|monster it brings
-# form|monster|boss it turns into   buff|id|invulnerable or enrage
+# form|monster|boss it turns into   wall|monster|add that is a wall standing in the way   buff|id|invulnerable or enrage
 # move|buff id|stop or keep (the player's rule)   line|language|text|monster|skill or -|line id (a voice line announcing a mechanic)
 boss|Metadata/Monsters/Dummy/D_Boss|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 boss|Metadata/Monsters/Dummy/D_BossLarge|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -202,15 +202,19 @@ hide|Metadata/Monsters/PerennialKingHumanBossStandalone|deli_clone=1
 boss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss|Kabala, Constrictor Queen
 hide|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss|bb_visible=0
 add|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
+wall|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
 boss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap|Manassa, the Serpent Queen
 hide|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap|bb_visible=0
 add|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
+wall|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMap|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
 boss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring|Manassa, the Serpent Queen
 hide|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring|bb_visible=0
 add|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
+wall|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossMapSpring|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
 boss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE|Manassa, the Serpent Queen
 hide|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE|deli_clone=1
 add|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
+wall|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall
 add|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossSTANDALONE|Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinionSTANDALONE
 boss|Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBoss|Iktab, the Deathlord
 boss|Metadata/Monsters/BoneCultists/BoneCultist_Necromancer/BoneCultist_NecromancerBossCampaignSTANDALONE|Iktab, the Deathlord

@@ -46,7 +46,8 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly HostMemoryReader memory;
         private readonly Dictionary<uint, Boss> bosses = new();
-        private readonly List<(uint Id, string Monster)> others = new();
+        private readonly List<(uint Id, string Monster, Vector2 At)> others = new();
+        private readonly BossWallsWatch walls;
         private readonly HashSet<uint> inPlaySeen = new();
         private readonly HashSet<string> formsSaid = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<uint> addsSaid = new();
@@ -65,6 +66,7 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.log = log;
             this.memory = new HostMemoryReader(log);
+            this.walls = new BossWallsWatch(log);
         }
 
         public BossMechanicsCatalog Catalog { get; set; } = BossMechanicsCatalog.Shared;
@@ -78,6 +80,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a boss said to be hiding waits to be found, and its radius; null when none hides.</summary>
         public (Vector2 At, float Radius)? Hiding { get; private set; }
 
+        /// <summary>Where the way out of a boss's walls is, or the wall to break (<see cref="BossWallsWatch"/>); null when not walled in.</summary>
+        public Vector2? WayOut => this.walls.Target;
+
         /// <summary>Where a boss being fought stood at the last poll; null when none is (<see cref="BossArenaLog"/>).</summary>
         public Vector2? Fighting { get; private set; }
 
@@ -85,6 +90,7 @@ namespace Poe2Accessibility.Services
         {
             this.Hiding = null;
             this.Fighting = null;
+            this.walls.Reset();
             this.bosses.Clear();
             this.others.Clear();
             this.inPlaySeen.Clear();
@@ -121,7 +127,7 @@ namespace Poe2Accessibility.Services
             {
                 if (inPlay)
                 {
-                    this.others.Add((entity.Id, monster));
+                    this.others.Add((entity.Id, monster, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)));
                 }
 
                 return;
@@ -207,6 +213,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.Waves(adds, now, said);
+            var standing = this.others.Where(other => fighting.Any(boss => this.Catalog.IsWall(boss.Monster, other.Monster))).Select(other => other.At).ToList();
+            if (this.walls.Poll(standing, now, this.Heartbeat()) is { } wayOut)
+            {
+                said.Add(wayOut);
+            }
+
             foreach (var text in said.Distinct(StringComparer.Ordinal))
             {
                 this.output.Say(SpeechKind.BossLife, text, true);

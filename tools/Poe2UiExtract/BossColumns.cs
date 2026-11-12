@@ -3,7 +3,7 @@ using System.Linq;
 
 /// <summary>
 ///     The columns `boss-mechanics` reads, each found by what it holds near where it was measured (<see cref="DatColumnSearch"/>):
-///     MonsterVarieties' script, name and boss-bar flag, BuffDefinitions' stats, NPCTextAudio's text. Ids (text at +0) are read in place.
+///     MonsterVarieties' script, name, boss-bar flag and skills, BuffDefinitions' stats, NPCTextAudio's text. Ids (text at +0) are read in place.
 /// </summary>
 internal sealed class BossColumns
 {
@@ -14,6 +14,7 @@ internal sealed class BossColumns
     internal const int BuffStatsOffset = 0x1A;
     internal const int LineTextOffset = 0x18;
     internal const int SkillKindOffset = 0x4F;
+    internal const int MonsterSkillsOffset = 0xD0;
 
     // Rows the data names: Count Geonor's wolf form has the boss bar, its summoned werewolf has none; god_mode makes one unhurtable.
     internal const string KnownBoss = "Metadata/Monsters/Baron/BaronBossCorruptedWolfForm";
@@ -27,7 +28,7 @@ internal sealed class BossColumns
     internal const string KnownSkill = "GSBaronBossColdBreathChannel";
     internal const string KnownSkillKind = "geometry_spell";
 
-    public int Script, Name, BossBar, BuffStats, LineText, SkillKind;
+    public int Script, Name, BossBar, BuffStats, LineText, SkillKind, MonsterSkills;
 
     /// <summary>Every column, or null (said) when one was not found.</summary>
     public static BossColumns? Find(DatTable monsters, DatTable buffs, DatTable stats, DatTable lines, DatTable skills, DatTable kinds)
@@ -49,6 +50,8 @@ internal sealed class BossColumns
             LineText = search.Text(lines, "NPCTextAudio.Text", LineTextOffset, known: (line, text => text == KnownLineText)),
             SkillKind = search.Key(skills, "GrantedEffects.ActiveSkill", SkillKindOffset, kinds,
                 known: (DatColumnSearch.RowOf(skills, KnownSkill), key => key >= 0 && key < kinds.RowCount && kinds.StringOrNull((int)key, 0) == KnownSkillKind)),
+            MonsterSkills = search.KeyList(monsters, "MonsterVarieties.GrantedEffects", MonsterSkillsOffset, skills,
+                known: (boss, keys => keys.Any(key => key >= 0 && key < skills.RowCount && skills.StringOrNull((int)key, 0) == KnownSkill))),
         };
         return search.Report("boss-mechanics") ? c : null;
     }

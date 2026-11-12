@@ -16,7 +16,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `action-types.txt` | the game's action names | `action-types`, start | `AttackData` |
 | `area-names.json` | area names per language | `areas`, start | `LandmarkTable`, `GameNewsNotes` |
 | `attack-reach.txt` | how far each monster clip's blow reaches and lands | `attack-reach`, start | `AttackData` |
-| `boss-mechanics.txt` | boss fights' hides, hide-and-seek states, phases, adds, unhurtable buffs, movement rules, mechanic lines | `boss-mechanics`, start | `BossMechanicsCatalog` |
+| `boss-mechanics.txt` | boss fights' hides, hide-and-seek states, phases, adds, the adds that are walls, unhurtable buffs, movement rules, mechanic lines | `boss-mechanics`, start | `BossMechanicsCatalog` |
 | `buff-names.json` | harmful buffs' names per language | `buff-names`, start | `HarmfulBuffs` |
 | `class-mechanics.json` | class resources, limits, buff names, skill types | `class-mechanics`, start | `ClassMechanicCatalog` |
 | `code-fields.txt` | what the game's code reads, to catch a field a patch moved | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | `CodeFieldCatalog`, tests |

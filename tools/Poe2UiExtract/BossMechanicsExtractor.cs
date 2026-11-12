@@ -16,6 +16,7 @@ internal static class BossMechanicsExtractor
     private const string ScriptExtension = ".ot";
     private const string HiddenStat = "is_hidden_monster";
     private const string UnhurtableStat = "base_cannot_be_damaged";
+    private const string InanimateScript = "Metadata/Utility/InanimateObject";
     private const char Field = '|';
 
     private static readonly Regex StopMoving = new(@"\b(stop moving|stand still|remain still|stay still|do not move|don't move)\b", RegexOptions.IgnoreCase);
@@ -26,7 +27,7 @@ internal static class BossMechanicsExtractor
         "# What the mod tells of boss fights, from the game's files (tools/Poe2UiExtract boss-mechanics), regenerated after patches.",
         "# boss|monster|name   hide|monster|state=value (stops drawing it)   phase|monster|state (its value is the fight's phase)",
         "# enrage|monster|state   seek|monster|state (it hides until the player comes near)   add|monster|monster it brings",
-        "# form|monster|boss it turns into   buff|id|invulnerable or enrage",
+        "# form|monster|boss it turns into   wall|monster|add that is a wall standing in the way   buff|id|invulnerable or enrage",
         "# move|buff id|stop or keep (the player's rule)   line|language|text|monster|skill or -|line id (a voice line announcing a mechanic)",
     };
 
@@ -102,6 +103,10 @@ internal static class BossMechanicsExtractor
                 if (monsterRows.TryGetValue(monster, out var other) && other != row && monsters.StringOrNull(other, c.Name) is { Length: > 0 } name && name != HelperName)
                 {
                     output.Add($"{(monsters.Byte(other, c.BossBar) == 1 ? "form" : "add")}|{id}|{monsters.String(other, 0)}");
+                    if (monsters.Byte(other, c.BossBar) != 1 && monsters.KeyList(other, c.MonsterSkills).Count == 0 && IsWall(Chain(monsters.StringOrNull(other, c.Script) ?? string.Empty, ScriptOf)))
+                    {
+                        output.Add($"wall|{id}|{monsters.String(other, 0)}");
+                    }
                 }
             }
 
@@ -117,6 +122,10 @@ internal static class BossMechanicsExtractor
         Say.Out.WriteLine($"Wrote {outFile}: {bosses} bosses, {buffLines.Count - rules} boss buffs, {rules} movement rules, {voiced.Count} mechanic lines.");
         return 0;
     }
+
+    /// <summary>A monster that only stands in the way: its scripts extend the inanimate object and block the ground, and it has no skill (the Bone Wall of Kabala's cage; an effigy or a bell that pulses is no wall).</summary>
+    private static bool IsWall(List<BossScripts.Script> chain) =>
+        chain.Any(script => script.Blocks) && chain.Any(script => script.Extends.Contains(InanimateScript, StringComparer.OrdinalIgnoreCase));
 
     /// <summary>A boss's script and every script it extends, nearest first.</summary>
     private static List<BossScripts.Script> Chain(string path, Func<string, BossScripts.Script?> scriptOf)

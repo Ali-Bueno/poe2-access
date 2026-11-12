@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> seekStates = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> seekers = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> adds = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> walls = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> forms = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> withForms = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> unhurtable = new(StringComparer.Ordinal);
@@ -93,6 +94,9 @@ namespace Poe2Accessibility.Services
                     case "add":
                         this.adds.Add($"{c[1]}|{c[2]}");
                         break;
+                    case "wall":
+                        this.walls.Add($"{c[1]}|{c[2]}");
+                        break;
                     case "form":
                         this.forms.Add($"{c[1]}|{c[2]}");
                         this.withForms.Add(c[1]);
@@ -138,6 +142,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A monster the boss brings into its fight (its script preloads it, no boss bar).</summary>
         public bool IsAdd(string boss, string monster) => this.adds.Contains($"{boss}|{monster}");
+
+        /// <summary>An add of the boss that only stands in the way: a wall of the cage it shuts the player in (Kabala's Bone Wall).</summary>
+        public bool IsWall(string boss, string monster) => this.walls.Contains($"{boss}|{monster}");
 
         /// <summary>Another boss this one turns into (its script preloads it, with a boss bar).</summary>
         public bool IsForm(string boss, string other) => this.forms.Contains($"{boss}|{other}");

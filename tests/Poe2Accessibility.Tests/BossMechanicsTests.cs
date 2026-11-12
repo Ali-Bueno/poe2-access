@@ -36,7 +36,51 @@ namespace Poe2Accessibility.Tests
             (nameof(AScriptGivesHidesPhasesEnragesLinesAndPreloads), AScriptGivesHidesPhasesEnragesLinesAndPreloads),
             (nameof(OnlyLinesOfAFightsTurnAreMechanics), OnlyLinesOfAFightsTurnAreMechanics),
             (nameof(ARandomLinePicksAmongItsNumberedSiblings), ARandomLinePicksAmongItsNumberedSiblings),
+            (nameof(TheWayOutOfARingOfWallsIsItsOpening), TheWayOutOfARingOfWallsIsItsOpening),
+            (nameof(AFewWallsToOneSideGiveNoCircle), AFewWallsToOneSideGiveNoCircle),
         };
+
+        /// <summary>Kabala's ring as the files give it: 80 places on a circle of 50 cells; the walls at <paramref name="missing"/> never rose.</summary>
+        private static List<Vector2> Ring(Vector2 centre, params int[] missing) =>
+            Enumerable.Range(0, 80).Where(i => !missing.Contains(i))
+                .Select(i => centre + (50f * new Vector2(MathF.Cos(i * 4.5f * MathF.PI / 180f), MathF.Sin(i * 4.5f * MathF.PI / 180f)))).ToList();
+
+        private static void TheWayOutOfARingOfWallsIsItsOpening()
+        {
+            const int BytesPerRow = 200;
+            var grid = Enumerable.Repeat((byte)0x11, BytesPerRow * 400).ToArray(); // open ground, 400 x 400 cells
+            var centre = new Vector2(200, 200);
+            var open = WallRing.Read(grid, BytesPerRow, centre, Ring(centre, 0, 1, 2));
+            Equal(WallWay.Open, open!.Value.Way, "three walls missing: a way out on foot");
+            Equal(true, open.Value.At.X > 245 && MathF.Abs(open.Value.At.Y - 204) < 12, "through the opening, just beyond the ring");
+
+            var closed = WallRing.Read(grid, BytesPerRow, new Vector2(210, 200), Ring(centre));
+            Equal(WallWay.Closed, closed!.Value.Way, "a whole ring: a wall must be broken");
+            Equal(true, Vector2.Distance(closed.Value.At, new Vector2(250, 200)) < 1f, "the wall nearest the player");
+
+            Equal(WallWay.Out, WallRing.Read(grid, BytesPerRow, new Vector2(300, 200), Ring(centre))!.Value.Way, "beyond the ring already");
+            Equal(true, WallRing.Read(grid, BytesPerRow, centre, Ring(centre).Take(2).ToList()) == null, "two walls shut nobody in");
+
+            // The opening is on the far side of a rock: the walls leave it open, the ground does not.
+            for (var y = 190; y <= 215; y++)
+            {
+                for (var x = 244; x <= 262; x++)
+                {
+                    grid[(y * BytesPerRow) + (x / 2)] &= (byte)(x % 2 == 0 ? 0xF0 : 0x0F);
+                }
+            }
+
+            Equal(WallWay.Closed, WallRing.Read(grid, BytesPerRow, centre, Ring(centre, 0, 1, 2))!.Value.Way, "an opening onto rock is no way out");
+        }
+
+        private static void AFewWallsToOneSideGiveNoCircle()
+        {
+            var centre = new Vector2(200, 200);
+            var fitted = WallRing.Fit(Ring(centre, 0, 1, 2));
+            Equal(true, fitted is { } ring && Vector2.Distance(ring.Centre, centre) < 0.5f && MathF.Abs(ring.Radius - 50f) < 0.5f, "the ring's circle, opening or not");
+            Equal(true, WallRing.Fit(Ring(centre).Take(10).ToList()) == null, "45 degrees of arc say too little of the circle");
+            Equal(true, WallRing.Fit(new[] { new Vector2(0, 0), new Vector2(4, 0), new Vector2(8, 0) }) == null, "walls in a line");
+        }
 
         private static Counterplay? Answer(AttackArea area, Vector2 target, Vector2 player, Vector2? monster = null) =>
             BossCounterplay.Of(area, monster ?? Vector2.Zero, target, player, 0f, 0f);
@@ -177,6 +221,7 @@ namespace Poe2Accessibility.Tests
                 $"enrage|{Wolf}|enraged",
                 $"seek|{Balbala}|hiding",
                 $"add|{Wolf}|Metadata/Monsters/Baron/BaronWerewolfSummon",
+                "wall|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss|Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall",
                 $"form|Metadata/Monsters/Baron/BaronBossHumanForm|{Wolf}",
                 "buff|god_mode|invulnerable",
                 "buff|enrage_buff|enrage",
@@ -197,6 +242,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, catalog.IsSeekState(Balbala, "hiding") && catalog.HidesToBeFound(Balbala), "Balbala hides until she is found");
             Equal(false, catalog.IsSeekState(Wolf, "faded") || catalog.HidesToBeFound(Wolf), "the Wolf's fog is no hide-and-seek");
             Equal(true, catalog.IsAdd(Wolf, "Metadata/Monsters/Baron/BaronWerewolfSummon"), "its werewolves");
+            Equal(true, catalog.IsWall("Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss", "Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBossBoneWall"), "Kabala's bone walls");
+            Equal(false, catalog.IsWall(Wolf, "Metadata/Monsters/Baron/BaronWerewolfSummon"), "an add that fights is no wall");
             Equal(true, catalog.IsForm("Metadata/Monsters/Baron/BaronBossHumanForm", Wolf) && catalog.HasForms("Metadata/Monsters/Baron/BaronBossHumanForm"), "the Count turns into it");
             Equal(true, catalog.IsUnhurtable("god_mode") && catalog.IsEnrage("enrage_buff") && !catalog.IsUnhurtable("enrage_buff"), "buff kinds");
             Equal(2, catalog.Lines, "two lines");
@@ -238,6 +285,9 @@ namespace Poe2Accessibility.Tests
                 Equal("Invulnerable, 3 esbirros", Announcements.BossTurn(BossNews.Invulnerable, null, 3), "a shield and its adds");
                 Equal("El jefe se esconde: sigue el latido, abajo a la izquierda", Announcements.BossHiding(null, 5, true), "a boss to find, by the heartbeat");
                 Equal("Balbala se esconde, arriba", Announcements.BossHiding("Balbala", 2, false), "named among several, the heartbeat off");
+                Equal("Muros: sigue el latido hasta la salida, derecha", Announcements.BossWalls(true, 0, true), "walled in, with a way out");
+                Equal("Muros por todos lados: rompe uno, arriba", Announcements.BossWalls(false, 2, false), "walled in on every side, the heartbeat off");
+                Equal("Fuera de los muros", Announcements.BossWallsLeft(), "out of them");
             }
             finally
             {
@@ -292,6 +342,9 @@ namespace Poe2Accessibility.Tests
             Equal("Metadata/Monsters/Baron/BaronWerewolfSummon", script.Monsters.Single(), "its add");
             Equal("Metadata/Monsters/Baron/Objects/BaronWolfBloodOrb", script.Objects.Single(), "its object");
             Equal("GSBaronBossColdBreathChannel", BossScripts.SkillOf("on_effect_start_GSBaronBossColdBreathChannel"), "the skill of a handler");
+            Equal(false, script.Blocks, "a boss walks: it blocks no ground");
+            var wall = BossScripts.Parse("version 3\nextends \"Metadata/Monsters/Monster\"\nextends \"Metadata/Utility/InanimateObject\"\nPositioned\n{\n\tblocking = true\n\tignore_being_pushed = true\n}\n");
+            Equal(true, wall.Blocks && wall.Extends.Contains("Metadata/Utility/InanimateObject"), "the Bone Wall: inanimate and in the way");
         }
 
         private static void OnlyLinesOfAFightsTurnAreMechanics()

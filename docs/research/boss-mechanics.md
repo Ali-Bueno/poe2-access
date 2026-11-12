@@ -416,3 +416,17 @@ mechanic, the run-time signal: a state, a buff id, an entity path, the skill's a
 - **Azarian.** Four `ForsakenSonCenser` in a square around the arena's middle. ExecuteGEAL 1021 on a censer: `TriggerSkill(
   CGEForsakenBurningGround, triggerer ); triggerer.Delete();` and on the boss `AddLifeThreshold( -20 )`: a censer that goes
   out leaves lasting fire where it stood and moves his next threshold. Keep away from the censers' corners.
+
+### Implemented from §13: the way out of a boss's walls (2026-11-12, not heard live)
+
+Extractor: `wall|boss|monster` for an add with no boss bar and no skill whose scripts extend `Metadata/Utility/InanimateObject`
+and block the ground (`Positioned { blocking = true }`); on 0.5.5f only Kabala's Bone Wall (the King in the Mists' death
+effigy and the Breach bell are inanimate and blocking too, and have a skill: no walls). `MonsterVarieties.GrantedEffects`
+(+0xD0) is found like the other columns (`BossColumns.MonsterSkills`); launcher step 5. Plugin: `BossMechanicsWatch` hands the
+walls in play to `BossWallsWatch`; `WallRing.Read` (pure, tested) fits the circle they stand on, closes around each wall
+0.75 of their usual spacing, and walks the walkable grid from the player until it is 6 cells beyond the ring: that cell is
+the way out (`Open`); none means `Closed`, and the place is the nearest wall. Said once the walls' count and the answer
+have held 0.6 s: "Muros: sigue el latido hasta la salida, <dirección>" / "Muros por todos lados: sigue el latido y rompe
+uno, <dirección>", then "Fuera de los muros"; the weak point's heartbeat leads there (`BossMechanicsWatch.WayOut`). Log:
+`Boss walls: N walls, Open|Closed|Out, to x,y, …`. **Unknown until a fight shows it** (the log will, no one is asked to
+play for it): how many of the 80 places get a wall, and whether the grid's walkable cells match the arena's real openings.

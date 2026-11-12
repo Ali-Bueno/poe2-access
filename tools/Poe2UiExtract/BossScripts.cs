@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 ///     What a monster's script (.ot) says of its fight (docs/research/boss-mechanics.md): the scripts it extends, the
 ///     state values that stop drawing it, the states whose value is the fight's phase (they set a "*Phase" music
 ///     parameter), its enrage states, the states in which it hides to be found, the voice lines it plays and from which
-///     handler, and the monsters and objects it preloads (its adds, its next forms, its arena objects). Pure.
+///     handler, the monsters and objects it preloads (its adds, its next forms, its arena objects), and whether it blocks the way (a wall). Pure.
 /// </summary>
 internal static class BossScripts
 {
@@ -15,7 +15,7 @@ internal static class BossScripts
     internal sealed record Script(
         IReadOnlyList<string> Extends, IReadOnlyList<(string State, int Value)> Hides, IReadOnlyList<string> PhaseStates,
         IReadOnlyList<string> EnrageStates, IReadOnlyList<(string Handler, string Line)> Lines, IReadOnlyList<string> Monsters,
-        IReadOnlyList<string> Objects, IReadOnlyList<string> SeekStates);
+        IReadOnlyList<string> Objects, IReadOnlyList<string> SeekStates, bool Blocks);
 
     /// <summary>The handler prefix of a skill starting: <c>on_effect_start_&lt;GrantedEffects id&gt;</c>.</summary>
     internal const string SkillStartHandler = "on_effect_start_";
@@ -34,6 +34,7 @@ internal static class BossScripts
     private static readonly Regex PhaseCall = new(@"SetGlobalAudioParam\(\s*(\w+)");
     private static readonly Regex LineCall = new(@"\b(?:PlayTextAudio|QueueTextAudio)\(\s*(\w+)");
     private static readonly Regex HandlerName = new(@"^\s*(\w+)\s*=");
+    private static readonly Regex Blocking = new(@"\bblocking\s*=\s*true\b");
     private static readonly Regex PreloadMonster = new(@"preload_monster_variety\s*=\s*""([^""]+)""");
     private static readonly Regex PreloadObject = new(@"preload_object\s*=\s*""([^""]+)""");
     private static readonly Regex Words = new("[A-Z]?[a-z]+|[A-Z]+(?![a-z])|[0-9]+");
@@ -92,7 +93,7 @@ internal static class BossScripts
         var enrages = StatesOf(text).Where(state => WordsOf(state) is { Count: > 0 } words && words[^1] is "enrage" or "enraged").ToList();
         return new Script(extends, hides, phases, enrages, Lines(text),
             PreloadMonster.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList(),
-            PreloadObject.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList(), seeks);
+            PreloadObject.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList(), seeks, Blocking.IsMatch(text));
     }
 
     /// <summary>The states a script declares itself (define_shared_state "spike; rumble; trap_speed = 2;"), without their defaults.</summary>

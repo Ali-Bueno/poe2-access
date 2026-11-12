@@ -440,6 +440,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   del punto débil del jefe" (on by default), volume with the enemy sounds. The same heartbeat leads to a boss that hides
   until you find it (Balbala in her poison fog): "El jefe se esconde: sigue el latido, abajo a la izquierda", then the
   beat from her side until she is back ("El jefe ha vuelto"); with the setting off the line gives the direction alone.
+  And to the way out of a boss's walls (Kabala's bone cage, before her blast): "Muros: sigue el latido hasta la salida,
+  arriba", or with no way out on foot "Muros por todos lados: sigue el latido y rompe uno, izquierda" (the beat leads to
+  the nearest wall); "Fuera de los muros" once you are out. Not heard in the game yet.
 - **Dodge warning:** a blade drawn over a low gong, diving into a deep bass drop on the moment to dodge (metal and
   bass, so it is not taken for the radar's breath of open floor; the drop needs headphones or speakers with some
   bass, the blade is heard anywhere), on the side of a rare or

@@ -32,7 +32,7 @@ internal static class GameDataSteps
         new Step("action types", 1, "action-types.txt", "action-types", true),
         new Step("telegraph skills", 1, "telegraph-skills.txt", "telegraph-skills", true),
         new Step("telegraph effects", 1, "telegraph-effects.txt", "telegraph-effects", true),
-        new Step("boss mechanics", 4, "boss-mechanics.txt", "boss-mechanics", true), // 4: the tethers a buff says to move away from to break
+        new Step("boss mechanics", 5, "boss-mechanics.txt", "boss-mechanics", true), // 5: the adds that are walls
         new Step("buff names", 2, "buff-names.json", "buff-names", true), // 2: without the names the game never shows ("[DNT…")
         new Step("passive overrides", 1, "passive-overrides.txt", "passive-overrides", true),
         new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),
