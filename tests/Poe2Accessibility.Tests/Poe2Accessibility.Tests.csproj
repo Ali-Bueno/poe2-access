@@ -33,6 +33,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HarmfulBuffs.cs" Link="Plugin\HarmfulBuffs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveOverrides.cs" Link="Plugin\PassiveOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.cs" Link="Plugin\RoutePlanner.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.Search.cs" Link="Plugin\RoutePlanner.Search.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.Shaping.cs" Link="Plugin\RoutePlanner.Shaping.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.Workspace.cs" Link="Plugin\RoutePlanner.Workspace.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ExperienceTable.cs" Link="Plugin\ExperienceTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\LootFilter.cs" Link="Plugin\LootFilter.cs" />
@@ -49,6 +52,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\BaseNameField.cs" Link="Plugin\BaseNameField.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemNameWords.cs" Link="Plugin\ItemNameWords.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.cs" Link="Plugin\CueSynth.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Enemy.cs" Link="Plugin\CueSynth.Enemy.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Guidance.cs" Link="Plugin\CueSynth.Guidance.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Skills.cs" Link="Plugin\CueSynth.Skills.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.States.cs" Link="Plugin\CueSynth.States.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\StereoSound.cs" Link="Plugin\StereoSound.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\PeakLimiter.cs" Link="Plugin\PeakLimiter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaMemory.cs" Link="Plugin\AreaMemory.cs" />
@@ -292,6 +299,12 @@
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />
     <Compile Include="..\..\Poe2Accessibility\Phrase.cs" Link="Plugin\Phrase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.cs" Link="Plugin\Announcements.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Status.cs" Link="Plugin\Announcements.Status.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.World.cs" Link="Plugin\Announcements.World.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Landmarks.cs" Link="Plugin\Announcements.Landmarks.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Items.cs" Link="Plugin\Announcements.Items.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Focus.cs" Link="Plugin\Announcements.Focus.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Controls.cs" Link="Plugin\Announcements.Controls.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Compatibility.cs" Link="Plugin\Announcements.Compatibility.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
