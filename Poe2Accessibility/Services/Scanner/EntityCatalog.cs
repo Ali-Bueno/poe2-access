@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using System.Threading.Tasks;
     using GameReader;
     using GameReader.RemoteObjects.Components;
     using GameReader.RemoteObjects.States.InGameStateObjects;
@@ -168,6 +169,9 @@ namespace Poe2Accessibility.Services
         private (uint Id, string Area, List<Vector2>? Route, int? First) described;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
+
+        /// <summary>The frontier being worked out, with the map it reads and what its places need to become entries.</summary>
+        private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height)? frontierSearch;
         private long trackedAt = long.MinValue / 2;
         private long savedAt;
 
@@ -419,6 +423,7 @@ namespace Poe2Accessibility.Services
             }
             this.unexplored = Array.Empty<ScanEntry>();
             this.unexploredAt = long.MinValue / 2;
+            this.frontierSearch = null; // what it finds is another area's: the map it read is no longer this one
         }
 
         /// <summary>Per frame while playing: the ground around the player counts as seen (unexplored category).</summary>
@@ -1064,28 +1069,42 @@ namespace Poe2Accessibility.Services
             return this.explored.LeavesTheSeen(from, axis, ExplorationMap.MarkReachCells);
         }
 
-        /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>), refreshed every UnexploredRefreshMs.</summary>
+        /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>) as last worked out; a new search starts every UnexploredRefreshMs.</summary>
         private IReadOnlyList<ScanEntry> Unexplored(AreaInstance area, Render player)
         {
             var now = Environment.TickCount64;
-            if (now - this.unexploredAt < UnexploredRefreshMs || !this.TryLiveGrid(out var grid, out var row))
+            if (this.frontierSearch is { Places.IsCompleted: true } found)
+            {
+                this.frontierSearch = null;
+                if (found.Places.IsFaulted)
+                {
+                    this.log.Info($"Unexplored ground not found: {found.Places.Exception?.GetBaseException().Message}");
+                }
+                else if (this.explored.Adopt(found.Map))
+                {
+                    this.unexplored = found.Places.Result
+                        .Select(place => new ScanEntry(
+                            UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells),
+                            ScanCategory.Unexplored,
+                            place.Pocket ? Announcements.UnexploredPocket : Announcements.UnexploredArea,
+                            place.Cell.X * found.ToWorld,
+                            place.Cell.Y * found.ToWorld,
+                            found.Height,
+                            place.Pocket ? ExplorationMap.PocketKind : string.Empty))
+                        .ToList();
+                }
+            }
+
+            if (this.frontierSearch != null || now - this.unexploredAt < UnexploredRefreshMs || !this.TryLiveGrid(out var grid, out var row))
             {
                 return this.unexplored;
             }
 
+            // Off the frame thread: every two seconds it held a frame for 30 ms, 140 ms on a Trial's floor (docs/research/performance.md).
             this.unexploredAt = now;
-            var toWorld = area.WorldToGridConvertor;
+            var map = this.explored.Snapshot();
             var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            this.unexplored = this.explored.Frontier(grid, row, from, MaxUnexplored)
-                .Select(place => new ScanEntry(
-                    UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells),
-                    ScanCategory.Unexplored,
-                    place.Pocket ? Announcements.UnexploredPocket : Announcements.UnexploredArea,
-                    place.Cell.X * toWorld,
-                    place.Cell.Y * toWorld,
-                    player.WorldPosition.Z,
-                    place.Pocket ? ExplorationMap.PocketKind : string.Empty))
-                .ToList();
+            this.frontierSearch = (Task.Run(() => map.Frontier(grid, row, from, MaxUnexplored)), map, area.WorldToGridConvertor, player.WorldPosition.Z);
             return this.unexplored;
         }
 

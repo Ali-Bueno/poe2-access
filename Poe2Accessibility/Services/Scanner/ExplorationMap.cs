@@ -67,6 +67,24 @@ namespace Poe2Accessibility.Services
             this.SeenBlocks = 0;
         }
 
+        /// <summary>
+        ///     A map sharing this one's seen blocks, for a <see cref="Frontier"/> worked out off the frame thread: on a large
+        ///     floor it takes a tenth of a second (docs/research/performance.md). <see cref="Adopt"/> takes what it found.
+        /// </summary>
+        public ExplorationMap Snapshot() => new() { seen = this.seen, blocksX = this.blocksX, blocksY = this.blocksY };
+
+        /// <summary>Takes the ground a snapshot's <see cref="Frontier"/> found; false when the map is another by now (a new area).</summary>
+        public bool Adopt(ExplorationMap snapshot)
+        {
+            if (!ReferenceEquals(snapshot.seen, this.seen))
+            {
+                return false;
+            }
+
+            this.ground = snapshot.ground;
+            return true;
+        }
+
         /// <summary>The seen blocks as bytes, to be kept past the area and the host (<see cref="AreaMemory"/>): two ints, a bit a block.</summary>
         public byte[] Save()
         {
