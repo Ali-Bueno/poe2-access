@@ -370,6 +370,9 @@ namespace Poe2Accessibility
             public static int LevelOffset { get; internal set; } = 0x26;
 
             public static int IsTownOffset { get; internal set; } = 0x14;
+
+            /// <summary>The area's name as the game shows it (WorldAreas.Name; the data step's anchor is G1_1, "The Riverbank").</summary>
+            public static int NameOffset { get; internal set; } = 0x8;
         }
 
         /// <summary>

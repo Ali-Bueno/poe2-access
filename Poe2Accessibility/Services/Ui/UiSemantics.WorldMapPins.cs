@@ -105,7 +105,10 @@ namespace Poe2Accessibility.Services
             var area = DatKey.Row(this.reader, this.elements, row + GameLayout.MapPinRow.AreaKeyOffset, GameLayout.WorldMap.AreaTable);
             if (area is { } areaRow && this.reader.TryRead<byte>(areaRow + GameLayout.WorldAreaRow.IsTownOffset, out var town) && town != 0)
             {
-                kind = this.PinTownLabel?.Invoke() is { Length: > 0 } townWord ? townWord : Announcements.PinTown;
+                // A stop of the caravan ("Keth", pin G2_town_marker_keth) is a pin of the town's area that is not the town:
+                // "Pueblo" followed every destination of the desert map (measured 2026-11-12; docs/research/ui-layers.md).
+                kind = this.PinText(areaRow, GameLayout.WorldAreaRow.NameOffset) != name ? string.Empty
+                    : this.PinTownLabel?.Invoke() is { Length: > 0 } townWord ? townWord : Announcements.PinTown;
             }
             else if (area is { } levelRow && this.reader.TryRead<int>(levelRow + GameLayout.WorldAreaRow.LevelOffset, out var level) && level is > 0 and <= 100)
             {
@@ -117,6 +120,29 @@ namespace Poe2Accessibility.Services
             var words = this.PinText(row, GameLayout.MapPinRow.DescriptionOffset);
             var contents = area is { } sameArea ? this.PinsOfArea(worldScreen, sameArea, row).Where(other => other != name).ToList() : new List<string>();
             return (name, kind, words, contents);
+        }
+
+        /// <summary>How far above a control its pin is looked for: the caravan map's button is a child of a child of its pin.</summary>
+        private const int PinAboveHops = 2;
+
+        /// <summary>
+        ///     The name of the pin a control belongs to, empty for a control of none: a pin of the caravan's map draws a
+        ///     button of its own, with no text, art nor tooltip, which read "Vacío, botón" (docs/research/ui-layers.md).
+        /// </summary>
+        private string PinNameAbove(UiElementReader.ElementInfo control)
+        {
+            var above = control.Raw.ParentPtr;
+            for (var hop = 0; hop < PinAboveHops && this.elements.TryReadElement(above, out var parent); hop++)
+            {
+                if (DatKey.Row(this.reader, this.elements, parent.Address + PinKey.Offset, GameLayout.WorldMap.PinTable) is { } row)
+                {
+                    return this.PinText(row, GameLayout.MapPinRow.NameOffset);
+                }
+
+                above = parent.Raw.ParentPtr;
+            }
+
+            return string.Empty;
         }
 
         /// <summary>Whether the game shows the pin's popup: a text beside the map with the pin's words (or its name, without words).</summary>

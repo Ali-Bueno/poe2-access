@@ -154,7 +154,7 @@ namespace Poe2Accessibility.Services
             }
             else
             {
-                category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
+                category = entity.TryGetComponent<Targetable>(out _) && !IsPet(path) ? ScanCategory.Objects : null; // stash, bench, well
                 plain = true;
                 kind = MinimapMarks.ServiceKind(icon);
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
@@ -399,6 +399,12 @@ namespace Poe2Accessibility.Services
         ///     Ritual rune, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable, sounded as an enemy, 2026-10-26).
         /// </summary>
         public const string CreatureFolder = "Metadata/Monsters/";
+
+        /// <summary>
+        ///     A player's cosmetic pet (Metadata/Pet/OtterPet/GrayOtter): it follows its owner and nothing is done with it, yet
+        ///     another player's was "Objeto sin nombre, Gray Otter" in town.
+        /// </summary>
+        public static bool IsPet(string path) => path.StartsWith("Metadata/Pet/", StringComparison.Ordinal);
 
         /// <summary>The scanner's kind of a Trial's trap.</summary>
         private const string TrapKind = "trap";

@@ -71,6 +71,7 @@ namespace Poe2Accessibility.Services
             ("MapPins.Content", GameLayout.MapPinRow.ContentOffset, offset => GameLayout.MapPinRow.ContentOffset = offset),
             ("WorldAreas.AreaLevel", GameLayout.WorldAreaRow.LevelOffset, offset => GameLayout.WorldAreaRow.LevelOffset = offset),
             ("WorldAreas.IsTown", GameLayout.WorldAreaRow.IsTownOffset, offset => GameLayout.WorldAreaRow.IsTownOffset = offset),
+            ("WorldAreas.Name", GameLayout.WorldAreaRow.NameOffset, offset => GameLayout.WorldAreaRow.NameOffset = offset),
         };
 
         /// <summary>
