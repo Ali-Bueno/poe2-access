@@ -29,6 +29,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialTraps.cs" Link="TrialTraps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" Link="TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" Link="TrialWater.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialArt.cs" Link="TrialArt.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" Link="MinimapIconIds.cs" />
   </ItemGroup>
 
   <ItemGroup>

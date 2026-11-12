@@ -20,6 +20,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>An object's script (.ot) and, when given, a state its StateMachine declares there or in a script it extends.</summary>
         ObjectFile,
+
+        /// <summary>A MinimapIcons Id.</summary>
+        MinimapIcon,
+
+        /// <summary>Part of the name of a UI image (Art/UIImages1.txt).</summary>
+        UiArt,
     }
 
     /// <param name="State">For an object's script, the state matched on it; null when only the file is.</param>
@@ -46,6 +52,9 @@ namespace Poe2Accessibility.Services
                     ? new[] { new GameName(GameNameKind.ObjectFile, trap.File, null, nameof(TrialTraps)) }
                     : trap.Firing.Select(state => new GameName(GameNameKind.ObjectFile, trap.File, state, nameof(TrialTraps)))))
                 .Append(new GameName(GameNameKind.ObjectFile, TrialDoors.DoorFile, TrialDoors.OpenState, nameof(TrialDoors)))
-                .Append(new GameName(GameNameKind.ObjectFile, TrialWater.DropFile, null, nameof(TrialWater)));
+                .Append(new GameName(GameNameKind.ObjectFile, TrialWater.DropFile, null, nameof(TrialWater)))
+                .Concat(MinimapIconIds.All.Select(icon => new GameName(GameNameKind.MinimapIcon, icon, null, nameof(MinimapIconIds))))
+                .Concat(TrialArt.CounterMarkers.Append(TrialArt.CurrentRoomMarker).Append(TrialArt.EffectSlotMarker)
+                    .Select(marker => new GameName(GameNameKind.UiArt, marker, null, nameof(TrialArt))));
     }
 }

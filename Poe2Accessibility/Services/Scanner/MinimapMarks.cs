@@ -12,7 +12,7 @@ namespace Poe2Accessibility.Services
     public static class MinimapMarks
     {
         /// <summary>Readable signs and plaques ("Pueblo de Ogham", "Proclamación de Asinia"): typed NPC by the game, never characters.</summary>
-        public const string StoryGlyph = "StoryGlyph";
+        public const string StoryGlyph = MinimapIconIds.StoryGlyph;
 
         public const string SignKind = "sign";
 
@@ -27,15 +27,15 @@ namespace Poe2Accessibility.Services
         ///     A ritual altar's icon, "RitualRuneFinished" once done: the league's altars and the campaign's own (Freythorn's
         ///     CanopyRitualAltar, the King in the Mists' CanopyBossRitualAltar; their .ot files, 2026-10-29).
         /// </summary>
-        public const string RitualIcon = "RitualRune";
+        public const string RitualIcon = MinimapIconIds.Ritual;
 
         /// <summary>
         ///     An essence: a crystal (Metadata/MiscellaneousObjects/Monolith, component Monolith) holding a rare monster at the same
         ///     grid cell; A frees the monster, which drops the essence when slain (dump 2026-11-10, Mansión de Ogham).
         /// </summary>
-        public const string EssenceIcon = "Essence";
+        public const string EssenceIcon = MinimapIconIds.Essence;
 
-        public const string RitualDoneIcon = "RitualRuneFinished";
+        public const string RitualDoneIcon = MinimapIconIds.RitualDone;
 
         public const string RitualDoneKind = "ritual_done";
 
@@ -59,13 +59,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The object marking a boss's arena (Metadata/Monsters/Crowbell/Objects/BossRoomMinimapIcon); its icon turns grey once the boss is dead.</summary>
         private const string BossRoomObject = "/BossRoomMinimapIcon";
 
-        /// <summary>Icons the game draws on what the quest wants used or picked up (MinimapIcons rows 5, 6, 15).</summary>
-        /// <summary>
-        ///     The quest's own, the Death Crystal's, a Trial room's objective, and that of what moves a Trial on: the Relic Altar, its map, the floor
-        ///     doors and the rooms' rewards. The tracker stops naming the altar once a run fails (.ot sweep; user 2026-11-07).
-        /// </summary>
-        private static readonly string[] QuestIcons = { "QuestObject", "QuestItem", "MissionTarget", "SanctumFountain", "MarakethSanctumRoomSelector" };
-
         /// <summary>A radar-table label "Boss - Captain Hartlin": the name follows.</summary>
         private const string BossLabelPrefix = "Boss - ";
 
@@ -88,7 +81,7 @@ namespace Poe2Accessibility.Services
 
         public static bool IsBossRoom(string path) => path.Contains(BossRoomObject, StringComparison.OrdinalIgnoreCase);
 
-        public static bool IsQuestIcon(string icon) => Array.IndexOf(QuestIcons, icon) >= 0;
+        public static bool IsQuestIcon(string icon) => Array.IndexOf(MinimapIconIds.Quest, icon) >= 0;
 
         /// <summary>
         ///     The boss in a radar-table label of a tile ("Asinia", "Beira of the Rotten (10% Cold Res)"), empty when the label

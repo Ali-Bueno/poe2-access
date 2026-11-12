@@ -35,3 +35,22 @@ ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/PetrificationStatue		TrialT
 ObjectFile	Metadata/Monsters/LeagueUltimatum/Daemon/LaserPyramid		TrialTraps
 ObjectFile	Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor	open	TrialDoors
 ObjectFile	Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote		TrialWater
+MinimapIcon	QuestObject		MinimapIconIds
+MinimapIcon	QuestItem		MinimapIconIds
+MinimapIcon	MissionTarget		MinimapIconIds
+MinimapIcon	SanctumFountain		MinimapIconIds
+MinimapIcon	MarakethSanctumRoomSelector		MinimapIconIds
+MinimapIcon	MarakethSanctumFountain		MinimapIconIds
+MinimapIcon	MarakethSanctumKey		MinimapIconIds
+MinimapIcon	MarakethSanctumKeyConverterActive		MinimapIconIds
+MinimapIcon	SanctumPact		MinimapIconIds
+MinimapIcon	StoryGlyph		MinimapIconIds
+MinimapIcon	RitualRune		MinimapIconIds
+MinimapIcon	RitualRuneFinished		MinimapIconIds
+MinimapIcon	Essence		MinimapIconIds
+UiArt	/Sanctum/GoldIcon		TrialArt
+UiArt	/Sanctum/BronzeKeyIcon		TrialArt
+UiArt	/Sanctum/SilverKeyIcon		TrialArt
+UiArt	/Sanctum/GoldKeyIcon		TrialArt
+UiArt	/Sanctum/ValidPathGlow		TrialArt
+UiArt	/Sanctum/BoonCurseIcons/		TrialArt

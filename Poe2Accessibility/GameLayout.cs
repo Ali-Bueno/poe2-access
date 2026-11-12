@@ -104,26 +104,6 @@ namespace Poe2Accessibility
 
             /// <summary>Gold's icon: "Art/2DItems/Currency/Ruthless/CoinPileTier1.dds" on prices and the inventory's gold counter.</summary>
             public const string GoldArtMarker = "/CoinPile";
-
-            /// <summary>
-            ///     The glow under the room the player stands in on the Trial of the Sekhemas' map: a child of that room's button,
-            ///     "Art/Textures/Interface/2D/2DArt/UIImages/InGame/Sanctum/ValidPathGlow.dds" (measured 2026-11-12 on one map: the
-            ///     only room of the player's column with it, the player's marker beside it; docs/research/trials-and-campaign.md §1.2).
-            /// </summary>
-            public const string TrialCurrentRoomArtMarker = "/Sanctum/ValidPathGlow";
-
-            /// <summary>
-            ///     The icons before the Trial of the Sekhemas' counters, in the counters' order: the sacred water, then the bronze,
-            ///     silver and gold keys ("…/InGame/Sanctum/GoldIcon.dds" before "78(+0)" on the HUD and "78" on the map window,
-            ///     measured 2026-11-12).
-            /// </summary>
-            public static readonly string[] TrialCounterArtMarkers = { "/Sanctum/GoldIcon", "/Sanctum/BronzeKeyIcon", "/Sanctum/SilverKeyIcon", "/Sanctum/GoldKeyIcon" };
-
-            /// <summary>
-            ///     The icon of a slot of what a run carries, one slot a kind (minor and major affliction, minor and major boon, pact):
-            ///     "…/InGame/Sanctum/BoonCurseIcons/MinorCurseIcon.dds", the first child of the slot (measured 2026-11-12).
-            /// </summary>
-            public const string TrialEffectSlotArtMarker = "/Sanctum/BoonCurseIcons/";
         }
 
         /// <summary>

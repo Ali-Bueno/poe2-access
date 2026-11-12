@@ -11,10 +11,13 @@ internal static class GameNameExtractor
 {
     private const string ScriptExtension = ".ot";
 
+    /// <summary>The list of the UI images: a line each, the image's name quoted first, then its sheet and place.</summary>
+    private const string UiImageList = "art/uiimages1.txt";
+
     public static int Run(Index index, string outFile)
     {
         var ids = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (var name in new[] { "buffdefinitions", "animation", "monstervarieties" })
+        foreach (var name in new[] { "buffdefinitions", "animation", "monstervarieties", "minimapicons" })
         {
             // Each holds its Id as a string at the row's start, as game-keys reads them.
             if (DatTable.Open(index, name) is not { } table || !DatColumnSearch.IsText(table, 0, _ => true))
@@ -28,7 +31,13 @@ internal static class GameNameExtractor
 
         var scripts = BundleFiles.ByLowerPath(index);
         string? Script(string path) => scripts.TryGetValue((path + ScriptExtension).ToLowerInvariant(), out var file) ? file.ReadText() : null;
-        var files = new GameNameCheck.Files(ids["buffdefinitions"], ids["animation"], ids["monstervarieties"], Script);
+        if (!scripts.TryGetValue(UiImageList, out var imageList))
+        {
+            Say.Out.WriteLine($"{UiImageList} missing: game names left out.");
+            return 1;
+        }
+
+        var files = new GameNameCheck.Files(ids["buffdefinitions"], ids["animation"], ids["monstervarieties"], Script, ids["minimapicons"], GameNameCheck.UiArtNames(imageList.ReadText()));
         var names = GameNames.All().ToList();
         var gone = GameNameCheck.Gone(names, files);
         if (gone.Count > 0)

@@ -30,7 +30,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Which of the Trial's counters a number is, by the icon before it: its place in
-        ///     <see cref="GameLayout.Image.TrialCounterArtMarkers"/>, negative for any other text. The map window shows them
+        ///     <see cref="TrialArt.CounterMarkers"/>, negative for any other text. The map window shows them
         ///     while it hides the HUD's.
         /// </summary>
         public int TrialCounterKind(IntPtr number)
@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
                 return -1;
             }
 
-            return Array.FindIndex(GameLayout.Image.TrialCounterArtMarkers, marker => art.Contains(marker, StringComparison.OrdinalIgnoreCase));
+            return Array.FindIndex(TrialArt.CounterMarkers, marker => art.Contains(marker, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -303,7 +303,7 @@ namespace Poe2Accessibility.Services
         private bool IsTrialEffectSlot(IntPtr slot) =>
             this.elements.TryReadElement(slot, out var info) && this.elements.ReadChildren(info) is { Length: > 0 } parts &&
             this.elements.TryReadElement(parts[0], out var icon) && this.elements.ReadTextureKey(icon) is { } art &&
-            art.Contains(GameLayout.Image.TrialEffectSlotArtMarker, StringComparison.OrdinalIgnoreCase);
+            art.Contains(TrialArt.EffectSlotMarker, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>Where a slot keeps what it carries: as measured until a search finds it elsewhere (a patch moved it).</summary>
         private int trialEffectsOffset = GameLayout.TrialFloor.SlotEffectsOffset;
@@ -375,7 +375,7 @@ namespace Poe2Accessibility.Services
             this.elements.TryReadElement(room, out var info) &&
             this.elements.ReadChildren(info).Any(child =>
                 this.elements.TryReadElement(child, out var mark) && this.elements.ReadTextureKey(mark) is { } art &&
-                art.Contains(GameLayout.Image.TrialCurrentRoomArtMarker, StringComparison.OrdinalIgnoreCase));
+                art.Contains(TrialArt.CurrentRoomMarker, StringComparison.OrdinalIgnoreCase));
 
         private bool TrialRoomIsOpen(IntPtr room) =>
             this.elements.TryReadElement(room, out var info) &&

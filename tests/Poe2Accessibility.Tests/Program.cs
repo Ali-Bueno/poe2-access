@@ -3099,6 +3099,12 @@ namespace Poe2Accessibility.Tests
             Equal(false, CountdownWatch.IsClock("0:06"), "nor a buff's duration");
             Equal(true, MinimapMarks.IsQuestIcon("SanctumFountain"), "the Death Crystal is what the Trial's room wants");
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("MarakethSanctumRoomSelector"), "and a Trial's reward, under Leagues, sounds as a quest object");
+            foreach (var reward in new[] { "MarakethSanctumFountain", "MarakethSanctumKey", "MarakethSanctumKeyConverterActive", "SanctumPact" })
+            {
+                Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind(reward), $"a reward that draws its own icon too: {reward}");
+            }
+
+            Equal("encounter", MinimapMarks.DeviceKind("MarakethSanctumKeyConverterInactive"), "the forge once spent keeps quiet");
         }
 
         private static void CameraViewIsASixteenByNineScreenAroundThePlayer()

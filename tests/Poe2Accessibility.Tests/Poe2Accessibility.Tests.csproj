@@ -76,6 +76,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialArt.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />
@@ -227,6 +228,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LostWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GridSamples.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\SettlingMemo.cs" />

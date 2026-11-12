@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ANameThePatchRenamedIsSaidWithItsRule), ANameThePatchRenamedIsSaidWithItsRule),
             (nameof(AnObjectsStateCountsWhereverItsScriptsDeclareIt), AnObjectsStateCountsWhereverItsScriptsDeclareIt),
             (nameof(EveryRulesNameIsChecked), EveryRulesNameIsChecked),
+            (nameof(AnIconOrAnImageRenamedIsGone), AnIconOrAnImageRenamedIsGone),
             (nameof(TheShippedCheckFoundEveryName), TheShippedCheckFoundEveryName),
         };
 
@@ -22,7 +23,9 @@ namespace Poe2Accessibility.Tests
 
         private static GameNameCheck.Files Files(IEnumerable<string> animations, IReadOnlyDictionary<string, string>? scripts = null) => new(
             new HashSet<string> { "dazed" }, animations.ToHashSet(), new[] { "Metadata/Monsters/MudBurrower/MudBurrowerTailBoss_" },
-            path => scripts != null && scripts.TryGetValue(path, out var text) ? text : null);
+            path => scripts != null && scripts.TryGetValue(path, out var text) ? text : null,
+            new HashSet<string> { "QuestObject", "MarakethSanctumFountain" },
+            GameNameCheck.UiArtNames("\"Art/2DArt/UIImages/InGame/Sanctum/GoldIcon\" \"Art/Textures/Interface/2D/sheet.dds\" 0 0 31 31\r\n\"Art/2DArt/UIImages/Common/Background2\" \"x.dds\" 8 8 9 9"));
 
         private static readonly GameName[] Names =
         {
@@ -55,6 +58,16 @@ namespace Poe2Accessibility.Tests
             Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, Door, "trap_speed = 2", "TrialDoors"), files), "a default is no part of the name");
         }
 
+        private static void AnIconOrAnImageRenamedIsGone()
+        {
+            var files = Files(Array.Empty<string>());
+            Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.MinimapIcon, "MarakethSanctumFountain", null, "MinimapIconIds"), files), "an icon's Id");
+            Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.MinimapIcon, "MarakethSanctum", null, "MinimapIconIds"), files), "the start of an Id is no Id");
+            Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.UiArt, "/Sanctum/GoldIcon", null, "TrialArt"), files), "part of an image's name");
+            Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.UiArt, "/sheet", null, "TrialArt"), files), "the sheet an image is cut from is not its name");
+            Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.UiArt, "/Sanctum/SilverKeyIcon", null, "TrialArt"), files), "an image gone");
+        }
+
         private static void EveryRulesNameIsChecked()
         {
             var names = GameNames.All().ToList();
@@ -65,6 +78,8 @@ namespace Poe2Accessibility.Tests
             Expect(true, names.Contains(new GameName(GameNameKind.ObjectFile, TrialDoors.DoorFile, TrialDoors.OpenState, nameof(TrialDoors))), "the room door's open state");
             Expect(true, names.Any(name => name.Value == ShieldStance.HeldPrefix) && names.Any(name => name.Value == ShieldStance.EndPrefix), "the shield's two animations");
             Expect(true, GameNames.KnownTails.All(tail => WeakPoints.IsTail("Metadata/Monsters/X/" + tail + "_")), "each known tail is a tail to the rule");
+            Expect(true, MinimapIconIds.All.All(icon => names.Contains(new GameName(GameNameKind.MinimapIcon, icon, null, nameof(MinimapIconIds)))), "every minimap icon a rule names");
+            Expect(true, TrialArt.CounterMarkers.All(marker => names.Any(name => name.Kind == GameNameKind.UiArt && name.Value == marker)), "the art of each Trial counter");
         }
 
         private static void TheShippedCheckFoundEveryName()
