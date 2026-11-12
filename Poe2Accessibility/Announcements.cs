@@ -802,6 +802,9 @@ namespace Poe2Accessibility
             return trimmed;
         }
 
+        /// <summary>A whole label that is a note of the radar table's, in the player's language; null for any other, and in English.</summary>
+        public static string? LandmarkWhole(string label) => Localization.Language == "en" ? null : LandmarkWord(label.Trim());
+
         private static string? LandmarkWord(string label) => label.ToLowerInvariant() switch
         {
             "boss" => T("Boss", "Jefe"),
@@ -826,6 +829,33 @@ namespace Poe2Accessibility
             "arena / hunting grounds" => T("Arena / Hunting Grounds", "Arena o coto de caza"),
             "forgotten corpses" => T("Forgotten Corpses", "Cadáveres olvidados"),
             "forgotten riches" => T("Forgotten Riches", "Riquezas olvidadas"),
+            // The table's notes with no name of the game's in them, the mod's own words (sweep of 2026-11-12).
+            "boss stronghold" => T("Boss stronghold", "Fortaleza del jefe"),
+            "corruption altar" => T("Corruption Altar", "Altar de corrupción"),
+            "dungeon entrance down" => T("Dungeon entrance down", "Entrada a la mazmorra, hacia abajo"),
+            "egg room" => T("Egg Room", "Sala de los huevos"),
+            "farmlands" => T("Farmlands", "Tierras de cultivo"),
+            "forge entrance" => T("Forge Entrance", "Entrada de la forja"),
+            "generator" => T("Generator", "Generador"),
+            "hall of the dead" => T("Hall of the dead", "Salón de los muertos"),
+            "medicine lady" => T("Medicine lady", "Curandera"),
+            "mini town" => T("Mini Town", "Pueblo pequeño"),
+            "pay respects at end" => T("Pay respects at end", "Presenta tus respetos al final"),
+            "warden office" => T("Warden office", "Oficina del alcaide"),
+            "waterways lever" => T("Waterways Lever", "Palanca de los canales"),
+            "stair place" => T("Stair Place", "Lugar de las escaleras"),
+            "bell - currency" => T("Bell - Currency", "Campana, monedas"),
+            "loot - ship explodes" => T("Loot - SHIP EXPLODES", "Botín, el barco explota"),
+            "shrine - no loot?" => T("Shrine - No loot?", "Santuario, quizá sin botín"),
+            "rare - good rewards" => T("Rare - Good rewards", "Raro, buenas recompensas"),
+            "soul ferryman - sells runes" => T("Soul Ferryman - Sells runes", "Barquero de almas, vende runas"),
+            "quest - map piece" => T("Quest - Map piece", "Misión, fragmento de mapa"),
+            "quest - treasure map?" => T("Quest - Treasure map?", "Misión, quizá un mapa del tesoro"),
+            "quest - deadman chest" => T("Quest - deadman chest", "Misión, cofre del muerto"),
+            "boss - shark" => T("Boss - Shark", "Jefe, tiburón"),
+            "boss - siren" => T("Boss - Siren", "Jefe, sirena"),
+            "2 seal locations - loot" => T("2 Seal locations - Loot", "2 lugares con sello, botín"),
+            "ritual site (level 4 skill gem)" => T("Ritual Site (Level 4 Skill Gem)", "Lugar del ritual (gema de habilidad de nivel 4)"),
             _ => null,
         };
 
@@ -846,6 +876,9 @@ namespace Poe2Accessibility
             new(@"Res Ring"),
             new(@"\(waypoint\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
             new(@"Salvaging Bench"),
+            new(@"weapons vendor", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
+            new(@"armour vendor", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
+            new(@"\(Level (\d+)\)"),
             new(@" - "),
         };
 
@@ -867,6 +900,9 @@ namespace Poe2Accessibility
             T("resistance ring", "anillo de resistencia"),
             T("(waypoint)", "(punto de ruta)"),
             T("salvaging bench", "mesa de reciclaje"),
+            T("weapons vendor", "vendedor de armas"),
+            T("armour vendor", "vendedor de armaduras"),
+            T("(level $1)", "(nivel $1)"),
             ", ",
         };
 

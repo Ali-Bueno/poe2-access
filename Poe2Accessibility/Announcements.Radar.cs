@@ -24,6 +24,7 @@ namespace Poe2Accessibility
             "boat" => T("Boat", "Barco"),
             "crystal" => T("Crystal", "Cristal"),
             "seal" => T("Seal", "Sello"),
+            "bell chest" => T("Bell Chest", "Cofre de la campana"),
             _ => null,
         };
     }

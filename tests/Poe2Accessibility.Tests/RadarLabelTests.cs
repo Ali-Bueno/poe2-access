@@ -14,6 +14,9 @@ namespace Poe2Accessibility.Tests
         /// <summary>Labels the real radar tables must read in the game's language at least (measured 2026-11-08: 92 of 211).</summary>
         private const int MinNamedLabels = 90;
 
+        /// <summary>Set to 1, the real tables' test lists every label, what it reads as in Spanish and the pieces left as written.</summary>
+        private const string ListLabelsVariable = "POE2ACCESS_LIST_LABELS";
+
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(AWholeLabelIsTheAreaNameWhateverItsCaseOrApostrophes), AWholeLabelIsTheAreaNameWhateverItsCaseOrApostrophes),
@@ -33,13 +36,13 @@ namespace Poe2Accessibility.Tests
             File.WriteAllText(landmarks, "{}");
             File.WriteAllText(Path.Join(directory, "area-names.json"), JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, string>>
             {
-                ["en"] = new() { ["G4_2_1"] = "Journey's End", ["G1_6"] = "The Galai Gates" },
-                ["es"] = new() { ["G4_2_1"] = "El final del viaje", ["G1_6"] = "Las puertas de Galai" },
+                ["en"] = new() { ["G4_2_1"] = "Journey's End", ["G1_6"] = "The Galai Gates", ["G1_15"] = "Ogham Manor" },
+                ["es"] = new() { ["G4_2_1"] = "El final del viaje", ["G1_6"] = "Las puertas de Galai", ["G1_15"] = "Mansión de Ogham" },
             }));
             File.WriteAllText(Path.Join(directory, "monster-names.json"), JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, string>>
             {
-                ["en"] = new() { ["Captain Hartlin"] = "Captain Hartlin", ["Zelina"] = "Zelina", ["Zolin"] = "Zolin", ["Mektul, The Forgemaster"] = "Mektul, the Forgemaster", ["Yama"] = "Yama The White" },
-                ["es"] = new() { ["Captain Hartlin"] = "Capitán Hartlin", ["Zelina"] = "Zelina", ["Zolin"] = "Zolin", ["Mektul, The Forgemaster"] = "Mektul, el Maestro de la forja", ["Yama"] = "Yama, el Blanco" },
+                ["en"] = new() { ["Captain Hartlin"] = "Captain Hartlin", ["Zelina"] = "Zelina", ["Zolin"] = "Zolin", ["Mektul, The Forgemaster"] = "Mektul, the Forgemaster", ["Yama"] = "Yama The White", ["Foul Ritual"] = "Foul Ritual" },
+                ["es"] = new() { ["Captain Hartlin"] = "Capitán Hartlin", ["Zelina"] = "Zelina", ["Zolin"] = "Zolin", ["Mektul, The Forgemaster"] = "Mektul, el Maestro de la forja", ["Yama"] = "Yama, el Blanco", ["Foul Ritual"] = "Ritual repugnante" },
             }));
             File.WriteAllText(Path.Join(directory, "item-names.json"), JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, string>>
             {
@@ -84,6 +87,8 @@ namespace Poe2Accessibility.Tests
             var table = Table();
             Localization.Detect("es");
             Expect("Mektul, el Maestro de la forja (Reforging Bench)", table.Localize("Mektul, The Forgemaster (Reforging Bench)"), "the comma stays inside the name");
+            Expect("Mektul, el Maestro de la forja (Tarima del juicio final)", table.Localize("Mektul, The Forgemaster (Dais of Reckoning)"), "a note that is a name of the game's");
+            Expect("Mansión de Ogham", table.Localize("Oghams Manor"), "a name the table misspells");
             Localization.Detect("en");
         }
 
@@ -93,8 +98,13 @@ namespace Poe2Accessibility.Tests
             Localization.Detect("es");
             Expect("Canal Mechanism (punto de ruta)", table.Localize("Canal Mechanism (waypoint)"), "a note in lower case");
             Expect("Crab Rare", table.Localize("Crab Rare"), "no name, no common word: as written");
-            Expect("Misión, deadman chest", table.Localize("Quest - deadman chest"), "a common word, the rest as written");
-            Expect(true, table.UnnamedPieces("Quest - deadman chest").SequenceEqual(new[] { "deadman chest" }), "what is left unnamed");
+            Expect("Misión, Humming Pearl", table.Localize("Quest - Humming Pearl"), "a common word, the rest as written");
+            Expect(true, table.UnnamedPieces("Quest - Humming Pearl").SequenceEqual(new[] { "Humming Pearl" }), "what is left unnamed");
+            Expect("Misión, cofre del muerto", table.Localize("Quest - deadman chest"), "a whole note of the table's in the mod's words");
+            Expect(false, table.UnnamedPieces("Quest - deadman chest").Any(), "and nothing of it left unnamed");
+            Expect("Campana (recompensas)", table.Localize("Bell (Rewards)"), "a whole note is taken before its pieces");
+            Expect("Cofre de la campana (gema de habilidad de nivel 6)", table.Localize("Bell Chest (Skill Gem Level 6)"), "a piece of the mod's and a reward note");
+            Expect("Ritual repugnante (nivel 9)", table.Localize("Foul Ritual (Level 9)"), "a level in brackets");
             Expect(false, table.HasGameName("Crab Rare"), "no game name");
             Expect(true, table.HasGameName("Boss - Yama"), "a game name in a piece");
             Localization.Detect("en");
@@ -158,6 +168,14 @@ namespace Poe2Accessibility.Tests
             var named = labels.Count(table.HasGameName);
             var untouched = labels.Where(label => table.Localize(label) == label).ToList();
             Console.WriteLine($"    {labels.Count} labels, {named} with a game name in Spanish, {untouched.Count} untouched");
+            if (Environment.GetEnvironmentVariable(ListLabelsVariable) == "1")
+            {
+                foreach (var label in labels)
+                {
+                    Console.WriteLine($"      {(table.Localize(label) == label ? "=" : ">")} {label} | {table.Localize(label)} | unnamed: {string.Join("; ", table.UnnamedPieces(label))}");
+                }
+            }
+
             Localization.Detect("en");
             if (named < MinNamedLabels)
             {

@@ -262,7 +262,7 @@
 | Patch coverage report | done (code) | `GameNews` + `GameNewsNotes`: per table new/gone, covered or not, spoken summary |
 | Names for new content (nameless objects, league devices, harmful buffs, currency icons) | done (code; live partly) | `ObjectNames`, MinimapIconLabel, buff-names.json, currency-art.json |
 | One executable | done | host/Poe2Access: launcher + host + extractor in one process; spoken regeneration; 52 s first regeneration |
-| Radar labels in the game's language | done (live) | 92 of 211 labels with a game name; "En el mapa: Sala del jefe: Beira, de la manada putrefacta (10% de resistencia al frío)" near her arena (2026-11-08) |
+| Radar labels in the game's language | done (live) | 130 of 211 labels with a game name, 26 as written (2026-11-12; 92 on 2026-11-08); "En el mapa: Sala del jefe: Beira, de la manada putrefacta (10% de resistencia al frío)" near her arena (2026-11-08) |
 | Popup lists with no focus (options' popup notifications) | done (live) | `NoFocusList` + pure `MovingIndexWatch`: the list whose index (`GameLayout.HighlightList` +0x398) moves with the stick under the last focus's layer; "…, marcado, casilla de verificación, 8 de 31", A toggles ([notes](docs/research/ui-layers.md)) |
 | One dodge cue for blows together | done (live) | `DodgeCueMerge`: blows within 250 ms share one cue, rarer then nearer plays, a rare's never covered by a lesser cue; Mud Burrow swarm 2.87 → 1.66 cues a second, seconds with 3+ cues 500 → 117, recall unchanged ([table](docs/research/dodge-timing.md#one-cue-for-blows-together-2026-11-08)) |
 | Every monster warned inside a trial | done (unit; not seen live: no character has entered a trial) | `TrialDodgeScope`: the HUD's honour or round line (the game's strings) turns `DodgeWarningsAllMonsters` on, back to the setting on leaving; setting `DodgeWarningsAllMonstersInTrials` (on), 10 languages |
@@ -624,8 +624,11 @@ unblocks it). The audit's own lists, entry by entry:
 - **A barrier never seen closed, past the network bubble, reads open:** the game sends nothing to know it by.
 - **Panel notes are a heuristic** (`UiSemantics.PanelNotes`: a titled panel's texts outside navigable elements) and a
   panel whose loose lines change while open says them only on entry: by design, checked on Skills and Character.
-- **Radar-table labels and landmark notes that stay in English** (61 of 211): players' notes and names the game has no
-  row for; every piece the game names is said as the game names it (`LandmarkTable.Localize`).
+- **Radar-table labels that stay as written** (26 of 211 in Spanish since 2026-11-12, 61 before): names that read the same
+  in Spanish (Keth, Deshar, Utzaal) and the table authors' own scratch notes ("3 Test Areas", "Unknown 2", "Kalguur
+  town?"). Every piece the game names is said as the game names it, a name the table misspells too ("Oghams Manor"), and
+  30 notes with no name in them have the mod's own words in every language (`LandmarkTable.Localize`,
+  `Announcements.LandmarkWord`; listed by the tests with `POE2ACCESS_LIST_LABELS=1`).
 - **A class start said without a direction** ("inicio de tu clase, Monje"): the portrait has no node element.
 - **The dev command file read whatever `ResearchMode` says:** it only reads and speaks, and needs write access to the
   mod's own folder.

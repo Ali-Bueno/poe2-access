@@ -123,16 +123,25 @@ namespace Poe2Accessibility.Services
         public string Localize(string label)
         {
             var names = this.GameNames(Localization.Language);
-            if (names.TryGetValue(Key(label), out var whole))
+            if (Named(names, label) is { } whole)
             {
                 return whole;
             }
 
-            // A name that holds a comma ("Mektul, The Forgemaster") is whole before the note in brackets.
-            var note = label.IndexOf(" (", StringComparison.Ordinal);
-            if (note > 0 && names.TryGetValue(Key(label[..note]), out var baseName))
+            // A note of the table's the mod has words for, before its pieces are taken apart ("Bell (Rewards)").
+            if (Announcements.LandmarkWhole(label) is { } phrase)
             {
-                return Announcements.LandmarkLabel(baseName + label[note..]);
+                return phrase;
+            }
+
+            // A name that holds a comma ("Mektul, The Forgemaster") is whole before the note in brackets, which may be a
+            // name of the game's too ("Reforging Bench", a minimap icon's label).
+            var note = label.IndexOf(" (", StringComparison.Ordinal);
+            if (note > 0 && Named(names, label[..note]) is { } baseName)
+            {
+                return label.EndsWith(')') && Named(names, label[(note + 2)..^1]) is { } noted
+                    ? $"{baseName} ({noted})"
+                    : Announcements.LandmarkLabel(baseName + label[note..]);
             }
 
             var parts = PieceBreaks.Split(label);
@@ -144,7 +153,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var local = names.TryGetValue(Key(piece), out var named) ? named : MatchCase(piece, Announcements.LandmarkPiece(piece));
+                var local = Named(names, piece) ?? MatchCase(piece, Announcements.LandmarkPiece(piece));
                 if (local != null)
                 {
                     parts[i] = parts[i].Replace(piece, local, StringComparison.Ordinal);
@@ -161,14 +170,14 @@ namespace Poe2Accessibility.Services
         public IEnumerable<string> UnnamedPieces(string label)
         {
             var names = this.GameNames(Localization.Language);
-            if (names.ContainsKey(Key(label)))
+            if (Named(names, label) != null || Announcements.LandmarkWhole(label) != null)
             {
                 yield break;
             }
 
             foreach (var piece in PieceBreaks.Split(label).Where((_, i) => i % 2 == 0).Select(piece => piece.Trim()).Where(piece => piece.Length > 0))
             {
-                if (!names.ContainsKey(Key(piece)) && Announcements.LandmarkPiece(piece) == null)
+                if (Named(names, piece) == null && Announcements.LandmarkPiece(piece) == null)
                 {
                     yield return piece;
                 }
@@ -179,7 +188,25 @@ namespace Poe2Accessibility.Services
         public bool HasGameName(string label)
         {
             var names = this.GameNames(Localization.Language);
-            return names.ContainsKey(Key(label)) || PieceBreaks.Split(label).Where((_, i) => i % 2 == 0).Any(piece => names.ContainsKey(Key(piece)));
+            return Named(names, label) != null || PieceBreaks.Split(label).Where((_, i) => i % 2 == 0).Any(piece => Named(names, piece) != null);
+        }
+
+        /// <summary>
+        ///     Names the radar tables write otherwise than the game does, by the game's own (keys as <see cref="Key"/> makes
+        ///     them): "Oghams Manor" is Ogham Manor, "Holton Estate" Holten Estate, "The Dreadnought" the area Dreadnought.
+        /// </summary>
+        private static readonly Dictionary<string, string> Misspelt = new(StringComparer.Ordinal)
+        {
+            ["oghamsmanor"] = "oghammanor",
+            ["holtonestate"] = "holtenestate",
+            ["thedreadnought"] = "dreadnought",
+        };
+
+        /// <summary>The game's name for a label or a piece of one, null when it has none.</summary>
+        private static string? Named(IReadOnlyDictionary<string, string> names, string text)
+        {
+            var key = Key(text);
+            return names.TryGetValue(key, out var name) || (Misspelt.TryGetValue(key, out var meant) && names.TryGetValue(meant, out name)) ? name : null;
         }
 
         /// <summary>A translated common word starts in lower case where the piece it replaces does ("(waypoint)").</summary>
