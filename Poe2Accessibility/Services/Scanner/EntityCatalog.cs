@@ -216,6 +216,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
         public Func<IReadOnlyList<string>> QuestTexts { get; set; }
 
+        /// <summary>
+        ///     Whether the HUD counts the Death Crystals left: the room asks for them even when the page of the tracker on
+        ///     screen shows other quests than the Trial's (set by the plugin).
+        /// </summary>
+        public Func<bool> CrystalsCounted { get; set; } = () => false;
+
         /// <summary>The area's named places (<see cref="PlaceNarrator.Entries"/>), set by the plugin.</summary>
         public Func<float, IEnumerable<ScanEntry>>? PlaceEntries { get; set; }
 

@@ -378,6 +378,7 @@ namespace Poe2Accessibility
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.entities.CrystalsCounted = () => this.narrator != null && this.screen != null && this.narrator.CrystalsCounted(this.screen.Current);
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;

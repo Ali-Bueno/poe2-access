@@ -159,7 +159,10 @@ namespace Poe2Accessibility.Services
                 kind = MinimapMarks.ServiceKind(icon);
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
-                    if (!this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)))
+                    // The tracker shows two quests a page: with the Trial's on another page its objective is not on screen
+                    // and no crystal was listed, sounded or guided to through a whole room, the clock running (user 2026-11-12).
+                    // The count of crystals left stands on the HUD whatever the page.
+                    if (!this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)) && !this.CrystalsCounted())
                     {
                         return null; // a Death Crystal in a room of another kind, called out from 352 steps off (user 2026-11-07)
                     }

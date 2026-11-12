@@ -222,6 +222,14 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   "find the exit" room.** Its exit is not a target the scanner offers (the next room's stairs read "a 283 pasos, el
   camino se corta antes"), a lever (`SanctumGenericLever`, `Switches`) is not tied to the `SanctumLogicDoor` it opens,
   and nothing knows a lever already pulled. To be found in the game's files before any guide is written (rule 26).
+- **A room of crystals with no crystal** (same run, 17:35; the user asked whether an affliction hid them: none of
+  `trials.json` names the crystals). A Death Crystal (`…/Hazards/HourglassLethal`) was listed only while its objective
+  ("Desactiva los cristales antes de que se agote el tiempo") stood among the tracker's texts, so that crystals of other
+  rooms are not called out. The tracker shows two quests a page: here the page held "Ascenso al poder" and "El rastro de
+  la corrupción", the Trial's quest was on another, and no crystal was listed, sounded or guided to while the clock ran
+  ("6 cristales de la muerte restantes", "00:19"). Now the count of crystals left on the HUD
+  (`ScreenNarrator.CrystalsCounted`, the line `CheckTrialLines` already reads) is proof enough of the room
+  (`EntityCatalog.CrystalsCounted`). The count appears when the clock starts, a few seconds after the objective does.
 - **The lines as a second source** (`TrialMapLines`, 2026-11-12; proven on the morning's 45 lines, which give the 45
   links, not on a running game). Each line ends short of its two rooms' centres by the same distance (64 units on that
   map), so the lines of a pair of columns share their middle and, between columns a fixed distance apart, a line's width

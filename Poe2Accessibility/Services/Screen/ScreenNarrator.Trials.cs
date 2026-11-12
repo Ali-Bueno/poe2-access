@@ -20,6 +20,13 @@ namespace Poe2Accessibility.Services
                                    TrialLines.Read(this.Trials.Pattern(TrialCatalog.RoundLabel), hud.Texts.Select(text => text.Text)) != null);
         }
 
+        /// <summary>Whether the HUD counts the Death Crystals left ("6 Death Crystals remaining"): the room is one of crystals against a clock.</summary>
+        public bool CrystalsCounted(ScreenSnapshot snapshot)
+        {
+            var hud = this.inGame ? snapshot.Find(this.HudLayer) : null;
+            return hud != null && TrialLines.Read(this.Trials.Pattern(TrialCatalog.CrystalsLabel), hud.Texts.Select(text => text.Text)) != null;
+        }
+
         /// <summary>Says a round beginning (cutting in: a new fight) and the crystals left as one is disabled: digits alone are no news to the differ.</summary>
         public void CheckTrialLines(ScreenSnapshot snapshot)
         {
