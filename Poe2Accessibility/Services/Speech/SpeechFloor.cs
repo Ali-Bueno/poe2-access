@@ -144,14 +144,15 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The player's own move (the cursor to another cell) cuts a message or a page being kept, as it cuts anything
         ///     else: behind "Movido a Alijo: …" or "Vendido: …" it left the player waiting to hear where they were (user
-        ///     2026-11-11). A lesson still holds. What waited is stale.
+        ///     2026-11-11). A lesson still holds. Of what waited, a line that was to cut in is stale; what happened
+        ///     meanwhile ("Recogido 5 de oro") follows the move.
         /// </summary>
         public bool Move(string text, bool interrupt, DateTime now)
         {
             if (now >= this.lessonUntil)
             {
                 this.keptUntil = this.lessonUntil;
-                this.held.Clear();
+                this.held.RemoveAll(phrase => phrase.Interrupt);
             }
 
             var goesOut = this.Admit(text, interrupt, now);

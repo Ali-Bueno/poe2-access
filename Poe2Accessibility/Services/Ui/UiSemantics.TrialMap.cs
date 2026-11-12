@@ -308,8 +308,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a slot keeps what it carries: as measured until a search finds it elsewhere (a patch moved it).</summary>
         private int trialEffectsOffset = GameLayout.TrialFloor.SlotEffectsOffset;
 
-        /// <summary>The slots already searched for it, each once.</summary>
-        private readonly HashSet<IntPtr> trialSlotsSearched = new();
+        /// <summary>When each slot was last searched for it: again after a pause, since a slot read as the game rewrites it finds nothing.</summary>
+        private readonly Dictionary<IntPtr, long> trialSlotsSearched = new();
 
         /// <summary>The effects of one slot: each key's row names itself by its Id, which the catalog must hold.</summary>
         private IEnumerable<string> TrialEffectsOf(IntPtr slot) => this.TrialEffectKeys(slot, this.trialEffectsOffset).OfType<string>();
@@ -340,14 +340,16 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool FindTrialEffects(IReadOnlyList<IntPtr> slots)
         {
+            var now = Environment.TickCount64;
             foreach (var slot in slots)
             {
-                if (this.trialSlotsSearched.Contains(slot) || !this.elements.TryReadElement(slot, out var info) || !info.IsVisibleFlag)
+                if ((this.trialSlotsSearched.TryGetValue(slot, out var searched) && now - searched < TrialSearchPauseMs) ||
+                    !this.elements.TryReadElement(slot, out var info) || !info.IsVisibleFlag)
                 {
                     continue;
                 }
 
-                this.trialSlotsSearched.Add(slot);
+                this.trialSlotsSearched[slot] = now;
                 var body = TrialFloorLocator.Window((address, count) => this.elements.ReadBytesAt((IntPtr)address, count), (long)slot, GameLayout.TrialFloor.SlotWindow);
                 for (var offset = 0; offset + (2 * IntPtr.Size) <= body.Length; offset += IntPtr.Size)
                 {

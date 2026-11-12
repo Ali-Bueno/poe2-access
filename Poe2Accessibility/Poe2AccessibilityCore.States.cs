@@ -274,6 +274,7 @@ namespace Poe2Accessibility
             // took its place, or it came after the quest page and the player's next question cut it (user 2026-11-11).
             var line = Announcements.Area(name, level) + this.AreaCornerLine();
             this.output.Keep(line, SpeechFloor.MessageHoldMs(line), SpeechPriority.Interrupts(SpeechKind.Places), yieldsToMoves: true);
+            this.nearby?.Arrived();
         }
 
         /// <summary>

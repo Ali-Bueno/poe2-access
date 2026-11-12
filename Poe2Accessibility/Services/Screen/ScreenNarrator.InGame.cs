@@ -552,8 +552,8 @@ namespace Poe2Accessibility.Services
         /// <summary>The afflictions and boons a run carries, as catalog keys, from the slots beside the counters; null when none are found there.</summary>
         public Func<IntPtr, IReadOnlyList<string>?>? TrialEffectsBeside { get; set; }
 
-        /// <summary>What the run carried at the last look, null before the first: a gain is said, the first reading is not.</summary>
-        private HashSet<string>? trialEffects;
+        /// <summary>What the run carried at the last looks: a gain is said, the first reading is not.</summary>
+        private readonly TrialEffectNews trialEffects = new();
 
         /// <summary>Each affliction and boon carried, by name and with what it does: the HUD shows an icon a kind and names none.</summary>
         private IEnumerable<string> TrialEffectParts(IntPtr beside) =>
@@ -569,9 +569,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var gained = this.trialEffects == null ? new List<string>() : carried.Where(key => !this.trialEffects.Contains(key)).ToList();
-            this.trialEffects = carried.ToHashSet();
-            var news = gained.Select(key => Announcements.TrialEntry(TrialCatalog.KindOf(key), this.Trials.Text(key), this.Trials.About(key))).Where(part => part.Length > 0).ToList();
+            var news = this.trialEffects.Gained(carried).Select(key => Announcements.TrialEntry(TrialCatalog.KindOf(key), this.Trials.Text(key), this.Trials.About(key))).Where(part => part.Length > 0).ToList();
             if (news.Count > 0)
             {
                 this.Speak("trial effects", Announcements.Sentences(news), false);

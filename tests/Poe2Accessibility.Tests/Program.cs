@@ -1598,6 +1598,15 @@ namespace Poe2Accessibility.Tests
             floor.Keep("Misión: Lamentos entre lápidas. Registra el Mausoleo en busca de Draven y su consorte", false, 3800, arrival.AddMilliseconds(20), yieldsToMoves: true);
             Equal(false, floor.Admit("Cementerio de los eternos, A", true, arrival.AddMilliseconds(200)), "the exit's prompt waits for both");
             Equal(true, floor.Move("Salidas. Cementerio de los eternos, 3 pasos", true, arrival.AddMilliseconds(3000)), "the scanner's answer cuts both");
+            Equal(0, floor.Release(arrival.AddMilliseconds(3100)).Count, "and the prompt that was to cut in is stale");
+
+            // What happened behind a page is not lost to the move that cuts the page: it follows the move.
+            var pickup = start.AddMinutes(4);
+            floor.Keep("Misión: Lamentos entre lápidas. Registra el Mausoleo en busca de Draven y su consorte", false, 3800, pickup, yieldsToMoves: true);
+            Equal(false, floor.Admit("Recogido 5 de oro", false, pickup.AddMilliseconds(300)), "a pick-up waits for the page");
+            Equal(false, floor.Admit("Vida 50 por ciento", false, pickup.AddMilliseconds(350), reading: true), "and so does a reading");
+            Equal(true, floor.Move("Tiesto, A", true, pickup.AddMilliseconds(900)), "what A uses cuts the page");
+            Equal("Recogido 5 de oro|Vida 50 por ciento", string.Join("|", floor.Release(pickup.AddMilliseconds(950))), "both follow the move, the reading still fresh");
         }
 
         private static void ANoticesCopyInTheHintBoxIsNoLesson()
@@ -3341,6 +3350,23 @@ namespace Poe2Accessibility.Tests
             Equal(null, watch.Heard("Honor: 0/513"), "once, and the hub's stale line after the failed run stays silent");
             Equal(null, watch.Heard("Honor: 513/513"), "the next run starts whole");
             Equal(null, watch.Rose, "which is no honour restored");
+            Equal(58, watch.Heard("Honor: 300/513"), "a run left with honour to spare");
+            watch.Reset();
+            Equal(null, watch.Heard("Honor: 513/513"), "and the next one, in another area, starts whole");
+            Equal(null, watch.Rose, "which is no honour restored either");
+            Equal(87, watch.Heard("Honor: 450/513"), "and its marks count from there");
+
+            var effects = new TrialEffectNews();
+            Equal(0, effects.Gained(new[] { "AfflictionA", "BoonB" }).Count, "what a run carries at the first reading is no news");
+            Equal("BoonC", string.Join("|", effects.Gained(new[] { "AfflictionA", "BoonB", "BoonC" })), "a boon gained is");
+            Equal(0, effects.Gained(new[] { "AfflictionA" }).Count, "a slot that reads empty for a moment");
+            Equal(0, effects.Gained(new[] { "AfflictionA", "BoonB", "BoonC" }).Count, "gains nothing when it reads again");
+            for (var reading = 0; reading < TrialEffectNews.GoneAfter; reading++)
+            {
+                effects.Gained(new[] { "AfflictionA" });
+            }
+
+            Equal("BoonB", string.Join("|", effects.Gained(new[] { "AfflictionA", "BoonB" })), "one truly lost and gained again is news");
         }
 
         private static void TakingTheFloorCutsAKeptLine()

@@ -333,6 +333,7 @@ namespace Poe2Accessibility.Services
         {
             this.hudSpoken.Clear();
             this.trialCounters.Reset();
+            this.honour.Reset();
             this.tutorialSpoken.Clear();
             this.hudQuietUntil = resumed ? DateTime.UtcNow.AddMilliseconds(ResumedHudMs) : DateTime.MinValue;
             this.hudBaseline = resumed;

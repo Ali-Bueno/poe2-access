@@ -53,6 +53,9 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<uint> addsSaid = new();
         private readonly HashSet<(uint, long)> worded = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
+
+        /// <summary>Distinct readings logged per area: a state that counts by itself would write a line every poll.</summary>
+        private const int MaxFactsLogged = 500;
         private int phase = 1;
         private long? playerDiedAt;
         private long lastPhaseAt = long.MinValue / 2;
@@ -90,6 +93,7 @@ namespace Poe2Accessibility.Services
         {
             this.Hiding = null;
             this.Fighting = null;
+            this.logged.Clear();
             this.walls.Reset();
             this.bosses.Clear();
             this.others.Clear();
@@ -325,7 +329,7 @@ namespace Poe2Accessibility.Services
                 : "-";
             var buffs = entity.TryGetComponent<Buffs>(out var effects) ? string.Join(",", effects.StatusEffects.Keys.Select(BuffIds.Base).Distinct()) : "-";
             var line = $"{monster} {facts} states [{states}] buffs [{buffs}]";
-            if (this.logged.Add(line))
+            if (this.logged.Count < MaxFactsLogged && this.logged.Add(line))
             {
                 this.log.Info($"Boss facts: {line}");
             }

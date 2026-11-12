@@ -94,38 +94,37 @@ namespace Poe2Accessibility.Services
 
         private void Note(Entity entity, Vector2 boss)
         {
-            var place = "no place";
-            if (entity.TryGetComponent<Render>(out var render))
+            var isKnown = this.seen.TryGetValue(entity.Id, out var known);
+            if (isKnown ? known.Readings >= PerEntity : this.perPath.GetValueOrDefault(entity.Path) >= PerPath)
             {
-                var at = new Vector2(render.WorldPosition.X, render.WorldPosition.Y);
-                var gap = Vector2.Distance(at, boss);
-                if (gap > ArenaWorld)
-                {
-                    return;
-                }
+                return; // nothing more is logged of it, so nothing of it is read
+            }
 
-                place = $"at {at.X:0},{at.Y:0}, {gap:0} from the boss";
+            Vector2? at = entity.TryGetComponent<Render>(out var render) ? new Vector2(render.WorldPosition.X, render.WorldPosition.Y) : null;
+            if (at is { } spot && Vector2.Distance(spot, boss) > ArenaWorld)
+            {
+                return;
             }
 
             var states = entity.TryGetComponent<StateMachine>(out var machine)
                 ? string.Join(",", machine.States.Where(state => state.Value != 0).Select(state => $"{state.Name}={state.Value}"))
                 : "-";
-            if (!this.seen.TryGetValue(entity.Id, out var known))
+            if (isKnown && known.States == states)
             {
-                var count = this.perPath.GetValueOrDefault(entity.Path);
-                if (count >= PerPath)
-                {
-                    return;
-                }
-
-                this.perPath[entity.Path] = count + 1;
-                this.seen[entity.Id] = (states, 1);
-                this.Line($"Boss arena: + {entity.Path} #{entity.Id} ({entity.EntityType}) {place} states [{states}]");
+                return;
             }
-            else if (known.States != states && known.Readings < PerEntity)
+
+            var place = at is { } where ? $"at {where.X:0},{where.Y:0}, {Vector2.Distance(where, boss):0} from the boss" : "no place";
+            if (isKnown)
             {
                 this.seen[entity.Id] = (states, known.Readings + 1);
                 this.Line($"Boss arena: {entity.Path} #{entity.Id} {place} states [{states}]");
+            }
+            else
+            {
+                this.perPath[entity.Path] = this.perPath.GetValueOrDefault(entity.Path) + 1;
+                this.seen[entity.Id] = (states, 1);
+                this.Line($"Boss arena: + {entity.Path} #{entity.Id} ({entity.EntityType}) {place} states [{states}]");
             }
         }
 

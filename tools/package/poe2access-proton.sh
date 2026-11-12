@@ -108,6 +108,10 @@ fi
 	printf 'SteamAppId=%s\n' "$(quote "$SteamAppId")"
 	printf 'SteamGameId=%s\n' "$(quote "$SteamGameId")"
 } >"$state" 2>/dev/null
+# A session Steam ends by signal leaves no record behind: the next stop would be sent to a prefix no longer running.
+trap 'rm -f "$state"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
 
 note "Proton: $proton; prefix: $STEAM_COMPAT_DATA_PATH; WINEDLLPATH=$WINEDLLPATH"
 

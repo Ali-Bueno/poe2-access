@@ -21,4 +21,9 @@ DOTNET_SYSTEM_GLOBALIZATION_USENLS=1 # Wine has no usable ICU (see poe2access-pr
 export STEAM_COMPAT_CLIENT_INSTALL_PATH STEAM_COMPAT_DATA_PATH SteamAppId SteamGameId DOTNET_SYSTEM_GLOBALIZATION_USENLS
 cd "$here" || exit 1
 "$proton" runinprefix ./Poe2Access.exe stop
+code=$?
+if [ "$code" -ne 0 ]; then
+	echo "Error: Poe2Access could not be stopped (Proton ended with code $code)." >&2
+	exit "$code"
+fi
 echo "Poe2Access stopped."

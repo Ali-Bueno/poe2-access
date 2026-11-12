@@ -74,6 +74,10 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool exitOptionsSaid;
 
+        /// <summary>Where the player stood as the area's line went out, until they walk out of reach of it.</summary>
+        private Vector2? arrivedAt;
+        private bool arriving;
+
         public ProximityNarrator(EntityCatalog catalog, IAccessibilityOutputService output)
         {
             this.catalog = catalog;
@@ -99,7 +103,12 @@ namespace Poe2Accessibility.Services
             this.targetSpoken = null;
             this.targetLeft = null;
             this.exitOptionsSaid = false;
+            this.arriving = false;
+            this.arrivedAt = null;
         }
+
+        /// <summary>The area's line goes out now: where the player stands is where they arrived.</summary>
+        public void Arrived() => this.arriving = true;
 
         /// <summary>
         ///     Per frame; paused while a panel or dialogue is open, so closing one does not repeat what is near.
@@ -181,6 +190,12 @@ namespace Poe2Accessibility.Services
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            if (this.arriving)
+            {
+                this.arriving = false;
+                this.arrivedAt = here;
+            }
+
             if (current != null && current.Id == this.targetSpoken)
             {
                 this.targetSpokenAt = new Vector2(current.WorldX, current.WorldY); // an NPC walks
@@ -233,7 +248,15 @@ namespace Poe2Accessibility.Services
 
             // What A takes now cuts in, like a focus: queued behind other lines it came late and A took the next item
             // ("Ballesta tensa, A" heard while A already held a bow, 2026-10-26). A queued name of it is skipped later.
-            // The player's own move: it waited out "Inventario lleno" and the quest page (user 2026-11-11).
+            // The player's own move: it waited out "Inventario lleno" and the quest page (user 2026-11-11). Not where the
+            // player arrived and still stands: there it waits for the area's line, which it used to replace.
+            if (this.arrivedAt is { } place && Vector2.Distance(here, place) <= ReachWorld)
+            {
+                this.output.Speak(this.Label(current), true);
+                return;
+            }
+
+            this.arrivedAt = null;
             this.output.Moved(this.Label(current));
         }
 

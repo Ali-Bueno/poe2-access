@@ -24,6 +24,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public int? Rose { get; private set; }
 
+        /// <summary>
+        ///     Another area: its first reading is neither a fall nor a rise. A run left with honour to spare was followed by
+        ///     "honour restored" as the next one began whole.
+        /// </summary>
+        public void Reset() => (this.last, this.low, this.Rose) = (-1, -1, null);
+
         /// <summary>The percent to say now, or null: when it falls past a mark. A rise, as at a fountain, starts over from there.</summary>
         /// <param name="line">The HUD's honour line.</param>
         public int? Heard(string line)
