@@ -160,6 +160,14 @@ namespace Poe2Accessibility
             public const int PathColumns = 8;
             public const byte NoRoom = 0xFF;
 
+            /// <summary>
+            ///     On the map's canvas (a child of the element holding it and the columns' container): a std::vector of the lines
+            ///     drawn, one a link, 0x18 bytes each: two points of two floats, then how it is painted. Where the search for
+            ///     them starts (<see cref="Services.TrialMapLines"/>).
+            /// </summary>
+            public const int LinesOffset = 0x2C8;
+            public const int LineSize = 0x18;
+
             /// <summary>On a slot of what a run carries: a std::vector of keys, each a row of SanctumPersistentEffects then its table.</summary>
             public const int SlotEffectsOffset = 0x2F0;
             public const int KeySize = 0x10;

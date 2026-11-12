@@ -74,45 +74,63 @@ namespace Poe2Accessibility.Services
 
             var firstOpen = rooms.FindIndex(inColumn => inColumn.Any(this.TrialRoomIsOpen));
             var sizes = rooms.Select(inColumn => inColumn.Length).ToList();
-            if (this.ReadTrialFloor(this.elements.ReadAncestors(room, GameLayout.TrialFloor.HolderHops), sizes) is { } floor)
+            var floor = this.ReadTrialFloor(this.elements.ReadAncestors(room, GameLayout.TrialFloor.HolderHops), sizes);
+            // Where the player is: the last of the rooms the game keeps as taken or, those unknown, the room the game draws its glow under.
+            (int Column, int Room)? own = floor is { Walk.Count: > 0 } walked ? (walked.Walk.Count - 1, walked.Walk[^1]) : this.TrialMarkedRoom(rooms, firstOpen);
+            if (floor is { } read && own is { } at)
             {
-                // Where the player is: the last of the rooms the game keeps as taken or, when those are not where they
-                // were measured, the room of the player's column the game draws its glow under.
-                (int Column, int Room)? at = floor.Walk.Count > 0 ? (floor.Walk.Count - 1, floor.Walk[^1]) : this.TrialMarkedRoom(rooms, firstOpen);
-                if (at is { } own)
-                {
-                    // The links the game draws between the rooms: what can still be reached, through which room, and where each leads.
-                    var open = firstOpen == own.Column + 1
-                        ? Enumerable.Range(0, sizes[firstOpen]).Where(each => this.TrialRoomIsOpen(rooms[firstOpen][each])).ToList()
-                        : new List<int>();
-                    var view = TrialMap.View(floor.Links, own.Column, own.Room, column, row, open);
-                    return Announcements.TrialRoomPlace(column + 1, columns.Length, row + 1, sizes[column], view.Standing, view.Through, view.LeadsTo);
-                }
+                // The links the game draws between the rooms: what can still be reached, through which room, and where each leads.
+                var open = firstOpen == at.Column + 1
+                    ? Enumerable.Range(0, sizes[firstOpen]).Where(each => this.TrialRoomIsOpen(rooms[firstOpen][each])).ToList()
+                    : new List<int>();
+                var view = TrialMap.View(read.Links, at.Column, at.Room, column, row, open);
+                return Announcements.TrialRoomPlace(column + 1, columns.Length, row + 1, sizes[column], view.Standing, view.Through, view.LeadsTo);
             }
 
-            var standing = TrialMap.Standing(column, this.TrialRoomIsOpen(address), firstOpen, this.TrialRoomIsMarked(address));
+            var standing = TrialMap.Standing(column, row, this.TrialRoomIsOpen(address), firstOpen, own);
             return Announcements.TrialRoomPlace(column + 1, columns.Length, row + 1, rooms[column].Length, standing);
         }
 
-        /// <summary>The one room the game marks in the column before the first to enter: where the player stands, by the screen alone.</summary>
+        /// <summary>
+        ///     The room the game draws its glow under: where the player stands, by the screen alone. The one room of the map
+        ///     with it (one of 27 on the map measured 2026-11-12); with rooms to enter, it must stand in the column before them.
+        /// </summary>
         private (int Column, int Room)? TrialMarkedRoom(IReadOnlyList<IntPtr[]> rooms, int firstOpen)
         {
-            if (firstOpen < 1)
-            {
-                return null;
-            }
-
-            var marked = Enumerable.Range(0, rooms[firstOpen - 1].Length).Where(each => this.TrialRoomIsMarked(rooms[firstOpen - 1][each])).ToList();
-            return marked.Count == 1 ? (firstOpen - 1, marked[0]) : null;
+            var marked = Enumerable.Range(0, rooms.Count)
+                .SelectMany(column => Enumerable.Range(0, rooms[column].Length).Where(each => this.TrialRoomIsMarked(rooms[column][each])).Select(each => (Column: column, Room: each)))
+                .Take(2).ToList();
+            return marked.Count == 1 && (firstOpen < 0 || marked[0].Column == firstOpen - 1) ? marked[0] : null;
         }
 
-        /// <summary>Where the floor's links stand: as measured until a search by shape finds them elsewhere (a patch moved them).</summary>
-        private TrialFloorShape trialFloorShape = new(
-            GameLayout.TrialFloor.HolderOffset, GameLayout.TrialFloor.ColumnsOffset, GameLayout.TrialFloor.ColumnSize,
-            GameLayout.TrialFloor.RoomsOffset, GameLayout.TrialFloor.RoomSize, GameLayout.TrialFloor.WaysOffset);
+        /// <summary>
+        ///     Where the floor's links have stood, the last that read first: as measured, and wherever a search by shape found
+        ///     them since. None is forgotten: the map opened to look at and the map opened to choose a room did not keep them
+        ///     at the same place (user's run, 2026-11-12: found at holder +0x3B0, columns +0x198, then lost on the next map).
+        /// </summary>
+        private readonly List<TrialFloorShape> trialFloorShapes = new()
+        {
+            new(GameLayout.TrialFloor.HolderOffset, GameLayout.TrialFloor.ColumnsOffset, GameLayout.TrialFloor.ColumnSize,
+                GameLayout.TrialFloor.RoomsOffset, GameLayout.TrialFloor.RoomSize, GameLayout.TrialFloor.WaysOffset),
+        };
 
-        /// <summary>The map last searched by shape (its columns' container and its rooms): a search that finds nothing is not run again on it.</summary>
-        private (IntPtr Container, string Rooms) trialFloorSearched;
+        // A search by shape costs about a thousand small reads: on a map where it found nothing, not on every step of the cursor.
+        private const int TrialSearchPauseMs = 2000;
+
+        /// <summary>The map last searched by shape (its columns' container and its rooms), and when.</summary>
+        private ((IntPtr Container, string Rooms) Map, long At) trialFloorSearched;
+
+        private static bool TrialSearchIsDue(ref ((IntPtr Container, string Rooms) Map, long At) last, (IntPtr Container, string Rooms) map)
+        {
+            var now = Environment.TickCount64;
+            if (last.Map == map && now - last.At < TrialSearchPauseMs)
+            {
+                return false;
+            }
+
+            last = (map, now);
+            return true;
+        }
 
         /// <summary>
         ///     The floor's links and the rooms taken, read from the floor an ancestor of the rooms points to; null unless the
@@ -124,42 +142,119 @@ namespace Poe2Accessibility.Services
         {
             var holders = ancestors.Skip(2).Select(holder => (long)holder.Address).ToList(); // past the column and the columns' container
             byte[] Read(long address, int count) => this.elements.ReadBytesAt((IntPtr)address, count);
-            foreach (var holder in holders)
+            for (var known = 0; known < this.trialFloorShapes.Count; known++)
             {
-                if (this.elements.TryReadPointer((IntPtr)(holder + this.trialFloorShape.HolderOffset), out var floor) &&
-                    TrialFloorLocator.ReadLinks(Read, (long)floor, this.trialFloorShape, rooms) is { } links)
+                var shape = this.trialFloorShapes[known];
+                foreach (var holder in holders)
                 {
-                    return this.TrialFloorRead((long)floor, links, rooms);
+                    if (this.elements.TryReadPointer((IntPtr)(holder + shape.HolderOffset), out var floor) &&
+                        TrialFloorLocator.ReadLinks(Read, (long)floor, shape, rooms) is { } links)
+                    {
+                        this.trialFloorShapes.RemoveAt(known);
+                        this.trialFloorShapes.Insert(0, shape);
+                        this.CheckTrialLines(ancestors, rooms, links);
+                        return this.TrialFloorRead((long)floor, shape, links, rooms);
+                    }
                 }
             }
 
-            // Not where it was measured: a patch may have moved it. Searched by shape, once a map.
+            // Not where it has stood: another window of the map, or a patch. The lines the map draws say the links too, and
+            // which floor is the one shown; the floor is searched by shape.
             var map = (ancestors.Count > 1 ? ancestors[1].Address : IntPtr.Zero, string.Join(",", rooms));
-            if (map != this.trialFloorSearched)
+            var drawn = this.ReadTrialLines(ancestors, rooms, map);
+            if (TrialSearchIsDue(ref this.trialFloorSearched, map) &&
+                TrialFloorLocator.Find(Read, holders, this.trialFloorShapes[0], rooms, drawn) is { } found)
             {
-                this.trialFloorSearched = map;
-                if (TrialFloorLocator.Find(Read, holders, this.trialFloorShape, rooms) is { } found)
-                {
-                    this.trialFloorShape = found.Shape;
-                    this.TrialFloorNote?.Invoke(
-                        $"Trial floor: found by shape, GameLayout.TrialFloor is out of date: holder +0x{found.Shape.HolderOffset:X}, " +
-                        $"columns +0x{found.Shape.ColumnsOffset:X} of 0x{found.Shape.ColumnSize:X} bytes, rooms +0x{found.Shape.RoomsOffset:X} " +
-                        $"of 0x{found.Shape.RoomSize:X} bytes, ways +0x{found.Shape.WaysOffset:X}");
-                    return this.TrialFloorRead(found.Floor, found.Links, rooms);
-                }
+                this.trialFloorShapes.Remove(found.Shape);
+                this.trialFloorShapes.Insert(0, found.Shape);
+                this.TrialFloorNote?.Invoke(
+                    $"Trial floor: found by shape: holder +0x{found.Shape.HolderOffset:X}, " +
+                    $"columns +0x{found.Shape.ColumnsOffset:X} of 0x{found.Shape.ColumnSize:X} bytes, rooms +0x{found.Shape.RoomsOffset:X} " +
+                    $"of 0x{found.Shape.RoomSize:X} bytes, ways +0x{found.Shape.WaysOffset:X} ({this.trialFloorShapes.Count} places known)");
+                return this.TrialFloorRead(found.Floor, found.Shape, found.Links, rooms);
             }
 
-            this.NoteTrialFloor($"Trial floor: no links fit the map of columns {string.Join(",", rooms)} ({ancestors.Count} ancestors)");
+            if (drawn is not null)
+            {
+                this.NoteTrialFloor($"Trial floor: not found, links from the lines the map draws: columns {string.Join(",", rooms)}, links {LinksText(drawn)}");
+                return (drawn, Array.Empty<int>());
+            }
+
+            this.NoteTrialFloor($"Trial floor: no links fit the map of columns {string.Join(",", rooms)} ({ancestors.Count} ancestors, {this.trialFloorShapes.Count} places known, no lines found)");
             return null;
         }
 
+        private static string LinksText(IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> links) =>
+            string.Join(" | ", links.Select(column => string.Join(" ", column.Select(ways => string.Join(",", ways)))));
+
+        /// <summary>Where the canvas keeps the lines it draws: as measured until a search by shape finds them elsewhere.</summary>
+        private (int Offset, int LineSize) trialLines = (GameLayout.TrialFloor.LinesOffset, GameLayout.TrialFloor.LineSize);
+
+        /// <summary>The map last searched for its lines by shape, and when.</summary>
+        private ((IntPtr Container, string Rooms) Map, long At) trialLinesSearched;
+
+        /// <summary>
+        ///     The links of the lines the map draws, from the canvas beside the columns (<see cref="TrialMapLines"/>): a
+        ///     second source for the links, the very thing on screen. Null when no element near the rooms holds such lines.
+        /// </summary>
+        private IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>>? ReadTrialLines(
+            IReadOnlyList<UiElementReader.ElementInfo> ancestors, IReadOnlyList<int> rooms, (IntPtr Container, string Rooms) map)
+        {
+            // The canvas is a child of the element that holds it and the columns' container; one level more in case a patch wraps it.
+            var near = ancestors.Skip(1).Select(each => each.Address)
+                .Concat(ancestors.Skip(2).Take(2).SelectMany(each => this.elements.ReadChildren(each))).Distinct().Select(each => (long)each).ToList();
+            byte[] Read(long address, int count) => this.elements.ReadBytesAt((IntPtr)address, count);
+            foreach (var element in near)
+            {
+                if (TrialMapLines.Read(Read, element, this.trialLines.Offset, this.trialLines.LineSize, rooms) is { } links)
+                {
+                    return links;
+                }
+            }
+
+            if (!TrialSearchIsDue(ref this.trialLinesSearched, map))
+            {
+                return null;
+            }
+
+            foreach (var element in near)
+            {
+                if (TrialMapLines.Find(Read, element, rooms) is { } found)
+                {
+                    this.trialLines = (found.Offset, found.LineSize);
+                    this.TrialFloorNote?.Invoke($"Trial lines: found by shape: lines +0x{found.Offset:X} of 0x{found.LineSize:X} bytes");
+                    return found.Links;
+                }
+            }
+
+            return null;
+        }
+
+        private string trialLinesChecked = string.Empty;
+
+        /// <summary>Says in the log, once a floor, whether the lines the map draws say the links read from the floor: each proves the other.</summary>
+        private void CheckTrialLines(IReadOnlyList<UiElementReader.ElementInfo> ancestors, IReadOnlyList<int> rooms, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> links)
+        {
+            var text = LinksText(links);
+            if (text == this.trialLinesChecked)
+            {
+                return;
+            }
+
+            this.trialLinesChecked = text;
+            var drawn = this.ReadTrialLines(ancestors, rooms, (ancestors.Count > 1 ? ancestors[1].Address : IntPtr.Zero, string.Join(",", rooms)));
+            this.TrialFloorNote?.Invoke(drawn is null
+                ? "Trial lines: no lines found beside the map to check the floor's links against"
+                : TrialFloorLocator.Same(links, drawn) ? "Trial lines: the lines the map draws say the floor's links" : $"Trial lines: the lines the map draws say other links than the floor: {LinksText(drawn)}");
+        }
+
         private (IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> Links, IReadOnlyList<int> Walk) TrialFloorRead(
-            long floor, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> links, IReadOnlyList<int> rooms)
+            long floor, TrialFloorShape shape, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> links, IReadOnlyList<int> rooms)
         {
             var taken = this.elements.ReadBytesAt(
-                (IntPtr)(floor + this.trialFloorShape.ColumnsOffset + GameLayout.TrialFloor.PathAfterColumns), Math.Min(rooms.Count, GameLayout.TrialFloor.PathColumns));
+                (IntPtr)(floor + shape.ColumnsOffset + GameLayout.TrialFloor.PathAfterColumns), Math.Min(rooms.Count, GameLayout.TrialFloor.PathColumns));
             var walk = TrialMap.Walk(links, taken, GameLayout.TrialFloor.NoRoom);
-            this.NoteTrialFloor($"Trial floor: columns {string.Join(",", rooms)}, links {string.Join(" | ", links.Select(column => string.Join(" ", column.Select(ways => string.Join(",", ways)))))}, " +
+            this.NoteTrialFloor($"Trial floor (holder +0x{shape.HolderOffset:X}, columns +0x{shape.ColumnsOffset:X}): columns {string.Join(",", rooms)}, links {LinksText(links)}, " +
                                 $"taken {Convert.ToHexString(taken)}, walk {(walk.Count > 0 ? string.Join(",", walk) : "none: the player's room is the one the map marks")}");
             return (links, walk);
         }

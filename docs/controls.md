@@ -45,7 +45,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
 - The Trial of the Sekhemas' map reads each room's place: "column 2 of 8, room 3 of 3", columns running from the entrance to the boss, the rooms it leads to in the next column ("leads to rooms 3, 4": the lines the game draws),
   through which of the rooms you can enter it is reached when there is a choice, and how it stands: your room, on your way (a way still leads to it from your room),
   no way to it from your room, left behind. Where the links cannot be read it says whether it is your room, your column,
-  left behind, not reachable yet or, beside the rooms you can enter, without a way from your room; a room you can enter says so with its button, one not revealed is "Hidden room".
+  left behind, in the next column, not reachable yet (two columns on or more) or, beside the rooms you can enter, without a way from your room; a room you can enter says so with its button, one not revealed is "Hidden room".
+  The boss's room never says it can be entered (the game shows no description for it): once the room before it is done it is "on your way", or "next column", and A enters it.
 - In a Trial room that asks to disable the crystals the guide locks by itself on the Death Crystal quickest to reach and on the next once it is disabled, along a route that goes
   round walls, and lets go when the room is done; you walk, and your own target is left alone (setting "Guide to each Death Crystal by itself").
 - In the Trial of the Sekhemas an affliction or boon is said by name and effect as you gain it; the vitals (double tap L3) say your honour, sacred water, keys and

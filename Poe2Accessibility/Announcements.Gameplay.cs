@@ -326,6 +326,7 @@ namespace Poe2Accessibility
                 Services.TrialRoomStanding.Behind => $"{place}, {T("left behind", "ya quedó atrás")}",
                 Services.TrialRoomStanding.Ahead => $"{place}, {T("not reachable yet", "aún no puedes entrar")}",
                 Services.TrialRoomStanding.Beside => $"{place}, {T("no way to it from your room", "sin camino desde tu sala")}",
+                Services.TrialRoomStanding.Next => $"{place}, {T("next column", "columna siguiente")}",
                 _ => place,
             };
         }

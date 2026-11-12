@@ -27,6 +27,16 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Beside the rooms the player can enter: no way leads to it from the player's room, and the Trial never goes back.</summary>
         Beside,
+
+        /// <summary>
+        ///     In the column after the player's, where nothing on screen says whether it can be entered: a room the game
+        ///     describes says so in its tooltip, the boss's has none and was called "not reachable yet" when it was the one
+        ///     room to enter (user's run, 2026-11-12).
+        /// </summary>
+        Next,
+
+        /// <summary>Nothing on screen says where the player is.</summary>
+        Unknown,
     }
 
     /// <summary>
@@ -148,35 +158,45 @@ namespace Poe2Accessibility.Services
             return (TrialRoomStanding.Reachable, through, leadsTo);
         }
 
-        /// <summary>A room's standing; the player is one column before the first that has a room to enter.</summary>
+        /// <summary>
+        ///     A room's standing without the floor's links. The player's column is the one of the room the game marks or,
+        ///     no room marked, the one before the first that has a room to enter.
+        /// </summary>
         /// <param name="column">The room's column.</param>
+        /// <param name="room">The room's place in it.</param>
         /// <param name="open">The room offers to enter.</param>
         /// <param name="firstOpen">The first column with a room to enter, negative for none.</param>
-        /// <param name="marked">The room carries the game's mark of where the player stands; believed only in the player's column.</param>
-        public static TrialRoomStanding Standing(int column, bool open, int firstOpen, bool marked = false)
+        /// <param name="own">The room the game marks as the player's, when it marks one where the player can be.</param>
+        public static TrialRoomStanding Standing(int column, int room, bool open, int firstOpen, (int Column, int Room)? own = null)
         {
             if (open)
             {
                 return TrialRoomStanding.Open;
             }
 
-            if (firstOpen < 0 || column > firstOpen)
+            if (own is null && firstOpen < 0)
             {
-                return TrialRoomStanding.Ahead;
+                return TrialRoomStanding.Unknown;
             }
 
-            if (column == firstOpen)
-            {
-                // "Not reachable yet" was said of these, as if they would open later (user's map, 2026-11-12).
-                return TrialRoomStanding.Beside;
-            }
-
-            if (column < firstOpen - 1)
+            var playersColumn = own?.Column ?? (firstOpen - 1);
+            if (column < playersColumn)
             {
                 return TrialRoomStanding.Behind;
             }
 
-            return marked ? TrialRoomStanding.Current : TrialRoomStanding.Here;
+            if (column == playersColumn)
+            {
+                return own is { } marked && marked.Room == room ? TrialRoomStanding.Current : TrialRoomStanding.Here;
+            }
+
+            if (column > playersColumn + 1)
+            {
+                return TrialRoomStanding.Ahead;
+            }
+
+            // "Not reachable yet" was said of the rooms beside the ones to enter, as if they would open later (user's map, 2026-11-12).
+            return firstOpen == column ? TrialRoomStanding.Beside : TrialRoomStanding.Next;
         }
     }
 }

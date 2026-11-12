@@ -3257,15 +3257,22 @@ namespace Poe2Accessibility.Tests
             var start = TrialMap.Walk(links, new byte[] { 0, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom);
             var choice = TrialMap.View(links, start.Count - 1, start[^1], 3, 1, new[] { 0, 1, 2 });
             Equal("Reachable 0", $"{choice.Standing} {string.Join(",", choice.Through)}", "at the entrance, a room two columns on is reached through the first room alone");
-            Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1), "the room offers to enter");
-            Equal(TrialRoomStanding.Here, TrialMap.Standing(0, false, 1), "the column before the first to enter is the player's");
-            Equal(TrialRoomStanding.Current, TrialMap.Standing(0, false, 1, true), "the room of that column with the game's mark is where the player stands");
-            Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, false, 3), "before it, left behind");
-            Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, false, 3, true), "a mark further back is not believed");
-            Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1, true), "nor on a room that offers to enter");
-            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(2, false, 1), "after it, not reachable");
-            Equal(TrialRoomStanding.Beside, TrialMap.Standing(1, false, 1), "a room beside the open ones that does not offer has no way from the player's");
-            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(0, false, -1), "with nothing open nothing can be told");
+            Equal(TrialRoomStanding.Open, TrialMap.Standing(1, 0, true, 1), "the room offers to enter");
+            Equal(TrialRoomStanding.Here, TrialMap.Standing(0, 0, false, 1), "the column before the first to enter is the player's");
+            Equal(TrialRoomStanding.Current, TrialMap.Standing(2, 1, false, 3, (2, 1)), "the room with the game's mark is where the player stands");
+            Equal(TrialRoomStanding.Here, TrialMap.Standing(2, 0, false, 3, (2, 1)), "another room of its column");
+            Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, 0, false, 3), "before it, left behind");
+            Equal(TrialRoomStanding.Open, TrialMap.Standing(1, 0, true, 1, (0, 0)), "a room that offers to enter says so");
+            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(2, 0, false, 1), "after it, not reachable");
+            Equal(TrialRoomStanding.Beside, TrialMap.Standing(1, 1, false, 1), "a room beside the open ones that does not offer has no way from the player's");
+            // The user's map of 2026-11-12, opened in the room before the boss with that room done: no room offers to enter in
+            // its tooltip, the boss's has none. Every room was "not reachable yet", the boss's too, the one room to enter.
+            Equal(TrialRoomStanding.Next, TrialMap.Standing(7, 0, false, -1, (6, 3)), "the boss's room, the column after the player's: not called out of reach");
+            Equal(TrialRoomStanding.Current, TrialMap.Standing(6, 3, false, -1, (6, 3)), "the player's room by the game's mark alone");
+            Equal(TrialRoomStanding.Here, TrialMap.Standing(6, 5, false, -1, (6, 3)), "its column");
+            Equal(TrialRoomStanding.Behind, TrialMap.Standing(5, 2, false, -1, (6, 3)), "the rooms before");
+            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(7, 0, false, -1, (3, 3)), "a room two columns on cannot be entered yet");
+            Equal(TrialRoomStanding.Unknown, TrialMap.Standing(0, 0, false, -1), "with nothing open and no room marked nothing is told");
         }
 
         private static void TheGuideGoesFromCrystalToCrystal()

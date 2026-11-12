@@ -65,13 +65,16 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Finds the floor from the elements of the map window when it is not where <paramref name="measured"/> says.
         ///     First with the floor laid out as measured and only its pointer moved on the element (what a patch that grows
-        ///     the interface's elements does); then by shape alone. By shape, a floor that holds two vectors of links that
-        ///     differ is not believed: the game keeps the floor as it was generated beside the floor as it shows it.
+        ///     the interface's elements does); then by shape alone. The game keeps the floor as it was generated beside the
+        ///     floor as it shows it: by shape, the one that says the links the map draws (<paramref name="drawn"/>) is the
+        ///     one shown, and without those a floor holding two vectors of links that differ is not believed.
         /// </summary>
         /// <param name="holders">The elements to search for the floor's pointer.</param>
         /// <param name="rooms">The rooms of each column, as the window shows them.</param>
+        /// <param name="drawn">The links of the lines the map draws (<see cref="TrialMapLines"/>), null when not known.</param>
         public static (TrialFloorShape Shape, long Floor, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> Links)? Find(
-            Func<long, int, byte[]> read, IReadOnlyList<long> holders, TrialFloorShape measured, IReadOnlyList<int> rooms)
+            Func<long, int, byte[]> read, IReadOnlyList<long> holders, TrialFloorShape measured, IReadOnlyList<int> rooms,
+            IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>>? drawn = null)
         {
             var pointers = new List<(int At, long Floor)>();
             var seen = new HashSet<long>();
@@ -90,7 +93,7 @@ namespace Poe2Accessibility.Services
 
             foreach (var (at, floor) in pointers)
             {
-                if (ReadLinks(read, floor, measured, rooms) is { } links)
+                if (ReadLinks(read, floor, measured, rooms) is { } links && (drawn is null || Same(links, drawn)))
                 {
                     return (measured with { HolderOffset = at }, floor, links);
                 }
@@ -98,7 +101,7 @@ namespace Poe2Accessibility.Services
 
             foreach (var (at, floor) in pointers)
             {
-                if (FindIn(read, floor, rooms) is { } found)
+                if (FindIn(read, floor, rooms, drawn) is { } found)
                 {
                     return (found.Shape with { HolderOffset = at }, floor, found.Links);
                 }
@@ -107,8 +110,12 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
-        /// <summary>The floor's links by shape: the last vector of columns in the floor that fits the map, when every one that fits says the same.</summary>
-        private static (TrialFloorShape Shape, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> Links)? FindIn(Func<long, int, byte[]> read, long floor, IReadOnlyList<int> rooms)
+        /// <summary>
+        ///     The floor's links by shape: the last vector of columns in the floor that fits the map and says the links drawn
+        ///     or, those unknown, the last when every one that fits says the same.
+        /// </summary>
+        private static (TrialFloorShape Shape, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> Links)? FindIn(
+            Func<long, int, byte[]> read, long floor, IReadOnlyList<int> rooms, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>>? drawn)
         {
             (TrialFloorShape Shape, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> Links)? found = null;
             var body = Window(read, floor, FloorWindow);
@@ -121,7 +128,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 var columns = read(first, (int)span);
-                if (columns.Length == span && ShapeOf(read, columns, at, (int)(span / rooms.Count), rooms) is { } here)
+                if (columns.Length == span && ShapeOf(read, columns, at, (int)(span / rooms.Count), rooms) is { } here &&
+                    (drawn is null || Same(here.Links, drawn)))
                 {
                     if (found is { } before && !Same(before.Links, here.Links))
                     {
@@ -227,7 +235,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A vector's begin and the bytes it spans, read from a buffer; false when it is no vector (end before begin, no address).</summary>
         /// <param name="anyBegin">The span alone is asked: an empty vector's begin may be anything.</param>
-        private static bool TryVector(byte[] buffer, int at, out long begin, out long span, bool anyBegin = false)
+        internal static bool TryVector(byte[] buffer, int at, out long begin, out long span, bool anyBegin = false)
         {
             begin = 0;
             span = 0;
@@ -241,7 +249,7 @@ namespace Poe2Accessibility.Services
             return span >= 0 && span <= int.MaxValue && (IsAddress(begin) || (anyBegin && span == 0));
         }
 
-        private static bool Same(IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> one, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> other) =>
+        public static bool Same(IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> one, IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> other) =>
             one.Count == other.Count && one.Zip(other, (left, right) =>
                 left.Count == right.Count && left.Zip(right, (ways, others) => ways.SequenceEqual(others)).All(same => same)).All(same => same);
 
@@ -253,7 +261,7 @@ namespace Poe2Accessibility.Services
             return all.Length == size || toPageEnd >= size ? all : read(address, toPageEnd);
         }
 
-        private static long Word(byte[] buffer, int at) => BinaryPrimitives.ReadInt64LittleEndian(buffer.AsSpan(at, sizeof(long)));
+        internal static long Word(byte[] buffer, int at) => BinaryPrimitives.ReadInt64LittleEndian(buffer.AsSpan(at, sizeof(long)));
 
         private static bool IsAddress(long value) => value is >= LowestAddress and <= HighestAddress;
     }

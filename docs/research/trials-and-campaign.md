@@ -195,6 +195,31 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   walk along the links, the player's room is the one the map marks (the glow of §1.2) in the column before the first to
   enter. What a run carries is found the same way when a slot the game draws reads as empty: the one vector on the slot
   whose every key names an Id of `trials.json` ("Trial effects: found by their Ids…").
+- **First run heard (user's log, 2026-11-12 17:03, v2026.11.12-3, same floor as the morning's, no patch between).** The
+  measured place did not read from C#: the search by shape found the links at holder `+0x3B0`, columns `+0x198` (same
+  sizes; the rooms taken 0x38 after them, `000102030402FFFF`, a walk), the 45 links of the morning, and the map said "en
+  tu camino" and "sin camino desde tu sala". Thirty seconds and one area later, the map opened to choose a room read
+  nothing ("no links fit"): the place found had replaced the measured one and the map was not searched twice. Why the two
+  maps differ is NOT known (LIKELY two views of the floor, one a window; the morning's measure was taken with rooms to
+  enter on screen). Since then every place that ever read is kept and tried, the last that read first
+  (`trialFloorShapes`), and a map that reads nothing is searched again every two seconds, not once.
+- **The boss's room shows no tooltip** (same log, 17:06): with the room before it done it was the one room to enter, the
+  game put the cursor on it and A entered it, yet no line of it offers to enter, so `TrialRoomIsOpen` is false and, with
+  the links unread, every room of the map was "aún no puedes entrar". Now, without links: the player's room is the one
+  the game marks (the only room of the map with the glow, one of 27 on the morning's map), the rooms of the next column
+  are "columna siguiente" unless one offers to enter (`TrialRoomStanding.Next`), "aún no puedes entrar" is kept for rooms
+  two columns on or more, and nothing is said of a room's standing when nothing on screen says where the player is. With
+  links, the boss's room is "en tu camino". Whether a room without a tooltip can be entered now is on no element found.
+- **The lines as a second source** (`TrialMapLines`, 2026-11-12; proven on the morning's 45 lines, which give the 45
+  links, not on a running game). Each line ends short of its two rooms' centres by the same distance (64 units on that
+  map), so the lines of a pair of columns share their middle and, between columns a fixed distance apart, a line's width
+  falls as it steepens by twice that distance: the cut comes out of the lines alone, then each end's centre, and a
+  column's centres top to bottom are its rooms. No button's position is needed, nor where or how large the map is drawn.
+  The canvas and its vector are found by shape like the floor (`+0x2C8`, 0x18 bytes, is where the search starts; the
+  elements searched are the rooms' ancestors and the children of the two above the container). They are read when the
+  floor is not found, to say the links anyway (the player's room is then the one the map marks), and to tell which floor
+  is the one shown when two that fit differ; with the floor read, the log says once a floor whether the lines agree
+  ("Trial lines: the lines the map draws say the floor's links"), so each source proves the other.
 
 ## 2. Trial of Chaos (Ultimatum)
 
