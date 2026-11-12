@@ -38,9 +38,9 @@ internal static class BuffNameExtractor
                 var name = table.StringOrNull(row, columns.Name)?.Trim();
                 var type = table.Byte(row, columns.Type);
                 // A name the game never shows ("[DNT-UNUSED] Blazing Lance Burning Ground") was said as it stood (user 2026-11-11).
-                if (!string.IsNullOrEmpty(id) && ClassMechanics.IsShownName(name) && type is DebuffType or CurseType)
+                if (!string.IsNullOrEmpty(id) && name is { } shown && ClassMechanics.IsShownName(shown) && type is DebuffType or CurseType)
                 {
-                    names[id] = name;
+                    names[id] = shown;
                 }
             }
 

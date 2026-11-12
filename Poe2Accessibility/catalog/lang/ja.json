@@ -556,6 +556,7 @@
  "The mod is not connected to the game.": "MODはゲームに接続されていません。",
  "The way is long, still searching": "道のりが長いため、探索を続けています",
  "The way opened": "道が開きました",
+ "The way to {0} has closed; the guide stops": "{0}への道が閉じました。案内を終了します",
  "The way to {0} is closed further on; guiding as close as it goes": "{0}への道はこの先で閉ざされています。行ける所まで案内します",
  "Things and people nearby": "近くの物と人",
  "This menu": "このメニュー",

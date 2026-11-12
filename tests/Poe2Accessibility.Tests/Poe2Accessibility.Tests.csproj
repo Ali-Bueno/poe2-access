@@ -190,6 +190,7 @@
     <Compile Include="..\..\tools\Poe2UiExtract\GameNameCheck.cs" Link="Extract\GameNameCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\GameNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RouteSearchNews.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ShutWay.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\LossCounts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\StatesWait.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\StickCheck.cs" />

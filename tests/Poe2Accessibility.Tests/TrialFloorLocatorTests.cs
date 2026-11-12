@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Tests
             (nameof(LinesThatDrawNoMapOfTheseRoomsSayNone), LinesThatDrawNoMapOfTheseRoomsSayNone),
             (nameof(TheLinesAreFoundOnTheCanvasByTheirShape), TheLinesAreFoundOnTheCanvasByTheirShape),
             (nameof(TheLinesDrawnTellWhichFloorIsShown), TheLinesDrawnTellWhichFloorIsShown),
+            (nameof(ADoorThatShutsEndsItsGuide), ADoorThatShutsEndsItsGuide),
         };
 
         private static readonly TrialFloorShape Measured = new(
@@ -163,6 +164,22 @@ namespace Poe2Accessibility.Tests
             found = TrialFloorLocator.Find(memory.Read, new[] { memory.Holder(moved.HolderOffset, shownFirst) }, Measured, Rooms, drawn);
             Check.Equal(moved with { ColumnsOffset = moved.ColumnsOffset - 0x50 }, found?.Shape, "the earlier floor says the lines");
             Check.Equal(Flat(Links), Flat(found?.Links), "and its links are the ones said");
+        }
+
+        private static void ADoorThatShutsEndsItsGuide()
+        {
+            // The user's "find the exit" room of 2026-11-12: the guide to the room door, nine steps away, then the door shut behind.
+            var way = new ShutWay();
+            Check.Equal(ShutWayVerdict.Open, way.Collect(whole: false, spent: false), "a door still opening: its way was never whole");
+            Check.Equal(ShutWayVerdict.Open, way.Collect(whole: false, spent: false), "however long that lasts");
+            Check.Equal(ShutWayVerdict.Open, way.Collect(whole: true, spent: false), "the way to the open door");
+            Check.Equal(ShutWayVerdict.Held, way.Collect(whole: false, spent: false), "one search that finds it cut says nothing yet");
+            Check.Equal(ShutWayVerdict.Open, way.Collect(whole: true, spent: false), "and a whole way again forgets it");
+            Check.Equal(ShutWayVerdict.Held, way.Collect(whole: false, spent: false), "cut once more");
+            Check.Equal(ShutWayVerdict.Open, way.Collect(whole: false, spent: true), "a search that only ran out of budget proves nothing");
+            Check.Equal(ShutWayVerdict.Shut, way.Collect(whole: false, spent: false), "two searches that find it cut: the door shut, the guide ends");
+            way.Reset();
+            Check.Equal(ShutWayVerdict.Open, way.Collect(whole: false, spent: false), "a new target starts over");
         }
 
         private static string Flat(IEnumerable<IEnumerable<IEnumerable<int>>>? links) =>

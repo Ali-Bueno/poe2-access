@@ -65,7 +65,8 @@ namespace Poe2Accessibility.Services
             {
                 if (guide && this.beacon.Target == null)
                 {
-                    this.beacon.Lock(entry); // says the door and the way to it
+                    // Says the door and the way to it. The Trial shuts the way behind the player who walks in: the guide ends there.
+                    this.beacon.Lock(entry, endsWhenShut: true);
                 }
                 else
                 {

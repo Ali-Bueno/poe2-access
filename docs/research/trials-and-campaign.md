@@ -199,8 +199,10 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   measured place did not read from C#: the search by shape found the links at holder `+0x3B0`, columns `+0x198` (same
   sizes; the rooms taken 0x38 after them, `000102030402FFFF`, a walk), the 45 links of the morning, and the map said "en
   tu camino" and "sin camino desde tu sala". Thirty seconds and one area later, the map opened to choose a room read
-  nothing ("no links fit"): the place found had replaced the measured one and the map was not searched twice. Why the two
-  maps differ is NOT known (LIKELY two views of the floor, one a window; the morning's measure was taken with rooms to
+  nothing ("no links fit"): the place found had replaced the measured one and the map was not searched twice. On the next
+  floor (17:14 to 17:26, columns 1,3,3,3,5,4,6,1) the search found the measured place again (`+0x3A0`, `+0x1F8`) and it
+  read on five maps running, each walk one room longer (`00FF…`, `0002FF…`, … `0002020100FF…`): both places are real. Why
+  they differ is NOT known (LIKELY two views of the floor, one a window; the morning's measure was taken with rooms to
   enter on screen). Since then every place that ever read is kept and tried, the last that read first
   (`trialFloorShapes`), and a map that reads nothing is searched again every two seconds, not once.
 - **The boss's room shows no tooltip** (same log, 17:06): with the room before it done it was the one room to enter, the
@@ -210,6 +212,16 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   are "columna siguiente" unless one offers to enter (`TrialRoomStanding.Next`), "aún no puedes entrar" is kept for rooms
   two columns on or more, and nothing is said of a room's standing when nothing on screen says where the player is. With
   links, the boss's room is "en tu camino". Whether a room without a tooltip can be entered now is on no element found.
+- **The guide to the room door outlived the door** (same log, 17:24, a "find the exit" room). `TrialDoorWatch` put the
+  guide on the door the chosen room opened, nine steps away; two steps short of it the way was cut (the Trial shuts it
+  behind the player) and no arrival was said, so the guide stayed on through the whole room, leading "as close as it
+  goes" to the reachable cell nearest, in a straight line, a door already passed: up through the spikes and two laser
+  turrets (burning twice), to a lever by chance, and with its way turned round each time a `SanctumLogicDoor` opened.
+  Now a guide the door watch starts ends when its way, once whole, is found cut by two searches running (`ShutWay`,
+  `Beacon.Lock(endsWhenShut)`): "El camino a puerta de la sala se cerró; la guía se detiene". **Gap: nothing guides in a
+  "find the exit" room.** Its exit is not a target the scanner offers (the next room's stairs read "a 283 pasos, el
+  camino se corta antes"), a lever (`SanctumGenericLever`, `Switches`) is not tied to the `SanctumLogicDoor` it opens,
+  and nothing knows a lever already pulled. To be found in the game's files before any guide is written (rule 26).
 - **The lines as a second source** (`TrialMapLines`, 2026-11-12; proven on the morning's 45 lines, which give the 45
   links, not on a running game). Each line ends short of its two rooms' centres by the same distance (64 units on that
   map), so the lines of a pair of columns share their middle and, between columns a fixed distance apart, a line's width
