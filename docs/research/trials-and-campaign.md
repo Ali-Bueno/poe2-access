@@ -181,6 +181,20 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   ("Trial floor: …"). Each room then says how it stands ("tu sala", "en tu camino", "sin camino desde tu sala"), the
   rooms to enter it is reached through when there is a choice, and the rooms it leads to; the vitals and the map's
   screen reading name what the run carries, and a gain is said as it comes. Not heard in a game yet.
+- **After a patch** (`TrialFloorLocator`, 2026-11-12; proven on a memory built in the tests, `TrialFloorLocatorTests`, not on
+  a patched game). The links are drawn on a canvas, no element of the window, so memory is their only source; the offsets
+  above are where the search starts, not what it depends on. When the links are not where they were measured, they are
+  found by shape, once a map: the map on screen says how many columns there are and how many rooms each holds, so a vector
+  of that many columns, each a vector of that many rooms, whose ways fit the map is the floor wherever it stands, and a
+  column's and a room's sizes are those vectors' spans over the counts on screen. First with the floor as measured and only
+  its pointer moved on the element (0x800 bytes of each ancestor are searched; this reads the shown block alone), then by
+  shape alone over 0x600 bytes of each floor candidate: there the generated block (`+0x1B0` today) fits too, so the links
+  are believed only when every block that fits says the same, and the later one is kept. What is found is used for the
+  session and the log says it ("Trial floor: found by shape, GameLayout.TrialFloor is out of date: holder +0x…"): copy it
+  into `GameLayout.TrialFloor`. The rooms taken are kept as their distance after the columns (`+0x38`); when they are no
+  walk along the links, the player's room is the one the map marks (the glow of §1.2) in the column before the first to
+  enter. What a run carries is found the same way when a slot the game draws reads as empty: the one vector on the slot
+  whose every key names an Id of `trials.json` ("Trial effects: found by their Ids…").
 
 ## 2. Trial of Chaos (Ultimatum)
 

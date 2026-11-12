@@ -64,6 +64,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\QuestTrackerPage.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\CountdownWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialMap.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialFloorLocator.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SheetStats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialHud.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\CameraView.cs" />

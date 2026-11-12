@@ -130,7 +130,10 @@ namespace Poe2Accessibility
         ///     The Trial of the Sekhemas' floor in memory (measured live 2026-11-12 on 0.5.5f against a picture of the map: 45 links
         ///     of 45; docs/research/trials-and-campaign.md §1.5). Nothing here is believed alone: the links must fit the map on
         ///     screen (<see cref="Services.TrialMap.Fits"/>) and an effect's Id must be one the game's tables hold, so a field a
-        ///     patch moves reads as nothing instead of as something else.
+        ///     patch moves reads as nothing instead of as something else. These offsets are where the search starts, not
+        ///     where it ends: when they no longer fit, the links are found again by their shape
+        ///     (<see cref="Services.TrialFloorLocator.Find"/>) and what a run carries by the Ids its keys name, and the log
+        ///     says where they stand now ("Trial floor: found…", "Trial effects: found…") so these can be brought up to date.
         /// </summary>
         public static class TrialFloor
         {
@@ -140,16 +143,20 @@ namespace Poe2Accessibility
             /// <summary>How far up from a room the holder is looked for.</summary>
             public const int HolderHops = 7;
 
-            /// <summary>The floor's std::vector of columns, each a std::vector of rooms followed by 8 bytes.</summary>
+            /// <summary>The floor's std::vector of columns, each a std::vector of rooms (at its start) followed by 8 bytes.</summary>
             public const int ColumnsOffset = 0x1F8;
             public const int ColumnSize = 0x20;
+            public const int RoomsOffset = 0x0;
 
             /// <summary>A room: the begin and end of its ways at +0x0 and +0x8, a byte each, the row it leads to in the next column.</summary>
             public const int RoomSize = 0x38;
-            public const int MaxWays = 8;
+            public const int WaysOffset = 0x0;
 
-            /// <summary>A byte a column: the row of the room the player took there, <see cref="NoRoom"/> where none yet.</summary>
-            public const int PathOffset = 0x230;
+            /// <summary>
+            ///     A byte a column: the row of the room the player took there, <see cref="NoRoom"/> where none yet. At +0x230 of
+            ///     the floor, kept as its distance from the columns it follows so that it moves with them.
+            /// </summary>
+            public const int PathAfterColumns = 0x38;
             public const int PathColumns = 8;
             public const byte NoRoom = 0xFF;
 
@@ -157,6 +164,9 @@ namespace Poe2Accessibility
             public const int SlotEffectsOffset = 0x2F0;
             public const int KeySize = 0x10;
             public const int MaxEffects = 32;
+
+            /// <summary>How much of a slot is searched for that vector once it is not where it was measured.</summary>
+            public const int SlotWindow = 0x800;
 
             /// <summary>The most characters of a row's Id ("AfflictionHideRoomEncounter"), the string its first field points to.</summary>
             public const int EffectIdChars = 96;

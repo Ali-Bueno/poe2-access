@@ -31,7 +31,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The Trial of the Sekhemas' map, a floor's rooms in columns from the entrance on the left to the boss on the right
-    ///     (docs/research/endgame-ui.md). Which rooms link to which is drawn on a canvas and not read. Pure.
+    ///     (docs/research/endgame-ui.md). Which rooms link to which is drawn on a canvas, no element of the window: the
+    ///     links come from the floor in memory (<see cref="TrialFloorLocator"/>). Pure.
     /// </summary>
     public static class TrialMap
     {
@@ -114,12 +115,12 @@ namespace Poe2Accessibility.Services
         ///     it leads to (when the next column is a choice).
         /// </summary>
         /// <param name="links">Links that <see cref="Fits"/> the map.</param>
-        /// <param name="walk">The rooms taken (<see cref="Walk"/>), not empty.</param>
+        /// <param name="own">The player's column: the last of the rooms taken (<see cref="Walk"/>), or the one the game marks.</param>
+        /// <param name="ownRoom">The player's room in it.</param>
         /// <param name="open">The rooms of the next column that offer to enter, empty before the player's room is done.</param>
         public static (TrialRoomStanding Standing, IReadOnlyList<int> Through, IReadOnlyList<int> LeadsTo) View(
-            IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> links, IReadOnlyList<int> walk, int column, int room, IReadOnlyList<int> open)
+            IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>> links, int own, int ownRoom, int column, int room, IReadOnlyList<int> open)
         {
-            var own = walk.Count - 1;
             var none = (IReadOnlyList<int>)Array.Empty<int>();
             // The last column but one leads to the boss alone: no choice to tell.
             var leadsTo = column < links.Count && column + 1 < links.Count ? links[column][room] : none;
@@ -130,10 +131,10 @@ namespace Poe2Accessibility.Services
 
             if (column == own)
             {
-                return room == walk[own] ? (TrialRoomStanding.Current, none, leadsTo) : (TrialRoomStanding.Here, none, none);
+                return room == ownRoom ? (TrialRoomStanding.Current, none, leadsTo) : (TrialRoomStanding.Here, none, none);
             }
 
-            if (WaysTo(links, own, new[] { walk[own] }, column, room).Count == 0)
+            if (WaysTo(links, own, new[] { ownRoom }, column, room).Count == 0)
             {
                 return (TrialRoomStanding.Beside, none, none);
             }

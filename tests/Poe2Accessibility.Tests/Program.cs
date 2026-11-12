@@ -244,6 +244,7 @@ namespace Poe2Accessibility.Tests
                 NameFallbackTests.All(),
                 ReachableRuleTests.All(),
                 TrialDataTests.All(),
+                TrialFloorLocatorTests.All(),
                 PanelWidgetTests.All(),
                 DodgeGateTests.All(),
                 ClassMechanicTests.All(),
@@ -3243,7 +3244,7 @@ namespace Poe2Accessibility.Tests
             Equal(0, TrialMap.Walk(links, new byte[] { NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom).Count, "nor none at all");
             var open = new[] { 4 };
             string View(int column, int room) =>
-                TrialMap.View(links, walk, column, room, open) is var view ? $"{view.Standing} through {string.Join(",", view.Through)} to {string.Join(",", view.LeadsTo)}" : string.Empty;
+                TrialMap.View(links, walk.Count - 1, walk[^1], column, room, open) is var view ? $"{view.Standing} through {string.Join(",", view.Through)} to {string.Join(",", view.LeadsTo)}" : string.Empty;
             Equal("Current through  to 4", View(3, 3), "the player's room, and the one room it leads to");
             Equal("Here through  to ", View(3, 0), "another room of its column");
             Equal("Behind through  to ", View(2, 2), "a room taken before");
@@ -3254,7 +3255,7 @@ namespace Poe2Accessibility.Tests
             Equal("Reachable through  to ", View(6, 5), "the last rooms lead to the boss alone");
             Equal("Reachable through  to ", View(7, 0), "the boss");
             var start = TrialMap.Walk(links, new byte[] { 0, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom, NoRoom }, NoRoom);
-            var choice = TrialMap.View(links, start, 3, 1, new[] { 0, 1, 2 });
+            var choice = TrialMap.View(links, start.Count - 1, start[^1], 3, 1, new[] { 0, 1, 2 });
             Equal("Reachable 0", $"{choice.Standing} {string.Join(",", choice.Through)}", "at the entrance, a room two columns on is reached through the first room alone");
             Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1), "the room offers to enter");
             Equal(TrialRoomStanding.Here, TrialMap.Standing(0, false, 1), "the column before the first to enter is the player's");
