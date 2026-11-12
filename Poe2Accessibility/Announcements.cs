@@ -456,6 +456,37 @@ namespace Poe2Accessibility
         /// <summary>"100%" or "(0/1)" still need a full stop; these already end a sentence or lead into the next.</summary>
         private const string SentenceEnds = ".!?:;";
 
+        /// <summary>
+        ///     What the game writes under an object's title, a line a sentence: "Restaura algo de honor. Obtienes una desventaja
+        ///     menor aleatoria". An amount the game fills in as it draws the box ("Restaura {0} de honor") is not known here.
+        /// </summary>
+        public static string ObjectDescription(string body)
+        {
+            var sentences = new System.Collections.Generic.List<string>();
+            foreach (var raw in body.Split('\n'))
+            {
+                var line = AmountHole.Replace(raw, T("some", "algo")).Trim();
+                if (line.Length == 0)
+                {
+                    continue;
+                }
+
+                // A line that goes on in lower case is its sentence wrapped ("Interactúa para participar en / la Prueba de las sekhemas").
+                if (sentences.Count > 0 && char.IsLower(line[0]))
+                {
+                    sentences[^1] += " " + line;
+                }
+                else
+                {
+                    sentences.Add(line);
+                }
+            }
+
+            return Sentences(sentences);
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex AmountHole = new(@"\{\d*\}", System.Text.RegularExpressions.RegexOptions.Compiled);
+
         /// <summary>Screen texts read in a row: each one is its own sentence unless it already ends in punctuation; empty ones are skipped.</summary>
         public static string Sentences(System.Collections.Generic.IEnumerable<string> parts)
         {

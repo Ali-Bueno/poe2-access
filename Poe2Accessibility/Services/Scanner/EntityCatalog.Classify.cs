@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
         /// <summary>
         ///     Category and name, or null for what the scanner leaves out (self, dead, opened, unnamed, and what is
@@ -233,7 +234,18 @@ namespace Poe2Accessibility.Services
             var position = render.WorldPosition;
             name = ControllerGlyphs.InName(name);
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, MinimapMarks.KindUnder(icon, kind), baseId, loot, sound,
-                MinimapMarks.IsQuestIcon(icon), subject, timed);
+                MinimapMarks.IsQuestIcon(icon), subject, timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty);
+        }
+
+        /// <summary>What the game writes of an object under its title, by its file: asked of every object at each listing, so kept.</summary>
+        private string AboutOf(string path)
+        {
+            if (!this.abouts.TryGetValue(path, out var about))
+            {
+                this.abouts[path] = about = Announcements.ObjectDescription(this.landmarks.WorldBody(path));
+            }
+
+            return about;
         }
 
         /// <summary>

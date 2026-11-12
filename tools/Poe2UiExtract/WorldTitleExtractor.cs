@@ -36,6 +36,10 @@ internal static class WorldTitleExtractor
 
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
+    /// <summary>What the box says under its title, a ClientStrings key too: what the object is for.</summary>
+    private static readonly Regex BodyKey = new("body_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
+    private const string BodyPrefix = "body:";
+
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
     private static readonly Regex Colour = new(@"^<\w+>\{(.*)\}$", RegexOptions.Compiled);
 
@@ -53,12 +57,20 @@ internal static class WorldTitleExtractor
         using var lease = SharedBundles.OpenParsed(gameDir);
         var index = lease.Index;
         var keys = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        var bodies = new SortedDictionary<string, string>(StringComparer.Ordinal);
         foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(ObjectExtension, StringComparison.Ordinal)))
         {
-            var title = TitleKey.Match(GameFormats.Noted(file.Path, Encoding.Unicode.GetString(file.Read().Span)));
+            var script = GameFormats.Noted(file.Path, Encoding.Unicode.GetString(file.Read().Span));
+            var title = TitleKey.Match(script);
             if (title.Success)
             {
                 keys[file.Path![..^ObjectExtension.Length]] = title.Groups[1].Value;
+            }
+
+            var body = BodyKey.Match(script);
+            if (body.Success)
+            {
+                bodies[file.Path![..^ObjectExtension.Length]] = body.Groups[1].Value;
             }
         }
 
@@ -106,6 +118,14 @@ internal static class WorldTitleExtractor
                 if (texts.TryGetValue(key, out var text))
                 {
                     titles[path] = Colour.Replace(text, "$1");
+                }
+            }
+
+            foreach (var (path, key) in bodies)
+            {
+                if (texts.TryGetValue(key, out var text) && GameMarkup.BoxBody(text) is { Length: > 0 } shown)
+                {
+                    titles[BodyPrefix + path] = shown;
                 }
             }
 

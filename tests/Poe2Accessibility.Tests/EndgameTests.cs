@@ -87,6 +87,15 @@ namespace Poe2Accessibility.Tests
         {
             Expect("Open all Unstable Breaches", GameMarkup.Plain("Open all [ContainsBreach|Unstable Breaches]"), "shown words");
             Expect("Free all Essence Monsters", GameMarkup.Plain("Free all [Essence] Monsters"), "a bare keyword");
+            Expect("Restore {0} of your Honour\nGain a random Minor Affliction", GameMarkup.BoxBody("Restore {0} of your [Honour]\r\nGain a random [Affliction|Minor Affliction]"), "a box's body: its links shown, its lines apart");
+            Expect("Explodes when detonated", GameMarkup.BoxBody("<enchanted>{Explodes when detonated}"), "a colour is no text");
+            Expect(string.Empty, GameMarkup.BoxBody("[IncursionCrystal|Energised Crystals] obtained: 0"), "a count the game fills in is left out");
+            Expect(string.Empty, GameMarkup.BoxBody("획득한 에너지를 띤 수정: 0개"), "with its counter word too");
+            Expect(string.Empty, GameMarkup.BoxBody("คริสตัลอาบพลังงานที่มี: 0 ชิ้น"), "a word apart");
+            Expect("Restore 25% of Honour: at once", GameMarkup.BoxBody("Restore 25% of Honour: at once"), "a colon with words after it is no counter");
+            Equal("Restore some of your Honour. Gain a random Minor Affliction", Announcements.ObjectDescription("Restore {0} of your Honour\nGain a random Minor Affliction"), "said a line a sentence, the amount unknown");
+            Equal("Interact to take part in the Trial of the Sekhemas", Announcements.ObjectDescription("Interact to take part in\nthe Trial of the Sekhemas"), "a wrapped line is one sentence");
+            Equal(string.Empty, Announcements.ObjectDescription(string.Empty), "nothing written, nothing said");
             Expect("ContainsBreach", GameMarkup.FirstKeyword("Open all [ContainsBreach|Unstable Breaches] and [Shrine|Shrines]"), "the first link");
             Expect(string.Empty, GameMarkup.FirstKeyword("Defeat all Rare Monsters"), "no link");
         }

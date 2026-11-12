@@ -39,8 +39,9 @@ namespace Poe2Accessibility.Services
     /// <param name="QuestMarked">The minimap draws the quest's own icon on it (<see cref="MinimapMarks.IsQuestIcon"/>).</param>
     /// <param name="Timed">What a clock is running against, to be heard from afar: a Death Crystal.</param>
     /// <param name="Subject">For a boss room, whom or what its label names ("Asinia"): what an objective would name.</param>
+    /// <param name="About">What the game writes under the object's title, said once with its button (<see cref="Announcements.ObjectDescription"/>).</param>
     public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "", string BaseId = "",
-        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "", bool Timed = false)
+        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "", bool Timed = false, string About = "")
     {
         public const string PortalKind = "portal";
 

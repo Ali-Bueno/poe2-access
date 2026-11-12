@@ -74,6 +74,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool exitOptionsSaid;
 
+        /// <summary>The descriptions said in this area (<see cref="ScanEntry.About"/>), each once.</summary>
+        private readonly HashSet<string> aboutSaid = new(StringComparer.Ordinal);
+
         /// <summary>Where the player stood as the area's line went out, until they walk out of reach of it.</summary>
         private Vector2? arrivedAt;
         private bool arriving;
@@ -103,6 +106,7 @@ namespace Poe2Accessibility.Services
             this.targetSpoken = null;
             this.targetLeft = null;
             this.exitOptionsSaid = false;
+            this.aboutSaid.Clear();
             this.arriving = false;
             this.arrivedAt = null;
         }
@@ -276,6 +280,13 @@ namespace Poe2Accessibility.Services
             }
 
             var label = Announcements.WithButton(entry.Name, ControllerGlyphs.Interact);
+            if (entry.About.Length > 0 && !entry.Timed && this.aboutSaid.Add(entry.About))
+            {
+                // What the game's box says the object is for, once an area: the Blood Chalice said its name and the button,
+                // nothing of what using it does (user 2026-11-12). Not against a clock: the objective has said it.
+                return $"{label}. {entry.About}";
+            }
+
             if (entry.Category != ScanCategory.Exits || this.exitOptionsSaid)
             {
                 return label;

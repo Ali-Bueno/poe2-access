@@ -274,6 +274,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string WorldTitle(string path) => this.Title(FileOf(path));
 
+        /// <summary>What that WorldDescription says under the title, its lines apart: what the object is for; empty for none.</summary>
+        public string WorldBody(string path) => this.Title("body:" + FileOf(path));
+
         /// <summary>What the Trial's honour line starts with in the client's language, empty when the table has none.</summary>
         public string HonourLabel => this.Title("label:honour");
 
