@@ -301,3 +301,38 @@ are not shipped). Not found in the guides: Ashar, Rattlecage, Atziri, the Arbite
 
 **Order.** The user's Warrior is in Act 2 past Balbala: Kabala, Zalmarath, Azarian and both Jamanra fights come first, each
 needing its place to go to (an entity's position, as Balbala's) read from the files and then heard live.
+
+### Act 2, from the files (second pass, 2026-11-12)
+
+Thresholds and triggers are in the AI scripts, not shipped; skill-to-animation pairings below are by name (LIKELY).
+
+- **Kabala** (`Monsters/SerpentClanMonster/SerpentClanCasterBoss`). PROVEN: the cage is made of monsters,
+  `…/SerpentClanCasterBossBoneWall` (script `SerpentClanMonster/BoneWall.ot`: Life, blocking, state `tilted` cosmetic), from the
+  skills `GSSerpentCasterBossBoneBarrierEG` / `GTSerpentBossWall`; the blast is LIKELY `EASSerpentBossCurseWallNuke` (animation
+  `spin_detonate_01`, voice line "Kabala_Succumb"). UNSURE: how the open segment differs (probably no wall there; a server-only
+  `Objects/BoneWallGapFinder` exists and nothing refers to it). To read live: the walls' places as they rise.
+- **Zalmarath** (`Monsters/TitanBoss/TitanBoss`). PROVEN: the guides' "dagger" is the entity `Monsters/TitanBoss/BrainStalagmite`
+  (art `TitanSword.ao`, a `TriggerableBlockage` that starts blocked), spawned by `SOTitanBossStalagmite`; the beams are
+  `EASTitanBossLaserBeam` / `EASTitanBossLaserBeamRoof` (animations `eye_beam_01`, `eye_beam_long_01`, `roof_laser_01`), their
+  targets `Objects/StationaryTitanBossLaserTarget`; `RoofTarget1-4` / `Shatter1-4` state `shattered`. LIKELY: it is the cover.
+  UNSURE: whether the beam is stopped by it, and which of several to take.
+- **Jamanra, the Risen King** (`Monsters/PerennialKing/PerennialKingHuman`). PROVEN: state `corrupting`=1 makes him untargetable
+  (stance 3, `corruption_channel_01`; animation events `sandstormstart` / `sandstormend`); player buffs `perennial_king_sand_storm`
+  ("physical damage over time while standing in the Sandstorm") and `perennial_king_corrupted_ground`; totems
+  `Monsters/PerennialKingTotem/PerennialKingTotem` (state `pulsing`); scarabs LIKELY `Monsters/EtchedBeetles/VolatileBeetle`.
+  UNSURE: the safe circle by the sword, found in no script (a ground effect or the terrain). To read live.
+- **Jamanra, the Abomination** (`Monsters/PerennialKingStage2/PerennialKing`). PROVEN: the shelter is Asala, the NPC
+  `Monsters/NPC/MarakethMatriarchDreadnought`, state `sandstorm_defence` (no client handler: its meaning is by name), with the
+  object `Monsters/PerennialKingStage2/Objects/MatriarchSandstormDefence` and the marker
+  `Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1SandstormDefenceMarker`. The boss enters stance 5 with
+  `CTS5PerennialKingSandstorm` and leaves with `CTS1PerennialKingEndSandstorm`. LIKELY: the player's buff `asala_sand_shield`
+  means "sheltered". Zombies `PerennialKingCorpseFriend1-13`.
+- **Azarian** (`Monsters/ForsakenSon/ForsakenSon`). PROVEN: `BossArenaObjects/ForsakenSonCenser` goes out after three hits
+  (`hits`=3 removes its collision and light); fire is `BossArenaObjects/ForsakenSonFlameWall` (state `die`) and the ground
+  `CGEForsakenSonBurningGround`. UNSURE: what a censer out does for the player, and any shrinking signal.
+- **Tor Gul, Rathbreaker.** Nothing beyond attacks and hazards (Tor Gul's `caustic_cloud_snake_boss_vomit`).
+
+**The arena log (`BossArenaLog`).** What the files leave open (Kabala's gap, the Risen King's circle, which objects stand
+where) a fight answers: while a boss is fought, every entity within 2000 units of it is logged once (`Boss arena: + path #id
+(type) at x,y, N from the boss states […]`, 24 per path) and again at each new reading of its states (`Boss arena: path #id …`),
+800 lines a fight at most. Read it after each new boss the user fights.

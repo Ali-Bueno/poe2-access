@@ -78,9 +78,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a boss said to be hiding waits to be found, and its radius; null when none hides.</summary>
         public (Vector2 At, float Radius)? Hiding { get; private set; }
 
+        /// <summary>Where a boss being fought stood at the last poll; null when none is (<see cref="BossArenaLog"/>).</summary>
+        public Vector2? Fighting { get; private set; }
+
         public void Reset()
         {
             this.Hiding = null;
+            this.Fighting = null;
             this.bosses.Clear();
             this.others.Clear();
             this.inPlaySeen.Clear();
@@ -212,6 +216,7 @@ namespace Poe2Accessibility.Services
             this.others.Clear();
             var hidden = this.bosses.Values.FirstOrDefault(boss => boss.SeenAt == now && boss.HidingSince != null && boss.Facts.Gone);
             this.Hiding = hidden == null ? null : (hidden.At, hidden.Radius);
+            this.Fighting = fighting.Count > 0 ? fighting[0].At : null;
             if (hidden != null && Vector2.Distance(hidden.At, hidden.HidingAt) > HidingStepWorld)
             {
                 this.log.Info($"Boss hiding: {hidden.Monster} moved to {hidden.At.X:0},{hidden.At.Y:0}");

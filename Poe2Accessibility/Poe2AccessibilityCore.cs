@@ -86,6 +86,7 @@ namespace Poe2Accessibility
         private BossWatch? bosses;
         private readonly TrialDodgeScope trialScope = new();
         private WeakPointGuide? weakPoint;
+        private BossArenaLog? arenaLog;
         private ShieldWatch? shield;
         private PerfectTimingWatch? perfectTiming;
         private HazardWatch? hazards;
@@ -313,6 +314,7 @@ namespace Poe2Accessibility
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
                 this.bosses.Defeated = name => this.entities?.BossDefeated(name);
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log) { Hiding = () => this.bosses?.Mechanics?.Hiding };
+                this.arenaLog = new BossArenaLog(this.log) { Fighting = () => this.bosses?.Mechanics?.Fighting };
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
                 var skills = new PlayerSkills(memory, elements, this.log);
