@@ -184,6 +184,7 @@ namespace Poe2Accessibility
             Services.MinimapMarks.StashKind => T("Stash", "Alijo"),
             Services.MinimapMarks.WellKind => T("Well", "Pozo"),
             Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
+            Services.OpenedWays.Kind => OpenedWay,
             "npc_quest" => T("Character with a quest", "Personaje con misión"),
             Services.DiscoveryNarrator.SoundKey => T("Discovery", "Descubrimiento"),
             _ => key,
@@ -270,6 +271,9 @@ namespace Poe2Accessibility
                 "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
                 "el más cercano, a su lado, sin parar; más fuerte al acercarte, al centro cuando estás encima"),
             "chest" or "corpse" or "breakable" => T("every one within about a screen, each on its side", "todos los que hay a una pantalla, cada uno a su lado"),
+            Services.OpenedWays.Kind => T(
+                "a way that opened on its own: once as it opens, then from where it stands until you have walked to it",
+                "un paso que se abrió solo: una vez al abrirse y después desde donde está, hasta que llegues a él"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
 

@@ -74,6 +74,9 @@ internal static class SoundExtractor
         // A sign to read: pages turned, from a book pet's idle (user's pick 2026-11-12 of eight page, quill, book and
         // scroll sounds; the game plays nothing at a sign).
         new("sign",       "BookandQuillPetMTX", "BookandQuillPet_IdleRelaxed01_FlipPages_01"),
+        // A way that opened on its own: a heavy gate drawn open (provisional, 2026-11-12: the first of eight gate, door and
+        // mechanism recordings put to the user's ear, picked by its measured attack and length; the user's pick replaces it).
+        new("opened_way", "GauntletGate",      "VaalIntDoor_Open_01"),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.

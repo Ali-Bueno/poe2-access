@@ -9,7 +9,7 @@ namespace Poe2Accessibility.Services
     ///     Barriers that open on their own (TriggerableBlockage, GameOffsets +0x30 IsBlocked): a sighted player sees
     ///     the red beam fade, a blind one only learns it from a route that suddenly goes on. Riverbank, 2026-10-24:
     ///     TutorialBlocker3 by the large chest opens once the gem from that chest is cast. Doors the player opens
-    ///     (targetable) are not said: they asked for it.
+    ///     (targetable) are not said: they asked for it. One that opened stays to be found (<see cref="OpenedWays"/>).
     /// </summary>
     public sealed class BarrierWatch
     {
@@ -21,6 +21,12 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<uint, bool> blocked = new();
         private long lastPoll;
 
+        /// <summary>The ways that opened in this area and are still to be walked to.</summary>
+        public OpenedWays Ways { get; } = new();
+
+        /// <summary>A way opened just now, as its scanner entry: its sound (<see cref="ObjectSounds.WayOpened"/>).</summary>
+        public Action<ScanEntry>? Opened { get; set; }
+
         public BarrierWatch(EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
             this.catalog = catalog;
@@ -29,7 +35,11 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A new area: its barriers are learnt again without a word.</summary>
-        public void Reset() => this.blocked.Clear();
+        public void Reset()
+        {
+            this.blocked.Clear();
+            this.Ways.Clear();
+        }
 
         /// <summary>Per frame in game.</summary>
         public void Tick(bool enabled)
@@ -50,6 +60,7 @@ namespace Poe2Accessibility.Services
 
                 if (entity.TryGetComponent<Targetable>(out _))
                 {
+                    this.Ways.Remove(entity.Id);
                     this.blocked.Remove(entity.Id); // a door the player opens: its state while untargetable is stale
                     continue;
                 }
@@ -59,12 +70,18 @@ namespace Poe2Accessibility.Services
                 {
                     this.log.Info($"Barrier opened: {entity.Path}");
                     this.catalog.BarrierOpened();
+                    var at = render.WorldPosition;
+                    var way = new ScanEntry(entity.Id, ScanCategory.Objects, Announcements.OpenedWay, at.X, at.Y, at.Z, OpenedWays.Kind);
+                    this.Ways.Add(way);
+                    this.Opened?.Invoke(way);
                     if (enabled)
                     {
-                        var at = render.WorldPosition;
-                        var entry = new ScanEntry(entity.Id, ScanCategory.Objects, Announcements.BarrierOpened, at.X, at.Y, at.Z, "barrier");
-                        this.output.Say(SpeechKind.Places, this.catalog.Describe(entry));
+                        this.output.Say(SpeechKind.Places, this.catalog.Describe(way with { Name = Announcements.BarrierOpened, Kind = "barrier" }));
                     }
+                }
+                else if (closed)
+                {
+                    this.Ways.Remove(entity.Id); // an arena's gate that shut again
                 }
 
                 this.blocked[entity.Id] = closed;

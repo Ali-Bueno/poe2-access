@@ -37,6 +37,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | stash | PlayerStash_4.0 | Open_1 (the lid; six `Open_`, six `Close_`, 1.5 to 2 s, low: centroid 330-450 Hz; levelled to RMS 0.10 or its peak) |
 | well | General_Gameplay | Wellwell_FX_Well_03 (water, 0.8 s, bright: centroid 5 kHz, apart from every other cue; the heal `WellRefill_UI_HealNew_*` sits in the chest's band and was not taken) |
 | sign | BookandQuillPetMTX | BookandQuillPet_IdleRelaxed01_FlipPages_01 (pages turned, 0.9 s; see [signs](#signs-2026-11-12)) |
+| opened_way | GauntletGate | VaalIntDoor_Open_01 (a heavy gate drawn open, cut to 1.5 s; **provisional**, see [an opened way](#an-opened-way-2026-11-12)) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
@@ -199,6 +200,27 @@ item and the checkpoint; the user picked the pages turned. The others: the same 
 `BookClose_01`; `ItemDrops` `Scroll_Interact_01` and `SkillBook_Move_01`; `General_Gameplay` `IdentifyAll_UI_Book`. The bank is a pet
 cosmetic's, shipped with every install like the other banks (as `power_charge`'s is). The nearest sign sounds, repeated as the
 other one-shots are (`ObjectSounds`, group `signs`); one the quest names keeps the quest sound. Not heard in a game yet.
+
+## An opened way (2026-11-12)
+A barrier that opens on its own (`BarrierWatch`) said "Se abrió el paso" with its route and nothing else: in the middle of a fight
+the line went by among the rest and the way was not found afterwards (user). In two days of the user's play 36 opened, 14 of them a
+Trial room's way out (`SanctumAirlockBlocker`), then the Abyss's last node, the Trial's logic doors, arena gates and quest gates.
+Now: its own sound once as it opens, in full from wherever it stands (`ObjectSounds.WayOpened`), and it stays as "Paso abierto" in
+the scanner's objects, sounding like any other object within 2600 world units (twice the usual range, not measured against a
+room), until the player has stood within 200 of it and walked 300 away, it shuts again, or the area is left or loaded again
+(`OpenedWays`, unit-tested). Its volume and its line in the glossary are "Paso abierto", under Objects and places.
+
+The sound is **provisional**: eight recordings of the game were put on an
+[audition page](https://claude.ai/artifact/YXXaB4zZL4G9fGHfTX7CtB) beside the exit, the lever, the quest item, the checkpoint, the
+waypoint, the chest, the sign and the portal, and the user has not picked yet. They are, by bank and sample: A `GauntletGate`
+`VaalIntDoor_Open_01` (wired meanwhile: the sharpest attack, 90% of its energy within 0.63 s, centroid 1.5 kHz), B
+`G2_3GiantStoneDoor` `KethDecoGateDoor_Open_1`, C `ArenaGate` `Environment_Door_GateGraveyard_01`, D `G2_3GiantStoneDoor`
+`Doors_Temples_02`, E `ExitDoorArena` `Environment_Sanctum_EntranceDoor_Impact_01`, F `Barrier`
+`FallenStar_Effects_TriskelionFlame_MechanismLock`, G `Barrier` `FallenStar_Effects_TriskelionFlame_BarrierDispersal`, H `Barrier`
+`FallenStar_Effects_TriskelionFlame_MechanicalClick_01`. The pick changes one line of `SoundExtractor.Cues` and the launcher's
+sounds step. Heard live only from the glossary (the dev command `sounds`: "opened_way 1"); no barrier opened in a test, which
+would need a fight (`AGENTS.md` rule 25). A barrier the game removes as it opens, instead of turning it open, is still not
+said: none is known.
 
 ## How sounds end (2026-11-07)
 A tester: every sound stopped dead on walking off it, gold in both sets, town portals, waypoints; they remembered it fading. The

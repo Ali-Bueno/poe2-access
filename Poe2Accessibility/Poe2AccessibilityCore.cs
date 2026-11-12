@@ -306,6 +306,14 @@ namespace Poe2Accessibility
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
                 this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
+                this.entities.OpenedWayEntries = this.barriers.Ways.Update;
+                this.barriers.Opened = way =>
+                {
+                    if (this.Settings.ObjectSounds)
+                    {
+                        this.objectSounds?.WayOpened(way);
+                    }
+                };
                 GameIds.Load(Path.Join(this.DllDirectory, "catalog", "game-ids.txt"));
                 this.HandDeadStat();
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);

@@ -291,6 +291,9 @@ namespace Poe2Accessibility
         /// <summary>A barrier that opened on its own (scanner-style place: "The way opened, 4 steps, left").</summary>
         public static string BarrierOpened => T("The way opened", "Se abrió el paso");
 
+        /// <summary>A way that opened and has not been walked to yet, in the scanner's objects and by its sound's name in the settings.</summary>
+        public static string OpenedWay => T("Opened way", "Paso abierto");
+
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
 

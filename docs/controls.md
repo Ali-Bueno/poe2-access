@@ -71,7 +71,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
   tribute is spent: A on it says "view favours"; listed during the ritual too; "Essence: Blood Cretin", a crystal holding a
   rare monster: A frees it, and it drops the essence when slain; walking up to it says it too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
   with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
-  barrier: "Closed barrier", readable signs and plaques: "Sign: Ogham Village"), chests
+  barrier: "Closed barrier", one that opened on its own and you have not walked to yet: "Opened way", readable signs and
+  plaques: "Sign: Ogham Village"), chests
   and shrines (rocks, eggs, urns and other breakables have their own breaking sound, bodies to search their own
   rummage), items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
@@ -407,7 +408,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a checkpoint's bright ring), louder as you get closer; the nearest exit is a low rush of air from the game, repeated
   faster and louder as you get closer, so it stands out beside a checkpoint. The nearest stash sounds with its lid and the
   nearest well with its water, the sounds each makes when you use it; the nearest sign to read sounds with pages being
-  turned. Walking off any of them, the sound dies away
+  turned. A way that opens on its own (a room's gate in the middle of a fight) sounds once as it opens, from its side, and
+  then keeps sounding from two screens away until you have walked to it. Walking off any of them, the sound dies away
   over about six steps past the edge of the screen. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique, the quest sound over a quest item, over whatever the quest's icon marks and on the campaign's named barriers, such as the Ancient Seal; the generic item,
   currency, gold and quest sounds alone only for bases without one). They need the sounds extracted once from your game (see

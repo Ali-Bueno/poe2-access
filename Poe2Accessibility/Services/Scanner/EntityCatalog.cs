@@ -229,6 +229,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The area's named places (<see cref="PlaceNarrator.Entries"/>), set by the plugin.</summary>
         public Func<float, IEnumerable<ScanEntry>>? PlaceEntries { get; set; }
 
+        /// <summary>The ways that opened and are still to be walked to, for the player's world position (<see cref="OpenedWays.Update"/>).</summary>
+        public Func<float, float, IReadOnlyList<ScanEntry>>? OpenedWayEntries { get; set; }
+
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
 
@@ -618,6 +621,11 @@ namespace Poe2Accessibility.Services
             if (this.deathPlace is { } death && death.Area == area.AreaHash)
             {
                 found.TryAdd(death.Entry.Id, death.Entry);
+            }
+
+            foreach (var way in this.OpenedWayEntries?.Invoke(player.WorldPosition.X, player.WorldPosition.Y) ?? Array.Empty<ScanEntry>())
+            {
+                found.TryAdd(way.Id, way); // under its entity's id, which lists nothing while it stands open
             }
 
             foreach (var frontier in this.Unexplored(area, player))

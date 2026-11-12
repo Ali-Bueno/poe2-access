@@ -112,7 +112,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The named entry nearest <paramref name="point"/> within <paramref name="radius"/> (world units), or null.</summary>
         public static ScanEntry? NamedNear(Vector2 point, IEnumerable<ScanEntry> entries, float radius) =>
             entries.Where(entry => entry.Category is ScanCategory.Exits or ScanCategory.Waypoints or ScanCategory.Npcs or ScanCategory.Objects &&
-                                   entry.Kind is not ("checkpoint" or "barrier"))
+                                   entry.Kind is not ("checkpoint" or "barrier" or OpenedWays.Kind))
                 .Select(entry => (Entry: entry, Distance: Vector2.Distance(point, new Vector2(entry.WorldX, entry.WorldY))))
                 .Where(near => near.Distance <= radius)
                 .OrderBy(near => near.Distance)

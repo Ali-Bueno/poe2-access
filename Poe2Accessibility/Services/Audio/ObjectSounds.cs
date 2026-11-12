@@ -37,6 +37,12 @@ namespace Poe2Accessibility.Services
         private const float TimedRangeWorld = 4000f;
 
         /// <summary>
+        ///     The range of a way that opened: it opens in a fight that has carried the player off, and is looked for afterwards
+        ///     (user 2026-11-12). Twice the usual range, not measured against a room.
+        /// </summary>
+        private const float OpenedWayRangeWorld = 2600f;
+
+        /// <summary>
         ///     Repeat interval near / far, and the gain at the edge of the range. Near, often enough that its side stays
         ///     true while walking (1.3 s was heard as misplaced, user 2026-10-26).
         /// </summary>
@@ -81,6 +87,7 @@ namespace Poe2Accessibility.Services
             ("wells", 1, entry => entry.Kind == MinimapMarks.WellKind),
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
             ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
+            ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
@@ -99,6 +106,7 @@ namespace Poe2Accessibility.Services
         private readonly List<string> goneBeds = new();
         private long lastPoll;
         private long lastAnyPlayed;
+        private long wayOpenedAt = long.MinValue / 2;
 
         public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops, GameSounds diabloSounds)
         {
@@ -119,6 +127,23 @@ namespace Poe2Accessibility.Services
 
         /// <summary>True while loot keeps quiet (a fight, <see cref="FightWatch"/>; what falls quiet: <see cref="FightState.QuietsInFight"/>).</summary>
         public Func<bool> QuietLoot { get; set; } = () => false;
+
+        /// <summary>
+        ///     A way opened just now: its sound once, at once and in full from wherever it stands, whatever else is sounding;
+        ///     after it the entry sounds like any other object, by its distance.
+        /// </summary>
+        public void WayOpened(ScanEntry entry)
+        {
+            if (this.SoundFor(entry) is not { } samples || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return;
+            }
+
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var (pan, pitch) = ScreenProjection.Voice(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here, Distance(here, entry), CentreWorld);
+            this.audio.Play(samples, pan, pitch, this.Gain, this.SoundKey(entry));
+            this.wayOpenedAt = Environment.TickCount64;
+        }
 
         /// <summary>Per frame while playing.</summary>
         public void Tick(bool playing)
@@ -190,7 +215,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 if (this.SoundFor(entry) is not { } samples ||
-                    (this.lastPlayed.TryGetValue(group, out var last) && now - last < interval))
+                    (this.lastPlayed.TryGetValue(group, out var last) && now - last < interval) ||
+                    (entry.Kind == OpenedWays.Kind && now - this.wayOpenedAt < FarIntervalMs))
                 {
                     continue;
                 }
@@ -270,7 +296,7 @@ namespace Poe2Accessibility.Services
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;
 
-        private static float RangeOf(ScanEntry entry) => entry.Timed ? TimedRangeWorld : RangeWorld;
+        private static float RangeOf(ScanEntry entry) => entry.Timed ? TimedRangeWorld : entry.Kind == OpenedWays.Kind ? OpenedWayRangeWorld : RangeWorld;
 
         private static float ReachOf(ScanEntry entry) => RangeOf(entry) + ProximityFade.TailWorld;
 
@@ -295,6 +321,7 @@ namespace Poe2Accessibility.Services
             MinimapMarks.StashKind => this.sounds.Get(MinimapMarks.StashKind),
             MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
+            OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,

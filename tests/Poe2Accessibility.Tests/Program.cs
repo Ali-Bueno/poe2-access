@@ -253,6 +253,7 @@ namespace Poe2Accessibility.Tests
                 TelegraphTests.All(),
                 RouteSpeedTests.All(),
                 RadarLabelTests.All(),
+                OpenedWaysTests.All(),
                 PassiveStickTests.All(),
                 DatColumnSearchTests.All(),
                 DatColumnKindTests.All(),

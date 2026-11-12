@@ -52,7 +52,7 @@ internal static class GameDataSteps
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
         new Step("mod stats", 2, "mod-stats.json", "mod-stats", true), // 2: a modifier keying its own buff is told apart
-        new Step(Sounds, 8, null, null, Input: ItemSounds), // 8: the sign's sound
+        new Step(Sounds, 9, null, null, Input: ItemSounds), // 9: the opened way's sound
     ];
 
     /// <summary>
