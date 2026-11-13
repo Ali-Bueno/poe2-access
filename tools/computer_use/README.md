@@ -98,6 +98,9 @@ new `serve`, which disconnects the game to the login screen.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
   A game started by `launch.py game` starts it too, beside the development host (two mods reading and speaking, seen
   2026-11-10): end the `Poe2Access.exe` whose path is under `dist\` as soon as the game window shows.
+- The play copy's update prompt (a Yes/No box titled "Poe2Access" from `dist\Poe2Access`) holds the game's start until answered: the
+  box's "No" button answers it through UI Automation (`InvokePattern`), without a key press. `Poe2Access.exe stop` stops every running
+  copy, the development host too: run `launch.py host` after it (2026-11-13).
 - Stick pushes with a panel open can walk the character (yarkey went from the waypoint to the well during a sweep of
   panels, 2026-11-10): check where it stands before relying on its place.
 - The client's language: Options, Game, Language, then X to save and a restart (`language=` under `[LANGUAGE]` of

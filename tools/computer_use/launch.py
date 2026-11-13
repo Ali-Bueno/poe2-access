@@ -27,11 +27,12 @@ def log_size(path):
 
 
 def new_log_lines(path, start):
-    """Plugin log lines written since `start` (a byte offset), oldest first."""
-    if log_size(path) <= start:
+    """Plugin log lines written since `start` (a byte offset), oldest first; all of a log that started over since."""
+    size = log_size(path)
+    if size == start:
         return []
     with path.open('rb') as stream:
-        stream.seek(start)
+        stream.seek(start if size > start else 0)  # smaller than before: the plugin rolled its log over at this start
         return stream.read().decode('utf-8', errors='replace').splitlines()
 
 
