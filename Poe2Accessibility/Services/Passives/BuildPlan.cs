@@ -41,6 +41,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The file's last level when a gem gives no interval.</summary>
         private const int LastLevel = 100;
 
+        /// <summary>The plan's nodes, each once: a file names a node again for a weapon set and for its attribute.</summary>
+        private readonly HashSet<string> nodeIds = Passives.Select(passive => passive.Id).ToHashSet(StringComparer.Ordinal);
+
         /// <summary>Gets the build's skills ("skills": id, level_interval, support_skills), empty when the file has none.</summary>
         public IReadOnlyList<BuildSkill> Skills { get; init; } = Array.Empty<BuildSkill>();
 
@@ -76,6 +79,16 @@ namespace Poe2Accessibility.Services
             }
 
             return new BuildSteps(steps, notShown.Count) { NotShownIds = this.Passives.Select(passive => passive.Id).Where(notShown.Contains).Distinct().ToList() };
+        }
+
+        /// <summary>
+        ///     How the plan fits the nodes the tree marks: its nodes among them and its nodes besides, each counted once
+        ///     (docs/research/passive-tree.md#which-file-the-marks-are).
+        /// </summary>
+        public (int Shared, int Others) Fit(IReadOnlyCollection<string> markedIds)
+        {
+            var shared = this.nodeIds.Count(markedIds.Contains);
+            return (shared, this.nodeIds.Count - shared);
         }
 
         /// <summary>

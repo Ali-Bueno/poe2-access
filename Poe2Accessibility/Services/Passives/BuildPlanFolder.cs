@@ -42,34 +42,19 @@ namespace Poe2Accessibility.Services
         {
             this.Rescan();
             var onTree = this.matched.TryGetValue(character, out var seen);
-            try
+            if (!this.ReadConfig() || (onTree && seen.At >= this.configRead.Written))
             {
-                var written = File.Exists(this.config) ? File.GetLastWriteTimeUtc(this.config) : DateTime.MinValue;
-                if (onTree && seen.At >= written)
-                {
-                    return seen.Plan;
-                }
-
-                if (written != this.configRead.Written)
-                {
-                    this.configRead = (written, written == DateTime.MinValue ? string.Empty : File.ReadAllText(this.config));
-                }
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                return seen.Plan; // the settings being written: what this character's tree showed last
+                return seen.Plan; // the settings being written, or older than what this character's tree showed
             }
 
-            var path = BuildPlan.ActivePath(this.configRead.Text, character);
-            var name = path == null ? null : Path.GetFileName(path);
-            return name == null ? seen.Plan
-                : this.files.FirstOrDefault(file => string.Equals(Path.GetFileName(file.Key), name, StringComparison.OrdinalIgnoreCase)).Value.Plan;
+            return this.SettingsFile(character) is { } name ? this.files.FirstOrDefault(file => IsFile(file.Key, name)).Value.Plan : seen.Plan;
         }
 
         /// <summary>
-        ///     The plan holding most of the passives the tree marks as the active build, if it holds at least half of them;
-        ///     null for a build only on the website (no file to read notes from). Remembered for <paramref name="character"/>,
-        ///     whose tree it is; for nobody when the name is not known.
+        ///     The plan the tree's marks are: the one holding most of the marked passives, if at least half of them, and
+        ///     among equals the one with the fewest passives besides, then the file the game's settings name; null for a
+        ///     build only on the website (no file to read notes from). Remembered for <paramref name="character"/>, whose
+        ///     tree it is; for nobody when the name is not known.
         /// </summary>
         public BuildPlan? Matching(string character, IReadOnlyCollection<string> markedIds)
         {
@@ -80,13 +65,46 @@ namespace Poe2Accessibility.Services
             }
 
             this.Rescan();
-            var best = this.files.Values.Select(file => file.Plan).Where(plan => plan != null)
-                .Select(plan => (Plan: plan!, Shared: plan!.Passives.Count(passive => markedIds.Contains(passive.Id))))
-                .OrderByDescending(match => match.Shared).FirstOrDefault();
-            var plan = best.Plan != null && best.Shared * 2 >= markedIds.Count ? best.Plan : null;
+            var ranked = this.files.Where(file => file.Value.Plan != null)
+                .Select(file => (Path: file.Key, Plan: file.Value.Plan!, Fit: file.Value.Plan!.Fit(markedIds)))
+                .OrderByDescending(entry => entry.Fit.Shared).ThenBy(entry => entry.Fit.Others).ToList();
+            BuildPlan? plan = null;
+            if (ranked.Count > 0 && ranked[0].Fit.Shared * 2 >= markedIds.Count)
+            {
+                // Files of one tree (a guide's variants) differ in their gems alone: the settings say which is active.
+                var alike = ranked.TakeWhile(entry => entry.Fit == ranked[0].Fit).ToList();
+                var name = alike.Count > 1 && this.ReadConfig() ? this.SettingsFile(character) : null;
+                plan = alike.FirstOrDefault(entry => name != null && IsFile(entry.Path, name)).Plan ?? alike[0].Plan;
+            }
+
             this.Remember(character, plan);
             return plan;
         }
+
+        private static bool IsFile(string path, string name) => string.Equals(Path.GetFileName(path), name, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>Reads the game's settings again once written; false while they cannot be read.</summary>
+        private bool ReadConfig()
+        {
+            try
+            {
+                var written = File.Exists(this.config) ? File.GetLastWriteTimeUtc(this.config) : DateTime.MinValue;
+                if (written != this.configRead.Written)
+                {
+                    this.configRead = (written, written == DateTime.MinValue ? string.Empty : File.ReadAllText(this.config));
+                }
+
+                return true;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>The name of the file the settings read last give the character's build; null with none.</summary>
+        private string? SettingsFile(string character) =>
+            BuildPlan.ActivePath(this.configRead.Text, character) is { } path ? Path.GetFileName(path) : null;
 
         private void Remember(string character, BuildPlan? plan)
         {

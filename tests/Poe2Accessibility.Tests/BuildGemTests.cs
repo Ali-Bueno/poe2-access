@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheFilesSkillsAreReadWithTheirSupports), TheFilesSkillsAreReadWithTheirSupports),
             (nameof(TheActiveBuildIsTheCharactersFile), TheActiveBuildIsTheCharactersFile),
             (nameof(ATreesBuildIsItsOwnCharacters), ATreesBuildIsItsOwnCharacters),
+            (nameof(AGuidesStageIsToldFromTheNext), AGuidesStageIsToldFromTheNext),
             (nameof(ASupportIsWhereTheCharacterHasIt), ASupportIsWhereTheCharacterHasIt),
             (nameof(ASkillsSupportsAreHeardByGroup), ASkillsSupportsAreHeardByGroup),
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
@@ -86,6 +87,40 @@ namespace Poe2Accessibility.Tests
                 Expect(null, plans.Active(string.Empty)?.Name, "but is nobody's build afterwards");
                 Expect(null, plans.Matching("yarkey", Array.Empty<string>())?.Name, "the tree showing no marks");
                 Expect(null, plans.Active("yarkey")?.Name, "is that character's news");
+            }
+            finally
+            {
+                System.IO.Directory.Delete(folder, true);
+            }
+        }
+
+        /// <summary>
+        ///     A guide's later stage holds the first stage's whole tree, some nodes twice: kehgan's "Lvl 1-23" was read as
+        ///     "23+ Unarmed", 33 entries against 29 over the same 27 nodes (2026-11-13).
+        /// </summary>
+        private static void AGuidesStageIsToldFromTheNext()
+        {
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "builds-" + Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(folder);
+            try
+            {
+                void Write(string name, string passives) =>
+                    System.IO.File.WriteAllText(System.IO.Path.Join(folder, name + ".build"), "{\"name\":\"" + name + "\",\"passives\":[" + passives + "],\"skills\":[]}");
+                Write("23+ Unarmed", "\"a\",\"a\",\"b\",\"b\",\"c\",\"d\",\"e\"");
+                Write("Lvl 1-23", "\"a\",\"b\",\"c\"");
+                var config = System.IO.Path.Join(folder, "config.ini");
+                var marks = new HashSet<string> { "a", "b", "c" };
+                var plans = new BuildPlanFolder(folder, config);
+                Expect("Lvl 1-23", plans.Matching("kehgan", marks)?.Name, "the stage whose tree is the marks, not the next that holds it");
+                Expect("23+ Unarmed", plans.Matching("kehgan", new HashSet<string> { "a", "b", "c", "d", "e" })?.Name, "the next stage under its own marks");
+
+                Write("Lvl 1-23 Cold", "\"c\",\"b\",\"a\"");
+                string Entry(string character, string name) =>
+                    "{\"character\":\"" + character + "\",\"path\":\"file:" + System.IO.Path.Join(folder, name + ".build").Replace('\\', '/') + "\"}";
+                System.IO.File.WriteAllText(config, "active_builds=[" + Entry("kehgan", "Lvl 1-23") + "," + Entry("yarkey", "Lvl 1-23 Cold") + "]");
+                var twins = new BuildPlanFolder(folder, config);
+                Expect("Lvl 1-23", twins.Matching("kehgan", marks)?.Name, "of two files with one tree, the one the game's settings name");
+                Expect("Lvl 1-23 Cold", twins.Matching("yarkey", marks)?.Name, "for each character its own");
             }
             finally
             {

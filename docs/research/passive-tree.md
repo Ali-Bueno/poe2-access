@@ -317,7 +317,7 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
 - The files: `Documents\My Games\Path of Exile 2\BuildPlanner\*.build`, JSON (GGG developer docs, "Build Planner" v1):
   `passives` = ids (PassiveSkills `Id`) or objects {id, level_interval, weapon_set 0-2, additional_text}; the GGG example
   writes attribute advice as notes ("<m>{<red>{Strength +5 is recommended}}"); Mobalytics exports carry no passive notes.
-  The mod reads the file whose passives cover at least half of the marked nodes (`BuildPlanFolder`): step = place among
+  The mod reads the file whose passives cover at least half of the marked nodes ([which file](#which-file-the-marks-are)): step = place among
   the marked nodes in the file's order ([the two counts](#the-builds-two-counts)), weapon set, note without markup, and for an attribute node (`strength17`, `attributes65`…) whose note shows the
   attribute only by colour, that attribute. A website-only build has marks but no file: no notes.
 - The mark byte has no second signature on the element. `BuildPlan.MarksPlausible`: when over a quarter of the nodes read
@@ -339,3 +339,12 @@ file's nodes the tree does not show are said once, with the list.
 - UI: in the tree, L3 opens "Filters/Build Planner"; D-pad right twice reaches the planner button (`collapse_button`,
   A expands it), D-pad down the list (`BuildPlannerComboBox`, "Active Build"). The gem engraving window has the same
   list (`build_planner_combobox`) and a first category of the build's gems.
+
+### Which file the marks are
+
+A guide comes as one file per stage, and a later stage holds the earlier one's tree and more. MEASURED (2026-11-13,
+kehgan, the "[0.5] WHIRLING Trinity Martial Artist" files): "Lvl 1-23" has 29 entries over 27 nodes; "23+ Unarmed" holds
+all 27 among its 54, in 33 of its 60 entries. Counting entries, "23+ Unarmed" scored 33 against 29 and its gems (Killing Palm,
+Falling Thunder) were said for a build of Twister. `BuildPlan.Fit` counts each node once and `BuildPlanFolder.Matching`
+picks the most marked nodes held, then the fewest nodes besides (0 against 27 here), then, for files of one tree, the one
+the game's settings name for the character (`active_builds`).
