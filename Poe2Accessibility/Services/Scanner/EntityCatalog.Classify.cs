@@ -48,6 +48,7 @@ namespace Poe2Accessibility.Services
             var sound = string.Empty;
             var timed = false;
             var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
+            var questMarked = MinimapMarks.IsQuestIcon(icon);
             ScanCategory? category;
             if (icon == MinimapMarks.StoryGlyph)
             {
@@ -158,6 +159,9 @@ namespace Poe2Accessibility.Services
                 category = entity.TryGetComponent<Targetable>(out _) && !IsPet(path) ? ScanCategory.Objects : null; // stash, bench, well
                 plain = true;
                 kind = MinimapMarks.ServiceKind(icon);
+                // A named object to use under an area's own lit mark is the quest's: the Red Vale's obelisks rang only while
+                // the tracker named them, and "Consigue las dos runas de poder restantes" does not (user 2026-11-13).
+                questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && MinimapMarks.IsLitMark(icon);
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
                     // The tracker shows two quests a page: with the Trial's on another page its objective is not on screen
@@ -234,7 +238,7 @@ namespace Poe2Accessibility.Services
             var position = render.WorldPosition;
             name = ControllerGlyphs.InName(name);
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, MinimapMarks.KindUnder(icon, kind), baseId, loot, sound,
-                MinimapMarks.IsQuestIcon(icon), subject, timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
+                questMarked, subject, timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
                 category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0);
         }
 

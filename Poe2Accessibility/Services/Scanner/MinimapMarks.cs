@@ -79,6 +79,13 @@ namespace Poe2Accessibility.Services
             icon.EndsWith("Inactive", StringComparison.Ordinal) || icon.EndsWith("InActive", StringComparison.Ordinal) ||
             icon.Contains("Grey", StringComparison.Ordinal);
 
+        /// <summary>
+        ///     A mark the game lights on what is still to do and dims once done (`RustObeliskActive` → `RustObeliskInactive`,
+        ///     docs/research/minimap.md): on a named object to use it is the quest's, whatever the tracker says.
+        /// </summary>
+        public static bool IsLitMark(string icon) =>
+            icon.EndsWith("Active", StringComparison.Ordinal) && !icon.EndsWith("NotActive", StringComparison.Ordinal) && !IsSpent(icon);
+
         public static bool IsBossRoom(string path) => path.Contains(BossRoomObject, StringComparison.OrdinalIgnoreCase);
 
         public static bool IsQuestIcon(string icon) => Array.IndexOf(MinimapIconIds.Quest, icon) >= 0;

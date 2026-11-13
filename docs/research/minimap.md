@@ -23,6 +23,11 @@ Why the scanner lists what it lists (`EntityCatalog.Sighted`, `EntityCatalog.Ent
 - Campaign quest landmarks come in pairs, the active one labelled: `MillerActive` "Besieged Encampment",
   `MudBurrowerActive` "Vile Nest", `CroneActive` "Frostblood Ritual", `ClearfellCampsiteActive` "Mysterious
   Campsite", secrets (`GraveyardSecretActive` "Ancient Ruin"…). The `…Inactive` row has no label (done).
+- A lit mark on a named object to use is the quest's own (`MinimapMarks.IsLitMark`, 2026-11-13): the Red Vale's Rusted
+  Obelisks (`Metadata/Terrain/Gallows/Act1/1_5/Objects/QuestChestBase`, `RustObeliskActive`, targetable, named; entity
+  dump of kehgan's game) rang as quest objects only while the tracker read "Investiga los obeliscos oxidados"; after
+  the first, "Consigue las dos runas de poder restantes" names none and the other two were silent. 186 of the 1,050
+  icons end in `Active`; chests, shrines, league devices and checkpoints are classed before a plain object is.
 - Entities carry the `MinimapIcon` component (GameHelper: +0x20 → that row → its id). Component bytes on a live
   checkpoint: +0x08 owner entity, +0x10 int 1, +0x18/+0x20/+0x28 pointers.
 
