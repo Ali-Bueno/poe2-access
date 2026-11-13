@@ -310,7 +310,8 @@ Lightning Resistance". An empty slot says what goes there ("Asks for: …"). A u
 author's name ("Build: unique Headhunter, it is not this one"). On any other item that can be worn — in the inventory,
 the stash or a merchant's stock — one short line comes right after its name, per slot it would go in: "Build, helmet: 2
 of 3 modifiers, another base, more than the worn one, which has 1" ("fewer than", "same as the worn one", "nothing worn
-there"); the modifiers one by one come after the item's own lines, as the rest of the tooltip does (tap for the next
+there"; an item of another class than the build's, a staff where it names a spear, says "another kind of item, the build
+asks for Ironhead Spear" instead of "another base"); the modifiers one by one come after the item's own lines, as the rest of the tooltip does (tap for the next
 line, hold for all of it). A worn piece is compared from the start: by its tooltip's lines once its slot has been
 visited in the session, before that by its modifier lines made from the game's memory (a line the mod cannot make with
 certainty is left out, and nothing is then called missing on that piece). Entering the inventory says how the worn gear

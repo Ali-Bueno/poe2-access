@@ -725,6 +725,7 @@
  "an open way or exit followed by one pip: that side leads to unexplored ground that soon ends, a room or a short branch": "un passage libre ou une sortie suivis d'un seul bip : ce côté mène à un terrain inexploré qui se termine vite, une salle ou un court embranchement",
  "an open way or exit followed by two pips: that side leads to ground you have not seen yet": "un passage libre ou une sortie suivis de deux bips : ce côté mène à un terrain que vous n'avez pas encore vu",
  "another base": "autre base",
+ "another kind of item, the build asks for {0}": "autre type d'objet, le build demande {0}",
  "anvil": "enclume",
  "area level {0}": "niveau de la zone {0}",
  "areas": "zones",

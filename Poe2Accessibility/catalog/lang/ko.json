@@ -725,6 +725,7 @@
  "an open way or exit followed by one pip: that side leads to unexplored ground that soon ends, a room or a short branch": "열린 길이나 출구 뒤에 삑 소리 한 번: 그쪽은 곧 끝나는 미탐색 지형, 방이나 짧은 갈림길로 이어집니다",
  "an open way or exit followed by two pips: that side leads to ground you have not seen yet": "열린 길이나 출구 뒤에 짧은 소리 두 번: 그쪽은 아직 보지 못한 지형으로 이어집니다",
  "another base": "다른 기반",
+ "another kind of item, the build asks for {0}": "다른 종류의 아이템, 빌드는 {0}을(를) 요구",
  "anvil": "모루",
  "area level {0}": "지역 레벨 {0}",
  "areas": "지역",

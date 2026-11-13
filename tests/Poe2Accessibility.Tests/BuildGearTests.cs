@@ -197,6 +197,13 @@ namespace Poe2Accessibility.Tests
             var spear = new GearItem("Metadata/Items/Weapons/OneHandWeapons/OneHandSpears/FourSpear4", "Lanza de guerra", "Lanza de guerra", false, new[] { "Velocidad de ataque aumentada un 5%" });
             Expect("Build, Mano principal: 1 de 2 modificadores, 1 sin comparar, misma base, nada puesto",
                 Announcements.BuildGearItem(Fit(Piece(Early, "Weapon1", 40), spear), null, 40), "a line the texts lack is left out of the count");
+
+            // kehgan's shop, 2026-11-13: "otra base" on a staff read as a staff of the build, which names a spear.
+            var staff = new GearItem("Metadata/Items/Weapons/TwoHandWeapons/Warstaves/FourWarstaff2", "Bastón envuelto", "Bastón envuelto pesado", false, new[] { "+7 a la destreza" });
+            Expect("Build, Mano principal: 0 de 2 modificadores, 1 sin comparar, otra clase de objeto, la build pide Lanza de guerra, nada puesto",
+                Announcements.BuildGearItem(Fit(Piece(Early, "Weapon1", 40), staff), null, 40, new Bases()), "a weapon of another class names the build's");
+            Expect("Build, Casco: 2 de 3 modificadores, otra base, igual que el puesto", Announcements.BuildGearItem(Fit(entry, Worn), Fit(entry, Worn), 40, new Bases()),
+                "another base of the same class stays another base");
         });
 
         private static void WithoutCatalogsNothingIsClaimed() => InSpanish(() =>
@@ -313,6 +320,7 @@ namespace Poe2Accessibility.Tests
                 Base("Metadata/Items/Armours/Helmets/FourHelmetDex2", "Helmet", "Felt Cap", "Gorra de fieltro", 0, 40, 0),
                 Base("Metadata/Items/Rings/FourRing2", "Ring", "Sapphire Ring", "Anillo de zafiro", 0, 0, 0),
                 Base("Metadata/Items/Weapons/OneHandWeapons/OneHandSpears/FourSpear4", "Spear", "War Spear", "Lanza de guerra", 0, 0, 0),
+                Base("Metadata/Items/Weapons/TwoHandWeapons/Warstaves/FourWarstaff2", "Warstaff", "Wrapped Quarterstaff", "Bastón envuelto", 0, 0, 0),
                 Base("Metadata/Items/Flasks/FourFlaskMana5", "ManaFlask", "Gargantuan Mana Flask", "Frasco de maná descomunal", 0, 0, 0),
                 Base("Metadata/Items/Flasks/FourFlaskMana2", "ManaFlask", "Medium Mana Flask", "Frasco de maná mediano", 0, 0, 0),
             };

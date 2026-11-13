@@ -725,6 +725,7 @@
  "an open way or exit followed by one pip: that side leads to unexplored ground that soon ends, a room or a short branch": "ทางโล่งหรือทางออกตามด้วยเสียงปี๊บหนึ่งครั้ง: ด้านนั้นนำไปสู่พื้นที่ที่ยังไม่ได้สำรวจซึ่งสิ้นสุดในไม่ช้า เช่นห้องหรือทางแยกสั้น ๆ",
  "an open way or exit followed by two pips: that side leads to ground you have not seen yet": "ทางโล่งหรือทางออกตามด้วยเสียงบี๊บสองครั้ง ด้านนั้นนำไปสู่พื้นที่ที่คุณยังไม่เคยเห็น",
  "another base": "ฐานอื่น",
+ "another kind of item, the build asks for {0}": "ไอเทมคนละประเภท, บิลด์ต้องการ {0}",
  "anvil": "ทั่งตีเหล็ก",
  "area level {0}": "เลเวลพื้นที่ {0}",
  "areas": "พื้นที่",

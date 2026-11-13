@@ -91,15 +91,18 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     On an item that could go in a slot: "Build, helmet: 2 of 3 modifiers, another base, more than the worn one,
-        ///     which has 1"; empty when nothing of it can be told.
+        ///     which has 1"; a staff where the build names a spear is "another kind of item, the build asks for Ironhead
+        ///     Spear". Empty when nothing of it can be told.
         /// </summary>
         /// <param name="worn">The slot's worn piece against the same build entry; null when the slot is empty.</param>
-        public static string BuildGearItem(GearFit fit, GearFit? worn, int level)
+        /// <param name="bases">The game's item bases; the plugin's own when null.</param>
+        public static string BuildGearItem(GearFit fit, GearFit? worn, int level, IItemBases? bases = null)
         {
+            bases ??= BuildGear.Bases;
             var parts = new List<string>();
             if (fit.Entry.IsUnique)
             {
-                parts.Add(GearWanted(fit.Entry, BuildGear.Bases));
+                parts.Add(GearWanted(fit.Entry, bases));
             }
 
             // Only the modifiers that could be looked for are counted: one not compared is neither had nor missing.
@@ -114,7 +117,7 @@ namespace Poe2Accessibility
                 }
             }
 
-            parts.AddRange(GearBaseFit(fit, null));
+            parts.AddRange(GearOtherKind(fit, bases) is { Length: > 0 } otherKind ? new[] { otherKind } : GearBaseFit(fit, null));
             if (parts.Count == 0 || (fit.Entry.IsUnique && fit.Base == BaseFit.Unknown))
             {
                 return string.Empty;
@@ -184,6 +187,20 @@ namespace Poe2Accessibility
             var kind = DefenceKind(BuildGear.DefenceOf(known));
             var name = known?.Name(Localization.Language) ?? entry.Base;
             return kind.Length > 0 ? $"{name}, {kind}" : name;
+        }
+
+        /// <summary>An item of another class than the build's base, which its slot takes all the same (a staff for a spear); empty otherwise.</summary>
+        private static string GearOtherKind(GearFit fit, IItemBases bases)
+        {
+            if (fit.Item == null || fit.Base != BaseFit.Other || fit.Entry.IsUnique ||
+                (bases.ById(fit.Item.BaseId) ?? bases.ByName(fit.Item.BaseName)) is not { ItemClass.Length: > 0 } own || bases.ByName(fit.Entry.Base) is not { ItemClass.Length: > 0 } wanted ||
+                own.ItemClass == wanted.ItemClass)
+            {
+                return string.Empty;
+            }
+
+            var name = wanted.Name(Localization.Language);
+            return T($"another kind of item, the build asks for {name}", $"otra clase de objeto, la build pide {name}");
         }
 
         private static string GearFromLevel(int level) => T($"from level {level}", $"desde el nivel {level}");

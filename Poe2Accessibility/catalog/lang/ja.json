@@ -725,6 +725,7 @@
  "an open way or exit followed by one pip: that side leads to unexplored ground that soon ends, a room or a short branch": "開けた道または出口のあとにピッという音が一回: その側はすぐに終わる未探索の地面、部屋か短い枝道に続きます",
  "an open way or exit followed by two pips: that side leads to ground you have not seen yet": "通れる道か出口のあとに短い音が2回：その方向はまだ見ていない地面へ続く",
  "another base": "別のベース",
+ "another kind of item, the build asks for {0}": "別の種類のアイテム、ビルドでは{0}を使用",
  "anvil": "金床",
  "area level {0}": "エリアレベル{0}",
  "areas": "エリア",
