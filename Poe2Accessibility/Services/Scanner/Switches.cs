@@ -5,9 +5,6 @@ namespace Poe2Accessibility.Services
     /// <summary>Switches and levers the game builds as chests, told apart from breakables by their metadata name.</summary>
     public static class Switches
     {
-        /// <summary>The scanner's kind of a switch or lever, and the key of its sound.</summary>
-        public const string Kind = "switch";
-
         /// <summary>A switch or lever (MausoleumSecretDoorSwitch, PrisonLever, the Act 3 water levers) by its own name.</summary>
         public static bool IsSwitch(string path)
         {

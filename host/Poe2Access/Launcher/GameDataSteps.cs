@@ -52,7 +52,7 @@ internal static class GameDataSteps
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
         new Step("mod stats", 2, "mod-stats.json", "mod-stats", true), // 2: a modifier keying its own buff is told apart
-        new Step(Sounds, 11, null, null, Input: ItemSounds), // 11: the lever's sound, the game's lever being pulled
+        new Step(Sounds, 10, null, null, Input: ItemSounds), // 10: the opened way's sound as the user picked it
     ];
 
     /// <summary>

@@ -279,9 +279,11 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
 - **What the client can read**: a lever's `lever_pull` (0, then 1 or 2 and no longer targetable), an indicator's `active`, a door's
   `open`, the blocker's `sanctum_completed`.
 - **No guide is built from this** (the owner, 2026-11-13: "lo de guiar a la salida vamos a quitarlo… con que las palancas tengan
-  sonido pronunciado ya es suficiente"). In a "find the exit" room the levers are found by ear: every lever not pulled sounds as a
-  lever (the game's own lever being pulled), up to three at once, from twice a chest's range ([game audio](game-audio.md#levers-2026-11-13));
-  a way that opens has its own sound and stays "Paso abierto" until walked to. What follows is kept as what the files say.
+  sonido pronunciado ya es suficiente"). In a "find the exit" room the levers are found by ear, with the
+  quest object's sound they have had since 2026-11-12 (`SanctumGenericLever` is a plain object): the owner finds it marked enough
+  and wants it kept ("las palancas ya tienen el sonido de misión… no hace falta cambiar eso"); a lever sound of their own, tried
+  that day, was taken back unheard. A way that opens has its own sound and stays "Paso abierto" until walked to. What follows is
+  kept as what the files say.
 - **Needs one look in a run**: whether an indicator's entity tells its pillar (its animated object), else the room is told by the
   distances between its levers and doors (all 28 differ) and the wiring comes from a table; whether the next room's map device is
   among the entities from inside the room; `lever_pull` 1 against 2; an indicator's `active` when the room does not set it.

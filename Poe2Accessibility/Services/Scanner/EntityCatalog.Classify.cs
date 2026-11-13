@@ -96,7 +96,7 @@ namespace Poe2Accessibility.Services
                 // A rock or an egg breaks like an urn and shows no label; it sounded like a chest (user 2026-10-26). A
                 // switch or lever built as a chest (the mausoleum's secret door switch) sounded like a breakable (2026-10-27);
                 // a body searched for loot sounded like a chest (2026-10-28).
-                kind = Switches.IsSwitch(path) ? Switches.Kind : Breakables.IsCorpse(path) ? "corpse"
+                kind = Switches.IsSwitch(path) ? "switch" : Breakables.IsCorpse(path) ? "corpse"
                     : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
                 sound = kind == "breakable" ? Breakables.Material(path) : string.Empty;
             }
@@ -171,9 +171,8 @@ namespace Poe2Accessibility.Services
                     timed = true;
                 }
 
-                // A Trial room's levers open the way out and nothing guides there: SanctumGenericLever, a plain object, is a lever
-                // by ear like those built as chests, each one heard and from afar (user 2026-11-13).
-                kind = Switches.IsSwitch(path) ? Switches.Kind : kind;
+                // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing, and must stand out (user 2026-11-07).
+                sound = Switches.IsSwitch(path) ? MinimapMarks.QuestObjectKind : sound;
                 if (name.Length == 0 && TrialWater.IsDrop(path))
                 {
                     name = this.landmarks.WaterLabel; // the game's own word for what the drop is: "Agua sagrada"
