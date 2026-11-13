@@ -513,7 +513,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - "Lesser Life Flask, 3 uses" each time you drink a flask, "Lesser Life Flask refilled, 2 uses" each time one gains
   a use, "Lesser Life Flask empty" when one has no use left, once until it refills, and "New flask: …" when one is put
   on the belt during play (`AnnounceFlasks`, "Flask uses", delivered like the life warnings).
-- "Mana 50 / 25 / 10 percent" when mana falls past those lines (`AnnounceLowMana`).
+- "Mana 75 / 50 / 25 / 10 percent" when mana falls past those lines (`AnnounceLowMana`); 75 is said again only once
+  the mana has been back to 95, the others 30 points above their line.
 - "Energy shield 75 / 50 / 25 percent" as it falls past those lines and "Energy shield depleted" when it is gone,
   once per fall (`AnnounceEnergyShield`, "Avisos de escudo de energía", delivered like the life warnings). Only for a
   pool of at least a fifth of your life: a little energy shield from one item would break in every fight.

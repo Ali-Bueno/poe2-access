@@ -115,6 +115,12 @@ namespace Poe2Accessibility.Tests
             Equal("- 50 - - 25", Feed(100, 49, 45, 51, 20), "each threshold once on the way down");
             Equal("- 50", Feed(61, 40), "re-armed 10 points above");
             Equal("- 25", Feed(100, 10), "a big hit says only the lowest");
+
+            var mana = new VitalAlarm(30, 75, 50, 25, 10);
+            string Spend(params int[] values) => string.Join(" ", values.Select(value => mana.Update(value)?.ToString() ?? "-"));
+            Equal("- 75 - - 50", Spend(100, 74, 90, 70, 49), "three quarters once, not again from 90");
+            Equal("- - 75", Spend(79, 95, 74), "three quarters re-arms nearly full, half only 30 points above");
+            Equal("- 50", Spend(80, 49), "half re-armed at 80");
         }
 
         private static void PhrasesFollowTheGameLanguage()

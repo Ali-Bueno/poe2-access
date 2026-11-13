@@ -17,10 +17,12 @@ namespace Poe2Accessibility.Services
         private readonly VitalAlarm lifeAlarm = new(10, 50, 25);
 
         /// <summary>
-        ///     Half, a quarter and a tenth; re-armed 30 points above: mana is spent and refilled constantly, and at 10 the
-        ///     half was said every 8 s through the Miller fight (2026-10-24). Urgent only when nearly gone.
+        ///     Three quarters, half, a quarter and a tenth; re-armed 30 points above: mana is spent and refilled constantly,
+        ///     and at 10 the half was said every 8 s through the Miller fight (2026-10-24). Three quarters, re-armed nearly
+        ///     full (<see cref="VitalAlarm.RearmCeiling"/>), since 2026-11-13: a caster with a deep pool heard nothing of the
+        ///     mana going until half of it was gone. Urgent only when nearly gone.
         /// </summary>
-        private readonly VitalAlarm manaAlarm = new(30, 50, 25, 10);
+        private readonly VitalAlarm manaAlarm = new(30, 75, 50, 25, 10);
 
         /// <summary>Three quarters, half, a quarter and gone (under 1); re-armed 10 points above.</summary>
         private readonly VitalAlarm shieldAlarm = new(10, 75, 50, 25, EnergyShieldGone);

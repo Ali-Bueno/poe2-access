@@ -9,6 +9,12 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class VitalAlarm
     {
+        /// <summary>
+        ///     No threshold asks for more than this to re-arm: a mark near the top (75 with a margin of 30) would wait for
+        ///     a value past full, and one waiting for 100 would stay spent through a fight of steady casting.
+        /// </summary>
+        public const int RearmCeiling = 95;
+
         private readonly int[] thresholds;
         private readonly int rearmMargin;
         private readonly bool[] fired;
@@ -26,7 +32,7 @@ namespace Poe2Accessibility.Services
             int? crossed = null;
             for (var i = 0; i < this.thresholds.Length; i++)
             {
-                if (percent >= this.thresholds[i] + this.rearmMargin)
+                if (percent >= System.Math.Min(this.thresholds[i] + this.rearmMargin, RearmCeiling))
                 {
                     this.fired[i] = false;
                 }
