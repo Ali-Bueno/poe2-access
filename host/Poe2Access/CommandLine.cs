@@ -11,6 +11,7 @@ internal enum Command
     Stop,
     Update,
     Extract,
+    Check,
     Help,
     Invalid,
 }
@@ -21,7 +22,7 @@ internal enum Command
 /// <param name="ParentId">The process that started this one as administrator and waits for it: never killed as a stray copy.</param>
 internal sealed record Invocation(Command Command, string[]? GameCommand, string[] ExtractArguments, string? Error, int? ParentId = null);
 
-/// <summary>Reads the command line: [start|restart|stop|update|extract ...] [&lt;game exe&gt; &lt;its arguments&gt;].</summary>
+/// <summary>Reads the command line: [start|restart|stop|update|check|extract ...] [&lt;game exe&gt; &lt;its arguments&gt;].</summary>
 internal static class CommandLine
 {
     public const string ParentOption = "--parent";
@@ -43,6 +44,8 @@ internal static class CommandLine
                     break;
                 case "extract":
                     return new Invocation(Command.Extract, game, own[(i + 1)..], null);
+                case "check":
+                    return new Invocation(Command.Check, game, [], null);
                 case "start":
                     command = Command.Start;
                     break;

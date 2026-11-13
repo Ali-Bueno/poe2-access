@@ -225,6 +225,7 @@
     <Compile Include="..\..\host\Poe2Access\Launcher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\PackageInstall.cs" Link="Launcher\PackageInstall.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\GameDataCounts.cs" Link="Launcher\GameDataCounts.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\PackageCheck.cs" Link="Launcher\PackageCheck.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\GameDataSteps.cs" Link="Launcher\GameDataSteps.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\GameInstall.cs" Link="Launcher\GameInstall.cs" />
     <Compile Include="..\..\host\Poe2Access\AppFolders.cs" Link="Launcher\AppFolders.cs" />
