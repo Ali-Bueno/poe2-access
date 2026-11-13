@@ -37,7 +37,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | stash | PlayerStash_4.0 | Open_1 (the lid; six `Open_`, six `Close_`, 1.5 to 2 s, low: centroid 330-450 Hz; levelled to RMS 0.10 or its peak) |
 | well | General_Gameplay | Wellwell_FX_Well_03 (water, 0.8 s, bright: centroid 5 kHz, apart from every other cue; the heal `WellRefill_UI_HealNew_*` sits in the chest's band and was not taken) |
 | sign | BookandQuillPetMTX | BookandQuillPet_IdleRelaxed01_FlipPages_01 (pages turned, 0.9 s; see [signs](#signs-2026-11-12)) |
-| opened_way | GauntletGate | VaalIntDoor_Open_01 (a heavy gate drawn open, cut to 1.5 s; **provisional**, see [an opened way](#an-opened-way-2026-11-12)) |
+| opened_way | ExitDoorArena | Environment_Sanctum_EntranceDoor_Impact_01 (the Trial's entrance door striking home, cut to 1.5 s; the user's pick, see [an opened way](#an-opened-way-2026-11-12)) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
@@ -210,15 +210,15 @@ the scanner's objects, sounding like any other object within 2600 world units (t
 room), until the player has stood within 200 of it and walked 300 away, it shuts again, or the area is left or loaded again
 (`OpenedWays`, unit-tested). Its volume and its line in the glossary are "Paso abierto", under Objects and places.
 
-The sound is **provisional**: eight recordings of the game were put on an
+The sound is the user's pick, **E** (2026-11-12, "me gustó el sonido e"): eight recordings of the game were put on an
 [audition page](https://claude.ai/artifact/YXXaB4zZL4G9fGHfTX7CtB) beside the exit, the lever, the quest item, the checkpoint, the
-waypoint, the chest, the sign and the portal, and the user has not picked yet. They are, by bank and sample: A `GauntletGate`
-`VaalIntDoor_Open_01` (wired meanwhile: the sharpest attack, 90% of its energy within 0.63 s, centroid 1.5 kHz), B
+waypoint, the chest, the sign and the portal. They are, by bank and sample: A `GauntletGate`
+`VaalIntDoor_Open_01` (wired until the pick: the sharpest attack, 90% of its energy within 0.63 s, centroid 1.5 kHz), B
 `G2_3GiantStoneDoor` `KethDecoGateDoor_Open_1`, C `ArenaGate` `Environment_Door_GateGraveyard_01`, D `G2_3GiantStoneDoor`
-`Doors_Temples_02`, E `ExitDoorArena` `Environment_Sanctum_EntranceDoor_Impact_01`, F `Barrier`
+`Doors_Temples_02`, E `ExitDoorArena` `Environment_Sanctum_EntranceDoor_Impact_01` (picked: peak at 0.08 s, 90% of its energy
+within 1 s, centroid 2.1 kHz), F `Barrier`
 `FallenStar_Effects_TriskelionFlame_MechanismLock`, G `Barrier` `FallenStar_Effects_TriskelionFlame_BarrierDispersal`, H `Barrier`
-`FallenStar_Effects_TriskelionFlame_MechanicalClick_01`. The pick changes one line of `SoundExtractor.Cues` and the launcher's
-sounds step. Heard live only from the glossary (the dev command `sounds`: "opened_way 1"); no barrier opened in a test, which
+`FallenStar_Effects_TriskelionFlame_MechanicalClick_01`. Heard live only from the glossary (the dev command `sounds`: "opened_way 1"); no barrier opened in a test, which
 would need a fight (`AGENTS.md` rule 25). A barrier the game removes as it opens, instead of turning it open, is still not
 said: none is known.
 
