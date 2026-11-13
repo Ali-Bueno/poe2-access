@@ -157,6 +157,7 @@ namespace Poe2Accessibility.Services
                 this.formsSaid.Clear();
                 this.addsSaid.Clear();
                 this.addsWave = 0;
+                this.RestartCensus(entity.Id);
             }
 
             if (percent is >= 0 and < 100)
@@ -231,6 +232,8 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.BossLife, text, true);
                 this.log.Info($"Boss turn: {text}");
             }
+
+            this.SayCalm();
 
             this.others.Clear();
             var hidden = this.bosses.Values.FirstOrDefault(boss => boss.SeenAt == now && boss.HidingSince != null && boss.Facts.Gone);
@@ -401,9 +404,6 @@ namespace Poe2Accessibility.Services
             public string Name { get; } = name;
 
             public BossPhaseTracker Tracker { get; } = tracker;
-
-            /// <summary>What its states and buffs say beyond its turns.</summary>
-            public BossSignalTracker Signals { get; } = new();
 
             public bool Engaged { get; set; }
 

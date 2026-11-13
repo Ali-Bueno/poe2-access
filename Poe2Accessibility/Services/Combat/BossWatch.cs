@@ -361,16 +361,17 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The dodge warning from a place (world) that is no monster's attack: a boss's helper upon the player.</summary>
-        private void WarnFrom(Vector2 place)
+        private bool WarnFrom(Vector2 place)
         {
             if (!this.DodgeWarnings || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                return;
+                return false;
             }
 
             var offset = place - new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset));
             this.audio.Play(this.whoosh, pan, pitch, this.WarningGain(offset), "dodge");
+            return true;
         }
 
         /// <summary>

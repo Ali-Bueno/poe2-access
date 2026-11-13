@@ -601,3 +601,12 @@ of `BossArenaLog`), and what was built on it:
 **Not done, each for its reason:** BR (the boss acting on an object: "plataforma rota") has no line in the catalog; the
 Risen King's sword circle is still not found in the files (§13); a helper's blow is not timed (13 of 21 helpers play no
 animation, §15); the counters' tops are in no script; which of the eight markers Asala shelters at is the server's.
+
+**Reviewed that night (an adversarial read of §16's code, nothing thrown found), and fixed from it:** an arena state that goes on
+counting (Tavakai's `room_burning_progress`, both `arena|` and `progress|`) changed the arena every 3 s: now only as it rises
+from 0; a thing to use or break, a counter and a count were cut by the poll's urgent lines and lost: they are said after them
+(`SayCalm`, log `Boss note:`); one poll without the boss forgot the fight's places and buffs: now after 3 s without one
+(`FightOverMs`), and a boss's signals are kept by entity; an entity read before its path, or a name not there yet, was
+remembered as nothing; a helper's line or cone pointed east: it points at the player; a nameless protection's end was silent
+("El jefe ya no está fortalecido"); an element flipping is one change in 3 s; a helper's word follows the dodge-warning
+switch; "behind the cover" is judged by the player's own reach, not the reach setting, and from the boss the cover belongs to.

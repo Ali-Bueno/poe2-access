@@ -37,13 +37,13 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> daemonMonsters = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, IReadOnlyList<string>> daemonSkills = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> arenaStates = new(StringComparer.OrdinalIgnoreCase);
-        private readonly HashSet<string> empowering = new(StringComparer.Ordinal);
+        private readonly HashSet<string> empowering = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> feeders = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> shelters = new(StringComparer.Ordinal);
         private readonly HashSet<string> zones = new(StringComparer.Ordinal);
         private readonly HashSet<string> stacks = new(StringComparer.Ordinal);
         private readonly HashSet<string> grabbed = new(StringComparer.Ordinal);
-        private readonly HashSet<string> grabs = new(StringComparer.Ordinal);
+        private readonly HashSet<string> grabs = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> unavoidable = new(StringComparer.Ordinal);
         private readonly Dictionary<string, int?> progress = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> elements = new(StringComparer.OrdinalIgnoreCase);

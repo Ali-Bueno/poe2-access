@@ -43,9 +43,6 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
-        /// <summary>The gap within which the player is at a place (the melee reach setting).</summary>
-        public float ReachWorld { get; set; } = 40f;
-
         /// <summary>A skill's danger area from the game's tables (<see cref="AttackData.Area"/>); null when they draw none.</summary>
         public Func<string, AttackArea?> AreaOf { get; set; } = _ => null;
 
@@ -109,7 +106,7 @@ namespace Poe2Accessibility.Services
             this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
             this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
             var (lines, told) = (new List<string>(), new List<string>());
-            foreach (var news in this.places.Update(this.sights, fighting[0].At, here, player.ModelBounds.X, this.ReachWorld, sheltered))
+            foreach (var news in this.places.Update(this.sights, here, player.ModelBounds.X, sheltered))
             {
                 this.log.Info($"Boss place: {news.Kind} {news.Name} to {news.To.X:0},{news.To.Y:0}, {Vector2.Distance(news.To, here):0} world units from the player");
                 (news.Pressing ? lines : told).Add(
@@ -124,6 +121,11 @@ namespace Poe2Accessibility.Services
         {
             if (!this.kinds.TryGetValue(entity.Id, out var kind))
             {
+                if (entity.Path.Length == 0)
+                {
+                    return; // not read yet: asked again at the next poll, never remembered as nothing
+                }
+
                 // Asked once per entity: most of an arena is neither a place nor a helper.
                 var path = BossMechanicsCatalog.MonsterId(entity.Path);
                 this.kinds[entity.Id] = kind = (catalog.PlaceRules(path), catalog.IsDaemon(path) ? path : null);
@@ -141,14 +143,16 @@ namespace Poe2Accessibility.Services
 
             foreach (var rule in kind.Rules)
             {
-                if (!fighting.Any(boss => string.Equals(boss.Monster, rule.Boss, StringComparison.OrdinalIgnoreCase) && Vector2.Distance(boss.At, at) <= ArenaWorld))
+                var owner = fighting.Where(boss => string.Equals(boss.Monster, rule.Boss, StringComparison.OrdinalIgnoreCase) && Vector2.Distance(boss.At, at) <= ArenaWorld)
+                    .Select(boss => (Vector2?)boss.At).FirstOrDefault();
+                if (owner is not { } bossAt)
                 {
                     continue;
                 }
 
                 // A cover or a marker the game does not draw has a place and neither a name nor a size.
                 var (name, radius) = entity.TryGetComponent<Render>(out var render) ? (this.NameOf(entity.Id, render), render.ModelBounds.X) : (string.Empty, 0f);
-                this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, name, at, radius, this.IsActive(entity, rule)));
+                this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, name, at, radius, this.IsActive(entity, rule), bossAt));
                 return; // one place per entity: the catalog's first rule for this boss
             }
         }
@@ -163,7 +167,7 @@ namespace Poe2Accessibility.Services
             }
 
             var areas = skills.Select(this.AreaOf).Where(area => area != null).Select(area => area!.Value).ToList();
-            AttackArea? holds = areas.Cast<AttackArea?>().FirstOrDefault(area => AttackAreas.Catches(area!.Value, at, at, player, playerRadius, AttackAim.MarginWorld));
+            AttackArea? holds = areas.Cast<AttackArea?>().FirstOrDefault(area => AttackAreas.Catches(area!.Value, at, BossHelperWarnings.AimOf(area.Value, at, player), player, playerRadius, AttackAim.MarginWorld));
             if (holds == null && areas.Count == 0 && Vector2.Distance(at, player) - playerRadius <= BossHelperWarnings.UponWorld)
             {
                 holds = BossHelperWarnings.Unknown;
@@ -188,7 +192,10 @@ namespace Poe2Accessibility.Services
             if (!this.names.TryGetValue(id, out var name))
             {
                 name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                this.names[id] = name;
+                if (name.Length > 0)
+                {
+                    this.names[id] = name; // an empty read is tried again: a name not there yet must not silence the place
+                }
             }
 
             return name;

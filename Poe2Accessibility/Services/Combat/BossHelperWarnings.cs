@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
 
     /// <summary>
     ///     A boss's invisible helpers that walk toward the player (Jamanra's obsidian storm, Zalmarath's laser target;
@@ -20,6 +21,10 @@ namespace Poe2Accessibility.Services
         public static readonly AttackArea Unknown = new(string.Empty, 0f, 0f, 0f, 0f, 0);
 
         private readonly Dictionary<uint, long> reachedAt = new();
+
+        /// <summary>What a helper's area is aimed at: an area around it lies where it stands, a line or a cone points at the player it walks toward.</summary>
+        public static Vector2 AimOf(in AttackArea area, Vector2 helper, Vector2 player) =>
+            area.Shape is AttackAreas.Circle or AttackAreas.Donut ? helper : player;
 
         public void Reset() => this.reachedAt.Clear();
 

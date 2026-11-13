@@ -34,7 +34,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A buff gone this long (ms) has ended; shorter is the game renewing it.</summary>
         public const int BuffHoldMs = 500;
 
-        /// <summary>The same state changes the arena again no sooner than this (ms): a state that flips with each blow is one change.</summary>
+        /// <summary>The same state changes the arena or the element again no sooner than this (ms): a state that flips with each blow is one change.</summary>
         public const int ArenaGapMs = 3000;
 
         /// <summary>A counter with no known top is said at most this often (ms), with its latest value.</summary>
@@ -45,6 +45,7 @@ namespace Poe2Accessibility.Services
 
         private readonly Dictionary<string, long> values = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, long> arenaSaidAt = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, long> elementSaidAt = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, (long Value, long At)> progressSaid = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, long> empoweredSeenAt = new(StringComparer.Ordinal);
 
@@ -63,7 +64,7 @@ namespace Poe2Accessibility.Services
 
                 if (known && value != before)
                 {
-                    this.Changed(catalog, boss, state, value, now, news);
+                    this.Changed(catalog, boss, state, before, value, now, news);
                 }
 
                 this.Count(catalog, boss, state, value, known && value != before, now, news);
@@ -73,16 +74,18 @@ namespace Poe2Accessibility.Services
             return news;
         }
 
-        private void Changed(BossMechanicsCatalog catalog, string boss, string state, long value, long now, List<BossSignal> news)
+        private void Changed(BossMechanicsCatalog catalog, string boss, string state, long before, long value, long now, List<BossSignal> news)
         {
-            if (value != 0 && catalog.ArenaKind(boss, state) is { } kind && now - this.arenaSaidAt.GetValueOrDefault(state, long.MinValue / 2) >= ArenaGapMs)
+            // Rising from nothing: a state that goes on counting (a burn's progress) changed the arena once.
+            if (before == 0 && value != 0 && catalog.ArenaKind(boss, state) is { } kind && now - this.arenaSaidAt.GetValueOrDefault(state, long.MinValue / 2) >= ArenaGapMs)
             {
                 this.arenaSaidAt[state] = now;
                 news.Add(new BossSignal(BossSignalKind.Arena, kind));
             }
 
-            if (value != 0 && catalog.Element(boss, state, value) is { } element)
+            if (value != 0 && catalog.Element(boss, state, value) is { } element && now - this.elementSaidAt.GetValueOrDefault(state, long.MinValue / 2) >= ArenaGapMs)
             {
+                this.elementSaidAt[state] = now;
                 news.Add(new BossSignal(BossSignalKind.Element, element, value));
             }
         }

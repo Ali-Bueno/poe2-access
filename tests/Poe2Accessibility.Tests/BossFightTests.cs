@@ -119,6 +119,15 @@ namespace Poe2Accessibility.Tests
             tracker.Update(catalog, King, new[] { ("sandstorm", 0L) }, none, true, 600);
             Equal(1, tracker.Update(catalog, King, new[] { ("sandstorm", 1L) }, none, true, 150 + BossSignalTracker.ArenaGapMs).Count, "again later");
 
+            // A burn that goes on counting changed the arena once, as it began.
+            var burn = new BossMechanicsCatalog();
+            burn.Add(new[] { $"arena|{King}|room_burning_progress|burn", $"progress|{King}|room_burning_progress" });
+            var burning = new BossSignalTracker();
+            burning.Update(burn, King, new[] { ("room_burning_progress", 0L) }, none, true, 0);
+            Equal("Arena,Progress", string.Join(",", burning.Update(burn, King, new[] { ("room_burning_progress", 5L) }, none, true, 150).Select(signal => signal.Kind)), "it begins");
+            var later = burning.Update(burn, King, new[] { ("room_burning_progress", 60L) }, none, true, 150 + BossSignalTracker.ArenaGapMs);
+            Equal(BossSignalKind.Progress, later.Single().Kind, "counting on: its count, not the arena again");
+
             var idle = new BossSignalTracker();
             idle.Update(catalog, King, new[] { ("sandstorm", 0L) }, none, false, 0);
             Equal(0, idle.Update(catalog, King, new[] { ("sandstorm", 1L) }, none, false, 150).Count, "nothing before the fight is on");
@@ -162,6 +171,10 @@ namespace Poe2Accessibility.Tests
             Equal(new BossSignal(BossSignalKind.Element, "fire", 1), tracker.Update(catalog, King, new[] { ("infuse", 1L), ("element", 0L) }, none, true, 150).Single(), "fire");
             Equal(0, tracker.Update(catalog, King, new[] { ("infuse", 2L), ("element", 0L) }, none, true, 300).Count, "a value with no element");
             Equal(BossMechanicsCatalog.UnknownElement, tracker.Update(catalog, King, new[] { ("infuse", 2L), ("element", 2L) }, none, true, 450).Single().Key, "it changes, to what is not written");
+            tracker.Update(catalog, King, new[] { ("infuse", 0L), ("element", 2L) }, none, true, 600);
+            Equal(0, tracker.Update(catalog, King, new[] { ("infuse", 1L), ("element", 2L) }, none, true, 750).Count, "flipping back at once is the same change");
+            tracker.Update(catalog, King, new[] { ("infuse", 0L), ("element", 2L) }, none, true, 900);
+            Equal(1, tracker.Update(catalog, King, new[] { ("infuse", 1L), ("element", 2L) }, none, true, 150 + BossSignalTracker.ArenaGapMs).Count, "again later");
             Equal("Element: fire", Announcements.BossElement("fire"), "the element's line");
             Equal("The element changes", Announcements.BossElement(BossMechanicsCatalog.UnknownElement), "the unknown's line");
         }
@@ -209,25 +222,26 @@ namespace Poe2Accessibility.Tests
             Equal("2 stacks", Announcements.BossStacks(string.Empty, 2), "a buff the game does not name");
         }
 
-        private static BossPlaceSight Sight(uint id, BossPlaceKind kind, float x, float y, bool active = true, string name = "") =>
-            new(id, kind, kind.ToString(), name, new Vector2(x, y), 20f, active);
+        private static BossPlaceSight Sight(uint id, BossPlaceKind kind, float x, float y, bool active = true, string name = "", Vector2 boss = default) =>
+            new(id, kind, kind.ToString(), name, new Vector2(x, y), 20f, active, boss);
 
         private static void ACoverIsStoodBehindAsSeenFromTheBoss()
         {
             var cover = Sight(1, BossPlaceKind.Cover, 500, 0);
-            Equal(new Vector2(540, 0), BossPlaces.Target(cover, Vector2.Zero, 10f), "its radius and a body's width beyond it, away from the boss");
-            Equal(new Vector2(500, 0), BossPlaces.Target(cover, new Vector2(500, 0), 10f), "a boss standing on it: the cover itself");
-            Equal(new Vector2(500, 0), BossPlaces.Target(Sight(2, BossPlaceKind.Use, 500, 0), Vector2.Zero, 10f), "any other place: where it stands");
+            Equal(new Vector2(540, 0), BossPlaces.Target(cover, 10f), "its radius and a body's width beyond it, away from its boss");
+            Equal(new Vector2(500, 0), BossPlaces.Target(Sight(1, BossPlaceKind.Cover, 500, 0, boss: new Vector2(500, 0)), 10f), "a boss standing on it: the cover itself");
+            Equal(new Vector2(460, 0), BossPlaces.Target(Sight(1, BossPlaceKind.Cover, 500, 0, boss: new Vector2(900, 0)), 10f), "the other side for a boss on the other side");
+            Equal(new Vector2(500, 0), BossPlaces.Target(Sight(2, BossPlaceKind.Use, 500, 0), 10f), "any other place: where it stands");
 
             var places = new BossPlaces();
-            var news = places.Update(new[] { cover }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false);
+            var news = places.Update(new[] { cover }, new Vector2(0, 300), 10f, false);
             Equal(new BossPlaceNews(BossPlaceKind.Cover, string.Empty, new Vector2(540, 0)), news.Single(), "said with the place to stand");
             Equal(new Vector2(540, 0), places.Lead!.Value.At, "the beat leads behind it");
-            Equal(0, places.Update(new[] { cover }, Vector2.Zero, new Vector2(530, 0), 10f, 40f, false).Count, "once");
+            Equal(0, places.Update(new[] { cover }, new Vector2(530, 0), 10f, false).Count, "once");
             Equal(true, places.Lead == null, "behind it: no more beat");
-            places.Update(new[] { cover }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false);
+            places.Update(new[] { cover }, new Vector2(0, 300), 10f, false);
             Equal(true, places.Lead == null, "found once, it is not led to again");
-            Equal(1, places.Update(new[] { Sight(3, BossPlaceKind.Cover, 0, 500) }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false).Count, "another cover is news");
+            Equal(1, places.Update(new[] { Sight(3, BossPlaceKind.Cover, 0, 500) }, new Vector2(0, 300), 10f, false).Count, "another cover is news");
         }
 
         private static void TheMostPressingPlaceLeads()
@@ -239,27 +253,27 @@ namespace Poe2Accessibility.Tests
                 Sight(1, BossPlaceKind.Use, 100, 0, name: "Lever"), Sight(2, BossPlaceKind.Clone, 800, 0), Sight(3, BossPlaceKind.Refuge, 0, 900),
                 Sight(4, BossPlaceKind.Refuge, 0, 400, active: false),
             };
-            var news = places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false);
+            var news = places.Update(sights, player, 10f, false);
             Equal("Refuge,Clone,Use", string.Join(",", news.Select(line => line.Kind)), "each said, the most pressing first; a refuge that is not up is none");
             Equal("True,True,False", string.Join(",", news.Select(line => line.Pressing)), "the shelter and the clone press, the lever does not");
             Equal(new Vector2(0, 900), places.Lead!.Value.At, "the shelter first");
-            places.Update(sights, new Vector2(300, 300), player, 10f, 40f, true);
+            places.Update(sights, player, 10f, true);
             Equal(new Vector2(800, 0), places.Lead!.Value.At, "sheltered: the next kind");
-            Equal(0, places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false).Count, "nothing is said twice");
-            places.Update(sights.Take(2).ToList(), new Vector2(300, 300), player, 10f, 40f, false);
-            Equal(1, places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false).Count, "a shelter that comes up again is said again");
+            Equal(0, places.Update(sights, player, 10f, false).Count, "nothing is said twice");
+            places.Update(sights.Take(2).ToList(), player, 10f, false);
+            Equal(1, places.Update(sights, player, 10f, false).Count, "a shelter that comes up again is said again");
         }
 
         private static void AThingToUseIsToldOfOnceAndNeverLedTo()
         {
             var places = new BossPlaces();
             var levers = new[] { Sight(1, BossPlaceKind.Use, 900, 0, name: "Lever"), Sight(2, BossPlaceKind.Use, 300, 0, name: "Lever"), Sight(3, BossPlaceKind.Break, 50, 0) };
-            var news = places.Update(levers, Vector2.Zero, Vector2.Zero, 10f, 40f, false);
+            var news = places.Update(levers, Vector2.Zero, 10f, false);
             Equal(new BossPlaceNews(BossPlaceKind.Use, "Lever", new Vector2(300, 0)), news.Single(), "the nearest of its name speaks for all of them; a nameless thing tells nothing");
             Equal(false, news.Single().Pressing, "told of, not a place to run to");
             Equal(true, places.Lead == null, "never led to: the files do not say whether using it helps");
-            Equal(0, places.Update(levers, Vector2.Zero, Vector2.Zero, 10f, 40f, false).Count, "once a fight");
-            Equal(1, places.Update(new[] { Sight(4, BossPlaceKind.Break, 100, 100, name: "Lever") }, Vector2.Zero, Vector2.Zero, 10f, 40f, false).Count, "the same name to break is another thing");
+            Equal(0, places.Update(levers, Vector2.Zero, 10f, false).Count, "once a fight");
+            Equal(1, places.Update(new[] { Sight(4, BossPlaceKind.Break, 100, 100, name: "Lever") }, Vector2.Zero, 10f, false).Count, "the same name to break is another thing");
             Equal("Lever, can be used, right", Announcements.BossPlace(BossPlaceKind.Use, "Lever", 0, false), "its line");
         }
 
@@ -297,6 +311,10 @@ namespace Poe2Accessibility.Tests
             Equal(2, warnings.Update(new[] { (8u, true), (9u, true) }, 5000).Count, "each helper its own warning");
             warnings.Update(Array.Empty<(uint, bool)>(), 5300);
             Equal(1, warnings.Update(new[] { (8u, true) }, 5600).Count, "one that left and came again is new");
+
+            var (helper, player) = (new Vector2(100, 100), new Vector2(100, 400));
+            Equal(helper, BossHelperWarnings.AimOf(new AttackArea(AttackAreas.Circle, 10f, 0f, 0f, 0f, 0), helper, player), "an area around the helper lies where it stands");
+            Equal(player, BossHelperWarnings.AimOf(new AttackArea(AttackAreas.Rectangle, 10f, 4f, 0f, 0f, 0), helper, player), "a line points at the player it walks toward");
         }
 
         /// <summary>The catalog as shipped, against what the play log of 2026-11-12 saw in Zalmarath's and Jamanra's arenas (docs/research/boss-mechanics.md §16).</summary>
@@ -329,6 +347,7 @@ namespace Poe2Accessibility.Tests
             Equal("Something to break, down", Announcements.BossPlace(BossPlaceKind.Break, string.Empty, 6, false), "a nameless thing to break");
             Equal("The boss: Charged Tornado. The tornadoes are empowering the King", Announcements.BossEmpowered(null, "Charged Tornado. The tornadoes are empowering the King"), "the game's words");
             Equal("Jamanra is empowered", Announcements.BossEmpowered("Jamanra", string.Empty), "no words: that it is");
+            Equal("The boss is no longer empowered", Announcements.BossEmpowerEnded(null), "its end, for a buff the game does not name");
             Equal("Progress 25 percent", Announcements.BossProgress(2, 8), "a share of the top");
             Equal("Progress 6", Announcements.BossProgress(6, null), "a value");
             Equal("Sandstorm", Announcements.BossArena("sandstorm"), "an arena's kind");

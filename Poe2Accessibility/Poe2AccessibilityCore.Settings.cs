@@ -127,11 +127,6 @@ namespace Poe2Accessibility
                 this.weakPoint.ReachWorld = reach;
             }
 
-            if (this.bosses?.Mechanics is { } bossMechanics)
-            {
-                bossMechanics.ReachWorld = reach;
-            }
-
             if (this.objectSounds != null)
             {
                 this.objectSounds.Gain = Fraction(settings.ObjectVolume);

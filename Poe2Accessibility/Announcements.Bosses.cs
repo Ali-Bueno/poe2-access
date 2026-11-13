@@ -90,6 +90,10 @@ namespace Poe2Accessibility
             _ => $"{name}: {text}",
         };
 
+        /// <summary>A buff that empowered or protected the boss ended, and the game gives it no name to say.</summary>
+        public static string BossEmpowerEnded(string? name) =>
+            name == null ? T("The boss is no longer empowered", "El jefe ya no está fortalecido") : T($"{name} is no longer empowered", $"{name} ya no está fortalecido");
+
         /// <summary>Adds came into the fight whose own skill empowers or protects the boss.</summary>
         public static string BossFed() => T("Its adds empower it", "Sus esbirros lo fortalecen");
 

@@ -16,8 +16,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Adds that empower the boss are said again no sooner than this (ms): a wave comes in over a few seconds.</summary>
         private const int FeedersGapMs = 8000;
 
+        /// <summary>
+        ///     With no fought boss seen this long (ms) the fight is over and its places and buffs are forgotten: one poll
+        ///     without the boss (out of the watched range, a torn read) is not its end.
+        /// </summary>
+        private const int FightOverMs = 3000;
+
         private readonly List<(Boss Boss, BossSignal Signal)> signals = new();
+        private readonly Dictionary<uint, BossSignalTracker> signalTrackers = new();
+        private readonly List<string> calm = new();
         private readonly BossPlayerBuffs playerBuffs = new();
+        private long lastFightAt = long.MinValue / 2;
         private readonly HashSet<string> described = new(StringComparer.Ordinal);
         private readonly HashSet<(uint, long)> grabWorded = new();
         private readonly Dictionary<uint, string?> helpers = new();
@@ -35,11 +44,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A skill's danger area from the game's tables (set by <see cref="BossWatch"/>, which reads them).</summary>
         public Func<string, AttackArea?> AreaOf { get; set; } = _ => null;
 
-        /// <summary>Plays the dodge warning from a place (world): a helper's danger has no attack of the boss's to carry it.</summary>
-        public Action<Vector2>? HelperCue { get; set; }
-
-        /// <summary>The gap within which the player is at a place (the melee reach setting).</summary>
-        public float ReachWorld { get; set; } = 40f;
+        /// <summary>
+        ///     Plays the dodge warning from a place (world): a helper's danger has no attack of the boss's to carry it. False
+        ///     when the dodge warnings are off: then nothing is said of it either.
+        /// </summary>
+        public Func<Vector2, bool>? HelperCue { get; set; }
 
         /// <summary>Where the heartbeat leads in a boss fight: a hiding boss, the way out of its walls, a place of its arena; null when nowhere.</summary>
         public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? (this.WayOut is { } wayOut ? (wayOut, 0f) : this.places?.Lead);
@@ -72,9 +81,31 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the files mark a skill as impossible to dodge-roll, evade or block.</summary>
         public bool IsUnavoidable(string skill) => this.Catalog.IsUnavoidable(skill);
 
+        /// <summary>The game reset a boss's encounter: what its fight said once is said again.</summary>
+        private void RestartCensus(uint boss)
+        {
+            this.signalTrackers.Remove(boss);
+            this.described.Clear();
+        }
+
+        /// <summary>The poll's lines that are true only now (a count, a thing to use): said after the urgent ones, never cutting them.</summary>
+        private void SayCalm()
+        {
+            foreach (var text in this.calm.Distinct(StringComparer.Ordinal))
+            {
+                this.output.Say(SpeechKind.BossLife, text, happened: true);
+                this.log.Info($"Boss note: {text}");
+            }
+
+            this.calm.Clear();
+        }
+
         private void ResetCensus()
         {
             this.signals.Clear();
+            this.signalTrackers.Clear();
+            this.calm.Clear();
+            this.lastFightAt = long.MinValue / 2;
             this.playerBuffs.Reset();
             this.described.Clear();
             this.grabWorded.Clear();
@@ -92,7 +123,13 @@ namespace Poe2Accessibility.Services
             var buffs = entity.TryGetComponent<Buffs>(out var effects)
                 ? effects.StatusEffects.Keys.SelectMany(key => new[] { key, BuffIds.Base(key) }).Distinct().ToList()
                 : new List<string>();
-            foreach (var signal in boss.Signals.Update(this.Catalog, boss.Monster, states, buffs, boss.Engaged, now))
+            // Kept by entity, not with the boss's record: that record is made anew whenever a read of the boss fails.
+            if (!this.signalTrackers.TryGetValue(entity.Id, out var tracker))
+            {
+                this.signalTrackers[entity.Id] = tracker = new BossSignalTracker();
+            }
+
+            foreach (var signal in tracker.Update(this.Catalog, boss.Monster, states, buffs, boss.Engaged, now))
             {
                 this.signals.Add((boss, signal));
             }
@@ -101,27 +138,32 @@ namespace Poe2Accessibility.Services
         /// <summary>The poll's end: the bosses' signals, the fight's places and what it put on the player, as lines.</summary>
         private void EndCensusPoll(IReadOnlyList<Boss> fighting, bool multi, long now, List<string> said)
         {
-            foreach (var (boss, signal) in this.signals)
+            var changed = this.signals.ToList();
+            this.signals.Clear();
+            foreach (var (boss, signal) in changed)
             {
                 this.log.Info($"Boss signal: {boss.Monster} {signal.Kind} {signal.Key} {signal.Value}");
                 if (this.SignalLine(boss, signal, multi) is { Length: > 0 } line)
                 {
-                    said.Add(line);
+                    (signal.Kind == BossSignalKind.Progress ? this.calm : said).Add(line);
                 }
             }
 
-            this.signals.Clear();
             this.Positions.Learn();
             if (fighting.Count == 0)
             {
-                this.playerBuffs.Reset();
-                this.places?.Reset();
+                if (now - this.lastFightAt >= FightOverMs)
+                {
+                    this.playerBuffs.Reset();
+                    this.places?.Reset();
+                }
+
                 return;
             }
 
+            this.lastFightAt = now;
             this.NoteFeeders(fighting, now, said);
             this.places ??= new BossPlacesWatch(this.elements, this.memory, this.Positions, this.log);
-            this.places.ReachWorld = this.ReachWorld;
             this.places.AreaOf = this.AreaOf;
             foreach (var news in this.playerBuffs.Update(this.Catalog, PlayerBuffs(), this.places.RefugeUp, now))
             {
@@ -130,12 +172,7 @@ namespace Poe2Accessibility.Services
             }
 
             said.AddRange(this.places.Poll(this.Catalog, fighting.Select(boss => (boss.Monster, boss.At)).ToList(), this.playerBuffs.Sheltered, this.Heartbeat(), now));
-            foreach (var told in this.places.Told)
-            {
-                this.output.Say(SpeechKind.BossLife, told);
-                this.log.Info($"Boss place told: {told}");
-            }
-
+            this.calm.AddRange(this.places.Told);
             foreach (var (at, area) in this.places.HelperNews)
             {
                 this.WarnOfHelper(at, area, now);
@@ -145,14 +182,15 @@ namespace Poe2Accessibility.Services
         /// <summary>A helper's danger reached the player: the dodge warning from its side and, with time between words, the way out of its area.</summary>
         private void WarnOfHelper(Vector2 at, AttackArea? area, long now)
         {
-            this.HelperCue?.Invoke(at);
-            if (now - this.lastWordAt < WordGapMs || !Seats.Followed.TryGetComponent<Render>(out var player))
+            if (this.HelperCue?.Invoke(at) == false || now - this.lastWordAt < WordGapMs || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            var answer = area is { Shape.Length: > 0 } shape ? BossCounterplay.Of(shape, at, at, here, player.ModelBounds.X, AttackAim.MarginWorld) : null;
+            var answer = area is { Shape.Length: > 0 } shape
+                ? BossCounterplay.Of(shape, at, BossHelperWarnings.AimOf(shape, at, here), here, player.ModelBounds.X, AttackAim.MarginWorld)
+                : null;
             var kind = answer?.Kind ?? CounterplayKind.Move;
             var octant = answer is { Kind: CounterplayKind.Step } step ? ScreenProjection.Octant(player.WorldPosition, step.Way * ProbeWorld) : 0;
             var text = Announcements.Counterplay(kind, octant);
@@ -187,7 +225,9 @@ namespace Poe2Accessibility.Services
                 case BossSignalKind.Empowered:
                     return Announcements.BossEmpowered(name, this.Catalog.BuffText(signal.Key, Localization.Language) is (var title, var description) ? BossTexts.Line(title, description) : string.Empty);
                 default:
-                    return this.Catalog.BuffText(signal.Key, Localization.Language) is { Name.Length: > 0 } text ? Announcements.ResourceEnded(text.Name) : null;
+                    return this.Catalog.BuffText(signal.Key, Localization.Language) is { Name.Length: > 0 } text
+                        ? Announcements.ResourceEnded(text.Name)
+                        : Announcements.BossEmpowerEnded(name);
             }
         }
 
@@ -206,7 +246,7 @@ namespace Poe2Accessibility.Services
                     this.output.Urge(Announcements.BossGrabbed(), WordHoldMs);
                     break;
                 case PlayerFightNewsKind.Stack:
-                    said.Add(Announcements.BossStacks(text?.Name ?? string.Empty, news.Count));
+                    this.calm.Add(Announcements.BossStacks(text?.Name ?? string.Empty, news.Count));
                     break;
                 case PlayerFightNewsKind.Zone when text is (var name, var description):
                     // Its description once a fight; its name each time, unless the harmful buffs' news already names it.
@@ -243,7 +283,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The word for an attack with which the boss seizes the player, once per attack.</summary>
         private void GrabWord(uint id, long startedAt, in DodgeDecision decision, string? skill, long now)
         {
-            if (skill == null || decision.Verdict == DodgeVerdict.Silent || !this.bosses.TryGetValue(id, out var boss) ||
+            if (skill == null || decision.Verdict == DodgeVerdict.Silent || !this.bosses.TryGetValue(id, out var boss) || !boss.Engaged ||
                 !this.Catalog.IsGrab(boss.Monster, skill) || !this.grabWorded.Add((id, startedAt)))
             {
                 return;
