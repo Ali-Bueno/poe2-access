@@ -629,3 +629,6 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 
 `config/settings.txt` keeps keyboard hotkeys for repeat, status and the UI dump; pressing a key switches
 the game to keyboard mode, so they are for development only.
+
+- **Ctrl** (either one) stops the speech at once, like a screen reader's Ctrl; once per press, so Ctrl held
+  for Ctrl+click stops it once. `StopSpeechHotKey` in `settings.txt` (`0` turns it off).
