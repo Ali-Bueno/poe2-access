@@ -334,6 +334,12 @@ namespace Poe2Accessibility
         /// <summary>Name a skill when its cooldown runs out and it can be used again: "Granada explosiva disponible".</summary>
         public bool CooldownSpeech = true;
 
+        /// <summary>
+        ///     The shortest cooldown, in seconds, worth announcing as ready (speech and sound); 0 for every skill. A grenade
+        ///     on 3.4 s said "disponible" 27 times in one fight; the default is a first guess.
+        /// </summary>
+        public int CooldownMinSeconds = 6;
+
         /// <summary>The same as <see cref="CooldownSpeech"/>, heard: a bolt's click as a skill can be used again.</summary>
         public bool CooldownSounds = true;
 

@@ -521,6 +521,7 @@
  "Skeletons": "โครงกระดูก",
  "Skill ready": "สกิลพร้อมใช้",
  "Skills": "สกิล",
+ "Skills ready: shortest cooldown worth announcing, seconds, 0 for every skill": "สกิลพร้อมใช้: คูลดาวน์สั้นที่สุดที่จะประกาศ เป็นวินาที 0 คือทุกสกิล",
  "Slowed": "เชื่องช้า",
  "Small obstacles sound hollow": "สิ่งกีดขวางเล็กมีเสียงกลวง",
  "Small unexplored ground": "พื้นที่เล็กที่ยังไม่ได้สำรวจ",

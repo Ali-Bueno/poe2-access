@@ -521,6 +521,7 @@
  "Skeletons": "Skelette",
  "Skill ready": "Fertigkeit bereit",
  "Skills": "Fertigkeiten",
+ "Skills ready: shortest cooldown worth announcing, seconds, 0 for every skill": "Fertigkeiten bereit: kürzeste angesagte Abklingzeit in Sekunden, 0 für alle",
  "Slowed": "Verlangsamt",
  "Small obstacles sound hollow": "Kleine Hindernisse klingen hohl",
  "Small unexplored ground": "Kleines unerforschtes Gelände",

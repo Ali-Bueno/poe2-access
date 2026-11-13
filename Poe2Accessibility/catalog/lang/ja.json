@@ -521,6 +521,7 @@
  "Skeletons": "スケルトン",
  "Skill ready": "スキル使用可能",
  "Skills": "スキル",
+ "Skills ready: shortest cooldown worth announcing, seconds, 0 for every skill": "スキル使用可能: 知らせる最短のクールダウン(秒)、0ですべてのスキル",
  "Slowed": "減速",
  "Small obstacles sound hollow": "小さな障害物は空洞音",
  "Small unexplored ground": "未探索の小さな地面",

@@ -21,6 +21,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ComboSpeech) => T("Say combo points", "Decir puntos de combo"),
             nameof(AccessibilitySettings.ComboSounds) => T("Sounds of combo points", "Sonidos de puntos de combo"),
             nameof(AccessibilitySettings.CooldownSpeech) => T("Say skills ready after their cooldown", "Decir habilidades listas tras recargarse"),
+            nameof(AccessibilitySettings.CooldownMinSeconds) => T("Skills ready: shortest cooldown worth announcing, seconds, 0 for every skill", "Habilidades listas: recarga más corta que se anuncia, segundos, 0 para todas"),
             nameof(AccessibilitySettings.CooldownSounds) => T("Sound of skills ready after their cooldown", "Sonido de habilidades listas tras recargarse"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
             nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),

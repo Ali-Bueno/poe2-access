@@ -190,6 +190,17 @@ namespace Poe2Accessibility.Tests
             cooldowns.Reset();
             Equal(0, cooldowns.Update(Usable(false), 20000).Count, "a new area only remembers what is spent");
             Equal(grenade, cooldowns.Update(Usable(true), 20100).Single(), "spent since before the area: its end is news at once");
+
+            const long sixSeconds = 6000;
+            cooldowns.Update(Usable(false), 30000, sixSeconds);
+            Equal(0, cooldowns.Update(Usable(true), 33400, sixSeconds).Count, "a 3.4 s cooldown is under the shortest worth a line");
+            cooldowns.Update(Usable(false), 40000, sixSeconds);
+            Equal(grenade, cooldowns.Update(Usable(true), 46000, sixSeconds).Single(), "a cooldown of the shortest is announced");
+            cooldowns.Update(Usable(false), 50000, 0);
+            Equal(grenade, cooldowns.Update(Usable(true), 53400, 0).Single(), "0 announces every skill");
+            cooldowns.Reset();
+            cooldowns.Update(Usable(false), 60000, sixSeconds);
+            Equal(grenade, cooldowns.Update(Usable(true), 60100, sixSeconds).Single(), "spent before the area: its length is unknown, so its end is news");
         }
 
         private static void ChargesAreKnownByTheirBuff()

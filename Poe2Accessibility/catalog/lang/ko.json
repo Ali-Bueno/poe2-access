@@ -521,6 +521,7 @@
  "Skeletons": "스켈레톤",
  "Skill ready": "스킬 사용 가능",
  "Skills": "스킬",
+ "Skills ready: shortest cooldown worth announcing, seconds, 0 for every skill": "스킬 준비 완료: 알려 줄 가장 짧은 재사용 대기시간(초), 0은 모든 스킬",
  "Slowed": "감속",
  "Small obstacles sound hollow": "작은 장애물은 텅 빈 소리",
  "Small unexplored ground": "작은 미탐색 지형",

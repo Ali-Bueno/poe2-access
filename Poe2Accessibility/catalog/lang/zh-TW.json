@@ -521,6 +521,7 @@
  "Skeletons": "骷髏",
  "Skill ready": "技能可用",
  "Skills": "技能",
+ "Skills ready: shortest cooldown worth announcing, seconds, 0 for every skill": "技能就緒：值得通報的最短冷卻時間（秒），0 代表所有技能",
  "Slowed": "減緩",
  "Small obstacles sound hollow": "小型障礙物發出空洞聲",
  "Small unexplored ground": "未探索的小片地面",

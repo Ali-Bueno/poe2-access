@@ -24,6 +24,8 @@ namespace Poe2Accessibility.Services
 
         private const int MaxCooldowns = 64;
 
+        private const int MsPerSecond = 1000;
+
         private const int MaxUses = 32;
 
         private const string EntriesPart = "cooldowns";
@@ -89,7 +91,7 @@ namespace Poe2Accessibility.Services
 
             this.JudgeEntries(actor.Address);
             this.JudgeIds(actor.Address);
-            var ready = this.cooldowns.Update(usable, now).Select(id => names[id]).Distinct().ToList();
+            var ready = this.cooldowns.Update(usable, now, settings.CooldownMinSeconds * MsPerSecond).Select(id => names[id]).Distinct().ToList();
             if (ready.Count == 0)
             {
                 return;
