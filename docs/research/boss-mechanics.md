@@ -564,3 +564,40 @@ plugin can time most daemons only by their distance to the player and their skil
 **Left out, as loose in the census:** SH/area object?, SH shelter?, NB named buff with no text, TE beam link, HL heal, PH
 phase-break (a GEAL on the boss itself), DZ damage rule, MK mark, BT buff text, BR the boss acting on an object (no line in the
 contract), NP no-teleport, D hidden attack.
+
+## 16. The census in the plugin (2026-11-13; unit tests and the play log, none heard in a fight)
+
+One handler per class, fed by the catalog lines of §15. `BossMechanicsWatch.Census.cs` wires them; each rule is a pure
+class with tests (`BossFightTests`), and `TheShippedCatalogHoldsTheFightsThePlayLogMet` holds the shipped catalog to what
+the play log saw.
+
+| Class | Signal at run time | What is said or sounded | Where |
+|---|---|---|---|
+| D a boss out of play | the fought boss, with the game's `hidden_monster` buff | its attacks are judged as before (dodge cue, way out); a boss not yet fought stays silent | `BossMechanicsWatch.StrikesForBoss`, `BossWatch.WatchNear` |
+| D helpers | a `daemon\|` entity near the fought boss whose own skill's area (`telegraph-skills.txt`), centred on it, holds the player; with no area in the files, within 150 world units | the dodge cue from its side and the way out ("¡Sal!", "¡Muévete!"), once per approach, again after 1.5 s clear of it | `BossPlacesWatch.NoteHelper`, pure `BossHelperWarnings` |
+| U unavoidable | the attack's skill is an `unavoidable\|` one (also `;noblock` in the hit times since step 5) | the unblockable cue at the wind-up | `BossWatch.WatchAttack` |
+| EM | an `empowered\|` buff on the fought boss; `consume\|` adds coming into play | "El jefe: Fe de la Orden del crepúsculo. Los sacerdotes…", "… se acabó"; "Sus esbirros lo fortalecen" (at most every 8 s) | pure `BossSignalTracker`, `NoteFeeders` |
+| AR | an `arena\|` state of the boss rising from 0 | "La arena arde / se derrumba / cambia", "Tormenta de arena", "El jefe se retira"; the same state no sooner than 3 s | `BossSignalTracker` |
+| MG, EL | a `progress\|` state moving; an `element\|` state value | "Progreso 3" (every 3 s at most; by quarters where a top is written, none on 0.5.5f); "Elemento: fuego", "Cambia de elemento" | `BossSignalTracker` |
+| SH | a `refuge\|` entity with its state set; a `shelter\|` buff on the player | "Refugio junto a Asala: sigue el latido, arriba", the heartbeat until "A cubierto"; "Fuera del refugio" while it is still up | pure `BossPlaces`, `BossPlayerBuffs` |
+| CL | a `clone\|` entity with its state set | "El verdadero: sigue el latido, …", the heartbeat while it is | `BossPlaces` |
+| CV | a `cover\|` entity | "Cobertura: sigue el latido, …", to a body's width behind it as seen from the boss, until stood there once | `BossPlaces.Target` |
+| US, OB | a `use\|` / `target\|` entity that has a name and can be targeted | "Incensario, se puede romper, izquierda", once a fight per name, **not urgent and never led to** | `BossPlaces` |
+| GZ, ST | a `zone\|` buff beginning on the player; a `stack\|` buff's count held 400 ms | the buff's name and description from the `text\|` lines, the description once a fight (only the description when the harmful buffs' news already names it); "Arcada explosiva, 3" | `BossPlayerBuffs` |
+| GR | the boss's attack with a `grab\|` skill, aimed at the player | "¡Agarre!" | `BossMechanicsWatch.GrabWord` |
+
+**What the play log of 2026-11-12 showed** (the owner's fights with Zalmarath, Azarian, Balbala, Jamanra; `Boss arena:` lines
+of `BossArenaLog`), and what was built on it:
+- A helper is its own entity the host cannot type (`Metadata/Monsters/InvisibleFire/MDPerennialKingObsidianStorm_`,
+  `…/MDTitanBossLaserTarget`: a Render component, state `move_daemon` 1 then 2), spawned half a second after the **boss's**
+  action `MoveDaemon` (skill `MDPerennialKingObsidianBall`, which the dodge gate already judged) and then walking toward
+  the player for 16 s and more. So a helper is not judged as an attacker: it warns by where it is.
+- Zalmarath's sword (`TitanBoss/BrainStalagmite`) came twice a fight and has **no Render component**, as have most arena
+  markers. Its place is the cell its Positioned component holds, at an offset found live from entities that have both
+  ([compatibility](../compatibility.md#found-again-at-runtime-plugin): +0x444 on 0.5.5f, `EntityPlaces`, dev command `positioned`).
+- Why things to use or break are not led to: the catalog's `target\|` lines hold Azarian's censers (breaking one leaves
+  lasting fire, §13) and Zalmarath's fissure lines (72 in the log, not strikable); the files cannot tell a help from a trap.
+
+**Not done, each for its reason:** BR (the boss acting on an object: "plataforma rota") has no line in the catalog; the
+Risen King's sword circle is still not found in the files (§13); a helper's blow is not timed (13 of 21 helpers play no
+animation, §15); the counters' tops are in no script; which of the eight markers Asala shelters at is the server's.
