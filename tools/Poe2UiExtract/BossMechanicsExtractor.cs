@@ -6,7 +6,8 @@ using Index = LibBundle3.Index;
 ///     Every monster with the boss life bar (MonsterVarieties.BossHealthBar) and, from its script (.ot) and the scripts it
 ///     extends: the state values that hide it, its phase, enrage and hide-and-seek states, the monsters it brings (adds, or its next form
 ///     when they have a boss bar too) and the voice lines that announce a mechanic, in every language the game ships; then
-///     the buffs that make a monster unhurtable or enraged, and those whose description tells the player to stop or keep moving.
+///     the buffs that make a monster unhurtable or enraged, and those whose description tells the player to stop or keep moving;
+///     then the census's classes (<see cref="BossCensus"/>, docs/research/boss-mechanics.md §15) and their buffs' own words.
 /// </summary>
 internal static class BossMechanicsExtractor
 {
@@ -17,7 +18,6 @@ internal static class BossMechanicsExtractor
     private const string HiddenStat = "is_hidden_monster";
     private const string UnhurtableStat = "base_cannot_be_damaged";
     private const string InanimateScript = "Metadata/Utility/InanimateObject";
-    private const char Field = '|';
 
     private static readonly Regex StopMoving = new(@"\b(stop moving|stand still|remain still|stay still|do not move|don't move)\b", RegexOptions.IgnoreCase);
     private static readonly Regex KeepMoving = new(@"\b(keep moving|moving breaks|moving .{0,40}\bbreak|(move|run)\b.{0,40}\bto break\b)", RegexOptions.IgnoreCase);
@@ -29,6 +29,13 @@ internal static class BossMechanicsExtractor
         "# enrage|monster|state   seek|monster|state (it hides until the player comes near)   add|monster|monster it brings",
         "# form|monster|boss it turns into   wall|monster|add that is a wall standing in the way   buff|id|invulnerable or enrage",
         "# move|buff id|stop or keep (the player's rule)   line|language|text|monster|skill or -|line id (a voice line announcing a mechanic)",
+        "# The census's classes (docs/research/boss-mechanics.md §15): daemon|monster|helper monster|its skills, comma-separated (an invisible helper's area attack)",
+        "# arena|monster|state|burn, dark, flood, lava, collapse, shrink, sandstorm, maze, retreat, platform or change   empowered|monster|buff (its text says others empower it)",
+        "# consume|monster|add it consumes   shelter|monster|buff on the player that shelters   refuge|monster|monster or object|state non-zero while it shelters",
+        "# cover|monster|object to hide behind   clone|monster|clone path|state marking the true one   use|monster|object to use   target|monster|object or add to break",
+        "# progress|monster|state[|maximum]   element|monster|state=value|element (fire, cold, lightning, chaos, physical), or element|monster|state|- when no handler names it",
+        "# stack|buff|monster (its count on the player)   grab|monster|skill that holds the player   grabbed|monster|buff on the held player   zone|monster|buff of an area",
+        "# unavoidable|monster|skill (cannot be dodged, evaded or blocked)   text|language|buff|name|description (the census's buffs' own words)",
     };
 
     public static int Run(Index index, string outFile)
@@ -50,14 +57,26 @@ internal static class BossMechanicsExtractor
 
         var files = index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(ScriptExtension, StringComparison.OrdinalIgnoreCase))
             .GroupBy(file => file.Path!.ToLowerInvariant()).ToDictionary(group => group.Key, group => group.First());
-        var scripts = new Dictionary<string, BossScripts.Script?>(StringComparer.Ordinal);
-        BossScripts.Script? ScriptOf(string path)
+        var texts = new Dictionary<string, string?>(StringComparer.Ordinal);
+        string? TextOf(string path)
         {
             var key = (path.EndsWith(ScriptExtension, StringComparison.OrdinalIgnoreCase) ? path : path + ScriptExtension).ToLowerInvariant();
-            if (!scripts.TryGetValue(key, out var script))
+            if (!texts.TryGetValue(key, out var text))
             {
-                script = files.TryGetValue(key, out var file) ? BossScripts.Parse(file.ReadText()) : null;
-                scripts[key] = script;
+                text = files.TryGetValue(key, out var file) ? file.ReadText() : null;
+                texts[key] = text;
+            }
+
+            return text;
+        }
+
+        var scripts = new Dictionary<string, BossScripts.Script?>(StringComparer.OrdinalIgnoreCase);
+        BossScripts.Script? ScriptOf(string path)
+        {
+            if (!scripts.TryGetValue(path, out var script))
+            {
+                script = TextOf(path) is { } text ? BossScripts.Parse(text) : null;
+                scripts[path] = script;
             }
 
             return script;
@@ -92,7 +111,7 @@ internal static class BossMechanicsExtractor
 
             bosses++;
             var id = monsters.String(row, 0);
-            output.Add($"boss|{id}|{Clean(monsters.StringOrNull(row, c.Name) ?? string.Empty)}");
+            output.Add($"boss|{id}|{BossScripts.Clean(monsters.StringOrNull(row, c.Name) ?? string.Empty)}");
             var chain = Chain(monsters.StringOrNull(row, c.Script) ?? string.Empty, ScriptOf);
             output.AddRange(chain.SelectMany(script => script.Hides).Distinct().Select(hide => $"hide|{id}|{hide.State}={hide.Value}"));
             output.AddRange(chain.SelectMany(script => script.PhaseStates).Distinct().Select(state => $"phase|{id}|{state}"));
@@ -113,13 +132,20 @@ internal static class BossMechanicsExtractor
             played.AddRange(chain.SelectMany(script => script.Lines).Where(line => BossScripts.AnnouncesMechanic(line.Handler, line.Line, KindOf(line.Handler))).Select(line => (id, line.Handler, line.Line)));
         }
 
+        // The census's classes stand apart: a table or column of theirs not found leaves them out, said, and the rest is written.
+        var census = BossCensus.Build(index, monsters, skills, kinds, stats, buffs, c, buffColumns, TextOf, files);
+        var written = output.ToHashSet(StringComparer.Ordinal);
+        output.AddRange((census?.Lines ?? Array.Empty<string>()).Where(written.Add));
         var (buffLines, rules) = Buffs(buffs, stats, c, buffColumns);
         output.AddRange(buffLines);
         var voiced = Lines(index, lines, c, played);
         output.AddRange(voiced);
+        var buffTexts = census is { } found ? BossBuffTexts.Lines(index, buffs, buffColumns, found.Buffs) : new List<string>();
+        output.AddRange(buffTexts);
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, output);
-        Say.Out.WriteLine($"Wrote {outFile}: {bosses} bosses, {buffLines.Count - rules} boss buffs, {rules} movement rules, {voiced.Count} mechanic lines.");
+        Say.Out.WriteLine($"Wrote {outFile}: {bosses} bosses, {buffLines.Count - rules} boss buffs, {rules} movement rules, {voiced.Count} mechanic lines, " +
+                          $"{census?.Lines.Count ?? 0} census lines ({BossCensus.Tally(census?.Lines)}), {buffTexts.Count} buff texts.");
         return 0;
     }
 
@@ -204,7 +230,7 @@ internal static class BossMechanicsExtractor
             {
                 foreach (var row in byStem.GetValueOrDefault(BossScripts.Stem(line)) ?? new List<int>())
                 {
-                    if (!BossScripts.IsVariant(line, english.String(row, 0)) || Clean(table.StringOrNull(row, c.LineText) ?? string.Empty) is not { Length: > 0 } text ||
+                    if (!BossScripts.IsVariant(line, english.String(row, 0)) || BossScripts.Clean(table.StringOrNull(row, c.LineText) ?? string.Empty) is not { Length: > 0 } text ||
                         !said.Add($"{code}|{text}"))
                     {
                         continue;
@@ -217,7 +243,4 @@ internal static class BossMechanicsExtractor
 
         return output;
     }
-
-    /// <summary>A text on one catalog line: no field separator, no line breaks.</summary>
-    private static string Clean(string text) => text.Replace(Field, ' ').Replace('\r', ' ').Replace('\n', ' ').Trim();
 }
