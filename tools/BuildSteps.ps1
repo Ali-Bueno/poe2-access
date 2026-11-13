@@ -177,6 +177,7 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
     if (Test-Path $zip) { Remove-Item $zip -Force }
     Compress-Archive -Path $stage -DestinationPath $zip -CompressionLevel Optimal
     $archives = @(Get-Item $zip)
+    Test-PackageStarts $zip
     # The same folder as .7z (LZMA2): Windows 11 opens it; Windows 10 needs 7-Zip or WinRAR.
     if ($sevenZip) {
         Start-Step '7z'
@@ -187,6 +188,29 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
     }
     $archives | ForEach-Object { Write-Host ('Package: {0} ({1:N1} MB)' -f $_.FullName, ($_.Length / 1MB)) }
     return $archives
+}
+
+# What a release must not ship: a package that installs and does not start leaves a blind player with a silent mod and no
+# way back. The zip as it will be published is expanded to a temp folder and "Poe2Access.exe check" run in it (files, plugin,
+# PRISM, catalogs: no game, no Steam, no speech); the faults it prints stop the run.
+function Test-PackageStarts([string]$Zip) {
+    Start-Step 'package starts'
+    $temp = Join-Path ([IO.Path]::GetTempPath()) "Poe2AccessCheck-$([guid]::NewGuid().ToString('N'))"
+    try {
+        Expand-Archive -Path $Zip -DestinationPath $temp
+        $exe = Join-Path $temp 'Poe2Access\Poe2Access.exe'
+        $faults = Join-Path $temp 'faults.txt'
+        # Start-Process waits for the window-less exe; its faults come back through a redirected stdout.
+        $run = Start-Process $exe -ArgumentList 'check' -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $faults
+        if ($run.ExitCode -ne 0) {
+            $lines = @(Get-Content $faults -ErrorAction SilentlyContinue | Where-Object { $_ })
+            throw "The package does not start (Poe2Access.exe check exited $($run.ExitCode)): $(if ($lines) { $lines -join '; ' } else { 'no fault was printed, see app\Poe2Access.log in the package' })"
+        }
+        Write-Host 'Package check: it starts (files, plugin, PRISM, catalogs).'
+    }
+    finally {
+        if (Test-Path $temp) { Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue }
+    }
 }
 
 # What the updater (Updater.cs) and the start-up cleanup (AppCleanup.cs) rely on, checked before anything is archived.

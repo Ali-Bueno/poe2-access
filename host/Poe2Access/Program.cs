@@ -6,11 +6,12 @@ using System.ComponentModel;
 internal static class Program
 {
     private const string Usage =
-        "Poe2Access [start|restart|stop|update|extract ...] [<game exe> <its arguments>]\n" +
+        "Poe2Access [start|restart|stop|update|check|extract ...] [<game exe> <its arguments>]\n" +
         "  start    (default) offer a newer version if there is one, open Path of Exile 2 if needed, update the game data, then run the mod until the game closes\n" +
         "  restart  stop the running mod and run it here (does not open the game)\n" +
         "  stop     stop the running mod\n" +
         "  update   look for a newer version now and offer to install it\n" +
+        "  check    verify the installed package starts (files, plugin, PRISM, catalogs) without the game; exit code 0 when it does\n" +
         "  extract  run a game-data extractor command (tools/README.md)\n" +
         "  Steam starts the mod with the game from the launch options: \"<this file's path>\" %command%";
 
@@ -41,6 +42,8 @@ internal static class Program
             case Command.Extract:
                 Dialogs.AttachParentConsole();
                 return Extractor.Run(call.ExtractArguments);
+            case Command.Check:
+                return Check();
         }
 
         Updater.DeleteLeftover();
@@ -68,6 +71,33 @@ internal static class Program
             Dialogs.Fail(error.Message);
             return 1;
         }
+    }
+
+    /// <summary>Tries the installed package where it stands (no game, no Steam, no speech, nothing written but the log); the faults go to the console and the log.</summary>
+    private static int Check()
+    {
+        Dialogs.AttachParentConsole();
+        var folders = AppFolders.Resolve(AppContext.BaseDirectory, Directory.Exists);
+        Log.Configure(Path.Join(folders.Data, LogName));
+        Log.Write("--- check");
+        List<string> faults;
+        try
+        {
+            faults = PackageStartCheck.Run(folders);
+        }
+        catch (Exception error)
+        {
+            faults = [$"The check itself failed: {error}"];
+        }
+
+        foreach (var fault in faults.Select(fault => fault.ReplaceLineEndings(" ")))
+        {
+            Log.Write($"Check fault: {fault}");
+            Console.WriteLine(fault);
+        }
+
+        Log.Write(faults.Count == 0 ? "Check passed" : $"Check failed: {faults.Count} faults");
+        return faults.Count == 0 ? 0 : 1;
     }
 
     private static int Stop(AppFolders folders, int? parent)

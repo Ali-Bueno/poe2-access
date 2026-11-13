@@ -190,6 +190,10 @@ build the package (`BuildSteps.ps1`, `New-ModPackage`): the executable published
 its own deploy step pointed into the package without the game's sounds (`-p:PluginDeployDir=... -p:DeployGameSounds=false`),
 so a new catalog ships with nothing to list, then PRISM's licenses, research mode off, and a check of the layout the
 updater and `AppCleanup.cs` rely on before anything is archived. It needs `external/oodle/oo2core.dll`.
+Once the zip is written (and so before a release is manifested or published, a `-DryRun` too) `Test-PackageStarts` expands it to a temp
+folder and runs the packaged `Poe2Access.exe check`, which stops the run with its faults: a file of `app/package-files.txt` missing or empty,
+the plugin not loading (the host's own loader), PRISM not starting, a catalog or phrase table that does not parse. It needs no game or
+Steam, speaks nothing and writes only `app/Poe2Access.log`; a release that installs and does not start would leave every player's copy silent.
 The top folder holds `Poe2Access.exe` (one self-contained, single-file, not trimmed, uncompressed, ReadyToRun build, ~94 MB: the plugin
 is loaded at run time and uses framework APIs the exe does not, so trimming is off), `README.txt`, the controls and the stop shortcut.
 `app/` holds only `oo2core.dll` (bundle reading), `version.txt`, `package-files.txt` (the package's own files, for the next update to prune by) and `Plugins/Poe2Accessibility` (dll, catalogs including

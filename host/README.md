@@ -22,6 +22,8 @@ does) makes it save the plugin's settings, disable it and exit; it exits by itse
 loaded from `Plugins\Poe2Accessibility\Poe2Accessibility.dll`: beside the executable in a development build, in `app\`
 in the package (`AppFolders.Resolve`). The log is `Poe2Access.log` in that same folder (launcher steps and host lines).
 
+**Check:** `Poe2Access.exe check` tries the installed package without the game, Steam or speech (files of `app/package-files.txt`, the plugin through `PluginHost.TryLoad`, PRISM, catalogs and phrase tables) and exits 0 or prints one fault a line; the release script runs it ([tools](../tools/README.md)).
+
 **Build:** `pwsh tools/build.ps1` builds it with the plugin, which deploys itself into the executable's build folder
 (`Poe2Access/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility`), and runs the tests; `dotnet build` at the
 repository's root builds the same without them ([tools](../tools/README.md)). The three projects share `Directory.Build.props`

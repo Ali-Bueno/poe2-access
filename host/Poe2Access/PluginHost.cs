@@ -24,11 +24,24 @@ namespace Poe2Access
         /// <summary>Loads <c>&lt;directory&gt;/&lt;name&gt;.dll</c>; null when it is missing or has no plugin type.</summary>
         public static PluginHost? Load(string directory, string name)
         {
+            if (TryLoad(directory, name, out var host, out var fault))
+            {
+                return host;
+            }
+
+            HostLog.Line(fault!);
+            return null;
+        }
+
+        /// <summary>The load itself, saying why it failed: also what "check" runs, so the check cannot differ from a start.</summary>
+        public static bool TryLoad(string directory, string name, out PluginHost? host, out string? fault)
+        {
+            host = null;
             var path = Path.Join(directory, $"{name}.dll");
             if (!File.Exists(path))
             {
-                HostLog.Line($"Plugin not found: {path}");
-                return null;
+                fault = $"Plugin not found: {path}";
+                return false;
             }
 
             try
@@ -37,17 +50,19 @@ namespace Poe2Access
                 var type = assembly.GetTypes().FirstOrDefault(t => typeof(IPCore).IsAssignableFrom(t) && !t.IsAbstract);
                 if (type == null || Activator.CreateInstance(type) is not IPCore plugin)
                 {
-                    HostLog.Line($"No plugin type in {path}");
-                    return null;
+                    fault = $"No plugin type in {path}";
+                    return false;
                 }
 
                 plugin.SetPluginDllLocation(directory);
-                return new PluginHost(plugin, name);
+                host = new PluginHost(plugin, name);
+                fault = null;
+                return true;
             }
             catch (Exception error)
             {
-                HostLog.Line($"Plugin load failed: {error}");
-                return null;
+                fault = $"Plugin load failed: {error}";
+                return false;
             }
         }
 

@@ -126,6 +126,7 @@ namespace Poe2Accessibility.Tests
                 LayoutRuleTests.All(),
                 LauncherWaitTests.All(),
                 RequiredStepTests.All(),
+                PackageCheckTests.All(),
                 SpeechEventTests.All(),
                 SpokenOnceTests.All(),
                 WorldCombatAuditTests.All(),
