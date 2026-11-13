@@ -193,6 +193,11 @@ internal static class BossScripts
     /// <summary>The lower-case words of an id: CamelCase and underscores split, digits apart ("CorruptWolf_Skill_IceBreath_2").</summary>
     internal static List<string> WordsOf(string id) => Words.Matches(id).Select(match => match.Value.ToLowerInvariant()).ToList();
 
+    /// <summary>A text on one catalog line: no field separator, no line breaks.</summary>
+    internal static string Clean(string text) => text.Replace(Field, ' ').Replace('\r', ' ').Replace('\n', ' ').Trim();
+
+    private const char Field = '|';
+
     /// <summary>A handler's body: a braced block, a quoted string, or the rest of its line.</summary>
     private static string Body(string text, int start)
     {

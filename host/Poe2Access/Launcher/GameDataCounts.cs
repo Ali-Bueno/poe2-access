@@ -22,7 +22,7 @@ internal static class GameDataCounts
     /// </summary>
     private static readonly Dictionary<string, int> Today = new(StringComparer.Ordinal)
     {
-        ["action-types.txt"] = 964, ["area-names.json"] = 4480, ["attack-reach.txt"] = 7309, ["boss-mechanics.txt"] = 2202,
+        ["action-types.txt"] = 964, ["area-names.json"] = 4480, ["attack-reach.txt"] = 7309, ["boss-mechanics.txt"] = 3219,
         ["buff-names.json"] = 5986, ["class-mechanics.json"] = 47569, ["cull-skills.txt"] = 6, ["currency-art.json"] = 4140,
         ["dat-columns.json"] = 32, ["endgame.json"] = 22382, ["experience.json"] = 100, ["game-ids.txt"] = 1105, ["gems.json"] = 46069,
         ["game-keys.txt"] = 13118, ["hazards.txt"] = 71, ["hit-times.txt"] = 9025, ["inline-icons.txt"] = 187,
