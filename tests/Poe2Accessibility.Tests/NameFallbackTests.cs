@@ -52,6 +52,20 @@ namespace Poe2Accessibility.Tests
             Expect("Objeto sin nombre, Chair", ObjectNames.Spoken("Chair", "es", unnamed));
             Expect("Objeto sin nombre, Chair", ObjectNames.Spoken("Chair", "ja", unnamed));
             Expect(string.Empty, ObjectNames.Spoken(string.Empty, "es", unnamed)); // no word: still no name, as before
+
+            Func<string, string?> known = word => word == "Chair" ? "Silla" : null;
+            Expect("Silla", ObjectNames.Spoken("Chair", "es", unnamed, known));
+            Expect("Objeto sin nombre, Gray Otter", ObjectNames.Spoken("Gray Otter", "es", unnamed, known));
+            try
+            {
+                Localization.Detect("es");
+                Expect("Silla", Announcements.UnnamedObjectWord("Chair") ?? string.Empty);
+                Expect(string.Empty, Announcements.UnnamedObjectWord("Gray Otter") ?? string.Empty);
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
         }
 
         private static void LeagueNameIsTheGameLabelFirst() =>

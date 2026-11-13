@@ -29,6 +29,13 @@ namespace Poe2Accessibility
             return trimmed;
         }
 
+        /// <summary>The mod's own word for an object the game leaves unnamed, by the words of its file name; null for any other.</summary>
+        public static string? UnnamedObjectWord(string fileWord) => fileWord switch
+        {
+            "Chair" => T("Chair", "Silla"),
+            _ => null,
+        };
+
         /// <summary>A whole label that is a note of the radar table's, in the player's language; null for any other, and in English.</summary>
         public static string? LandmarkWhole(string label) => Localization.Language == "en" ? null : LandmarkWord(label.Trim());
 

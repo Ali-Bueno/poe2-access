@@ -74,7 +74,6 @@ namespace Poe2Accessibility
 
         /// <summary>An object no table names, outside English: the file's word kept so it can be told apart (<see cref="Services.ObjectNames.Spoken"/>).</summary>
         public static string UnnamedObject(string fileWord) => T($"Unnamed object, {fileWord}", $"Objeto sin nombre, {fileWord}");
-
         /// <summary>The player reached the end of a route that stops short; the way on is still shut.</summary>
         public static string BeaconAtClosest(string name) =>
             T($"As close to {name} as the way goes; it is still closed", $"Estás lo más cerca posible de {name}; el camino sigue cerrado");
