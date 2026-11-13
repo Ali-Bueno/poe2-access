@@ -78,7 +78,9 @@ internal static class SoundExtractor
         // and mechanism recordings; docs/research/game-audio.md).
         new("opened_way", "ExitDoorArena",     "Environment_Sanctum_EntranceDoor_Impact_01"),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
-        new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
+        // A lever being pulled, the game's own: the hand on a lever it replaced was 0.4 s and a fifth of a chest's level, and in a
+        // Trial room the levers are found by ear (user 2026-11-13; docs/research/game-audio.md).
+        new("switch",     "Levers",            "Lever_SolitaryConfinement_03"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.
         new("tempest_bell", "Four_TempestBell", "TempestBell_FX_OnHit_01", 2.5),
         new("ice_crystal",  "Four_FrozenLocus", "FrozenLocus_FX_Appear_01", 2.5),

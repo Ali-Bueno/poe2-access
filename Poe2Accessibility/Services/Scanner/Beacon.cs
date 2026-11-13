@@ -83,10 +83,6 @@ namespace Poe2Accessibility.Services
         private Vector2? lastTurn;
         private bool partialRoute;
 
-        /// <summary>The target is left once the way to it shuts (<see cref="ShutWay"/>): a door the game opened.</summary>
-        private bool endsWhenShut;
-        private readonly ShutWay shut = new();
-
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
             this.audio = audio;
@@ -105,11 +101,7 @@ namespace Poe2Accessibility.Services
         ///     Locks <paramref name="entry"/> in place of any earlier target. <paramref name="asked"/>: the player chose it just
         ///     now, so the answer is their own move and a quest page being said does not hold it back.
         /// </summary>
-        /// <param name="endsWhenShut">
-        ///     The guide ends when the way to the target, once whole, is cut: for a door the game opened, which it may shut
-        ///     again behind the player.
-        /// </param>
-        public void Lock(ScanEntry entry, bool asked = false, bool endsWhenShut = false)
+        public void Lock(ScanEntry entry, bool asked = false)
         {
             if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
             {
@@ -119,7 +111,6 @@ namespace Poe2Accessibility.Services
             }
 
             this.Aim(entry);
-            this.endsWhenShut = endsWhenShut;
             this.Answer(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut, out var longWay)), asked);
             this.news.Aim(cut, longWay);
         }
@@ -159,8 +150,6 @@ namespace Poe2Accessibility.Services
             this.search = null;
             this.version++;
             this.targetGone = false;
-            this.endsWhenShut = false;
-            this.shut.Reset();
             this.everListed = false;
             this.lostSaid = false;
             this.listedAs = entry.Category;
@@ -396,20 +385,6 @@ namespace Poe2Accessibility.Services
             }
 
             var (found, partial, barrier, spent) = done.IsCompletedSuccessfully ? done.Result : (null, false, false, false);
-            if (this.endsWhenShut && this.target is { } door && !done.IsFaulted)
-            {
-                switch (this.shut.Collect(found != null && !partial, spent))
-                {
-                    case ShutWayVerdict.Held:
-                        return; // the way in use stands until the next search agrees
-                    case ShutWayVerdict.Shut:
-                        this.log.Info($"Guide: the way to {door.Name} was whole and is cut; the guide ends");
-                        this.output.Say(SpeechKind.Arrivals, Announcements.BeaconWayShut(door.Name));
-                        this.Clear(false);
-                        return;
-                }
-            }
-
             var verdict = this.news.Collect(found != null, partial, barrier, spent, this.target != null, this.route != null);
             switch (verdict.Way)
             {

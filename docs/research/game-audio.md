@@ -39,7 +39,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | sign | BookandQuillPetMTX | BookandQuillPet_IdleRelaxed01_FlipPages_01 (pages turned, 0.9 s; see [signs](#signs-2026-11-12)) |
 | opened_way | ExitDoorArena | Environment_Sanctum_EntranceDoor_Impact_01 (the Trial's entrance door striking home, cut to 1.5 s; the user's pick, see [an opened way](#an-opened-way-2026-11-12)) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
-| switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
+| switch | Levers | Lever_SolitaryConfinement_03 (1.4 s; provisional until the owner's pick, see Levers) |
 
 ## Idle loops (`loops/`, 2026-10-27)
 Kept whole (up to 20 s), the seam crossfaded over 50 ms; the plugin brings each to one RMS (peaks capped at half
@@ -182,8 +182,7 @@ A plain object named only by a `WorldDescription` sounds the same, whatever the 
 Chalice, `SanctumEncounterKillCounter`; Sand Hourglass, `SanctumEncounterTimerLever`; user 2026-11-07, after several of them one by one). A league device of that table
 has its own rules and stays silent: out of play it would go on sounding.
 
-A lever built as a plain object (`SanctumGenericLever`, Trial rooms) has the quest sound, chosen over the switch sound because it must stand out (user
-2026-11-07); one built as a chest keeps the switch sound.
+A lever built as a plain object (`SanctumGenericLever`, Trial rooms) had the quest sound until 2026-11-13; every lever now has its own ([Levers](#levers-2026-11-13)).
 
 A named barrier sounds the same when a campaign area made it (`Metadata/Terrain/Gallows/Act*`, user 2026-11-07): the Ancient Seal at
 Balbala's door (`Act2/2_2/Objects/BossDoor`), with secret doors, the Mawdun explodable wall, the Act 4 gates and prison doors. 33 of the
@@ -221,6 +220,18 @@ within 1 s, centroid 2.1 kHz), F `Barrier`
 `FallenStar_Effects_TriskelionFlame_MechanicalClick_01`. Heard live only from the glossary (the dev command `sounds`: "opened_way 1"); no barrier opened in a test, which
 would need a fight (`AGENTS.md` rule 25). A barrier the game removes as it opens, instead of turning it open, is still not
 said: none is known.
+
+## Levers (2026-11-13)
+The owner dropped every guide in the Trial but the crystals': in a "find the exit" room the levers are to be found by ear. They were
+not: a lever built as a chest played `Foley` `PlayerCharacter_Foley_HandGrabLever_01` (0.4 s, peak 0.37, RMS 0.025: a fifth of a
+chest's level), and the Trial's (`SanctumGenericLever`, a plain object) the quest object's sound, which the Trial's shrines, fountains
+and key plinths share since 2026-11-12. Now every lever is the scanner's kind `switch` and sounds as one (`Switches.Kind`,
+`ObjectSounds`: its own group of three voices, range 2600 world units as an opened way, not measured against a room). The sound is
+the game's lever being pulled, `Levers` `Lever_SolitaryConfinement_03` (1.42 s, peak 1.0, RMS 0.215), wired until the owner picks on
+the [audition page](https://claude.ai/artifact/VW8XVKENdoznr62FJ8k1jQ): A that one, B/C/D its takes 01, 06 and 05, E/F
+`G3_9_EpicLever` `Environment_Waterways_EpicLever_Friction_02` and `_01`, beside the two old sounds and the quest object, chest,
+opened way, shrine and exit. Launcher sounds step 11. Not heard in a room: whether a pulled lever (`lever_pull` 1 or 2, no longer
+targetable) goes silent as the in-play rule says it must is the first thing to hear.
 
 ## How sounds end (2026-11-07)
 A tester: every sound stopped dead on walking off it, gold in both sets, town portals, waypoints; they remembered it fading. The

@@ -43,6 +43,15 @@ namespace Poe2Accessibility.Services
         private const float OpenedWayRangeWorld = 2600f;
 
         /// <summary>
+        ///     The range of a lever: in a Trial room they are what opens the way out, found by ear alone (user 2026-11-13). As
+        ///     far as an opened way, not measured against a room.
+        /// </summary>
+        private const float LeverRangeWorld = OpenedWayRangeWorld;
+
+        /// <summary>Levers heard at once, nearest first: a door's levers stand either side of it.</summary>
+        private const int MaxLeverVoices = 3;
+
+        /// <summary>
         ///     Repeat interval near / far, and the gain at the edge of the range. Near, often enough that its side stays
         ///     true while walking (1.3 s was heard as misplaced, user 2026-10-26).
         /// </summary>
@@ -79,7 +88,8 @@ namespace Poe2Accessibility.Services
             (LootGroup, MaxLootVoices, entry => entry.Category == ScanCategory.Items),
             ("chests", MaxChestVoices, entry => entry.Kind is "chest" or "corpse"),
             ("breakables", MaxBreakableVoices, entry => entry.Kind == "breakable"),
-            ("shrines", 1, entry => entry.Category == ScanCategory.Chests && entry.Kind is not ("chest" or "corpse" or "breakable")),
+            ("levers", MaxLeverVoices, entry => entry.Kind == Switches.Kind),
+            ("shrines", 1, entry => entry.Category == ScanCategory.Chests && entry.Kind is not ("chest" or "corpse" or "breakable" or Switches.Kind)),
             ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
@@ -296,12 +306,13 @@ namespace Poe2Accessibility.Services
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;
 
-        private static float RangeOf(ScanEntry entry) => entry.Timed ? TimedRangeWorld : entry.Kind == OpenedWays.Kind ? OpenedWayRangeWorld : RangeWorld;
+        private static float RangeOf(ScanEntry entry) =>
+            entry.Timed ? TimedRangeWorld : entry.Kind == OpenedWays.Kind ? OpenedWayRangeWorld : entry.Kind == Switches.Kind ? LeverRangeWorld : RangeWorld;
 
         private static float ReachOf(ScanEntry entry) => RangeOf(entry) + ProximityFade.TailWorld;
 
-        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and it or a lever can sound as a quest object.</summary>
-        private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind ? entry.Sound : entry.Kind;
+        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide and can sound as a quest object; a lever always sounds as a lever.</summary>
+        private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind && entry.Kind != Switches.Kind ? entry.Sound : entry.Kind;
 
         private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? SoundKind(entry) switch
         {
@@ -312,7 +323,7 @@ namespace Poe2Accessibility.Services
             "chest" => this.sounds.Get("chest"),
             "corpse" => this.sounds.Get(GameSounds.Corpse) ?? this.sounds.Get("chest"),
             "breakable" => this.sounds.Get($"{GameSounds.BreakableFolder}/{entry.Sound}") ?? this.sounds.Get(GameSounds.BreakableFallback),
-            "switch" => this.sounds.Get("switch"),
+            Switches.Kind => this.sounds.Get(Switches.Kind),
             "shrine" => this.sounds.Get("shrine"),
             "ritual" => this.sounds.Get("ritual"),
             "portal" => this.sounds.Get("portal"),

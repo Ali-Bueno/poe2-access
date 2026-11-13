@@ -7,25 +7,23 @@ namespace Poe2Accessibility.Services
     using GameReader.RemoteObjects.Components;
 
     /// <summary>
-    ///     Says the room door the Trial opens, with the way to it, and puts the guide on it while nothing else is guided: the
-    ///     player chose the room on the map and must now find its door among three.
+    ///     Says the room door the Trial opens, with the way to it: the player chose the room on the map and must now find its
+    ///     door among three. It is told, never guided to: in the Trial only the room of crystals has a guide.
     /// </summary>
     public sealed class TrialDoorWatch
     {
         private const int PollMs = 500;
 
         private readonly EntityCatalog entities;
-        private readonly Beacon beacon;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly OpenDoorWatch doors = new();
         private long lastPoll;
         private bool logged;
 
-        public TrialDoorWatch(EntityCatalog entities, Beacon beacon, IAccessibilityOutputService output, PluginLog log)
+        public TrialDoorWatch(EntityCatalog entities, IAccessibilityOutputService output, PluginLog log)
         {
             this.entities = entities;
-            this.beacon = beacon;
             this.output = output;
             this.log = log;
         }
@@ -33,8 +31,8 @@ namespace Poe2Accessibility.Services
         /// <summary>A new area: the doors there are not known yet.</summary>
         public void Reset() => this.doors.Reset();
 
-        /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu; <paramref name="guide"/> to lock the beacon on the door.</summary>
-        public void Tick(bool playing, bool guide)
+        /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
+        public void Tick(bool playing)
         {
             var now = Environment.TickCount64;
             if (!playing || now - this.lastPoll < PollMs)
@@ -63,15 +61,7 @@ namespace Poe2Accessibility.Services
             var fresh = this.doors.NewlyOpen(seen.Select(door => (door.Id, door.Open)));
             foreach (var entry in seen.Where(door => fresh.Contains(door.Id)).Select(door => door.Entry))
             {
-                if (guide && this.beacon.Target == null)
-                {
-                    // Says the door and the way to it. The Trial shuts the way behind the player who walks in: the guide ends there.
-                    this.beacon.Lock(entry, endsWhenShut: true);
-                }
-                else
-                {
-                    this.output.Speak(Announcements.TrialDoorOpen(this.entities.Describe(entry)), true);
-                }
+                this.output.Speak(Announcements.TrialDoorOpen(this.entities.Describe(entry)), true);
             }
         }
 

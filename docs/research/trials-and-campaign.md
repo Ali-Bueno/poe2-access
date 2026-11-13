@@ -119,8 +119,9 @@ New this session (commit "Name the trials' icons and counters from the game's ta
 - `ScreenNarrator.CheckTrialLines` + `TrialLines`/`CounterWatch`: the crystals line said (the game's own text) every
   time it falls, the Chaos round said on change ("Ronda 3 de 10"); setting `AnnounceTrialProgress`.
 - `TrialDoors`/`OpenDoorWatch`/`TrialDoorWatch`: a room door whose state turns `open` is said with the way to it
-  ("Puerta de la sala abierta: 12 pasos, arriba") or, with `GuideTrialDoors` and the guide free, locked as the beacon's
-  target; the first door's states are logged once ("Trial room door seen: open=…, wall=…").
+  ("Puerta de la sala abierta: 12 pasos, arriba"); the first door's states are logged once ("Trial room door seen:
+  open=…, wall=…"). Until 2026-11-13 the guide was also put on the door (`GuideTrialDoors`): removed at the owner's word,
+  in the Trial only the room of crystals has a guide (`TimedGuide`).
 
 ### 1.4 Gaps
 - Afflictions/boons gained: no announcement yet, and nothing said the user's on 2026-11-12 (they knew it only by its
@@ -229,11 +230,10 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   behind the player) and no arrival was said, so the guide stayed on through the whole room, leading "as close as it
   goes" to the reachable cell nearest, in a straight line, a door already passed: up through the spikes and two laser
   turrets (burning twice), to a lever by chance, and with its way turned round each time a `SanctumLogicDoor` opened.
-  Now a guide the door watch starts ends when its way, once whole, is found cut by two searches running (`ShutWay`,
-  `Beacon.Lock(endsWhenShut)`): "El camino a puerta de la sala se cerró; la guía se detiene". **Gap: nothing guides in a
-  "find the exit" room.** Its exit is not a target the scanner offers (the next room's stairs read "a 283 pasos, el
-  camino se corta antes"), a lever (`SanctumGenericLever`, `Switches`) is not tied to the `SanctumLogicDoor` it opens,
-  and nothing knows a lever already pulled. To be found in the game's files before any guide is written (rule 26).
+  That night the guide was made to end when its way, once whole, was found cut by two searches running; on 2026-11-13
+  the owner dropped the guide to the door altogether (the door is said with its way, no more) and with it that rule.
+  **Nothing guides in a "find the exit" room, by the owner's choice**: its levers are found by ear (§1.6). What the
+  files say of the levers and the doors they open is kept there.
 - **A room of crystals with no crystal** (same run, 17:35; the user asked whether an affliction hid them: none of
   `trials.json` names the crystals). A Death Crystal (`…/Hazards/HourglassLethal`) was listed only while its objective
   ("Desactiva los cristales antes de que se agote el tiempo") stood among the tracker's texts, so that crystals of other
@@ -253,7 +253,7 @@ check is `tools/research/trialfloor/trialfloor.py`. This solves the first two ga
   is the one shown when two that fit differ; with the floor read, the log says once a floor whether the lines agree
   ("Trial lines: the lines the map draws say the floor's links"), so each source proves the other.
 
-### 1.6 The "find the exit" rooms: the exit, the levers and the doors (game files, 2026-11-12; nothing built on it yet)
+### 1.6 The "find the exit" rooms: the exit, the levers and the doors (game files, 2026-11-12; no guide built on it, the owner's choice 2026-11-13)
 
 From the 277 terrain files of the Trial (`metadata/terrain/gallows/leagues/sanctum/`, the rooms' `.arm`) and its tables. Scripts and
 tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's objects and links, `rules2.py` checks the colour rule,
@@ -278,9 +278,10 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
   are lit. Six doors start open, so a pull shuts them; one room's door needs two levers; the Abyss has levers used more than once.
 - **What the client can read**: a lever's `lever_pull` (0, then 1 or 2 and no longer targetable), an indicator's `active`, a door's
   `open`, the blocker's `sanctum_completed`.
-- **A guide from this**, to be judged before it is built: in a room whose objective is "Find the Exit", lead to the blocker still shut
-  (floor 1: toward the next map device); where the way is cut, to the nearest lever not pulled among those of a shut door on the cut,
-  then search again. Never to a plate.
+- **No guide is built from this** (the owner, 2026-11-13: "lo de guiar a la salida vamos a quitarlo… con que las palancas tengan
+  sonido pronunciado ya es suficiente"). In a "find the exit" room the levers are found by ear: every lever not pulled sounds as a
+  lever (the game's own lever being pulled), up to three at once, from twice a chest's range ([game audio](game-audio.md#levers-2026-11-13));
+  a way that opens has its own sound and stays "Paso abierto" until walked to. What follows is kept as what the files say.
 - **Needs one look in a run**: whether an indicator's entity tells its pillar (its animated object), else the room is told by the
   distances between its levers and doors (all 28 differ) and the wiring comes from a table; whether the next room's map device is
   among the entities from inside the room; `lever_pull` 1 against 2; an indicator's `active` when the room does not set it.
