@@ -33,6 +33,7 @@ namespace Poe2Accessibility
         public static string? UnnamedObjectWord(string fileWord) => fileWord switch
         {
             "Chair" => T("Chair", "Silla"),
+            "Sanctum Mote" => T("Sacred Water", "Agua sagrada"), // the Trial of the Sekhemas' pick-up, by its only currency (inferred)
             _ => null,
         };
 
