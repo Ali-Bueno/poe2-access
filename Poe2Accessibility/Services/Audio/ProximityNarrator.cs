@@ -55,6 +55,7 @@ namespace Poe2Accessibility.Services
         private long lastPoll = long.MinValue / 2;
         private long lastSpoken = long.MinValue / 2;
         private long lastTargetPoll = long.MinValue / 2;
+        private readonly BreakablePrompts prompts = new();
         private uint? candidate;
         private long candidateSince;
         private uint? target;
@@ -107,6 +108,7 @@ namespace Poe2Accessibility.Services
             this.targetLeft = null;
             this.exitOptionsSaid = false;
             this.aboutSaid.Clear();
+            this.prompts.Reset();
             this.arriving = false;
             this.arrivedAt = null;
         }
@@ -258,13 +260,19 @@ namespace Poe2Accessibility.Services
             // ("Ballesta tensa, A" heard while A already held a bow, 2026-10-26). A queued name of it is skipped later.
             // The player's own move: it waited out "Inventario lleno" and the quest page (user 2026-11-11). Not where the
             // player arrived and still stands: there it waits for the area's line, which it used to replace.
-            if (this.arrivedAt != null)
+            var label = this.Label(current);
+            if (this.prompts.Repeats(current.Kind == "breakable", current.Name, now))
             {
-                this.output.Speak(this.Label(current), true);
                 return;
             }
 
-            this.output.Moved(this.Label(current));
+            if (this.arrivedAt != null)
+            {
+                this.output.Speak(label, true);
+                return;
+            }
+
+            this.output.Moved(label);
         }
 
         /// <summary>A name, with the interact button when A uses it now.</summary>

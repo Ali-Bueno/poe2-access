@@ -21,6 +21,8 @@
   two sessions' logs, 256 had waited for a kept line and 141 behind an urged or mentioned one). The game's tooltip for that item on the HUD is then not said again (only its quality), whatever name it
   shows: a magic or rare item's full name ("Bastón largo intenso de impacto") is not the base the scanner knows, and its
   whole tooltip used to be read as HUD news. Setting: `AnnounceInteractTarget`.
+- A breakable's prompt is not said again when the last prompt said was a breakable of the same name less than 5 s before
+  (a row of pots says "Tiesto, A" once; `BreakablePrompts`); another name or another kind of object is said at once.
 
 - Where the player arrived and still stands (within 200 units of where the area's line went out) what A uses is no move of the player's: it
   waits for the area's line and the quest page, which it used to cut (review of 2026-11-12; heard live, "Transportador, A" after both).
