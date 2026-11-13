@@ -121,6 +121,17 @@ namespace Poe2Accessibility.Tests
                 var twins = new BuildPlanFolder(folder, config);
                 Expect("Lvl 1-23", twins.Matching("kehgan", marks)?.Name, "of two files with one tree, the one the game's settings name");
                 Expect("Lvl 1-23 Cold", twins.Matching("yarkey", marks)?.Name, "for each character its own");
+
+                // The planner's list is the game's own word, before its settings are written.
+                twins.Shown("kehgan", " lvl 1-23 cold ");
+                Expect("Lvl 1-23 Cold", twins.Active("kehgan")?.Name, "the build picked in the list is the character's at once, the tree closed");
+                Expect("Lvl 1-23 Cold", twins.Matching("kehgan", marks)?.Name, "and stays so under marks two files share");
+                Expect("Lvl 1-23 Cold", twins.Active("yarkey")?.Name, "another character keeps its own");
+                twins.Shown("kehgan", "Ninguna");
+                Expect("Lvl 1-23 Cold", twins.Active("kehgan")?.Name, "a name of no file tells nothing");
+                twins.Shown("kehgan", "23+ Unarmed");
+                Expect("23+ Unarmed", twins.Active("kehgan")?.Name, "another file picked is read, and no other");
+                Expect("Lvl 1-23", twins.Matching("kehgan", new HashSet<string> { "a", "b" })?.Name, "marks of another tree outrank a name picked before");
             }
             finally
             {

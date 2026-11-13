@@ -347,4 +347,14 @@ kehgan, the "[0.5] WHIRLING Trinity Martial Artist" files): "Lvl 1-23" has 29 en
 all 27 among its 54, in 33 of its 60 entries. Counting entries, "23+ Unarmed" scored 33 against 29 and its gems (Killing Palm,
 Falling Thunder) were said for a build of Twister. `BuildPlan.Fit` counts each node once and `BuildPlanFolder.Matching`
 picks the most marked nodes held, then the fewest nodes besides (0 against 27 here), then, for files of one tree, the one
-the game's settings name for the character (`active_builds`).
+the planner's list named last, else the one the game's settings name for the character (`active_builds`).
+
+- Checked over the owner's 37 files (2026-11-13, each taken as the marks, with and without its ascendancy nodes): every
+  one is picked, and one pair has one tree and other gems ("Act 2" and "Act 3 - Raxx's 0.5.5 Plant Oracle Druid").
+- The planner's list (`BuildPlannerComboBox` in the tree, `build_planner_combobox` in the engraving window) is the game's
+  own word: its committed entry, read whenever the list is focused, is the character's build at once
+  (`BuildPlanFolder.Shown`, by file name or the file's `name`), so a build changed with the tree closed does not wait
+  for the settings. NOT MEASURED: when the game writes `active_builds` (the file was last written at 11:14:42, before
+  the game started at 11:14:56, and not in the eleven minutes after), nor the entry's text live: a text of no file
+  changes nothing.
+- The mod remembers a character's file, not its contents: a file written again is read again within five seconds.

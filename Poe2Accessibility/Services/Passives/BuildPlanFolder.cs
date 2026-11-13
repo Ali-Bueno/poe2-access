@@ -20,8 +20,11 @@ namespace Poe2Accessibility.Services
         private long? scannedAt;
         private (DateTime Written, string Text) configRead;
 
-        /// <summary>Per character, what its own tree's marks matched last and when: one character's build is never another's.</summary>
-        private readonly Dictionary<string, (BuildPlan? Plan, DateTime At)> matched = new(StringComparer.Ordinal);
+        /// <summary>Per character, the file its own tree's marks matched last and when: one character's build is never another's.</summary>
+        private readonly Dictionary<string, (string? Path, DateTime At)> matched = new(StringComparer.Ordinal);
+
+        /// <summary>Per character, the file the planner's own list named last.</summary>
+        private readonly Dictionary<string, string> named = new(StringComparer.Ordinal);
 
         public BuildPlanFolder(string folder, string config)
         {
@@ -44,10 +47,10 @@ namespace Poe2Accessibility.Services
             var onTree = this.matched.TryGetValue(character, out var seen);
             if (!this.ReadConfig() || (onTree && seen.At >= this.configRead.Written))
             {
-                return seen.Plan; // the settings being written, or older than what this character's tree showed
+                return this.PlanAt(seen.Path); // the settings being written, or older than what this character's tree showed
             }
 
-            return this.SettingsFile(character) is { } name ? this.files.FirstOrDefault(file => IsFile(file.Key, name)).Value.Plan : seen.Plan;
+            return this.SettingsFile(character) is { } name ? this.files.FirstOrDefault(file => IsFile(file.Key, name)).Value.Plan : this.PlanAt(seen.Path);
         }
 
         /// <summary>
@@ -68,17 +71,44 @@ namespace Poe2Accessibility.Services
             var ranked = this.files.Where(file => file.Value.Plan != null)
                 .Select(file => (Path: file.Key, Plan: file.Value.Plan!, Fit: file.Value.Plan!.Fit(markedIds)))
                 .OrderByDescending(entry => entry.Fit.Shared).ThenBy(entry => entry.Fit.Others).ToList();
-            BuildPlan? plan = null;
-            if (ranked.Count > 0 && ranked[0].Fit.Shared * 2 >= markedIds.Count)
+            if (ranked.Count == 0 || ranked[0].Fit.Shared * 2 < markedIds.Count)
             {
-                // Files of one tree (a guide's variants) differ in their gems alone: the settings say which is active.
-                var alike = ranked.TakeWhile(entry => entry.Fit == ranked[0].Fit).ToList();
-                var name = alike.Count > 1 && this.ReadConfig() ? this.SettingsFile(character) : null;
-                plan = alike.FirstOrDefault(entry => name != null && IsFile(entry.Path, name)).Plan ?? alike[0].Plan;
+                this.Remember(character, null);
+                return null;
             }
 
-            this.Remember(character, plan);
-            return plan;
+            // Files of one tree (a guide's variants) differ in their gems alone: the planner's list says which is active,
+            // else the game's settings.
+            var alike = ranked.TakeWhile(entry => entry.Fit == ranked[0].Fit).ToList();
+            var listed = alike.Count > 1 && this.named.TryGetValue(character, out var shown) && alike.Any(entry => entry.Path == shown) ? shown : null;
+            var name = alike.Count > 1 && listed == null && this.ReadConfig() ? this.SettingsFile(character) : null;
+            var chosen = alike.FirstOrDefault(entry => entry.Path == listed || (name != null && IsFile(entry.Path, name)));
+            var match = chosen.Path != null ? chosen : alike[0];
+            this.Remember(character, match.Path);
+            return match.Plan;
+        }
+
+        /// <summary>
+        ///     The planner's own list showing <paramref name="name"/> as the character's build: the file of that name, or
+        ///     the only one whose "name" it is, is the active one. A name of no file (none, a website build) tells nothing.
+        /// </summary>
+        public void Shown(string character, string name)
+        {
+            this.Rescan();
+            if (character.Length == 0 || this.FileNamed(name.Trim()) is not { } path)
+            {
+                return;
+            }
+
+            this.named[character] = path;
+            this.Remember(character, path);
+        }
+
+        private string? FileNamed(string name)
+        {
+            bool Is(string text) => string.Equals(text.Trim(), name, StringComparison.OrdinalIgnoreCase);
+            var titled = this.files.Where(file => file.Value.Plan is { } plan && Is(plan.Name)).Select(file => file.Key).ToList();
+            return this.files.Keys.FirstOrDefault(path => Is(Path.GetFileNameWithoutExtension(path))) ?? (titled.Count == 1 ? titled[0] : null);
         }
 
         private static bool IsFile(string path, string name) => string.Equals(Path.GetFileName(path), name, StringComparison.OrdinalIgnoreCase);
@@ -106,11 +136,14 @@ namespace Poe2Accessibility.Services
         private string? SettingsFile(string character) =>
             BuildPlan.ActivePath(this.configRead.Text, character) is { } path ? Path.GetFileName(path) : null;
 
-        private void Remember(string character, BuildPlan? plan)
+        /// <summary>The plan of a file as it reads now: one written again is read again, one gone is no build.</summary>
+        private BuildPlan? PlanAt(string? path) => path != null && this.files.TryGetValue(path, out var file) ? file.Plan : null;
+
+        private void Remember(string character, string? path)
         {
             if (character.Length > 0)
             {
-                this.matched[character] = (plan, DateTime.UtcNow);
+                this.matched[character] = (path, DateTime.UtcNow);
             }
         }
 

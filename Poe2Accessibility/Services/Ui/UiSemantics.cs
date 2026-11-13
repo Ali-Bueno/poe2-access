@@ -142,6 +142,7 @@ namespace Poe2Accessibility.Services
                     break;
                 case UiRole.ComboBox:
                     value = this.ComboBoxValue(info, ownText);
+                    this.NoteActiveBuild(info);
                     valuePosition = this.ComboValuePosition(info, value);
                     expanded = this.elements.IsComboBoxOpen(info.Address);
                     label = Humanise(info.Name);

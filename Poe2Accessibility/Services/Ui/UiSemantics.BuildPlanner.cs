@@ -25,6 +25,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The build marks' name in the layout report.</summary>
         private const string BuildMarksPart = "passive build marks";
 
+        /// <summary>The planner's list names the active build itself, in the tree and in the gem engraving window.</summary>
+        private void NoteActiveBuild(in UiElementReader.ElementInfo list)
+        {
+            if (list.Name is "BuildPlannerComboBox" or "build_planner_combobox" && this.comboBoxes.Read(list.Address).Selected is { Length: > 0 } name)
+            {
+                this.buildPlans.Shown(AskingCharacter(), name);
+            }
+        }
 
         /// <summary>The records of the active build's nodes (element byte, <see cref="GameLayout.PassiveTree.NodeInBuildOffset"/>), read again every second.</summary>
         private HashSet<IntPtr> BuildMarks(PassiveGraph graph)
