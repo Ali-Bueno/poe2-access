@@ -83,7 +83,11 @@ the web is UNSURE until seen).
     the room the player stands in `ValidPathGlow` with a second image named `public_icon` (the statue again). A room not
     revealed has no children. Rooms walked through kept their icons (key, afflicted fountain); the others behind had none.
   - A room's tooltip exists only once it was hovered: "Otorga una llave de plata | Encuentro desconocido" (the kind
-    unknown, the reward known), and "Entrar" on the room that can be entered.
+    unknown, the reward known), and "Entrar" on the room that can be entered. A revealed room's tooltip is its kind's
+    name and its reward, nothing more ("Prueba de ritual | Otorga un santuario que restaura tu honor", the play log of
+    2026-11-12): **the map never shows what a kind asks**, though `SanctumRoomTypes` holds a description. The owner,
+    2026-11-13: the mod adds it only if the game shows it to a sighted player, so it is not added; the objective's
+    text on entering the room says it.
   - The counters row: four pairs of an icon and a number, `Sanctum/GoldIcon` (the water), `BronzeKeyIcon`,
     `SilverKeyIcon`, `GoldKeyIcon`; the numbers alone are texts ("78", "0", "1", "0").
   - Bottom left, two buttons without text: one whose tooltip is "Salir de las pruebas | El progreso de las pruebas se
