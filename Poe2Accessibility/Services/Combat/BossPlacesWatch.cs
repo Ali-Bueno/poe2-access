@@ -22,16 +22,18 @@ namespace Poe2Accessibility.Services
 
         private readonly UiElementReader elements;
         private readonly HostMemoryReader memory;
+        private readonly EntityPlaces positions;
         private readonly PluginLog log;
         private readonly BossPlaces places = new();
         private readonly Dictionary<uint, string> names = new();
         private readonly List<BossPlaceSight> sights = new();
         private long lastPoll;
 
-        public BossPlacesWatch(UiElementReader elements, HostMemoryReader memory, PluginLog log)
+        public BossPlacesWatch(UiElementReader elements, HostMemoryReader memory, EntityPlaces positions, PluginLog log)
         {
             this.elements = elements;
             this.memory = memory;
+            this.positions = positions;
             this.log = log;
         }
 
@@ -95,12 +97,13 @@ namespace Poe2Accessibility.Services
         private void Note(BossMechanicsCatalog catalog, Entity entity, IReadOnlyList<(string Monster, Vector2 At)> fighting)
         {
             var rules = catalog.PlaceRules(BossMechanicsCatalog.MonsterId(entity.Path));
-            if (rules.Count == 0 || !entity.TryGetComponent<Render>(out var render))
+            if (rules.Count == 0 || this.positions.Of(entity) is not { } at)
             {
                 return;
             }
 
-            var at = new Vector2(render.WorldPosition.X, render.WorldPosition.Y);
+            // A cover or a marker the game does not draw has a place and neither a name nor a size.
+            var (name, radius) = entity.TryGetComponent<Render>(out var render) ? (this.NameOf(entity.Id, render), render.ModelBounds.X) : (string.Empty, 0f);
             foreach (var rule in rules)
             {
                 if (!fighting.Any(boss => string.Equals(boss.Monster, rule.Boss, StringComparison.OrdinalIgnoreCase) && Vector2.Distance(boss.At, at) <= ArenaWorld))
@@ -108,7 +111,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, this.NameOf(entity.Id, render), at, render.ModelBounds.X, this.IsActive(entity, rule)));
+                this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, name, at, radius, this.IsActive(entity, rule)));
                 return; // one place per entity: the catalog's first rule for this boss
             }
         }

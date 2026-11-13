@@ -19,6 +19,10 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<(uint, long)> grabWorded = new();
         private readonly Dictionary<uint, string?> helpers = new();
         private BossPlacesWatch? places;
+        private EntityPlaces? positions;
+
+        /// <summary>Where entities stand, drawn or not (shared with the dev command that checks it).</summary>
+        public EntityPlaces Positions => this.positions ??= new EntityPlaces(this.memory, this.log);
 
         /// <summary>Whether a harmful buff is named to the player elsewhere as it begins (<see cref="HarmfulBuffs"/>): its name is not said twice.</summary>
         public Func<string, bool> NamedElsewhere { get; set; } = _ => false;
@@ -95,6 +99,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.signals.Clear();
+            this.Positions.Learn();
             if (fighting.Count == 0)
             {
                 this.playerBuffs.Reset();
@@ -102,7 +107,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.places ??= new BossPlacesWatch(this.elements, this.memory, this.log);
+            this.places ??= new BossPlacesWatch(this.elements, this.memory, this.Positions, this.log);
             this.places.ReachWorld = this.ReachWorld;
             foreach (var news in this.playerBuffs.Update(this.Catalog, PlayerBuffs(), this.places.RefugeUp, now))
             {

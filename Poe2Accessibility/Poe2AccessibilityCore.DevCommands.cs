@@ -372,6 +372,22 @@ namespace Poe2Accessibility
                     }
 
                     break;
+                case "positioned":
+                    // Research: the cell offset found in Positioned, and where it puts the entities the game does not draw.
+                    if (this.bosses?.Mechanics?.Positions is { } positions && GameReader.Core.States.InGameStateObject.CurrentAreaInstance is { } placedArea)
+                    {
+                        var undrawn = placedArea.AwakeEntities.Values
+                            .Where(entity => entity.IsValid && !entity.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out _)).Take(40).ToList();
+                        foreach (var entity in undrawn)
+                        {
+                            var place = positions.Of(entity);
+                            this.log?.Info($"Positioned {entity.Id} {entity.Path} {(place is { } at ? $"at {at.X:0},{at.Y:0}" : "no place")}");
+                        }
+
+                        this.log?.Info($"Positioned cell offset: {(positions.CellOffset is { } found ? $"+0x{found:X}" : "not found")}, {undrawn.Count} undrawn entities");
+                    }
+
+                    break;
                 case "unrendered":
                     // Research: awake entities without a Render component (icon-only objects), with their components.
                     foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)

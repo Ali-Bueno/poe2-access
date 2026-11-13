@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheMostPressingPlaceLeads), TheMostPressingPlaceLeads),
             (nameof(AThingToUseIsOfferedOnceAndForAWhile), AThingToUseIsOfferedOnceAndForAWhile),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
+            (nameof(TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes), TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes),
         };
 
         private static BossMechanicsCatalog Sample()
@@ -255,6 +256,27 @@ namespace Poe2Accessibility.Tests
             Equal(true, places.Lead == null, "the offer ends");
             Equal(0, places.Update(new[] { Sight(3, BossPlaceKind.Use, 100, 100, path: "lever") }, Vector2.Zero, Vector2.Zero, 10f, 40f, false, BossPlaces.OfferMs + 150).Count,
                 "another of the same kind later is no news");
+        }
+
+        /// <summary>A Positioned component's bytes with a cell at 0x1F4 and, before it, a number two of the three samples share.</summary>
+        private static (byte[] Bytes, int X, int Y) Positioned(int x, int y, int shared, int drawnX, int drawnY)
+        {
+            var bytes = new byte[PositionedGridSearch.SearchBytes];
+            BitConverter.GetBytes(shared).CopyTo(bytes, 0x40);
+            BitConverter.GetBytes(shared).CopyTo(bytes, 0x44);
+            BitConverter.GetBytes(x).CopyTo(bytes, 0x1F4);
+            BitConverter.GetBytes(y).CopyTo(bytes, 0x1F8);
+            return (bytes, drawnX, drawnY);
+        }
+
+        private static void TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes()
+        {
+            var samples = new[] { Positioned(120, 340, 120, 120, 340), Positioned(500, 77, 500, 501, 77), Positioned(42, 900, 7, 42, 899) };
+            Equal(0x1F4, PositionedGridSearch.Find(samples), "the one pair that is every sample's cell, a cell off allowed");
+            Equal(true, PositionedGridSearch.Find(samples.Take(2).ToList()) == null, "two cells prove nothing");
+            Equal(true, PositionedGridSearch.Find(new[] { samples[0], samples[0], samples[0] }) == null, "nor one cell three times");
+            var moved = new[] { samples[0], samples[1], Positioned(42, 900, 7, 300, 300) };
+            Equal(true, PositionedGridSearch.Find(moved) == null, "no pair fits them all: not found");
         }
 
         private static void PlaceLinesNameThePlaceAndTheWay()

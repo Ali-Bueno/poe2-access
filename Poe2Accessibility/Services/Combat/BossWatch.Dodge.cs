@@ -61,6 +61,7 @@ namespace Poe2Accessibility.Services
         {
             this.reader?.ResetVerdicts();
             this.saidTrust.Clear();
+            this.Mechanics?.Positions.Reset();
         }
 
         /// <summary>The live checks' verdicts that changed since last asked, by compatibility part.</summary>
