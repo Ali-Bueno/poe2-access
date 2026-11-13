@@ -296,6 +296,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\IAccessibilityOutputService.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\PrismLibrary.cs" Link="Plugin\PrismLibrary.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\PrismOutputService.cs" Link="Plugin\PrismOutputService.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Speech\PrismOutputService.Queue.cs" Link="Plugin\PrismOutputService.Queue.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Speech\PrismOutputService.Worker.cs" Link="Plugin\PrismOutputService.Worker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />
