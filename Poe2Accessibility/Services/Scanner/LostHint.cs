@@ -48,6 +48,9 @@ namespace Poe2Accessibility.Services
         /// <summary>How long a player walks without new ground before the hint plays.</summary>
         public int LostAfterMs { get; set; } = 180000;
 
+        /// <summary>How long a player walks over ground already seen before the sound points at the nearest unexplored ground that goes on (0: never).</summary>
+        public int SeenGroundAfterMs { get; set; } = 30000;
+
         /// <summary>How long a player moves through an area, new ground or not, before the hint plays (0: never).</summary>
         public int SoundAfterAreaMs { get; set; } = 600000;
 
@@ -102,6 +105,13 @@ namespace Poe2Accessibility.Services
                     this.target = cell;
                     this.startedAt = now;
                     this.log.Info($"Lost hint toward cell {cell.X:0},{cell.Y:0}{(lost ? string.Empty : " (long in the area)")}");
+                }
+                else if (this.watch.OverSeenGround(this.SeenGroundAfterMs) && this.catalog.UnexploredCells() is { Count: > 0 } onward)
+                {
+                    // Walking where all is seen: toward the nearest ground that goes on, not toward the objective.
+                    this.target = onward[0];
+                    this.startedAt = now;
+                    this.log.Info($"Unexplored ground toward cell {onward[0].X:0},{onward[0].Y:0}");
                 }
             }
 

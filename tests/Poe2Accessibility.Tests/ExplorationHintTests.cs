@@ -46,8 +46,12 @@ namespace Poe2Accessibility.Tests
             Equal(UnseenSize.Large, places[0].Size, "the great hall first, though the room is nearer");
             Equal(true, places[0].Cell.Y < 180, "north of the hall");
             Equal(UnseenSize.Small, places[1].Size, "one room soon ends");
-            Equal(true, map.LeavesTheSeen(player, new Vector2(0, -1), ExplorationMap.MarkReachCells), "the radar marks the way to the great hall");
-            Equal(false, map.LeavesTheSeen(player, new Vector2(1, 0), ExplorationMap.MarkReachCells), "and not the room, while ground that goes on is left");
+            Equal(UnseenSize.Large, map.UnseenAlong(player, new Vector2(0, -1), ExplorationMap.MarkReachCells), "the radar's two pips toward the great hall");
+            Equal(UnseenSize.Small, map.UnseenAlong(player, new Vector2(1, 0), ExplorationMap.MarkReachCells), "one pip toward the room that soon ends");
+            Equal(null, map.UnseenAlong(player, new Vector2(-1, 0), ExplorationMap.MarkReachCells), "none toward the hall's own wall");
+            var onePip = RadarSynth.WithUnexploredTail(new float[100], RadarSynth.Direction.Left, 44100, pips: 1).Length;
+            var twoPips = RadarSynth.WithUnexploredTail(new float[100], RadarSynth.Direction.Left, 44100).Length;
+            Equal(true, onePip > 100 && onePip < twoPips, "the one-pip mark is the cue and one pip, shorter than the two");
             Equal(0, ExplorationMap.Rank(string.Empty), "ground that goes on stands first among the scanner's entries");
             Equal(true, ExplorationMap.Rank(ExplorationMap.SmallKind) < ExplorationMap.Rank(ExplorationMap.PocketKind), "then what soon ends, then nooks");
         }
@@ -81,6 +85,27 @@ namespace Poe2Accessibility.Tests
             watch.Reset();
             Equal(LostNews.None, Polls(600000, 603000, true), "a new area starts again");
             Equal(LostNews.Sound, Polls(603250, 620000, true, spoken: 0), "0 for the words: the sound alone, whatever the time");
+
+            // Walking where everything has been seen: soon, and again and again, until new ground is found.
+            var walk = new LostWatch();
+            bool Over(long from, long to, int blocks, bool walking)
+            {
+                var due = false;
+                for (var now = from; now <= to; now += 250)
+                {
+                    walk.Update(now, blocks, walking, never);
+                    due |= walk.OverSeenGround(3000);
+                }
+
+                return due;
+            }
+
+            Equal(false, Over(1000, 3000, 5, true), "not at once");
+            Equal(true, Over(3250, 4500, 5, true), "after that long over seen ground");
+            Equal(true, Over(4750, 8000, 5, true), "and again while nothing new is found");
+            Equal(false, Over(8250, 12000, 5, false), "standing still is no walk");
+            Equal(false, Over(12250, 14000, 6, true) | Over(14250, 15500, 7, true), "new ground starts the count again");
+            Equal(false, walk.OverSeenGround(0), "0: never");
         }
     }
 }

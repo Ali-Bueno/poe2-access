@@ -138,6 +138,7 @@ namespace Poe2Accessibility
             {
                 this.lostHint.Gain = Fraction(settings.ObjectVolume);
                 this.lostHint.LostAfterMs = settings.LostHintSeconds * 1000;
+                this.lostHint.SeenGroundAfterMs = settings.UnexploredHintSeconds * 1000;
                 this.lostHint.SoundAfterAreaMs = settings.LostHintAreaMinutes * 60000;
                 this.lostHint.SpokenAfterAreaMs = settings.LostSpokenHintMinutes * 60000;
             }

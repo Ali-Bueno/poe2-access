@@ -230,6 +230,12 @@ namespace Poe2Accessibility
         public int LostHintSeconds = 180;
 
         /// <summary>
+        ///     The same sound after this many seconds walking over ground already seen, toward the nearest unexplored ground that
+        ///     goes on: exploring by walking, with no list to pick from (user 2026-11-12). 0 for never; a first guess.
+        /// </summary>
+        public int UnexploredHintSeconds = 30;
+
+        /// <summary>
         ///     The same sound once the player has moved this many minutes through an area, new ground or not (a dead end is new
         ///     ground): 0 for never. A first guess, to tune by ear (2026-11-12).
         /// </summary>

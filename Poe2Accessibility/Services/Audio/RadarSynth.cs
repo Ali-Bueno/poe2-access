@@ -277,16 +277,20 @@ namespace Poe2Accessibility.Services
         ///     D2R's unexplored mark: the cue, a short gap, then two pips below the exit's tin, distinct from the guide's
         ///     single chime; down a little lower like the cue (d2r-access radar_synth.cpp, docs/radar.md).
         /// </summary>
-        public static float[] WithUnexploredTail(float[] cue, Direction direction, int sampleRate)
+        /// <param name="pips">Two for ground that goes on; one for ground that soon ends (the mod's own, 2026-11-12).</param>
+        public static float[] WithUnexploredTail(float[] cue, Direction direction, int sampleRate, int pips = 2)
         {
             var pitch = direction == Direction.Down ? DownPitch : 1f;
             var pip = Struck(UnexploredMarkHz * pitch, UnexploredMarkHarmonic, UnexploredMarkDecaySeconds, sampleRate, UnexploredPipSeconds);
             var markGap = (int)(UnexploredMarkGapSeconds * sampleRate);
             var pipGap = (int)(UnexploredPipGapSeconds * sampleRate);
-            var samples = new float[cue.Length + markGap + (2 * pip.Length) + pipGap];
+            var samples = new float[cue.Length + markGap + (pips * pip.Length) + ((pips - 1) * pipGap)];
             cue.CopyTo(samples, 0);
-            pip.CopyTo(samples, cue.Length + markGap);
-            pip.CopyTo(samples, cue.Length + markGap + pip.Length + pipGap);
+            for (var i = 0; i < pips; i++)
+            {
+                pip.CopyTo(samples, cue.Length + markGap + (i * (pip.Length + pipGap)));
+            }
+
             return samples;
         }
 

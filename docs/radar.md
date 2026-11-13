@@ -74,6 +74,14 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
     `LostHintAreaMinutes` (10) and every 3 minutes of moving, and after `LostSpokenHintMinutes` (20) the way in words
     (`EntityCatalog.WayOnCell`, `DescribeWayOn`: where the walk to the objective or to an unfound boss room leaves the seen
     ground; with no such goal only the sound, toward the nearest ground that goes on). 0 turns either off.
+  - *Exploring by walking alone* (the user, after the two above: "que sea dinámico, que yo pueda explorar simplemente
+    caminando por el mapa"). The radar's mark has two forms: two pips onto ground that goes on, one pip onto ground that
+    soon ends (`ExplorationMap.UnseenAlong`: the largest the ray meets within reach; small is under two reveal discs;
+    nooks only once nothing else is left; `RadarSynth.WithUnexploredTail(pips: 1)`, volume and glossary line
+    `radar_unexplored_small`). And `LostWatch.OverSeenGround`: after `UnexploredHintSeconds` (30) walking with not one
+    new block, the hint's sound toward the nearest unexplored ground of the best rank (`EntityCatalog.UnexploredCells`),
+    again every 30 s; the objective is not used. Unit-tested; live only the settings and the glossary ("radar_unexplored_small
+    1" by the `sounds` command): a town has no lost hint, and no ray met unseen ground in the caravan.
   Not built, offered to the user: a spoken look at the map on a key ("seen 40 percent; much left north and east"), and a
   word when a branch walked into soon ends.
 - **Hint when lost** (`LostHint`, `LostWatch`; settings `LostHint`, `LostHintSeconds`, at the object sounds' volume): the

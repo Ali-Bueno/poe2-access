@@ -66,7 +66,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What the last <see cref="Frontier"/> found: the blocks the player can reach, the size of each one's unseen ground,
-        ///     and the smallest unseen ground worth a mark: what goes on while any does, then what soon ends, then nooks.
+        ///     and the smallest unseen ground worth a mark: nooks only once nothing else is left.
         /// </summary>
         private (bool[] Reachable, int[] UnseenGround, int MarkFloor) ground = NoGround;
 
@@ -274,7 +274,7 @@ namespace Poe2Accessibility.Services
             }
 
             var best = targets.Count == 0 ? UnseenSize.Pocket : targets.Max(target => target.Place.Size);
-            this.ground = (reachable, unseenGround, best >= UnseenSize.Medium ? SmallBlocks : best == UnseenSize.Small ? PocketBlocks : 0);
+            this.ground = (reachable, unseenGround, best == UnseenSize.Pocket ? 0 : PocketBlocks);
             return targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
         }
 
@@ -290,12 +290,21 @@ namespace Poe2Accessibility.Services
         ///     ground that goes on while any is left, then what soon ends, pockets last. The line alone, not what lies beside it: ground to a side of the way
         ///     the player came is not ahead on the way back (docs/radar.md).
         /// </summary>
-        public bool LeavesTheSeen(Vector2 from, Vector2 axis, float reach)
+        public bool LeavesTheSeen(Vector2 from, Vector2 axis, float reach) => this.UnseenAlong(from, axis, reach) != null;
+
+        /// <summary>
+        ///     What that line leaves the seen ground onto, as walking past it shows a sighted player on the map: ground that goes
+        ///     on (the radar's two pips), or ground that soon ends (one pip: a room, a short branch, and a nook once nothing
+        ///     else is left); null when it stays on seen ground. The largest the line meets within reach.
+        /// </summary>
+        public UnseenSize? UnseenAlong(Vector2 from, Vector2 axis, float reach)
         {
             if (this.ground.Reachable.Length != this.seen.Length || axis.LengthSquared() <= 0)
             {
-                return false;
+                return null;
             }
+
+            UnseenSize? met = null;
 
             var along = Vector2.Normalize(axis);
             const float step = BlockCells / 2f; // no block the line crosses is stepped over
@@ -306,17 +315,25 @@ namespace Poe2Accessibility.Services
                 var y = (int)(cell.Y / BlockCells);
                 if (cell.X < 0 || cell.Y < 0 || x >= this.blocksX || y >= this.blocksY)
                 {
-                    return false;
+                    return met;
                 }
 
                 var block = (y * this.blocksX) + x;
-                if (!this.seen[block] && this.ground.Reachable[block] && this.ground.UnseenGround[block] >= this.ground.MarkFloor)
+                if (this.seen[block] || !this.ground.Reachable[block])
                 {
-                    return true;
+                    continue;
                 }
+
+                var size = this.ground.UnseenGround[block];
+                if (size >= SmallBlocks)
+                {
+                    return SizeOf(size);
+                }
+
+                met = size >= this.ground.MarkFloor ? UnseenSize.Small : met;
             }
 
-            return false;
+            return met;
         }
 
         /// <summary>

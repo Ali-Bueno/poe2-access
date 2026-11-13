@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Services
         private int seenBlocks = -1;
         private long polledAt;
         private long walkedMs;
+        private long seenWalkedMs;
         private long areaMovedMs;
         private long soundAt = -1;
         private long spokenAt = -1;
@@ -39,8 +40,25 @@ namespace Poe2Accessibility.Services
         {
             this.seenBlocks = -1;
             this.walkedMs = 0;
+            this.seenWalkedMs = 0;
             this.areaMovedMs = 0;
             this.soundAt = this.spokenAt = -1;
+        }
+
+        /// <summary>
+        ///     After <see cref="Update"/>: the player has walked this long over ground already seen, not one new block (0: never
+        ///     asked), and the count starts again. Not lost yet, only walking where nothing is left to find: the moment to
+        ///     point at the nearest unexplored ground, as a look at the map would.
+        /// </summary>
+        public bool OverSeenGround(int afterMs)
+        {
+            if (afterMs <= 0 || this.seenWalkedMs < afterMs)
+            {
+                return false;
+            }
+
+            this.seenWalkedMs = 0;
+            return true;
         }
 
         /// <summary>
@@ -82,10 +100,12 @@ namespace Poe2Accessibility.Services
             {
                 this.seenBlocks = seenBlocks;
                 this.walkedMs = 0;
+                this.seenWalkedMs = 0;
                 return false;
             }
 
             this.walkedMs += walking ? step : 0;
+            this.seenWalkedMs += walking ? step : 0;
             if (this.walkedMs < lostAfterMs)
             {
                 return false;

@@ -77,6 +77,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.UnexploredMark)),
                 Switch(nameof(AccessibilitySettings.LostHint)),
                 Number(nameof(AccessibilitySettings.LostHintSeconds), 60, 600, 30),
+                Number(nameof(AccessibilitySettings.UnexploredHintSeconds), 0, 120, 5),
                 Number(nameof(AccessibilitySettings.LostHintAreaMinutes), 0, 60, 5),
                 Number(nameof(AccessibilitySettings.LostSpokenHintMinutes), 0, 120, 5),
                 Switch(nameof(AccessibilitySettings.MapHints)),

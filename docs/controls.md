@@ -367,13 +367,17 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
   for an exit on that line. Left and right are stereo, down is a little lower. Only changes sound
   ([radar](radar.md)). An open way or exit that leads toward ground you have not seen yet ends in two short pips
-  (D2R's unexplored mark; setting "Radar: unexplored mark"). While ground that goes on is left, the mark is for it
-  alone: small unexplored ground and nooks are marked once nothing larger remains. In local co-op with both players read, player 2 has a radar of their own: the same
+  (D2R's unexplored mark; setting "Radar: unexplored mark"). Two pips: that side leads to unexplored ground that goes
+  on. One pip: to unexplored ground that soon ends, a room or a short branch (a nook only once nothing else is left).
+  So walking tells a dead end from the way on, with no list to open. In local co-op with both players read, player 2 has a radar of their own: the same
   meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
 - **Another room:** the radar's tin also marks a doorway ahead: the way narrows between walls and leads to another
   space, a hall, a corridor, it is not only floor (setting "Radar: tin at the way into another room").
 - **Hint when lost:** after about three minutes walking without finding new ground (fights, menus and standing still
   do not count), the D2R mod's "unexplored room" sound plays for four seconds on the side the way on lies, then stops.
+  Sooner than that, after thirty seconds walking over ground you have already seen, the same sound points at the
+  nearest unexplored ground that goes on, and again every thirty seconds until you find new ground: what a look at the
+  map would tell you, not where the objective is (setting, Navigation; 0 for never).
   A dead end is new ground too, so the same sound also comes once you have moved ten minutes through an area, whatever
   you found, and every three minutes of moving after that; after twenty minutes the way is said in words with its route,
   "Hint: the way goes on, 40 steps, up 3, then right": where the walk to the objective leaves the ground you have seen,

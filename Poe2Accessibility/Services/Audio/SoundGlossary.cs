@@ -96,6 +96,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate));
             this.Add("radar_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate));
             this.Add("radar_unexplored", RadarSynth.WithUnexploredTail(RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate), RadarSynth.Direction.Left, rate));
+            this.Add(Radar.SmallMarkKey, RadarSynth.WithUnexploredTail(RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate), RadarSynth.Direction.Left, rate, pips: 1));
             if (modSounds.GetLoop(LostHint.LoopName) is { } hint)
             {
                 this.Add(LostHint.LoopName, Excerpt(hint, rate));

@@ -66,16 +66,16 @@ namespace Poe2Accessibility.Services
             return places.Where(entry => ExplorationMap.Rank(entry.Kind) == best).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
         }
 
-        /// <summary>The line from <paramref name="from"/> along <paramref name="axis"/> (grid cells) soon leaves the seen ground: the radar's mark.</summary>
-        public bool LeadsToUnseen(Vector2 from, Vector2 axis)
+        /// <summary>What the line from <paramref name="from"/> along <paramref name="axis"/> (grid cells) soon leaves the seen ground onto, null for nothing: the radar's mark.</summary>
+        public UnseenSize? UnseenToward(Vector2 from, Vector2 axis)
         {
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                return false;
+                return null;
             }
 
             this.Unexplored(Core.States.InGameStateObject.CurrentAreaInstance, player); // keeps the reachable ground fresh
-            return this.explored.LeavesTheSeen(from, axis, ExplorationMap.MarkReachCells);
+            return this.explored.UnseenAlong(from, axis, ExplorationMap.MarkReachCells);
         }
 
         /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>) as last worked out; a new search starts every UnexploredRefreshMs.</summary>

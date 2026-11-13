@@ -58,6 +58,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.LostHint) => T("Sound hint when lost", "Pista sonora si te pierdes"),
             nameof(AccessibilitySettings.LostHintSeconds) => T("Sound hint: seconds walking without new ground", "Pista sonora: segundos andando sin terreno nuevo"),
+            nameof(AccessibilitySettings.UnexploredHintSeconds) => T("Sound toward unexplored ground: seconds walking over ground already seen, 0 for never", "Sonido hacia terreno sin explorar: segundos andando por terreno ya visto, 0 para nunca"),
             nameof(AccessibilitySettings.LostHintAreaMinutes) => T("Sound hint: minutes moving through an area, 0 for never", "Pista sonora: minutos andando por una zona, 0 para nunca"),
             nameof(AccessibilitySettings.LostSpokenHintMinutes) => T("Spoken hint of the way on: minutes moving through an area, 0 for never", "Pista hablada del camino: minutos andando por una zona, 0 para nunca"),
             nameof(AccessibilitySettings.MapHints) => T("Map hints when passing them", "Pistas del mapa al pasar"),
@@ -156,6 +157,7 @@ namespace Poe2Accessibility
             "radar_open" => T("Radar: open way", "Radar: camino libre"),
             "radar_exit" => T("Radar: exit", "Radar: salida"),
             "radar_unexplored" => T("Radar: toward unexplored ground", "Radar: hacia terreno sin explorar"),
+            Services.Radar.SmallMarkKey => T("Radar: toward unexplored ground that soon ends", "Radar: hacia terreno sin explorar que se acaba pronto"),
             Services.LostHint.LoopName => T("Hint when lost", "Pista si te pierdes"),
             "radar2_wall" => T("Player 2 radar: wall", "Radar del jugador 2: pared"),
             "radar2_open" => T("Player 2 radar: open way", "Radar del jugador 2: camino libre"),
@@ -259,6 +261,9 @@ namespace Poe2Accessibility
             "radar_unexplored" => T(
                 "an open way or exit followed by two pips: that side leads to ground you have not seen yet",
                 "un camino libre o una salida seguidos de dos pitidos: ese lado lleva a terreno que aún no viste"),
+            Services.Radar.SmallMarkKey => T(
+                "an open way or exit followed by one pip: that side leads to unexplored ground that soon ends, a room or a short branch",
+                "un camino libre o una salida seguidos de un solo pitido: ese lado lleva a terreno sin explorar que se acaba pronto, una sala o un ramal corto"),
             Services.LostHint.LoopName => T(
                 "for a few seconds after you have walked a while without finding new ground: that side leads on",
                 "unos segundos tras andar un rato sin encontrar terreno nuevo: por ese lado se sigue"),
