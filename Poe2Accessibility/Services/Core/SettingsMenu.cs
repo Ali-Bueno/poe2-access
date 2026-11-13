@@ -66,6 +66,7 @@ namespace Poe2Accessibility.Services
                     OwnVolume("combo"),
                     Switch(nameof(AccessibilitySettings.CooldownSpeech)),
                     Switch(nameof(AccessibilitySettings.CooldownSounds)),
+                    Number(nameof(AccessibilitySettings.CooldownMinSeconds), 0, 30, 1),
                     Switch(nameof(AccessibilitySettings.DeployedCues))),
                 Menu("fight_quiet",
                     Choice(nameof(AccessibilitySettings.QuietItemsInFights), FightState.Modes),

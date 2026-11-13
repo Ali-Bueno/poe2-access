@@ -158,6 +158,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            text = ChangeSign.Spoken(text);
             long before;
             bool quiet;
             lock (this.queueGate)
@@ -253,6 +254,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
+            text = ChangeSign.Spoken(text);
             var now = DateTime.UtcNow;
             lock (this.queueGate)
             {

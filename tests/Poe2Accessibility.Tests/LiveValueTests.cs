@@ -19,6 +19,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ABuffThatStaysIsTold), ABuffThatStaysIsTold),
             (nameof(AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost), AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost),
             (nameof(AFlaskIsEmptyOnlyBelowTheCostSeen), AFlaskIsEmptyOnlyBelowTheCostSeen),
+            (nameof(TheBaseCostCountsUsesButNeverSaysEmpty), TheBaseCostCountsUsesButNeverSaysEmpty),
             (nameof(AChargeGainedDuringADrinkDoesNotChangeTheCost), AChargeGainedDuringADrinkDoesNotChangeTheCost),
             (nameof(ADrainTeachesNoCost), ADrainTeachesNoCost),
             (nameof(FlaskNewsIsToldBySlot), FlaskNewsIsToldBySlot),
@@ -86,6 +87,20 @@ namespace Poe2Accessibility.Tests
             Equal(FlaskNews.Refilled, unknown.Update(1, Mana, 75, 20_000), "an empty flask filled at the well: said, though no drink has shown its cost");
             Equal(FlaskNews.None, unknown.Update(1, Mana, 78, 21_000), "once: the charges after it are not told");
         }
+
+        private static void TheBaseCostCountsUsesButNeverSaysEmpty()
+        {
+            const int baseCost = 20; // a flask whose real cost is 15 (reduced charges per use), not yet drunk twice
+            var drinks = new FlaskDrinks();
+            drinks.Update(0, Life, 35, 0, baseCost: baseCost);
+            Equal<int?>(1, drinks.Uses(0, Life, 35, baseCost), "35 charges: a use by the base cost");
+            Equal<int?>(null, drinks.Uses(0, Life, 15, baseCost), "15 charges, under the base cost: maybe a use left, no count and not empty");
+            Equal<int?>(null, drinks.Uses(0, Life, FlaskDrinks.LeastCost(baseCost), baseCost), "the least a drink could cost is still not empty");
+            Equal<int?>(0, drinks.Uses(0, Life, FlaskDrinks.LeastCost(baseCost) - 1, baseCost), "under the least a drink could cost: empty");
+            Equal<int?>(0, drinks.Uses(0, Life, 0, baseCost), "no charge is empty always");
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 15, 10_000, baseCost: baseCost), "the drink is news");
+            Equal(FlaskNews.None, drinks.Update(0, Life, 15, 14_000, baseCost: baseCost), "and the flask is not run dry");
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 0, 20_000, baseCost: baseCost), "empty only at no charges");        }
 
         private static void AChargeGainedDuringADrinkDoesNotChangeTheCost()
         {

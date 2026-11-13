@@ -13,6 +13,10 @@ internal static class HostDialog
     /// <summary>MB_ICONERROR (MB_ICONHAND).</summary>
     public const uint ErrorIcon = 0x10;
 
+    /// <summary>The exit codes zenity and kdialog give a dialog that ran: Yes or OK, No or a closed window.</summary>
+    private const int ExitYes = 0;
+    private const int ExitNo = 1;
+
     /// <summary>MessageBoxW's answers.</summary>
     public const int AnswerOk = 1;
     public const int AnswerYes = 6;
@@ -52,11 +56,13 @@ internal static class HostDialog
 
     /// <summary>
     ///     MessageBoxW's answer for what the script wrote (the dialog's exit code), or null when it wrote nothing usable
-    ///     ("none": no zenity nor kdialog): zenity and kdialog exit 0 for Yes or OK, 1 for No or a closed window.
+    ///     ("none": no zenity nor kdialog) or a code of a tool that failed to run: zenity and kdialog exit 0 for Yes or OK, 1
+    ///     for No or a closed window, and any other code (a missing display, a crash) is no answer, so the message box asks.
     /// </summary>
     public static int? Answer(uint type, string? written)
     {
-        if (!int.TryParse(written?.Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var code))
+        if (!int.TryParse(written?.Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var code) ||
+            code is not (ExitYes or ExitNo))
         {
             return null;
         }

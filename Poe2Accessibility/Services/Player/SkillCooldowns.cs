@@ -20,18 +20,20 @@ namespace Poe2Accessibility.Services
         }
 
         /// <param name="usable">Each skill listed now and whether it can be used.</param>
+        /// <param name="shortestMs">A skill spent for less than this is not news (<see cref="MinSpentMs"/> at least).</param>
         /// <returns>The skills usable again since the last update, in <paramref name="usable"/>'s order.</returns>
-        public List<uint> Update(IReadOnlyDictionary<uint, bool> usable, long nowMs)
+        public List<uint> Update(IReadOnlyDictionary<uint, bool> usable, long nowMs, long shortestMs = 0)
         {
+            var worth = System.Math.Max(MinSpentMs, shortestMs);
             var ready = new List<uint>();
             foreach (var (id, canUse) in usable)
             {
                 if (!canUse)
                 {
                     // Spent already when the area began: how long is unknown, so its end is news.
-                    this.spentSince.TryAdd(id, this.baseline ? nowMs - MinSpentMs : nowMs);
+                    this.spentSince.TryAdd(id, this.baseline ? nowMs - worth : nowMs);
                 }
-                else if (this.spentSince.Remove(id, out var since) && nowMs - since >= MinSpentMs)
+                else if (this.spentSince.Remove(id, out var since) && nowMs - since >= worth)
                 {
                     ready.Add(id);
                 }

@@ -21,10 +21,14 @@
   two sessions' logs, 256 had waited for a kept line and 141 behind an urged or mentioned one). The game's tooltip for that item on the HUD is then not said again (only its quality), whatever name it
   shows: a magic or rare item's full name ("Bastón largo intenso de impacto") is not the base the scanner knows, and its
   whole tooltip used to be read as HUD news. Setting: `AnnounceInteractTarget`.
+- A breakable's prompt is not said again when the last prompt said was a breakable of the same name less than 5 s before
+  (a row of pots says "Tiesto, A" once; `BreakablePrompts`); another name or another kind of object is said at once.
 
 - Where the player arrived and still stands (within 200 units of where the area's line went out) what A uses is no move of the player's: it
   waits for the area's line and the quest page, which it used to cut (review of 2026-11-12; heard live, "Transportador, A" after both).
 - What the game writes an object is for is said once an area, after its name and button: "Cáliz de sangre, A. Derrota a todos los monstruos
   raros del área para llenar el cáliz" (a WorldDescription's `body_text`, `world-titles.json` "body:" entries, 34 objects; `ScanEntry.About`).
   An amount the game fills in is "algo" ("Restaura algo de honor"); a counter the game keeps is left out; nothing for what a clock runs against.
+  A Trial shrine's or fountain's cost in sacred water, its shared state `interact_cost` (`ShrineCost`), ends the line when the state
+  is there and not zero: "Honra a Tabana, A. Restaura algo de honor, cuesta 5 de agua sagrada" (later times, "Honra a Tabana, A, cuesta 5 de agua sagrada").
 - What happened behind a kept line ("Recogido 5 de oro") follows the move that cuts the line instead of being dropped (`SpeechFloor.Move`).

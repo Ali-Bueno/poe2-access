@@ -83,6 +83,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\ShrineCost.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialArt.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialEffectNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
@@ -123,6 +124,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveTreeCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechFloor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechRepeats.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Speech\ChangeSign.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\BreakablePrompts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusDetails.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\BareHover.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusNews.cs" />

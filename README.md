@@ -77,7 +77,7 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
   characters, enemies, items and chests; and a guide ping that leads you along a free path and tells you the turns.
 - **Combat:** positional sounds for enemies; a warning when a rare monster or a boss attacks you, timed by the
   attack's own animation and only when it is aimed at you, within reach and on screen; the boss's life and weak
-  point; life, mana, flasks and status effects; skills ready again after their cooldown; your class's resources
+  point; life, mana, flasks and status effects; skills ready again after a cooldown of 6 seconds or more (a setting); your class's resources
   (charges, Heat and the like); and a sound for enemy states that skills pay off on (primed for stun, heavy stunned,
   frozen, electrocuted, pinned, armour broken, dazed, parried, culling strike).
 - **Boss fights:** what a boss is doing that you cannot see: when it vanishes and comes back, hides until you find it

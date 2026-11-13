@@ -44,10 +44,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What is said for a name made from a file: in English the file's words are a fair name; in another language they
-        ///     would be foreign words posing as one, so the object is said unnamed with the word kept to tell it apart.
+        ///     would be foreign words posing as one, so the object is said unnamed with the word kept to tell it apart. A file
+        ///     the mod has its own word for (<paramref name="known"/>) is said by that word in every language.
         /// </summary>
-        public static string Spoken(string fileWord, string language, Func<string, string> unnamed) =>
-            fileWord.Length == 0 || language == "en" ? fileWord : unnamed(fileWord);
+        public static string Spoken(string fileWord, string language, Func<string, string> unnamed, Func<string, string?>? known = null) =>
+            fileWord.Length == 0 ? fileWord : known?.Invoke(fileWord) is { Length: > 0 } own ? own : language == "en" ? fileWord : unnamed(fileWord);
 
         /// <summary>The game's label, else the league folder of the path ("Metadata/Terrain/Leagues/Delirium/..." gives "Delirium"), else empty.</summary>
         public static string LeagueName(string label, string path)

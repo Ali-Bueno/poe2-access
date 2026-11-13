@@ -127,6 +127,9 @@ namespace Poe2Accessibility
         public static string Flatten(string text) =>
             SpaceRuns.Replace(text.Contains('\n') ? JoinLines(text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) : text, " ");
 
+        /// <summary>The word that stands for the game's ">" between a value and its change ("Nivel 4 a nivel 5").</summary>
+        public static string ChangeWord => T("to", "a");
+
         /// <summary>Where inline art was cut out of a text ("Identify <<itemvisual:…>> x 1" reads "Identify   x 1").</summary>
         private static readonly System.Text.RegularExpressions.Regex SpaceRuns = new(" {2,}", System.Text.RegularExpressions.RegexOptions.Compiled);
 
