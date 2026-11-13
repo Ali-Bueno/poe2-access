@@ -58,6 +58,24 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   a straight line reveals a strip 120 cells wide, and its edge, 60 cells to the side, lies 22° off the line 157 cells
   back, so the ray pointing where the player came from was marked ("up is unexplored", then "down is"; user). On the
   line alone, the way back is marked only when the player came more than 30° aslant of it.
+- **Exploring a large area without the scanner (2026-11-12).** The user, of Act 2: "iba a un sitio sin explorar y era algo
+  sin salida"; in the play log "Zona sin explorar" was asked for 50 times in 77 minutes in La ciudad perdida and 34 times
+  (plus 43 nooks) in 62 in the Valle de los titanes. Two causes, both fixed in code (unit-tested; heard live only in the
+  Ardura caravan: "Zona sin explorar", "Zona pequeña sin explorar", two nooks, in that order, no slow tick in 75 s):
+  - *The size of unseen ground was taken block by block.* Two unseen blocks side by side were one ground, so a corridor
+    ending at a wall with unseen ground behind it was "ground that goes on". `ExplorationMap.Survey` now joins unseen
+    ground cell by cell (four neighbours, as the walk; a second pass over the walk's own array), and a place carries its
+    `UnseenSize`: pocket under half a reveal disc (88 blocks, as before), small under two discs (353), large from ten
+    (1767). The last two are first guesses, not measured against the game's areas. The scanner lists ground that goes on
+    first, then small, then nooks (`ExplorationMap.Rank`), and the radar's mark and the lost hint's fallback take the
+    best rank left (`MarkFloor`). The search's time is logged when it passes 250 ms ("Unexplored ground worked out in").
+  - *A dead end is new ground,* so `LostWatch`'s count started again at each and the hint came once in two days.
+    `LostWatch.Explored` adds the area's own clock, the time moved through it fighting or not: the sound after
+    `LostHintAreaMinutes` (10) and every 3 minutes of moving, and after `LostSpokenHintMinutes` (20) the way in words
+    (`EntityCatalog.WayOnCell`, `DescribeWayOn`: where the walk to the objective or to an unfound boss room leaves the seen
+    ground; with no such goal only the sound, toward the nearest ground that goes on). 0 turns either off.
+  Not built, offered to the user: a spoken look at the map on a key ("seen 40 percent; much left north and east"), and a
+  word when a branch walked into soon ends.
 - **Hint when lost** (`LostHint`, `LostWatch`; settings `LostHint`, `LostHintSeconds`, at the object sounds' volume): the
   D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's 44.1 kHz, shipped in
   `assets/loops/`) is not a constant loop any more (user 2026-11-05: the radar is what explores). After 180 s spent

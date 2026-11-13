@@ -367,6 +367,7 @@ namespace Poe2Accessibility
                 this.alerts.Charges.RecordedSound = key => modSounds.GetStereo(key) ?? gameSounds.GetStereo(key);
                 this.culls.Chime = modSounds.Get("cull") ?? this.culls.Chime;
                 this.lostHint = new LostHint(this.audio, this.entities, modSounds.GetLoop(LostHint.LoopName), this.log);
+                this.lostHint.SayWay = cell => this.output?.Say(SpeechKind.Places, this.entities.DescribeWayOn(cell));
                 this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")),
                                                     () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark && this.entities.LeadsToUnseen(from, axis);

@@ -268,8 +268,24 @@ namespace Poe2Accessibility
         /// <summary>A scanner entry of the unexplored category: where unseen ground begins.</summary>
         public static string UnexploredArea => T("Unexplored ground", "Zona sin explorar");
 
+        /// <summary>Said to a player long in an area, before the route to where the way to the objective leaves the ground seen.</summary>
+        public static string WayOnHint => T("Hint: the way goes on", "Pista: el camino sigue");
+
         /// <summary>Unseen ground with no way on: one look from its edge shows it all.</summary>
         public static string UnexploredPocket => T("Unexplored nook", "Rincón sin explorar");
+
+        /// <summary>
+        ///     An unexplored place by how much unseen ground lies behind it, the size first so it is heard before the rest: what
+        ///     soon ends, what goes on, a great part of the area. A walk to "unexplored ground" that was a dead end cost an hour
+        ///     in an area of Act 2 (user 2026-11-12).
+        /// </summary>
+        public static string Unexplored(Services.UnseenSize size) => size switch
+        {
+            Services.UnseenSize.Pocket => UnexploredPocket,
+            Services.UnseenSize.Small => T("Small unexplored ground", "Zona pequeña sin explorar"),
+            Services.UnseenSize.Large => T("Large unexplored ground", "Zona grande sin explorar"),
+            _ => UnexploredArea,
+        };
 
         /// <summary>Which part of the map a place lies in, by thirds across and down (-1, 0, 1), as the screen draws it.</summary>
         public static string CornerOfMap(int across, int down) => (across, down) switch

@@ -21,6 +21,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A scanner entry's kind for a pocket (<see cref="FrontierPlace"/>).</summary>
         public const string PocketKind = "pocket";
 
+        /// <summary>A scanner entry's kind for unseen ground that soon ends (<see cref="UnseenSize.Small"/>).</summary>
+        public const string SmallKind = "small_unexplored";
+
+        /// <summary>Where a scanner entry of the unexplored category stands among them by its kind: ground that goes on, then what soon ends, then nooks.</summary>
+        public static int Rank(string kind) => kind == PocketKind ? 2 : kind == SmallKind ? 1 : 0;
+
 
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
         public const float SeenRadiusCells = 60f;
@@ -40,6 +46,14 @@ namespace Poe2Accessibility.Services
         /// <summary>Unseen ground smaller than this is a pocket: half the reveal disc, what one look from its edge shows whole.</summary>
         private const int PocketBlocks = (int)(Math.PI * SeenRadiusCells * SeenRadiusCells / (2 * BlockCells * BlockCells));
 
+        /// <summary>
+        ///     Unseen ground under two reveal discs soon ends, a room or a short branch; ten discs and more is a large part of
+        ///     an area. Not measured against the game's areas: the first guess of 2026-11-12, when a walk to "unexplored ground"
+        ///     kept ending at a wall (La ciudad perdida: 50 such entries asked for in 77 minutes, user's log).
+        /// </summary>
+        private const int SmallBlocks = 4 * PocketBlocks;
+        private const int LargeBlocks = 20 * PocketBlocks;
+
         /// <summary>More blocks than any area holds (a 4000-cell square): a kept map claiming more is not one.</summary>
         private const long MaxBlocks = 500 * 500;
 
@@ -50,10 +64,13 @@ namespace Poe2Accessibility.Services
         private int blocksX;
         private int blocksY;
 
-        /// <summary>What the last <see cref="Frontier"/> found: the blocks the player can reach, and the size of each one's unseen ground.</summary>
-        private (bool[] Reachable, int[] UnseenGround, bool GoesOn) ground = NoGround;
+        /// <summary>
+        ///     What the last <see cref="Frontier"/> found: the blocks the player can reach, the size of each one's unseen ground,
+        ///     and the smallest unseen ground worth a mark: what goes on while any does, then what soon ends, then nooks.
+        /// </summary>
+        private (bool[] Reachable, int[] UnseenGround, int MarkFloor) ground = NoGround;
 
-        private static readonly (bool[], int[], bool) NoGround = (Array.Empty<bool>(), Array.Empty<int>(), false);
+        private static readonly (bool[], int[], int) NoGround = (Array.Empty<bool>(), Array.Empty<int>(), 0);
 
         /// <summary>How many blocks have been seen: it grows while the player finds new ground.</summary>
         public int SeenBlocks { get; private set; }
@@ -190,7 +207,10 @@ namespace Poe2Accessibility.Services
             return total == 0 ? null : seenBlocks * 100 / total;
         }
 
-        /// <summary>Places to head for, one per unexplored group and direction: ground that goes on first, then pockets, nearest first.</summary>
+        /// <summary>
+        ///     Places to head for, one per unexplored group and direction, each with the size of the unseen ground behind it:
+        ///     ground that goes on first, then what soon ends, then pockets, nearest first.
+        /// </summary>
         public IReadOnlyList<FrontierPlace> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries)
         {
             if (!this.Fits(grid, bytesPerRow, out var width, out var height))
@@ -199,7 +219,7 @@ namespace Poe2Accessibility.Services
             }
 
             var open = WalkableBlocks(grid, bytesPerRow, width, height);
-            var reachable = this.Reachable(grid, bytesPerRow, width, height, from);
+            var (reachable, unseenGround) = this.Survey(grid, bytesPerRow, width, height, from);
             var frontier = new List<int>();
             for (var i = 0; i < open.Length; i++)
             {
@@ -238,7 +258,6 @@ namespace Poe2Accessibility.Services
             }
 
             var groups = frontier.GroupBy(block => (run[block], Octant(this.Centre(block) - from)));
-            var unseenGround = this.UnseenGround(reachable);
             var targets = new List<(FrontierPlace Place, float Distance)>();
             foreach (var group in groups)
             {
@@ -250,18 +269,25 @@ namespace Poe2Accessibility.Services
 
                 if (NearestWalkable(grid, bytesPerRow, width, height, this.Centre(nearest)) is { } cell)
                 {
-                    targets.Add((new FrontierPlace(cell, unseenGround[nearest] < PocketBlocks), Vector2.Distance(cell, from)));
+                    targets.Add((new FrontierPlace(cell, SizeOf(unseenGround[nearest])), Vector2.Distance(cell, from)));
                 }
             }
 
-            this.ground = (reachable, unseenGround, targets.Any(target => !target.Place.Pocket));
-            return targets.OrderBy(target => target.Place.Pocket).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
+            var best = targets.Count == 0 ? UnseenSize.Pocket : targets.Max(target => target.Place.Size);
+            this.ground = (reachable, unseenGround, best >= UnseenSize.Medium ? SmallBlocks : best == UnseenSize.Small ? PocketBlocks : 0);
+            return targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
         }
+
+        private static UnseenSize SizeOf(int blocks) =>
+            blocks < PocketBlocks ? UnseenSize.Pocket : blocks < SmallBlocks ? UnseenSize.Small : blocks < LargeBlocks ? UnseenSize.Medium : UnseenSize.Large;
+
+        /// <summary>Ground that goes on (medium or large) together, then what soon ends, then nooks.</summary>
+        private static int RankOf(UnseenSize size) => size >= UnseenSize.Medium ? 0 : size == UnseenSize.Small ? 1 : 2;
 
         /// <summary>
         ///     The straight line from <paramref name="from"/> along <paramref name="axis"/> leaves the seen ground within
-        ///     <paramref name="reach"/> cells, onto ground the player can reach (as of the last <see cref="Frontier"/>);
-        ///     pockets only once nothing else is left. The line alone, not what lies beside it: ground to a side of the way
+        ///     <paramref name="reach"/> cells, onto ground the player can reach (as of the last <see cref="Frontier"/>):
+        ///     ground that goes on while any is left, then what soon ends, pockets last. The line alone, not what lies beside it: ground to a side of the way
         ///     the player came is not ahead on the way back (docs/radar.md).
         /// </summary>
         public bool LeavesTheSeen(Vector2 from, Vector2 axis, float reach)
@@ -284,7 +310,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var block = (y * this.blocksX) + x;
-                if (!this.seen[block] && this.ground.Reachable[block] && (!this.ground.GoesOn || this.ground.UnseenGround[block] >= PocketBlocks))
+                if (!this.seen[block] && this.ground.Reachable[block] && this.ground.UnseenGround[block] >= this.ground.MarkFloor)
                 {
                     return true;
                 }
@@ -504,45 +530,109 @@ namespace Poe2Accessibility.Services
             return reachable;
         }
 
-        /// <summary>Per block, how many blocks its connected unseen ground holds (8 neighbours: ground that goes on is never called a pocket).</summary>
-        private int[] UnseenGround(bool[] reachable)
+        /// <summary>
+        ///     The blocks the player can reach and, per block, how many blocks its unseen ground holds: the unseen blocks whose
+        ///     walkable cells join without crossing seen ground (four neighbours, cell by cell, as the walk). Blocks side by
+        ///     side were taken for one ground until 2026-11-12, so a dead end beside a wall with unseen ground behind it was
+        ///     "ground that goes on" and the walk to it ended at that wall (user). A block two grounds share takes the larger.
+        /// </summary>
+        private (bool[] Reachable, int[] UnseenGround) Survey(byte[] grid, int bytesPerRow, int width, int height, Vector2 from)
         {
+            var reachable = new bool[this.blocksX * this.blocksY];
             var sizes = new int[reachable.Length];
-            var done = new bool[reachable.Length];
-            var members = new List<int>();
-            var stack = new Stack<int>();
-            for (var first = 0; first < reachable.Length; first++)
+            if (NearestWalkable(grid, bytesPerRow, width, height, from) is not { } start)
             {
-                if (done[first] || !reachable[first] || this.seen[first])
-                {
-                    continue;
-                }
+                return (reachable, sizes);
+            }
 
-                members.Clear();
-                done[first] = true;
-                stack.Push(first);
-                while (stack.Count > 0)
+            var cells = width * height;
+            var walk = Walk(grid, bytesPerRow, width, height, start);
+            var queue = ArrayPool<int>.Shared.Rent(cells);
+            try
+            {
+                for (var cell = 0; cell < cells; cell++)
                 {
-                    var block = stack.Pop();
-                    members.Add(block);
-                    foreach (var n in this.Neighbours8(block))
+                    if (walk[cell] >= 0)
                     {
-                        if (!done[n] && reachable[n] && !this.seen[n])
-                        {
-                            done[n] = true;
-                            stack.Push(n);
-                        }
+                        reachable[this.BlockOf(cell, width)] = true;
                     }
                 }
 
-                foreach (var block in members)
+                // The walk's steps are spent: a cell taken into a ground is marked in them, so none is taken twice.
+                const int taken = -2;
+                var lastGround = new int[reachable.Length];
+                var touched = new List<int>();
+                var number = 0;
+                for (var first = 0; first < cells; first++)
                 {
-                    sizes[block] = members.Count;
+                    if (walk[first] < 0 || this.seen[this.BlockOf(first, width)])
+                    {
+                        continue;
+                    }
+
+                    number++;
+                    touched.Clear();
+                    var head = 0;
+                    var tail = 0;
+                    walk[first] = taken;
+                    queue[tail++] = first;
+                    while (head < tail)
+                    {
+                        var cell = queue[head++];
+                        var block = this.BlockOf(cell, width);
+                        if (lastGround[block] != number)
+                        {
+                            lastGround[block] = number;
+                            touched.Add(block);
+                        }
+
+                        var x = cell % width;
+                        if (x > 0)
+                        {
+                            Take(cell - 1);
+                        }
+
+                        if (x < width - 1)
+                        {
+                            Take(cell + 1);
+                        }
+
+                        if (cell >= width)
+                        {
+                            Take(cell - width);
+                        }
+
+                        if (cell < cells - width)
+                        {
+                            Take(cell + width);
+                        }
+                    }
+
+                    foreach (var block in touched)
+                    {
+                        sizes[block] = Math.Max(sizes[block], touched.Count);
+                    }
+
+                    void Take(int cell)
+                    {
+                        if (walk[cell] >= 0 && !this.seen[this.BlockOf(cell, width)])
+                        {
+                            walk[cell] = taken;
+                            queue[tail++] = cell;
+                        }
+                    }
                 }
             }
+            finally
+            {
+                ArrayPool<int>.Shared.Return(queue);
+                ArrayPool<int>.Shared.Return(walk);
+            }
 
-            return sizes;
+            return (reachable, sizes);
         }
+
+        private int BlockOf(int cell, int width) => ((cell / width / BlockCells) * this.blocksX) + (cell % width / BlockCells);
 
         /// <summary>The grid has this map's size and something has been seen on it.</summary>
         private bool Fits(byte[] grid, int bytesPerRow, out int width, out int height)
@@ -595,6 +685,21 @@ namespace Poe2Accessibility.Services
         }
     }
 
-    /// <summary>An unexplored place: a pocket is unseen ground one look from its edge would show whole, a nook with no way on.</summary>
-    public readonly record struct FrontierPlace(Vector2 Cell, bool Pocket);
+    /// <summary>
+    ///     How much unseen ground lies behind an unexplored place, what a look at the map tells a sighted player: a pocket is
+    ///     what one look from its edge would show whole, a nook with no way on; small soon ends; large is a great part of an area.
+    /// </summary>
+    public enum UnseenSize
+    {
+        Pocket,
+        Small,
+        Medium,
+        Large,
+    }
+
+    /// <summary>An unexplored place: where unseen ground begins, and how much of it there is.</summary>
+    public readonly record struct FrontierPlace(Vector2 Cell, UnseenSize Size)
+    {
+        public bool Pocket => this.Size == UnseenSize.Pocket;
+    }
 }

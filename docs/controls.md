@@ -64,8 +64,12 @@ first; both wrap and empty categories are skipped. The category is named only wh
   when the game's own icon shows the boss dead, for a room known from the map's pieces too, which then drops its reward note; secrets and quest landmarks such as "Renly's Workshop", which the game
   draws only near; each said once as "On the map: …"), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
-  ground never seen begins, one entry per stretch and direction: "Unexplored ground, 7 steps, left" where it goes
-  on, nearest first, then "Unexplored nook" where one look from its edge would show it all, a dead end; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  ground never seen begins, one entry per stretch and direction, named by how much lies behind it, as a look at the
+  map tells a sighted player: "Large unexplored ground" (a good part of the area) and "Unexplored ground, 7 steps, left"
+  where it goes on, nearest first; then "Small unexplored ground", a room or a short branch that soon ends; then
+  "Unexplored nook" where one look from its edge would show it all, a dead end. The size is of the ground you would
+  reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
+  the wall. It never says where the exit is; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too; "Essence: Blood Cretin", a crystal holding a
@@ -363,12 +367,18 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
   for an exit on that line. Left and right are stereo, down is a little lower. Only changes sound
   ([radar](radar.md)). An open way or exit that leads toward ground you have not seen yet ends in two short pips
-  (D2R's unexplored mark; setting "Radar: unexplored mark"). In local co-op with both players read, player 2 has a radar of their own: the same
+  (D2R's unexplored mark; setting "Radar: unexplored mark"). While ground that goes on is left, the mark is for it
+  alone: small unexplored ground and nooks are marked once nothing larger remains. In local co-op with both players read, player 2 has a radar of their own: the same
   meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
 - **Another room:** the radar's tin also marks a doorway ahead: the way narrows between walls and leads to another
   space, a hall, a corridor, it is not only floor (setting "Radar: tin at the way into another room").
 - **Hint when lost:** after about three minutes walking without finding new ground (fights, menus and standing still
   do not count), the D2R mod's "unexplored room" sound plays for four seconds on the side the way on lies, then stops.
+  A dead end is new ground too, so the same sound also comes once you have moved ten minutes through an area, whatever
+  you found, and every three minutes of moving after that; after twenty minutes the way is said in words with its route,
+  "Hint: the way goes on, 40 steps, up 3, then right": where the walk to the objective leaves the ground you have seen,
+  not the objective. Nothing is said once the objective's ground has been seen. Both times are settings (Navigation;
+  0 for never).
   It points to where the walk to what the quest asks leaves the ground you have seen, else toward a boss room not found
   yet, else to the nearest ground that goes on. Silent in towns and while the guide leads (settings "Sound hint when
   lost" and "Sound hint: seconds walking without new ground", 60 to 600).

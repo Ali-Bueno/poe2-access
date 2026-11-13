@@ -1,5 +1,6 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
     using System.Numerics;
     using GameReader.RemoteObjects.Components;
 
@@ -47,6 +48,15 @@ namespace Poe2Accessibility.Services
         /// <summary>How long a player walks without new ground before the hint plays.</summary>
         public int LostAfterMs { get; set; } = 180000;
 
+        /// <summary>How long a player moves through an area, new ground or not, before the hint plays (0: never).</summary>
+        public int SoundAfterAreaMs { get; set; } = 600000;
+
+        /// <summary>...and before the way on is said in words (0: never).</summary>
+        public int SpokenAfterAreaMs { get; set; } = 1200000;
+
+        /// <summary>Says the way on, given the cell where it leaves the seen ground.</summary>
+        public Action<Vector2>? SayWay { get; set; }
+
         /// <summary>A new area: the old way means nothing there.</summary>
         public void Reset()
         {
@@ -76,13 +86,22 @@ namespace Poe2Accessibility.Services
             if (now - this.lastPoll >= PollMs)
             {
                 this.lastPoll = now;
-                var walking = !inFight && Vector2.Distance(here, this.lastPlace) >= WalkingWorld;
+                var moving = Vector2.Distance(here, this.lastPlace) >= WalkingWorld;
                 this.lastPlace = here;
-                if (this.watch.Update(now, this.catalog.SeenBlocks, walking, this.LostAfterMs) && this.catalog.LostHintCell() is { } cell)
+                var lost = this.watch.Update(now, this.catalog.SeenBlocks, moving && !inFight, this.LostAfterMs, moving);
+                var news = this.watch.Explored(this.SoundAfterAreaMs, this.SpokenAfterAreaMs);
+                if (news == LostNews.Spoken && this.catalog.WayOnCell() is { } way)
+                {
+                    this.target = way;
+                    this.startedAt = now;
+                    this.log.Info($"Lost hint in words toward cell {way.X:0},{way.Y:0}");
+                    this.SayWay?.Invoke(way);
+                }
+                else if ((lost || news != LostNews.None) && this.catalog.LostHintCell() is { } cell)
                 {
                     this.target = cell;
                     this.startedAt = now;
-                    this.log.Info($"Lost hint toward cell {cell.X:0},{cell.Y:0}");
+                    this.log.Info($"Lost hint toward cell {cell.X:0},{cell.Y:0}{(lost ? string.Empty : " (long in the area)")}");
                 }
             }
 

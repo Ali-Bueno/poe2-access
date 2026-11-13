@@ -57,17 +57,47 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            this.Entries();
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            float Away(ScanEntry entry) => Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY));
-            var goal = this.questTargets.FirstOrDefault() ??
-                       this.AreaLandmarks().Where(entry => entry.Kind == MinimapMarks.BossRoomKind && !this.sighted.Contains(entry.Id)).OrderBy(Away).FirstOrDefault();
-            if (goal == null)
+            if (this.LostGoal(here) is not { } goal)
             {
                 return this.UnexploredCells() is { Count: > 0 } onward ? onward[0] : null;
             }
 
             return this.WayCell(new Vector2(goal.WorldX, goal.WorldY) / toWorld, here / toWorld);
+        }
+
+        /// <summary>
+        ///     Where the way to the objective (or to a boss room not found yet) leaves the seen ground, in grid cells: what a
+        ///     hint in words may name. Null with no such goal, or once its ground has been seen: then nothing is lost.
+        /// </summary>
+        public Vector2? WayOnCell()
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player) || !this.TryLiveGrid(out var grid, out var row))
+            {
+                return null;
+            }
+
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            return this.LostGoal(here) is { } goal ? this.explored.WayOn(grid, row, here / toWorld, new Vector2(goal.WorldX, goal.WorldY) / toWorld) : null;
+        }
+
+        /// <summary>The hint in words for a lost player: "Hint: the way goes on, 40 steps, up 3, then right".</summary>
+        public string DescribeWayOn(Vector2 cell)
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            var height = Seats.Followed.TryGetComponent<Render>(out var player) ? player.WorldPosition.Z : 0f;
+            var block = (uint)(((int)cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)cell.X / ExplorationMap.BlockCells);
+            return this.Describe(new ScanEntry(UnexploredIdBase + block, ScanCategory.Unexplored, Announcements.WayOnHint, cell.X * toWorld, cell.Y * toWorld, height));
+        }
+
+        /// <summary>What a lost player is led toward: what the objective names, else the nearest boss room not found yet.</summary>
+        private ScanEntry? LostGoal(Vector2 here)
+        {
+            this.Entries();
+            float Away(ScanEntry entry) => Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY));
+            return this.questTargets.FirstOrDefault() ??
+                   this.AreaLandmarks().Where(entry => entry.Kind == MinimapMarks.BossRoomKind && !this.sighted.Contains(entry.Id)).OrderBy(Away).FirstOrDefault();
         }
 
         /// <summary>The place a map hint leads to, seen or not: the nearest boss room, or an exit by its English label.</summary>

@@ -34,6 +34,12 @@ namespace Poe2Accessibility.Services
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
 
+        /// <summary>
+        ///     The longest a frontier search has taken, logged when it grows past this: the search walks every cell of the area
+        ///     twice since 2026-11-12, measured only in a town (no frame held: it runs off the frame thread).
+        /// </summary>
+        private long slowestFrontierMs = 250;
+
         /// <summary>The frontier being worked out, with the map it reads and what its places need to become entries.</summary>
         private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height)? frontierSearch;
 
@@ -45,7 +51,7 @@ namespace Poe2Accessibility.Services
                 : null;
         }
 
-        /// <summary>Where unseen ground begins, in grid cells, nearest first; pockets only once nothing else is left (the radar's mark, the loop).</summary>
+        /// <summary>Where unseen ground begins, in grid cells, nearest first: ground that goes on while any is left, then what soon ends, pockets last (the lost hint).</summary>
         public IReadOnlyList<Vector2> UnexploredCells()
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
@@ -56,8 +62,8 @@ namespace Poe2Accessibility.Services
             }
 
             var places = this.Unexplored(area, player);
-            var onward = places.Where(entry => entry.Kind != ExplorationMap.PocketKind).ToList();
-            return (onward.Count > 0 ? onward : places).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
+            var best = places.Count == 0 ? 0 : places.Min(entry => ExplorationMap.Rank(entry.Kind));
+            return places.Where(entry => ExplorationMap.Rank(entry.Kind) == best).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
         }
 
         /// <summary>The line from <paramref name="from"/> along <paramref name="axis"/> (grid cells) soon leaves the seen ground: the radar's mark.</summary>
@@ -89,11 +95,11 @@ namespace Poe2Accessibility.Services
                         .Select(place => new ScanEntry(
                             UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells),
                             ScanCategory.Unexplored,
-                            place.Pocket ? Announcements.UnexploredPocket : Announcements.UnexploredArea,
+                            Announcements.Unexplored(place.Size),
                             place.Cell.X * found.ToWorld,
                             place.Cell.Y * found.ToWorld,
                             found.Height,
-                            place.Pocket ? ExplorationMap.PocketKind : string.Empty))
+                            place.Size == UnseenSize.Pocket ? ExplorationMap.PocketKind : place.Size == UnseenSize.Small ? ExplorationMap.SmallKind : string.Empty))
                         .ToList();
                 }
             }
@@ -107,8 +113,22 @@ namespace Poe2Accessibility.Services
             this.unexploredAt = now;
             var map = this.explored.Snapshot();
             var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            this.frontierSearch = (Task.Run(() => map.Frontier(grid, row, from, MaxUnexplored)), map, area.WorldToGridConvertor, player.WorldPosition.Z);
+            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from)), map, area.WorldToGridConvertor, player.WorldPosition.Z);
             return this.unexplored;
+        }
+
+        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from)
+        {
+            var started = Environment.TickCount64;
+            var places = map.Frontier(grid, row, from, MaxUnexplored);
+            var took = Environment.TickCount64 - started;
+            if (took > this.slowestFrontierMs)
+            {
+                this.slowestFrontierMs = took;
+                this.log.Info($"Unexplored ground worked out in {took} ms, the longest so far (grid of {grid.Length} bytes, {row} a row)");
+            }
+
+            return places;
         }
 
         /// <summary>Notes where the player stands as the place of the death that just happened.</summary>

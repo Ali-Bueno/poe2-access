@@ -98,7 +98,7 @@ namespace Poe2Accessibility.Tests
         }
 
         /// <summary>A walled grid with rectangles carved open (x even: two cells per byte).</summary>
-        private static byte[] Carved(int width, int height, params (int Left, int Top, int Right, int Bottom)[] rooms)
+        internal static byte[] Carved(int width, int height, params (int Left, int Top, int Right, int Bottom)[] rooms)
         {
             var grid = new byte[width / 2 * height];
             foreach (var (left, top, right, bottom) in rooms)

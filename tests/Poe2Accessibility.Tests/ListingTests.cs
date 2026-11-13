@@ -22,7 +22,7 @@ namespace Poe2Accessibility.Tests
 
         private static readonly string[] Kinds =
         {
-            string.Empty, QuestMatcher.ExitKind, "npc_quest", QuestMatcher.TileNote, MinimapMarks.BossRoomKind, MinimapMarks.SignKind, ExplorationMap.PocketKind, "waypoint",
+            string.Empty, QuestMatcher.ExitKind, "npc_quest", QuestMatcher.TileNote, MinimapMarks.BossRoomKind, MinimapMarks.SignKind, ExplorationMap.PocketKind, ExplorationMap.SmallKind, "waypoint",
         };
 
         private static readonly string[] Texts =
@@ -175,7 +175,7 @@ namespace Poe2Accessibility.Tests
             {
                 var back = Fold(cameFrom);
                 var onward = entries.Where(entry => entry.Category == ScanCategory.Exits && entry.Kind == QuestMatcher.ExitKind && Fold(entry.Name) != back).ToList();
-                targets.AddRange((onward.Count > 0 ? onward : entries.Where(entry => entry.Category == ScanCategory.Unexplored).OrderBy(entry => entry.Kind == ExplorationMap.PocketKind).Take(1))
+                targets.AddRange((onward.Count > 0 ? onward : entries.Where(entry => entry.Category == ScanCategory.Unexplored).OrderBy(entry => ExplorationMap.Rank(entry.Kind)).Take(1))
                     .Select(entry => entry with { Category = ScanCategory.Quest }));
             }
 

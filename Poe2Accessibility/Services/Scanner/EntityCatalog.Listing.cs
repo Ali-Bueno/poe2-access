@@ -255,7 +255,7 @@ namespace Poe2Accessibility.Services
             }
 
             var origin = player.WorldPosition;
-            var sorted = found.Values.OrderBy(entry => entry.Kind == ExplorationMap.PocketKind).ThenBy(entry => Distance(origin, entry)).ToList();
+            var sorted = found.Values.OrderBy(entry => ExplorationMap.Rank(entry.Kind)).ThenBy(entry => Distance(origin, entry)).ToList();
             // The objective is known wherever the game knows it, but said only once seen: the rest is for the player to find,
             // with the lost hint for a last resort (user 2026-11-05, over the marker of 2026-10-24; docs/radar.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();

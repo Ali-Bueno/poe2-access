@@ -229,6 +229,15 @@ namespace Poe2Accessibility
         /// <summary>How long the player walks without new ground before that sound plays.</summary>
         public int LostHintSeconds = 180;
 
+        /// <summary>
+        ///     The same sound once the player has moved this many minutes through an area, new ground or not (a dead end is new
+        ///     ground): 0 for never. A first guess, to tune by ear (2026-11-12).
+        /// </summary>
+        public int LostHintAreaMinutes = 10;
+
+        /// <summary>...and after this many, the way on in words, with its route: 0 for never.</summary>
+        public int LostSpokenHintMinutes = 20;
+
         /// <summary>The cues GGG placed on the maps are said once on walking past them.</summary>
         public bool MapHints = true;
 

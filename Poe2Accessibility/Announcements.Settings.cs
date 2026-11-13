@@ -58,6 +58,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.LostHint) => T("Sound hint when lost", "Pista sonora si te pierdes"),
             nameof(AccessibilitySettings.LostHintSeconds) => T("Sound hint: seconds walking without new ground", "Pista sonora: segundos andando sin terreno nuevo"),
+            nameof(AccessibilitySettings.LostHintAreaMinutes) => T("Sound hint: minutes moving through an area, 0 for never", "Pista sonora: minutos andando por una zona, 0 para nunca"),
+            nameof(AccessibilitySettings.LostSpokenHintMinutes) => T("Spoken hint of the way on: minutes moving through an area, 0 for never", "Pista hablada del camino: minutos andando por una zona, 0 para nunca"),
             nameof(AccessibilitySettings.MapHints) => T("Map hints when passing them", "Pistas del mapa al pasar"),
             nameof(AccessibilitySettings.MapHintSides) => T("Map hints: say which way they go", "Pistas del mapa: decir hacia qué lado van"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
