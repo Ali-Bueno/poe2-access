@@ -15,6 +15,7 @@ internal static class SkillFlags
     {
         ["base_cannot_be_blocked"] = NoBlock,
         ["skill_cannot_be_blocked"] = NoBlock,
+        ["base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked"] = NoBlock,
         ["base_cannot_be_parried"] = NoParry,
         ["base_skill_cannot_be_parried"] = NoParry,
     };

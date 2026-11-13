@@ -26,7 +26,7 @@ internal static class GameDataSteps
         new Step("area names", 1, "area-names.json", "areas"),
         new Step("dat columns", 7, "dat-columns.json", "dat-columns"), // 7: a skill's stats at its gem's level (GrantedEffectStatSetsPerLevel)
         new Step("experience", 1, "experience.json", "experience"),
-        new Step("hit times", 4, "hit-times.txt", "hit-times", true),
+        new Step("hit times", 5, "hit-times.txt", "hit-times", true), // 5: skills that cannot be dodged, evaded or blocked are unblockable
         new Step("hazards", 3, "hazards.txt", "hazards", true),
         new Step("attack reach", 1, "attack-reach.txt", "attack-reach", true),
         new Step("action types", 1, "action-types.txt", "action-types", true),

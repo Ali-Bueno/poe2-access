@@ -130,6 +130,12 @@ namespace Poe2Accessibility.Services
             }
 
             said.AddRange(this.places.Poll(this.Catalog, fighting.Select(boss => (boss.Monster, boss.At)).ToList(), this.playerBuffs.Sheltered, this.Heartbeat(), now));
+            foreach (var told in this.places.Told)
+            {
+                this.output.Say(SpeechKind.BossLife, told);
+                this.log.Info($"Boss place told: {told}");
+            }
+
             foreach (var (at, area) in this.places.HelperNews)
             {
                 this.WarnOfHelper(at, area, now);

@@ -28,10 +28,11 @@ namespace Poe2Accessibility.Tests
             (nameof(ACountIsSaidOnceItHoldsStill), ACountIsSaidOnceItHoldsStill),
             (nameof(ACoverIsStoodBehindAsSeenFromTheBoss), ACoverIsStoodBehindAsSeenFromTheBoss),
             (nameof(TheMostPressingPlaceLeads), TheMostPressingPlaceLeads),
-            (nameof(AThingToUseIsOfferedOnceAndForAWhile), AThingToUseIsOfferedOnceAndForAWhile),
+            (nameof(AThingToUseIsToldOfOnceAndNeverLedTo), AThingToUseIsToldOfOnceAndNeverLedTo),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
             (nameof(TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes), TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes),
             (nameof(AHelperWarnsAsItsDangerReachesThePlayer), AHelperWarnsAsItsDangerReachesThePlayer),
+            (nameof(TheShippedCatalogHoldsTheFightsThePlayLogMet), TheShippedCatalogHoldsTheFightsThePlayLogMet),
         };
 
         private static BossMechanicsCatalog Sample()
@@ -208,8 +209,8 @@ namespace Poe2Accessibility.Tests
             Equal("2 stacks", Announcements.BossStacks(string.Empty, 2), "a buff the game does not name");
         }
 
-        private static BossPlaceSight Sight(uint id, BossPlaceKind kind, float x, float y, bool active = true, string? path = null) =>
-            new(id, kind, path ?? kind.ToString(), string.Empty, new Vector2(x, y), 20f, active);
+        private static BossPlaceSight Sight(uint id, BossPlaceKind kind, float x, float y, bool active = true, string name = "") =>
+            new(id, kind, kind.ToString(), name, new Vector2(x, y), 20f, active);
 
         private static void ACoverIsStoodBehindAsSeenFromTheBoss()
         {
@@ -219,14 +220,14 @@ namespace Poe2Accessibility.Tests
             Equal(new Vector2(500, 0), BossPlaces.Target(Sight(2, BossPlaceKind.Use, 500, 0), Vector2.Zero, 10f), "any other place: where it stands");
 
             var places = new BossPlaces();
-            var news = places.Update(new[] { cover }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false, 0);
+            var news = places.Update(new[] { cover }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false);
             Equal(new BossPlaceNews(BossPlaceKind.Cover, string.Empty, new Vector2(540, 0)), news.Single(), "said with the place to stand");
             Equal(new Vector2(540, 0), places.Lead!.Value.At, "the beat leads behind it");
-            Equal(0, places.Update(new[] { cover }, Vector2.Zero, new Vector2(530, 0), 10f, 40f, false, 150).Count, "once");
+            Equal(0, places.Update(new[] { cover }, Vector2.Zero, new Vector2(530, 0), 10f, 40f, false).Count, "once");
             Equal(true, places.Lead == null, "behind it: no more beat");
-            places.Update(new[] { cover }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false, 300);
+            places.Update(new[] { cover }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false);
             Equal(true, places.Lead == null, "found once, it is not led to again");
-            Equal(1, places.Update(new[] { Sight(3, BossPlaceKind.Cover, 0, 500) }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false, 450).Count, "another cover is news");
+            Equal(1, places.Update(new[] { Sight(3, BossPlaceKind.Cover, 0, 500) }, Vector2.Zero, new Vector2(0, 300), 10f, 40f, false).Count, "another cover is news");
         }
 
         private static void TheMostPressingPlaceLeads()
@@ -235,32 +236,31 @@ namespace Poe2Accessibility.Tests
             var player = new Vector2(0, 0);
             var sights = new[]
             {
-                Sight(1, BossPlaceKind.Use, 100, 0), Sight(2, BossPlaceKind.Clone, 800, 0), Sight(3, BossPlaceKind.Refuge, 0, 900),
+                Sight(1, BossPlaceKind.Use, 100, 0, name: "Lever"), Sight(2, BossPlaceKind.Clone, 800, 0), Sight(3, BossPlaceKind.Refuge, 0, 900),
                 Sight(4, BossPlaceKind.Refuge, 0, 400, active: false),
             };
-            var news = places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false, 0);
+            var news = places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false);
             Equal("Refuge,Clone,Use", string.Join(",", news.Select(line => line.Kind)), "each said, the most pressing first; a refuge that is not up is none");
+            Equal("True,True,False", string.Join(",", news.Select(line => line.Pressing)), "the shelter and the clone press, the lever does not");
             Equal(new Vector2(0, 900), places.Lead!.Value.At, "the shelter first");
-            places.Update(sights, new Vector2(300, 300), player, 10f, 40f, true, 150);
+            places.Update(sights, new Vector2(300, 300), player, 10f, 40f, true);
             Equal(new Vector2(800, 0), places.Lead!.Value.At, "sheltered: the next kind");
-            Equal(0, places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false, 300).Count, "nothing is said twice");
-            places.Update(sights.Take(2).ToList(), new Vector2(300, 300), player, 10f, 40f, false, 450);
-            Equal(1, places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false, 600).Count, "a shelter that comes up again is said again");
+            Equal(0, places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false).Count, "nothing is said twice");
+            places.Update(sights.Take(2).ToList(), new Vector2(300, 300), player, 10f, 40f, false);
+            Equal(1, places.Update(sights, new Vector2(300, 300), player, 10f, 40f, false).Count, "a shelter that comes up again is said again");
         }
 
-        private static void AThingToUseIsOfferedOnceAndForAWhile()
+        private static void AThingToUseIsToldOfOnceAndNeverLedTo()
         {
             var places = new BossPlaces();
-            var levers = new[] { Sight(1, BossPlaceKind.Use, 900, 0, path: "lever"), Sight(2, BossPlaceKind.Use, 300, 0, path: "lever") };
-            var news = places.Update(levers, Vector2.Zero, Vector2.Zero, 10f, 40f, false, 0);
-            Equal(new Vector2(300, 0), news.Single().To, "the nearest of its kind speaks for all of them");
-            Equal(new Vector2(300, 0), places.Lead!.Value.At, "and is led to");
-            Equal(0, places.Update(levers, Vector2.Zero, new Vector2(280, 0), 10f, 40f, false, 150).Count, "once");
-            Equal(new Vector2(900, 0), places.Lead!.Value.At, "one reached: the next of them");
-            places.Update(levers, Vector2.Zero, Vector2.Zero, 10f, 40f, false, BossPlaces.OfferMs);
-            Equal(true, places.Lead == null, "the offer ends");
-            Equal(0, places.Update(new[] { Sight(3, BossPlaceKind.Use, 100, 100, path: "lever") }, Vector2.Zero, Vector2.Zero, 10f, 40f, false, BossPlaces.OfferMs + 150).Count,
-                "another of the same kind later is no news");
+            var levers = new[] { Sight(1, BossPlaceKind.Use, 900, 0, name: "Lever"), Sight(2, BossPlaceKind.Use, 300, 0, name: "Lever"), Sight(3, BossPlaceKind.Break, 50, 0) };
+            var news = places.Update(levers, Vector2.Zero, Vector2.Zero, 10f, 40f, false);
+            Equal(new BossPlaceNews(BossPlaceKind.Use, "Lever", new Vector2(300, 0)), news.Single(), "the nearest of its name speaks for all of them; a nameless thing tells nothing");
+            Equal(false, news.Single().Pressing, "told of, not a place to run to");
+            Equal(true, places.Lead == null, "never led to: the files do not say whether using it helps");
+            Equal(0, places.Update(levers, Vector2.Zero, Vector2.Zero, 10f, 40f, false).Count, "once a fight");
+            Equal(1, places.Update(new[] { Sight(4, BossPlaceKind.Break, 100, 100, name: "Lever") }, Vector2.Zero, Vector2.Zero, 10f, 40f, false).Count, "the same name to break is another thing");
+            Equal("Lever, can be used, right", Announcements.BossPlace(BossPlaceKind.Use, "Lever", 0, false), "its line");
         }
 
         /// <summary>A Positioned component's bytes with a cell at 0x1F4 and, before it, a number two of the three samples share.</summary>
@@ -299,6 +299,28 @@ namespace Poe2Accessibility.Tests
             Equal(1, warnings.Update(new[] { (8u, true) }, 5600).Count, "one that left and came again is new");
         }
 
+        /// <summary>The catalog as shipped, against what the play log of 2026-11-12 saw in Zalmarath's and Jamanra's arenas (docs/research/boss-mechanics.md §16).</summary>
+        private static void TheShippedCatalogHoldsTheFightsThePlayLogMet()
+        {
+            var directory = AppContext.BaseDirectory;
+            while (!System.IO.File.Exists(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", BossMechanicsCatalog.FileName)))
+            {
+                directory = System.IO.Path.GetDirectoryName(directory) ?? throw new System.IO.FileNotFoundException("boss-mechanics.txt is not under any folder above the tests");
+            }
+
+            var catalog = BossMechanicsCatalog.Load(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog"));
+            Equal(BossPlaceKind.Cover, catalog.PlaceRules(Stalagmite).First(rule => rule.Boss == Titan).Kind, "Zalmarath's sword is a cover");
+            Equal(true, catalog.DaemonSkills(Titan, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget").Count > 0, "his laser target strikes for him, with its own skill");
+            Equal(true, catalog.IsDaemon("Metadata/Monsters/PerennialKingHumanBoss", "Metadata/Monsters/InvisibleFire/MDPerennialKingObsidianStorm_"), "Jamanra's obsidian storm");
+            var asala = catalog.PlaceRules("Metadata/Monsters/NPC/MarakethMatriarchDreadnought_");
+            Equal((BossPlaceKind.Refuge, "sandstorm_defence"), (asala[0].Kind, asala[0].State), "Asala shelters while her state is set");
+            Equal(true, catalog.IsShelter("asala_sand_shield"), "her shield on the player");
+            Equal(true, catalog.BuffText("guard_boss_utility_buff", "es") is { Name.Length: > 0, Description.Length: > 0 }, "Torvian's protection in the game's Spanish");
+            Equal(false, catalog.BuffText("guard_boss_utility_buff", "es")!.Value.Description.Contains('['), "without the game's links");
+            Equal(true, catalog.IsWall("Metadata/Monsters/WifeMonster/WifeMonster", "Metadata/Monsters/WifeMonster/WifeMonsterBoneWall"), "Asinia's walls");
+            Equal(true, catalog.Places > 200 && catalog.Daemons > 40, "every fight's places and helpers");
+        }
+
         private static void PlaceLinesNameThePlaceAndTheWay()
         {
             Equal("Shelter at Asala: follow the heartbeat, up", Announcements.BossPlace(BossPlaceKind.Refuge, "Asala", 2, true), "a named shelter");
@@ -310,7 +332,8 @@ namespace Poe2Accessibility.Tests
             Equal("Progress 25 percent", Announcements.BossProgress(2, 8), "a share of the top");
             Equal("Progress 6", Announcements.BossProgress(6, null), "a value");
             Equal("Sandstorm", Announcements.BossArena("sandstorm"), "an arena's kind");
-            Equal("The arena changes", Announcements.BossArena("retreat"), "any other kind");
+            Equal("The boss retreats", Announcements.BossArena("retreat"), "a retreat");
+            Equal("The arena changes", Announcements.BossArena("change"), "any other kind");
         }
     }
 }

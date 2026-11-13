@@ -61,6 +61,7 @@ namespace Poe2Accessibility
             "sandstorm" => T("Sandstorm", "Tormenta de arena"),
             "maze" => T("The arena turns into a maze", "La arena se vuelve un laberinto"),
             "platform" => T("The platforms change", "Las plataformas cambian"),
+            "retreat" => T("The boss retreats", "El jefe se retira"),
             _ => T("The arena changes", "La arena cambia"),
         };
 

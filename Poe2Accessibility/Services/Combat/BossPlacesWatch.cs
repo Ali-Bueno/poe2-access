@@ -70,10 +70,14 @@ namespace Poe2Accessibility.Services
             this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
         }
 
-        /// <summary>After a poll, with the bosses being fought: the lines of the places that turned up.</summary>
+        /// <summary>The things to use or break that turned up at the last poll, told of without urgency.</summary>
+        public IReadOnlyList<string> Told { get; private set; } = Array.Empty<string>();
+
+        /// <summary>After a poll, with the bosses being fought: the lines of the places to go to that turned up.</summary>
         public IReadOnlyList<string> Poll(BossMechanicsCatalog catalog, IReadOnlyList<(string Monster, Vector2 At)> fighting, bool sheltered, bool heartbeat, long now)
         {
             this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
+            this.Told = Array.Empty<string>();
             if (fighting.Count == 0)
             {
                 if (this.kinds.Count > 0)
@@ -104,13 +108,15 @@ namespace Poe2Accessibility.Services
             var reached = this.helperWarnings.Update(this.helpers.Select(helper => (helper.Id, helper.Area != null)).ToList(), now);
             this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
             this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
-            var lines = new List<string>();
-            foreach (var news in this.places.Update(this.sights, fighting[0].At, here, player.ModelBounds.X, this.ReachWorld, sheltered, now))
+            var (lines, told) = (new List<string>(), new List<string>());
+            foreach (var news in this.places.Update(this.sights, fighting[0].At, here, player.ModelBounds.X, this.ReachWorld, sheltered))
             {
                 this.log.Info($"Boss place: {news.Kind} {news.Name} to {news.To.X:0},{news.To.Y:0}, {Vector2.Distance(news.To, here):0} world units from the player");
-                lines.Add(Announcements.BossPlace(news.Kind, news.Name, ScreenProjection.Octant(player.WorldPosition, news.To - here), heartbeat));
+                (news.Pressing ? lines : told).Add(
+                    Announcements.BossPlace(news.Kind, news.Name, ScreenProjection.Octant(player.WorldPosition, news.To - here), heartbeat && news.Pressing));
             }
 
+            this.Told = told;
             return lines;
         }
 
@@ -172,7 +178,9 @@ namespace Poe2Accessibility.Services
                 entity.TryGetComponent<StateMachine>(out var machine) && machine.States.Any(state => state.Value != 0 && string.Equals(state.Name, rule.State, StringComparison.OrdinalIgnoreCase)),
             BossPlaceKind.Cover => true,
             BossPlaceKind.Use => entity.TryGetComponent<Targetable>(out _) && EntityCatalog.IsInPlay(this.memory, entity),
-            _ => entity.TryGetComponent<Life>(out var life) && life.IsAlive && !EntityCatalog.IsFrozenDead(entity) && EntityCatalog.IsInPlay(this.memory, entity),
+            // A fissure or a marker has life and cannot be struck: only what can be targeted is a thing to break.
+            _ => entity.TryGetComponent<Targetable>(out _) && entity.TryGetComponent<Life>(out var life) && life.IsAlive && !EntityCatalog.IsFrozenDead(entity) &&
+                 EntityCatalog.IsInPlay(this.memory, entity),
         };
 
         private string NameOf(uint id, Render render)
