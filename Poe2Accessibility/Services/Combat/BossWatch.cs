@@ -268,10 +268,17 @@ namespace Poe2Accessibility.Services
                     this.Mechanics?.Observe(entity, render, rarity, now);
                 }
 
-                if (attacks && EntityCatalog.IsAliveEnemy(entity) && !EntityCatalog.IsHidden(entity) && entity.TryGetComponent<Actor>(out var actor))
+                if (!attacks || !EntityCatalog.IsAliveEnemy(entity) || !entity.TryGetComponent<Actor>(out var actor))
+                {
+                    continue;
+                }
+
+                // A fought boss strikes while the game hides it, and through invisible helpers: those blows are its own.
+                var forBoss = this.Mechanics?.StrikesForBoss(entity) == true;
+                if (forBoss || !EntityCatalog.IsHidden(entity))
                 {
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
-                    this.WatchAttack(entity, actor, rarity, render, player, offset, gap, area.WorldToGridConvertor, now, parrying);
+                    this.WatchAttack(entity, actor, forBoss ? Rarity.Unique : rarity, render, player, offset, gap, area.WorldToGridConvertor, now, parrying);
                 }
             }
         }

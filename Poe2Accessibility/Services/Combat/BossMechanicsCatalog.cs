@@ -12,7 +12,7 @@ namespace Poe2Accessibility.Services
     ///     enrage, the states in which they hide to be found, the monsters each brings or turns into, the unhurtable and enrage buffs, the player's movement rules and
     ///     the voice lines that announce a fight's turn. Pure apart from <see cref="Load"/>.
     /// </summary>
-    public sealed class BossMechanicsCatalog
+    public sealed partial class BossMechanicsCatalog
     {
         public const string FileName = "boss-mechanics.txt";
 
@@ -112,6 +112,9 @@ namespace Poe2Accessibility.Services
                         break;
                     case "line" when c.Length >= 4 && LineKey(c[2]) is { Length: > 0 } key:
                         this.lines.Add(key);
+                        break;
+                    default:
+                        this.AddCensus(c);
                         break;
                 }
             }

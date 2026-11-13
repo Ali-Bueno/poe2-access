@@ -133,6 +133,11 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
+            foreach (var (name, test) in BossFightTests.All())
+            {
+                Run(name, test);
+            }
+
             foreach (var (name, test) in EndgameTests.All().Concat(BossMechanicsTests.All()).Concat(StartUpTests.All()).Concat(StartupSpeechTests.All()).Concat(PrismTests.All()))
             {
                 Run(name, test);

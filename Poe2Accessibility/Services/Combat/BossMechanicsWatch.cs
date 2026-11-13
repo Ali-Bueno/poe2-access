@@ -15,7 +15,7 @@ namespace Poe2Accessibility.Services
     ///     phase or form, its adds when the enemy news is off; and, for a boss's attack whose danger area holds the player, the
     ///     way out in a word ("¡Sal!", "¡Al centro!", "¡Izquierda!"). Fed by <see cref="BossWatch"/> from the monsters it already walks.
     /// </summary>
-    public sealed class BossMechanicsWatch
+    public sealed partial class BossMechanicsWatch
     {
         /// <summary>A boss that turns into another waits this long before its leaving is said: the new form's "Phase 2" says the turn.</summary>
         private const int FormSettleMs = 3000;
@@ -104,6 +104,7 @@ namespace Poe2Accessibility.Services
             this.phase = 1;
             this.addsWave = 0;
             this.playerDiedAt = null;
+            this.ResetCensus();
         }
 
         /// <summary>The player died at <paramref name="at"/>: a boss back at full life afterwards starts its fight over.</summary>
@@ -170,6 +171,7 @@ namespace Poe2Accessibility.Services
             }
 
             boss.Facts = facts;
+            this.NoteSignals(entity, boss, now);
             boss.SeenAt = now;
             boss.At = new Vector2(render.WorldPosition.X, render.WorldPosition.Y);
             boss.Radius = render.ModelBounds.X;
@@ -223,6 +225,7 @@ namespace Poe2Accessibility.Services
                 said.Add(wayOut);
             }
 
+            this.EndCensusPoll(fighting, multi, now, said);
             foreach (var text in said.Distinct(StringComparer.Ordinal))
             {
                 this.output.Say(SpeechKind.BossLife, text, true);
@@ -278,8 +281,9 @@ namespace Poe2Accessibility.Services
         ///     area holds the player, the way out is said once per attack, if the blow leaves time to act on it.
         /// </summary>
         public void Attack(uint id, bool unique, long startedAt, in DodgeDecision decision, AttackArea? area, Vector2 monster, Vector2 target, Vector2 player,
-                           float playerRadius, StdTuple3D<float> origin, int? blowInMs, long now)
+                           float playerRadius, StdTuple3D<float> origin, int? blowInMs, long now, string? skill = null)
         {
+            this.GrabWord(id, startedAt, decision, skill, now);
             if (!unique || area is not { } shape || decision.Verdict == DodgeVerdict.Silent || blowInMs is > 0 and < MinWordLeadMs ||
                 now - this.lastWordAt < WordGapMs || this.worded.Contains((id, startedAt)))
             {
@@ -397,6 +401,9 @@ namespace Poe2Accessibility.Services
             public string Name { get; } = name;
 
             public BossPhaseTracker Tracker { get; } = tracker;
+
+            /// <summary>What its states and buffs say beyond its turns.</summary>
+            public BossSignalTracker Signals { get; } = new();
 
             public bool Engaged { get; set; }
 

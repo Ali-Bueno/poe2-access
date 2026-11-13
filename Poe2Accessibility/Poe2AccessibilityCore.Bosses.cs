@@ -11,7 +11,7 @@ namespace Poe2Accessibility
         {
             var catalog = BossMechanicsCatalog.Load(Path.Join(this.DllDirectory, "catalog"));
             BossMechanicsCatalog.Shared = catalog;
-            log.Info($"Boss mechanics: {catalog.Bosses} bosses, {catalog.Lines} mechanic lines, {catalog.MoveRules} movement rules");
+            log.Info($"Boss mechanics: {catalog.Bosses} bosses, {catalog.Lines} mechanic lines, {catalog.MoveRules} movement rules, {catalog.Daemons} helpers, {catalog.Places} places");
             return new BossMechanicsWatch(this.output, elements, log)
             {
                 Catalog = catalog,

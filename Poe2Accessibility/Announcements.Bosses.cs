@@ -49,6 +49,74 @@ namespace Poe2Accessibility
         /// <summary>"3 adds": the monsters a boss brought, in play.</summary>
         public static string BossAdds(int count) => count == 1 ? T("1 add", "1 esbirro") : T($"{count} adds", $"{count} esbirros");
 
+        /// <summary>The boss's arena changing, by the kind its state names ("burn", "collapse"; any other: it changes).</summary>
+        public static string BossArena(string kind) => kind switch
+        {
+            "burn" => T("The arena burns", "La arena arde"),
+            "dark" => T("The arena darkens", "La arena se oscurece"),
+            "flood" => T("The arena floods", "La arena se inunda"),
+            "lava" => T("Lava in the arena", "Lava en la arena"),
+            "collapse" => T("The arena collapses", "La arena se derrumba"),
+            "shrink" => T("The arena shrinks", "La arena se encoge"),
+            "sandstorm" => T("Sandstorm", "Tormenta de arena"),
+            "maze" => T("The arena turns into a maze", "La arena se vuelve un laberinto"),
+            "platform" => T("The platforms change", "Las plataformas cambian"),
+            _ => T("The arena changes", "La arena cambia"),
+        };
+
+        /// <summary>The element of the boss's damage to come, in the game's words for damage types; any other: it changes.</summary>
+        public static string BossElement(string element) => element switch
+        {
+            "fire" => T("Element: fire", "Elemento: fuego"),
+            "cold" => T("Element: cold", "Elemento: hielo"),
+            "lightning" => T("Element: lightning", "Elemento: rayo"),
+            "chaos" => T("Element: chaos", "Elemento: caos"),
+            "physical" => T("Element: physical", "Elemento: físico"),
+            _ => T("The element changes", "Cambia de elemento"),
+        };
+
+        /// <summary>A counter of the fight: its share of its top when the files give one, else its value.</summary>
+        public static string BossProgress(long value, int? max) => max is > 0 and var top
+            ? T($"Progress {value * 100 / top} percent", $"Progreso {value * 100 / top} por ciento")
+            : T($"Progress {value}", $"Progreso {value}");
+
+        /// <summary>A buff that empowers or protects the boss, in the game's own words; without them, that it is empowered.</summary>
+        public static string BossEmpowered(string? name, string text) => (name, text.Length) switch
+        {
+            (null, 0) => T("The boss is empowered", "El jefe se fortalece"),
+            (_, 0) => T($"{name} is empowered", $"{name} se fortalece"),
+            (null, _) => T($"The boss: {text}", $"El jefe: {text}"),
+            _ => $"{name}: {text}",
+        };
+
+        /// <summary>The player inside a boss fight's shelter, or out of it while it is still needed.</summary>
+        public static string BossSheltered(bool inside) => inside ? T("Sheltered", "A cubierto") : T("Out of the shelter", "Fuera del refugio");
+
+        /// <summary>The boss starts an attack that seizes the player.</summary>
+        public static string BossGrab() => T("Grab!", "¡Agarre!");
+
+        /// <summary>The player is held in place.</summary>
+        public static string BossGrabbed() => T("Held!", "¡Atrapado!");
+
+        /// <summary>A counted buff of the fight on the player: "Explosive Retch, 3".</summary>
+        public static string BossStacks(string name, int count) => name.Length == 0 ? T($"{count} stacks", $"{count} acumulaciones") : $"{name}, {count}";
+
+        /// <summary>A place of a boss's arena and the way to it: "Shelter at Asala: follow the heartbeat, up", "Lever, can be used, left".</summary>
+        public static string BossPlace(BossPlaceKind kind, string name, int octant, bool heartbeat)
+        {
+            var way = StickDirections[((octant % StickDirections.Length) + StickDirections.Length) % StickDirections.Length];
+            var named = name.Length > 0;
+            var what = kind switch
+            {
+                BossPlaceKind.Refuge => named ? T($"Shelter at {name}", $"Refugio junto a {name}") : T("Shelter", "Refugio"),
+                BossPlaceKind.Clone => T("The true one", "El verdadero"),
+                BossPlaceKind.Cover => named ? T($"Cover, {name}", $"Cobertura, {name}") : T("Cover", "Cobertura"),
+                BossPlaceKind.Use => named ? T($"{name}, can be used", $"{name}, se puede usar") : T("Something to use", "Algo que usar"),
+                _ => named ? T($"{name}, can be broken", $"{name}, se puede romper") : T("Something to break", "Algo que romper"),
+            };
+            return heartbeat ? $"{what}: {T("follow the heartbeat", "sigue el latido")}, {way}" : $"{what}, {way}";
+        }
+
         /// <summary>The way out of a danger area, short enough to act on: "Out!", "To the centre!", "Left!".</summary>
         public static string Counterplay(CounterplayKind kind, int octant) => kind switch
         {

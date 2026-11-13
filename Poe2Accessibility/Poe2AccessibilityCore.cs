@@ -321,7 +321,7 @@ namespace Poe2Accessibility
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
                 this.bosses.Defeated = name => this.entities?.BossDefeated(name);
-                this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log) { Hiding = () => this.bosses?.Mechanics?.Hiding ?? (this.bosses?.Mechanics?.WayOut is { } wayOut ? (wayOut, 0f) : null) };
+                this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log) { Hiding = () => this.bosses?.Mechanics?.LeadTo };
                 this.arenaLog = new BossArenaLog(this.log) { Fighting = () => this.bosses?.Mechanics?.Fighting };
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
@@ -334,6 +334,7 @@ namespace Poe2Accessibility
                 var harmfulBuffs = HarmfulBuffs.Load(Path.Join(this.DllDirectory, "catalog", "buff-names.json"));
                 this.log.Info($"Harmful buffs: {harmfulBuffs.Count} named by the game files");
                 this.alerts.Statuses.Harmful = harmfulBuffs;
+                this.bosses.Mechanics.NamedElsewhere = buff => harmfulBuffs.NameOf(buff, Localization.Language).Length > 0;
                 var mechanics = ClassMechanicCatalog.Load(Path.Join(this.DllDirectory, "catalog", "class-mechanics.json"));
                 this.log.Info($"Class mechanics: {mechanics.Resources.Count} resources, {mechanics.Limits.Count} limits, {mechanics.BuffCount} buffs, {mechanics.SkillCount} skills from the game files");
                 this.alerts.Statuses.IsCovered = hazardGround.IsHazard;

@@ -172,7 +172,12 @@ namespace Poe2Accessibility.Services
             if (this.DodgeWarnings)
             {
                 this.Mechanics?.Attack(id, attack.Unique, attack.StartedAt, decision, snapshot?.SkillId is { } skillId ? this.attackData.Area(skillId) : null,
-                    monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, blowIn, now);
+                    monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, blowIn, now, snapshot?.SkillId);
+            }
+
+            if (!attack.Unblockable && snapshot?.SkillId is { } unavoidable && this.Mechanics?.IsUnavoidable(unavoidable) == true)
+            {
+                attack = attack with { Unblockable = true }; // the skill's own mark, where the attack's timing line has none
             }
 
             this.NoteReason(attack.Key, animation, decision.Reason, facts, snapshot, attack.Warns || parrying);
