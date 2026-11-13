@@ -27,9 +27,38 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<(int Slot, string Name), Cost> costs = new();
         private readonly HashSet<int> dry = new();
 
-        /// <summary>The drinks left in the flask, by the cost seen or else the base type's; null with neither.</summary>
-        public int? Uses(int slot, string name, int charges, int baseCost = 0) =>
-            Price(this.costs.GetValueOrDefault((slot, name)), baseCost) is { } perUse ? charges / perUse : null;
+        /// <summary>
+        ///     The cost of a drink in the strongest "reduced charges used" the files hold on a flask, as a percentage cut
+        ///     (`flask_charges_used_+%` down to -25 in `mod-stats.json`), and the final cut of a unique (-50, Husk of Dreams).
+        /// </summary>
+        private const int MostReducedPercent = 25;
+        private const int FinalReducedPercent = 50;
+        private const int PercentSquared = 100 * 100;
+
+        /// <summary>
+        ///     The drinks left in the flask: by the cost seen, else by the base type's. Below the base cost with a measured one
+        ///     missing the real cost may be lower, so there is no count (null) unless the charges are under the least a drink
+        ///     can cost (0, empty); null with no cost at all.
+        /// </summary>
+        public int? Uses(int slot, string name, int charges, int baseCost = 0)
+        {
+            if (this.PerUse(slot, name) is { } measured)
+            {
+                return charges / measured;
+            }
+
+            if (baseCost <= 0)
+            {
+                return null;
+            }
+
+            var counted = charges / baseCost;
+            return counted > 0 ? counted : charges < LeastCost(baseCost) ? 0 : null;
+        }
+
+        /// <summary>The least a drink of a flask of this base cost can cost, whatever its modifiers.</summary>
+        public static int LeastCost(int baseCost) =>
+            System.Math.Max(1, baseCost * (100 - MostReducedPercent) * (100 - FinalReducedPercent) / PercentSquared);
 
         private static int? Price(Cost? cost, int baseCost) => cost?.PerUse ?? (baseCost > 0 ? baseCost : null);
 
@@ -52,7 +81,7 @@ namespace Poe2Accessibility.Services
 
             cost.Settle(now);
             var drank = same && charges < before.Charges && cost.Dropped(before.Charges - charges, now, draining);
-            var empty = charges <= 0 || (Price(cost, baseCost) is { } price && charges < price);
+            var empty = charges <= 0 || (cost.PerUse is { } measured ? charges < measured : baseCost > 0 && charges < LeastCost(baseCost));
             var filled = !empty && this.dry.Remove(slot);
             var ranDry = empty && this.dry.Add(slot);
             if (!same)
