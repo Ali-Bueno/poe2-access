@@ -508,3 +508,59 @@ whether a server-only object with a client section reaches the client; whether a
 of a boss out of play (39 fights). 2. EM: say the text of a boss's buff that has one (the game's own words; Torvian,
 Tawhani, Azmadi, the Arbiter). 3. AR: the arena changing, by its state. 4. Places to lead to, one handler: SH shelter, CV
 cover, CL the true clone, US use, OB break (each said with the object's own name). 5. MG, EL, ST, GR: values and holds.
+
+## 15. The census's rules in the extractor (2026-11-13)
+
+`Poe2UiExtract boss-mechanics` (launcher step 6) now writes the census's classes for every boss-bar row (the census merged a
+fight's variants; the catalog has a line per variant). Code: `BossCensus*.cs` gathers a fight (`BossFight`: its own script
+chain, its skills and the skills their triggers fire, its adds, objects, the server's ExecuteGEAL rows named for its people, its
+linked buffs); `BossCensusRules` / `BossStateRules` (pure, `BossCensusTests`) judge it; `BossCensusColumns` finds the new
+columns by content, each checked on a known row (Azarian's censer GEAL, Kabala's bone barrier, Zalmarath's sword, Omniphobia's
+stew, Jamanra's obsidian storm, Siora's storm, Asinia's wall). A table or column not found leaves the census's classes out, said,
+and the rest of the catalog is written. Shared bases (a script extended by 25 or more, as `scripts.py` judged) give no state,
+handler or preload to a fight. Arena rooms: every `.arm` is read (the step went from ~1 s to ~7 s); a fight's rooms are those of
+its WorldAreas (Bosses +0x9C, Topologies +0x60 on 0.5.5f) and those placing its objects or an object of its folder, scored as
+`cards.py` did, the boss rush's areas (bosses of more than 4 folders) left out. Paths are written as the game writes them; three
+(the Bodach's buildable effigies, found only beside his script) only in the index's lower case. Buffs named by `empowered`,
+`shelter`, `zone`, `stack`, `grabbed` get `text|language|buff|name|description` lines (links as shown), 10 buffs × 10 languages.
+
+| Class | Rule as implemented | Lines (variants) | Against the census (fights matched / census fights) |
+|---|---|---|---|
+| D | an add (preloaded, summoned, a skill's move-daemon, an NPC sharing the boss's skill family) named "", Invisible or Daemon, with a helper's word in its path, or a move-daemon, that has a GeometryAttack/Trigger skill; 4th field its own skills | 64 (45) | 18/18; 5 more fights by their move-daemons, which the census only took when helper-named (Hartlin's and Torrek's Volatile Core, the Bodach's Darkness Arm, the Rotten Druid's vine, Vruun's and Xesht's hand portals, Esh's corpse) |
+| AR | a state handler calling `TriggerBracket(`, or a state whose words start with arena, burn, dark, flood, lava, collapse, shrink, sandstorm, maze, retreat, platform; kind from the words, else change | 33 (21) | 8/17: left out the fight's end (`dead`, `fight_complete`, `on_defeat`: Jamanra, Tavakai, Zelina, Zolin), a non-state handler (Xipocado's skill event), a measure (`darkness_vacuum_range`), words outside the list (fog, sector, no_portal: Rakkar, Stormgore, the Arbiters, Tul) |
+| EM | a linked buff saying "are empowering", "empowered by", "protected by", "while … live/remain" (not "while standing") | 3 (3) | 2/8: Torvian, Tawhani. The census's other 11 rows were ground hazards ("while standing in the Sandstorm") |
+| EM consume | a GEAL on monsters whose text reaches back to the boss (`this.`, `boss.`, `*_boss`), not on the boss itself | 10 (5) | 2/2 (Kabala's snakes, the Parasite Host's parasites), one line a monster |
+| SH | a GEAL with no object list adding a shield-named, harmless buff; or a harmless linked buff "you are within … / while in …" that regenerates or protects | 9 (9) | 3/5 = the census's SH rows (asala_sand_shield in both Jamanra fights, the Bodach's sanctuary); its looser `shelter|` rows (SH shelter?) not ported |
+| refuge | the add named by a shelter buff's first word (Sekhema Asala) whose script plays a line or animation on a non-zero state named for a defence, and who is in the fight: brought, placed in its arena, or its state named by one of the fight's objects | 4 (4) | new: only Asala, `MarakethMatriarchDreadnought_`, `sandstorm_defence`, for the four Abomination rows (the object `PerennialKingStage2/Objects/MatriarchSandstormDefence` names the state); not for the Risen King, who shares her skills but not her arena |
+| CV | a spawned object that is a `TriggerableBlockage` and blocks from the start (`start_blocked` or `blocking`), in a fight with an area ≥ 60 long | 8 (8) | 3/7: Zalmarath, Benedictus, the Beast; Ignagduk's effigy, Mektul's and Cualli's spikes, Oswin's ice spike are no blockage (the last three have no long area either) |
+| CL | an object or add whose name says clone, illusion, decoy, mirror, fake or copy, and the state it declares marking the true one (chosen, real, true, original, fake, decoy) | 65 (5) | 2/4: Yama's 13 clones; the census's boss states (Styrn's `clone_slam`, the Raven's `mirror_minions_on_cooldown`) mark no clone |
+| US | an object with InteractionAction / Interactable / Usable, not a way out, loot or NPC (the census's list, now case-insensitive) | 122 (88) | 31/39; the rest were the census's lower-case paths slipping past its own list (loot proxies, transitions, an entrance) and Candlemass's and the Sentinels' glyphs, on that list too |
+| OB | an object with Life, `transition_on_damage_taken=1` or `attackable` that the client sees; a named skill-less add with Life that is no wall | 89 (71) | 22/34; the rest were bases of the boss's own scripts and a regional copy (`….japan`) the census took for objects |
+| MG | a state of the boss named progress, collect, timetrial or count; 4th field the largest number a handler compares it with (none on 0.5.5f) | 12 (12) | 5/14; objects' states (`readytoactivate`, `anim_progress`, the blood orb's `progress`) have no place in the line |
+| EL | per value of a state named element / infuse, the one element its handler names (fire, cold, ice, frost, lightning, chaos, physical); `state|-` when none does | 14 (10) | 5/5: Tawhani 1 fire 2 cold 3 lightning, the Arbiter of Ash 1 fire 2 cold, Zelina, Zolin, Huitzil `elemental|-` |
+| ST | a linked buff the game counts (ShowCount +0x2F) whose words say stacks | 8 (8) | 5/6; Uhtred's lowered resistance says no stack |
+| GR | a skill id with Grab, Cocoon, Entomb, Encase, Devour, Swallow, Imprison, Prison; `grabbed`: a linked buff saying "you are imprisoned / held / trapped / entombed …" | 7 (7); 0 | 4/4; `grabbed` none on 0.5.5f: the census's rows were a warning ("Stop moving or you will be imprisoned", already `move|`) and Xesht's web, which slows |
+| GZ | a GEAL with no object list adding a buff that is no shelter | 12 (12) | 5/5 (Tawhani's horn buffs her allies) |
+| U | a skill whose implicit or constant stats hold `base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked` | 436 (204) | 79/79, the same 173 skills |
+| W | the old wall rule, applied to every add, summoned too | 11 (11) | 3/3 |
+
+**Walls.** Asinia's `WifeMonsterBoneWall` and Lady Elswyth's `VampireQueenBoneWall` are walls by the files: no skill, extend
+`InanimateObject`, `blocking = true`. They were missing because the wall rule read only the boss's preloaded monsters and these
+two are a skill's summons (`alternate_minion` → SummonedSpecificMonsters); the rule now takes any add.
+
+**U against the unblockable cue.** Of the 144 skills, 17 already reach `hit-times.txt` with `noblock` (they also carry
+`base_cannot_be_blocked`); 51 have a timed line without it, because `SkillFlags` reads only `base_cannot_be_blocked`,
+`skill_cannot_be_blocked` and the parry stats (a one-line fix: map this stat to `noblock` too, then regenerate hit-times); 73
+have no animation of their own (areas a trigger fires, as the Crowbell's double slam), so hit-times has no line to flag; 4 have
+an animation the boss's `.act` lacks (Tavakai's hook toss and stab spirals, Xipocado's repulse slam).
+
+**D against hit-times.** Of the 21 daemons, 13 have no animated skill (their skills have no Animation; hit-times holds only the
+basic Melee of their shared `.ao`, e.g. `MDTitanBossLaserTarget|1=400/1000`, `MDPerennialKingObsidianStorm_|1=-`,
+`RatTornadoMoveDaemon|1=-`); 5 play a timed attack of their own (Esh's corpse 6352 ms, Xesht's hand portal 1367 ms, the Eater of
+Flesh's tentacle 796 ms, the Bodach's Darkness Arm 666 ms); 3 have an animated skill with no timed event (the Bodach's two
+mothballs, Siora's `DarknessDaemon`). Every daemon has at least one skill with a `telegraph-skills.txt` area line, so the
+plugin can time most daemons only by their distance to the player and their skills' areas, not by an animation.
+
+**Left out, as loose in the census:** SH/area object?, SH shelter?, NB named buff with no text, TE beam link, HL heal, PH
+phase-break (a GEAL on the boss itself), DZ damage rule, MK mark, BT buff text, BR the boss acting on an object (no line in the
+contract), NP no-teleport, D hidden attack.
