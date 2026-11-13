@@ -190,7 +190,9 @@ namespace Poe2Accessibility.Tests
             Equal("info", Poe2Access.HostDialog.Kind(0x40), "a note");
             Equal<int?>(6, Poe2Access.HostDialog.Answer(question, "0\n"), "Yes");
             Equal<int?>(7, Poe2Access.HostDialog.Answer(question, "1\n"), "No, or the window closed");
-            Equal<int?>(7, Poe2Access.HostDialog.Answer(question, "255\n"), "a failed zenity is no");
+            Equal<int?>(null, Poe2Access.HostDialog.Answer(question, "255\n"), "a failed zenity is no answer: the message box asks");
+            Equal<int?>(null, Poe2Access.HostDialog.Answer(question, "127\n"), "a tool that would not run");
+            Equal<int?>(null, Poe2Access.HostDialog.Answer(0x10, "2\n"), "nor does a note answer with a failure");
             Equal<int?>(1, Poe2Access.HostDialog.Answer(0x10, "0\n"), "OK");
             Equal<int?>(null, Poe2Access.HostDialog.Answer(question, null), "no zenity nor kdialog: the message box");
             Equal<int?>(null, Poe2Access.HostDialog.Answer(question, string.Empty), "nothing written");
