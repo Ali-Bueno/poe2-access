@@ -40,8 +40,9 @@ namespace Poe2Accessibility.Services
     /// <param name="Timed">What a clock is running against, to be heard from afar: a Death Crystal.</param>
     /// <param name="Subject">For a boss room, whom or what its label names ("Asinia"): what an objective would name.</param>
     /// <param name="About">What the game writes under the object's title, said once with its button (<see cref="Announcements.ObjectDescription"/>).</param>
+    /// <param name="Cost">What a Trial shrine asks in sacred water (<see cref="ShrineCost"/>), 0 for an object with no cost.</param>
     public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "", string BaseId = "",
-        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "", bool Timed = false, string About = "")
+        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "", bool Timed = false, string About = "", int Cost = 0)
     {
         public const string PortalKind = "portal";
 

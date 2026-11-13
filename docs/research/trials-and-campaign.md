@@ -155,7 +155,7 @@ Settled on 2026-11-12 (evening, from the game's files and the review of the day'
   raros del área para llenar el cáliz", "Restaura {0} de honor / Obtienes una desventaja menor aleatoria", "Convierte el agua sagrada que te
   sobra en llaves". Said once an area with the button ([proximity](../proximity.md)). The `{0}` is an amount the game fills in (LIKELY a
   percentage: "Restaure {0} de votre Honneur"), not found in the files: said as "algo". A shrine's cost in sacred water is its shared state
-  `interact_cost` (5 in the `.ot`), readable at run time and not said yet.
+  `interact_cost` (5 in the `.ot`), readable at run time and said with the line ("cuesta 5 de agua sagrada", `ShrineCost`).
 - **"Honor recuperado" at the start of a run** after one left with honour to spare: the watch starts over in each area (`HonourWatch.Reset`).
 - **An affliction or boon said gained again** when its slot read empty for one reading: it is lost only after four readings without it
   (`TrialEffectNews`).

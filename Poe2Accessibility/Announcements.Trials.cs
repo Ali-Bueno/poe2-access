@@ -5,6 +5,10 @@ namespace Poe2Accessibility
     /// <summary>Spoken strings of the Ascendancy trials beyond the Sekhemas HUD: rounds, room doors, the trials' icons.</summary>
     public static partial class Announcements
     {
+        /// <summary>A shrine's line with what it asks in the Trial's currency ("Honra a Tabana, A, cuesta 5 de agua sagrada"); as it is with no cost.</summary>
+        public static string WithCost(string text, int cost) =>
+            cost > 0 ? T($"{text}, costs {cost} Sacred Water", $"{text}, cuesta {cost} de agua sagrada") : text;
+
         /// <summary>The Trial of the Sekhemas' room door, as the guide names it.</summary>
         public static string TrialDoor => T("room door", "puerta de la sala");
 

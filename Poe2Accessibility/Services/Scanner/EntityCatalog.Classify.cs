@@ -234,8 +234,13 @@ namespace Poe2Accessibility.Services
             var position = render.WorldPosition;
             name = ControllerGlyphs.InName(name);
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, MinimapMarks.KindUnder(icon, kind), baseId, loot, sound,
-                MinimapMarks.IsQuestIcon(icon), subject, timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty);
+                MinimapMarks.IsQuestIcon(icon), subject, timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
+                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0);
         }
+
+        /// <summary>What the object asks in sacred water, from its script's shared state; 0 without one.</summary>
+        private static int CostOf(Entity entity) =>
+            entity.TryGetComponent<StateMachine>(out var machine) ? ShrineCost.Of(machine.States.Select(state => (state.Name, state.Value))) : 0;
 
         /// <summary>What the game writes of an object under its title, by its file: asked of every object at each listing, so kept.</summary>
         private string AboutOf(string path)

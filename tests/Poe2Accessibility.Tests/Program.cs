@@ -63,6 +63,7 @@ namespace Poe2Accessibility.Tests
                 MapRadarTests.All(),
                 ExplorationHintTests.All(),
                 ChangeSignTests.All(),
+                ShrineCostTests.All(),
                 BreakablePromptTests.All(),
                 PassiveAndMenuTests.All(),
                 ReleaseAndQuestTests.All(),

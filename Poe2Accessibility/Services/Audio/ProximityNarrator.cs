@@ -295,12 +295,12 @@ namespace Poe2Accessibility.Services
             {
                 // What the game's box says the object is for, once an area: the Blood Chalice said its name and the button,
                 // nothing of what using it does (user 2026-11-12). Not against a clock: the objective has said it.
-                return $"{label}. {entry.About}";
+                return Announcements.WithCost($"{label}. {entry.About}", entry.Cost);
             }
 
             if (entry.Category != ScanCategory.Exits || this.exitOptionsSaid)
             {
-                return label;
+                return Announcements.WithCost(label, entry.Cost);
             }
 
             this.exitOptionsSaid = true;

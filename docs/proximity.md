@@ -29,4 +29,6 @@
 - What the game writes an object is for is said once an area, after its name and button: "Cáliz de sangre, A. Derrota a todos los monstruos
   raros del área para llenar el cáliz" (a WorldDescription's `body_text`, `world-titles.json` "body:" entries, 34 objects; `ScanEntry.About`).
   An amount the game fills in is "algo" ("Restaura algo de honor"); a counter the game keeps is left out; nothing for what a clock runs against.
+  A Trial shrine's or fountain's cost in sacred water, its shared state `interact_cost` (`ShrineCost`), ends the line when the state
+  is there and not zero: "Honra a Tabana, A. Restaura algo de honor, cuesta 5 de agua sagrada" (later times, "Honra a Tabana, A, cuesta 5 de agua sagrada").
 - What happened behind a kept line ("Recogido 5 de oro") follows the move that cuts the line instead of being dropped (`SpeechFloor.Move`).

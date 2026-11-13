@@ -83,6 +83,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\ShrineCost.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialArt.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialEffectNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
