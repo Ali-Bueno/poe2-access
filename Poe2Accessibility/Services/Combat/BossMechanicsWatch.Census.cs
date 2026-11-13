@@ -13,11 +13,16 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed partial class BossMechanicsWatch
     {
+        /// <summary>Adds that empower the boss are said again no sooner than this (ms): a wave comes in over a few seconds.</summary>
+        private const int FeedersGapMs = 8000;
+
         private readonly List<(Boss Boss, BossSignal Signal)> signals = new();
         private readonly BossPlayerBuffs playerBuffs = new();
         private readonly HashSet<string> described = new(StringComparer.Ordinal);
         private readonly HashSet<(uint, long)> grabWorded = new();
         private readonly Dictionary<uint, string?> helpers = new();
+        private readonly HashSet<uint> feedersSeen = new();
+        private long feedersSaidAt = long.MinValue / 2;
         private BossPlacesWatch? places;
         private EntityPlaces? positions;
 
@@ -74,6 +79,7 @@ namespace Poe2Accessibility.Services
             this.described.Clear();
             this.grabWorded.Clear();
             this.helpers.Clear();
+            this.feedersSeen.Clear();
             this.places?.Reset();
         }
 
@@ -113,6 +119,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.NoteFeeders(fighting, now, said);
             this.places ??= new BossPlacesWatch(this.elements, this.memory, this.Positions, this.log);
             this.places.ReachWorld = this.ReachWorld;
             this.places.AreaOf = this.AreaOf;
@@ -146,6 +153,18 @@ namespace Poe2Accessibility.Services
             this.lastWordAt = now;
             this.output.Urge(text, WordHoldMs);
             this.log.Info($"Boss helper: danger from {at.X:0},{at.Y:0}, {Vector2.Distance(at, here):0} world units from the player ({area?.Shape ?? "-"}) -> {text}");
+        }
+
+        /// <summary>The adds in play whose skill changes a fought boss: said as a wave of them comes, not for each one.</summary>
+        private void NoteFeeders(IReadOnlyList<Boss> fighting, long now, List<string> said)
+        {
+            var fresh = this.others.Where(other => fighting.Any(boss => this.Catalog.FeedsBoss(boss.Monster, other.Monster)))
+                .Count(other => this.feedersSeen.Add(other.Id));
+            if (fresh > 0 && now - this.feedersSaidAt >= FeedersGapMs)
+            {
+                this.feedersSaidAt = now;
+                said.Add(Announcements.BossFed());
+            }
         }
 
         private string? SignalLine(Boss boss, in BossSignal signal, bool multi)

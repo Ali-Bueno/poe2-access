@@ -89,6 +89,9 @@ namespace Poe2Accessibility
             _ => $"{name}: {text}",
         };
 
+        /// <summary>Adds came into the fight whose own skill empowers or protects the boss.</summary>
+        public static string BossFed() => T("Its adds empower it", "Sus esbirros lo fortalecen");
+
         /// <summary>The player inside a boss fight's shelter, or out of it while it is still needed.</summary>
         public static string BossSheltered(bool inside) => inside ? T("Sheltered", "A cubierto") : T("Out of the shelter", "Fuera del refugio");
 

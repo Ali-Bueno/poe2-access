@@ -38,6 +38,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, IReadOnlyList<string>> daemonSkills = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> arenaStates = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> empowering = new(StringComparer.Ordinal);
+        private readonly HashSet<string> feeders = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> shelters = new(StringComparer.Ordinal);
         private readonly HashSet<string> zones = new(StringComparer.Ordinal);
         private readonly HashSet<string> stacks = new(StringComparer.Ordinal);
@@ -69,6 +70,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A buff that, on this boss, says something empowers or protects it.</summary>
         public bool IsEmpowering(string boss, string buff) => this.empowering.Contains($"{boss}|{buff}");
+
+        /// <summary>An add whose own skill changes this boss (Kabala's skeleton snakes beam into her and armour her).</summary>
+        public bool FeedsBoss(string boss, string monster) => this.feeders.Contains($"{boss}|{monster}");
 
         /// <summary>A buff that, on the player, means sheltered from the boss's attack.</summary>
         public bool IsShelter(string buff) => this.shelters.Contains(buff);
@@ -132,6 +136,9 @@ namespace Poe2Accessibility.Services
                     return true;
                 case "empowered":
                     this.empowering.Add($"{c[1]}|{c[2]}");
+                    return true;
+                case "consume":
+                    this.feeders.Add($"{c[1]}|{c[2]}");
                     return true;
                 case "shelter":
                     this.shelters.Add(c[2]);

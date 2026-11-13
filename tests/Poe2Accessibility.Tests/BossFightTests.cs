@@ -47,6 +47,7 @@ namespace Poe2Accessibility.Tests
                 $"arena|{King}|sandstorm|sandstorm",
                 $"arena|{King}|bracket",
                 $"empowered|{King}|perennial_king_lightning_tornado",
+                $"consume|{King}|Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinion",
                 $"shelter|{King}|asala_sand_shield",
                 $"refuge|{King}|{Asala}|sandstorm_defence",
                 $"clone|{King}|Metadata/Monsters/Clone|chosen_one",
@@ -73,6 +74,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, catalog.IsDaemon("Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget") && !catalog.IsDaemon(King, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget"), "not another boss's");
             Equal("GSTitanBossLaserImpact,GSTitanBossLaserEnd", string.Join(",", catalog.DaemonSkills(Titan, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget")), "the helper's own skills");
             Equal(0, catalog.DaemonSkills(King, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget").Count, "none for another boss");
+            Equal(true, catalog.FeedsBoss(King, "Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinion") && !catalog.FeedsBoss(Titan, "Metadata/Monsters/SkeletonSnake/SkeletonSnakeSerpentCasterMinion"), "adds that empower their boss");
             Equal("sandstorm", catalog.ArenaKind(King, "sandstorm"), "an arena state's kind");
             Equal("change", catalog.ArenaKind(King, "bracket"), "a kind the line leaves out");
             Equal(true, catalog.ArenaKind(Titan, "sandstorm") == null, "only its own boss's state");
