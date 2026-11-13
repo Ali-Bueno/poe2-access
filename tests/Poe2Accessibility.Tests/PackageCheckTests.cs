@@ -41,7 +41,7 @@ namespace Poe2Accessibility.Tests
         private static void ACatalogThatDoesNotParseIsAFault()
         {
             Expect(null, PackageCheck.CatalogFault("a.json", "{\"a\":{\"b\":1}}"), "valid JSON with a value");
-            Expect(true, PackageCheck.CatalogFault("a.json", "{\"a\":").Contains("JSON"), "cut short");
+            Expect(true, PackageCheck.CatalogFault("a.json", "{\"a\":")?.Contains("JSON") == true, "cut short");
             Expect(true, PackageCheck.CatalogFault("a.json", "{}") is not null, "no entries");
             Expect(null, PackageCheck.CatalogFault("a.txt", "# comment\nrow\tvalue\n"), "a data line");
             Expect(true, PackageCheck.CatalogFault("a.txt", "# comment only\n\n") is not null, "a text catalog with no data line");
@@ -52,7 +52,7 @@ namespace Poe2Accessibility.Tests
             Expect(null, PackageCheck.PhraseFault("{\"Hello\":\"Hallo\"}"), "a table");
             Expect(true, PackageCheck.PhraseFault("[\"Hello\"]") is not null, "an array is no table");
             Expect(true, PackageCheck.PhraseFault("{\"Hello\":3}") is not null, "a number is no text");
-            Expect(true, PackageCheck.PhraseFault("{\"Hello\"").Contains("JSON"), "cut short");
+            Expect(true, PackageCheck.PhraseFault("{\"Hello\"")?.Contains("JSON") == true, "cut short");
         }
 
         private static void AFolderOfCatalogsIsJudgedFileByFile()
