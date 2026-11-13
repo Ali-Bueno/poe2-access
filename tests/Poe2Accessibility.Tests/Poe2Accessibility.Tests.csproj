@@ -223,6 +223,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WallRing.cs" Link="Plugin\WallRing.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossMechanicsCatalog.Census.cs" Link="Plugin\BossMechanicsCatalog.Census.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossTexts.cs" Link="Plugin\BossTexts.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossHelperWarnings.cs" Link="Plugin\BossHelperWarnings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PositionedGridSearch.cs" Link="Plugin\PositionedGridSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossSignals.cs" Link="Plugin\BossSignals.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlaces.cs" Link="Plugin\BossPlaces.cs" />

@@ -27,6 +27,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a harmful buff is named to the player elsewhere as it begins (<see cref="HarmfulBuffs"/>): its name is not said twice.</summary>
         public Func<string, bool> NamedElsewhere { get; set; } = _ => false;
 
+        /// <summary>A skill's danger area from the game's tables (set by <see cref="BossWatch"/>, which reads them).</summary>
+        public Func<string, AttackArea?> AreaOf { get; set; } = _ => null;
+
+        /// <summary>Plays the dodge warning from a place (world): a helper's danger has no attack of the boss's to carry it.</summary>
+        public Action<Vector2>? HelperCue { get; set; }
+
         /// <summary>The gap within which the player is at a place (the melee reach setting).</summary>
         public float ReachWorld { get; set; } = 40f;
 
@@ -109,6 +115,7 @@ namespace Poe2Accessibility.Services
 
             this.places ??= new BossPlacesWatch(this.elements, this.memory, this.Positions, this.log);
             this.places.ReachWorld = this.ReachWorld;
+            this.places.AreaOf = this.AreaOf;
             foreach (var news in this.playerBuffs.Update(this.Catalog, PlayerBuffs(), this.places.RefugeUp, now))
             {
                 this.log.Info($"Boss fight on the player: {news.Kind} {news.Buff} {news.Count}");
@@ -116,6 +123,29 @@ namespace Poe2Accessibility.Services
             }
 
             said.AddRange(this.places.Poll(this.Catalog, fighting.Select(boss => (boss.Monster, boss.At)).ToList(), this.playerBuffs.Sheltered, this.Heartbeat(), now));
+            foreach (var (at, area) in this.places.HelperNews)
+            {
+                this.WarnOfHelper(at, area, now);
+            }
+        }
+
+        /// <summary>A helper's danger reached the player: the dodge warning from its side and, with time between words, the way out of its area.</summary>
+        private void WarnOfHelper(Vector2 at, AttackArea? area, long now)
+        {
+            this.HelperCue?.Invoke(at);
+            if (now - this.lastWordAt < WordGapMs || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return;
+            }
+
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var answer = area is { Shape.Length: > 0 } shape ? BossCounterplay.Of(shape, at, at, here, player.ModelBounds.X, AttackAim.MarginWorld) : null;
+            var kind = answer?.Kind ?? CounterplayKind.Move;
+            var octant = answer is { Kind: CounterplayKind.Step } step ? ScreenProjection.Octant(player.WorldPosition, step.Way * ProbeWorld) : 0;
+            var text = Announcements.Counterplay(kind, octant);
+            this.lastWordAt = now;
+            this.output.Urge(text, WordHoldMs);
+            this.log.Info($"Boss helper: danger from {at.X:0},{at.Y:0}, {Vector2.Distance(at, here):0} world units from the player ({area?.Shape ?? "-"}) -> {text}");
         }
 
         private string? SignalLine(Boss boss, in BossSignal signal, bool multi)

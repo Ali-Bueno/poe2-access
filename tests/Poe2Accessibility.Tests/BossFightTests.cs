@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AThingToUseIsOfferedOnceAndForAWhile), AThingToUseIsOfferedOnceAndForAWhile),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
             (nameof(TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes), TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes),
+            (nameof(AHelperWarnsAsItsDangerReachesThePlayer), AHelperWarnsAsItsDangerReachesThePlayer),
         };
 
         private static BossMechanicsCatalog Sample()
@@ -39,7 +40,7 @@ namespace Poe2Accessibility.Tests
             catalog.Add(new[]
             {
                 $"boss|{Titan}|Zalmarath, the Colossus",
-                $"daemon|{Titan}|Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget",
+                $"daemon|{Titan}|Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget|GSTitanBossLaserImpact, GSTitanBossLaserEnd",
                 $"cover|{Titan}|{Stalagmite}",
                 $"use|{Titan}|Metadata/Terrain/Lever",
                 $"target|{Titan}|Metadata/Monsters/TitanBoss/Wisp",
@@ -70,6 +71,8 @@ namespace Poe2Accessibility.Tests
             var catalog = Sample();
             Equal(true, catalog.IsDaemon(Titan, "metadata/monsters/invisiblefire/mdtitanbosslasertarget"), "a helper of its boss, whatever the path's case");
             Equal(true, catalog.IsDaemon("Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget") && !catalog.IsDaemon(King, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget"), "not another boss's");
+            Equal("GSTitanBossLaserImpact,GSTitanBossLaserEnd", string.Join(",", catalog.DaemonSkills(Titan, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget")), "the helper's own skills");
+            Equal(0, catalog.DaemonSkills(King, "Metadata/Monsters/InvisibleFire/MDTitanBossLaserTarget").Count, "none for another boss");
             Equal("sandstorm", catalog.ArenaKind(King, "sandstorm"), "an arena state's kind");
             Equal("change", catalog.ArenaKind(King, "bracket"), "a kind the line leaves out");
             Equal(true, catalog.ArenaKind(Titan, "sandstorm") == null, "only its own boss's state");
@@ -277,6 +280,21 @@ namespace Poe2Accessibility.Tests
             Equal(true, PositionedGridSearch.Find(new[] { samples[0], samples[0], samples[0] }) == null, "nor one cell three times");
             var moved = new[] { samples[0], samples[1], Positioned(42, 900, 7, 300, 300) };
             Equal(true, PositionedGridSearch.Find(moved) == null, "no pair fits them all: not found");
+        }
+
+        private static void AHelperWarnsAsItsDangerReachesThePlayer()
+        {
+            var warnings = new BossHelperWarnings();
+            Equal(0, warnings.Update(new[] { (7u, false) }, 0).Count, "a storm far off");
+            Equal(7u, warnings.Update(new[] { (7u, true) }, 300).Single(), "upon the player");
+            Equal(0, warnings.Update(new[] { (7u, true) }, 600).Count, "once while it stays");
+            warnings.Update(new[] { (7u, false) }, 900);
+            Equal(0, warnings.Update(new[] { (7u, true) }, 1200).Count, "the edge of its area is the same danger");
+            warnings.Update(new[] { (7u, false) }, 1500);
+            Equal(1, warnings.Update(new[] { (7u, true) }, 1200 + BossHelperWarnings.RearmMs).Count, "back after the player was clear of it");
+            Equal(2, warnings.Update(new[] { (8u, true), (9u, true) }, 5000).Count, "each helper its own warning");
+            warnings.Update(Array.Empty<(uint, bool)>(), 5300);
+            Equal(1, warnings.Update(new[] { (8u, true) }, 5600).Count, "one that left and came again is new");
         }
 
         private static void PlaceLinesNameThePlaceAndTheWay()

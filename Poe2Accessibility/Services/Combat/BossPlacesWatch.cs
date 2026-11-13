@@ -10,12 +10,15 @@ namespace Poe2Accessibility.Services
     using Entity = GameReader.RemoteObjects.States.InGameStateObjects.Entity;
 
     /// <summary>
-    ///     The places of a fought boss's arena, from the entities the catalog names for it (<see cref="BossMechanicsCatalog.PlaceRules"/>):
-    ///     each is said once with its name and the way to it, and <see cref="Lead"/> is where the heartbeat leads (<see cref="BossPlaces"/>).
+    ///     A fought boss's arena, from the entities the catalog names for it: its places (<see cref="BossMechanicsCatalog.PlaceRules"/>),
+    ///     each said once with its name and the way to it, with <see cref="Lead"/> where the heartbeat leads (<see cref="BossPlaces"/>);
+    ///     and its invisible helpers (<see cref="BossMechanicsCatalog.IsDaemon(string, string)"/>), each warned of as its
+    ///     danger area reaches the player (<see cref="BossHelperWarnings"/>).
     /// </summary>
     public sealed class BossPlacesWatch
     {
-        private const int PollMs = 450;
+        /// <summary>A helper walks toward the player: looked for this often (ms), between the boss watch's own polls.</summary>
+        private const int PollMs = 300;
 
         /// <summary>A boss arena around the boss (world units), as <see cref="WeakPointGuide"/> takes it.</summary>
         private const float ArenaWorld = 2000f;
@@ -25,8 +28,11 @@ namespace Poe2Accessibility.Services
         private readonly EntityPlaces positions;
         private readonly PluginLog log;
         private readonly BossPlaces places = new();
+        private readonly BossHelperWarnings helperWarnings = new();
         private readonly Dictionary<uint, string> names = new();
+        private readonly Dictionary<uint, (IReadOnlyList<BossPlaceRule> Rules, string? Helper)> kinds = new();
         private readonly List<BossPlaceSight> sights = new();
+        private readonly List<(uint Id, Vector2 At, AttackArea? Area)> helpers = new();
         private long lastPoll;
 
         public BossPlacesWatch(UiElementReader elements, HostMemoryReader memory, EntityPlaces positions, PluginLog log)
@@ -40,26 +46,37 @@ namespace Poe2Accessibility.Services
         /// <summary>The gap within which the player is at a place (the melee reach setting).</summary>
         public float ReachWorld { get; set; } = 40f;
 
+        /// <summary>A skill's danger area from the game's tables (<see cref="AttackData.Area"/>); null when they draw none.</summary>
+        public Func<string, AttackArea?> AreaOf { get; set; } = _ => null;
+
         /// <summary>Where the heartbeat leads (world) and how wide the place is; null when nowhere.</summary>
         public (Vector2 At, float Radius)? Lead => this.places.Lead;
 
         /// <summary>A shelter of the fight is up.</summary>
         public bool RefugeUp { get; private set; }
 
+        /// <summary>The helpers whose danger reached the player at the last poll: where each stands and the area that holds the player, when the files draw one.</summary>
+        public IReadOnlyList<(Vector2 At, AttackArea? Area)> HelperNews { get; private set; } = Array.Empty<(Vector2, AttackArea?)>();
+
         public void Reset()
         {
             this.places.Reset();
+            this.helperWarnings.Reset();
             this.names.Clear();
+            this.kinds.Clear();
             this.sights.Clear();
+            this.helpers.Clear();
             this.RefugeUp = false;
+            this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
         }
 
         /// <summary>After a poll, with the bosses being fought: the lines of the places that turned up.</summary>
         public IReadOnlyList<string> Poll(BossMechanicsCatalog catalog, IReadOnlyList<(string Monster, Vector2 At)> fighting, bool sheltered, bool heartbeat, long now)
         {
+            this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
             if (fighting.Count == 0)
             {
-                if (this.sights.Count > 0 || this.places.Lead != null)
+                if (this.kinds.Count > 0)
                 {
                     this.Reset();
                 }
@@ -67,23 +84,26 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<string>();
             }
 
-            if (catalog.Places == 0 || now - this.lastPoll < PollMs || !Seats.Followed.TryGetComponent<Render>(out var player))
+            if ((catalog.Places == 0 && catalog.Daemons == 0) || now - this.lastPoll < PollMs || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return Array.Empty<string>();
             }
 
             this.lastPoll = now;
             this.sights.Clear();
+            this.helpers.Clear();
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
                 if (entity.IsValid && entity.EntityType != EntityTypes.Player)
                 {
-                    this.Note(catalog, entity, fighting);
+                    this.Note(catalog, entity, fighting, here, player.ModelBounds.X);
                 }
             }
 
+            var reached = this.helperWarnings.Update(this.helpers.Select(helper => (helper.Id, helper.Area != null)).ToList(), now);
+            this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
             this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
-            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var lines = new List<string>();
             foreach (var news in this.places.Update(this.sights, fighting[0].At, here, player.ModelBounds.X, this.ReachWorld, sheltered, now))
             {
@@ -94,26 +114,56 @@ namespace Poe2Accessibility.Services
             return lines;
         }
 
-        private void Note(BossMechanicsCatalog catalog, Entity entity, IReadOnlyList<(string Monster, Vector2 At)> fighting)
+        private void Note(BossMechanicsCatalog catalog, Entity entity, IReadOnlyList<(string Monster, Vector2 At)> fighting, Vector2 player, float playerRadius)
         {
-            var rules = catalog.PlaceRules(BossMechanicsCatalog.MonsterId(entity.Path));
-            if (rules.Count == 0 || this.positions.Of(entity) is not { } at)
+            if (!this.kinds.TryGetValue(entity.Id, out var kind))
+            {
+                // Asked once per entity: most of an arena is neither a place nor a helper.
+                var path = BossMechanicsCatalog.MonsterId(entity.Path);
+                this.kinds[entity.Id] = kind = (catalog.PlaceRules(path), catalog.IsDaemon(path) ? path : null);
+            }
+
+            if ((kind.Rules.Count == 0 && kind.Helper == null) || this.positions.Of(entity) is not { } at)
             {
                 return;
             }
 
-            // A cover or a marker the game does not draw has a place and neither a name nor a size.
-            var (name, radius) = entity.TryGetComponent<Render>(out var render) ? (this.NameOf(entity.Id, render), render.ModelBounds.X) : (string.Empty, 0f);
-            foreach (var rule in rules)
+            if (kind.Helper is { } helper)
+            {
+                this.NoteHelper(catalog, entity.Id, helper, at, fighting, player, playerRadius);
+            }
+
+            foreach (var rule in kind.Rules)
             {
                 if (!fighting.Any(boss => string.Equals(boss.Monster, rule.Boss, StringComparison.OrdinalIgnoreCase) && Vector2.Distance(boss.At, at) <= ArenaWorld))
                 {
                     continue;
                 }
 
+                // A cover or a marker the game does not draw has a place and neither a name nor a size.
+                var (name, radius) = entity.TryGetComponent<Render>(out var render) ? (this.NameOf(entity.Id, render), render.ModelBounds.X) : (string.Empty, 0f);
                 this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, name, at, radius, this.IsActive(entity, rule)));
                 return; // one place per entity: the catalog's first rule for this boss
             }
+        }
+
+        /// <summary>A helper of a fought boss: the first of its skills' areas, centred on it, that holds the player; without any area in the files, whether it is upon the player.</summary>
+        private void NoteHelper(BossMechanicsCatalog catalog, uint id, string helper, Vector2 at, IReadOnlyList<(string Monster, Vector2 At)> fighting, Vector2 player, float playerRadius)
+        {
+            var skills = fighting.Where(boss => catalog.IsDaemon(boss.Monster, helper)).Select(boss => catalog.DaemonSkills(boss.Monster, helper)).FirstOrDefault();
+            if (skills == null)
+            {
+                return; // another boss's helper
+            }
+
+            var areas = skills.Select(this.AreaOf).Where(area => area != null).Select(area => area!.Value).ToList();
+            AttackArea? holds = areas.Cast<AttackArea?>().FirstOrDefault(area => AttackAreas.Catches(area!.Value, at, at, player, playerRadius, AttackAim.MarginWorld));
+            if (holds == null && areas.Count == 0 && Vector2.Distance(at, player) - playerRadius <= BossHelperWarnings.UponWorld)
+            {
+                holds = BossHelperWarnings.Unknown;
+            }
+
+            this.helpers.Add((id, at, holds));
         }
 
         private bool IsActive(Entity entity, BossPlaceRule rule) => rule.Kind switch

@@ -87,6 +87,7 @@ namespace Poe2Accessibility.Services
         private long lastLifePoll;
         private long lastParryCue = long.MinValue / 2;
         private bool saveFailureLogged;
+        private BossMechanicsWatch? mechanics;
 
         public BossWatch(AudioCueService audio, IAccessibilityOutputService output, UiElementReader elements, PluginLog log)
         {
@@ -154,7 +155,19 @@ namespace Poe2Accessibility.Services
         public DodgeTimings Timings { get; set; } = new();
 
         /// <summary>A boss fight's turns and the way out of its danger areas, fed from this watch's walk (docs/research/boss-mechanics.md).</summary>
-        public BossMechanicsWatch? Mechanics { get; set; }
+        public BossMechanicsWatch? Mechanics
+        {
+            get => this.mechanics;
+            set
+            {
+                this.mechanics = value;
+                if (value != null)
+                {
+                    value.AreaOf = skill => this.attackData.Area(skill);
+                    value.HelperCue = this.WarnFrom;
+                }
+            }
+        }
 
         /// <summary>Where <see cref="Timings"/> is saved after each blow learnt (the host is often stopped, not closed).</summary>
         public string TimingsPath { get; set; } = string.Empty;
@@ -345,6 +358,19 @@ namespace Poe2Accessibility.Services
         {
             var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
             return this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness));
+        }
+
+        /// <summary>The dodge warning from a place (world) that is no monster's attack: a boss's helper upon the player.</summary>
+        private void WarnFrom(Vector2 place)
+        {
+            if (!this.DodgeWarnings || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return;
+            }
+
+            var offset = place - new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset));
+            this.audio.Play(this.whoosh, pan, pitch, this.WarningGain(offset), "dodge");
         }
 
         /// <summary>

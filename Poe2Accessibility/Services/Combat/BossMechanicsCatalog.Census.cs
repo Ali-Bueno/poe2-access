@@ -35,6 +35,7 @@ namespace Poe2Accessibility.Services
 
         private readonly HashSet<string> daemons = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> daemonMonsters = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IReadOnlyList<string>> daemonSkills = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> arenaStates = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> empowering = new(StringComparer.Ordinal);
         private readonly HashSet<string> shelters = new(StringComparer.Ordinal);
@@ -55,6 +56,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>An invisible helper that strikes for this boss (Zalmarath's laser target).</summary>
         public bool IsDaemon(string boss, string monster) => this.daemons.Contains($"{boss}|{monster}");
+
+        /// <summary>The helper's own skills (GrantedEffects ids), whose areas are its danger; none when the files list none.</summary>
+        public IReadOnlyList<string> DaemonSkills(string boss, string monster) =>
+            this.daemonSkills.TryGetValue($"{boss}|{monster}", out var skills) ? skills : Array.Empty<string>();
 
         /// <summary>A monster that is some boss's helper: the cheap first question.</summary>
         public bool IsDaemon(string monster) => this.daemonMonsters.Contains(monster);
@@ -120,6 +125,7 @@ namespace Poe2Accessibility.Services
                 case "daemon":
                     this.daemons.Add($"{c[1]}|{c[2]}");
                     this.daemonMonsters.Add(c[2]);
+                    this.daemonSkills[$"{c[1]}|{c[2]}"] = c.Length > 3 ? c[3].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : Array.Empty<string>();
                     return true;
                 case "arena":
                     this.arenaStates[$"{c[1]}|{c[2]}"] = c.Length > 3 && c[3].Length > 0 ? c[3] : "change";
