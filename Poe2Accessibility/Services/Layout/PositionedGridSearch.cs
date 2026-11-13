@@ -11,8 +11,11 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class PositionedGridSearch
     {
-        /// <summary>How much of the component is searched (bytes): GameHelper2's own Positioned field lies at 0x1E0.</summary>
-        public const int SearchBytes = 0x400;
+        /// <summary>
+        ///     How much of the component is searched (bytes): on 0.5.5f the cell lies at +0x444 and the world place, as two
+        ///     floats, at +0x490 (six of the Ardura caravan's people, dev command <c>positioned</c>, 2026-11-13).
+        /// </summary>
+        public const int SearchBytes = 0x800;
 
         /// <summary>Samples in at least this many different cells: two entities can share a number by chance, three in a row do not.</summary>
         public const int MinCells = 3;

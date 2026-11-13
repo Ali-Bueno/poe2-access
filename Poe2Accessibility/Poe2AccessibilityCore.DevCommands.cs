@@ -385,6 +385,10 @@ namespace Poe2Accessibility
                         }
 
                         this.log?.Info($"Positioned cell offset: {(positions.CellOffset is { } found ? $"+0x{found:X}" : "not found")}, {undrawn.Count} undrawn entities");
+                        foreach (var line in positions.Evidence())
+                        {
+                            this.log?.Info($"Positioned evidence: {line}");
+                        }
                     }
 
                     break;

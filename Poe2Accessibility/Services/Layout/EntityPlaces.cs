@@ -16,6 +16,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A search that found nothing (too few entities around) is tried again this much later (ms).</summary>
         private const int RetryMs = 2000;
 
+        /// <summary>An entity stands in the middle of its cell (a trader at world 3864 in cell 355 of 10.87: 355.5 cells).</summary>
+        private const float HalfCell = 0.5f;
+
         /// <summary>Entities read per search: enough to rule out a chance match, few enough for one frame.</summary>
         private const int MaxSamples = 16;
 
@@ -62,7 +65,51 @@ namespace Poe2Accessibility.Services
             var (x, y) = (BitConverter.ToInt32(cell), BitConverter.ToInt32(cell[sizeof(int)..]));
             var bytesPerRow = area.TerrainMetadata.BytesPerRow;
             var inGrid = bytesPerRow > 0 && x > 0 && y > 0 && x < bytesPerRow * 2 && y < area.GridWalkableData.Length / bytesPerRow;
-            return inGrid ? new Vector2(x, y) * area.WorldToGridConvertor : null;
+            return inGrid ? new Vector2(x + HalfCell, y + HalfCell) * area.WorldToGridConvertor : null;
+        }
+
+        /// <summary>
+        ///     Research: for a few drawn entities, where in Positioned an integer or a float holds their cell or their world
+        ///     place, each axis apart, so a search that finds nothing shows what the component really keeps.
+        /// </summary>
+        public IEnumerable<string> Evidence()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var cell = area.WorldToGridConvertor;
+            var shown = 0;
+            foreach (var entity in area.AwakeEntities.Values)
+            {
+                if (shown >= 6 || cell <= 0 || !entity.IsValid || !entity.TryGetComponent<Render>(out var render) || !entity.TryGetComponent<Positioned>(out var positioned) ||
+                    this.memory.ReadBytes(positioned.Address, PositionedGridSearch.SearchBytes) is not { Length: PositionedGridSearch.SearchBytes } bytes)
+                {
+                    continue;
+                }
+
+                shown++;
+                var (wx, wy) = (render.WorldPosition.X, render.WorldPosition.Y);
+                var (gx, gy) = (wx / cell, wy / cell);
+                var hits = new List<string>();
+                for (var at = 0; at + sizeof(int) <= bytes.Length; at++)
+                {
+                    var (whole, real) = (BitConverter.ToInt32(bytes, at), BitConverter.ToSingle(bytes, at));
+                    foreach (var (name, want, slack) in new[] { ("gx", gx, 1.5f), ("gy", gy, 1.5f), ("wx", wx, cell), ("wy", wy, cell) })
+                    {
+                        if (MathF.Abs(whole - want) <= slack)
+                        {
+                            hits.Add($"+0x{at:X} int {name}={whole}");
+                        }
+
+                        if (float.IsFinite(real) && MathF.Abs(real - want) <= slack)
+                        {
+                            hits.Add($"+0x{at:X} float {name}={real:0.#}");
+                        }
+                    }
+                }
+
+                yield return $"{entity.Id} {entity.Path} world {wx:0},{wy:0} cell {gx:0.#},{gy:0.#}: {string.Join("; ", hits)}";
+            }
+
+            yield return $"cell size {cell:0.###}, {shown} entities shown";
         }
 
         private int? Offset()
