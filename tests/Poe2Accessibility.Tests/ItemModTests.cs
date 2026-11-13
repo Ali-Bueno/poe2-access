@@ -174,6 +174,9 @@ namespace Poe2Accessibility.Tests
             Equal("uncertain: (Nothing1: not in the game files) | \"Agrega de 6 a 10 de daño de hielo\" (minimum_added_cold_damage maximum_added_cold_damage) as the tooltip shows it", same.Details,
                 "a line in doubt that reads as the tooltip's is said so: what would make it certain is seen");
 
+            var ranged = ItemModCheck.Compare(memory, new[] { "+32(30-39) a la vida máxima", "+10(8-12) al maná máximo" }, texts);
+            Expect((2, 0, 0), (ranged.Equal, ranged.MemoryOnly.Count, ranged.TooltipOnly.Count), "a rolled value's range, shown with the advanced descriptions on, is no difference");
+
             var other = ItemModCheck.Compare(memory, new[] { "+33 a la vida máxima", "+10 al maná máximo", "Regeneras 1.7 de vida por segundo" }, texts);
             Expect((1, "+32 a la vida máxima", "+33 a la vida máxima | Regeneras 1.7 de vida por segundo"), (other.Equal, string.Join(" | ", other.MemoryOnly), string.Join(" | ", other.TooltipOnly)),
                 "a line memory alone holds, and the tooltip's modifier lines memory gave no line for");

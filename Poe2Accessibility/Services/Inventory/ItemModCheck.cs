@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
 
     /// <summary>An item's lines made from memory set against its tooltip's.</summary>
     /// <param name="Equal">Certain lines the tooltip shows letter for letter.</param>
@@ -49,11 +50,14 @@ namespace Poe2Accessibility.Services
         /// <summary>What the tooltip reader puts between the lines of one text (<c>Announcements.JoinLines</c>): the belt's two implicit lines came as one.</summary>
         private static readonly string[] Joints = { ". ", " " };
 
+        /// <summary>The range the game writes after a rolled value while its advanced descriptions are on: "+15(10-19)".</summary>
+        private static readonly Regex RolledRange = new(@"(?<=\d)\(-?\d+(?:[.,]\d+)?[-–]-?\d+(?:[.,]\d+)?\)", RegexOptions.Compiled);
+
         public static ItemModComparison Compare(IReadOnlyList<ItemModLine> memory, IReadOnlyList<string> tooltip, IModTexts texts)
         {
             var shown = new bool[memory.Count];
             var tooltipOnly = new List<string>();
-            foreach (var line in tooltip)
+            foreach (var line in tooltip.Select(line => RolledRange.Replace(line, string.Empty)))
             {
                 if (Parts(line, memory, shown) is { } parts)
                 {
