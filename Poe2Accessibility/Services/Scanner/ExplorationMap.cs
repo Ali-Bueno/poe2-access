@@ -53,8 +53,11 @@ namespace Poe2Accessibility.Services
         private const int SmallBlocks = 4 * PocketBlocks;
         private const int LargeBlocks = 20 * PocketBlocks;
 
-        /// <summary>More blocks than any area holds (a 4000-cell square): a kept map claiming more is not one.</summary>
-        private const long MaxBlocks = 500 * 500;
+        /// <summary>
+        ///     Four times the largest floor known (a Trial of the Sekhemas floor: 64,080 sub-tiles of 23 x 23 cells, 2026-11-13): a kept
+        ///     map claiming more is not one. Its file then holds at most 260 KB of bits.
+        /// </summary>
+        private const long MaxBlocks = 4L * 64_080 * 23 * 23 / (BlockCells * BlockCells);
 
         /// <summary>cos 45°: the edge of a ray's quarter.</summary>
         private static readonly float QuarterCos = MathF.Sqrt(0.5f);
