@@ -19,6 +19,9 @@ namespace Poe2Accessibility.Services
         /// <summary>While a charge is being placed: what it would blow follows the stick.</summary>
         private const int PlacingPollMs = 150;
 
+        /// <summary>No fog stat logged yet in the area: the first read is logged, unread or not.</summary>
+        private const int FogNotLogged = int.MinValue;
+
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly UiElementReader elements;
@@ -30,6 +33,7 @@ namespace Poe2Accessibility.Services
         private readonly List<uint> charges = new();
         private long lastPoll;
         private bool placing;
+        private int? fogLogged = FogNotLogged;
 
         public LeagueWatch(IAccessibilityOutputService output, PluginLog log, UiElementReader elements)
         {
@@ -43,7 +47,7 @@ namespace Poe2Accessibility.Services
         {
             this.news.Reset();
             this.placement.Reset();
-            this.placing = false;
+            (this.placing, this.fogLogged) = (false, FogNotLogged);
         }
 
         /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
@@ -156,7 +160,19 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (this.news.DeliriumRunning && this.news.Fog(PlayerStats.Of(player, LeaguePieces.FogStat)) is { } fog)
+            if (!this.news.DeliriumRunning)
+            {
+                return;
+            }
+
+            var inFog = PlayerStats.Of(player, LeaguePieces.FogStat);
+            if (inFog != this.fogLogged)
+            {
+                this.fogLogged = inFog;
+                this.log.Info($"Delirium fog stat: {inFog?.ToString() ?? "unread"}"); // whether the game sets it on the player at all
+            }
+
+            if (this.news.Fog(inFog) is { } fog)
             {
                 if (fog == LeagueLine.OutOfFog)
                 {
