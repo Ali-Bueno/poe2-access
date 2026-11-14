@@ -204,7 +204,8 @@ namespace Poe2Accessibility.Services
                     : point.Defeated ? Announcements.BossRoomDefeated(point.Label) : Announcements.BossRoom(point.Label);
             }
 
-            if (plain && category == ScanCategory.Objects && name.Length == 0)
+            // A nameless piece of a boss's arena (Geonor's ice walls) is the fight's to tell, "something to break", not a file's word.
+            if (plain && category == ScanCategory.Objects && name.Length == 0 && BossMechanicsCatalog.Shared.PlaceRules(BossMechanicsCatalog.MonsterId(path)).Count == 0)
             {
                 // A new interactable no table names yet: its metadata file name, so it is heard instead of dropped.
                 name = ObjectNames.FromPath(path);
