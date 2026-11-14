@@ -10,6 +10,29 @@ namespace Poe2Accessibility
         public static string WithCost(string text, int cost) =>
             cost > 0 ? T($"{text}, costs {cost} Sacred Water", $"{text}, cuesta {cost} de agua sagrada") : text;
 
+        /// <summary>What a round of the Trial of Chaos asks, said as its pieces come into view.</summary>
+        public static string ChaosRoundBegan(Services.ChaosRound round) => round switch
+        {
+            Services.ChaosRound.Collect => T(
+                "Soul core round: find the Vaal Soul Cores and carry them one at a time to a Stone Altar; a core in hand hurts more the longer you hold it",
+                "Ronda de núcleos de alma: busca los núcleos de alma vaal y llévalos de uno en uno a un altar de piedra; llevar uno te daña cada vez más"),
+            Services.ChaosRound.Escort => T(
+                "Escort round: stay beside the statue while it moves; it stops when you leave it",
+                "Ronda de escolta: quédate junto a la estatua mientras avanza; se detiene si te alejas"),
+            _ => T(
+                "Sacrifice round: kill monsters inside each blood circle until it fills",
+                "Ronda de sacrificio: mata monstruos dentro de cada círculo de sangre hasta llenarlo"),
+        };
+
+        /// <summary>A Vaal Soul Core was picked up: where it goes.</summary>
+        public static string ChaosCoreTaken => T("Carry the core to a Stone Altar", "Lleva el núcleo a un altar de piedra");
+
+        /// <summary>One of a Sacrifice round's blood circles is full.</summary>
+        public static string ChaosCircleFilled => T("Blood circle filled", "Círculo de sangre lleno");
+
+        /// <summary>"Ruina 3 de 7": the count a sighted player sees over the head, and the count that fails the trial.</summary>
+        public static string ChaosRuin(int now, int most) => T($"Ruin {now} of {most}", $"Ruina {now} de {most}");
+
         /// <summary>The Trial of the Sekhemas' room door, as the guide names it.</summary>
         public static string TrialDoor => T("room door", "puerta de la sala");
 

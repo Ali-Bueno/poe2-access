@@ -51,6 +51,13 @@ first; both wrap and empty categories are skipped. The category is named only wh
   round walls, and lets go when the room is done; you walk, and your own target is left alone (setting "Guide to each Death Crystal by itself").
   The crystals are those you can walk to from where you stand, whatever quest the tracker shows; it takes a couple of seconds after the stairs.
 - Taking a room's stairs says the room you arrive in, by the kind you chose on the Trial's map: "Room: Escape Trial" (with the Deceptive Mirror the game may take you to another). Under the switch "Trial rounds, crystals left and room doors".
+- In the Trial of Chaos (Act 3) what a round asks next sounds as a quest object and stands in the scanner's Quest category: a Vaal Soul
+  Core while you carry none, a Stone Altar while you carry one (the guide locks on the altar quickest to reach by itself, as the core
+  hurts more the longer it is held), the statue to escort, each blood circle until it is full, a lift's lever once it can be pulled and
+  the reward chest once it can be taken. The kind of round is said as its pieces come into view ("Soul core round: …"), a filled blood
+  circle, and Ruin as it grows ("Ruin 3 of 7": at 7 the trial is lost). Turrets, petrifying statues, laser pyramids, Stormcaller runes
+  and the blood mist are listed among the points of interest; a rune that starts charging near you plays the dodge warning.
+  Built from the game's files and not yet played ([what is known](research/trial-of-chaos.md)).
 - In the Trial of the Sekhemas an affliction or boon is said by name and effect as you gain it; the vitals (double tap L3) say your honour, sacred water, keys and
   every affliction and boon you carry, and with the Trial's map open the water, the keys and what you carry. The sacred water monsters drop is named as such.
 - In the Trial of the Sekhemas your honour is said as it falls past 75, 50, 25 and 10 percent: at nothing the run ends (setting "Honour in the Trial").
@@ -65,7 +72,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
   for a map boss, or once you have seen its place; the quest naming that boss then leads there; "Boss room, defeated"
   when the game's own icon shows the boss dead, for a room known from the map's pieces too, which then drops its reward note; secrets and quest landmarks such as "Renly's Workshop", which the game
   draws only near; each said once as "On the map: …"), **places** (named map pieces and props from the game's terrain files:
-  bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
+  bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (an
+  "Unopened door" you have seen shut and not opened, after the ground that goes on: what lies behind it cannot be reached yet; and where
   ground never seen begins, one entry per stretch and direction, named by how much lies behind it, as a look at the
   map tells a sighted player: "Large unexplored ground" (a good part of the area) and "Unexplored ground, 7 steps, left"
   where it goes on, nearest first; then "Small unexplored ground", a room or a short branch that soon ends; then

@@ -46,8 +46,10 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceHonour) => T("Honour in the Trial", "Honor en la Prueba"),
             nameof(AccessibilitySettings.AnnounceTrialCounters) => T("Sacred water and keys in the Trial", "Agua sagrada y llaves en la Prueba"),
             nameof(AccessibilitySettings.TrialTrapCues) => T("Trial traps about to strike", "Trampas de la Prueba a punto de saltar"),
-            nameof(AccessibilitySettings.GuideTimed) => T("Guide to each Death Crystal by itself", "Guiar solo a cada cristal de la muerte"),
-            nameof(AccessibilitySettings.AnnounceTrialProgress) => T("Trial rounds, crystals left and room doors", "Rondas, cristales restantes y puertas de la Prueba"),
+            nameof(AccessibilitySettings.GuideTimed) => T(
+                "Guide by itself to each Death Crystal and, with a soul core in hand, to a Stone Altar",
+                "Guiar solo a cada cristal de la muerte y, con un núcleo de alma en la mano, a un altar de piedra"),
+            nameof(AccessibilitySettings.AnnounceTrialProgress) => T("Trial rounds, crystals left, room doors and Ruin", "Rondas, cristales restantes, puertas de la Prueba y Ruina"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.ReadPlayer1) => T("Local co-op: read for player 1", "Cooperativo local: lectura para el jugador 1"),

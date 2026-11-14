@@ -51,6 +51,9 @@ namespace Poe2Accessibility.Services
                 .Concat(TrialTraps.FilesMatched.SelectMany(trap => trap.Firing.Count == 0
                     ? new[] { new GameName(GameNameKind.ObjectFile, trap.File, null, nameof(TrialTraps)) }
                     : trap.Firing.Select(state => new GameName(GameNameKind.ObjectFile, trap.File, state, nameof(TrialTraps)))))
+                .Concat(TrialTraps.VarietiesMatched.Select(id => new GameName(GameNameKind.Monster, id, null, nameof(TrialTraps))))
+                .Concat(ChaosTrial.FilesMatched.Select(piece => new GameName(GameNameKind.ObjectFile, piece.File, piece.State, nameof(ChaosTrial))))
+                .Concat(new[] { ChaosTrial.HoldingCoreBuff, ChaosTrial.RuinBuff }.Select(id => new GameName(GameNameKind.Buff, id, null, nameof(ChaosTrial))))
                 .Append(new GameName(GameNameKind.ObjectFile, TrialDoors.DoorFile, TrialDoors.OpenState, nameof(TrialDoors)))
                 .Append(new GameName(GameNameKind.ObjectFile, TrialWater.DropFile, null, nameof(TrialWater)))
                 .Concat(MinimapIconIds.All.Select(icon => new GameName(GameNameKind.MinimapIcon, icon, null, nameof(MinimapIconIds))))

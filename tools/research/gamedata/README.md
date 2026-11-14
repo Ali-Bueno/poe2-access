@@ -35,3 +35,9 @@ They expect, beside this folder's parent as they were run: `dat/data_balance_<ta
   writes `find_the_exit_rooms.tsv`. `wiring_by_room.txt` is every lever, indicator and door of the 28 rooms for 0.5.5f.
   They expect the Trial's terrain files dumped beside them (`dumper <gameDir> <out> metadata/terrain/gallows/leagues/sanctum/`,
   `EXTS=.arm`). What they showed: docs/research/trials-and-campaign.md §1.6.
+
+## The Trial of Chaos rooms (2026-11-14)
+
+- `ultimatum/rooms.py <dump folder>` lists each G3_10 encounter room's objective objects, the exit lever and the escort path, in cells
+  from the arrival point (rooms dumped with `EXTS=.arm dumper <gameDir> <out> metadata/terrain/gallows/act3/3_10/rooms/`). What it
+  showed: docs/research/trial-of-chaos.md §3.

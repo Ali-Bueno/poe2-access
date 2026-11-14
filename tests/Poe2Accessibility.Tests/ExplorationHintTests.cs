@@ -17,7 +17,44 @@ namespace Poe2Accessibility.Tests
             (nameof(ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround), ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround),
             (nameof(ADoorNotOpenedIsAWayStillToTry), ADoorNotOpenedIsAWayStillToTry),
             (nameof(TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions), TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions),
+            (nameof(AChaosRoundIsToldByItsPieces), AChaosRoundIsToldByItsPieces),
         };
+
+        private static void AChaosRoundIsToldByItsPieces()
+        {
+            const string core = ChaosTrial.Folder + "SoulCoreEncounter/SoulCorePickup";
+            Equal(ChaosPiece.SoulCore, ChaosTrial.PieceOf(core + "@38"), "a piece by its file, whatever its instance tail");
+            Equal(null, ChaosTrial.PieceOf(ChaosTrial.Folder + "LiftButton_Platform"), "the lift's pressure plate is no lever");
+            Equal((true, false), ChaosTrial.Asks(ChaosPiece.SoulCore, holdingCore: false), "a core rings while none is held");
+            Equal((false, false), ChaosTrial.Asks(ChaosPiece.SoulCore, holdingCore: true), "and not while one is: a second cannot be taken");
+            Equal((true, true), ChaosTrial.Asks(ChaosPiece.StoneAltar, holdingCore: true), "the altar rings against the core's damage, as a clock's goal");
+            Equal((false, false), ChaosTrial.Asks(ChaosPiece.StoneAltar, holdingCore: false), "an altar with nothing to put in it is silent");
+            Equal(false, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 1L) }), "a full circle is done");
+            Equal(true, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 0L), ("spawning", 1L) }), "one filling is not");
+            Equal(true, TrialTraps.KindOf("Metadata/Monsters/LeagueUltimatum/Turrets/FireTurret1@40") == TrialTrap.Turret, "a hazard by its MonsterVarieties Id");
+            Equal(true, TrialTraps.IsFiring("Metadata/Monsters/LeagueUltimatum/Daemon/StormcallerRune", new[] { ("charging", 1L) }), "a rune charging is about to strike");
+
+            var news = new ChaosRoundNews();
+            Equal(ChaosRound.Collect, news.Began(new[] { (1u, ChaosPiece.SoulCore), (2u, ChaosPiece.StoneAltar) }), "the round is said as its pieces appear");
+            Equal(null, news.Began(new[] { (1u, ChaosPiece.SoulCore), (3u, ChaosPiece.SoulCore) }), "and once: another core is the same round");
+            Equal(null, news.Began(new[] { (9u, ChaosPiece.LiftLever) }), "a lever belongs to no round");
+            Equal(null, news.Began(new[] { (1u, ChaosPiece.SoulCore) }), "pieces seen again after walking off are no news");
+            news.Began(Array.Empty<(uint, ChaosPiece)>());
+            Equal(ChaosRound.Collect, news.Began(new[] { (20u, ChaosPiece.SoulCore) }), "a later round of the same kind has new pieces");
+            Equal(ChaosRound.Sacrifice, news.Began(new[] { (30u, ChaosPiece.BloodCircle) }), "another kind is said at once");
+
+            Equal(false, news.Filled(30, false), "a circle filling");
+            Equal(true, news.Filled(30, true), "full: said");
+            Equal(false, news.Filled(30, true), "once");
+            Equal(null, news.Core(false), "no core, no news");
+            Equal(true, news.Core(true), "a core taken");
+            Equal(null, news.Core(true), "still in hand");
+            Equal(false, news.Core(false), "out of the hand");
+            Equal(1, news.Ruin(1), "Ruin as it grows");
+            Equal(null, news.Ruin(1), "not while it stands");
+            Equal(3, news.Ruin(3), "each time it grows");
+            Equal(null, news.Ruin(0), "gone with the run");
+        }
 
         private static void ADoorNotOpenedIsAWayStillToTry()
         {

@@ -79,6 +79,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialHud.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\CameraView.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialTraps.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\ChaosTrial.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\TimedGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HonourWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialCatalog.cs" />

@@ -336,6 +336,8 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
 - Errors: "Only the Trial owner can interact with this", "Leaving this area will abandon the trial..." (MEASURED).
 
 ### 2.2 What the mod does / gaps
+Superseded on 2026-11-14 by [the Trial of Chaos from the game's files](trial-of-chaos.md) (its §9 is what the plugin does now; the trap
+paths below matched nothing).
 - Today: traps named for `LeagueUltimatum/Turrets/ProjectileTurret`, `PetrificationStatue`, `Daemon/LaserPyramid`
   (`TrialTraps`, no firing state known); the HUD round said on change (new, `CheckTrialLines`); the modifier icons named
   by art when focused (new, `TrialIcon`; also the "Active Modifiers" legend if its icons take the focus or are read as a

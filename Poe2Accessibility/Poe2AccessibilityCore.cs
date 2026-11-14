@@ -96,6 +96,7 @@ namespace Poe2Accessibility
         private EncounterReader? encounters;
         private TrapWatch? traps;
         private TrialDoorWatch? trialDoors;
+        private ChaosTrialWatch? chaosTrial;
         private MapPinNarrator? mapPins;
         private MinionReport? minions;
         private CullWatch? culls;
@@ -365,6 +366,7 @@ namespace Poe2Accessibility
                 this.deployed = new DeployedWatch(this.audio, this.log);
                 this.traps = new TrapWatch(this.audio, this.log);
                 this.trialDoors = new TrialDoorWatch(this.entities, this.output, this.log);
+                this.chaosTrial = new ChaosTrialWatch(this.output, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.deployed.GameSound = gameSounds.Get;

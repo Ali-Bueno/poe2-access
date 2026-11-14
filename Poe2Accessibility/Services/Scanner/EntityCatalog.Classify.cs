@@ -34,7 +34,9 @@ namespace Poe2Accessibility.Services
             var leagueIcon = LeagueDeviceIcon(entity, path);
             // A league's altar stays listed out of play; what a quest icon marks does not: a Trial's reward is spent once used.
             var trap = TrialTraps.KindOf(path);
-            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !this.InPlay(entity))
+            var chaos = ChaosTrial.PieceOf(path);
+            var foughtBeside = chaos is { } fought && ChaosTrial.IsFoughtBeside(fought);
+            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && !this.InPlay(entity))
             {
                 return null;
             }
@@ -122,6 +124,15 @@ namespace Poe2Accessibility.Services
                     ObjectNames.LeagueName(minimap is null ? string.Empty : MinimapIconLabel.Of(this.memory, this.elements, minimap), path));
                 kind = MinimapMarks.DeviceKind(leagueIcon);
             }
+            else if (foughtBeside)
+            {
+                // Flagged hidden, with no target and no minimap mark, yet the round is fought beside it: the statue to
+                // escort, a blood circle until it is full (docs/research/trial-of-chaos.md).
+                category = ChaosTrial.StillAsks(chaos!.Value, StatesOf(entity)) ? ScanCategory.Objects : null;
+                name = name.Length > 0 ? name : Announcements.ChaosPieceName(chaos.Value);
+                sound = MinimapMarks.QuestObjectKind;
+                questMarked = true;
+            }
             else if (trap is { } kindOfTrap)
             {
                 // Untargetable and flagged hidden, yet there on the floor for anyone who can see.
@@ -181,6 +192,15 @@ namespace Poe2Accessibility.Services
 
                 // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing, and must stand out (user 2026-11-07).
                 sound = Switches.IsSwitch(path) ? MinimapMarks.QuestObjectKind : sound;
+                if (chaos is { } piece)
+                {
+                    // What the round asks for next rings, and a Stone Altar against the damage of the core in hand.
+                    var (rings, clocked) = ChaosTrial.Asks(piece, this.HoldsSoulCore());
+                    sound = rings ? MinimapMarks.QuestObjectKind : string.Empty;
+                    questMarked = rings;
+                    timed = clocked;
+                    name = name.Length > 0 ? name : Announcements.ChaosPieceName(piece);
+                }
                 if (name.Length == 0 && TrialWater.IsDrop(path))
                 {
                     name = this.landmarks.WaterLabel; // the game's own word for what the drop is: "Agua sagrada"
@@ -248,8 +268,15 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>What the object asks in sacred water, from its script's shared state; 0 without one.</summary>
-        private static int CostOf(Entity entity) =>
-            entity.TryGetComponent<StateMachine>(out var machine) ? ShrineCost.Of(machine.States.Select(state => (state.Name, state.Value))) : 0;
+        private static int CostOf(Entity entity) => ShrineCost.Of(StatesOf(entity));
+
+        /// <summary>The states of the object's script as they stand; none without a StateMachine.</summary>
+        private static IEnumerable<(string Name, long Value)> StatesOf(Entity entity) =>
+            entity.TryGetComponent<StateMachine>(out var machine) ? machine.States.Select(state => (state.Name, state.Value)) : Array.Empty<(string, long)>();
+
+        /// <summary>The player carries a Vaal Soul Core of the Trial of Chaos (<see cref="ChaosTrial.HoldingCoreBuff"/>).</summary>
+        private bool HoldsSoulCore() =>
+            Seats.Followed.TryGetComponent<Buffs>(out var buffs) && buffs.StatusEffects.ContainsKey(ChaosTrial.HoldingCoreBuff);
 
         /// <summary>What the game writes of an object under its title, by its file: asked of every object at each listing, so kept.</summary>
         private string AboutOf(string path)

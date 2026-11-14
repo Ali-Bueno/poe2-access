@@ -30,9 +30,24 @@ ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/PressurePlate_DartLaun
 ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/PressurePlate_PoisonGas		TrialTraps
 ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/TimeRewindTrap	active	TrialTraps
 ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/ProjectilePortal		TrialTraps
-ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/ProjectileTurret		TrialTraps
-ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/PetrificationStatue		TrialTraps
-ObjectFile	Metadata/Monsters/LeagueUltimatum/Daemon/LaserPyramid		TrialTraps
+Monster	FireTurret1		TrialTraps
+Monster	LightningTurret1		TrialTraps
+Monster	LightningTurret2		TrialTraps
+Monster	PetrificationStatue1		TrialTraps
+Monster	PetrificationStatue2		TrialTraps
+Monster	RotatingLaserPyramid		TrialTraps
+Monster	RotatingLaserPyramid2		TrialTraps
+Monster	StormcallerRune		TrialTraps
+Monster	BloodFog		TrialTraps
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/SoulCoreEncounter/SoulCorePickup		ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/SoulCoreEncounter/SoulCorePlinth		ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/StatueEncounter/EncounterStatue		ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BloodAltarEncounter/BloodCircle	bloodfilled	ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BloodAltarEncounter/BloodAltar	complete	ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/LiftButton	enabled	ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BossLiftTransition		ChaosTrial
+Buff	ultimatum_holding_soul_core		ChaosTrial
+Buff	ultimatum_ruin		ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor	open	TrialDoors
 ObjectFile	Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote		TrialWater
 MinimapIcon	QuestObject		MinimapIconIds

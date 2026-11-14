@@ -210,6 +210,7 @@ namespace Poe2Accessibility
             this.deployed?.Reset();
             this.traps?.Reset();
             this.trialDoors?.Reset();
+            this.chaosTrial?.Reset();
             this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();

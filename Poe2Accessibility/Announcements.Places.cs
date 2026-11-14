@@ -135,6 +135,18 @@ namespace Poe2Accessibility
             };
         }
 
+        /// <summary>A piece of a Trial of Chaos round the game shows no name for.</summary>
+        public static string ChaosPieceName(Services.ChaosPiece piece) => piece switch
+        {
+            Services.ChaosPiece.Statue => T("Statue to escort", "Estatua que escoltar"),
+            Services.ChaosPiece.BloodCircle => T("Blood circle", "Círculo de sangre"),
+            Services.ChaosPiece.BloodAltar => T("Blood altar", "Altar de sangre"),
+            Services.ChaosPiece.BossLift => T("Lift to the Trialmaster", "Ascensor al Maestro de pruebas"),
+            Services.ChaosPiece.LiftLever => T("Lift lever", "Palanca del ascensor"),
+            Services.ChaosPiece.StoneAltar => T("Stone Altar", "Altar de piedra"),
+            _ => T("Vaal Soul Core", "Núcleo de alma vaal"),
+        };
+
         /// <summary>A trap of the Trials as the scanner and the approach name it.</summary>
         public static string TrialTrapName(Services.TrialTrap trap) => trap switch
         {
@@ -146,6 +158,8 @@ namespace Poe2Accessibility
             Services.TrialTrap.PressurePlate => T("Pressure plate", "Placa de presión"),
             Services.TrialTrap.TimeTrap => T("Time trap", "Trampa temporal"),
             Services.TrialTrap.ProjectilePortal => T("Projectile portal", "Portal de proyectiles"),
+            Services.TrialTrap.StormRune => T("Stormcaller rune", "Runa llamatormentas"),
+            Services.TrialTrap.BloodMist => T("Blood mist", "Niebla sangrienta"),
             _ => T("Petrifying statue", "Estatua petrificadora"),
         };
 

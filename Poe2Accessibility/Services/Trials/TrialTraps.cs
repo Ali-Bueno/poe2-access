@@ -16,6 +16,8 @@ namespace Poe2Accessibility.Services
         TimeTrap,
         ProjectilePortal,
         PetrifyingStatue,
+        StormRune,
+        BloodMist,
     }
 
     /// <summary>
@@ -39,13 +41,30 @@ namespace Poe2Accessibility.Services
             [SanctumHazards + "PressurePlate_PoisonGas"] = (TrialTrap.PressurePlate, Array.Empty<string>()),
             [SanctumHazards + "TimeRewindTrap"] = (TrialTrap.TimeTrap, new[] { "active" }),
             [SanctumHazards + "ProjectilePortal"] = (TrialTrap.ProjectilePortal, Array.Empty<string>()),
-            [UltimatumHazards + "Turrets/ProjectileTurret"] = (TrialTrap.Turret, Array.Empty<string>()),
-            [UltimatumHazards + "Turrets/PetrificationStatue"] = (TrialTrap.PetrifyingStatue, Array.Empty<string>()),
-            [UltimatumHazards + "Daemon/LaserPyramid"] = (TrialTrap.Laser, Array.Empty<string>()),
+        };
+
+        /// <summary>
+        ///     The hazards of the Trial of Chaos are monsters, spawned under their MonsterVarieties Id, which no script file is
+        ///     named after (docs/research/trial-of-chaos.md): a rune warns while it charges, the others strike without a state.
+        /// </summary>
+        private static readonly Dictionary<string, (TrialTrap Kind, string[] Firing)> Varieties = new(StringComparer.Ordinal)
+        {
+            [UltimatumHazards + "Turrets/FireTurret1"] = (TrialTrap.Turret, Array.Empty<string>()),
+            [UltimatumHazards + "Turrets/LightningTurret1"] = (TrialTrap.Turret, Array.Empty<string>()),
+            [UltimatumHazards + "Turrets/LightningTurret2"] = (TrialTrap.Turret, Array.Empty<string>()),
+            [UltimatumHazards + "Turrets/PetrificationStatue1"] = (TrialTrap.PetrifyingStatue, Array.Empty<string>()),
+            [UltimatumHazards + "Turrets/PetrificationStatue2"] = (TrialTrap.PetrifyingStatue, Array.Empty<string>()),
+            [UltimatumHazards + "Daemon/RotatingLaserPyramid"] = (TrialTrap.Laser, Array.Empty<string>()),
+            [UltimatumHazards + "Daemon/RotatingLaserPyramid2"] = (TrialTrap.Laser, Array.Empty<string>()),
+            [UltimatumHazards + "Daemon/StormcallerRune"] = (TrialTrap.StormRune, new[] { "charging" }),
+            [UltimatumHazards + "Daemon/BloodFog"] = (TrialTrap.BloodMist, Array.Empty<string>()),
         };
 
         /// <summary>Each trap's file and the states matched as its strike, for the data step's check (<see cref="GameNames"/>).</summary>
         public static IEnumerable<(string File, IReadOnlyList<string> Firing)> FilesMatched => Files.Select(pair => (pair.Key, (IReadOnlyList<string>)pair.Value.Firing));
+
+        /// <summary>The MonsterVarieties Ids matched, by their last segment, for the same check.</summary>
+        public static IEnumerable<string> VarietiesMatched => Varieties.Keys.Select(id => id[(id.LastIndexOf('/') + 1)..]);
 
         /// <summary>The trap an object's path stands for; null for anything else, the spawners and controllers behind them too.</summary>
         public static TrialTrap? KindOf(string path) => Entry(path)?.Kind;
@@ -60,7 +79,8 @@ namespace Poe2Accessibility.Services
         private static (TrialTrap Kind, string[] Firing)? Entry(string path)
         {
             var mark = path.IndexOf(InstanceMark);
-            return Files.TryGetValue(mark < 0 ? path : path[..mark], out var entry) ? entry : null;
+            var file = mark < 0 ? path : path[..mark];
+            return Files.TryGetValue(file, out var entry) || Varieties.TryGetValue(file, out entry) ? entry : null;
         }
     }
 

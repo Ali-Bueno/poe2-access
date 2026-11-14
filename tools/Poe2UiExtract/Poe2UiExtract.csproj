@@ -27,6 +27,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\PerfectTimingChannel.cs" Link="PerfectTimingChannel.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\BuffIds.cs" Link="BuffIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialTraps.cs" Link="TrialTraps.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\ChaosTrial.cs" Link="ChaosTrial.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" Link="TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" Link="TrialWater.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialArt.cs" Link="TrialArt.cs" />

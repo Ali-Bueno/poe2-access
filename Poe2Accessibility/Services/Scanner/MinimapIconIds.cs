@@ -20,12 +20,12 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Icons the game draws on what the quest wants used or picked up (rows 5, 6, 15), the Death Crystal's, and those
         ///     of what moves a Trial on: the Relic Altar, its map and the floor doors, then each reward's own
-        ///     (docs/research/minimap.md, "The Trial's rewards").
+        ///     (docs/research/minimap.md, "The Trial's rewards"), and the Trial of Chaos' reward chest once it can be taken.
         /// </summary>
         public static readonly string[] Quest =
         {
             "QuestObject", "QuestItem", "MissionTarget", "SanctumFountain", "MarakethSanctumRoomSelector",
-            "MarakethSanctumFountain", "MarakethSanctumKey", "MarakethSanctumKeyConverterActive", "SanctumPact",
+            "MarakethSanctumFountain", "MarakethSanctumKey", "MarakethSanctumKeyConverterActive", "SanctumPact", "UltimatumRewardChestActive",
         };
 
         public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence });
