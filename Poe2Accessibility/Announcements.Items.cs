@@ -16,6 +16,9 @@ namespace Poe2Accessibility
         public static string WeaponSetValue(int number, string value) => $"{WeaponSet(number)}: {value}";
 
         public static string EmptyCell => T("empty", "vacío");
+
+        /// <summary>A slot of a window the mod has no table for, with no item in it beside slots that hold one.</summary>
+        public static string EmptySlot => T("empty slot", "ranura vacía");
         public static string UnknownItem => T("unknown item", "objeto desconocido");
 
         /// <summary>

@@ -318,6 +318,17 @@ namespace Poe2Accessibility.Services
                 label = this.ArtCaption(info);
             }
 
+            var emptySlotPlace = label.Length == 0 && this.InGame && tooltip.Count == 0 ? this.EmptySlotPlace(info) : string.Empty;
+            if (emptySlotPlace.Length > 0)
+            {
+                label = Announcements.EmptySlot;
+            }
+
+            if (label.Length == 0 && !(hovered && role is UiRole.Panel or UiRole.Unknown))
+            {
+                label = this.ArtFileName(info); // the last source: a hovered panel stays unspoken, as without a tooltip
+            }
+
             if (this.InGame && role == UiRole.Panel && tooltip.Count > 0 && BareNumber.IsMatch(label))
             {
                 // A sheet widget whose caption the game hides in a 5:4 window shows only its number ("513"): its hidden
@@ -339,6 +350,8 @@ namespace Poe2Accessibility.Services
                 // In game controls carry no interactive flag, but list items and option rows are siblings of one class.
                 (position, listItems, group) = this.SameClassPosition(info);
             }
+
+            position = position.Length == 0 ? emptySlotPlace : position;
             if (namedById && this.InGame && position.Length > 0 && this.FindDescendantText(info, CaptionSearchDepth + 1, null).Length == 0)
             {
                 // A row of a list whose other rows have captions but this one shows nothing (empty skill slot below

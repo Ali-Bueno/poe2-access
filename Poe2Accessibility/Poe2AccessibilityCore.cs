@@ -213,6 +213,7 @@ namespace Poe2Accessibility
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.ItemModsLog = message => this.log.Info(message);
+                this.semantics.ArtLog = message => this.log.Info(message);
                 this.semantics.BuildPlanLog = message => this.log.Info(message);
                 this.semantics.Fields = this.locator.Fields;
                 this.semantics.CharacterName = () => PlayerAlerts.Name(Seats.Followed);
@@ -261,6 +262,7 @@ namespace Poe2Accessibility
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
                 CurrencyIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "currency-art.json"));
                 EndgameCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "endgame.json"));
+            ControllerGlyphs.Dropped = message => this.log.Info(message);
             InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
                 // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
                 var landmarks = LandmarkTable.Load(
@@ -693,7 +695,11 @@ namespace Poe2Accessibility
             var watching = !this.gameState.IsAttached || Core.Process.Foreground;
             while (this.screen.TryDequeue(out var change))
             {
-                this.log?.Info($"Screen {change.Kind} layer {change.Layer.Index}: {string.Join(" | ", change.Texts.Select(text => text.Button.Length > 0 ? $"{text.Text} [{text.Button}]" : text.Text))}");
+                if (change.Kind != ScreenChangeKind.NumbersChanged) // a running counter would fill the log
+                {
+                    this.log?.Info($"Screen {change.Kind} layer {change.Layer.Index}: {string.Join(" | ", change.Texts.Select(text => text.Button.Length > 0 ? $"{text.Text} [{text.Button}]" : text.Text))}");
+                }
+
                 this.deaths?.Saw(change.Layer.Address);
                 if (watching && (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText))
                 {

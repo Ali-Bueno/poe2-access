@@ -35,7 +35,10 @@ namespace Poe2Accessibility.Services
                     {
                         cellRow = true;
                         longestCell = rowCells.Texts.Max(text => text.Text.Length);
-                        return this.ScreenOrderText(info);
+                        // Under shown column headings the cells carry them, as a row the cursor does not act on does.
+                        return this.HeadedCells(info, rowCells.TextAddresses, rowCells.Texts.Select(text => text.Text).ToList()) is { } headedRow
+                            ? Announcements.Cells(headedRow)
+                            : this.ScreenOrderText(info);
                     }
                 }
 

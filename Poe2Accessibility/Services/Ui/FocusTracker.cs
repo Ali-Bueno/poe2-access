@@ -228,6 +228,7 @@ namespace Poe2Accessibility.Services
             if (bare && changed)
             {
                 this.log.Debug($"Hover without tooltip 0x{focused.ToInt64():X}: name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" byId={node.NamedByControlId}");
+                this.NoteUnnamed(focused, node); // a hover nothing names is never spoken: the Info line is how it gets fixed
             }
 
             if (!node.IsVisible || (bare && !BareHover.IsSaid(state == GameStateTypes.InGameState, node.Role, node.Text, node.NamedByControlId, Environment.TickCount64 - this.hoverSince)))
@@ -277,6 +278,7 @@ namespace Poe2Accessibility.Services
             this.optionSections = this.OptionSectionsOf(focused);
             this.sinceValuePoll.Restart();
             this.log.Info($"Focus -> 0x{focused.ToInt64():X} panel={this.CurrentPanelIndex} name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" context=\"{node.Context}\" group=\"{node.Group}\" notes=\"{string.Join(". ", node.PanelNotes)}\"");
+            this.NoteUnnamed(focused, node);
             this.FocusChanged?.Invoke(node);
         }
 

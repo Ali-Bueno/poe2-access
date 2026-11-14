@@ -74,6 +74,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public IntPtr ArrivalLayer { get; set; }
 
+        /// <summary>Texts of the last Apply whose digits alone changed in a window (not the HUD), apart from its changes: they are no news by themselves.</summary>
+        public IReadOnlyList<ScreenChange> Ticks => this.ticks;
+
+        private readonly List<ScreenChange> ticks = new();
+
         /// <summary>The last snapshot passed to Apply, with base layers marked.</summary>
         public ScreenSnapshot Last { get; private set; } = ScreenSnapshot.Empty;
 
@@ -107,6 +112,7 @@ namespace Poe2Accessibility.Services
         {
             current = current.WithBase(this.baseLayers);
             var changes = new List<ScreenChange>();
+            this.ticks.Clear();
             var previousLayers = this.previous.Layers.ToDictionary(layer => layer.Address);
             var previousTexts = this.previous.Layers.SelectMany(layer => layer.Texts).GroupBy(text => text.Address)
                 .ToDictionary(group => group.Key, group => group.First().Text);
@@ -128,6 +134,8 @@ namespace Poe2Accessibility.Services
                 var opened = this.stableLayers.Add(layer.Address);
                 var appeared = new List<ScreenText>();
                 var again = new List<ScreenText>();
+                var ticked = new List<ScreenText>();
+                var tickedBefore = new List<string>();
                 foreach (var text in layer.Texts)
                 {
                     var confirmed = previousTexts.TryGetValue(text.Address, out var before) && before == text.Text;
@@ -142,6 +150,13 @@ namespace Poe2Accessibility.Services
                     var counterTick = !flipped && known != null && IsTick(known, text.Text) && !ZoomFactor.IsMatch(text.Text);
                     this.stableTexts[text.Address] = text.Text;
                     _ = off ? this.stableOff.Add(text.Address) : this.stableOff.Remove(text.Address);
+                    if (!opened && counterTick && !layer.IsBase)
+                    {
+                        // Told apart for the narrator, which says only a price the player's own press changed (NumberChanges).
+                        ticked.Add(text);
+                        tickedBefore.Add(known!);
+                    }
+
                     if (!opened && !counterTick)
                     {
                         appeared.Add(text);
@@ -162,6 +177,11 @@ namespace Poe2Accessibility.Services
                 if (!this.hasBaseline)
                 {
                     continue;
+                }
+
+                if (ticked.Count > 0)
+                {
+                    this.ticks.Add(new ScreenChange(ScreenChangeKind.NumbersChanged, layer, ticked) { Before = tickedBefore });
                 }
 
                 if (opened && !layer.IsBase)

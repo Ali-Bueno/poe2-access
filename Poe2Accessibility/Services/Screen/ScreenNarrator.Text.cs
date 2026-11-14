@@ -24,10 +24,11 @@ namespace Poe2Accessibility.Services
         public void SpeakScreen(ScreenSnapshot snapshot, IntPtr focusLayer, bool withHints = false)
         {
             var layer = snapshot.Find(focusLayer) ?? snapshot.TopInteractive;
-            var texts = layer?.Texts.Where(text => !ScreenWatcher.IsLegend(text) && !IsNumber(text.Text)).ToList() ?? new List<ScreenText>();
+            var texts = layer == null ? new List<ScreenText>() : ScreenReadout.Texts(layer.Texts, ScreenWatcher.IsLegend);
             var hints = withHints ? snapshot.Layers.SelectMany(each => each.Texts).Where(ScreenWatcher.IsLegend).ToList() : new List<ScreenText>();
             var counters = layer?.Address == snapshot.TopInteractive?.Address ? this.TrialMapCounters(snapshot) : string.Empty;
-            var spoken = Announcements.Sentences(new[] { Describe(texts), counters, Describe(hints) }.Where(part => part.Length > 0));
+            var unnamed = layer?.UnnamedControls > 0 ? Announcements.ControlsWithoutName(layer.UnnamedControls) : string.Empty;
+            var spoken = Announcements.Sentences(new[] { Describe(texts), counters, unnamed, Describe(hints) }.Where(part => part.Length > 0));
             this.Speak("screen", spoken.Length == 0 ? Announcements.NothingToRead : spoken, true);
         }
 
@@ -81,7 +82,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         internal static bool IsTierNumeral(string text) => text.Length is > 0 and <= 4 && text.All(c => c is 'I' or 'V' or 'X');
 
-        private static bool IsNumber(string text) => text.All(c => char.IsDigit(c) || c is '.' or ',' or ':' or '%' or '/' or '+' or '-' or ' '); // "6", "25%", "0:08"
+        private static bool IsNumber(string text) => ScreenReadout.IsNumber(text); // "6", "25%", "0:08"
 
         /// <summary>Texts in reading order without repeats; a disabled control is marked unavailable.</summary>
         public static string Describe(IEnumerable<ScreenText> texts)

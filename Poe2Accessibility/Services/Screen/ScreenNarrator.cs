@@ -212,6 +212,12 @@ namespace Poe2Accessibility.Services
 
         public void OnScreenChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)
         {
+            if (change.Kind == ScreenChangeKind.NumbersChanged)
+            {
+                this.OnNumbersChanged(change, focus, focusLayer);
+                return;
+            }
+
             this.NoteTop(snapshot);
             if (this.inGame && focusLayer == IntPtr.Zero && change.Layer.Address == this.HudLayer)
             {

@@ -137,6 +137,7 @@ namespace Poe2Accessibility.Services
             {
                 if (GlyphFileOf(match.Groups[1].Value) is not { } file)
                 {
+                    NoteDropped(match.Groups[1].Value);
                     return " ";
                 }
 
@@ -164,8 +165,34 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static string Plain(string tagged)
         {
-            var plain = Tag.Replace(MarkupToken.Replace(NameItemArt(InlineIcons.MarkNamed(tagged)), " "), string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
+            var plain = Tag.Replace(MarkupToken.Replace(NameItemArt(InlineIcons.MarkNamed(tagged)), DropToken), string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
             return InlineIcons.Place(SpaceBeforeStop.Replace(HorizontalSpaces.Replace(plain, " "), "$1").Trim());
+        }
+
+        /// <summary>Told once per token that is dropped unread (the log line a developer greps for: <see cref="DroppedPrefix"/>).</summary>
+        public static Action<string>? Dropped { get; set; }
+
+        public const string DroppedPrefix = "Inline token dropped:";
+
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> DroppedTokens = new(StringComparer.Ordinal);
+
+        /// <summary>Buttons are dropped on purpose; any other token reaching here is a picture nobody named.</summary>
+        private static string DropToken(Match match)
+        {
+            if (GlyphFileOf(match.Groups[1].Value) is null)
+            {
+                NoteDropped(match.Groups[1].Value);
+            }
+
+            return " ";
+        }
+
+        private static void NoteDropped(string token)
+        {
+            if (DroppedTokens.TryAdd(token, 0))
+            {
+                Dropped?.Invoke($"{DroppedPrefix} <<{token}>> ({InlineIcons.ArtOf(token) ?? "not in the markup table"})");
+            }
         }
 
         /// <summary>Item art the text does not name itself is named; all other art tokens go.</summary>

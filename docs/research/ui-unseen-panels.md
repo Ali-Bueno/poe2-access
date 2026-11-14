@@ -127,3 +127,26 @@ The current character (level 22 Mercenary, Act 2) can check now: the inline-icon
 Instance Manager, the two regressions, every options tab, the item filter, the help panel (keyboard), the party tab,
 the shop windows and a player trade with a second account. Ritual favours need an altar in a ritual area (Act 1
 Freythorn again, or a later ritual); the benches, the exchange and the guild stash need Act 3, Act 4 or a guild.
+
+## Generic reader, widened (2026-11-14)
+
+Each change only adds words where the generic path ended in a bare role word or in silence. Unverified on any unseen window.
+
+| Change | Says | Where |
+|---|---|---|
+| Control named by its art | "Unnamed control, Bag" from the picture file of the control or its visible children, the last source of a label; decoration stems (frame, bg, hover, icon...), glyphs, digits and stems under 3 letters are dropped, a stem all siblings share (the skin) is left out, the stem in the fewest siblings wins; a hovered panel stays unspoken | `ArtWords`, `UiSemantics.UnnamedControls.cs`, hooked after `ArtCaption` in `UiSemantics.DescribeElement` |
+| Picture beside a number | an unnamed `<<token>>` right before or after a digit says its stem words as the unit: "3/5 bag" | `InlineIcons.BesideNumber`, `MarkNamed`, `HasNamed` |
+| Slider, range not 0-100 | "3 of 10" | `Announcements.SliderValue` |
+| Read screen on request | a number or percentage beside a word label as "Label: 12"; then "7 controls without a name" (never "Nothing to read" for a picture-only window) | `ScreenReadout`, `ScreenLayer.UnnamedControls` (counted in `ScreenWatcher.CaptureLayer`) |
+| Interactive rows | a row of three or more cells under a shown heading row says "Heading: cell" as a plain row does | `UiSemantics.Rows.cs` |
+| Item slots outside known inventories | a slot holding an item among same-class sibling slots says "k of n"; one holding nothing beside slots that hold items says "empty slot, k of n" | `UiSemantics.ItemSlots.cs`, `DescribeInventory` |
+| Price changed by the player | "Reroll: 300" once, in the focused window (not the HUD), when the digits of a "word + number" text change within 3 s of A, at most one line per 1.5 s; never a clock, seconds or a percentage; never the focused control's own text | `NumberChanges`, `ScreenDiffer.Ticks`, `ScreenNarrator.Numbers.cs` |
+
+Log lines to grep in a player's `accessibility.log` (all Info, once per element, token or layer name):
+
+- `Unnamed focus: 0x.. role=.. ancestors=[parent < grandparent ...] art=[stems] children=N layer="name"`: a focus (or a hover without tooltip) that reads with no label; the control ids, the art and the layer say what to name.
+- `Control named from its art: <stem> -> <words> (0x..)`: what was said from a file name; a real name should replace it.
+- `Inline token dropped: <<token>> (<art or "not in the markup table">)`: a markup picture the reader could not say.
+- `Screen layer skipped (ignored prefix|element budget): "name"`: a visible layer never read.
+
+Left for a live look: bar fill percentages, a generic "selected" state, hovered panels without tooltips, new-window detection; and whether the "k of n" of item slots repeats a position some unseen window already says, and whether the price rule chatters in a window that counts on its own after A.

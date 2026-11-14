@@ -78,6 +78,10 @@ namespace Poe2Accessibility.Services
         private readonly List<int> walkTabBarEnds = new();
         private readonly Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)> walkStack = new();
 
+        /// <summary>The layer being walked: its controls (nodes), and those holding another control, which are no widget to name.</summary>
+        private readonly List<int> walkControls = new();
+        private readonly HashSet<int> walkContainers = new();
+
         /// <summary>Where each ancestor of a snapshot is, emptied for the next: a table per snapshot was megabytes with the passive tree open.</summary>
         private readonly PluginUiElementReflection.RectCache rects = new();
         private readonly ScreenDiffer differ = new();
@@ -210,6 +214,11 @@ namespace Poe2Accessibility.Services
                     {
                         this.changes.Enqueue((change, started));
                     }
+
+                    foreach (var tick in this.differ.Ticks)
+                    {
+                        this.changes.Enqueue((tick, started));
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -224,6 +233,30 @@ namespace Poe2Accessibility.Services
 
         private static bool IsIgnored(string controlName) =>
             controlName.Length > 0 && Array.Exists(IgnoredControlPrefixes, prefix => controlName.StartsWith(prefix, StringComparison.Ordinal));
+
+        /// <summary>Why a visible layer is not read; both appear in the log line a developer greps for ("Screen layer skipped").</summary>
+        private const string SkippedByPrefix = "ignored prefix";
+
+        private const string SkippedByBudget = "element budget";
+
+        /// <summary>Layer names remembered as logged before the memory starts over.</summary>
+        private const int MaxSkippedLogged = 200;
+
+        private readonly HashSet<string> loggedSkipped = new(StringComparer.Ordinal);
+
+        /// <summary>A visible layer the screen reader never reads is logged once per name: a window that stays silent can be found from the log.</summary>
+        private void NoteSkippedLayer(string name, string why)
+        {
+            if (this.loggedSkipped.Count > MaxSkippedLogged)
+            {
+                this.loggedSkipped.Clear();
+            }
+
+            if (this.loggedSkipped.Add($"{name}|{why}"))
+            {
+                this.log.Info($"Screen layer skipped ({why}): \"{name}\"");
+            }
+        }
 
         private void CountSnapshot(double ms)
         {
@@ -262,7 +295,8 @@ namespace Poe2Accessibility.Services
             var screen = PluginUiElementReflection.TryGetAbsoluteRect(rootAddress, rects, out var screenPosition, out var screenSize)
                 ? new RectangleF(screenPosition.X, screenPosition.Y, screenSize.X, screenSize.Y)
                 : RectangleF.Empty;
-            for (var index = 0; index < children.Length && budget > 0; index++)
+            var index = 0;
+            for (; index < children.Length && budget > 0; index++)
             {
                 if (children[index] == ignoredLayer || !this.elements.TryReadElement(children[index], this.blocks, out var layerInfo))
                 {
@@ -275,7 +309,25 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
+                    if (layerInfo.IsVisibleFlag)
+                    {
+                        this.NoteSkippedLayer(layerInfo.Name, SkippedByPrefix);
+                    }
+
                     this.blocks.Return(layerInfo.Block);
+                }
+            }
+
+            for (; budget <= 0 && index < children.Length; index++)
+            {
+                if (this.elements.TryReadElement(children[index], this.blocks, out var cutInfo))
+                {
+                    if (cutInfo.IsVisibleFlag && !IsIgnored(cutInfo.Name))
+                    {
+                        this.NoteSkippedLayer(cutInfo.Name, SkippedByBudget);
+                    }
+
+                    this.blocks.Return(cutInfo.Block);
                 }
             }
 

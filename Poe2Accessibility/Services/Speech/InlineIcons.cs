@@ -47,6 +47,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A number right after a unit icon: "500", "1.250", "3/10".</summary>
         private static readonly Regex LeadingNumber = new(@"^\s*(\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?)", RegexOptions.Compiled);
 
+        /// <summary>A digit right before a picture, and one right after it (tags and braces between are the markup's).</summary>
+        private static readonly Regex DigitBefore = new(@"\d[\s}>]*$", RegexOptions.Compiled);
+
+        private static readonly Regex DigitAfter = new(@"^(?:\s|\{|<[^<>]*>)*\d", RegexOptions.Compiled);
+
         private static readonly Regex Spaces = new(@"[ \t]{2,}", RegexOptions.Compiled);
         private static readonly Regex SpaceBeforeStop = new(@"[ \t]+([.,;:!?])", RegexOptions.Compiled);
 
@@ -105,6 +110,9 @@ namespace Poe2Accessibility.Services
         public static string? GlyphFile(string token) =>
             arts.TryGetValue(token, out var art) && art.StartsWith(GlyphFolder, StringComparison.Ordinal) ? art[GlyphFolder.Length..] : null;
 
+        /// <summary>The art the game's table gives a token; null for a token it does not list.</summary>
+        public static string? ArtOf(string token) => arts.TryGetValue(token, out var art) ? art : null;
+
         /// <summary>The word and kind an icon token means; null when the picture means nothing to say.</summary>
         public static (string Word, Kind Kind)? MeaningOfToken(string token) => arts.TryGetValue(token, out var art) ? Meaning(art) : null;
 
@@ -138,7 +146,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>True when the tagged text shows a picture that means a word.</summary>
         public static bool HasNamed(string tagged) =>
-            tagged.Contains("<<", StringComparison.Ordinal) && Token.Matches(tagged).Any(match => MeaningOfToken(match.Groups[1].Value) != null);
+            tagged.Contains("<<", StringComparison.Ordinal) && Token.Matches(tagged).Any(match => MeaningOfToken(match.Groups[1].Value) != null || BesideNumber(tagged, match) != null);
 
         /// <summary>
         ///     Replaces each named picture with a placeholder that survives the markup being stripped; <see cref="Place"/>
@@ -147,7 +155,21 @@ namespace Poe2Accessibility.Services
         public static string MarkNamed(string tagged) =>
             !tagged.Contains("<<", StringComparison.Ordinal)
                 ? tagged
-                : Token.Replace(tagged, match => MeaningOfToken(match.Groups[1].Value) != null ? $"{MarkStart}{match.Groups[1].Value}{MarkEnd}" : match.Value);
+                : Token.Replace(tagged, match => MeaningOfToken(match.Groups[1].Value) != null || BesideNumber(tagged, match) != null ? $"{MarkStart}{match.Groups[1].Value}{MarkEnd}" : match.Value);
+
+        /// <summary>
+        ///     The words of a picture no list names when it stands directly before or after a number ("&lt;&lt;bag_icon&gt;&gt;3/5": its
+        ///     unit), from its file name; null when it stands elsewhere or its file gives no words.
+        /// </summary>
+        private static string? BesideNumber(string tagged, Match token) =>
+            (DigitBefore.IsMatch(tagged[..token.Index]) || DigitAfter.IsMatch(tagged[(token.Index + token.Length)..])) &&
+            arts.TryGetValue(token.Groups[1].Value, out var art) && ArtWords.Words(art) is { Length: > 0 } words
+                ? words.ToLowerInvariant()
+                : null;
+
+        /// <summary>The unit a mark stands for: the named meaning, else the file words of a picture beside a number.</summary>
+        private static (string Word, Kind Kind)? MeaningOfMark(string token) =>
+            MeaningOfToken(token) ?? (arts.TryGetValue(token, out var art) && ArtWords.Words(art) is { Length: > 0 } words ? (words.ToLowerInvariant(), Kind.Unit) : null);
 
         /// <summary>
         ///     The plain text with each placeholder said as a word: a unit after the number it belongs to ("500 gold"), a state
@@ -172,7 +194,7 @@ namespace Poe2Accessibility.Services
             Match match;
             while ((match = Mark.Match(result)).Success)
             {
-                var meaning = MeaningOfToken(match.Groups[1].Value);
+                var meaning = MeaningOfMark(match.Groups[1].Value);
                 var before = result[..match.Index];
                 var after = result[(match.Index + match.Length)..];
                 if (meaning is not { } named || SaysWord(bare, named.Word) || states.Contains(named.Word))

@@ -8,15 +8,20 @@ namespace Poe2Accessibility
         /// <summary>Fallback when a combo's entry text cannot be decoded yet: position within the list.</summary>
         public static string ComboPosition(int oneBasedIndex, int count) => T($"option {oneBasedIndex} of {count}", $"opción {oneBasedIndex} de {count}");
 
-        /// <summary>Sliders without an on-screen label: the raw number the game uses, as a percentage when the range is 0 to 100.</summary>
+        /// <summary>Sliders without an on-screen label: a percentage when the range is 0 to 100, else the value out of its maximum.</summary>
         public static string SliderValue(int value, int min, int max) =>
-            min == 0 && max == 100 ? T($"{value} percent", $"{value} por ciento") : $"{value}";
+            min == 0 && max == 100 ? T($"{value} percent", $"{value} por ciento")
+            : max > min ? T($"{value} of {max}", $"{value} de {max}") : $"{value}";
 
         public static string Checked => T("checked", "marcado");
 
         public static string Unchecked => T("unchecked", "desmarcado");
 
         public static string NoHints => T("No button hints on screen.", "No hay indicaciones de botones en pantalla.");
+
+        /// <summary>Said after a read of the screen: the controls it could not name, so the player knows there is more than was read.</summary>
+        public static string ControlsWithoutName(int count) =>
+            count == 1 ? T("1 control without a name", "1 control sin nombre") : T($"{count} controls without a name", $"{count} controles sin nombre");
 
         public static string NothingToRead => T("Nothing to read here.", "Nada que leer aquí.");
 

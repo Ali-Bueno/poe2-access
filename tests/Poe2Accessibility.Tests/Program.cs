@@ -132,6 +132,7 @@ namespace Poe2Accessibility.Tests
                 SpokenOnceTests.All(),
                 WorldCombatAuditTests.All(),
                 PlayerItemNewsTests.All(),
+                UnseenReaderTests.All(),
             };
             foreach (var (name, test) in suites.SelectMany(suite => suite))
             {
