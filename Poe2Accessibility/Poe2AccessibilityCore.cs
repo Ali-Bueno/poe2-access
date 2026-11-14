@@ -114,6 +114,7 @@ namespace Poe2Accessibility
         private DiscoveryNarrator? discoveries;
         private EnemyNarrator? enemyNews;
         private DeathWatch? deaths;
+        private AscendancyChoiceWatch? ascendancy;
         private ExperienceTable? experience;
         private FlaskWatch? flasks;
         private FlaskWatch? partnerFlasks;
@@ -273,6 +274,7 @@ namespace Poe2Accessibility
                 Seats.Attach(this.localPlayers, () => this.Settings);
                 this.partnerRadar = new Radar(this.audio, () => Seats.Partner, RadarSynth.Voice.Second, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
+                this.semantics.UsedObject = () => this.nearby?.UsedObject ?? string.Empty;
                 this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log)
                 {
                     Report = this.compatibility,
@@ -401,6 +403,7 @@ namespace Poe2Accessibility
                 this.narrator.TrialEffectsBeside = this.semantics.TrialEffects;
                 this.semantics.TrialFloorNote = note => this.log?.Info(note);
                 this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
+                this.ascendancy = new AscendancyChoiceWatch(elements, () => this.semantics?.Trials ?? TrialCatalog.Empty, this.output, this.log);
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
@@ -585,6 +588,7 @@ namespace Poe2Accessibility
                 if (state == GameStateTypes.InGameState)
                 {
                     this.Isolated("death", stateObject, static (core, stateObject) => core.deaths?.Tick(stateObject));
+                    this.Isolated("ascendancy", static core => core.ascendancy?.Tick(core.PanelOverGame()?.Address ?? IntPtr.Zero, core.focus?.Current != null));
                     this.Isolated("trace", static core => core.actorTrace?.Tick());
                     this.Isolated("stun trace", static core => core.stunTrace?.Tick());
                     this.Isolated("grid trace", static core => core.TickGridTrace());

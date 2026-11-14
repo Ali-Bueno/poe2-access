@@ -1,5 +1,6 @@
 namespace Poe2Accessibility
 {
+    using System.Linq;
     using Poe2Accessibility.Services;
 
     /// <summary>Spoken strings of the Ascendancy trials beyond the Sekhemas HUD: rounds, room doors, the trials' icons.</summary>
@@ -17,6 +18,14 @@ namespace Poe2Accessibility
 
         /// <summary>"Round 3 of 10" — a Trial of Chaos round beginning.</summary>
         public static string TrialRound(int round, int of) => of > 0 ? T($"Round {round} of {of}", $"Ronda {round} de {of}") : T($"Round {round}", $"Ronda {round}");
+
+        /// <summary>A class on the Altar of Ascendancy: "Herrero de Kitava, 3 de 3, en la build. Ansías el poder…".</summary>
+        public static string AscendancyCard(string name, int oneBasedIndex, int count, bool inBuild, string about) =>
+            Sentences(new[]
+            {
+                string.Join(", ", new[] { name, ListPosition(oneBasedIndex, count), inBuild ? InBuild(false) : string.Empty }.Where(part => part.Length > 0)),
+                about,
+            });
 
         /// <summary>An icon of the trials by what it stands for: "Affliction: Honed Claws. Monsters deal 30% more Damage".</summary>
         public static string TrialEntry(TrialEntryKind kind, string name, string about)

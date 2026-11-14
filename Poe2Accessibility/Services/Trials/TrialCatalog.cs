@@ -117,6 +117,23 @@ namespace Poe2Accessibility.Services
             _ => TrialEntryKind.Other,
         };
 
+        /// <summary>The class whose card says this line about it ("ascendancy:Warrior3"), in any language; null when none does.</summary>
+        public string? AscendancyOf(string about)
+        {
+            foreach (var language in this.texts.Values)
+            {
+                foreach (var (key, text) in language)
+                {
+                    if (text == about && key.EndsWith(AboutSuffix, StringComparison.Ordinal) && KindOf(key) == TrialEntryKind.Ascendancy)
+                    {
+                        return key[..^AboutSuffix.Length];
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>The text of a key in the game's language, else in English, else empty.</summary>
         public string Text(string key) => Localization.Pick(this.texts, Localization.Language, key) ?? string.Empty;
 

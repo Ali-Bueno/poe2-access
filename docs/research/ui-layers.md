@@ -319,6 +319,20 @@ then read as a focus: "Se ha invitado a un compañero al grupo, marcado, casilla
   moves the map cursor between areas; the hint bar's A action ("Instance Manager" on the town) appears only
   where A does something. Clearfell (no waypoint taken) showed no A action.
 
+## A side panel with no name: the Trial's relic locker (0.5.5g, 2026-11-14)
+
+- MEASURED (dump with the locker open, in the Sekhemas' last room): the panel opened at "Cofre de reliquias"
+  (`Metadata/MiscellaneousObjects/Sanctum/SanctumLocker`) sits with the other side panels (`panels_parent` > group >
+  panel) and has no framed title and no title label: an image where the title would be, the grid, and a search box whose
+  caption "Resaltar objetos" was its only label. `FirstLabel` took that caption for the panel ("Movido a Resaltar
+  objetos"), and the grid's cells came with no panel named.
+- A label with a text field among its siblings is that field's caption, never a title (`UiSemantics.CaptionsField`).
+- An untitled side panel with no label is named by the object it was opened at: the last object named with its button
+  that the player still stands at (`ProximityNarrator.UsedObject`; not a character, an item or an exit), taken when
+  the panel is first seen (`UiSemantics.OpenedAt`). Used for item moves and as the focus context inside the panel.
+- A Trial reward chest's name carries a colour tag ("<rgb(157,157,157)>{Arcón del arcanista de plata}", the key's
+  metal): dropped by `ControllerGlyphs.InName`.
+
 ## Items in a grid: search highlight, unmet requirements (0.5.5f, 2026-11-10)
 
 Measured on yarkey's stash and inventory in G2_town (UI dumps `ui-tree-InGameState-20261110-07*.txt`, read-only memory

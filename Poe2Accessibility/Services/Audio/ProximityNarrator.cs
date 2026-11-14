@@ -97,9 +97,16 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<bool> QuietLoot { get; set; } = () => false;
 
+        /// <summary>
+        ///     The object last named with its button, while the player stands at it: what a panel opened there belongs to.
+        ///     Empty after a character, an item or an exit took the button.
+        /// </summary>
+        public string UsedObject { get; private set; } = string.Empty;
+
         /// <summary>A new area: everything near is news again.</summary>
         public void Reset()
         {
+            this.UsedObject = string.Empty;
             this.tracker.Reset();
             this.pending.Clear();
             this.candidate = null;
@@ -211,6 +218,11 @@ namespace Poe2Accessibility.Services
                 this.targetSpokenAt = new Vector2(current.WorldX, current.WorldY); // an NPC walks
             }
 
+            if (this.UsedObject.Length > 0 && Vector2.Distance(here, this.targetSpokenAt) > RearmWorld)
+            {
+                this.UsedObject = string.Empty;
+            }
+
             if (this.targetSpoken is { } spoken && Vector2.Distance(here, this.targetSpokenAt) > RearmWorld)
             {
                 this.targetLeft = spoken;
@@ -285,6 +297,7 @@ namespace Poe2Accessibility.Services
 
             this.targetSpoken = entry.Id;
             this.targetSpokenAt = new Vector2(entry.WorldX, entry.WorldY);
+            this.UsedObject = entry.Category is ScanCategory.Objects or ScanCategory.Chests or ScanCategory.Encounters ? entry.Name : string.Empty;
             if (entry.Id == this.targetLeft)
             {
                 this.targetLeft = null;

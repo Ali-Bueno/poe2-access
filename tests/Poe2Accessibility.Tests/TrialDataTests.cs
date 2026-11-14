@@ -20,7 +20,41 @@ namespace Poe2Accessibility.Tests
             (nameof(TheKindComesFromTheKey), TheKindComesFromTheKey),
             (nameof(ADoorIsKnownByItsFileAndOpenState), ADoorIsKnownByItsFileAndOpenState),
             (nameof(AnOpeningDoorIsNewOnce), AnOpeningDoorIsNewOnce),
+            (nameof(AClassIsKnownByItsCardsLine), AClassIsKnownByItsCardsLine),
+            (nameof(TheLargerCardIsTheChosenOne), TheLargerCardIsTheChosenOne),
         };
+
+        private static void AClassIsKnownByItsCardsLine()
+        {
+            var catalog = new TrialCatalog(new(), new(StringComparer.Ordinal)
+            {
+                ["en"] = new(StringComparer.Ordinal) { ["ascendancy:Warrior3"] = "Smith of Kitava", ["ascendancy:Warrior3:about"] = "You hunger for power.", ["effect:BoonX:about"] = "Shared line." },
+                ["es"] = new(StringComparer.Ordinal) { ["ascendancy:Warrior3:about"] = "Ansías el poder." },
+            });
+            Expect("ascendancy:Warrior3", catalog.AscendancyOf("Ansías el poder."));
+            Expect("ascendancy:Warrior3", catalog.AscendancyOf("You hunger for power."));
+            Expect(null, catalog.AscendancyOf("Shared line."));
+            Expect(null, catalog.AscendancyOf("Smith of Kitava"));
+        }
+
+        /// <summary>The altar as dumped on 2026-11-14: Titan enlarged on the left, the build's class on the right.</summary>
+        private static void TheLargerCardIsTheChosenOne()
+        {
+            Localization.Set("en", new());
+            var cards = AscendancyChoice.InOrder(new[]
+            {
+                new AscendancyCard("Warbringer", "A good man must be roused to war.", false, 1279.5f, 585),
+                new AscendancyCard("Smith of Kitava", "You hunger for power.", true, 1864.5f, 585),
+                new AscendancyCard("Titan", "Now is the time to rise.", false, 739.5f, 819),
+            });
+            Expect(0, AscendancyChoice.Chosen(cards));
+            Expect("Titan, 1 of 3. Now is the time to rise.", AscendancyChoice.Line(cards, 0));
+            Expect("Smith of Kitava, 3 of 3, in the build. You hunger for power.", AscendancyChoice.Line(cards, 2));
+            Expect(string.Empty, AscendancyChoice.Line(cards, -1));
+            var level = cards.Select(card => card with { Width = 585 }).ToList();
+            Expect(-1, AscendancyChoice.Chosen(level));
+            Expect(-1, AscendancyChoice.Chosen(new[] { cards[0] }));
+        }
 
         private static void Expect<T>(T expected, T actual)
         {

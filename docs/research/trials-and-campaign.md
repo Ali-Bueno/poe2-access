@@ -360,8 +360,21 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
 - Tree view: 197 hidden nodes with the Ascendancy FK in the same canvas ([passive-tree.md](passive-tree.md)); toggle
   `ConsoleAscendancyGraph`; counters are hidden siblings of the points label. Not implemented: the hidden-node filter
   and the mode announcement wait for a dump with the view on and off.
-- Mod today: the selector window → generic buttons (LIKELY), the class art is per base class (TitanAscendancy.dds for
-  all three Warrior rows), so `TrialIcon` cannot tell the classes apart by art; the window's texts must do it.
+- Selector window (MEASURED, 0.5.5g, a Warrior at the Sekhemas altar, `dump visible` 2026-11-14; "Altar de
+  ascendencia" is the interact target, quest line "Usa el Altar de ascendencia para elegir tu ascendencia"): its own
+  layer over the game, three children: a holder with the `title_label` "Elige tu clase de ascendencia"; the cards'
+  holder; the Build Planner's `collapse_button` (the d-pad sends the focus there; the left stick walks the cards and
+  moves no focus). A card is a button with four children: the class name in a label of another class (its text at
+  `+0x308`, not read), the Build Planner's mark (a holder with the build's name as text, visible only on the build's
+  class), and the class's tree, a canvas with one small button per node, an "Ascender" label (`+0x718`, unplaced)
+  and `flavour_text_label`, the line `trials.json` keeps as `ascendancy:<id>:about`. The three cards stand in fixed
+  places left to right (Titán, Adalid de guerra, Herrero de Kitava; not the child order) and the one the stick is on
+  is drawn larger about its own centre (819 against 585 wide at 2560x1440). Hint bar: Seleccionar A, Atrás B,
+  Planificador de builds L3, Inspeccionar R3, Navegar left stick.
+- Mod: `AscendancyChoiceWatch` (pure `AscendancyChoice`) finds the cards by their `flavour_text_label`, names each
+  from the catalog by that line (`TrialCatalog.AscendancyOf`), takes the larger card as the chosen one and says it on
+  opening and on each change: "Herrero de Kitava, 3 de 3, en la build. Ansías el poder…". What A and R3 open is not
+  measured yet. The class art is per base class (TitanAscendancy.dds for all three Warrior rows): no use.
 
 ## 4. Acts 3 and 4
 

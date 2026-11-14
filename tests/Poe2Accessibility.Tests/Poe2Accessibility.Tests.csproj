@@ -82,6 +82,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HonourWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialLines.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\AscendancyChoice.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\ShrineCost.cs" />

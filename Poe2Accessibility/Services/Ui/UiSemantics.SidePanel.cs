@@ -99,10 +99,20 @@ namespace Poe2Accessibility.Services
 
         private static long MixKey(long key, long value) => unchecked((key ^ value) * KeyPrime);
 
-        /// <summary>The first titled panel that is not the inventory's own; without one, the first label of an untitled one.</summary>
+        /// <summary>The world object the player last used and still stands at, by name; empty when none (set by the core).</summary>
+        public Func<string>? UsedObject { get; set; }
+
+        /// <summary>The untitled panel on screen and the object it was opened at.</summary>
+        private (IntPtr Panel, string Name) openedAt;
+
+        /// <summary>
+        ///     The first titled panel that is not the inventory's own; without one, an untitled one by its first label, else by
+        ///     the object it was opened at (the Trial's relic locker shows no name at all, docs/research/ui-layers.md).
+        /// </summary>
         private string SidePanelAmong(List<(UiElementReader.ElementInfo Info, string Title)> shown)
         {
-            var labelled = string.Empty;
+            var named = string.Empty;
+            var untitled = false;
             foreach (var (info, title) in shown)
             {
                 if (title.Length > 0 && !this.HoldsMainInventory(info))
@@ -110,13 +120,45 @@ namespace Poe2Accessibility.Services
                     return title;
                 }
 
-                if (title.Length == 0 && labelled.Length == 0 && !this.HoldsMainInventory(info))
+                if (title.Length == 0 && named.Length == 0 && !this.HoldsMainInventory(info))
                 {
-                    labelled = this.FirstLabel(info);
+                    untitled = true;
+                    named = this.FirstLabel(info) is { Length: > 0 } label ? label : this.OpenedAt(info.Address);
                 }
             }
 
-            return labelled;
+            if (!untitled)
+            {
+                this.openedAt = default; // closed: the same panel opened elsewhere is another object's
+            }
+
+            return named;
+        }
+
+        /// <summary>The object an untitled panel was opened at, taken when the panel is first seen and kept while it shows.</summary>
+        private string OpenedAt(IntPtr panel)
+        {
+            if (this.openedAt.Panel != panel || this.openedAt.Name.Length == 0)
+            {
+                this.openedAt = (panel, this.UsedObject?.Invoke() ?? string.Empty);
+            }
+
+            return this.openedAt.Name;
+        }
+
+        /// <summary>A label beside a text field names the field, not the panel ("Resaltar objetos" by a search box).</summary>
+        private bool CaptionsField(in UiElementReader.ElementInfo holder, IntPtr label)
+        {
+            foreach (var sibling in this.elements.ReadChildren(holder))
+            {
+                if (sibling != label && this.elements.TryReadElement(sibling, out var info) && info.IsVisibleFlag &&
+                    (info.HasFlagBit(GameLayout.Element.TextInputFlagBit) || this.TextInputChild(info) != IntPtr.Zero))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -127,13 +169,13 @@ namespace Poe2Accessibility.Services
         private string FirstLabel(in UiElementReader.ElementInfo panel)
         {
             var budget = LabelSearchNodes;
-            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
-            queue.Enqueue((panel, 0));
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth, UiElementReader.ElementInfo Holder)>();
+            queue.Enqueue((panel, 0, panel));
             while (queue.Count > 0 && budget-- > 0)
             {
-                var (node, depth) = queue.Dequeue();
+                var (node, depth, holder) = queue.Dequeue();
                 if (depth > 0 && this.elements.TryReadText(node.Address, out var text) && text.Trim() is { Length: >= 3 and <= MaxPanelTitleLength } label &&
-                    label.Count(char.IsLetter) >= 3 && !label.Contains('/') && !label.Contains('_'))
+                    label.Count(char.IsLetter) >= 3 && !label.Contains('/') && !label.Contains('_') && !this.CaptionsField(holder, node.Address))
                 {
                     return label;
                 }
@@ -152,7 +194,7 @@ namespace Poe2Accessibility.Services
 
                     if (this.elements.TryReadElement(child, out var info) && info.IsVisibleFlag)
                     {
-                        queue.Enqueue((info, depth + 1));
+                        queue.Enqueue((info, depth + 1, node));
                     }
                 }
             }

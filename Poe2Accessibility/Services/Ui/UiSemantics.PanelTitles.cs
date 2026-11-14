@@ -82,8 +82,13 @@ namespace Poe2Accessibility.Services
             var shift = inPanels
                 ? this.elements.Controls?.Shift(ControlGroup.PanelTitle, info.Address, at => ancestors.Any(ancestor => this.TitleAt(ancestor, at).Length > 0)) ?? 0
                 : this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
-            return ancestors.Select(ancestor => this.TitleAt(ancestor, shift)).FirstOrDefault(title => title.Length > 0) ?? string.Empty;
+            var title = ancestors.Select(ancestor => this.TitleAt(ancestor, shift)).FirstOrDefault(title => title.Length > 0) ?? string.Empty;
+            // An untitled panel beside the inventory (the group under panels_parent holds it): the object it was opened at.
+            return title.Length == 0 && inPanels && ancestors.Count >= SidePanelHops ? this.OpenedAt(ancestors[^SidePanelHops]) : title;
         }
+
+        /// <summary>From panels_parent down to a side panel: its group, then the panel.</summary>
+        private const int SidePanelHops = 2;
 
         /// <summary>
         ///     The few lines a titled panel shows besides what the cursor lands on, in screen order (Skills: "0 de
