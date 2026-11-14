@@ -1033,6 +1033,7 @@
  "{0} points to go": "還差{0}點",
  "{0} power charges": "暴擊球 {0} 個",
  "{0} ready": "{0} 可以使用",
+ "{0} refilled, 1 charge": "{0} 已補充，1 充能",
  "{0} refilled, 1 use": "{0} 已補充，剩 1 次",
  "{0} refilled, {1} charges": "{0} 已補充，{1} 充能",
  "{0} refilled, {1} uses": "{0} 已補充，剩 {1} 次",

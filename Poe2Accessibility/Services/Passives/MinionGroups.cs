@@ -9,8 +9,9 @@ namespace Poe2Accessibility.Services
     {
         public static string Describe(IEnumerable<(string Name, int LifePercent)> minions)
         {
-            var groups = minions.GroupBy(minion => minion.Name)
-                .Select(group => (Name: group.Key, Count: group.Count(), Life: (int)Math.Round(group.Average(minion => minion.LifePercent))))
+            // A name not read yet is no kind to tell; a life read past its ends is told within them.
+            var groups = minions.Where(minion => !string.IsNullOrWhiteSpace(minion.Name)).GroupBy(minion => minion.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(group => (Name: group.Key, Count: group.Count(), Life: Math.Clamp((int)Math.Round(group.Average(minion => minion.LifePercent)), 0, 100)))
                 .OrderByDescending(group => group.Count).ThenBy(group => group.Name, StringComparer.CurrentCulture)
                 .Select(group => Announcements.MinionGroup(group.Name, group.Count, group.Life))
                 .ToList();

@@ -73,7 +73,7 @@ namespace Poe2Accessibility
             var builder = new System.Text.StringBuilder();
             foreach (var part in parts)
             {
-                if (part.Length == 0)
+                if (string.IsNullOrWhiteSpace(part))
                 {
                     continue; // "artesano. . Vacío" when nothing stood between the bench and the focus (2026-11-02)
                 }

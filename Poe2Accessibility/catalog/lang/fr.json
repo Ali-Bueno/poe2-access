@@ -1033,6 +1033,7 @@
  "{0} points to go": "encore {0} points",
  "{0} power charges": "{0} charges de pouvoir",
  "{0} ready": "{0} disponible",
+ "{0} refilled, 1 charge": "{0} rechargé, 1 charge",
  "{0} refilled, 1 use": "{0} rechargé, 1 utilisation",
  "{0} refilled, {1} charges": "{0} rechargé, {1} charges",
  "{0} refilled, {1} uses": "{0} rechargé, {1} utilisations",

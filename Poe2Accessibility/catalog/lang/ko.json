@@ -1033,6 +1033,7 @@
  "{0} points to go": "{0}포인트 남음",
  "{0} power charges": "권능 충전 {0}개",
  "{0} ready": "{0} 사용 가능",
+ "{0} refilled, 1 charge": "{0} 충전됨, 충전 1",
  "{0} refilled, 1 use": "{0} 충전됨, 1회",
  "{0} refilled, {1} charges": "{0} 충전됨, 충전 {1}",
  "{0} refilled, {1} uses": "{0} 충전됨, {1}회",
