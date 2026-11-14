@@ -32,6 +32,12 @@ namespace Poe2Accessibility.Services
 
         private const int LifePollMs = 150;
 
+        /// <summary>
+        ///     A step of the tick longer than this is logged by name: the tick froze for most of a second at a session's
+        ///     first monsters and nothing in it explains that (docs/research/performance.md).
+        /// </summary>
+        private const int SlowStepMs = 50;
+
         /// <summary>One warning per monster within this time (multi-hit animations restart).</summary>
         private const int WarningGapMs = 600;
 
@@ -220,6 +226,7 @@ namespace Poe2Accessibility.Services
                 this.lastLifePoll = now;
             }
 
+            var step = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
                 this.WatchNear(area, player, now, poll, attacks, parrying);
@@ -235,12 +242,14 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.NoteStep("the monsters near and the poll's end", ref step);
             if (this.DodgeWarnings)
             {
                 this.WarnFlights(now);
             }
 
             this.PlayWarnings(now);
+            this.NoteStep("the warnings", ref step);
 
             this.ForgetUnseen(now);
             if (attacks && Seats.Followed.TryGetComponent<Life>(out var life))
@@ -251,13 +260,31 @@ namespace Poe2Accessibility.Services
             {
                 this.lastPlayerLife = -1;
             }
+
+            this.NoteStep("the blows learnt", ref step);
+        }
+
+        /// <summary>Logs a step that took long and starts the clock of the next.</summary>
+        private void NoteStep(string name, ref long started)
+        {
+            var ms = System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+            if (ms >= SlowStepMs)
+            {
+                this.log.Info($"Boss watch: {name} took {ms:0} ms");
+            }
+
+            started = System.Diagnostics.Stopwatch.GetTimestamp();
         }
 
         private void WatchNear(AreaInstance area, Render player, long now, bool poll, bool attacks, bool parrying)
         {
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var (step, last) = (System.Diagnostics.Stopwatch.GetTimestamp(), string.Empty);
             foreach (var entity in area.AwakeEntities.Values)
             {
+                this.NoteStep(last, ref step);
+                last = entity.Path;
+
                 // Every monster near teaches when its kind's attacks land; rares and uniques are the ones warned of.
                 if (!entity.IsValid || entity.EntityType != EntityTypes.Monster || !entity.TryGetComponent<Render>(out var render))
                 {
@@ -294,6 +321,8 @@ namespace Poe2Accessibility.Services
                     this.WatchAttack(entity, actor, forBoss ? Rarity.Unique : rarity, render, player, offset, gap, area.WorldToGridConvertor, now, parrying);
                 }
             }
+
+            this.NoteStep(last, ref step);
         }
 
         private void WatchLife(Entity entity, Render render)

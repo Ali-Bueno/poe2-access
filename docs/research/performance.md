@@ -303,3 +303,11 @@ threads, so it stays a new array. `WayOn`'s time varies by ±100 ms between runs
   work is the screen watcher's task and the entity walk of large maps.
 - Enemy cue scheduling, the radar's 50 ms poll, dodge/parry warnings and pad gestures stay every frame: their gaps are
   50–150 ms and a 10–20 Hz tick would jitter audibly ([enemy cues](../radar.md), [dodge timing](dodge-timing.md)).
+- The freeze at a session's first monsters (the "single freezes of 0.7 to 1.3 s" of the sweep of 2026-11-12). MEASURED
+  live on 2026-11-14 (kehgan, Sierraclara): the first time Diablillos viles and Sagas viles came into range after the
+  game started, one tick of the boss watch took 925 ms (`Slow tick: bosses`, with `sounds` around it; 16.9 ms of
+  collections in that minute); the same monsters in a new instance seven minutes later, the host restarted in between,
+  took no tick over 50 ms. Nothing in the tick is built on first use (the attack catalogs load at the start, the layout
+  sweep took 16 ms). INFERRED: the game was loading those monsters' own data and the reads of its memory waited for it.
+  The boss watch now logs any of its steps over 50 ms by name, per monster (`Boss watch: <path> took N ms`), so the next
+  one says where it stood.
