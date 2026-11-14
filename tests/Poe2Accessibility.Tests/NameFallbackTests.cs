@@ -91,10 +91,13 @@ namespace Poe2Accessibility.Tests
             Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, 100, "en", none)));
             Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "unknown_buff" }, 200, "en", none)));
             Expect(string.Empty, string.Join(",", buffs.Begun(Array.Empty<string>(), 1000, "en", none)));
-            Expect("Creeping Agony", string.Join(",", buffs.Begun(new[] { "creeping_agony_1F" }, 1100, "en", none)));
-            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony_1F" }, 1200, "en", none)));
-            Expect(string.Empty, string.Join(",", buffs.Begun(Array.Empty<string>(), 2000, "en", none)));
-            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, 2100, "en", _ => true))); // covered by something else
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, 1100, "en", none))); // renewed by the next hit: the same one
+            var later = 1100 + HarmfulBuffs.HoldMs;
+            Expect(string.Empty, string.Join(",", buffs.Begun(Array.Empty<string>(), later, "en", none)));
+            Expect("Creeping Agony", string.Join(",", buffs.Begun(new[] { "creeping_agony_1F" }, later + 100, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony_1F" }, later + 200, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(Array.Empty<string>(), later + 1000, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, later + HarmfulBuffs.HoldMs + 1000, "en", _ => true))); // covered by something else
         }
 
         private static void BuffNamesFollowTheLanguageThenEnglish()

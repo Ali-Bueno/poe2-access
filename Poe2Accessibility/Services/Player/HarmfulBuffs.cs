@@ -12,8 +12,8 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class HarmfulBuffs
     {
-        /// <summary>A buff gone this long and back is a new one, as <see cref="StatusAilments"/> holds its ends.</summary>
-        public const long HoldMs = 500;
+        /// <summary>A buff gone this long and back is a new one, as <see cref="StatusAilments"/> holds the ends of what each hit renews.</summary>
+        public const long HoldMs = 2500;
 
         private const string Fallback = "en";
 
