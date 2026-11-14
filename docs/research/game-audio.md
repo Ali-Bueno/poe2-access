@@ -44,7 +44,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | league_essence | EssenceMonoliths | Environment_Endgame_EssenceMonoliths_Break_Foley_01 (the user's pick, C) |
 | league_expedition | ExplosivesMechanic_Expedition | ActivatePlunger_01 (the detonator's plunger) |
 | league_abyss | Abyss_General | Abyss_QuestStart |
-| league_spirit | Four_TormentedSpirits | TormentedSpirit_Wisp_Vocal_Call_01 |
+| league_spirit | Four_TormentedSpirits | TormentedSpirit_Possession_Effect_Activate_02 (the user's pick, C) |
 | league_vaal | Four_Incursion | StartEncounter_01 |
 | league_strongbox | Strongboxes | Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01 (the user's pick, C) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
@@ -296,15 +296,15 @@ sound: there are dozens. Cues `league_*` above, levelled to RMS 0.10, cut to 1.5
 
 Three candidates each stand on an [audition page](https://claude.ai/artifact/EMoXQVZ5zex1Sw4p7L23UJ) (once, and repeated as on a
 walk toward it), beside the Ritual altar, the shrine, the chest, the quest item, the door, the exit and the opened way. **The user
-listened on 2026-11-14 and picked C for Essence, Delirium and the strongbox** ("el de la esencia me gustó más el c, el del delirio creo
-que también el c está mejor, la caja fuerte creo que el c también es mejor"); the other five keep candidate A, which the user did not
+listened on 2026-11-14 and picked C for Essence, Delirium, the strongbox and, in a later message, the Azmeri spirit** ("el de la esencia me gustó más el c, el del delirio creo
+que también el c está mejor, la caja fuerte creo que el c también es mejor"; "el del espíritu … me gustó el sonido c"); the other four keep candidate A, which the user did not
 object to. The candidates not wired, by bank and sample: Breach B
 `BreachEncounterPortal` `…Portal_Open_Foley_Hand_01`, C `…Portal_Wide_01`; Delirium A `DeliriumEncounterObject`
 `Gameplay_Delirium_EncounterObject_Activate_Stinger_01`, B `Gameplay_Delirium_Gigamirror_Stinger_Activate_01`; Essence A
 `Four_EssenceStingers` `Environment_Endgame_EssenceMonoliths_Stinger_Activate_01`, B `EssenceMonoliths`
 `…Break_Effects_01`; Expedition B `Four_Expedition` `Expedition_UI_EncounterStartHit_01`, C
 `ExplosivesMechanic_Expedition` `PlaceExplosive_01`; Abyss B `AbyssGameplay` `Abyss_Convert`, C `AbyssChasms`
-`Environment_Abyss_Well_Loop_01`; spirit B `Four_TormentedSpirits` `…Wisp_Effect_Death_Rise_01`, C
-`…Possession_Effect_Activate_02`; Vaal Beacon B `Four_Incursion` `Vaal_Generator_Machine_Start_C_01`, C `UI_IncursionBanner_01`;
+`Environment_Abyss_Well_Loop_01`; spirit A `Four_TormentedSpirits` `TormentedSpirit_Wisp_Vocal_Call_01`, B
+`…Wisp_Effect_Death_Rise_01`; Vaal Beacon B `Four_Incursion` `Vaal_Generator_Machine_Start_C_01`, C `UI_IncursionBanner_01`;
 strongbox A `Strongboxes` `Gameplay_Endgame_Strongboxes_Stinger_Activate_01`, B `StrongBoxChest` `Strongbox_Chest_01`. Heard in
 no game yet.

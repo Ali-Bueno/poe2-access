@@ -87,7 +87,7 @@ internal static class SoundExtractor
         new("league_essence",    "EssenceMonoliths",             "Environment_Endgame_EssenceMonoliths_Break_Foley_01", Rms: 0.10),
         new("league_expedition", "ExplosivesMechanic_Expedition", "ActivatePlunger_01", Rms: 0.10),
         new("league_abyss",      "Abyss_General",                "Abyss_QuestStart", Rms: 0.10),
-        new("league_spirit",     "Four_TormentedSpirits",        "TormentedSpirit_Wisp_Vocal_Call_01", Rms: 0.10),
+        new("league_spirit",     "Four_TormentedSpirits",        "TormentedSpirit_Possession_Effect_Activate_02", Rms: 0.10),
         new("league_vaal",       "Four_Incursion",               "StartEncounter_01", Rms: 0.10),
         new("league_strongbox",  "Strongboxes",                  "Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01", Rms: 0.10),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
