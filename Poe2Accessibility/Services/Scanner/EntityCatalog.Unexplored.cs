@@ -43,6 +43,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The frontier being worked out, with the map it reads and what its places need to become entries.</summary>
         private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height)? frontierSearch;
 
+        /// <summary>What the last frontier search read: the same grid, seen ground and player's block again find the same places.</summary>
+        private (byte[] Grid, int Seen, int X, int Y)? frontierFor;
+
         /// <summary>How much of the ground the player can reach has been seen, in percent; null outside gameplay or without a grid.</summary>
         public int? ExploredPercent()
         {
@@ -87,9 +90,14 @@ namespace Poe2Accessibility.Services
                 this.frontierSearch = null;
                 if (found.Places.IsFaulted)
                 {
+                    this.frontierFor = null;
                     this.log.Info($"Unexplored ground not found: {found.Places.Exception?.GetBaseException().Message}");
                 }
-                else if (this.explored.Adopt(found.Map))
+                else if (!this.explored.Adopt(found.Map))
+                {
+                    this.frontierFor = null;
+                }
+                else
                 {
                     this.unexplored = found.Places.Result
                         .Select(place => new ScanEntry(
@@ -111,8 +119,15 @@ namespace Poe2Accessibility.Services
 
             // Off the frame thread: every two seconds it held a frame for 30 ms, 140 ms on a Trial's floor (docs/research/performance.md).
             this.unexploredAt = now;
-            var map = this.explored.Snapshot();
             var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
+            (byte[] Grid, int Seen, int X, int Y) reads = (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells));
+            if (this.frontierFor is { } last && ReferenceEquals(last.Grid, grid) && (last.Seen, last.X, last.Y) == (reads.Seen, reads.X, reads.Y))
+            {
+                return this.unexplored;
+            }
+
+            this.frontierFor = reads;
+            var map = this.explored.Snapshot();
             this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from)), map, area.WorldToGridConvertor, player.WorldPosition.Z);
             return this.unexplored;
         }

@@ -43,7 +43,7 @@ namespace Poe2Accessibility.Services
             var frontier = new List<int>();
             for (var i = 0; i < open.Length; i++)
             {
-                if (reachable[i] && !this.seen[i] && this.Neighbours4(i).Any(n => open[n] && this.seen[n]))
+                if (reachable[i] && !this.seen[i] && this.BesideSeen(i, open))
                 {
                     frontier.Add(i);
                 }
@@ -236,30 +236,16 @@ namespace Poe2Accessibility.Services
                    (width + BlockCells - 1) / BlockCells == this.blocksX && (height + BlockCells - 1) / BlockCells == this.blocksY;
         }
 
-        private IEnumerable<int> Neighbours4(int block)
+        /// <summary>A block beside this one (four neighbours) is seen, and walkable when <paramref name="open"/> is given; asked of every block, so nothing is allocated.</summary>
+        private bool BesideSeen(int block, bool[]? open)
         {
             var x = block % this.blocksX;
             var y = block / this.blocksX;
-            if (x > 0)
-            {
-                yield return block - 1;
-            }
-
-            if (x < this.blocksX - 1)
-            {
-                yield return block + 1;
-            }
-
-            if (y > 0)
-            {
-                yield return block - this.blocksX;
-            }
-
-            if (y < this.blocksY - 1)
-            {
-                yield return block + this.blocksX;
-            }
+            return (x > 0 && this.SeenOpen(block - 1, open)) || (x < this.blocksX - 1 && this.SeenOpen(block + 1, open)) ||
+                   (y > 0 && this.SeenOpen(block - this.blocksX, open)) || (y < this.blocksY - 1 && this.SeenOpen(block + this.blocksX, open));
         }
+
+        private bool SeenOpen(int block, bool[]? open) => this.seen[block] && (open == null || open[block]);
 
         private IEnumerable<int> Neighbours8(int block)
         {

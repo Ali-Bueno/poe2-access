@@ -90,7 +90,7 @@ namespace Poe2Accessibility.Services
             var edge = new List<(int, int)>();
             for (var block = 0; block < this.seen.Length; block++)
             {
-                if (this.seen[block] || !this.Neighbours4(block).Any(n => this.seen[n]))
+                if (this.seen[block] || !this.BesideSeen(block, null))
                 {
                     continue;
                 }

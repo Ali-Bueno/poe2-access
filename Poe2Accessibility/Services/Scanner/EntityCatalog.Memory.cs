@@ -197,6 +197,7 @@ namespace Poe2Accessibility.Services
             this.unexplored = Array.Empty<ScanEntry>();
             this.unexploredAt = long.MinValue / 2;
             this.frontierSearch = null; // what it finds is another area's: the map it read is no longer this one
+            this.frontierFor = null;
         }
 
         /// <summary>
