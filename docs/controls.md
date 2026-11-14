@@ -230,9 +230,12 @@ while the game's own cursor is on nothing: once the stick has moved it rests on 
 the planner instead ("The Build Planner unfolded, the class was not taken"). So ascend with A before moving, or after
 moving press the right stick's click, then B, then A. The preview says this once per visit.
 
-Ascending opens the passive tree with the ascendancy's own small tree beside the class's start: its points are spent
-there with A like any other ("Ascendancy Points: 2" is read on opening), and on its nodes the build's guide names the
-next one to take.
+Ascending opens the passive tree with the ascendancy's own small tree drawn inside it, at the class's start: the stick
+walks from one to the other, and its points are spent there with A like any other ("Ascendancy Points: 2" is read on
+opening). The two are one tree to the mod: an ascendancy's node says so ("notable, ascendancy"), the build's steps and
+the D-pad's lists count both, and the build's guide leads to the nodes there are points for, the ascendancy's while
+only ascendancy points are left, naming the tree when it is the other one ("Next in the build: Smith's Masterwork, on
+the ascendancy's tree: down, 3").
 
 ## Passive tree
 
@@ -246,8 +249,8 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 ("not linked, 7 points away": the nodes to take along the links from what you have).
 
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
-default): D-pad down and up walk the lists Build (with a Build Planner build active: its keystones, notables and jewel
-sockets not taken yet, in the build's order; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
+default): D-pad down and up walk the lists Build (with a Build Planner build active: every node of it not taken yet, the one
+under the cursor too, in the build's order, those there are points for first, each with its step; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
 outside the build, 4 more of the build are ascendancy passives, not on this tree yet": the count is of the nodes the tree
 shows, and the file's nodes it does not show are said apart, as ascendancy passives when their ids say so), Taken in the build (the build's nodes you already
 have, small ones too, in the build's order, each with its step over those same nodes: "Build: step 3 of 60. Attack Speed,

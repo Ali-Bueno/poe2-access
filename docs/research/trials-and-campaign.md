@@ -394,13 +394,12 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
     the class whose text is at `+0x308`): the mouse's, never shown with a controller.
   - R3 inspects the hovered node (the usual inspect layer); L3 unfolds the planner (combo box "Build activa").
   - The D-pad is the finder's on a node; with a control focused it is the game's (`PreviewAnchor`, `finderFocus`).
-- After ascending (MEASURED 2026-11-14): the ascendancy's tree is a canvas of its own in the passive tree screen
-  (24 node elements, its own graph for the mod), reached with the stick from the nodes about the class's start; the
-  game marks the build's nodes on it. Its start node ("AscendancyWarrior3Start", tooltip "Has ascendido…") is the
-  character's by ascending, in no allocated list, and first in the build file: `BuildPlan.IsAscendancyStart`, the
-  graph's own start there. The HUD line reads "Puntos de ascendencia: 2". Not done: a guide from the class's tree to
-  the ascendancy's (the Build list of the class's tree still says "pasivas de ascendencia, que este árbol aún no
-  muestra").
+- After ascending (MEASURED 2026-11-14): the ascendancy's tree is a canvas of its own inside the class's (24 node
+  elements), reached with the stick from the nodes about the class's start; the game marks the build's nodes on it.
+  Its start node ("AscendancyWarrior3Start", tooltip "Has ascendido…") is the character's by ascending, in no
+  allocated list, and listed in the build file: `BuildPlan.IsAscendancyStart`. The HUD line reads "Puntos de
+  ascendencia: 2". The mod reads both as one tree and the build's guide leads to the one there are points for:
+  [passive tree](passive-tree.md#the-ascendancys-tree).
 
 ## 4. Acts 3 and 4
 

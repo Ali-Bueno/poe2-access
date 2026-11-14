@@ -138,22 +138,26 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private IntPtr? NextBuildNode(PassiveGraph graph, HashSet<IntPtr> marked, BuildPlan? plan, HashSet<int> allocated, IntPtr hovered)
         {
-            var open = marked.Where(record => record != graph.OwnStart && (this.PassiveRow(record) is not { } row || !this.RowTaken(row, allocated))).ToList();
+            var open = marked.Where(record => !graph.IsOwnStart(record) && (this.PassiveRow(record) is not { } row || !this.RowTaken(row, allocated))).ToList();
             if (open.Count == 0)
             {
                 return null;
             }
 
+            // The class's tree and the ascendancy's are paid from two counts of points: the nodes there are points for come first.
+            var (skillPoints, ascendancyPoints) = this.PointsLeft(graph);
+            int Waits(IntPtr record) => BuildPlan.PointsOrder(BuildPlan.IsAscendancyNode(this.PassiveIdOf(record)), skillPoints, ascendancyPoints);
             if (plan != null)
             {
                 var order = plan.Passives.GroupBy(passive => passive.Id).ToDictionary(group => group.Key, group => group.First().Order);
-                return open.OrderBy(record => order.TryGetValue(this.PassiveIdOf(record), out var step) ? step : int.MaxValue).First();
+                return open.OrderBy(Waits).ThenBy(record => order.TryGetValue(this.PassiveIdOf(record), out var step) ? step : int.MaxValue).First();
             }
 
             var places = this.PlacesOf(graph);
             float DistanceFromHovered(IntPtr record) =>
                 places.Index.TryGetValue(record, out var at) && places.Index.TryGetValue(hovered, out var here) ? Vector2.Distance(places.Positions[at], places.Positions[here]) : float.MaxValue;
-            return open.OrderBy(record => this.PassiveRow(record) is { } row && this.StateOf(graph, this.ReadPassiveRow(record, row), allocated) == PassiveState.Reachable ? 0 : 1)
+            return open.OrderBy(Waits)
+                .ThenBy(record => this.PassiveRow(record) is { } row && this.StateOf(graph, this.ReadPassiveRow(record, row), allocated) == PassiveState.Reachable ? 0 : 1)
                 .ThenBy(DistanceFromHovered).First();
         }
 

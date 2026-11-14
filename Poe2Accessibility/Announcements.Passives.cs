@@ -66,7 +66,15 @@ namespace Poe2Accessibility
         public static string AllocateGoal(string name) => T($"allocate {name}", $"asigna {name}");
 
         /// <summary>The build's next node, before the way to it.</summary>
-        public static string BuildNextGoal(string name) => T("Next in the build: ", "Siguiente de la build: ") + name;
+        /// <param name="tree">Which of the two trees it is on, when not the cursor's (<see cref="BuildNextTree"/>); else empty.</param>
+        public static string BuildNextGoal(string name, string tree = "") =>
+            T("Next in the build: ", "Siguiente de la build: ") + (tree.Length > 0 ? $"{name}, {tree}" : name);
+
+        /// <summary>The tree the build's next node is on, said from the other one: the ascendancy's is drawn inside the class's.</summary>
+        public static string BuildNextTree(bool ascendancy) => ascendancy ? T("on the ascendancy's tree", "en el árbol de ascendencia") : T("on the main tree", "en el árbol principal");
+
+        /// <summary>Said after an ascendancy node's kind: "notable, ascendancy".</summary>
+        public static string OfAscendancy => T("ascendancy", "de ascendencia");
 
         /// <summary>Opening the passive tree, the way back to where the cursor was last: "Where you left off, Attack Speed: down right, 12".</summary>
         public static string ResumeGoal(string name) => T($"Where you left off, {name}", $"Donde lo dejaste, {name}");

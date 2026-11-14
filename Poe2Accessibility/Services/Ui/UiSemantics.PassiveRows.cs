@@ -14,14 +14,14 @@ namespace Poe2Accessibility.Services
     {
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
         {
-            if (node.TakenIn(allocated) || node.Record == graph.OwnStart)
+            if (node.TakenIn(allocated) || graph.IsOwnStart(node.Record))
             {
                 return PassiveState.Allocated; // the start is the character's own: an ascendancy's is in no allocated list
             }
 
-            // Reachable: linked to an allocated node, or to the class's own start.
+            // Reachable: linked to an allocated node, or to a start of the character's own.
             return graph.Links.TryGetValue(node.Record, out var linked) &&
-                   linked.Any(other => other == graph.OwnStart || (this.PassiveRow(other) is { } row && this.RowTaken(row, allocated)))
+                   linked.Any(other => graph.IsOwnStart(other) || (this.PassiveRow(other) is { } row && this.RowTaken(row, allocated)))
                 ? PassiveState.Reachable
                 : PassiveState.Locked;
         }
@@ -53,6 +53,21 @@ namespace Poe2Accessibility.Services
             // One failed read is not "nothing allocated": what was just read of this tree stands for a moment.
             return this.lastAllocated.State == state && now - this.lastAllocated.At < AllocatedKeptMs ? this.lastAllocated.Ids : new HashSet<int>();
         }
+
+        /// <summary>The allocated graph ids of the whole tree: the class's list and, when it keeps one of its own, the ascendancy's.</summary>
+        private HashSet<int> AllocatedIn(PassiveGraph graph)
+        {
+            var ids = this.AllocatedIds(graph.State);
+            return graph.InnerState != IntPtr.Zero && graph.InnerState != graph.State &&
+                   this.TreeFields.AllocatedAt(graph.InnerState, GameLayout.PassiveTree.AllocatedOffset) is { } inner
+                ? ids.Concat(inner).ToHashSet()
+                : ids;
+        }
+
+        /// <summary>A node's kind as it is said: an ascendancy's is named as such, its tree being drawn inside the class's.</summary>
+        private static string KindWords(PassiveClass kind, string id) => BuildPlan.IsAscendancyNode(id)
+            ? Announcements.PassiveNode(Announcements.PassiveKind(kind), Announcements.OfAscendancy, string.Empty)
+            : Announcements.PassiveKind(kind);
 
         private const int AllocatedKeptMs = 2000;
         private (IntPtr State, long At, HashSet<int> Ids) lastAllocated = (IntPtr.Zero, 0, new HashSet<int>());
@@ -150,7 +165,7 @@ namespace Poe2Accessibility.Services
                     // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
                     var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
                     var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
-                    return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart || BuildPlan.IsAscendancyStart(known.Id), known.Class, gated) { Id = known.Id };
+                    return new PassiveNodeRow(record, known.GraphId, named, KindWords(known.Class, known.Id), known.IconOnly, known.IsStart || BuildPlan.IsAscendancyStart(known.Id), known.Class, gated) { Id = known.Id };
                 }
 
                 known = null; // the game's row says otherwise and the rows read right: the node is read from it, as one the files lack
@@ -175,10 +190,11 @@ namespace Poe2Accessibility.Services
                 shown[GameLayout.PassiveTree.RowKeystoneOffset] == 1, shown[GameLayout.PassiveTree.RowNotableOffset] == 1,
                 shown[GameLayout.PassiveTree.RowJewelSocketOffset] == 1, iconOnly, isStart);
             var noLinkedStep = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNoLinkedStepOffset) != 0;
-            return new PassiveNodeRow(record, known?.GraphId ?? BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, Announcements.PassiveKind(kind), iconOnly, isStart, kind, noLinkedStep)
+            var shownId = this.RowId(shownRow) ?? string.Empty;
+            return new PassiveNodeRow(record, known?.GraphId ?? BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, KindWords(kind, shownId), iconOnly, isStart, kind, noLinkedStep)
             {
                 ShownGraphId = BitConverter.ToUInt16(shown, GameLayout.PassiveTree.RowGraphIdOffset),
-                Id = this.RowId(shownRow) ?? string.Empty,
+                Id = shownId,
             };
         }
 

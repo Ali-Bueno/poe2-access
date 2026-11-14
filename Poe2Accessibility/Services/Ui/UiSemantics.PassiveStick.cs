@@ -55,7 +55,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (gated.Count * MaxGatedShare > records.Count)
+            if (!graph.AscendancyOnly && gated.Count * MaxGatedShare > records.Count)
             {
                 // The key is null on the main tree's rows: set on this many, the bytes read are another column's, and are not believed.
                 this.TreeFields.Log?.Invoke($"Passive stick: {gated.Count} of {records.Count} shown nodes read as skipping the linked step; the row's field is not where measured, every node keeps its links");
@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
         private int shownAt;
         private int shownSoFar;
 
-        /// <summary>The linked step's gate is an ascendancy's key: over a third of the shown nodes carrying it is a misread (docs/research/passive-tree.md).</summary>
+        /// <summary>The linked step's gate is an ascendancy's key: but on an ascendancy's tree alone, over a third of the shown nodes carrying it is a misread (docs/research/passive-tree.md).</summary>
         private const int MaxGatedShare = 3;
 
         private long placesCountedAt;

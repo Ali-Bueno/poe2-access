@@ -23,7 +23,7 @@ namespace Poe2Accessibility.Services
             // a node allocated and applied read "reachable", 2026-10-24), so the cache holds while both still match.
             var state = this.TreeState(canvasAddress);
             var catalog = PassiveTreeCatalog.Shared;
-            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress && state == cached.State && !this.EdgesReadNow(cached, canvasAddress))
+            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress && state == cached.State && !this.CanvasChanged(cached) && !this.EdgesReadNow(cached, canvasAddress))
             {
                 if (cached.OwnStart == IntPtr.Zero && this.OwnStartDue() && this.OwnStart(cached.Links.Keys, cached.Nodes) is var start && start != IntPtr.Zero)
                 {
@@ -69,17 +69,20 @@ namespace Poe2Accessibility.Services
                 Link(inLinks, ends[1], ends[0]);
             }
 
-            // Node elements by record, for the screen positions of linked nodes.
+            // Node elements by record, for the screen positions of linked nodes. An ascendancy's tree is a canvas of its
+            // own among the groups (docs/research/passive-tree.md#the-ascendancys-tree): its nodes are taken last, over
+            // the hidden ones the class's canvas keeps for the same records.
             var elementsByRecord = new Dictionary<IntPtr, IntPtr>();
             var budget = MaxPassiveElements;
-            foreach (var groupAddress in this.elements.ReadChildren(canvas))
+            var nodeShift = this.elements.Controls?.Current(ControlGroup.PassiveNode) ?? 0;
+            var canvasShift = this.elements.Controls?.Current(ControlGroup.PassiveCanvas) ?? 0;
+            var nodeClasses = new HashSet<IntPtr> { nodeClass };
+            var otherClasses = new HashSet<IntPtr>();
+            var (inner, innerState) = (IntPtr.Zero, IntPtr.Zero);
+            var innerRecords = new List<IntPtr>();
+            void TakeNodes(in UiElementReader.ElementInfo holder, List<IntPtr>? taken)
             {
-                if (!this.elements.TryReadElement(groupAddress, out var group))
-                {
-                    continue;
-                }
-
-                foreach (var element in this.elements.ReadChildren(group))
+                foreach (var element in this.elements.ReadChildren(holder))
                 {
                     if (budget-- <= 0)
                     {
@@ -87,10 +90,49 @@ namespace Poe2Accessibility.Services
                     }
 
                     var head = this.reader.ReadArray<IntPtr>(element, 1);
-                    if (head.Length == 1 && head[0] == nodeClass &&
-                        this.NodeRecordAt(element, this.elements.Controls?.Current(ControlGroup.PassiveNode) ?? 0) is { } record)
+                    if (head.Length != 1 || otherClasses.Contains(head[0]) || this.NodeRecordAt(element, nodeShift) is not { } record)
+                    {
+                        continue;
+                    }
+
+                    // The two canvases' nodes need not be of one class: a class whose element leads to a passive's row is a node's.
+                    if (!nodeClasses.Contains(head[0]))
+                    {
+                        (this.PassiveRow(record) != null ? nodeClasses : otherClasses).Add(head[0]);
+                    }
+
+                    if (nodeClasses.Contains(head[0]))
                     {
                         elementsByRecord[record] = element;
+                        taken?.Add(record);
+                    }
+                }
+            }
+
+            var groups = this.elements.ReadChildren(canvas);
+            foreach (var groupAddress in groups)
+            {
+                if (!this.elements.TryReadElement(groupAddress, out var group))
+                {
+                    continue;
+                }
+
+                if (inner == IntPtr.Zero && group.IsVisibleFlag && this.TreeStateAt(groupAddress, canvasShift) is var nested && nested != IntPtr.Zero)
+                {
+                    (inner, innerState) = (groupAddress, nested);
+                    continue;
+                }
+
+                TakeNodes(group, null);
+            }
+
+            if (inner != IntPtr.Zero && this.elements.TryReadElement(inner, out var innerCanvas))
+            {
+                foreach (var holderAddress in this.elements.ReadChildren(innerCanvas))
+                {
+                    if (this.elements.TryReadElement(holderAddress, out var holder))
+                    {
+                        TakeNodes(holder, innerRecords);
                     }
                 }
             }
@@ -101,14 +143,57 @@ namespace Poe2Accessibility.Services
                 return null; // neither source gives a link yet (the rows not readable): tried again on the next node
             }
 
+            // An ascendancy's own start: of the tree drawn inside the class's, or of a tree that is an ascendancy's alone (the altar's preview).
+            var ascendancyOnly = inner == IntPtr.Zero && elementsByRecord.Count > 0 && elementsByRecord.Keys.All(record => BuildPlan.IsAscendancyNode(this.PassiveIdOf(record)));
+            var ascendancyStart = (inner != IntPtr.Zero ? innerRecords : ascendancyOnly ? elementsByRecord.Keys : Enumerable.Empty<IntPtr>())
+                .FirstOrDefault(record => BuildPlan.IsAscendancyStart(this.PassiveIdOf(record)));
+
             links = nodes.Count > 0 ? this.LinksFromFiles(nodes, links) : links;
             // Without the edge list the files' order stands in, which is not the game's: each node's own lists give that (StickLinksOf).
             var stickLinks = links.ToDictionary(pair => pair.Key, pair => inLinks.ContainsKey(pair.Key) || outLinks.ContainsKey(pair.Key)
                 ? (inLinks.GetValueOrDefault(pair.Key) ?? new List<IntPtr>()).Concat(outLinks.GetValueOrDefault(pair.Key) ?? new List<IntPtr>()).ToList()
                 : pair.Value);
-            var graph = new PassiveGraph(canvasAddress, state, links, stickLinks, elementsByRecord, this.OwnStart(links.Keys, nodes)) { Nodes = nodes, EdgesFromMemory = edgeList != null };
+            var graph = new PassiveGraph(canvasAddress, state, links, stickLinks, elementsByRecord, this.OwnStart(links.Keys, nodes))
+            {
+                Nodes = nodes,
+                EdgesFromMemory = edgeList != null,
+                Groups = groups.Length,
+                Inner = inner,
+                InnerState = innerState,
+                AscendancyStart = ascendancyStart,
+                AscendancyOnly = ascendancyOnly,
+            };
             this.passiveGraph = graph;
             return graph;
+        }
+
+        /// <summary>
+        ///     The tree's canvas for the canvas a node hangs from: an ascendancy's tree is drawn inside the class's, and the
+        ///     two are one tree to the stick, the build and the finder.
+        /// </summary>
+        private IntPtr TreeCanvasOf(IntPtr nodeCanvas) =>
+            this.elements.TryReadElement(nodeCanvas, out var canvas) &&
+            this.TreeStateAt(canvas.Raw.ParentPtr, this.elements.Controls?.Current(ControlGroup.PassiveCanvas) ?? 0) != IntPtr.Zero
+                ? canvas.Raw.ParentPtr
+                : nodeCanvas;
+
+        /// <summary>A graph is looked at for a change of its canvas this often (an ascendancy taken: its tree is one more group).</summary>
+        private const int CanvasAgainMs = 1000;
+
+        private long canvasAgainAt;
+
+        /// <summary>Whether the canvas holds other groups than the graph was read from, or its ascendancy's tree another state.</summary>
+        private bool CanvasChanged(PassiveGraph graph)
+        {
+            var now = Environment.TickCount64;
+            if (now < this.canvasAgainAt)
+            {
+                return false;
+            }
+
+            this.canvasAgainAt = now + CanvasAgainMs;
+            return (this.elements.TryReadElement(graph.Canvas, out var canvas) && canvas.Raw.ChildrensPtr.TotalElements(IntPtr.Size) != graph.Groups) ||
+                   (graph.Inner != IntPtr.Zero && this.TreeStateAt(graph.Inner, this.elements.Controls?.Current(ControlGroup.PassiveCanvas) ?? 0) != graph.InnerState);
         }
 
         /// <summary>
@@ -264,10 +349,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            // An ascendancy's tree is drawn apart from the class's: its own start is where it begins.
-            return nodes.Count > 0 && nodes.Values.All(node => BuildPlan.IsAscendancyNode(node.Id))
-                ? nodes.FirstOrDefault(pair => BuildPlan.IsAscendancyStart(pair.Value.Id)).Key
-                : IntPtr.Zero;
+            return IntPtr.Zero;
         }
 
         /// <summary>
@@ -328,6 +410,24 @@ namespace Poe2Accessibility.Services
 
             /// <summary>Gets a value indicating whether the graph's edge list read, so <see cref="StickLinks"/> hold the game's order.</summary>
             public bool EdgesFromMemory { get; init; } = true;
+
+            /// <summary>Gets how many groups the canvas held when the graph was read.</summary>
+            public int Groups { get; init; }
+
+            /// <summary>Gets the ascendancy's tree drawn inside this one (a canvas among the groups); zero when none.</summary>
+            public IntPtr Inner { get; init; }
+
+            /// <summary>Gets the tree state of <see cref="Inner"/>.</summary>
+            public IntPtr InnerState { get; init; }
+
+            /// <summary>Gets the drawn start of the character's ascendancy, its own by ascending and in no allocated list; zero when none.</summary>
+            public IntPtr AscendancyStart { get; init; }
+
+            /// <summary>Gets a value indicating whether the tree is an ascendancy's alone (the Altar of Ascendancy's preview).</summary>
+            public bool AscendancyOnly { get; init; }
+
+            /// <summary>Whether a record is a start the character owns: its class's, or its ascendancy's.</summary>
+            public bool IsOwnStart(IntPtr record) => record != IntPtr.Zero && (record == this.OwnStart || record == this.AscendancyStart);
         }
 
         /// <summary>A push of the left stick in progress: when it began, its screen direction (y down) and whether a landing was judged on it.</summary>

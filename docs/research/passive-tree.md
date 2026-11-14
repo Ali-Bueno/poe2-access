@@ -281,7 +281,8 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   (`PassiveMap.TrailCost`: a point = 1024, 2 off on the active build's marked nodes, 1 off on a notable, so the fewest
   points win and ties go to the build, then to notables; toward a marked node an unmarked one costs 64 points, so the trail
   keeps to the build's own line). The line names the trail's first node (always reachable) and the cursor way to it. The D-pad's
-  Build list holds the marked keystones, notables and sockets not taken, in the `.build` file's order when it is here.
+  Build list holds every marked node not taken, the hovered one too, in the `.build` file's order when it is here (the
+  keystones, notables and sockets alone until 2026-11-14: the owner heard "0 de 3 asignados" over two entries).
 - Brief guide (2026-11-10, the user's play log: one node read as name, stats, "Seleccionar, A. Mantén presionado A para
   seleccionar el tipo de puntos", "No cumples los requisitos", the build step, the author's note twice (the `.build`
   file's and the game's own note tooltip, differing by one full stop), every link, then the build's way, 5-10 s a push):
@@ -335,10 +336,35 @@ nodes listed once more at the end of the file (entries 69-84, no extra field) �
 file and exactly 4 of the file's ids are not marked (the count, heard as "4 más de la build no están en este árbol"; the
 four ids themselves were not logged). `BuildPlan.StepsOver` numbers the steps over the marked nodes, each at its first
 place in the file, so the Build list's "16 de 60 asignados" and a node's "Build: paso 1 de 60" count the same nodes; the
-file's nodes the tree does not show are said once, with the list.
+file's nodes the tree does not show are said once, with the list. An ascendancy's start is no step and is not counted
+(2026-11-14): ascending gives it.
 - UI: in the tree, L3 opens "Filters/Build Planner"; D-pad right twice reaches the planner button (`collapse_button`,
   A expands it), D-pad down the list (`BuildPlannerComboBox`, "Active Build"). The gem engraving window has the same
   list (`build_planner_combobox`) and a first category of the build's gems.
+
+### The ascendancy's tree
+
+MEASURED (0.5.5g, 2026-11-14, yarkidius, a Warrior just ascended to Smith of Kitava with 0 skill points and 2
+ascendancy points; `dump visible` and dev `passivenear`):
+
+- Ascending gives the class's canvas one more child (1372 → 1373 groups): **a canvas of its own among the groups**
+  (1134×1134 px at the view's centre at zoom 1, a tree state of its own at `+0x3D8`, another object than the class's,
+  with an allocated list of as many entries, 30). Its children are holders of one node element each (24), plus the
+  card's `flavour_text_label`. The class's canvas keeps its 220 hidden elements, the ascendancies' among them.
+- The stick steps from one to the other (melee17, by the Warrior's start, to "Resistencia al fuego" in one push), and
+  the game marks the build's nodes on it with the same byte (`+0x70C`: the start and three more of the owner's file).
+- The points left are the tree's own labels, in `top_points_layout_gmp` beside the canvas: the first row's last child
+  is the skill points' count ("0"); the ascendancy's row is the one whose label's tagged text holds the keyword
+  `AscendancyPoints` ("[AscendancyPoints|Puntos de ascendencia]:"), its last child the count ("2"); the weapon sets'
+  rows keep their counts a level deeper.
+- Mod: one graph for both (`PassiveGraphOf`: the inner canvas's nodes are read last, over the hidden elements of the
+  same records; `TreeCanvasOf` gives the class's canvas for a node of either), so places, the stick rule, the build's
+  steps and the finder cover both. The ascendancy's start is the character's own (`PassiveGraph.AscendancyStart`,
+  `IsOwnStart`); allocated ids are both states' lists (`AllocatedIn`); the build's next node is one there are points
+  for (`PointsLeft`, pure `BuildPlan.PointsOrder`). The graph is read again when the canvas's group count changes.
+- **NOT MEASURED:** which of the two lists an allocated ascendancy node is written to (none was allocated; `passivenear`
+  prints both counts and the ascendancy's nodes read as taken), and the stick's step from an ascendancy node, which
+  the self-check does not judge (the game shifts it by the inner canvas).
 
 ### Which file the marks are
 

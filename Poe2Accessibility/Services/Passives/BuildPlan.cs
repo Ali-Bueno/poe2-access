@@ -59,7 +59,8 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The plan's steps over the nodes the tree shows: each node once, in the file's order. A file names a node again
         ///     for a weapon set and for its attribute, and lists the nodes of a tree not drawn yet (an ascendancy), so it has
-        ///     more entries than the tree marks (docs/research/passive-tree.md#the-builds-two-counts).
+        ///     more entries than the tree marks (docs/research/passive-tree.md#the-builds-two-counts). An ascendancy's start
+        ///     is no step: ascending gives it, no point is spent on it.
         /// </summary>
         /// <param name="shown">The PassiveSkills ids of the nodes the tree marks as the build's.</param>
         public BuildSteps StepsOver(IReadOnlySet<string> shown)
@@ -68,6 +69,11 @@ namespace Poe2Accessibility.Services
             var notShown = new HashSet<string>(StringComparer.Ordinal);
             foreach (var passive in this.Passives)
             {
+                if (IsAscendancyStart(passive.Id))
+                {
+                    continue;
+                }
+
                 if (!shown.Contains(passive.Id))
                 {
                     notShown.Add(passive.Id);
@@ -104,6 +110,22 @@ namespace Poe2Accessibility.Services
         ///     build's file lists first (live 2026-11-14).
         /// </summary>
         public static bool IsAscendancyStart(string id) => IsAscendancyNode(id) && id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal);
+
+        /// <summary>
+        ///     Where a node the build has yet to take stands by the points left: 0 while its own count (the class's tree's,
+        ///     or the ascendancy's) has points, 2 while only the other has, and with none in either the ascendancy's nodes
+        ///     wait (1), the next point being a level's. All 0 while the counts are unread: the file's order alone.
+        /// </summary>
+        public static int PointsOrder(bool ascendancyNode, int? skillPoints, int? ascendancyPoints)
+        {
+            if (skillPoints is not { } skill || ascendancyPoints is not { } ascendancy)
+            {
+                return 0;
+            }
+
+            var (own, other) = ascendancyNode ? (ascendancy, skill) : (skill, ascendancy);
+            return own > 0 ? 0 : other > 0 ? 2 : ascendancyNode ? 1 : 0;
+        }
 
         /// <summary>Null when the text is no build file.</summary>
         public static BuildPlan? Parse(string json)

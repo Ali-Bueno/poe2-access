@@ -109,7 +109,7 @@ namespace Poe2Accessibility.Services
             if (!this.InGame || !hovered ||
                 !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) || this.TreeState(group.Raw.ParentPtr) == IntPtr.Zero ||
                 this.NodeRecord(info.Address) is not { } record || this.PassiveRow(record) is not { } row ||
-                this.PassiveGraphOf(group.Raw.ParentPtr, info) is not { } graph)
+                this.PassiveGraphOf(this.TreeCanvasOf(group.Raw.ParentPtr), info) is not { } graph)
             {
                 return null;
             }
@@ -118,7 +118,7 @@ namespace Poe2Accessibility.Services
             this.TreeFields.JudgeAllocated(graph.State, graph.Links.Keys);
             this.PlacesShowing(graph, record);
             this.JudgeStickLanding(graph, info.Address, record);
-            var allocated = this.AllocatedIds(graph.State);
+            var allocated = this.AllocatedIn(graph);
             var node = this.ReadPassiveRow(record, row);
             var state = this.StateOf(graph, node, allocated);
             // The node's own tooltip comes last; before it, the author's note of a Build Planner build.
@@ -254,7 +254,7 @@ namespace Poe2Accessibility.Services
                 if (node.IsStart)
                 {
                     // The class portrait at the centre; the node's own name is a PoE 1 class in capitals ("SIX").
-                    parts.Add((double.MaxValue, Announcements.PassiveStartLink(this.StartClasses(row) ?? node.Name, other == graph.OwnStart)));
+                    parts.Add((double.MaxValue, Announcements.PassiveStartLink(this.StartClasses(row) ?? node.Name, graph.IsOwnStart(other))));
                     continue;
                 }
 
@@ -290,7 +290,7 @@ namespace Poe2Accessibility.Services
         public IEnumerable<string> PassiveNeighbours(IntPtr hovered, int count)
         {
             if (!this.elements.TryReadElement(hovered, out var info) || !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) ||
-                this.NodeRecord(hovered) is not { } record || this.PassiveGraphOf(group.Raw.ParentPtr, info) is not { } graph ||
+                this.NodeRecord(hovered) is not { } record || this.PassiveGraphOf(this.TreeCanvasOf(group.Raw.ParentPtr), info) is not { } graph ||
                 !PluginUiElementReflection.TryGetAbsoluteRect(hovered, out var position, out var size))
             {
                 yield break;
@@ -300,6 +300,12 @@ namespace Poe2Accessibility.Services
             var linked = graph.Links.GetValueOrDefault(record) ?? new List<IntPtr>();
             var shown = graph.Elements.Count(pair => this.elements.TryReadElement(pair.Value, out var element) && element.IsVisibleFlag);
             yield return $"hovered {this.PassiveIdOf(record)} at {here.X:F0},{here.Y:F0} size {size.X:F0}; {shown} of {graph.Elements.Count} node elements shown";
+            // The ascendancy's tree inside the class's: its canvas and state, where its allocations are kept, the points each has left.
+            var innerIds = graph.InnerState != IntPtr.Zero ? this.TreeFields.AllocatedAt(graph.InnerState, GameLayout.PassiveTree.AllocatedOffset)?.Count().ToString() ?? "unread" : "-";
+            var (skillPoints, ascendancyPoints) = this.PointsLeft(graph);
+            yield return $"canvas @{graph.Canvas:X} state @{graph.State:X} allocated {this.AllocatedIds(graph.State).Count}; ascendancy canvas @{graph.Inner:X} state @{graph.InnerState:X} allocated {innerIds}, " +
+                         $"start {(graph.AscendancyStart != IntPtr.Zero ? this.PassiveIdOf(graph.AscendancyStart) : "none")}, alone {graph.AscendancyOnly}; points {skillPoints?.ToString() ?? "?"} and {ascendancyPoints?.ToString() ?? "?"}; " +
+                         $"taken of the ascendancy: {string.Join(' ', graph.Elements.Keys.Where(other => BuildPlan.IsAscendancyNode(this.PassiveIdOf(other)) && this.PassiveRow(other) is { } taken && this.RowTaken(taken, this.AllocatedIn(graph))).Select(this.PassiveIdOf))}";
             // What the stick rule says each push lands on (octants counter-clockwise from right), to check against the game,
             // with its inputs: the window, the record's own edge order against the graph file's, the row's linked-stage gate.
             var places = this.PlacesOf(graph);
@@ -321,7 +327,7 @@ namespace Poe2Accessibility.Services
 
             var marks = this.BuildMarks(graph);
             var marked = marks.Select(this.PassiveIdOf).ToHashSet();
-            yield return $"build marks {marked.Count}: {string.Join(' ', marked.Take(12))}; file: {this.PlanOf(graph, marks)?.Name ?? "none"}";
+            yield return $"build marks {marked.Count}: {string.Join(' ', marked.Take(12))}; of the ascendancy: {string.Join(' ', marked.Where(BuildPlan.IsAscendancyNode))}; file: {this.PlanOf(graph, marks)?.Name ?? "none"}";
             var near = new List<(double Distance, string Line)>();
             foreach (var (other, element) in graph.Elements)
             {

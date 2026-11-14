@@ -23,7 +23,36 @@ namespace Poe2Accessibility.Tests
             (nameof(AClassIsKnownByItsCardsLine), AClassIsKnownByItsCardsLine),
             (nameof(TheLargerCardIsTheChosenOne), TheLargerCardIsTheChosenOne),
             (nameof(AnAscendancysStartIsKnownByItsId), AnAscendancysStartIsKnownByItsId),
+            (nameof(TheBuildsNextNodeIsOneThereArePointsFor), TheBuildsNextNodeIsOneThereArePointsFor),
+            (nameof(AnAscendancysStartIsNoStepOfTheBuild), AnAscendancysStartIsNoStepOfTheBuild),
         };
+
+        private static void AnAscendancysStartIsNoStepOfTheBuild()
+        {
+            var plan = new BuildPlan("build", new[]
+            {
+                new BuildPassive("melee17", 0, 0, string.Empty),
+                new BuildPassive("AscendancyWarrior3Start", 1, 0, string.Empty),
+                new BuildPassive("AscendancyWarrior3Notable6_0", 2, 0, string.Empty),
+            });
+            var both = plan.StepsOver(new HashSet<string> { "melee17", "AscendancyWarrior3Start", "AscendancyWarrior3Notable6_0" });
+            Expect(2, both.Count);
+            Expect(1, both.Steps["AscendancyWarrior3Notable6_0"]);
+            // Before ascending the class's tree shows neither: one node is yet to come, not two.
+            Expect(1, plan.StepsOver(new HashSet<string> { "melee17" }).NotShown);
+        }
+
+        private static void TheBuildsNextNodeIsOneThereArePointsFor()
+        {
+            // No skill points and two of the ascendancy's (yarkidius, just ascended): the ascendancy's nodes first.
+            Expect(true, BuildPlan.PointsOrder(true, 0, 2) < BuildPlan.PointsOrder(false, 0, 2));
+            Expect(true, BuildPlan.PointsOrder(false, 3, 0) < BuildPlan.PointsOrder(true, 3, 0));
+            // Points in both, or the counts unread: the file's order alone.
+            Expect(BuildPlan.PointsOrder(false, 1, 1), BuildPlan.PointsOrder(true, 1, 1));
+            Expect(BuildPlan.PointsOrder(false, null, null), BuildPlan.PointsOrder(true, null, null));
+            // None in either: the next point is a level's, the class's tree first.
+            Expect(true, BuildPlan.PointsOrder(false, 0, 0) < BuildPlan.PointsOrder(true, 0, 0));
+        }
 
         private static void AnAscendancysStartIsKnownByItsId()
         {
