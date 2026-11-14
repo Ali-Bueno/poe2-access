@@ -14,15 +14,18 @@ namespace Poe2Accessibility.Services
     {
         private const string AnimationLine = "animation";
         private const string StatLine = "stat";
+        private const string RulesetLine = "ruleset";
         private const char Comment = '#';
 
         private readonly string?[] animations;
         private readonly Dictionary<string, int> stats;
+        private readonly Dictionary<string, int> rulesets;
 
-        private GameIds(string?[] animations, Dictionary<string, int> stats)
+        private GameIds(string?[] animations, Dictionary<string, int> stats, Dictionary<string, int>? rulesets = null)
         {
             this.animations = animations;
             this.stats = stats;
+            this.rulesets = rulesets ?? new Dictionary<string, int>(StringComparer.Ordinal);
         }
 
         /// <summary>Gets the ids in use: empty until the catalog is loaded.</summary>
@@ -54,6 +57,7 @@ namespace Poe2Accessibility.Services
         {
             var animations = new SortedDictionary<int, string>();
             var stats = new Dictionary<string, int>(StringComparer.Ordinal);
+            var rulesets = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (var line in lines.Where(line => line.Length > 0 && line[0] != Comment))
             {
                 var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -70,6 +74,10 @@ namespace Poe2Accessibility.Services
                 {
                     stats[parts[1]] = key;
                 }
+                else if (parts[0] == RulesetLine && int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var rulesetRow))
+                {
+                    rulesets[parts[1]] = rulesetRow;
+                }
             }
 
             var names = new string?[animations.Count == 0 ? 0 : animations.Keys.Last() + 1];
@@ -78,11 +86,17 @@ namespace Poe2Accessibility.Services
                 names[row] = name;
             }
 
-            return new GameIds(names, stats);
+            return new GameIds(names, stats, rulesets);
         }
 
         /// <summary>The animation's name in the game's table; null beyond it, as a patch's new rows are until the next extraction.</summary>
         public string? Animation(int id) => id >= 0 && id < this.animations.Length ? this.animations[id] : null;
+
+        /// <summary>The row of Rulesets.dat of a name ("ExpeditionRules"), which is its place in the session's array; null when the catalog does not list it.</summary>
+        public int? Ruleset(string name) => this.rulesets.TryGetValue(name, out var row) ? row : null;
+
+        /// <summary>The name of a Rulesets.dat row; null when the catalog does not list it.</summary>
+        public string? RulesetName(int row) => this.rulesets.FirstOrDefault(pair => pair.Value == row).Key;
 
         /// <summary>The key of a stat, by its name in the game; <paramref name="compiled"/> when the catalog does not list it.</summary>
         public int Stat(string name, int compiled) => this.stats.GetValueOrDefault(name, compiled);

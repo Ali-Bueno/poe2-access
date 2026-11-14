@@ -124,6 +124,10 @@ namespace Poe2Accessibility
                 case "entities":
                     this.entityDump?.Write(80);
                     break;
+                case "rulesets":
+                    // Research: where the instance session and its rulesets are from the game state (GameLayout.Rulesets).
+                    this.rulesets?.Probe();
+                    break;
                 case var describe when describe.StartsWith("describe 0x", StringComparison.Ordinal):
                     // Research: what the reader makes of any element, focused or not (an icon's item, a row's parts).
                     var node = this.semantics?.Describe((IntPtr)Convert.ToInt64(describe["describe 0x".Length..], 16), true);

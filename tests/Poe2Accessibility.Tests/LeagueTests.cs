@@ -76,6 +76,12 @@ namespace Poe2Accessibility.Tests
             Equal("Round 3 of 10", Announcements.Ruleset(RulesetLine.TrialRound, 3, 10), "as the window writes it");
             Equal("Explosives Placed: 2/5; 1 not covered", Announcements.ExplosivesPlaced(2, 5, 1), "the game's own count, then what it lacks");
             Equal("Explosives Placed: 2", Announcements.ExplosivesPlaced(2, null, null), "the total unread: as before");
+
+            var ids = GameIds.Parse(new[] { "# the game's numbers", "stat current_rage 5", "ruleset StandardRules 0", "ruleset UltimatumRules 49" });
+            Equal(49, ids.Ruleset("UltimatumRules"), "a ruleset's place in the session is its row in the game's table, read from the files");
+            Equal(null, ids.Ruleset("ExpeditionRules"), "one the catalog does not list: the reader falls back on the build's own");
+            Equal("UltimatumRules", ids.RulesetName(49), "and the name of a row, for the log");
+            Equal(null, ids.RulesetName(50), "a row not listed has none");
         }
 
         private static void TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep()

@@ -356,13 +356,26 @@ namespace Poe2Accessibility
         ///     that logs "Connecting to instance server") stores the area at +0x20F0 (0x212D805: 48 89 91 F0 20 00 00); the rulesets'
         ///     creator fills an array of pointers by row at +0x2400 (0x212F7FB: 4A 89 9C F6 00 24 00 00), read back by row below 0x66
         ///     (0x284BC5); every ruleset holds its row at +0x30 and its session at +0x48 (base constructor 0x1729A80). The session is
-        ///     also stored at +0x340 of an object the study took for the game state without proving it, so
+        ///     also stored at +0x340 of an object the study took for the game state without proving it; in a running game
+        ///     (Clearfell Encampment, 2026-11-14, dev command "rulesets") it is not there but at +0x5B8 of the area, and it holds the
+        ///     area at +0x20F0 as the exe says, with the town's one ruleset (row 79, AncestralOmenRules) pointing back to it.
         ///     <see cref="Services.RulesetReader"/> believes a session only when its own pointer to the area is the area the host
-        ///     reads, and a ruleset only by the name of its row and its pointer back to the session.
+        ///     reads, and a ruleset only at the row the game's files give its name and with its pointer back to the session.
         /// </summary>
         public static class Rulesets
         {
+            /// <summary>Where the area keeps the session (measured in play, 2026-11-14).</summary>
+            public static int AreaSession { get; internal set; } = 0x5B8;
+
             public static int GameStateSession { get; internal set; } = 0x340;
+
+            /// <summary>The rows of Rulesets.dat in 0.5.5f, for a catalog that does not list them yet (catalog/game-ids.txt does).</summary>
+            public static readonly System.Collections.Generic.IReadOnlyDictionary<string, int> RowsOfThisBuild = new System.Collections.Generic.Dictionary<string, int>
+            {
+                [BreachName] = 92,
+                [ExpeditionName] = 51,
+                [UltimatumName] = 49,
+            };
 
             /// <summary>How much of the game state is searched for the session when it is not where the exe had it.</summary>
             public const int GameStateSearchBytes = 0x1000;

@@ -30,6 +30,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the charges of the Expedition site nearest the player as last read: placed, and how many there are.</summary>
         public (int Placed, int Total)? Charges { get; private set; }
 
+        /// <summary>Research (dev command "rulesets"): where a session could be, to the log.</summary>
+        public void Probe()
+        {
+            foreach (var line in this.reader.Probe())
+            {
+                this.log.Info(line);
+            }
+
+            this.log.Info(this.reader.Describe());
+        }
+
         /// <summary>A new area: nothing has been read.</summary>
         public void Reset()
         {

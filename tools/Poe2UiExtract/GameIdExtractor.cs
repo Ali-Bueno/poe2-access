@@ -29,6 +29,9 @@ internal static class GameIdExtractor
         "monster_inside_monolith", // a monster an Essence's crystal holds (EssenceWatch logs it beside the rule by place)
     };
 
+    /// <summary>Row 0 of Rulesets, known: a table that reads otherwise has moved its Id.</summary>
+    private const string FirstRuleset = "StandardRules";
+
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {
@@ -50,7 +53,7 @@ internal static class GameIdExtractor
         var lines = new List<string>
         {
             "# The game's numbers for what the mod reads by name (tools/Poe2UiExtract game-ids), regenerated after patches;",
-            "# 'animation <row> <name>' from Animation, 'stat <id> <key>' from Stats.",
+            "# 'animation <row> <name>' from Animation, 'stat <id> <key>' from Stats, 'ruleset <name> <row>' from Rulesets.",
         };
         for (var row = 0; row < animations.RowCount; row++)
         {
@@ -67,6 +70,20 @@ internal static class GameIdExtractor
             }
 
             lines.Add($"stat {stat} {row + StatKeyFromRow}");
+        }
+
+        // The rows of Rulesets are the places of the client's ruleset objects in its session (the plugin's RulesetReader).
+        var rulesets = DatTable.Open(index, "rulesets");
+        if (rulesets != null && rulesets.String(0, 0) == FirstRuleset)
+        {
+            for (var row = 0; row < rulesets.RowCount; row++)
+            {
+                lines.Add($"ruleset {rulesets.String(row, 0)} {row}");
+            }
+        }
+        else
+        {
+            Say.Out.WriteLine("Rulesets table missing or not starting as it did: its rows are left out, the mod keeps the ones it was built with.");
         }
 
         File.WriteAllLines(outFile, lines);

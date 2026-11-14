@@ -40,7 +40,7 @@ internal static class GameDataSteps
         new Step("inline icons", 1, "inline-icons.txt", "inline-icons", true),
         new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
         // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
-        new Step("game ids", 4, "game-ids.txt", "game-ids", true),
+        new Step("game ids", 5, "game-ids.txt", "game-ids", true), // 5: the rows of Rulesets, for the client's rulesets
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
         new Step("game names", 3, "game-names.txt", "game-names", true), // 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
         new Step("places", 1, "places.json", "places", true),

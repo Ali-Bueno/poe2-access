@@ -25,7 +25,6 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly PluginLog log;
-        private readonly Dictionary<string, IntPtr> byName = new(StringComparer.Ordinal);
         private IntPtr session;
         private IntPtr area;
         private long lastSearch = long.MinValue / 2;
@@ -41,7 +40,6 @@ namespace Poe2Accessibility.Services
         /// <summary>A new area: its session and rulesets are found afresh.</summary>
         public void Reset()
         {
-            this.byName.Clear();
             (this.session, this.area, this.lastSearch) = (IntPtr.Zero, IntPtr.Zero, long.MinValue / 2);
         }
 
@@ -112,9 +110,103 @@ namespace Poe2Accessibility.Services
             return (round + 1, total);
         }
 
-        /// <summary>Research: what was found, for the log and the dev command.</summary>
-        public string Describe() =>
-            this.session == IntPtr.Zero ? "Rulesets: session not found" : $"Rulesets: session 0x{this.session.ToInt64():X}, {this.byName.Count} rulesets: {string.Join(", ", this.byName.Keys.OrderBy(name => name, StringComparer.Ordinal))}";
+        /// <summary>Research: what was found, for the log and the dev command: the session and the area's rulesets by name.</summary>
+        public string Describe()
+        {
+            if (this.session == IntPtr.Zero)
+            {
+                return "Rulesets: session not found";
+            }
+
+            var present = new List<string>();
+            for (var row = 0; row < GameLayout.Rulesets.MostRows; row++)
+            {
+                if (this.RulesetAt(this.session, row) != null)
+                {
+                    present.Add(GameIds.Current.RulesetName(row) ?? $"row {row}");
+                }
+            }
+
+            return $"Rulesets: session 0x{this.session.ToInt64():X}, {present.Count} of this area: {string.Join(", ", present)}";
+        }
+
+        /// <summary>
+        ///     Research (dev command "rulesets"): where the session is from the game state and from the area, by what a session
+        ///     must hold: rulesets that point back to it (+0x48 of each pointer of its array), and the area somewhere near +0x20F0.
+        ///     One and two pointers deep; reads tens of thousands of pointers, so only when asked.
+        /// </summary>
+        public IEnumerable<string> Probe()
+        {
+            var state = Core.States.InGameStateObject;
+            var areaNow = state.CurrentAreaInstance.Address;
+            yield return $"Rulesets probe: game state 0x{state.Address.ToInt64():X}, area 0x{areaNow.ToInt64():X}";
+            foreach (var (label, root) in new[] { ("game state", state.Address), ("area", areaNow) })
+            {
+                var block = this.memory.ReadBytes(root, GameLayout.Rulesets.GameStateSearchBytes);
+                for (var offset = 0; offset + IntPtr.Size <= block.Length; offset += IntPtr.Size)
+                {
+                    var first = new IntPtr(BitConverter.ToInt64(block, offset));
+                    if (first == IntPtr.Zero || !this.memory.IsValidAddress(first))
+                    {
+                        continue;
+                    }
+
+                    if (this.SessionLike(first, areaNow) is { } direct)
+                    {
+                        yield return $"Rulesets probe: {label} +0x{offset:X} -> 0x{first.ToInt64():X}: {direct}";
+                    }
+
+                    var inner = this.memory.ReadBytes(first, ProbeInnerBytes);
+                    for (var deeper = 0; deeper + IntPtr.Size <= inner.Length; deeper += IntPtr.Size)
+                    {
+                        var second = new IntPtr(BitConverter.ToInt64(inner, deeper));
+                        if (second != IntPtr.Zero && second != first && this.memory.IsValidAddress(second) && this.SessionLike(second, areaNow) is { } found)
+                        {
+                            yield return $"Rulesets probe: {label} +0x{offset:X} -> +0x{deeper:X} -> 0x{second.ToInt64():X}: {found}";
+                        }
+                    }
+                }
+            }
+
+            yield return "Rulesets probe: done";
+        }
+
+        private const int ProbeInnerBytes = 0x400;
+        private const int ProbeAreaSpan = 0x200;
+
+        /// <summary>What makes a pointer a session, or null: how many of its rulesets point back to it, and where it holds the area.</summary>
+        private string? SessionLike(IntPtr candidate, IntPtr areaNow)
+        {
+            var array = this.memory.ReadBytes(candidate + GameLayout.Rulesets.SessionRulesets, GameLayout.Rulesets.MostRows * IntPtr.Size);
+            var names = new List<string>();
+            for (var row = 0; row * IntPtr.Size + IntPtr.Size <= array.Length; row++)
+            {
+                var rules = new IntPtr(BitConverter.ToInt64(array, row * IntPtr.Size));
+                if (rules != IntPtr.Zero && this.memory.IsValidAddress(rules) &&
+                    this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetSession, out var owner) && owner == candidate)
+                {
+                    var name = this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetRow, out var datRow) && this.memory.IsValidAddress(datRow) &&
+                               this.memory.TryRead<IntPtr>(datRow, out var text) && this.memory.IsValidAddress(text)
+                        ? this.elements.ReadUtf16BufferAt(text, MaxNameChars) ?? "?"
+                        : "?";
+                    names.Add($"{row}={name}");
+                }
+            }
+
+            var around = this.memory.ReadBytes(candidate + GameLayout.Rulesets.SessionArea - (ProbeAreaSpan / 2), ProbeAreaSpan);
+            var areaAt = new List<string>();
+            for (var offset = 0; offset + IntPtr.Size <= around.Length; offset += IntPtr.Size)
+            {
+                if (areaNow != IntPtr.Zero && BitConverter.ToInt64(around, offset) == areaNow.ToInt64())
+                {
+                    areaAt.Add($"+0x{GameLayout.Rulesets.SessionArea - (ProbeAreaSpan / 2) + offset:X}");
+                }
+            }
+
+            return names.Count == 0 && areaAt.Count == 0
+                ? null
+                : $"{names.Count} rulesets point back ({string.Join(", ", names.Take(12))}); area held at {(areaAt.Count == 0 ? "nowhere near" : string.Join(", ", areaAt))}";
+        }
 
         private static bool IsGridCell(int x, int y) => x is >= 0 and < GameLayout.Rulesets.MostGridCells && y is >= 0 and < GameLayout.Rulesets.MostGridCells;
 
@@ -150,18 +242,32 @@ namespace Poe2Accessibility.Services
             return bytes > 0 && bytes % stride == 0 && bytes / stride <= MaxRecords && this.memory.IsValidAddress(first) ? (int)(bytes / stride) : null;
         }
 
-        /// <summary>A ruleset by the Id of its Rulesets.dat row; null when the area has none of that name.</summary>
+        /// <summary>
+        ///     A ruleset by the name of its Rulesets.dat row: the row's number comes from the game's files (catalog/game-ids.txt),
+        ///     else from what the exe of 0.5.5f had, and the object at that place of the session's array must point back to the
+        ///     session. Null when the area has none.
+        /// </summary>
         private IntPtr? Find(string name)
         {
-            if (!this.EnsureSession())
+            if (!this.EnsureSession() || RowOf(name) is not { } row || row < 0 || row >= GameLayout.Rulesets.MostRows)
             {
                 return null;
             }
 
-            return this.byName.TryGetValue(name, out var rules) ? rules : null;
+            return this.RulesetAt(this.session, row);
         }
 
-        /// <summary>Whether the session is known and still the area's; finds it, and its rulesets, when it is not.</summary>
+        private static int? RowOf(string name) =>
+            GameIds.Current.Ruleset(name) ?? (GameLayout.Rulesets.RowsOfThisBuild.TryGetValue(name, out var row) ? row : null);
+
+        /// <summary>The ruleset of a row in a session's array; null when there is none or it does not point back to the session.</summary>
+        private IntPtr? RulesetAt(IntPtr owner, int row) =>
+            this.memory.TryRead<IntPtr>(owner + GameLayout.Rulesets.SessionRulesets + (row * IntPtr.Size), out var rules) && this.memory.IsValidAddress(rules) &&
+            this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetSession, out var back) && back == owner
+                ? rules
+                : null;
+
+        /// <summary>Whether the session is known and still the area's; finds it when it is not.</summary>
         private bool EnsureSession()
         {
             var state = Core.States.InGameStateObject;
@@ -178,29 +284,16 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastSearch = now;
-            this.byName.Clear();
             (this.session, this.area) = (this.SearchSession(state.Address, areaNow), areaNow);
             if (this.session == IntPtr.Zero)
             {
                 if (!this.missLogged)
                 {
                     this.missLogged = true;
-                    this.log.Info("Rulesets: no pointer of the game state leads to a session of this area; the Breach's ring, the charges' total and the Trial's round stay unread");
+                    this.log.Info("Rulesets: no pointer of the area or the game state leads to a session of this area; the Breach's ring, the charges' total and the Trial's round stay unread");
                 }
 
                 return false;
-            }
-
-            for (var row = 0; row < GameLayout.Rulesets.MostRows; row++)
-            {
-                if (this.memory.TryRead<IntPtr>(this.session + GameLayout.Rulesets.SessionRulesets + (row * IntPtr.Size), out var rules) && this.memory.IsValidAddress(rules) &&
-                    this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetSession, out var owner) && owner == this.session &&
-                    this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetRow, out var datRow) && this.memory.IsValidAddress(datRow) &&
-                    this.memory.TryRead<IntPtr>(datRow, out var text) && this.memory.IsValidAddress(text) &&
-                    this.elements.ReadUtf16BufferAt(text, MaxNameChars) is { Length: > 0 } name)
-                {
-                    this.byName[name] = rules;
-                }
             }
 
             this.log.Info(this.Describe());
@@ -211,29 +304,30 @@ namespace Poe2Accessibility.Services
             this.memory.TryRead<IntPtr>(candidate + GameLayout.Rulesets.SessionArea, out var held) && held == areaNow;
 
         /// <summary>
-        ///     The session among the game state's pointers: the one the exe names first (+0x340), else any whose own pointer to the
-        ///     area is the area the host already reads.
+        ///     The session: where it was found in a running game (the area's +0x5B8), where the exe stores it, else any pointer of
+        ///     the area or of the game state whose own pointer to the area is the area the host already reads.
         /// </summary>
         private IntPtr SearchSession(IntPtr gameState, IntPtr areaNow)
         {
-            if (gameState == IntPtr.Zero)
+            foreach (var (root, hint, label) in new[] { (areaNow, GameLayout.Rulesets.AreaSession, "area"), (gameState, GameLayout.Rulesets.GameStateSession, "game state") })
             {
-                return IntPtr.Zero;
-            }
-
-            if (this.memory.TryRead<IntPtr>(gameState + GameLayout.Rulesets.GameStateSession, out var named) && this.memory.IsValidAddress(named) && this.PointsBackToArea(named, areaNow))
-            {
-                return named;
-            }
-
-            var block = this.memory.ReadBytes(gameState, GameLayout.Rulesets.GameStateSearchBytes);
-            for (var offset = 0; offset + IntPtr.Size <= block.Length; offset += IntPtr.Size)
-            {
-                var candidate = new IntPtr(BitConverter.ToInt64(block, offset));
-                if (candidate != IntPtr.Zero && this.memory.IsValidAddress(candidate) && this.PointsBackToArea(candidate, areaNow))
+                if (root != IntPtr.Zero && this.memory.TryRead<IntPtr>(root + hint, out var named) && this.memory.IsValidAddress(named) && this.PointsBackToArea(named, areaNow))
                 {
-                    this.log.Info($"Rulesets: session found at game state +0x{offset:X}, not +0x{GameLayout.Rulesets.GameStateSession:X}");
-                    return candidate;
+                    return named;
+                }
+            }
+
+            foreach (var (root, label) in new[] { (areaNow, "area"), (gameState, "game state") })
+            {
+                var block = root == IntPtr.Zero ? Array.Empty<byte>() : this.memory.ReadBytes(root, GameLayout.Rulesets.GameStateSearchBytes);
+                for (var offset = 0; offset + IntPtr.Size <= block.Length; offset += IntPtr.Size)
+                {
+                    var candidate = new IntPtr(BitConverter.ToInt64(block, offset));
+                    if (candidate != IntPtr.Zero && this.memory.IsValidAddress(candidate) && this.PointsBackToArea(candidate, areaNow))
+                    {
+                        this.log.Info($"Rulesets: session found at {label} +0x{offset:X}, not where it was (area +0x{GameLayout.Rulesets.AreaSession:X})");
+                        return candidate;
+                    }
                 }
             }
 
