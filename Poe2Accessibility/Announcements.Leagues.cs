@@ -83,6 +83,9 @@ namespace Poe2Accessibility
             _ => T($"Round {round} of {rounds}", $"Ronda {round} de {rounds}"),
         };
 
+        /// <summary>The Trial of Chaos' bar by quarters, under the game's own name of it (ClientStrings UltimatumBarDisplayName).</summary>
+        public static string TrialProgress(int percent) => T($"Challenge Progress: {percent}%", $"Progreso del desafío: {percent} %");
+
         /// <summary>A monster an Azmeri spirit has reached, by the game's name of it and of the buff.</summary>
         public static string Possessed(string name) => name.Length > 0
             ? T($"{name}, Possessed by an Azmeri Spirit", $"{name}, poseído por un espíritu azmeri")

@@ -110,6 +110,35 @@ namespace Poe2Accessibility.Services
             return (round + 1, total);
         }
 
+        /// <summary>
+        ///     The Trial of Chaos' round as the game names it: the kind's Id ("Survive") and the objective in the client's language
+        ///     ("Sobrevive"); null outside one, or when the pointers do not lead to a kind with a plain Id and a text.
+        /// </summary>
+        public (string Kind, string Text)? TrialObjective()
+        {
+            if (this.Find(GameLayout.Rulesets.UltimatumName) is not { } rules ||
+                !this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.UltimatumRoom, out var room) || !this.memory.IsValidAddress(room) ||
+                !this.memory.TryRead<IntPtr>(room + GameLayout.Rulesets.UltimatumRoomType, out var type) || !this.memory.IsValidAddress(type) ||
+                !this.memory.TryRead<IntPtr>(type, out var idText) || !this.memory.IsValidAddress(idText) ||
+                !this.memory.TryRead<IntPtr>(type + GameLayout.Rulesets.UltimatumTypeText, out var nameText) || !this.memory.IsValidAddress(nameText) ||
+                this.elements.ReadUtf16BufferAt(idText, MaxNameChars) is not { Length: > 0 } kind || !kind.All(char.IsAsciiLetterOrDigit) ||
+                this.elements.ReadUtf16BufferAt(nameText, MaxTextChars) is not { Length: > 0 } text || text.Any(char.IsControl))
+            {
+                return null;
+            }
+
+            return (kind, text);
+        }
+
+        private const int MaxTextChars = 120;
+
+        /// <summary>How full the Trial's bar "Challenge Progress" is, 0 to 1; null outside a Trial or when the float cannot be that.</summary>
+        public float? TrialProgress() =>
+            this.Find(GameLayout.Rulesets.UltimatumName) != null &&
+            this.memory.TryRead<float>(this.session + GameLayout.Rulesets.SessionTrialProgress, out var progress) && float.IsFinite(progress) && progress is >= 0f and <= 1f
+                ? progress
+                : null;
+
         /// <summary>Research: what was found, for the log and the dev command: the session and the area's rulesets by name.</summary>
         public string Describe()
         {
@@ -206,6 +235,32 @@ namespace Poe2Accessibility.Services
             return names.Count == 0 && areaAt.Count == 0
                 ? null
                 : $"{names.Count} rulesets point back ({string.Join(", ", names.Take(12))}); area held at {(areaAt.Count == 0 ? "nowhere near" : string.Join(", ", areaAt))}";
+        }
+
+        /// <summary>
+        ///     Research: the area's stats as upstream's layout places them (<see cref="GameLayout.AreaStats"/>), by the host's names
+        ///     of the stats; "unread" when the two pointers are not a vector of pairs. For the log, once per area.
+        /// </summary>
+        public string AreaStats()
+        {
+            var areaNow = Core.States.InGameStateObject.CurrentAreaInstance.Address;
+            if (areaNow == IntPtr.Zero || this.VectorCount(areaNow + GameLayout.AreaStats.VectorOffset, GameLayout.AreaStats.PairBytes) is not { } count ||
+                !this.memory.TryRead<IntPtr>(areaNow + GameLayout.AreaStats.VectorOffset, out var first))
+            {
+                return "Area stats: unread";
+            }
+
+            var pairs = new List<string>();
+            for (var index = 0; index < Math.Min(count, MaxRecords); index++)
+            {
+                if (this.memory.TryRead<int>(first + (index * GameLayout.AreaStats.PairBytes), out var stat) &&
+                    this.memory.TryRead<int>(first + (index * GameLayout.AreaStats.PairBytes) + sizeof(int), out var value))
+                {
+                    pairs.Add($"{(GameReader.RemoteEnums.GameStats)stat} ({stat}) = {value}");
+                }
+            }
+
+            return $"Area stats: {count} pairs{(pairs.Count > 0 ? ": " + string.Join(", ", pairs) : string.Empty)}";
         }
 
         private static bool IsGridCell(int x, int y) => x is >= 0 and < GameLayout.Rulesets.MostGridCells && y is >= 0 and < GameLayout.Rulesets.MostGridCells;

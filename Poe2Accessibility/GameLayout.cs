@@ -337,6 +337,20 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     The area's own stats (a map's modifiers, a logbook's increases): a vector of int32 pairs, stat and value, in the
+        ///     area instance. From upstream's layout only (GameHelper2, AreaInstanceOffsets.MapMods, read 2026-11-14), which nothing of
+        ///     theirs reads but an offset viewer: not validated here, so it is logged once per area and nothing is said from it yet
+        ///     (it would give a charge's reach its increase, <c>map_expedition_explosion_radius_+%</c>).
+        /// </summary>
+        public static class AreaStats
+        {
+            public static int VectorOffset { get; internal set; } = 0x158;
+
+            public const int PairBytes = 8;
+            public const int MostPairs = 512;
+        }
+
+        /// <summary>
         ///     Entity Monolith component, an Essence's crystal (the client's class, pool of 0x108 bytes): its network reader
         ///     (0x16F75E0) fills a vector of Essences rows at +0xC8 and stores the row of the monster held at +0xE0 (0x16F76D6:
         ///     49 89 95 E0 00 00 00); exe of 0.5.5f, 2026-11-14. <see cref="Services.EssenceContents"/> believes a row only when it
@@ -442,6 +456,22 @@ namespace Poe2Accessibility
             public static int UltimatumTotal { get; internal set; } = 0x1A9;
 
             public const int UltimatumMostRounds = 20;
+
+            /// <summary>
+            ///     The room being played, a row of UltimatumRooms (filled by packet type 5, 0x181FBF8, which loads that table by
+            ///     name); its +0x10 is the row of UltimatumEncounterTypes whose +8 is the objective's text, exactly what the HUD's
+            ///     label shows (0x572860: 48 8B 92 B0 01 00 00, then +0x10, then +8).
+            /// </summary>
+            public static int UltimatumRoom { get; internal set; } = 0x1B0;
+
+            public const int UltimatumRoomType = 0x10;
+            public const int UltimatumTypeText = 0x8;
+
+            /// <summary>
+            ///     In the session, not the ruleset: the float the bar "Challenge Progress" is drawn from (0x5787D2: F3 0F 10 B8 E0 23
+            ///     00 00), 0 to 1, written by a game-state message (0x2117C0E).
+            /// </summary>
+            public static int SessionTrialProgress { get; internal set; } = 0x23E0;
         }
 
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>

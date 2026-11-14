@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Services
         private readonly ChaosTrialHudNews trialHudNews = new();
         private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
         private long trialHudFound = long.MinValue / 2;
+        private bool areaStatsLogged;
         private long lastPoll;
         private string lastLogged = string.Empty;
 
@@ -60,6 +61,7 @@ namespace Poe2Accessibility.Services
             this.news.Reset();
             this.trialHudNews.Reset();
             this.trialHud.Reset();
+            this.areaStatsLogged = false;
             this.trialHudFound = long.MinValue / 2;
             (this.Charges, this.lastLogged) = (null, string.Empty);
         }
@@ -79,6 +81,11 @@ namespace Poe2Accessibility.Services
             this.Charges = this.reader.ExpeditionNear(player);
             var round = this.reader.TrialRound();
             this.LogChange(ring, round, player);
+            if (!this.areaStatsLogged)
+            {
+                this.areaStatsLogged = true;
+                this.log.Info(this.reader.AreaStats());
+            }
 
             foreach (var line in this.news.Breach(ring, player, now))
             {
@@ -102,6 +109,22 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.Quest, Announcements.Ruleset(RulesetLine.TrialRound, begun, trial.Total));
             }
 
+            var objective = round == null ? null : this.reader.TrialObjective();
+            if (objective is { } kind && this.trialHudLogged.Add($"objective {kind.Kind}"))
+            {
+                this.log.Info($"Trial objective: {kind.Kind} = \"{kind.Text}\""); // confirms the room's row and its kind's text
+            }
+
+            if (this.news.Objective(objective?.Text) is { } asked && trials)
+            {
+                this.output.Say(SpeechKind.Quest, asked);
+            }
+
+            if (this.news.Progress(round == null ? null : this.reader.TrialProgress()) is { } percent && trials)
+            {
+                this.output.Say(SpeechKind.Quest, Announcements.TrialProgress(percent));
+            }
+
             // Inside a Trial of Chaos only (its ruleset is there). The whole interface is walked every few seconds for the Trial's
             // elements; between walks only those are looked at.
             if (round != null)
@@ -123,7 +146,8 @@ namespace Poe2Accessibility.Services
 
                 foreach (var line in this.trialHudNews.Heard(shown, now))
                 {
-                    if (trials)
+                    // The objective is said from the ruleset: the same words on screen are not said twice.
+                    if (trials && line != objective?.Text)
                     {
                         this.output.Say(SpeechKind.Quest, line);
                     }

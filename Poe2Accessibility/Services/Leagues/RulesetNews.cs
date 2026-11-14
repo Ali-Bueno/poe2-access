@@ -70,9 +70,12 @@ namespace Poe2Accessibility.Services
         private bool? inside;
         private long edgeSaid = long.MinValue / 2;
         private int? round;
+        private string? objective;
+        private int progressQuarter = -1;
 
         /// <summary>A new area: nothing has been read.</summary>
-        public void Reset() => (this.quarter, this.inside, this.edgeSaid, this.round) = (-1, null, long.MinValue / 2, null);
+        public void Reset() =>
+            (this.quarter, this.inside, this.edgeSaid, this.round, this.objective, this.progressQuarter) = (-1, null, long.MinValue / 2, null, null, -1);
 
         /// <summary>The lines of the ring nearest the player while it grows; none for a ring closing or not there.</summary>
         public List<RulesetLine> Breach(BreachRing? ring, Vector2 player, long now)
@@ -117,6 +120,39 @@ namespace Poe2Accessibility.Services
             }
 
             return lines;
+        }
+
+        /// <summary>
+        ///     The round's objective when it is another than the one last said, the first of a Trial included: walking into the
+        ///     room is when the player needs it. Null otherwise.
+        /// </summary>
+        public string? Objective(string? shown)
+        {
+            if (shown == null || shown == this.objective)
+            {
+                return null;
+            }
+
+            this.objective = shown;
+            return shown;
+        }
+
+        /// <summary>
+        ///     The quarter of the Trial's bar just reached, as a percentage (25, 50, 75); null otherwise. The bar going back, a new
+        ///     round, starts it again; what it shows when first read is not news.
+        /// </summary>
+        public int? Progress(float? shown)
+        {
+            if (shown is not { } value)
+            {
+                this.progressQuarter = -1;
+                return null;
+            }
+
+            var reached = Math.Clamp((int)(value * 4f), 0, 4);
+            var was = this.progressQuarter;
+            this.progressQuarter = reached;
+            return was >= 0 && reached > was && reached is >= 1 and <= 3 ? reached * 25 : null;
         }
 
         /// <summary>The Trial of Chaos round now, counted from 1, when it has just changed; null otherwise, and for what stands when first read.</summary>

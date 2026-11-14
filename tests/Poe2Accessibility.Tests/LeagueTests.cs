@@ -96,6 +96,20 @@ namespace Poe2Accessibility.Tests
             Equal(null, news.Round(null), "the trial left");
             Equal("Round 3 of 10", Announcements.Ruleset(RulesetLine.TrialRound, 3, 10), "as the window writes it");
 
+            Equal("Slay all Monsters", news.Objective("Slay all Monsters"), "the first room's objective is said: walking in is when it is needed");
+            Equal(null, news.Objective("Slay all Monsters"), "once");
+            Equal(null, news.Objective(null), "between rooms");
+            Equal(null, news.Objective("Slay all Monsters"), "the same objective back is no news");
+            Equal("Survive", news.Objective("Survive"), "the next room's");
+            Equal(null, news.Progress(0.1f), "the bar when first read");
+            Equal(25, news.Progress(0.3f), "a quarter of the challenge");
+            Equal(null, news.Progress(0.4f), "said once");
+            Equal(75, news.Progress(0.8f), "two quarters at once: the one reached");
+            Equal(null, news.Progress(1f), "full: the round's end is said by the game");
+            Equal(null, news.Progress(0.05f), "a new round starts it again");
+            Equal(50, news.Progress(0.5f), "and its quarters are said anew");
+            Equal("Challenge Progress: 50%", Announcements.TrialProgress(50), "under the bar's own name");
+
             var altar = new LeagueNews();
             Equal(0, altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 0)), "RitualRune").Count, "an altar with its monsters around");
             Equal("RitualReady", string.Join(" ", altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 1)), "RitualRune")), "they are dead: the altar can be used");
