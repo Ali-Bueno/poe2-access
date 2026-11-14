@@ -373,8 +373,34 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
   Planificador de builds L3, Inspeccionar R3, Navegar left stick.
 - Mod: `AscendancyChoiceWatch` (pure `AscendancyChoice`) finds the cards by their `flavour_text_label`, names each
   from the catalog by that line (`TrialCatalog.AscendancyOf`), takes the larger card as the chosen one and says it on
-  opening and on each change: "Herrero de Kitava, 3 de 3, en la build. Ansías el poder…". What A and R3 open is not
-  measured yet. The class art is per base class (TitanAscendancy.dds for all three Warrior rows): no use.
+  opening and on each change: "Herrero de Kitava, 3 de 3, en la build. Ansías el poder…". The class art is per base
+  class (TitanAscendancy.dds for all three Warrior rows): no use.
+- Flow with a controller (MEASURED live 2026-11-14 with the pad and the focus slots traced, research mode):
+  - Cards: the left stick left/right walks them; up/down, or the D-pad, focuses the Build Planner's `collapse_button`.
+    A opens the chosen card: it grows to twice the others (1170 wide) and shows its tree alone, a preview. B closes.
+  - Preview: its canvas is a passive tree's (state at `canvas+0x3D8`, 24 node elements for the Smith of Kitava), so
+    the passive tree's readers work on it. The left stick moves the tree's cursor node to node (the hover slot), and
+    each push also leaves the game's focus slot on `collapse_button`, which hid the node from the mod
+    (`FocusTracker.HoverOverFocus`, `UiSemantics.NodeUnderPlannerButton`: the node is told while the planner is
+    folded). The game marks no build node there (`+0x70C` clear): the marks come from the build file
+    (`UiSemantics.IsClassPreview`, `PlanOf`); matched against an empty mark set, the character's build was forgotten.
+  - A in the preview: with the focus slot empty (nothing moved since the card opened; after R3 "Inspeccionar" and B;
+    after the planner was unfolded and B folded it) it opens the popup "¿Confirmas esta ascendencia?"
+    (`GamepadConfirmAscendancyWarning`) with "confirmar" and "atrás", read by the generic popup reader; A there
+    ascends, and the game opens the passive tree. With the focus on `collapse_button` A unfolds or folds the planner
+    instead, however long one waits. The preview says how to ascend once per visit, and an unfolded planner says the
+    class was not taken (`Announcements.AscendancyPreviewHelp`, `AscendancyPlannerOpened`).
+  - Each card also holds a hidden row of two buttons, "Atrás" and "Ascender" (sounds AscendConfirmDown/Up; labels of
+    the class whose text is at `+0x308`): the mouse's, never shown with a controller.
+  - R3 inspects the hovered node (the usual inspect layer); L3 unfolds the planner (combo box "Build activa").
+  - The D-pad is the finder's on a node; with a control focused it is the game's (`PreviewAnchor`, `finderFocus`).
+- After ascending (MEASURED 2026-11-14): the ascendancy's tree is a canvas of its own in the passive tree screen
+  (24 node elements, its own graph for the mod), reached with the stick from the nodes about the class's start; the
+  game marks the build's nodes on it. Its start node ("AscendancyWarrior3Start", tooltip "Has ascendido…") is the
+  character's by ascending, in no allocated list, and first in the build file: `BuildPlan.IsAscendancyStart`, the
+  graph's own start there. The HUD line reads "Puntos de ascendencia: 2". Not done: a guide from the class's tree to
+  the ascendancy's (the Build list of the class's tree still says "pasivas de ascendencia, que este árbol aún no
+  muestra").
 
 ## 4. Acts 3 and 4
 

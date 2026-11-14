@@ -217,6 +217,23 @@ Items on the ground are grouped by kind: flasks, equipment (armour, weapons, qui
 currency, gold, quest items, other items, and the rare layer. Kept in `config/settings.txt` as `SoundLevels`
 (`{"item_flask": 75, "dodge": 150}`; a sound not listed is at 100).
 
+## Altar of Ascendancy
+
+After a trial, A on the altar opens "Choose your Ascendancy Class". The left stick, left and right, walks the classes:
+"Smith of Kitava, 3 of 3, in the build" (the class the Build Planner's build takes), then the game's line about it. A
+opens the class's tree as a preview, B closes the window; nothing is chosen yet.
+
+In the preview the left stick moves from node to node and the D-pad is the finder, as in the passive tree, with the
+build's marks and its next node; the right stick's click inspects a node, the left stick's click unfolds the Build
+Planner, B goes back to the classes. A asks "Confirm this Ascendancy?" (confirm, back), and A there ascends, but only
+while the game's own cursor is on nothing: once the stick has moved it rests on the Build Planner's button and A unfolds
+the planner instead ("The Build Planner unfolded, the class was not taken"). So ascend with A before moving, or after
+moving press the right stick's click, then B, then A. The preview says this once per visit.
+
+Ascending opens the passive tree with the ascendancy's own small tree beside the class's start: its points are spent
+there with A like any other ("Ascendancy Points: 2" is read on opening), and on its nodes the build's guide names the
+next one to take.
+
 ## Passive tree
 
 The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with the push of
