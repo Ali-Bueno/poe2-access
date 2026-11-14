@@ -143,8 +143,8 @@ namespace Poe2Accessibility.Services
             // The Build Planner's active build: the nodes the tree marks, with the author's notes when the file is here.
             var marked = this.BuildMarks(graph);
             // Marks that cannot be read say nothing of the build: the plan known from the game's settings stays.
-            var plan = this.buildMarksUnreadable ? null : this.buildPlans.Matching(AskingCharacter(), marked.Select(this.PassiveIdOf).ToHashSet());
-            if (plan != null)
+            var plan = this.PlanOf(graph, marked);
+            if (plan != null && !this.IsClassPreview(graph))
             {
                 CompatibilityReport.Current?.Found(BuildMarksPart); // a file's passives under the marks: the byte is the mark
             }
@@ -319,8 +319,9 @@ namespace Poe2Accessibility.Services
                              $"no linked step {(this.PassiveRow(record) is { } hoveredRow ? this.ReadPassiveRow(record, hoveredRow).NoLinkedStep : "?")}";
             }
 
-            var marked = this.BuildMarks(graph).Select(this.PassiveIdOf).ToHashSet();
-            yield return $"build marks {marked.Count}: {string.Join(' ', marked.Take(12))}; file: {this.buildPlans.Matching(AskingCharacter(), marked)?.Name ?? "none"}";
+            var marks = this.BuildMarks(graph);
+            var marked = marks.Select(this.PassiveIdOf).ToHashSet();
+            yield return $"build marks {marked.Count}: {string.Join(' ', marked.Take(12))}; file: {this.PlanOf(graph, marks)?.Name ?? "none"}";
             var near = new List<(double Distance, string Line)>();
             foreach (var (other, element) in graph.Elements)
             {

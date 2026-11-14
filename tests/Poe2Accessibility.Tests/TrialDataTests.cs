@@ -54,6 +54,10 @@ namespace Poe2Accessibility.Tests
             var level = cards.Select(card => card with { Width = 585 }).ToList();
             Expect(-1, AscendancyChoice.Chosen(level));
             Expect(-1, AscendancyChoice.Chosen(new[] { cards[0] }));
+            var opened = cards.Select(card => card with { Width = card.InBuild ? 1170 : 585 }).ToList();
+            Expect(2, AscendancyChoice.Chosen(opened));
+            Expect(false, AscendancyChoice.Opened(cards, 0));
+            Expect("Smith of Kitava, tree preview", AscendancyChoice.Line(opened, 2));
         }
 
         private static void Expect<T>(T expected, T actual)

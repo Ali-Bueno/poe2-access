@@ -8,8 +8,16 @@ namespace Poe2Accessibility.Services
     /// <summary>Focus rules of <see cref="ScreenNarrator"/>: the cursor's move, its late tooltip, a changed value, a tab switch, and the per-frame waits behind them.</summary>
     public sealed partial class ScreenNarrator
     {
+        /// <summary>A focus the game moved as a side effect of a press the mod answers itself: not said (set by the plugin).</summary>
+        public Func<AccessibleUiNode, bool>? FocusUnsaid { get; set; }
+
         public void OnFocusChanged(AccessibleUiNode node)
         {
+            if (this.FocusUnsaid?.Invoke(node) == true)
+            {
+                return;
+            }
+
             this.lastFocusAt = DateTime.UtcNow;
             if (node.Name == EngraveChoiceName && node.Text.Length > 0)
             {

@@ -13,8 +13,7 @@ namespace Poe2Accessibility.Services
     {
         private const long PollMs = 250;
 
-        /// <summary>A card's line about its class: a label of this name, two levels under the card (dump 2026-11-14).</summary>
-        private const string AboutName = "flavour_text_label";
+        /// <summary>The label about the class lies in the card's tree, two levels under the card (dump 2026-11-14).</summary>
         private const int AboutHops = 2;
 
         /// <summary>The labels lie four levels under the window; its three cards hold some 110 elements down to there.</summary>
@@ -50,6 +49,9 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>Gets the tree of the class A opened, while it fills the screen; zero otherwise.</summary>
+        public IntPtr OpenedTree { get; private set; }
+
         /// <summary>Per frame, with the panel covering the game (zero: none) and whether a control of it has the focus.</summary>
         public void Tick(IntPtr panelOverGame, bool focusHeld)
         {
@@ -77,13 +79,26 @@ namespace Poe2Accessibility.Services
                 this.said = string.Empty;
             }
 
-            if (this.cards.Count < 2 || now - this.openedAt < TitleMs)
+            if (this.cards.Count < 2)
+            {
+                this.OpenedTree = IntPtr.Zero;
+                return;
+            }
+
+            if (now - this.openedAt < TitleMs)
             {
                 return;
             }
 
             var ordered = AscendancyChoice.InOrder(this.cards.Select(this.Read).OfType<AscendancyCard>());
-            var chosen = ordered.Count == this.cards.Count ? AscendancyChoice.Chosen(ordered) : -1;
+            if (ordered.Count != this.cards.Count)
+            {
+                this.cards = this.FindCards(panelOverGame); // a card the game made anew: looked for again
+                return;
+            }
+
+            var chosen = AscendancyChoice.Chosen(ordered);
+            this.OpenedTree = AscendancyChoice.Opened(ordered, chosen) ? ordered[chosen].Tree : IntPtr.Zero;
             var line = AscendancyChoice.Line(ordered, chosen);
             if (line.Length == 0 || line == this.said)
             {
@@ -112,7 +127,7 @@ namespace Poe2Accessibility.Services
             while (queue.Count > 0 && budget-- > 0)
             {
                 var (node, depth) = queue.Dequeue();
-                if (node.Name == AboutName)
+                if (node.Name == AscendancyChoice.AboutName)
                 {
                     var card = this.elements.ReadAncestors(node, AboutHops);
                     if (card.Count == AboutHops)
@@ -151,13 +166,13 @@ namespace Poe2Accessibility.Services
 
             var catalog = this.catalog();
             var name = catalog.AscendancyOf(about) is { } key ? catalog.Text(key) : string.Empty;
-            return new AscendancyCard(name, about, this.HasMark(info, card.About), position.X + (size.X / 2), size.X);
+            var tree = this.elements.TryReadElement(card.About, out var label) ? label.Raw.ParentPtr : IntPtr.Zero;
+            return new AscendancyCard(name, about, this.HasMark(info, tree), position.X + (size.X / 2), size.X, tree);
         }
 
         /// <summary>The Build Planner writes the build's name on the card of its class: the card's only text outside its tree.</summary>
-        private bool HasMark(in UiElementReader.ElementInfo card, IntPtr about)
+        private bool HasMark(in UiElementReader.ElementInfo card, IntPtr tree)
         {
-            var tree = this.elements.TryReadElement(about, out var label) ? label.Raw.ParentPtr : IntPtr.Zero;
             var stack = new Stack<(IntPtr Address, int Depth)>();
             foreach (var child in this.elements.ReadChildren(card))
             {

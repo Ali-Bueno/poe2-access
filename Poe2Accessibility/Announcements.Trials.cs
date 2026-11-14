@@ -27,6 +27,9 @@ namespace Poe2Accessibility
                 about,
             });
 
+        /// <summary>A class's card opened with A on the Altar of Ascendancy: its tree fills the screen, the class not taken yet.</summary>
+        public static string AscendancyTree(string name) => T($"{name}, tree preview", $"{name}, vista previa del árbol");
+
         /// <summary>An icon of the trials by what it stands for: "Affliction: Honed Claws. Monsters deal 30% more Damage".</summary>
         public static string TrialEntry(TrialEntryKind kind, string name, string about)
         {

@@ -118,9 +118,31 @@ namespace Poe2Accessibility
                 : (0, 0);
             if (list != 0 || entry != 0)
             {
+                this.lastTreeDirectionAt = Environment.TickCount64;
                 this.commands?.OnTreeDirection(list, entry);
             }
         }
+
+        /// <summary>
+        ///     The game answers a D-pad press in a frame or two; a focus within this long of one is the press's doing
+        ///     (the Altar of Ascendancy's preview: the planner's button, 16 ms after, log 2026-11-14).
+        /// </summary>
+        private const long TreeDirectionFocusMs = 500;
+
+        private long lastTreeDirectionAt = long.MinValue / 2;
+
+        /// <summary>The last passive node the cursor was on.</summary>
+        private IntPtr lastTreeNode;
+
+        /// <summary>The tree of the class opened on the Altar of Ascendancy; zero when none is.</summary>
+        private IntPtr PreviewTree => this.ascendancy?.OpenedTree ?? IntPtr.Zero;
+
+        /// <summary>
+        ///     On a class's preview the D-pad is the finder's, as in the passive tree, but the game also sends the focus to
+        ///     the Build Planner's button with it: that focus is not said over the finder's answer.
+        /// </summary>
+        private bool FocusOfFinderPress(AccessibleUiNode node) =>
+            !node.IsPassiveNode && this.PreviewTree != IntPtr.Zero && Environment.TickCount64 - this.lastTreeDirectionAt < TreeDirectionFocusMs;
 
         /// <summary>
         ///     A D-pad press that leaves the cursor where it was says its control again (<see cref="BlockedMove"/>). Not the
@@ -138,7 +160,7 @@ namespace Poe2Accessibility
                 return;
             }
 
-            var resting = this.Settings.RepeatOnBlockedMove && !state.IsDown(GameLayout.PadButtons.LeftStick) &&
+            var resting = this.Settings.RepeatOnBlockedMove && !state.IsDown(GameLayout.PadButtons.LeftStick) && this.PreviewTree == IntPtr.Zero &&
                           this.focus?.Current is { IsHovered: false, IsPassiveNode: false } current ? current : null;
             var line = resting == null ? string.Empty : Announcements.Focused(resting);
             var now = Environment.TickCount64;

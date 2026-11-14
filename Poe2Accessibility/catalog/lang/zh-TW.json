@@ -1087,6 +1087,7 @@
  "{0}, socketed": "{0}，已鑲嵌",
  "{0}, socketed in {1}": "{0}，已鑲嵌於 {1}",
  "{0}, the build asks for {1}": "{0}，流派需要 {1}",
+ "{0}, tree preview": "{0},樹狀預覽",
  "{0}, you have {1}": "{0}，你有 {1}",
  "{0}, {1} away, a closed barrier cuts the way: {2}": "{0}，距離{1}，關閉的屏障擋住了路：{2}",
  "{0}, {1} away, the way is long: {2}": "{0}，距離{1}，路途很長：{2}",

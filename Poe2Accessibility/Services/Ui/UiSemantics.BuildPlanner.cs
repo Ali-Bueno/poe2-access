@@ -19,8 +19,29 @@ namespace Poe2Accessibility.Services
         private const int MaxBuildPushes = 6;
 
         private readonly BuildPlanFolder buildPlans = new(BuildPlanFolder.Default, BuildPlanFolder.DefaultConfig);
-        private (IntPtr State, long At, HashSet<IntPtr> Records)? buildMarks;
+        private (IntPtr Canvas, long At, HashSet<IntPtr> Records)? buildMarks;
         private bool buildMarksUnreadable;
+        private (IntPtr Canvas, bool Preview) classPreview;
+
+        /// <summary>
+        ///     A class's tree on the Altar of Ascendancy, shown before the class is taken (its canvas holds the card's
+        ///     line about the class): the game marks no build on it, so the build's file says which nodes are its own.
+        /// </summary>
+        private bool IsClassPreview(PassiveGraph graph)
+        {
+            if (this.classPreview.Canvas != graph.Canvas)
+            {
+                this.classPreview = (graph.Canvas, this.elements.FindNamed(graph.Canvas, AscendancyChoice.AboutName, 1) != null);
+            }
+
+            return this.classPreview.Preview;
+        }
+
+        /// <summary>The build file behind the marks; on a class's preview the character's active one, which its unmarked tree must not undo.</summary>
+        private BuildPlan? PlanOf(PassiveGraph graph, HashSet<IntPtr> marked) =>
+            this.IsClassPreview(graph) ? this.buildPlans.Active(AskingCharacter())
+            : this.buildMarksUnreadable ? null
+            : this.buildPlans.Matching(AskingCharacter(), marked.Select(this.PassiveIdOf).ToHashSet());
 
         /// <summary>Gets or sets the log of which build file a character follows and why (set by the plugin).</summary>
         public Action<string>? BuildPlanLog
@@ -45,13 +66,21 @@ namespace Poe2Accessibility.Services
         private HashSet<IntPtr> BuildMarks(PassiveGraph graph)
         {
             var now = Environment.TickCount64;
-            if (this.buildMarks is { } cached && cached.State == graph.State && now - cached.At < BuildMarksMs)
+            if (this.buildMarks is { } cached && cached.Canvas == graph.Canvas && now - cached.At < BuildMarksMs)
             {
                 return cached.Records;
             }
 
-            var shift = this.elements.Controls?.Current(ControlGroup.PassiveNode) ?? 0;
             var records = new HashSet<IntPtr>();
+            if (this.IsClassPreview(graph))
+            {
+                var ids = this.buildPlans.Active(AskingCharacter())?.Passives.Select(passive => passive.Id).ToHashSet() ?? new HashSet<string>();
+                records.UnionWith(graph.Elements.Keys.Where(record => ids.Contains(this.PassiveIdOf(record))));
+                this.buildMarks = (graph.Canvas, now, records);
+                return records;
+            }
+
+            var shift = this.elements.Controls?.Current(ControlGroup.PassiveNode) ?? 0;
             foreach (var (record, element) in graph.Elements)
             {
                 if (this.reader.TryRead<byte>(element + GameLayout.PassiveTree.NodeInBuildOffset + shift, out var mark) && mark == 1)
@@ -67,7 +96,7 @@ namespace Poe2Accessibility.Services
                 records.Clear();
             }
 
-            this.buildMarks = (graph.State, now, records);
+            this.buildMarks = (graph.Canvas, now, records);
             return records;
         }
 

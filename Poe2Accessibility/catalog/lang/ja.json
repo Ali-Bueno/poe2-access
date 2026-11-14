@@ -1087,6 +1087,7 @@
  "{0}, socketed": "{0}、ソケット済み",
  "{0}, socketed in {1}": "{0}、{1}にソケット",
  "{0}, the build asks for {1}": "{0}、ビルドでは{1}",
+ "{0}, tree preview": "{0}、ツリーのプレビュー",
  "{0}, you have {1}": "{0}、{1}を所持",
  "{0}, {1} away, a closed barrier cuts the way: {2}": "{0}、{1}先、閉じた障壁が道をふさいでいます：{2}",
  "{0}, {1} away, the way is long: {2}": "{0}、{1}先、道のりが長い：{2}",

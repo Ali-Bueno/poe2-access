@@ -1087,6 +1087,7 @@
  "{0}, socketed": "{0}, 장착됨",
  "{0}, socketed in {1}": "{0}, {1}에 장착됨",
  "{0}, the build asks for {1}": "{0}, 빌드는 {1} 요구",
+ "{0}, tree preview": "{0}, 트리 미리 보기",
  "{0}, you have {1}": "{0}, {1} 보유",
  "{0}, {1} away, a closed barrier cuts the way: {2}": "{0}, {1} 거리, 닫힌 장벽이 길을 막고 있습니다: {2}",
  "{0}, {1} away, the way is long: {2}": "{0}, {1} 거리, 길이 멉니다: {2}",

@@ -1087,6 +1087,7 @@
  "{0}, socketed": "{0}, engastada",
  "{0}, socketed in {1}": "{0}, engastada em {1}",
  "{0}, the build asks for {1}": "{0}, o arquétipo pede {1}",
+ "{0}, tree preview": "{0}, pré-visualização da árvore",
  "{0}, you have {1}": "{0}, você tem {1}",
  "{0}, {1} away, a closed barrier cuts the way: {2}": "{0}, a {1}, uma barreira fechada corta o caminho: {2}",
  "{0}, {1} away, the way is long: {2}": "{0}, a {1}, o caminho é longo: {2}",

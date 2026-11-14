@@ -261,10 +261,14 @@ namespace Poe2Accessibility.Services
             this.beacon.Lock(choice, asked: true);
         }
 
+        /// <summary>A node of the tree in front when the cursor is on none of it (the Altar of Ascendancy's preview); zero in any other tree.</summary>
+        public Func<IntPtr>? TreeAnchor { get; set; }
+
         /// <summary>A D-pad press on a passive node: up and down change the finder's list, left and right its entry.</summary>
         public void OnTreeDirection(int listStep, int entryStep)
         {
-            if (this.focus.Current is { IsPassiveNode: true } node && this.semantics.PassiveFinderMove(node.Address, listStep, entryStep) is { } said)
+            var node = this.focus.Current is { IsPassiveNode: true } on ? on.Address : this.TreeAnchor?.Invoke() ?? IntPtr.Zero;
+            if (node != IntPtr.Zero && this.semantics.PassiveFinderMove(node, listStep, entryStep) is { } said)
             {
                 this.output.Speak(said, true);
             }

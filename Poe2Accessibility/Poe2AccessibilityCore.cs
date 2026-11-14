@@ -225,12 +225,17 @@ namespace Poe2Accessibility
                 this.narrator.PanelOverGame = () => this.PanelOverGame() != null;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
                 this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
+                this.narrator.FocusUnsaid = this.FocusOfFinderPress;
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
                 this.focus.FocusChanged += node =>
                 {
                     if (!node.IsPassiveNode)
                     {
                         this.semantics?.PassiveFocusLeft();
+                    }
+                    else
+                    {
+                        this.lastTreeNode = node.Address;
                     }
 
                     // Only what the manager's own focus slot holds teaches the navigable bit. The tracker also reports as the
@@ -404,6 +409,7 @@ namespace Poe2Accessibility
                 this.semantics.TrialFloorNote = note => this.log?.Info(note);
                 this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.ascendancy = new AscendancyChoiceWatch(elements, () => this.semantics?.Trials ?? TrialCatalog.Empty, this.output, this.log);
+                this.commands.TreeAnchor = () => this.PreviewTree is var tree && tree != IntPtr.Zero ? this.semantics?.FinderAnchor(tree, this.lastTreeNode) ?? IntPtr.Zero : IntPtr.Zero;
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;

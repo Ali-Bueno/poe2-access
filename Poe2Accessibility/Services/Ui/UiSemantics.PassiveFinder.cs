@@ -48,6 +48,42 @@ namespace Poe2Accessibility.Services
             set => this.resume = new PassiveResume(value);
         }
 
+        /// <summary>
+        ///     A node of <paramref name="canvas"/> for the finder to start from while the cursor is on none: the last one it
+        ///     was on when that is the canvas's, else the first node read there; zero for a canvas without nodes.
+        /// </summary>
+        public IntPtr FinderAnchor(IntPtr canvas, IntPtr lastNode)
+        {
+            if (this.elements.TryReadElement(lastNode, out var last) && this.elements.TryReadElement(last.Raw.ParentPtr, out var holder) &&
+                holder.Raw.ParentPtr == canvas && this.NodeRecord(lastNode) != null)
+            {
+                return lastNode;
+            }
+
+            if (!this.elements.TryReadElement(canvas, out var tree))
+            {
+                return IntPtr.Zero;
+            }
+
+            foreach (var groupAddress in this.elements.ReadChildren(tree))
+            {
+                if (!this.elements.TryReadElement(groupAddress, out var group) || !group.IsVisibleFlag)
+                {
+                    continue;
+                }
+
+                foreach (var node in this.elements.ReadChildren(group))
+                {
+                    if (this.NodeRecord(node) is { } record && this.PassiveRow(record) != null)
+                    {
+                        return node;
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
         /// <summary>A D-pad press on a passive node: moves the finder and returns what to say; null when the tree cannot be read.</summary>
         /// <param name="hovered">The hovered node's element.</param>
         /// <param name="listStep">+1 next list, -1 previous, 0 to stay in it.</param>
@@ -63,7 +99,7 @@ namespace Poe2Accessibility.Services
             var atlas = this.AtlasOf(graph);
             var steps = atlas.StepsFrom(this.AllocatedIds(graph.State));
             var marked = this.BuildMarks(graph);
-            var plan = marked.Count > 0 ? this.buildPlans.Matching(AskingCharacter(), marked.Select(this.PassiveIdOf).ToHashSet()) : null;
+            var plan = marked.Count > 0 ? this.PlanOf(graph, marked) : null;
             var order = plan == null ? null : this.BuildStepsOf(plan, marked);
             int BuildStep(IntPtr node) => order != null && order.Steps.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
             IReadOnlyList<IntPtr> Members(PassiveCategory category) => atlas.Members(category, steps, record, marked, BuildStep);
