@@ -40,13 +40,13 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | opened_way | ExitDoorArena | Environment_Sanctum_EntranceDoor_Impact_01 (the Trial's entrance door striking home, cut to 1.5 s; the user's pick, see [an opened way](#an-opened-way-2026-11-12)) |
 | closed_door | PrecursorDoor | PrecursorDoor_Mechanic_01 (a door's mechanism clicking, 0.26 s; the user's pick, see [a door to open](#a-door-to-open-2026-11-14)) |
 | league_breach | BreachEncounterPortal | Environment_Breach_Portal_Open_01 (see [league encounters](#league-encounters-2026-11-14)) |
-| league_delirium | DeliriumEncounterObject | Gameplay_Delirium_EncounterObject_Activate_Stinger_01 |
-| league_essence | Four_EssenceStingers | Environment_Endgame_EssenceMonoliths_Stinger_Activate_01 |
+| league_delirium | Four_Delirium | Delirium_UI_SpecialReveal_01 (the user's pick, C) |
+| league_essence | EssenceMonoliths | Environment_Endgame_EssenceMonoliths_Break_Foley_01 (the user's pick, C) |
 | league_expedition | ExplosivesMechanic_Expedition | ActivatePlunger_01 (the detonator's plunger) |
 | league_abyss | Abyss_General | Abyss_QuestStart |
 | league_spirit | Four_TormentedSpirits | TormentedSpirit_Wisp_Vocal_Call_01 |
 | league_vaal | Four_Incursion | StartEncounter_01 |
-| league_strongbox | Strongboxes | Gameplay_Endgame_Strongboxes_Stinger_Activate_01 |
+| league_strongbox | Strongboxes | Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01 (the user's pick, C) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
@@ -292,15 +292,19 @@ which `ObjectSounds.SoundFor` had no sound for, so a Breach, a Delirium mirror, 
 silence. Each mechanic now rings with a recording of its own, the sound the game plays as that encounter starts
 (`LeaguePieces.SoundOf`: by the piece, or by the league's folder for an object the table does not hold; `ScanEntry.Sound`; the
 group `encounters` keeps its one voice, the nearest). A strongbox rings as itself among the chests. An Expedition marker has no
-sound: there are dozens. Cues `league_*` above, levelled to RMS 0.10, cut to 1.5 s; the sounds step is version 12.
+sound: there are dozens. Cues `league_*` above, levelled to RMS 0.10, cut to 1.5 s; the sounds step is version 13.
 
-The eight wired are the first of three candidates each on an [audition page](https://claude.ai/artifact/EMoXQVZ5zex1Sw4p7L23UJ) (once, and
-repeated as on a walk toward it), beside the Ritual altar, the shrine, the chest, the quest item, the door, the exit and the opened
-way: chosen by name and envelope, **not yet by the user's ear**. The other candidates, by bank and sample: Breach B
-`BreachEncounterPortal` `…Portal_Open_Foley_Hand_01`, C `…Portal_Wide_01`; Delirium B `DeliriumEncounterObject`
-`Gameplay_Delirium_Gigamirror_Stinger_Activate_01`, C `Four_Delirium` `Delirium_UI_SpecialReveal_01`; Essence B `EssenceMonoliths`
-`…Break_Effects_01`, C `…Break_Foley_01`; Expedition B `Four_Expedition` `Expedition_UI_EncounterStartHit_01`, C
+Three candidates each stand on an [audition page](https://claude.ai/artifact/EMoXQVZ5zex1Sw4p7L23UJ) (once, and repeated as on a
+walk toward it), beside the Ritual altar, the shrine, the chest, the quest item, the door, the exit and the opened way. **The user
+listened on 2026-11-14 and picked C for Essence, Delirium and the strongbox** ("el de la esencia me gustó más el c, el del delirio creo
+que también el c está mejor, la caja fuerte creo que el c también es mejor"); the other five keep candidate A, which the user did not
+object to. The candidates not wired, by bank and sample: Breach B
+`BreachEncounterPortal` `…Portal_Open_Foley_Hand_01`, C `…Portal_Wide_01`; Delirium A `DeliriumEncounterObject`
+`Gameplay_Delirium_EncounterObject_Activate_Stinger_01`, B `Gameplay_Delirium_Gigamirror_Stinger_Activate_01`; Essence A
+`Four_EssenceStingers` `Environment_Endgame_EssenceMonoliths_Stinger_Activate_01`, B `EssenceMonoliths`
+`…Break_Effects_01`; Expedition B `Four_Expedition` `Expedition_UI_EncounterStartHit_01`, C
 `ExplosivesMechanic_Expedition` `PlaceExplosive_01`; Abyss B `AbyssGameplay` `Abyss_Convert`, C `AbyssChasms`
 `Environment_Abyss_Well_Loop_01`; spirit B `Four_TormentedSpirits` `…Wisp_Effect_Death_Rise_01`, C
 `…Possession_Effect_Activate_02`; Vaal Beacon B `Four_Incursion` `Vaal_Generator_Machine_Start_C_01`, C `UI_IncursionBanner_01`;
-strongbox B `StrongBoxChest` `Strongbox_Chest_01`, C `Strongboxes` `…StrongboxBasic_Mech_01`. Heard in no game yet.
+strongbox A `Strongboxes` `Gameplay_Endgame_Strongboxes_Stinger_Activate_01`, B `StrongBoxChest` `Strongbox_Chest_01`. Heard in
+no game yet.
