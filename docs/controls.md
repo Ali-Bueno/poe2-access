@@ -58,6 +58,14 @@ first; both wrap and empty categories are skipped. The category is named only wh
   circle, and Ruin as it grows ("Ruin 3 of 7": at 7 the trial is lost). Turrets, petrifying statues, laser pyramids, Stormcaller runes
   and the blood mist are listed among the points of interest; a rune that starts charging near you plays the dodge warning.
   Built from the game's files and not yet played ([what is known](research/trial-of-chaos.md)).
+- League mechanics (switch "League mechanics: progress, shrines, the Delirium fog and Expedition charges"): the scanner's Encounters list
+  the Verisium Remnant until it is done, Expedition's buried markers by what they hold ("Expedition chest", "Expedition elite"…, silent),
+  Delirium's shards by their event, the Grand Mirror, a fleeing Azmeri spirit and a Breach Hive's skills while they can be used. Said as
+  they happen: the remnant's steps, the detonator ready and the blast, the Simulacrum's waves, a Breach opening, stabilised and collapsing,
+  a strongbox's ambush, a rogue exile engaging, a monster possessed by an Azmeri spirit, a Vaal Beacon ready and done, a ritual won, an
+  Abyss pit closing, a shrine's name and effect as you use it, and inside or out of the Delirium fog ("Out of the fog" urgent). Placing
+  Expedition charges, what the charge would blow is said as you move it ("Covers 2 chests, 1 elite") if the game lets the mod read it.
+  Built from the game's files and not yet played ([what is known](research/league-mechanics.md) §13).
 - In the Trial of the Sekhemas an affliction or boon is said by name and effect as you gain it; the vitals (double tap L3) say your honour, sacred water, keys and
   every affliction and boon you carry, and with the Trial's map open the water, the keys and what you carry. The sacred water monsters drop is named as such.
 - In the Trial of the Sekhemas your honour is said as it falls past 75, 50, 25 and 10 percent: at nothing the run ends (setting "Honour in the Trial").

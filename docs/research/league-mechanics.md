@@ -421,3 +421,50 @@ verify on one Abyss pit or Essence monolith); (b) check in one entity dump wheth
 Cannot be had from the files (one look in a run settles each; no planning on the user's play): the Expedition charge count, reach and radius
 values and the blast order; Delirium's fog edge distance and how a shard is set off; Breach's ring radius; how many fissure segments an Abyss has;
 the Tome and Temple Console windows' trees; which strongbox summons which packs; the weakened-Abyss-monster mark.
+
+## 13. What the plugin does (2026-11-14, unit tests and the data step only; never played)
+
+Built on §12 as one table (`LeaguePieces`: objects by file, the states that keep one listed, the state changes that are news, the
+shrine buffs), one pure news logic (`LeagueNews`, `PlacementNews`, tests `LeagueTests`) and one watch (`LeagueWatch`, setting
+`AnnounceLeagues`, on by default). Every file, state, icon, buff and monster name a rule matches was found in the install by the data
+step "game names" (`catalog/game-names.txt`, rule `LeaguePieces`); that step now also reads the states a script declares with
+`define_shared_checkpoint_state` (the Vaal Beacon's `activated`) and the client's own `define_state` (`in_placing_range`, the
+placement indicator's `blocked`).
+
+- **Listed** under Encounters (one hook in `EntityCatalog.Classify`): the Verisium Remnant while `activated` is 0, 1, 2, 5 or 6, untargetable
+  or not; each Expedition marker by its icon ("Cofre de expedición", "Élite de expedición", "Monstruos de expedición", "Monstruos
+  especiales de expedición", "Jefe de expedición"), with no sound and kept out of the encounters' one voice (kind `expedition_marker`);
+  the Logbook relic while its icon is `ExpeditionPOI` and `exploded` = 0; each Delirium shard by its event ("Fragmento de delirio:
+  portal", "…: jefe", "…: pausa la niebla"…) while `visible` = 1 and `detonate` = 0; the Grand Mirror while `enabled` = 1; an Azmeri spirit
+  by its MonsterVarieties name while `active` = 1 (not its possessing daemon); a Breach Hive skill while `ready` = 1. The game's own name
+  (Render, then the world title) wins over ours, but for the markers.
+- **Said** (`LeagueWatch`), each change once per object and area (what an object shows when first seen is no news, but an exile already
+  fighting): the remnant's tome (→ 1), waves (→ 5), reward (→ 6), spoiled (→ 3, 4, 8); "Detonador listo", "Explosivos detonados" (the
+  game's lines); the Delirium mirror walked through; the Simulacrum's "Oleada N de 7" (the `wave` index + 1), a wave cleared, its end; a
+  Breach open, "Fisura estabilizada", "Fisura estable / inestable colapsada"; a strongbox's ambush and "ya se puede abrir", by its name; a
+  rogue exile as its life bar comes on ("Nombre, exiliado renegado"), once; a monster an Azmeri spirit possessed (buff
+  `tormented_spirit_power`), once; the Vaal Beacon ready, complete, its portal open; a ritual won (`current_state` 2 → 3); an Abyss pit
+  closing (icon → `AbyssPitInactive`, failed or not); a shrine just used by its name and effect, from the player's new `shrine_*_2` buff
+  (15 rows; `buff-names.json` holds only debuffs and curses, so the §7 table's texts are phrases); the Delirium fog, "En la niebla" and
+  "Fuera de la niebla" (urgent), from the player stat `is_in_affliction_fog`, only once a mirror of the area has been walked through.
+- **Expedition placement**, defensive: while `ExpeditionPlacementIndicator` is in the entity list or a marker, relic or remnant reads
+  `in_placing_range` = 1, what the charge at the cursor would blow is said as it changes, at most every 700 ms ("Cubre 2 cofres, 1
+  élite", "No cubre nada"); `blocked` → 1 "No se puede colocar aquí"; a new `ExpeditionExplosive` "Explosivos colocados: N" (the
+  distinct charges seen in the area; one undone is not taken off). Without the client states all of it stays silent.
+- **Hazard alarm**: `Poe2UiExtract hazards` takes the league buffs of §12 row 16 (list `LeagueGround`). They were skipped because their
+  descriptions say only "You are taking … Damage over time" ("inside the Tornado", or nothing of where), which neither a ground type nor
+  the extractor's "standing in" rule catches. The fog stat joins `catalog/game-ids.txt` (key 10259).
+
+**Log lines to read in a first session:** "League piece seen: <file>: <state=value, …>; icon <icon>" (each followed object's states as
+first read and at each new combination: it confirms every rule, the marker icons, whether `in_placing_range` reaches the host at all
+and whether the placement indicator is in the entity list) and "League monster seen: <file>: buffs …" (a mechanic's monster's buffs, once
+per file, and any possessed monster's).
+
+**Left, each for its reason:** Abyss fissures (an `AbyssCrack` carries the `AbyssCrackActive` row from its construction, hidden until
+state 8, and the host's MinimapIcon reads the row, not whether it is shown: an open fissure cannot be told from a closed one without
+`Transitionable`'s state); the pit opening and the Essence shattered (§12 rows 9, 15: `Transitionable`'s current state, unread); Breach's
+ring (ControlZone); a shrine named before use (the Shrines row pointer, unvalidated); the lesser shrines (older buff ids shared with other
+shrines, Spanish names not in this research); Ailith's life; the charges' thud and a tick outside the fog (a new sound needs the user's
+ear); the remnant's Tome and the Temple Console (windows: the generic reader). LIKELY only: which marker icon is which find; `started`
+→ 0 of a strongbox meaning "can be opened" (the box may open itself after the ambush, `opened` → 1, which is not said); remnant value 3
+as spoiled (the script's comment says a recipe was pending as the detonation began, so it may still run, → 5, which is said).
