@@ -14,6 +14,9 @@ namespace Poe2Accessibility.Services
     {
         private const int PollMs = 400;
 
+        /// <summary>How often the interface is walked for the Trial of Chaos' elements.</summary>
+        private const int TrialHudWalkMs = 3000;
+
         private readonly RulesetReader reader;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
@@ -21,7 +24,7 @@ namespace Poe2Accessibility.Services
         private readonly ChaosTrialHudReader trialHud;
         private readonly ChaosTrialHudNews trialHudNews = new();
         private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
-        private bool trialHudTurn;
+        private long trialHudFound = long.MinValue / 2;
         private long lastPoll;
         private string lastLogged = string.Empty;
 
@@ -56,6 +59,8 @@ namespace Poe2Accessibility.Services
             this.reader.Reset();
             this.news.Reset();
             this.trialHudNews.Reset();
+            this.trialHud.Reset();
+            this.trialHudFound = long.MinValue / 2;
             (this.Charges, this.lastLogged) = (null, string.Empty);
         }
 
@@ -97,11 +102,17 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.Quest, Announcements.Ruleset(RulesetLine.TrialRound, begun, trial.Total));
             }
 
-            // Inside a Trial of Chaos only (its ruleset is there), and every other look: the whole interface is walked.
-            this.trialHudTurn = !this.trialHudTurn;
-            if (round != null && this.trialHudTurn)
+            // Inside a Trial of Chaos only (its ruleset is there). The whole interface is walked every few seconds for the Trial's
+            // elements; between walks only those are looked at.
+            if (round != null)
             {
-                var shown = this.trialHud.Visible(this.Container());
+                if (now - this.trialHudFound >= TrialHudWalkMs)
+                {
+                    this.trialHudFound = now;
+                    this.trialHud.Discover(this.Container());
+                }
+
+                var shown = this.trialHud.Visible();
                 foreach (var (name, text) in shown)
                 {
                     if (this.trialHudLogged.Add($"{name} = {System.Text.RegularExpressions.Regex.Replace(text, @"\d+", "#")}"))
