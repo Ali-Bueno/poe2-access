@@ -49,6 +49,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
   The boss's room never says it can be entered (the game shows no description for it): once the room before it is done it is "on your way", or "next column", and A enters it.
 - In a Trial room that asks to disable the crystals the guide locks by itself on the Death Crystal quickest to reach and on the next once it is disabled, along a route that goes
   round walls, and lets go when the room is done; you walk, and your own target is left alone (setting "Guide to each Death Crystal by itself").
+  The crystals are those you can walk to from where you stand, whatever quest the tracker shows; it takes a couple of seconds after the stairs.
 - In the Trial of the Sekhemas an affliction or boon is said by name and effect as you gain it; the vitals (double tap L3) say your honour, sacred water, keys and
   every affliction and boon you carry, and with the Trial's map open the water, the keys and what you carry. The sacred water monsters drop is named as such.
 - In the Trial of the Sekhemas your honour is said as it falls past 75, 50, 25 and 10 percent: at nothing the run ends (setting "Honour in the Trial").
@@ -121,7 +122,7 @@ how much of each you have seen, and the three nearest unexplored stretches with 
 says the share and the stretches alone. The left trigger alone only shows the second skill set, as ever.
 
 Walking into another part of the map says it by itself: "Right edge. Explored 12 percent", or "Middle of the map. Already
-explored" when only nooks are left there. Not in towns; during a fight it waits until the fight is over (setting "Say
+explored" when only nooks are left there. Not in towns nor in a Trial of the Sekhemas; during a fight it waits until the fight is over (setting "Say
 the part of the map you walk into", Navigation, on by default).
 
 ## Settings menu (gameplay)

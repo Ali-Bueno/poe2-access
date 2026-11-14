@@ -1,5 +1,6 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
@@ -34,8 +35,20 @@ namespace Poe2Accessibility.Services
             return this.mapFrame.Frame is { } frame ? (frame, new Vector2(player.GridPosition.X, player.GridPosition.Y)) : null;
         }
 
+        /// <summary>
+        ///     The area is a floor of rooms apart, each its own ground (a Trial of the Sekhemas floor): thirds of the whole
+        ///     floor are no parts of the room the player is in (set by the plugin).
+        /// </summary>
+        public Func<bool> RoomsApart { get; set; } = () => false;
+
         /// <summary>How the parts of the map stand (<see cref="ExplorationMap.Parts"/>): it reads every block, so on a part entered or a glance asked.</summary>
-        public IReadOnlyList<MapPart> MapParts(MapFrame frame) => this.explored.Parts(frame);
+        public IReadOnlyList<MapPart> MapParts(MapFrame frame) => this.RoomsApart() ? Array.Empty<MapPart>() : this.explored.Parts(frame);
+
+        /// <summary>Whether an entity stands on the ground the player can walk to (<see cref="ExplorationMap.OnPlayersGround"/>); null while not known.</summary>
+        private bool? OnPlayersGround(Render render) =>
+            Seats.Followed.TryGetComponent<Render>(out var player)
+                ? this.explored.OnPlayersGround(new Vector2(render.GridPosition.X, render.GridPosition.Y), new Vector2(player.GridPosition.X, player.GridPosition.Y))
+                : null;
 
         /// <summary>
         ///     What a look at the map tells, in words: how much is explored, the part the player is in, the parts with ground

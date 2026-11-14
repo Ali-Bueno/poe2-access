@@ -393,6 +393,7 @@ namespace Poe2Accessibility
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.CrystalsCounted = () => this.narrator != null && this.screen != null && this.narrator.CrystalsCounted(this.screen.Current);
+                this.entities.RoomsApart = () => this.trialScope.InTrial(Environment.TickCount64);
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;

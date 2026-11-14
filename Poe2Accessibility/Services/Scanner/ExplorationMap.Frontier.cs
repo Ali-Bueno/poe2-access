@@ -98,6 +98,35 @@ namespace Poe2Accessibility.Services
             return targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
         }
 
+        /// <summary>
+        ///     Whether a place is on the ground the player can walk to, by the last <see cref="Frontier"/>: its block or one
+        ///     beside it holds reached ground. Null while that survey is of other ground: before the first, or just after the
+        ///     player was carried to ground apart, as between the rooms of a Trial's floor.
+        /// </summary>
+        public bool? OnPlayersGround(Vector2 cell, Vector2 player)
+        {
+            var reachable = this.ground.Reachable;
+            if (reachable.Length == 0 || reachable.Length != this.seen.Length || !Reached(player))
+            {
+                return null;
+            }
+
+            return Reached(cell);
+
+            bool Reached(Vector2 at)
+            {
+                var x = (int)(at.X / BlockCells);
+                var y = (int)(at.Y / BlockCells);
+                if (x < 0 || y < 0 || x >= this.blocksX || y >= this.blocksY)
+                {
+                    return false;
+                }
+
+                var block = (y * this.blocksX) + x;
+                return reachable[block] || this.Neighbours8(block).Any(beside => reachable[beside]);
+            }
+        }
+
         private static UnseenSize SizeOf(int blocks) =>
             blocks < PocketBlocks ? UnseenSize.Pocket : blocks < SmallBlocks ? UnseenSize.Small : blocks < LargeBlocks ? UnseenSize.Medium : UnseenSize.Large;
 

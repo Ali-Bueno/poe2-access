@@ -138,7 +138,10 @@ Asked by the owner on 2026-11-14 (lost in large maps; the third ritual of Freyth
 tried): the player's dot on the large map, in words. Walking into another third of the map says it with how it stands,
 "Top right corner. Explored 4 percent", or "Middle of the map. Already explored" once only nooks are left unseen in it
 (`MapPartWatch`, `ExplorationMap.Parts`, setting `AnnounceMapParts`). The part changes once the player is a look (the
-reveal radius) past the line, so a walk along it says nothing twice; a fight holds the line back until it is over. A map
+reveal radius) past the line, so a walk along it says nothing twice, and has stayed in the part a second and a half
+(a walk across the corner where four parts meet said two within half a second, the owner's first session); a fight
+holds the line back until it is over. Not on a Trial of the Sekhemas floor, whose rooms are grounds apart: thirds of the
+floor are no parts of a room ("Centro del mapa" was said there, the same session). A map
 whose third is narrower than two looks has no parts that way: a corridor map has three, a boss arena none. A part with
 less reachable ground than a nook is the fringe of its neighbour and is never listed.
 

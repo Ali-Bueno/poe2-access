@@ -223,6 +223,21 @@ namespace Poe2Accessibility.Tests
             smallMap.Frontier(smallGrid, small / 2, start, 8);
             Equal("0,0", string.Join(" ", smallMap.Parts(smallFrame).Select(part => $"{part.Across},{part.Down}")), "a small map is one part");
 
+            // Two fields with a wall between them, as the rooms of a Trial's floor: what stands in the other is not on the player's ground.
+            var apart = Carved(400, 200, (0, 0, 190, 200), (210, 0, 400, 200));
+            var west = new System.Numerics.Vector2(40, 100);
+            var east = new System.Numerics.Vector2(300, 100);
+            var rooms = new ExplorationMap();
+            Equal(null, rooms.OnPlayersGround(west, west), "nothing known before the first frontier");
+            rooms.Visit(west, 400, 200);
+            rooms.Frontier(apart, 200, west, 8);
+            Equal(true, rooms.OnPlayersGround(new System.Numerics.Vector2(150, 30), west), "across the player's own field");
+            Equal(false, rooms.OnPlayersGround(east, west), "in the field apart");
+            Equal(null, rooms.OnPlayersGround(east, east), "carried there, the survey is still of the field left");
+            rooms.Visit(east, 400, 200);
+            rooms.Frontier(apart, 200, east, 8);
+            Equal(true, rooms.OnPlayersGround(new System.Numerics.Vector2(350, 150), east), "and of the new field once it is surveyed");
+
             Equal("Top right corner. Explored 4 percent", Announcements.MapPartEntered(1, -1, new MapPart(1, -1, 4, false)), "a part with ground left");
             Equal("Middle of the map. Already explored", Announcements.MapPartEntered(0, 0, new MapPart(0, 0, 97, true)), "only nooks left in it");
             Equal("Left edge", Announcements.MapPartEntered(-1, 0, null), "a part whose ground is not known yet");
@@ -238,21 +253,31 @@ namespace Poe2Accessibility.Tests
         {
             var look = new System.Numerics.Vector2(0.05f, 0.05f);
             var watch = new MapPartWatch();
-            (int, int)? At(float across, float down) => watch.Update(new System.Numerics.Vector2(across, down), look);
-            Equal(null, At(0.2f, 0.5f), "where the player starts is no part entered");
+            const int settle = MapPartWatch.SettleMs;
+            (int, int)? At(float across, float down, long now) => watch.Update(new System.Numerics.Vector2(across, down), look, now);
+            Equal(null, At(0.2f, 0.5f, 0), "where the player starts is no part entered");
             Equal(((int, int)?)(-1, 0), watch.Current, "the left edge");
-            Equal(null, At(0.35f, 0.5f), "just over the line: still the part left");
-            Equal(((int, int)?)(0, 0), At(0.39f, 0.5f), "a look past the line: the middle");
-            Equal(null, At(0.32f, 0.5f), "back over the line by a little: still the middle");
-            Equal(((int, int)?)(-1, 0), At(0.28f, 0.5f), "a look back past it");
-            Equal(((int, int)?)(1, 1), At(0.9f, 0.9f), "carried across the map");
+            Equal(null, At(0.2f, 0.5f, 10 * settle), "nor is it after a while there");
+            Equal(null, At(0.35f, 0.5f, 11 * settle), "just over the line: still the part left");
+            Equal(null, At(0.39f, 0.5f, 12 * settle), "a look past the line: the middle, not said at once");
+            Equal(((int, int)?)(0, 0), At(0.4f, 0.5f, 13 * settle), "held a moment: said");
+            Equal(null, At(0.32f, 0.5f, 20 * settle), "back over the line by a little: still the middle");
+            Equal(null, At(0.28f, 0.5f, 21 * settle), "a look back past it");
+            Equal(null, At(0.4f, 0.5f, 21 * settle + 500), "and into the middle again before it was said: nothing new");
+            Equal(null, At(0.4f, 0.5f, 30 * settle), "the middle was the part said last");
+            // Where four parts meet, a walk across the corner passes through one on its way to another: only the last is said.
+            Equal(null, At(0.4f, 0.28f, 40 * settle), "up past the line");
+            Equal(null, At(0.73f, 0.28f, 40 * settle + 500), "and right past the next one half a second later");
+            Equal(((int, int)?)(1, -1), At(0.75f, 0.2f, 42 * settle), "the corner walked into");
             watch.Reset();
-            Equal(null, At(0.9f, 0.9f), "a new area starts again");
+            Equal(null, At(0.9f, 0.9f, 50 * settle), "a new area starts again");
+            Equal(null, At(0.9f, 0.9f, 60 * settle), "and its first part is not news");
             // A map narrower across than two looks has no thirds that way.
             var narrow = new System.Numerics.Vector2(0.2f, 0.05f);
             watch.Reset();
-            Equal(null, watch.Update(new System.Numerics.Vector2(0.1f, 0.9f), narrow), "its first place");
-            Equal(((int, int)?)(0, -1), watch.Update(new System.Numerics.Vector2(0.9f, 0.1f), narrow), "only up and down change");
+            Equal(null, watch.Update(new System.Numerics.Vector2(0.1f, 0.9f), narrow, 0), "its first place");
+            Equal(null, watch.Update(new System.Numerics.Vector2(0.9f, 0.1f), narrow, 100), "carried across it");
+            Equal(((int, int)?)(0, -1), watch.Update(new System.Numerics.Vector2(0.9f, 0.1f), narrow, 100 + settle), "only up and down change");
         }
 
         private static void RadarHearsAnExitInItsWallAndOffItsLane()

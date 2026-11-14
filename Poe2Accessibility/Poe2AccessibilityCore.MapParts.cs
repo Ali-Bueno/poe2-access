@@ -25,8 +25,8 @@ namespace Poe2Accessibility
             }
 
             this.mapPartPolledAt = now;
-            if (this.entities?.PlaceOnMap() is not { } place ||
-                this.mapPart.Update(place.Frame.Share(place.Cell), place.Frame.Span(ExplorationMap.SeenRadiusCells)) is not { } entered)
+            if (this.entities == null || this.entities.RoomsApart() || this.entities.PlaceOnMap() is not { } place ||
+                this.mapPart.Update(place.Frame.Share(place.Cell), place.Frame.Span(ExplorationMap.SeenRadiusCells), now) is not { } entered)
             {
                 return;
             }

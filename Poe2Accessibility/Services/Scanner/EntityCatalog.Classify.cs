@@ -164,10 +164,12 @@ namespace Poe2Accessibility.Services
                 questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && MinimapMarks.IsLitMark(icon);
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
-                    // The tracker shows two quests a page: with the Trial's on another page its objective is not on screen
-                    // and no crystal was listed, sounded or guided to through a whole room, the clock running (user 2026-11-12).
-                    // The count of crystals left stands on the HUD whatever the page.
-                    if (!this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)) && !this.CrystalsCounted())
+                    // A Trial's rooms are grounds apart on one floor: a crystal the player can walk to is this room's, one on
+                    // other ground another room's, whatever the tracker shows (docs/research/trials-and-campaign.md, crystals).
+                    // The tracker's objective and the HUD's count decide only while the player's ground is not known yet.
+                    var own = this.OnPlayersGround(render);
+                    if (own == false || (own == null &&
+                        !this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)) && !this.CrystalsCounted()))
                     {
                         return null; // a Death Crystal in a room of another kind, called out from 352 steps off (user 2026-11-07)
                     }

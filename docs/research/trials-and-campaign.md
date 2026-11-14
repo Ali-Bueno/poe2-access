@@ -33,6 +33,16 @@ the web is UNSURE until seen).
   Bronze Cache. Requires a Bronze Key to Open"). The crystal room ("Find and disable all the Crystals, any Crystals still
   active when the timer expires will damage you") is the Escape kind; the Blood Chalice room ("Defeat all Rare Monsters
   in the area to fill the Chalice") the Ritual kind.
+- **A floor is one area, its rooms grounds apart (2026-11-14, the owner's run and the room files).** The floor loads
+  once (`Sanctum_1_Foyer_1`: 56,592 sub-tiles); the stairs carry the player to the next room without an area load, so
+  nothing the mod resets per area is reset per room. Death Crystals stand only in the crystal rooms' files: all 28
+  `level_N_rooms_explore_explore_NN.arm` under `metadata/terrain/gallows/leagues/sanctum/` hold `HourglassLethal` (197 in
+  all) and none of the other 199 room files does (the folder named `escape` holds none: the map's "Escape" kind is the
+  `explore` rooms). So a crystal the player can walk to is the room's own, and one on other ground another room's:
+  `ExplorationMap.OnPlayersGround`, in place of the tracker's objective, which shows only on the Trial quest's page (in
+  the owner's third room the tracker showed another quest, the HUD's count came with the first crystal disabled and no
+  crystal was listed or guided to). The tracker and the count still decide for the two seconds a new room's ground takes
+  to be surveyed. Spawned crystals, if any exist outside the room files, were not looked for.
 - Honour: the run's second life ("[Honour|Honor]: <white>{288/513}" on the HUD; max = `total_sanctum_honour`, 513 =
   max life on the test character; 0.5.0 adds Runic Ward). Zero ends the run with no death screen (MEASURED, log of
   12:17). Honour resistance caps 75% (UNSURE). Buffs that drain it: `sanctum_fire_beam`, `ground_sanctum`,
