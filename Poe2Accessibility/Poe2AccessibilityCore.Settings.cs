@@ -30,6 +30,11 @@ namespace Poe2Accessibility
                 this.research.Enabled = settings.ResearchMode;
             }
 
+            if (this.focus != null)
+            {
+                this.focus.SlotTrace = settings.ResearchMode ? line => this.log?.Info(line) : null;
+            }
+
             this.ApplySoundVolumes(settings);
         }
 

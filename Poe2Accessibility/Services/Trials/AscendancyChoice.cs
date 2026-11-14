@@ -21,6 +21,10 @@ namespace Poe2Accessibility.Services
         /// <summary>A card's line about its class: a label of this name inside the card's tree (dump 2026-11-14).</summary>
         public const string AboutName = "flavour_text_label";
 
+        /// <summary>The Build Planner's fold button and the part it unfolds, siblings under the planner (dump 2026-11-14).</summary>
+        public const string PlannerButtonName = "collapse_button";
+        public const string PlannerOpenName = "expanded_frame";
+
         /// <summary>
         ///     How much wider than the narrowest card the chosen one must be: it was drawn 1.4 times the others (819 against
         ///     585 wide, dump 2026-11-14), so half of that growth tells it from cards of one size.

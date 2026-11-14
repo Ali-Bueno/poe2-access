@@ -8,16 +8,14 @@ namespace Poe2Accessibility.Services
     /// <summary>Focus rules of <see cref="ScreenNarrator"/>: the cursor's move, its late tooltip, a changed value, a tab switch, and the per-frame waits behind them.</summary>
     public sealed partial class ScreenNarrator
     {
-        /// <summary>A focus the game moved as a side effect of a press the mod answers itself: not said (set by the plugin).</summary>
-        public Func<AccessibleUiNode, bool>? FocusUnsaid { get; set; }
+        /// <summary>A focus the game moved with a press the mod answers itself: said after that answer, not over it (set by the plugin).</summary>
+        public Func<AccessibleUiNode, bool>? FocusBehindAnswer { get; set; }
+
+        private bool focusBehindAnswer;
 
         public void OnFocusChanged(AccessibleUiNode node)
         {
-            if (this.FocusUnsaid?.Invoke(node) == true)
-            {
-                return;
-            }
-
+            this.focusBehindAnswer = this.FocusBehindAnswer?.Invoke(node) == true;
             this.lastFocusAt = DateTime.UtcNow;
             if (node.Name == EngraveChoiceName && node.Text.Length > 0)
             {
@@ -141,7 +139,11 @@ namespace Poe2Accessibility.Services
         /// <summary>The cursor's new place: the player's own move ends a message's hold, the game's refresh does not.</summary>
         private void SayMove(string text)
         {
-            if ((this.SinceDirection?.Invoke() ?? long.MaxValue) < DirectionMovesMs)
+            if (this.focusBehindAnswer)
+            {
+                this.output.Speak(text, false);
+            }
+            else if ((this.SinceDirection?.Invoke() ?? long.MaxValue) < DirectionMovesMs)
             {
                 this.output.Moved(text);
             }

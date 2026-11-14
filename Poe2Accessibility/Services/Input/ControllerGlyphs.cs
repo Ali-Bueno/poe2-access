@@ -52,6 +52,12 @@ namespace Poe2Accessibility.Services
 
         private const string InteractGlyph = "Button4";
 
+        /// <summary>The button that goes back (B, Circle), named for the pad the game shows.</summary>
+        public static string Back => Announcements.ButtonName("Button3", PlayStationSeen);
+
+        /// <summary>The right stick's click (Inspect), named for the pad the game shows.</summary>
+        public static string RightStickClick => Announcements.ButtonName("RightStickButton2", PlayStationSeen);
+
         /// <summary>Spoken button for an image art key; null when the image is not a controller glyph.</summary>
         public static string? FromTextureKey(string textureKey)
         {

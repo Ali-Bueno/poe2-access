@@ -64,6 +64,7 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
+            this.TracePad(state);
             // In the passive tree the triggers zoom and Y centres the view.
             var viewMoved = state.IsDown(GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightTrigger | GameLayout.PadButtons.Y);
             this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, viewMoved, Environment.TickCount64);
@@ -106,6 +107,28 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>A stick this far off its centre is traced: under what moves a cursor, so a light push shows too.</summary>
+        private const float TraceDeflection = 0.2f;
+
+        private (uint Buttons, int X, int Y, int RightX, int RightY) tracedPad;
+
+        /// <summary>Research mode: the buttons and the left stick's side as they change, to set a focus the game moved against its press.</summary>
+        private void TracePad(GamepadReader.PadState state)
+        {
+            if (!this.Settings.ResearchMode)
+            {
+                return;
+            }
+
+            static int Side(float axis) => MathF.Abs(axis) >= TraceDeflection ? Math.Sign(axis) : 0;
+            var now = (state.Buttons, Side(state.LeftX), Side(state.LeftY), Side(state.RightX), Side(state.RightY));
+            if (now != this.tracedPad)
+            {
+                this.tracedPad = now;
+                this.log?.Info($"Pad: buttons 0x{now.Buttons:X}, left stick {now.Item2},{now.Item3}, right stick {now.Item4},{now.Item5}");
+            }
+        }
+
         /// <summary>A D-pad press, which does nothing in the passive tree, goes to the tree's finder.</summary>
         private void FindOnTree(GamepadReader.PadState state)
         {
@@ -116,33 +139,49 @@ namespace Poe2Accessibility
                 : (pressed & GameLayout.PadButtons.DPadRight) != 0 ? (0, 1)
                 : (pressed & GameLayout.PadButtons.DPadLeft) != 0 ? (0, -1)
                 : (0, 0);
-            if (list != 0 || entry != 0)
+            if ((list != 0 || entry != 0) && this.commands?.OnTreeDirection(list, entry) == true)
             {
-                this.lastTreeDirectionAt = Environment.TickCount64;
-                this.commands?.OnTreeDirection(list, entry);
+                this.lastFinderAt = Environment.TickCount64;
             }
         }
 
         /// <summary>
-        ///     The game answers a D-pad press in a frame or two; a focus within this long of one is the press's doing
-        ///     (the Altar of Ascendancy's preview: the planner's button, 16 ms after, log 2026-11-14).
+        ///     The game answers a D-pad press in a frame or two; a focus within this long of one the finder answered is
+        ///     the press's doing (the Altar of Ascendancy's preview: the planner's button, 16 ms after, log 2026-11-14).
         /// </summary>
-        private const long TreeDirectionFocusMs = 500;
+        private const long FinderFocusMs = 500;
 
-        private long lastTreeDirectionAt = long.MinValue / 2;
+        private long lastFinderAt = long.MinValue / 2;
 
         /// <summary>The last passive node the cursor was on.</summary>
         private IntPtr lastTreeNode;
 
+        /// <summary>The control the game focused as a finder press went out on a class's preview: the D-pad stays the finder's while the focus rests there.</summary>
+        private IntPtr finderFocus;
+
         /// <summary>The tree of the class opened on the Altar of Ascendancy; zero when none is.</summary>
         private IntPtr PreviewTree => this.ascendancy?.OpenedTree ?? IntPtr.Zero;
 
+        /// <summary>The finder has the D-pad although a control has the focus (<see cref="finderFocus"/>).</summary>
+        private bool FinderHoldsPad => this.finderFocus != IntPtr.Zero && this.focus?.Current?.Address == this.finderFocus;
+
         /// <summary>
-        ///     On a class's preview the D-pad is the finder's, as in the passive tree, but the game also sends the focus to
-        ///     the Build Planner's button with it: that focus is not said over the finder's answer.
+        ///     On a class's preview the D-pad is the finder's, as in the passive tree, but the game may send the focus to a
+        ///     control of its own with the press: that focus is said after the finder's answer. Any other focus ends it: a
+        ///     control the stick or A reached has the D-pad for the game's own menu.
         /// </summary>
-        private bool FocusOfFinderPress(AccessibleUiNode node) =>
-            !node.IsPassiveNode && this.PreviewTree != IntPtr.Zero && Environment.TickCount64 - this.lastTreeDirectionAt < TreeDirectionFocusMs;
+        private bool FocusOfFinderPress(AccessibleUiNode node)
+        {
+            var follows = !node.IsPassiveNode && this.PreviewTree != IntPtr.Zero && Environment.TickCount64 - this.lastFinderAt < FinderFocusMs;
+            this.finderFocus = follows ? node.Address : IntPtr.Zero;
+            return follows;
+        }
+
+        /// <summary>Where the finder starts on a class's preview with the cursor on no node; zero while a control of the game's has the D-pad.</summary>
+        private IntPtr PreviewAnchor() =>
+            this.PreviewTree is var tree && tree != IntPtr.Zero && (this.focus?.Current == null || this.FinderHoldsPad)
+                ? this.semantics?.FinderAnchor(tree, this.lastTreeNode) ?? IntPtr.Zero
+                : IntPtr.Zero;
 
         /// <summary>
         ///     A D-pad press that leaves the cursor where it was says its control again (<see cref="BlockedMove"/>). Not the
@@ -160,7 +199,7 @@ namespace Poe2Accessibility
                 return;
             }
 
-            var resting = this.Settings.RepeatOnBlockedMove && !state.IsDown(GameLayout.PadButtons.LeftStick) && this.PreviewTree == IntPtr.Zero &&
+            var resting = this.Settings.RepeatOnBlockedMove && !state.IsDown(GameLayout.PadButtons.LeftStick) && !this.FinderHoldsPad &&
                           this.focus?.Current is { IsHovered: false, IsPassiveNode: false } current ? current : null;
             var line = resting == null ? string.Empty : Announcements.Focused(resting);
             var now = Environment.TickCount64;

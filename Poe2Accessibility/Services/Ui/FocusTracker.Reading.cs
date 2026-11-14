@@ -77,6 +77,17 @@ namespace Poe2Accessibility.Services
         /// <summary>The empty cell a grid read once on a value poll, not yet said.</summary>
         private (string Text, string Value) emptiedValue;
 
+        /// <summary>Research mode: the manager's focus and hover slots as they change (set by the plugin; null otherwise).</summary>
+        public Action<string>? SlotTrace { get; set; }
+
+        private (IntPtr Current, IntPtr Hovered) tracedSlots;
+
+        /// <summary>
+        ///     Whether what the free cursor is on is told instead of the focused control (focused, hovered): a class's
+        ///     preview on the Altar of Ascendancy, where the game keeps a button focused while the stick walks the tree.
+        /// </summary>
+        public Func<IntPtr, IntPtr, bool>? HoverOverFocus { get; set; }
+
         /// <summary>
         ///     The activation target: the element under the controller cursor, else the one under the free cursor
         ///     (passive tree). The previous-focus slot is not a fallback: after a panel closes it keeps the hidden
@@ -97,6 +108,11 @@ namespace Poe2Accessibility.Services
             var seat = (this.Seat - 1) * GameLayout.UiManager.PlayerStride;
             var current = this.ElementAt(manager + GameLayout.UiManager.CurrentOffset + seat);
             var hovered = this.ElementAt(manager + GameLayout.UiManager.HoveredOffset + seat);
+            if (this.SlotTrace != null && (current, hovered) != this.tracedSlots)
+            {
+                this.tracedSlots = (current, hovered);
+                this.SlotTrace($"Focus slots: current 0x{current.ToInt64():X}, hovered 0x{hovered.ToInt64():X}");
+            }
 
             // Pre-game the whole screen; in game nothing focused is the usual case (playing) and the HUD is large, so only
             // a page that highlights its choice (the shop) is searched.
@@ -104,6 +120,11 @@ namespace Poe2Accessibility.Services
                 : state != GameStateTypes.InGameState ? this.HighlightedControl(this.CurrentRoot)
                 : this.HighlightedControl(this.InGameHighlightRoot?.Invoke() ?? IntPtr.Zero);
             this.TrackNewest(current, hovered, highlighted);
+            if (current != IntPtr.Zero && hovered != IntPtr.Zero && this.HoverOverFocus?.Invoke(current, hovered) == true)
+            {
+                return (hovered, true);
+            }
+
             if (current != IntPtr.Zero)
             {
                 this.noFocusList.Reset();

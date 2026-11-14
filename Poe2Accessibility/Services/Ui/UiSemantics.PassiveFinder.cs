@@ -49,6 +49,30 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     Whether the stick's cursor is on a node of <paramref name="tree"/> while the game's focus rests on the folded
+        ///     Build Planner's button: on a class's preview the game focuses that button as the stick walks the nodes, and
+        ///     it hid them (docs/research/trials-and-campaign.md §3). With the planner unfolded the focus is the player's.
+        /// </summary>
+        public bool NodeUnderPlannerButton(IntPtr tree, IntPtr hovered, IntPtr focused)
+        {
+            if (!this.elements.TryReadElement(hovered, out var node) || !this.elements.TryReadElement(node.Raw.ParentPtr, out var holder) || holder.Raw.ParentPtr != tree ||
+                !this.elements.TryReadElement(focused, out var button) || button.Name != AscendancyChoice.PlannerButtonName || !this.elements.TryReadElement(button.Raw.ParentPtr, out var planner))
+            {
+                return false;
+            }
+
+            foreach (var part in this.elements.ReadChildren(planner))
+            {
+                if (this.elements.TryReadElement(part, out var info) && info.Name == AscendancyChoice.PlannerOpenName && info.IsVisibleFlag)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         ///     A node of <paramref name="canvas"/> for the finder to start from while the cursor is on none: the last one it
         ///     was on when that is the canvas's, else the first node read there; zero for a canvas without nodes.
         /// </summary>

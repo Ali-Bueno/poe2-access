@@ -26,6 +26,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const long TitleMs = 750;
 
+        /// <summary>The planner's fold button lies two levels under the window (dump 2026-11-14).</summary>
+        private const int PlannerDepth = 3;
+
+        /// <summary>The planner shows unfolded within half a second of the press that unfolds it (log 2026-11-14: 0.48 s), seen a poll later.</summary>
+        private const long ConfirmUnfoldsMs = 1000;
+
         /// <summary>How far under a card the Build Planner's mark is looked for (its text is the mark's child).</summary>
         private const int MarkDepth = 2;
 
@@ -40,6 +46,9 @@ namespace Poe2Accessibility.Services
         private long openedAt;
         private bool cuts;
         private bool onControl;
+        private IntPtr planner;
+        private bool plannerOpen;
+        private bool helped;
 
         public AscendancyChoiceWatch(UiElementReader elements, Func<TrialCatalog> catalog, IAccessibilityOutputService output, PluginLog? log)
         {
@@ -52,8 +61,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the tree of the class A opened, while it fills the screen; zero otherwise.</summary>
         public IntPtr OpenedTree { get; private set; }
 
-        /// <summary>Per frame, with the panel covering the game (zero: none) and whether a control of it has the focus.</summary>
-        public void Tick(IntPtr panelOverGame, bool focusHeld)
+        /// <summary>
+        ///     Per frame, with the panel covering the game (zero: none), whether a control of it has the focus (a tree's
+        ///     node is none) and how long ago the confirm button went down.
+        /// </summary>
+        public void Tick(IntPtr panelOverGame, bool focusHeld, long sinceConfirmMs)
         {
             var now = Environment.TickCount64;
             if (now - this.lastPoll < PollMs)
@@ -69,6 +81,10 @@ namespace Poe2Accessibility.Services
                 this.said = string.Empty;
                 this.openedAt = now;
                 this.cuts = false;
+                this.planner = this.cards.Count < 2 ? IntPtr.Zero
+                    : this.elements.FindNamed(panelOverGame, AscendancyChoice.PlannerButtonName, PlannerDepth) is { } button ? button.Raw.ParentPtr : IntPtr.Zero;
+                this.plannerOpen = this.PlannerOpen();
+                this.helped &= panelOverGame != IntPtr.Zero; // the confirmation over the window is not its closing
             }
 
             // Up or down takes the focus to the Build Planner's button; back on the cards, the one the stick is on is said again.
@@ -99,6 +115,7 @@ namespace Poe2Accessibility.Services
 
             var chosen = AscendancyChoice.Chosen(ordered);
             this.OpenedTree = AscendancyChoice.Opened(ordered, chosen) ? ordered[chosen].Tree : IntPtr.Zero;
+            this.WatchPlanner(sinceConfirmMs);
             var line = AscendancyChoice.Line(ordered, chosen);
             if (line.Length == 0 || line == this.said)
             {
@@ -110,6 +127,44 @@ namespace Poe2Accessibility.Services
             this.output.Speak(line, this.cuts);
             this.cuts = true;
             this.said = line;
+            if (this.OpenedTree != IntPtr.Zero && !this.helped)
+            {
+                this.helped = true;
+                this.output.Speak(Announcements.AscendancyPreviewHelp(ControllerGlyphs.Interact, ControllerGlyphs.Back, ControllerGlyphs.RightStickClick), false);
+            }
+        }
+
+        /// <summary>
+        ///     On a preview the confirm button unfolds the Build Planner while the game's focus rests on its button, which
+        ///     it does once the stick has moved: said, with the way to ascend from there (docs/research/trials-and-campaign.md §3).
+        /// </summary>
+        private void WatchPlanner(long sinceConfirmMs)
+        {
+            var open = this.PlannerOpen();
+            if (open && !this.plannerOpen && this.OpenedTree != IntPtr.Zero && sinceConfirmMs < ConfirmUnfoldsMs)
+            {
+                this.output.Speak(Announcements.AscendancyPlannerOpened(ControllerGlyphs.Interact, ControllerGlyphs.Back, ControllerGlyphs.RightStickClick), false);
+            }
+
+            this.plannerOpen = open;
+        }
+
+        private bool PlannerOpen()
+        {
+            if (this.planner == IntPtr.Zero || !this.elements.TryReadElement(this.planner, out var holder))
+            {
+                return false;
+            }
+
+            foreach (var part in this.elements.ReadChildren(holder))
+            {
+                if (this.elements.TryReadElement(part, out var info) && info.Name == AscendancyChoice.PlannerOpenName)
+                {
+                    return info.IsVisibleFlag;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>The cards of the window: each holds a label about its class; none in any other panel.</summary>

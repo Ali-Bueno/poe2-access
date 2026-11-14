@@ -225,7 +225,10 @@ namespace Poe2Accessibility
                 this.narrator.PanelOverGame = () => this.PanelOverGame() != null;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
                 this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
-                this.narrator.FocusUnsaid = this.FocusOfFinderPress;
+                this.narrator.FocusBehindAnswer = this.FocusOfFinderPress;
+                this.focus.HoverOverFocus = (focused, hovered) =>
+                    this.PreviewTree is var tree && tree != IntPtr.Zero && this.semantics?.NodeUnderPlannerButton(tree, hovered, focused) == true;
+                this.focus.SlotTrace = this.Settings.ResearchMode ? line => this.log?.Info(line) : null;
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
                 this.focus.FocusChanged += node =>
                 {
@@ -409,7 +412,7 @@ namespace Poe2Accessibility
                 this.semantics.TrialFloorNote = note => this.log?.Info(note);
                 this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.ascendancy = new AscendancyChoiceWatch(elements, () => this.semantics?.Trials ?? TrialCatalog.Empty, this.output, this.log);
-                this.commands.TreeAnchor = () => this.PreviewTree is var tree && tree != IntPtr.Zero ? this.semantics?.FinderAnchor(tree, this.lastTreeNode) ?? IntPtr.Zero : IntPtr.Zero;
+                this.commands.TreeAnchor = this.PreviewAnchor;
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
@@ -594,7 +597,8 @@ namespace Poe2Accessibility
                 if (state == GameStateTypes.InGameState)
                 {
                     this.Isolated("death", stateObject, static (core, stateObject) => core.deaths?.Tick(stateObject));
-                    this.Isolated("ascendancy", static core => core.ascendancy?.Tick(core.PanelOverGame()?.Address ?? IntPtr.Zero, core.focus?.Current != null));
+                    this.Isolated("ascendancy", static core => core.ascendancy?.Tick(
+                        core.PanelOverGame()?.Address ?? IntPtr.Zero, core.focus?.Current is { IsPassiveNode: false }, Environment.TickCount64 - core.lastConfirmAt));
                     this.Isolated("trace", static core => core.actorTrace?.Tick());
                     this.Isolated("stun trace", static core => core.stunTrace?.Tick());
                     this.Isolated("grid trace", static core => core.TickGridTrace());

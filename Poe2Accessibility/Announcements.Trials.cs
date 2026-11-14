@@ -30,6 +30,19 @@ namespace Poe2Accessibility
         /// <summary>A class's card opened with A on the Altar of Ascendancy: its tree fills the screen, the class not taken yet.</summary>
         public static string AscendancyTree(string name) => T($"{name}, tree preview", $"{name}, vista previa del árbol");
 
+        /// <summary>
+        ///     How a class's preview on the Altar of Ascendancy is used, said once as it opens: the game keeps its cursor on
+        ///     the Build Planner's button once the stick has moved, and the confirm button then folds the planner.
+        /// </summary>
+        public static string AscendancyPreviewHelp(string confirm, string back, string inspect) => T(
+            $"The left stick moves between nodes and the D-pad finds them. To ascend press {confirm} before moving; once you have moved, press {inspect}, then {back}, then {confirm}",
+            $"El stick izquierdo salta entre nodos y la cruceta los busca. Para ascender pulsa {confirm} antes de moverte; si ya te moviste, pulsa {inspect}, luego {back} y luego {confirm}");
+
+        /// <summary>The confirm button unfolded the Build Planner on a class's preview instead of asking to ascend.</summary>
+        public static string AscendancyPlannerOpened(string confirm, string back, string inspect) => T(
+            $"The Build Planner unfolded, the class was not taken: the game's cursor was on its button. {confirm} folds it. To ascend then press {inspect}, then {back}, then {confirm}",
+            $"Se desplegó el planificador de builds, no has ascendido: el cursor del juego estaba en su botón. {confirm} lo pliega. Para ascender pulsa después {inspect}, luego {back} y luego {confirm}");
+
         /// <summary>An icon of the trials by what it stands for: "Affliction: Honed Claws. Monsters deal 30% more Damage".</summary>
         public static string TrialEntry(TrialEntryKind kind, string name, string about)
         {
