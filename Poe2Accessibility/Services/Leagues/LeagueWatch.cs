@@ -105,7 +105,8 @@ namespace Poe2Accessibility.Services
 
                 var states = TransitionState.With(this.memory, entity);
                 var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
-                this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null);
+                this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null,
+                    rule.Piece == LeaguePiece.RitualAltar ? this.Sacrifice(entity) : null);
                 var place = entity.TryGetComponent<Render>(out var render) ? new Vector2(render.GridPosition.X, render.GridPosition.Y) : (Vector2?)null;
 
                 if (rule.Piece == LeaguePiece.PlacementIndicator)
@@ -304,10 +305,10 @@ namespace Poe2Accessibility.Services
                 : string.Empty;
 
         /// <summary>Each followed object's states (and icon) as they first read, and as they change: how the rules are confirmed from a session's log.</summary>
-        private void LogOnce(string path, List<(string Name, long Value)> states, string icon, int? zoneRadius)
+        private void LogOnce(string path, List<(string Name, long Value)> states, string icon, int? zoneRadius, string? sacrifice)
         {
             var line = $"{FileOf(path)}: {string.Join(", ", states.Select(state => $"{state.Name}={state.Value}"))}{(icon.Length > 0 ? $"; icon {icon}" : string.Empty)}" +
-                       (zoneRadius is { } radius ? $"; zone radius {radius}" : string.Empty);
+                       (zoneRadius is { } radius ? $"; zone radius {radius}" : string.Empty) + (sacrifice is { } gone ? $"; sacrifice {gone}" : string.Empty);
             if (this.logged.Add(line))
             {
                 this.log.Info($"League piece seen: {line}");
@@ -322,6 +323,16 @@ namespace Poe2Accessibility.Services
             EntityComponents.AddressOf(entity, GameLayout.ControlZoneComponent.Name) is { } zone &&
             this.memory.TryRead<ushort>(zone + GameLayout.ControlZoneComponent.RadiusOffset, out var radius)
                 ? (int?)radius
+                : null;
+
+        /// <summary>
+        ///     Research: a Ritual altar's sacrifice as the Render component holds it (<see cref="GameLayout.RenderComponent.RitualSacrificeOffset"/>),
+        ///     in eleven steps whichever its scale, so the log keeps a line per step and not per frame; null when it does not read as a number.
+        /// </summary>
+        private string? Sacrifice(Entity altar) =>
+            altar.TryGetComponent<Render>(out var render) &&
+            this.memory.TryRead<float>(render.Address + GameLayout.RenderComponent.RitualSacrificeOffset, out var percent) && float.IsFinite(percent)
+                ? (percent <= 1.5f ? percent : MathF.Round(percent / 10f) * 10f).ToString(percent <= 1.5f ? "F1" : "F0", System.Globalization.CultureInfo.InvariantCulture)
                 : null;
 
         private static string FileOf(string path)

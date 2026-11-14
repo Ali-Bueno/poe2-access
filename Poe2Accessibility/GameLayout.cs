@@ -264,6 +264,14 @@ namespace Poe2Accessibility
         {
             /// <summary>std::wstring display name ("Wounded Man"; for the player, the class: "Witch"), 2026-10-23.</summary>
             public static int NameOffset { get; internal set; } = 0x160;
+
+            /// <summary>
+            ///     On a Ritual's altar: how far the sacrifice has gone, the float the shader parameter RitualSacrificePercent is fed
+            ///     from (0x170D90F: F3 0F 10 88 6C 04 00 00), eased toward the entity's variable <c>ritual_sacrifice_percent</c> by
+            ///     the Render tick (0x16B2CB5 fetches it by its hash 0x460E6134, which the study reproduced); exe of 0.5.5f,
+            ///     2026-11-14. Whether it runs to 1 or to 100 is not known: logged, nothing is said from it yet.
+            /// </summary>
+            public static int RitualSacrificeOffset { get; internal set; } = 0x46C;
         }
 
         /// <summary>
