@@ -56,6 +56,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ALineForAllElementsAnswersOneResistance), ALineForAllElementsAnswersOneResistance),
             (nameof(AUniqueIsToldByItsOwnName), AUniqueIsToldByItsOwnName),
             (nameof(TheSummaryCountsBasesAndTheModifiersRead), TheSummaryCountsBasesAndTheModifiersRead),
+            (nameof(AJudgedLineIsSaidOnce), AJudgedLineIsSaidOnce),
             (nameof(AWornPieceNeverFocusedIsComparedByItsLinesFromMemory), AWornPieceNeverFocusedIsComparedByItsLinesFromMemory),
         };
 
@@ -158,10 +159,10 @@ namespace Poe2Accessibility.Tests
         private static void TheHelmetSlotSaysWhatTheBuildWants() => InSpanish(() =>
         {
             var lines = Announcements.BuildGearSlot(Fit(Piece(Early, "Helm1", 40), Worn), 40, new Bases(), new Texts()).ToList();
-            Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16|Falta +16% a la resistencia al rayo",
+            Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16|Falta: +16% a la resistencia al rayo",
                 string.Join('|', lines), "the helmet slot");
             var helmet = Fit(Piece(Early, "Helm1", 40), Worn);
-            Expect("Build: 2 de 3 modificadores. Falta +16% a la resistencia al rayo", Announcements.BuildGearLacks(helmet, new Texts()), "what it lacks, said before the piece");
+            Expect("Build: 2 de 3 modificadores. Falta: +16% a la resistencia al rayo", Announcements.BuildGearLacks(helmet, new Texts()), "what it lacks, said before the piece");
             Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16",
                 string.Join('|', Announcements.BuildGearSlot(helmet, 40, new Bases(), new Texts(), lacksSaid: true)), "and not again after it");
             Expect(string.Empty, Announcements.BuildGearLacks(Fit(Piece(Early, "Helm1", 40), Worn with { Lines = null }), new Texts()), "nothing before its lines were read");
@@ -223,7 +224,7 @@ namespace Poe2Accessibility.Tests
             Expect("Below Met Unknown", string.Join(' ', fit.Mods.Select(mod => mod.Fit)), "found by its words; what is not found is not called missing");
         });
 
-        // The worn belt's own lines, heard live 2026-11-10 13:29 under "Falta +16% a la resistencia al hielo".
+        // The worn belt's own lines, heard live 2026-11-10 13:29 under "Falta: +16% a la resistencia al hielo".
         private static void ALineForAllElementsAnswersOneResistance() => InSpanish(() =>
         {
             var entry = new BuildGearEntry("Belt1", 0, "Plate Belt", new[] { "+40 to maximum Life", "+16% to Cold Resistance", "+16% to Lightning Resistance" },
@@ -255,6 +256,31 @@ namespace Poe2Accessibility.Tests
             Expect("Build, Cinturón: único Headhunter, no es este", Announcements.BuildGearItem(Fit(belt, rare), Fit(belt, rare), 70), "on an item");
             Expect(string.Empty, Announcements.BuildGearItem(Fit(belt, rare with { IsUnique = true, Title = "Cazacabezas" }), null, 70), "nothing said of a unique not judged");
         });
+
+        /// <summary>"+18 a la vida máxima" came twice on 1,163 spoken lines in a day: in the item's text, then with the build's verdict (play log 2026-11-13).</summary>
+        private static void AJudgedLineIsSaidOnce()
+        {
+            var item = new[] { "Anillo", "+18 a la vida máxima", "+17% a la resistencia al fuego", "Comprar objeto, X" };
+            var (details, left) = BuildGear.JudgedInPlace(item, new[] { "+18 a la vida máxima, la build pide 40", "+17% a la resistencia al fuego, cumple", "Falta: +10 a la fuerza" });
+            Expect("Anillo|+18 a la vida máxima, la build pide 40|+17% a la resistencia al fuego, cumple|Comprar objeto, X", string.Join('|', details), "the verdict where the item shows the line");
+            Expect("Falta: +10 a la fuerza", string.Join('|', left), "what the item has no line for comes after it");
+            Expect("+1 a la vida|+18 a la vida máxima", string.Join('|', BuildGear.JudgedInPlace(new[] { "+1 a la vida", "+18 a la vida máxima" }, new[] { "+1 a la vida máxima, cumple" }).Details), "a line that only begins alike is another line");
+
+            var mods = new[] { "Falta: +40 a la vida máxima" };
+            var rings = new (string, string, IReadOnlyList<string>)[]
+            {
+                ("Anillo izquierdo", "Build, Anillo izquierdo: 0 de 1 modificadores, misma base, nada puesto", mods),
+                ("Anillo derecho", "Build, Anillo derecho: 0 de 1 modificadores, misma base, nada puesto", mods),
+            };
+            var both = BuildGear.SlotLines(rings, true);
+            Expect("Build, Anillo izquierdo, Anillo derecho: 0 de 1 modificadores, misma base, nada puesto", string.Join('|', both.First), "two slots that say the same are one line");
+            Expect("Falta: +40 a la vida máxima", string.Join('|', both.Last), "with the modifiers once, under no slot's name");
+            rings[1] = ("Anillo derecho", "Build, Anillo derecho: 0 de 1 modificadores, misma base, menos que el puesto, que tiene 1", mods);
+            var apart = BuildGear.SlotLines(rings, true);
+            Expect(2, apart.First.Count, "two slots that differ keep a line each");
+            Expect("Anillo izquierdo|Falta: +40 a la vida máxima|Anillo derecho|Falta: +40 a la vida máxima", string.Join('|', apart.Last), "and their modifiers under each name");
+            Expect(true, apart.Headed, "which no line of the item takes in");
+        }
 
         private static void TheSummaryCountsBasesAndTheModifiersRead() => InSpanish(() =>
         {

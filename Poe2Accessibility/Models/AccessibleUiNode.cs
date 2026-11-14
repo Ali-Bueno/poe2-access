@@ -47,6 +47,25 @@ namespace Poe2Accessibility.Models
             return copy;
         }
 
+        /// <summary>
+        ///     The same node with panel notes that stand until they change (the build's summary of the worn gear): said on
+        ///     entering the panel only when they differ from those said last (docs/research/sweep-2026-11-13.md).
+        /// </summary>
+        /// <param name="of">Whose they are (a character): another's are news.</param>
+        public AccessibleUiNode WithStandingNotes(System.Collections.Generic.IReadOnlyList<string> notes, string of)
+        {
+            var copy = (AccessibleUiNode)this.MemberwiseClone();
+            var all = new System.Collections.Generic.List<string>(this.panelNotes);
+            all.AddRange(notes);
+            (copy.panelNotes, copy.StandingNotes, copy.StandingNotesOf) = (all, notes, of);
+            return copy;
+        }
+
+        /// <summary>Those of <see cref="PanelNotes"/> that stand until they change.</summary>
+        public System.Collections.Generic.IReadOnlyList<string> StandingNotes { get; private set; } = Array.Empty<string>();
+
+        public string StandingNotesOf { get; private set; } = string.Empty;
+
         public string Name { get; init; } = string.Empty;
 
         public UiRole Role { get; init; }

@@ -32,7 +32,7 @@ namespace Poe2Accessibility.Services
             var value = string.Empty;
             var emptyCell = false;
             List<string> details;
-            var gear = (First: new List<string>(), Last: new List<string>());
+            var gear = (First: new List<string>(), Last: new List<string>(), Headed: false);
             var filling = false;
             if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered) &&
                 Announcements.IsCellGrid(this.inventory.InventoryOf(info.Address)) && this.HandSpan() is { Columns: > 0 } hand)
@@ -97,8 +97,15 @@ namespace Poe2Accessibility.Services
             details.InsertRange(0, this.GemItemLines(this.inventory.ItemEntity(role == UiRole.GridCell ? hovered : this.inventory.FindItemElement(info.Address))));
 
             // A piece of gear: how it fits the build's slot before its own lines, each wanted modifier after them.
+            // A line the build judges is said once, with its verdict, where the item shows it (docs/research/sweep-2026-11-13.md).
+            var after = gear.Last;
+            if (!gear.Headed)
+            {
+                (details, after) = BuildGear.JudgedInPlace(details, gear.Last);
+            }
+
             details.InsertRange(0, gear.First);
-            details.AddRange(gear.Last);
+            details.AddRange(after);
 
             return new AccessibleUiNode
             {

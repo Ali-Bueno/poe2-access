@@ -155,7 +155,7 @@ namespace Poe2Accessibility
             {
                 ModFit.Met => T($"{held}, met", $"{held}, cumple"),
                 ModFit.Below => T($"{held}, the build asks for {asked}", $"{held}, la build pide {asked}"),
-                ModFit.Missing => T($"Missing {wanted}", $"Falta {wanted}"),
+                ModFit.Missing => T($"Missing {wanted}", $"Falta: {wanted}"),
                 _ => T($"Not compared: {words}", $"Sin comparar: {words}"),
             };
         }

@@ -227,6 +227,59 @@ namespace Poe2Accessibility.Services
             return (partial && certain.Count == 0 ? null : certain, partial);
         }
 
+        /// <summary>
+        ///     An item's lines for the slots that take it: one line each before the item and each slot's modifiers under its
+        ///     name after it; two slots that say the same of it (both rings with nothing worn) are told as one.
+        /// </summary>
+        /// <param name="told">Per slot: its name, its line (which holds the name) and its modifiers' verdicts.</param>
+        /// <param name="several">More than one slot takes the item.</param>
+        /// <returns>The lines, and whether the last ones stand under slot names.</returns>
+        public static (List<string> First, List<string> Last, bool Headed) SlotLines(IReadOnlyList<(string Slot, string Line, IReadOnlyList<string> Mods)> told, bool several)
+        {
+            if (told.Count == 2 && told[0].Slot.Length > 0 && told[0].Mods.SequenceEqual(told[1].Mods))
+            {
+                var at = told[0].Line.IndexOf(told[0].Slot, StringComparison.Ordinal);
+                if (at >= 0 && at == told[1].Line.IndexOf(told[1].Slot, StringComparison.Ordinal) &&
+                    told[0].Line.Remove(at, told[0].Slot.Length) == told[1].Line.Remove(at, told[1].Slot.Length))
+                {
+                    return (new List<string> { told[0].Line.Insert(at + told[0].Slot.Length, ", " + told[1].Slot) }, told[0].Mods.ToList(), false);
+                }
+            }
+
+            var last = new List<string>();
+            foreach (var slot in told.Where(slot => slot.Mods.Count > 0))
+            {
+                last.AddRange(several ? new[] { slot.Slot } : Array.Empty<string>());
+                last.AddRange(slot.Mods);
+            }
+
+            return (told.Select(slot => slot.Line).ToList(), last, several && last.Count > 0);
+        }
+
+        /// <summary>
+        ///     Each line of the item the build judges, said once: the verdict stands where the item shows the line ("+18 to
+        ///     maximum Life, the build asks for 40"), and the verdicts of no line of its own are left to say after it.
+        /// </summary>
+        public static (List<string> Details, List<string> Left) JudgedInPlace(IReadOnlyList<string> details, IReadOnlyList<string> verdicts)
+        {
+            var lines = details.ToList();
+            var left = new List<string>();
+            foreach (var verdict in verdicts)
+            {
+                var at = lines.FindIndex(line => line.Length > 0 && verdict.Length > line.Length && verdict[line.Length] == ',' && verdict.StartsWith(line, StringComparison.Ordinal));
+                if (at >= 0)
+                {
+                    lines[at] = verdict;
+                }
+                else
+                {
+                    left.Add(verdict);
+                }
+            }
+
+            return (lines, left);
+        }
+
         /// <summary>The worn pieces against the build; the furthest is the first in the build's order among the worst.</summary>
         public static GearSummary Summary(IReadOnlyList<GearFit> fits)
         {

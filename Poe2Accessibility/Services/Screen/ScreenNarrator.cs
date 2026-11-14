@@ -163,6 +163,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The panel whose notes were said with the focus last (<see cref="AccessibleUiNode.PanelNotes"/>).</summary>
         private string notesContext = string.Empty;
 
+        /// <summary>The standing notes said last and whose they were (<see cref="AccessibleUiNode.StandingNotes"/>).</summary>
+        private (string Of, string Text) standingNotesSaid;
+
         /// <summary>When the focused row was last closed: the rows that slide up into view after it are not news.</summary>
         private DateTime collapsedAt = DateTime.MinValue;
         private string lastLinkRow = string.Empty;

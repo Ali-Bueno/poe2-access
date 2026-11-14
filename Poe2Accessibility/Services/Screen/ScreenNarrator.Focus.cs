@@ -60,7 +60,15 @@ namespace Poe2Accessibility.Services
             }
 
             var text = focused;
-            var notes = node.Context == this.notesContext ? new List<string>() : node.PanelNotes.Where(note => !focused.Contains(note.TrimEnd('.'), StringComparison.Ordinal)).ToList();
+            var standing = (node.StandingNotesOf, string.Join(' ', node.StandingNotes));
+            var heard = node.StandingNotes.Count > 0 && standing == this.standingNotesSaid;
+            var notes = node.Context == this.notesContext ? new List<string>()
+                : node.PanelNotes.Where(note => !focused.Contains(note.TrimEnd('.'), StringComparison.Ordinal) && !(heard && node.StandingNotes.Contains(note))).ToList();
+            if (node.Context != this.notesContext && node.StandingNotes.Count > 0)
+            {
+                this.standingNotesSaid = standing;
+            }
+
             if (notes.Count > 0)
             {
                 // Entering a panel: the lines it shows besides the part the focus is in, before the focus (kept due

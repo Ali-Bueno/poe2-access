@@ -20,15 +20,12 @@ namespace Poe2Accessibility.Services
 
         private (long At, string Character, Dictionary<(string Slot, int X), IntPtr> Worn, HashSet<string> Slots)? wornGear;
         /// <summary>What was said last of the cursor's item and of the worn gear, kept while what it was made from stands (<see cref="GearState"/>).</summary>
-        private (object? State, IntPtr Entity, IntPtr Grid, int Column, int Tooltip, (List<string> First, List<string> Last) Said) gearMemo;
+        private (object? State, IntPtr Entity, IntPtr Grid, int Column, int Tooltip, (List<string> First, List<string> Last, bool Headed) Said) gearMemo;
         private (object? State, IReadOnlyList<string> Lines) gearSummary = (null, Array.Empty<string>());
 
         /// <summary>Counts the changes of the worn items and of their lines read.</summary>
         private int gearVersion;
         private (IntPtr Address, GearPlace Place, bool Show) gearFocus;
-
-        /// <summary>The summary last said and whose it was: the same one is not said at every opening of the inventory.</summary>
-        private (string Character, string Text) gearSummarySaid;
 
         /// <summary>Where the focus is, for the gear summary: the player's own inventory and slots, another grid (stash, a merchant's stock), or anything else.</summary>
         private enum GearPlace
@@ -121,9 +118,9 @@ namespace Poe2Accessibility.Services
         ///     own lines; on any other item that can be worn, a short line per slot before them and each modifier after.
         /// </summary>
         /// <param name="tooltip">The item's whole tooltip; nothing is said of an item until it is read.</param>
-        private (List<string> First, List<string> Last) BuildGearLines(IntPtr grid, InventoryName? inventoryName, int column, IntPtr entity, IReadOnlyList<string> tooltip)
+        private (List<string> First, List<string> Last, bool Headed) BuildGearLines(IntPtr grid, InventoryName? inventoryName, int column, IntPtr entity, IReadOnlyList<string> tooltip)
         {
-            var none = (new List<string>(), new List<string>());
+            var none = (new List<string>(), new List<string>(), false);
             if (this.GearPlan() is not { } active || (entity != IntPtr.Zero && tooltip.Count == 0))
             {
                 return none;
@@ -145,7 +142,7 @@ namespace Poe2Accessibility.Services
         /// <summary>What the gear's lines are made from besides the item itself: the build, the level, the worn items with their lines read, and the catalogs.</summary>
         private object GearState((BuildPlan Plan, int Level) active) => (active.Plan, active.Level, this.gearVersion, BuildGear.Bases, BuildGear.Texts, ModStatCatalog.Shared, Localization.Language);
 
-        private (List<string> First, List<string> Last) GearLinesNow((BuildPlan Plan, int Level) active, InventoryName? inventoryName, int column, IntPtr entity, IReadOnlyList<string> tooltip)
+        private (List<string> First, List<string> Last, bool Headed) GearLinesNow((BuildPlan Plan, int Level) active, InventoryName? inventoryName, int column, IntPtr entity, IReadOnlyList<string> tooltip)
         {
             var (first, last) = (new List<string>(), new List<string>());
             var (worn, _) = this.WornGear();
@@ -181,37 +178,31 @@ namespace Poe2Accessibility.Services
                     last.AddRange(Announcements.BuildGearSlot(fit, active.Level, BuildGear.Bases, BuildGear.Texts, lacksSaid: lacks.Length > 0));
                 }
 
-                return (first, last);
+                return (first, last, false);
             }
 
             if (entity == IntPtr.Zero)
             {
-                return (first, last);
+                return (first, last, false);
             }
 
             var slots = BuildGear.SlotsFor(this.inventory.ItemBaseId(entity))
                 .Select(slot => (Slot: slot, Entry: BuildGear.EntryFor(active.Plan, slot.Slot, slot.X, active.Level))).Where(slot => slot.Entry != null).ToList();
+            var told = new List<(string Slot, string Line, IReadOnlyList<string> Mods)>();
             foreach (var (slot, entry) in slots)
             {
                 var fit = Fit(entry!, entity, tooltip);
                 var held = worn.GetValueOrDefault(slot);
                 var wornFit = held == IntPtr.Zero ? null : BuildGear.Fit(entry!, this.WornItemOf(held), BuildGear.Bases, BuildGear.Texts, Localization.Language);
                 var line = Announcements.BuildGearItem(fit, wornFit, active.Level);
-                if (line.Length == 0)
+                if (line.Length > 0)
                 {
-                    continue;
-                }
-
-                first.Add(line);
-                if (fit.Mods.Count > 0)
-                {
-                    // Two slots take it (rings, weapon sets): each one's modifiers under its name.
-                    last.AddRange(slots.Count > 1 ? new[] { Announcements.GearSlotName(slot.Slot, slot.X) } : Array.Empty<string>());
-                    last.AddRange(Announcements.GearMods(fit, BuildGear.Texts));
+                    told.Add((Announcements.GearSlotName(slot.Slot, slot.X), line, Announcements.GearMods(fit, BuildGear.Texts).ToList()));
                 }
             }
 
-            return (first, last);
+            // Two slots take it (rings, weapon sets): each one's modifiers under its name, or once when both say the same.
+            return BuildGear.SlotLines(told, slots.Count > 1);
         }
 
         /// <summary>On the player's own inventory, entered from outside a stash or a shop: how the worn gear stands against the build.</summary>
@@ -229,11 +220,6 @@ namespace Poe2Accessibility.Services
                     : GearPlace.OtherGrid;
                 // Coming back from the stash or a merchant's stock is no entering: said once per visit, not per crossing.
                 var show = place == GearPlace.Own && (this.gearFocus.Place == GearPlace.Own ? this.gearFocus.Show : this.gearFocus.Place != GearPlace.OtherGrid);
-                if (show && this.gearFocus.Place != GearPlace.Own)
-                {
-                    show = this.GearSummaryIsNews();
-                }
-
                 this.gearFocus = (node.Address, place, show);
             }
 
@@ -243,28 +229,7 @@ namespace Poe2Accessibility.Services
             }
 
             var notes = this.GearSummaryLines(active);
-            return notes.Count == 0 ? node : node.With(node.Text, node.Tooltip, node.PanelNotes.Concat(notes).ToList());
-        }
-
-        /// <summary>
-        ///     Whether the summary differs from the one last said to this character: said unchanged at 80 of 101 openings of
-        ///     the inventory in a day, before the focused item each time (docs/research/sweep-2026-11-13.md).
-        /// </summary>
-        private bool GearSummaryIsNews()
-        {
-            if (this.GearPlan() is not { } active)
-            {
-                return true;
-            }
-
-            var entering = (AskingCharacter(), string.Join(". ", this.GearSummaryLines(active)));
-            if (entering == this.gearSummarySaid)
-            {
-                return false;
-            }
-
-            this.gearSummarySaid = entering;
-            return true;
+            return notes.Count == 0 ? node : node.WithStandingNotes(notes, AskingCharacter());
         }
 
         /// <summary>The slots whose piece applies at this level, each against what is worn there, its lines from its tooltip or from memory.</summary>
