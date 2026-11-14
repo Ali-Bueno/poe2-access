@@ -1,0 +1,2164 @@
+{
+  "shrines": [
+    {
+      "id": "Acceleration",
+      "lesser": false,
+      "buff": "shrine_acceleration",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Beschleunigung",
+        "en": "Acceleration Shrine",
+        "es": "Santuario de aceleración",
+        "fr": "Autel de l'Accélération",
+        "ja": "加速のシュライン",
+        "ko": "가속의 성소",
+        "pt": "Altar da Aceleração",
+        "ru": "Алтарь скорости",
+        "th": "แท่นบูชาเร่งความเร็ว",
+        "zh-TW": "迅速神殿"
+      },
+      "descriptions": {
+        "de": "Der Tod wartet nicht.",
+        "en": "Death doesn't wait.",
+        "es": "La muerte no espera.",
+        "fr": "La mort n'attend pas.",
+        "ja": "死は待ってくれない。",
+        "ko": "죽음이 더 빨리 찾아옵니다.",
+        "pt": "A morte não espera.",
+        "ru": "Смерть не ждет",
+        "th": "ความตายไม่รอใคร",
+        "zh-TW": "死亡不等人。"
+      }
+    },
+    {
+      "id": "Lightning",
+      "lesser": false,
+      "buff": "shrine_lightning",
+      "seconds": 45,
+      "names": {
+        "de": "Gewitterschrein",
+        "en": "Tempest Shrine",
+        "es": "Santuario de tempestad",
+        "fr": "Autel de la Tempête",
+        "ja": "大嵐のシュライン",
+        "ko": "폭풍의 성소",
+        "pt": "Altar da Tempestade",
+        "ru": "Алтарь бури",
+        "th": "แท่นบูชามรสุม",
+        "zh-TW": "暴風神殿"
+      },
+      "descriptions": {
+        "de": "Öffnet das Auge des Sturms.",
+        "en": "Open the eye of the storm.",
+        "es": "Abre el ojo de la tormenta.",
+        "fr": "Écarquillez l'œil de la tempête.",
+        "ja": "嵐の中心を開け。",
+        "ko": "태풍의 눈을 개방합니다.",
+        "pt": "Abra o olho do furacão.",
+        "ru": "Пусть сильнее грянет буря",
+        "th": "เปิดดวงตาแห่งพายุ",
+        "zh-TW": "呼喚雷霆之眼。"
+      }
+    },
+    {
+      "id": "Cold",
+      "lesser": false,
+      "buff": "shrine_cold",
+      "seconds": 45,
+      "names": {
+        "de": "Gefrierschrein",
+        "en": "Freezing Shrine",
+        "es": "Santuario de congelamiento",
+        "fr": "Autel du Gel",
+        "ja": "凍結のシュライン",
+        "ko": "동결의 성소",
+        "pt": "Altar Congelante",
+        "ru": "Алтарь стужи",
+        "th": "แท่นบูชาแช่แข็ง",
+        "zh-TW": "霜寒神殿"
+      },
+      "descriptions": {
+        "de": "Verwandelt Eure Welt zu Eis.",
+        "en": "Turn your world to ice.",
+        "es": "Cambia tu mundo a hielo.",
+        "fr": "Gelez le monde qui vous entoure.",
+        "ja": "世界を氷に変えろ。",
+        "ko": "주위를 얼음 바다로 만듭니다.",
+        "pt": "Congele tudo à sua volta.",
+        "ru": "Покрой мир льдами",
+        "th": "เปลี่ยนโลกเป็นน้ำแข็ง",
+        "zh-TW": "凍結你的世界。"
+      }
+    },
+    {
+      "id": "Fire",
+      "lesser": false,
+      "buff": "shrine_fire",
+      "seconds": 45,
+      "names": {
+        "de": "Meteoritenschrein",
+        "en": "Meteoric Shrine",
+        "es": "Santuario de meteoritos",
+        "fr": "Autel météorique",
+        "ja": "隕石のシュライン",
+        "ko": "유성 성소",
+        "pt": "Altar Meteórico",
+        "ru": "Алтарь метеоров",
+        "th": "แท่นบูชาอุกกาบาต",
+        "zh-TW": "隕石神殿"
+      },
+      "descriptions": {
+        "de": "Der Himmel stürzt ein. Das Land steht in Flammen.",
+        "en": "The sky falls. The land burns.",
+        "es": "El cielo se cae. La tierra se incendia.",
+        "fr": "Le ciel s'abat sur nos têtes et embrase la terre.",
+        "ja": "空が落ちる。大地が燃える。",
+        "ko": "하늘이 무너지고, 대지는 불에 휩싸입니다.",
+        "pt": "O céu desaba. A terra arde.",
+        "ru": "Да рухнут небеса и запылает твердь",
+        "th": "ฟ้าถล่ม ผืนดินลุกเป็นไฟ",
+        "zh-TW": "天空墜落、大地燃燒。"
+      }
+    },
+    {
+      "id": "Arc",
+      "lesser": false,
+      "buff": "shrine_arc",
+      "seconds": 45,
+      "names": {
+        "de": "Gewitterschrein",
+        "en": "Tempest Shrine",
+        "es": "Santuario de tempestad",
+        "fr": "Autel de la Tempête",
+        "ja": "大嵐のシュライン",
+        "ko": "폭풍의 성소",
+        "pt": "Altar da Tempestade",
+        "ru": "Алтарь бури",
+        "th": "แท่นบูชามรสุม",
+        "zh-TW": "暴風神殿"
+      },
+      "descriptions": {
+        "de": "Streckt Eure Hand aus, berührt den Hass.",
+        "en": "Reach out and touch hate.",
+        "es": "Estírate y toca\u00A0el odio.",
+        "fr": "Tendez la main à la haine.",
+        "ja": "手を伸ばし、憎しみに触れろ。",
+        "ko": "적에게 증오의 손길을 뻗습니다.",
+        "pt": "Estenda a mão e toque o ódio.",
+        "ru": "Протяни руку и коснись ненависти",
+        "th": "ยื่นมือออกมาและสัมผัสความเกลียดชัง",
+        "zh-TW": "伸手觸摸憎恨。"
+      }
+    },
+    {
+      "id": "Criticals",
+      "lesser": false,
+      "buff": "shrine_critical",
+      "seconds": 45,
+      "names": {
+        "de": "Diamantenschrein",
+        "en": "Diamond Shrine",
+        "es": "Santuario de diamante",
+        "fr": "Autel de Diamant",
+        "ja": "金剛石のシュライン",
+        "ko": "다이아몬드의 성소",
+        "pt": "Altar Diamante",
+        "ru": "Алтарь алмазов",
+        "th": "แท่นบูชาเพชร",
+        "zh-TW": "鑽石神殿"
+      },
+      "descriptions": {
+        "de": "Fügt außerordentlichen Schmerz zu.",
+        "en": "Deliver pain exquisite.",
+        "es": "Distribuye dolor exquisito.",
+        "fr": "Infligez une douleur exquise.",
+        "ja": "強烈な痛みを与えよ。",
+        "ko": "치명적인 타격을 날립니다.",
+        "pt": "Cause uma dor inesquecível.",
+        "ru": "Причиняй боль искусно",
+        "th": "มอบความเจ็บปวดอย่างสวยงาม",
+        "zh-TW": "提供精緻的疼痛。"
+      }
+    },
+    {
+      "id": "Brutal",
+      "lesser": false,
+      "buff": "shrine_brutal",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Grausamkeit",
+        "en": "Brutal Shrine",
+        "es": "Santuario brutal",
+        "fr": "Autel de Brutalité",
+        "ja": "残忍なシュライン",
+        "ko": "난폭의 성소",
+        "pt": "Altar Brutal",
+        "ru": "Алтарь свирепости",
+        "th": "แท่นบูชาโหดเหี้ยม",
+        "zh-TW": "狂擊神殿"
+      },
+      "descriptions": {
+        "de": "Schlagt fest zu. Schlagt nur einmal zu.",
+        "en": "Hit hard. Hit once.",
+        "es": "Golpea fuerte. Golpea una vez.",
+        "fr": "Frappez fort. Frappez juste.",
+        "ja": "強く打て。一度だけ打て。",
+        "ko": "한 방을 확실하게 때립니다.",
+        "pt": "Bata forte e só uma vez.",
+        "ru": "Один удар - одна смерть",
+        "th": "ตีแรง ตีครั้งเดียว",
+        "zh-TW": "打用力點，一次搞定。"
+      }
+    },
+    {
+      "id": "Thorns",
+      "lesser": false,
+      "buff": "shrine_thorns",
+      "seconds": 45,
+      "names": {
+        "de": "Dornenschrein",
+        "en": "Thorned Shrine",
+        "es": "Santuario de espinas",
+        "fr": "Autel des Épines",
+        "ja": "棘のシュライン",
+        "ko": "가시의 성소",
+        "pt": "Altar Espinhoso",
+        "ru": "Алтарь шипов",
+        "th": "แท่นบูชาหนาม",
+        "zh-TW": "荊棘神殿"
+      },
+      "descriptions": {
+        "de": "Teilt Euren Schmerz.",
+        "en": "Share your pain.",
+        "es": "Comparte tu dolor.",
+        "fr": "Partagez votre douleur.",
+        "ja": "痛みを分かち合え。",
+        "ko": "고통을 함께 나눕니다.",
+        "pt": "Compartilhe sua dor.",
+        "ru": "Раздели свою боль",
+        "th": "แบ่งปันความเจ็บปวด",
+        "zh-TW": "分享你的疼痛。"
+      }
+    },
+    {
+      "id": "Regen",
+      "lesser": false,
+      "buff": "shrine_regen",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Erneuerung",
+        "en": "Replenishing Shrine",
+        "es": "Santuario de recarga",
+        "fr": "Autel de Régénération",
+        "ja": "補充のシュライン",
+        "ko": "회복의 성소",
+        "pt": "Altar Revigorante",
+        "ru": "Алтарь восполнения",
+        "th": "แท่นบูชาเติมพลัง",
+        "zh-TW": "回復神殿"
+      },
+      "descriptions": {
+        "de": "Zeit heilt alle Wunden.",
+        "en": "Restore that which was lost.",
+        "es": "Restaura aquello que estaba perdido.",
+        "fr": "Restaurez ce qui a été perdu.",
+        "ja": "失われた物を取り戻せ。",
+        "ko": "잃어버린 힘을 되찾습니다.",
+        "pt": "Restaure o que foi perdido.",
+        "ru": "Воздай себе за потери",
+        "th": "ฟื้นคืนสิ่งที่สูญหาย",
+        "zh-TW": "得回你失去的。"
+      }
+    },
+    {
+      "id": "Massive",
+      "lesser": false,
+      "buff": "shrine_massive",
+      "seconds": 45,
+      "names": {
+        "de": "Ausdauernder Schrein",
+        "en": "Enduring Shrine",
+        "es": "Santuario de fortaleza",
+        "fr": "Autel de la Ténacité",
+        "ja": "不朽のシュライン",
+        "ko": "인내의 성소",
+        "pt": "Altar da Tolerância",
+        "ru": "Алтарь выносливости",
+        "th": "แท่นบูชาทนทาน",
+        "zh-TW": "耐久神殿"
+      },
+      "descriptions": {
+        "de": "Den Mutigen gehört die Welt.",
+        "en": "Courage stands tall.",
+        "es": "El coraje se mantiene alto.",
+        "fr": "Le courage grandit l'âme.",
+        "ja": "勇気で背筋が伸びる。",
+        "ko": "큰 용기를 얻습니다.",
+        "pt": "A coragem não se dobra.",
+        "ru": "Взгляни на страхи свысока",
+        "th": "ความกล้าหาญจะคงยืนหยัด",
+        "zh-TW": "勇氣戰勝一切 ─ 派翠克．陳"
+      }
+    },
+    {
+      "id": "Defence",
+      "lesser": false,
+      "buff": "shrine_defence",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Undurchdringlichkeit",
+        "en": "Impenetrable Shrine",
+        "es": "Santuario impenetrable",
+        "fr": "Autel de l'Impénétrabilité",
+        "ja": "強固なシュライン",
+        "ko": "중갑의 성소",
+        "pt": "Altar Impenetrável",
+        "ru": "Алтарь неуязвимости",
+        "th": "แท่นบูชาป้องกัน",
+        "zh-TW": "無畏神殿"
+      },
+      "descriptions": {
+        "de": "Nichts wird Euch aufhalten.",
+        "en": "None shall stop you.",
+        "es": "Nadie te detendrá.",
+        "fr": "Personne ne peut vous arrêter.",
+        "ja": "誰もお前を止められない。",
+        "ko": "아무도 막을 수 없는 존재가 됩니다.",
+        "pt": "Ninguém te deterá.",
+        "ru": "Ничто тебя не остановит",
+        "th": "ไม่มีสิ่งใดหยุดเจ้าได้",
+        "zh-TW": "沒啥擋的了你。"
+      }
+    },
+    {
+      "id": "Resistance",
+      "lesser": false,
+      "buff": "shrine_resistance",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein des Widerstands",
+        "en": "Resistance Shrine",
+        "es": "Santuario de resistencia",
+        "fr": "Autel de Résistance",
+        "ja": "耐性のシュライン",
+        "ko": "저항의 성소",
+        "pt": "Altar da Resistência",
+        "ru": "Алтарь выдержки",
+        "th": "แท่นบูชาความต้านทาน",
+        "zh-TW": "抗性神殿"
+      },
+      "descriptions": {
+        "de": "Fürchtet nicht die Elemente.",
+        "en": "Fear not the elements.",
+        "es": "No temas a los elementos.",
+        "fr": "N'ayez plus crainte des éléments.",
+        "ja": "元素を恐れるな。",
+        "ko": "원소를 두려워하지 않게 됩니다.",
+        "pt": "Não tema os elementos.",
+        "ru": "Да не убоишься стихий",
+        "th": "อย่าได้เกรงกลัวธาตุ",
+        "zh-TW": "元素？你說那個溫溫涼涼刺刺的？"
+      }
+    },
+    {
+      "id": "GodMode",
+      "lesser": false,
+      "buff": "shrine_godmode",
+      "seconds": 45,
+      "names": {
+        "de": "Göttlicher Schrein",
+        "en": "Divine Shrine",
+        "es": "Santuario divino",
+        "fr": "Autel Divin",
+        "ja": "神のシュライン",
+        "ko": "신성한 성소",
+        "pt": "Altar Divino",
+        "ru": "Алтарь богоподобия",
+        "th": "แท่นบูชาเทวา",
+        "zh-TW": "聖潔神殿"
+      },
+      "descriptions": {
+        "de": "Werdet zum Albtraum.",
+        "en": "Become the nightmare.",
+        "es": "Conviértete en la pesadilla.",
+        "fr": "Incarnez le cauchemar.",
+        "ja": "悪夢たれ。",
+        "ko": "악몽 그 자체가 되어보십시오.",
+        "pt": "Torne-se o pesadelo.",
+        "ru": "Стань кошмаром",
+        "th": "จงกลายเป็นฝันร้าย",
+        "zh-TW": "化身他人的夢魘。"
+      }
+    },
+    {
+      "id": "Multi",
+      "lesser": false,
+      "buff": "shrine_echoing",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein des Widerhalls",
+        "en": "Echoing Shrine",
+        "es": "Santuario resonante",
+        "fr": "Autel de l'Écho",
+        "ja": "反響するシュライン",
+        "ko": "메아리의 성소",
+        "pt": "Altar Ecoante",
+        "ru": "Алтарь отражений",
+        "th": "แท่นบูชาก้องสะท้อน",
+        "zh-TW": "回響神殿"
+      },
+      "descriptions": {
+        "de": "Lasst Eurem Zorn freien Lauf.",
+        "en": "Let your rage flow freely.",
+        "es": "Deja que tu rabia fluya libremente.",
+        "fr": "Laissez libre cours à votre rage.",
+        "ja": "怒りに身を委ねよ。",
+        "ko": "격노를 마음껏 발산하십시오.",
+        "pt": "Extravase sua raiva.",
+        "ru": "Выпусти ярость на волю",
+        "th": "ปลดปล่อยความบ้าคลั่งให้เป็นอิสระ",
+        "zh-TW": "釋放你的怒火。"
+      }
+    },
+    {
+      "id": "Curses",
+      "lesser": false,
+      "buff": "shrine_curses",
+      "seconds": 45,
+      "names": {
+        "de": "Verfluchender Schrein",
+        "en": "Hexing Shrine",
+        "es": "Santuario de embrujo",
+        "fr": "Autel des Maléfices",
+        "ja": "呪いのシュライン",
+        "ko": "사술의 성소",
+        "pt": "Altar da Feitiçaria",
+        "ru": "Алтарь проклятий",
+        "th": "แท่นบูชาคำสาป",
+        "zh-TW": "邪法神殿"
+      },
+      "descriptions": {
+        "de": "Gebietet Eurer bösen Zunge niemals Einhalt.",
+        "en": "Stay not your vile tongue.",
+        "es": "No contengas tu malvada lengua.",
+        "fr": "Ne ravalez pas vos paroles profanes.",
+        "ja": "卑劣な舌を解き放て。",
+        "ko": "불온한 주문을 계속해서 외웁니다.",
+        "pt": "Não segure essa língua suja.",
+        "ru": "Напитай ядом свои слова",
+        "th": "อย่าหยุดยั้งลิ้นอันโฉดชั่ว",
+        "zh-TW": "收起你的毒舌。"
+      }
+    },
+    {
+      "id": "Skeletons",
+      "lesser": false,
+      "buff": "shrine_skeleton",
+      "seconds": 45,
+      "names": {
+        "de": "Skelettschrein",
+        "en": "Skeletal Shrine",
+        "es": "Santuario esquelético",
+        "fr": "Autel des Squelettes",
+        "ja": "骨のシュライン",
+        "ko": "해골의 성소",
+        "pt": "Altar Descarnado",
+        "ru": "Алтарь скелетов",
+        "th": "แท่นบูชาโครงกระดูก",
+        "zh-TW": "骷髏神殿"
+      },
+      "descriptions": {
+        "de": "Die Vergangenheit soll der Gegenwart zu Diensten sein.",
+        "en": "The past shall serve the present.",
+        "es": "El pasado servirá al presente.",
+        "fr": "... Et le passé sert le présent...",
+        "ja": "過去が今に仕える。",
+        "ko": "죽은 자가 산 자를 섬깁니다.",
+        "pt": "O passado servirá ao presente.",
+        "ru": "Былое сущему послужит",
+        "th": "อดีตย่อมรับใช้ปัจจุบัน",
+        "zh-TW": "過去式理應服侍現在式。"
+      }
+    },
+    {
+      "id": "Smoke",
+      "lesser": false,
+      "buff": "shrine_smoke",
+      "seconds": 45,
+      "names": {
+        "de": "Verhüllter Schrein",
+        "en": "Shrouded Shrine",
+        "es": "Santuario de cobertura",
+        "fr": "Autel du Voile",
+        "ja": "帳のシュライン",
+        "ko": "연막의 성소",
+        "pt": "Altar Encoberto",
+        "ru": "Алтарь покровов",
+        "th": "แท่นบูชาควัน",
+        "zh-TW": "迷霧神殿"
+      },
+      "descriptions": {
+        "de": "Verbergt Euren Pfad im Nebel.",
+        "en": "Shroud your path in the fog of war.",
+        "es": "Cubre tu camino en la niebla de la guerra.",
+        "fr": "Masquez vos traces dans le brouillard de la guerre.",
+        "ja": "戦場の霧が行く手を包む。",
+        "ko": "전장의 안개 속에서 움직임을 숨깁니다.",
+        "pt": "Esconda seu caminho na neblina de guerra.",
+        "ru": "Сокрой свой путь войны туманом",
+        "th": "ปกคลุมเส้นทางไว้ในหมอกสงคราม",
+        "zh-TW": "用戰爭迷霧壟罩你的道路。"
+      }
+    },
+    {
+      "id": "PVPAcceleration",
+      "lesser": false,
+      "buff": "shrine_acceleration",
+      "seconds": 12,
+      "names": {
+        "de": "Schrein der Beschleunigung",
+        "en": "Acceleration Shrine",
+        "es": "Santuario de aceleración",
+        "fr": "Autel de l'Accélération",
+        "ja": "加速のシュライン",
+        "ko": "가속의 성소",
+        "pt": "Altar da Aceleração",
+        "ru": "Алтарь скорости",
+        "th": "แท่นบูชาเร่งความเร็ว",
+        "zh-TW": "迅速神殿"
+      },
+      "descriptions": {
+        "de": "Der Tod wartet nicht.",
+        "en": "Death doesn't wait.",
+        "es": "La muerte no espera.",
+        "fr": "La mort n'attend pas.",
+        "ja": "死は待ってくれない。",
+        "ko": "죽음이 더 빨리 찾아옵니다.",
+        "pt": "A morte não espera.",
+        "ru": "Смерть не ждет",
+        "th": "ความตายไม่รอใคร",
+        "zh-TW": "死亡不等人。"
+      }
+    },
+    {
+      "id": "PVPRegen",
+      "lesser": false,
+      "buff": "shrine_regen",
+      "seconds": 12,
+      "names": {
+        "de": "Schrein der Erneuerung",
+        "en": "Replenishing Shrine",
+        "es": "Santuario de recarga",
+        "fr": "Autel de Régénération",
+        "ja": "補充のシュライン",
+        "ko": "회복의 성소",
+        "pt": "Altar Revigorante",
+        "ru": "Алтарь восполнения",
+        "th": "แท่นบูชาเติมพลัง",
+        "zh-TW": "回復神殿"
+      },
+      "descriptions": {
+        "de": "Zeit heilt alle Wunden.",
+        "en": "Restore that which was lost.",
+        "es": "Restaura aquello que estaba perdido.",
+        "fr": "Restaurez ce qui a été perdu.",
+        "ja": "失われた物を取り戻せ。",
+        "ko": "잃어버린 힘을 되찾습니다.",
+        "pt": "Restaure o que foi perdido.",
+        "ru": "Воздай себе за потери",
+        "th": "ฟื้นคืนสิ่งที่สูญหาย",
+        "zh-TW": "得回你失去的。"
+      }
+    },
+    {
+      "id": "PVPBrutal",
+      "lesser": false,
+      "buff": "shrine_brutal",
+      "seconds": 20,
+      "names": {
+        "de": "Schrein der Grausamkeit",
+        "en": "Brutal Shrine",
+        "es": "Santuario brutal",
+        "fr": "Autel de Brutalité",
+        "ja": "残忍なシュライン",
+        "ko": "난폭의 성소",
+        "pt": "Altar Brutal",
+        "ru": "Алтарь свирепости",
+        "th": "แท่นบูชาโหดเหี้ยม",
+        "zh-TW": "狂擊神殿"
+      },
+      "descriptions": {
+        "de": "Schlagt fest zu. Schlagt nur einmal zu.",
+        "en": "Hit hard. Hit once.",
+        "es": "Golpea fuerte. Golpea una vez.",
+        "fr": "Frappez fort. Frappez juste.",
+        "ja": "強く打て。一度だけ打て。",
+        "ko": "한 방을 확실하게 때립니다.",
+        "pt": "Bata forte e só uma vez.",
+        "ru": "Один удар - одна смерть",
+        "th": "ตีแรง ตีครั้งเดียว",
+        "zh-TW": "打用力點，一次搞定。"
+      }
+    },
+    {
+      "id": "CTFBrutal",
+      "lesser": false,
+      "buff": "shrine_brutal",
+      "seconds": 20,
+      "names": {
+        "de": "Schrein der Grausamkeit",
+        "en": "Brutal Shrine",
+        "es": "Santuario brutal",
+        "fr": "Autel de Brutalité",
+        "ja": "残忍なシュライン",
+        "ko": "난폭의 성소",
+        "pt": "Altar Brutal",
+        "ru": "Алтарь свирепости",
+        "th": "แท่นบูชาโหดเหี้ยม",
+        "zh-TW": "狂擊神殿"
+      },
+      "descriptions": {
+        "de": "Schlagt fest zu. Schlagt nur einmal zu.",
+        "en": "Hit hard. Hit once.",
+        "es": "Golpea fuerte. Golpea una vez.",
+        "fr": "Frappez fort. Frappez juste.",
+        "ja": "強く打て。一度だけ打て。",
+        "ko": "한 방을 확실하게 때립니다.",
+        "pt": "Bata forte e só uma vez.",
+        "ru": "Один удар - одна смерть",
+        "th": "ตีแรง ตีครั้งเดียว",
+        "zh-TW": "打用力點，一次搞定。"
+      }
+    },
+    {
+      "id": "CTFRegen",
+      "lesser": false,
+      "buff": "shrine_regen",
+      "seconds": 20,
+      "names": {
+        "de": "Schrein der Erneuerung",
+        "en": "Replenishing Shrine",
+        "es": "Santuario de recarga",
+        "fr": "Autel de Régénération",
+        "ja": "補充のシュライン",
+        "ko": "회복의 성소",
+        "pt": "Altar Revigorante",
+        "ru": "Алтарь восполнения",
+        "th": "แท่นบูชาเติมพลัง",
+        "zh-TW": "回復神殿"
+      },
+      "descriptions": {
+        "de": "Zeit heilt alle Wunden.",
+        "en": "Restore that which was lost.",
+        "es": "Restaura aquello que estaba perdido.",
+        "fr": "Restaurez ce qui a été perdu.",
+        "ja": "失われた物を取り戻せ。",
+        "ko": "잃어버린 힘을 되찾습니다.",
+        "pt": "Restaure o que foi perdido.",
+        "ru": "Воздай себе за потери",
+        "th": "ฟื้นคืนสิ่งที่สูญหาย",
+        "zh-TW": "得回你失去的。"
+      }
+    },
+    {
+      "id": "CTFMassive",
+      "lesser": false,
+      "buff": "shrine_massive",
+      "seconds": 20,
+      "names": {
+        "de": "Gewaltiger Schrein",
+        "en": "Massive Shrine",
+        "es": "Santuario masivo",
+        "fr": "Autel du Titan",
+        "ja": "壮大なシュライン",
+        "ko": "거대화의 성소",
+        "pt": "Altar Maciço",
+        "ru": "Алтарь величия",
+        "th": "แท่นบูชายักษ์",
+        "zh-TW": "威猛神殿"
+      },
+      "descriptions": {
+        "de": "Den Mutigen gehört die Welt.",
+        "en": "Courage stands tall.",
+        "es": "El coraje se mantiene alto.",
+        "fr": "Le courage grandit l'âme.",
+        "ja": "勇気で背筋が伸びる。",
+        "ko": "큰 용기를 얻습니다.",
+        "pt": "A coragem não se dobra.",
+        "ru": "Взгляни на страхи свысока",
+        "th": "ความกล้าหาญจะคงยืนหยัด",
+        "zh-TW": "勇氣戰勝一切 ─ 派翠克．陳"
+      }
+    },
+    {
+      "id": "CTFDefence",
+      "lesser": false,
+      "buff": "shrine_defence",
+      "seconds": 20,
+      "names": {
+        "de": "Schrein der Undurchdringlichkeit",
+        "en": "Impenetrable Shrine",
+        "es": "Santuario impenetrable",
+        "fr": "Autel d'Impénétrabilité",
+        "ja": "強固なシュライン",
+        "ko": "중갑의 성소",
+        "pt": "Altar Impenetrável",
+        "ru": "Алтарь неуязвимости",
+        "th": "แท่นบูชาป้องกัน",
+        "zh-TW": "無畏神殿"
+      },
+      "descriptions": {
+        "de": "Nichts wird Euch aufhalten.",
+        "en": "None shall stop you.",
+        "es": "Nadie te detendrá.",
+        "fr": "Personne ne peut vous arrêter.",
+        "ja": "誰もお前を止められない。",
+        "ko": "아무도 막을 수 없는 존재가 됩니다.",
+        "pt": "Ninguém te deterá.",
+        "ru": "Ничто тебя не остановит",
+        "th": "ไม่มีสิ่งใดหยุดเจ้าได้",
+        "zh-TW": "沒啥擋的了你。"
+      }
+    },
+    {
+      "id": "AccelerationLesser",
+      "lesser": true,
+      "buff": "shrine_acceleration",
+      "seconds": 20,
+      "names": {
+        "de": "Niederer Schrein der Beschleunigung",
+        "en": "Lesser Acceleration Shrine",
+        "es": "Santuario de aceleración menor",
+        "fr": "Autel d'Accélération mineure",
+        "ja": "加速のシュライン (小 )",
+        "ko": "하위 가속의 성소",
+        "pt": "Altar da Aceleração Menor",
+        "ru": "Малый алтарь скорости",
+        "th": "แท่นบูชาเร่งความเร็วองค์รอง",
+        "zh-TW": "低階迅速神殿"
+      },
+      "descriptions": {
+        "de": "Der Tod wartet nicht.",
+        "en": "Death doesn't wait.",
+        "es": "La muerte no espera.",
+        "fr": "La mort n'attend pas.",
+        "ja": "死は待ってくれない。",
+        "ko": "죽음이 더 빨리 찾아옵니다.",
+        "pt": "A morte não espera.",
+        "ru": "Смерть не ждет",
+        "th": "ความตายไม่รอใคร",
+        "zh-TW": "死亡不等人。"
+      }
+    },
+    {
+      "id": "BrutalLesser",
+      "lesser": true,
+      "buff": "shrine_brutal",
+      "seconds": 20,
+      "names": {
+        "de": "Niederer Schrein der Grausamkeit",
+        "en": "Lesser Brutal Shrine",
+        "es": "Santuario brutal menor",
+        "fr": "Autel de Brutalité mineure",
+        "ja": "残忍なシュライン (小 )",
+        "ko": "하위 난폭의 성소",
+        "pt": "Altar Brutal Menor",
+        "ru": "Малый алтарь свирепости",
+        "th": "แท่นบูชาโหดเหี้ยมองค์รอง",
+        "zh-TW": "低階猛擊神殿"
+      },
+      "descriptions": {
+        "de": "Schlagt fest zu. Schlagt nur einmal zu.",
+        "en": "Hit hard. Hit once.",
+        "es": "Golpea fuerte. Golpea una vez.",
+        "fr": "Frappez fort. Frappez juste.",
+        "ja": "強く打て。一度だけ打て。",
+        "ko": "한 방을 확실하게 때립니다.",
+        "pt": "Bata forte e só uma vez.",
+        "ru": "Один удар - одна смерть",
+        "th": "ตีแรง ตีครั้งเดียว",
+        "zh-TW": "打用力點，一次搞定。"
+      }
+    },
+    {
+      "id": "RegenLesser",
+      "lesser": true,
+      "buff": "shrine_regen",
+      "seconds": 20,
+      "names": {
+        "de": "Niederer Schrein der Erneuerung",
+        "en": "Lesser Replenishing Shrine",
+        "es": "Santuario de recarga menor",
+        "fr": "Autel de Régénération mineure",
+        "ja": "補充のシュライン (小 )",
+        "ko": "하위 회복의 성소",
+        "pt": "Altar Revigorante Menor",
+        "ru": "Малый алтарь восполнения",
+        "th": "แท่นบูชาเติมพลังองค์รอง",
+        "zh-TW": "低階回復神殿"
+      },
+      "descriptions": {
+        "de": "Zeit heilt alle Wunden.",
+        "en": "Restore that which was lost.",
+        "es": "Restaura aquello que estaba perdido.",
+        "fr": "Restaurez ce qui a été perdu.",
+        "ja": "失われた物を取り戻せ。",
+        "ko": "잃어버린 힘을 되찾습니다.",
+        "pt": "Restaure o que foi perdido.",
+        "ru": "Воздай себе за потери",
+        "th": "ฟื้นคืนสิ่งที่สูญหาย",
+        "zh-TW": "得回你失去的。"
+      }
+    },
+    {
+      "id": "MassiveLesser",
+      "lesser": true,
+      "buff": "shrine_massive",
+      "seconds": 20,
+      "names": {
+        "de": "Niederer Gewaltiger Schrein",
+        "en": "Lesser Massive Shrine",
+        "es": "Santuario masivo menor",
+        "fr": "Autel du Titan mineur",
+        "ja": "巨大化のシュライン (小 )",
+        "ko": "하위 거대화의 성소",
+        "pt": "Altar Maciço Menor",
+        "ru": "Малый алтарь величия",
+        "th": "แท่นบูชายักษ์องค์รอง",
+        "zh-TW": "低階巨大神殿"
+      },
+      "descriptions": {
+        "de": "Den Mutigen gehört die Welt.",
+        "en": "Courage stands tall.",
+        "es": "El coraje se mantiene alto.",
+        "fr": "Le courage grandit l'âme.",
+        "ja": "勇気で背筋が伸びる。",
+        "ko": "큰 용기를 얻습니다.",
+        "pt": "A coragem não se dobra.",
+        "ru": "Взгляни на страхи свысока",
+        "th": "ความกล้าหาญจะคงยืนหยัด",
+        "zh-TW": "勇氣戰勝一切 ─ 派翠克．陳"
+      }
+    },
+    {
+      "id": "ResistanceLesser",
+      "lesser": true,
+      "buff": "shrine_resistance",
+      "seconds": 20,
+      "names": {
+        "de": "Niederer Schrein des Widerstands",
+        "en": "Lesser Resistance Shrine",
+        "es": "Santuario de resistencia menor",
+        "fr": "Autel de Résistance mineure",
+        "ja": "耐性のシュライン (小 )",
+        "ko": "하위 저항의 성소",
+        "pt": "Altar da Resistência Menor",
+        "ru": "Малый алтарь выдержки",
+        "th": "แท่นบูชาความต้านทานองค์รอง",
+        "zh-TW": "低階抗性神殿"
+      },
+      "descriptions": {
+        "de": "Fürchtet nicht die Elemente.",
+        "en": "Fear not the elements.",
+        "es": "No temas a los elementos.",
+        "fr": "N'ayez plus crainte des éléments.",
+        "ja": "元素を恐れるな。",
+        "ko": "원소를 두려워하지 않게 됩니다.",
+        "pt": "Não tema os elementos.",
+        "ru": "Да не убоишься стихий",
+        "th": "อย่าได้เกรงกลัวธาตุ",
+        "zh-TW": "元素？你說那個溫溫涼涼刺刺的？"
+      }
+    },
+    {
+      "id": "DefenceLesser",
+      "lesser": true,
+      "buff": "shrine_defence",
+      "seconds": 20,
+      "names": {
+        "de": "Niederer Schrein der Undurchdringlichkeit",
+        "en": "Lesser Impenetrable Shrine",
+        "es": "Santuario impenetrable menor",
+        "fr": "Autel de l'Impénétrabilité mineure",
+        "ja": "強固なシュライン (小 )",
+        "ko": "하위 중갑의 성소",
+        "pt": "Altar Impenetrável Menor",
+        "ru": "Малый алтарь неуязвимости",
+        "th": "แท่นบูชาป้องกันองค์รอง",
+        "zh-TW": "低階無畏神殿"
+      },
+      "descriptions": {
+        "de": "Nichts wird Euch aufhalten.",
+        "en": "None shall stop you.",
+        "es": "Nadie te detendrá.",
+        "fr": "Personne ne peut vous arrêter.",
+        "ja": "誰もお前を止められない。",
+        "ko": "아무도 막을 수 없는 존재가 됩니다.",
+        "pt": "Ninguém te deterá.",
+        "ru": "Ничто тебя не остановит",
+        "th": "ไม่มีสิ่งใดหยุดเจ้าได้",
+        "zh-TW": "沒啥擋的了你。"
+      }
+    },
+    {
+      "id": "Resonating",
+      "lesser": false,
+      "buff": "shrine_resonating",
+      "seconds": 45,
+      "names": {
+        "de": "Aufgeladener Schrein",
+        "en": "Charged Shrine",
+        "es": "Santuario cargado",
+        "fr": "Autel des Charges",
+        "ja": "チャージのシュライン",
+        "ko": "충전된 성소",
+        "pt": "Altar Carregado",
+        "ru": "Заряженный алтарь",
+        "th": "แท่นบูชาชาร์จ",
+        "zh-TW": "充能神殿"
+      },
+      "descriptions": {
+        "de": "Überkommen, überdauern, überwinden.",
+        "en": "Overpower, overrun, overcome.",
+        "es": "Potencia, sobrepasa, supera.",
+        "fr": "Survivez, surprenez, surpassez.",
+        "ja": "圧倒、超越、打開。",
+        "ko": "압도하라, 침략하라, 극복하라.",
+        "pt": "Subjugue, destrua, supere.",
+        "ru": "Превозмогай, подавляй, побеждай.",
+        "th": "เอาชนะ ย่ำยี และสยบ",
+        "zh-TW": "超強、超多、操爆你。"
+      }
+    },
+    {
+      "id": "Gloom",
+      "lesser": false,
+      "buff": "shrine_gloom",
+      "seconds": 45,
+      "names": {
+        "de": "Finsterschrein",
+        "en": "Gloom Shrine",
+        "es": "Santuario de penumbra",
+        "fr": "Autel de la Morosité",
+        "ja": "暗闇のシュライン",
+        "ko": "순흑의 성소",
+        "pt": "Altar Sombrio",
+        "ru": "Алтарь мрака",
+        "th": "แท่นบูชามืดมัว",
+        "zh-TW": "漆黑神殿"
+      },
+      "descriptions": {
+        "de": "Führt Eure Schatten.",
+        "en": "Wield your shadows.",
+        "es": "Empuña tus sombras.",
+        "fr": "Maniez votre part d'ombre.",
+        "ja": "自身の影を纏え。",
+        "ko": "그대의 그림자를 휘둘러라.",
+        "pt": "Use suas sombras.",
+        "ru": "Владей своими тенями.",
+        "th": "จงใช้เงาของเจ้าเสีย",
+        "zh-TW": "揮舞你的影子。"
+      }
+    },
+    {
+      "id": "RoyaleShrineAccelerating",
+      "lesser": false,
+      "buff": "shrine_acceleration",
+      "seconds": 10,
+      "names": {
+        "de": "Schrein der Beschleunigung",
+        "en": "Acceleration Shrine",
+        "es": "Santuario de aceleración",
+        "fr": "Autel de l'Accélération",
+        "ja": "加速のシュライン",
+        "ko": "가속의 성소",
+        "pt": "Altar da Aceleração",
+        "ru": "Алтарь скорости",
+        "th": "แท่นบูชาเร่งความเร็ว",
+        "zh-TW": "迅速神殿"
+      },
+      "descriptions": {
+        "de": "Der Tod wartet nicht.",
+        "en": "Death doesn't wait.",
+        "es": "La muerte no espera.",
+        "fr": "La mort n'attend pas.",
+        "ja": "死は待ってくれない。",
+        "ko": "죽음이 더 빨리 찾아옵니다.",
+        "pt": "A morte não espera.",
+        "ru": "Смерть не ждет",
+        "th": "ความตายไม่รอใคร",
+        "zh-TW": "死亡不等人。"
+      }
+    },
+    {
+      "id": "RoyaleShrineBrutal",
+      "lesser": false,
+      "buff": "shrine_brutal",
+      "seconds": 10,
+      "names": {
+        "de": "Schrein der Grausamkeit",
+        "en": "Brutal Shrine",
+        "es": "Santuario brutal",
+        "fr": "Autel de Brutalité",
+        "ja": "残忍なシュライン",
+        "ko": "난폭의 성소",
+        "pt": "Altar Brutal",
+        "ru": "Алтарь свирепости",
+        "th": "แท่นบูชาโหดเหี้ยม",
+        "zh-TW": "狂擊神殿"
+      },
+      "descriptions": {
+        "de": "Schlagt fest zu. Schlagt nur einmal zu.",
+        "en": "Hit hard. Hit once.",
+        "es": "Golpea fuerte. Golpea una vez.",
+        "fr": "Frappez fort. Frappez juste.",
+        "ja": "強く打て。一度だけ打て。",
+        "ko": "한 방을 확실하게 때립니다.",
+        "pt": "Bata forte e só uma vez.",
+        "ru": "Один удар - одна смерть",
+        "th": "ตีแรง ตีครั้งเดียว",
+        "zh-TW": "打用力點，一次搞定。"
+      }
+    },
+    {
+      "id": "RoyaleShrineBurning",
+      "lesser": false,
+      "buff": "shrine_fire",
+      "seconds": 10,
+      "names": {
+        "de": "Meteoritenschrein",
+        "en": "Meteoric Shrine",
+        "es": "Santuario de meteoritos",
+        "fr": "Autel météorique",
+        "ja": "隕石のシュライン",
+        "ko": "유성 성소",
+        "pt": "Altar Meteórico",
+        "ru": "Алтарь метеоров",
+        "th": "แท่นบูชาอุกกาบาต",
+        "zh-TW": "隕石神殿"
+      },
+      "descriptions": {
+        "de": "Der Himmel stürzt ein. Das Land steht in Flammen.",
+        "en": "The sky falls. The land burns.",
+        "es": "El cielo se cae. La tierra se incendia.",
+        "fr": "Le ciel s'abat sur nos têtes et embrase la terre.",
+        "ja": "空が落ちる。大地が燃える。",
+        "ko": "하늘이 무너지고, 대지는 불에 휩싸입니다.",
+        "pt": "O céu desaba. A terra arde.",
+        "ru": "Да рухнут небеса и запылает твердь",
+        "th": "ฟ้าถล่ม ผืนดินลุกเป็นไฟ",
+        "zh-TW": "天空墜落、大地燃燒。"
+      }
+    },
+    {
+      "id": "RoyaleShrineCharged",
+      "lesser": false,
+      "buff": "shrine_resonating",
+      "seconds": 10,
+      "names": {
+        "de": "Aufgeladener Schrein",
+        "en": "Charged Shrine",
+        "es": "Santuario cargado",
+        "fr": "Autel des Charges",
+        "ja": "チャージのシュライン",
+        "ko": "충전된 성소",
+        "pt": "Altar Carregado",
+        "ru": "Заряженный алтарь",
+        "th": "แท่นบูชาชาร์จ",
+        "zh-TW": "充能神殿"
+      },
+      "descriptions": {
+        "de": "Überkommen, überdauern, überwinden.",
+        "en": "Overpower, overrun, overcome.",
+        "es": "Potencia, sobrepasa, supera.",
+        "fr": "Survivez, surprenez, surpassez.",
+        "ja": "圧倒、超越、打開。",
+        "ko": "압도하라, 침략하라, 극복하라.",
+        "pt": "Subjugue, destrua, supere.",
+        "ru": "Превозмогай, подавляй, побеждай.",
+        "th": "เอาชนะ ย่ำยี และสยบ",
+        "zh-TW": "超強、超多、操爆你。"
+      }
+    },
+    {
+      "id": "RoyaleShrineDiamond",
+      "lesser": false,
+      "buff": "shrine_critical_royale",
+      "seconds": 10,
+      "names": {
+        "de": "Diamantenschrein",
+        "en": "Diamond Shrine",
+        "es": "Santuario de diamante",
+        "fr": "Autel de Diamant",
+        "ja": "金剛石のシュライン",
+        "ko": "다이아몬드의 성소",
+        "pt": "Altar Diamante",
+        "ru": "Алтарь алмазов",
+        "th": "แท่นบูชาเพชร",
+        "zh-TW": "鑽石神殿"
+      },
+      "descriptions": {
+        "de": "Fügt außerordentlichen Schmerz zu.",
+        "en": "Deliver pain exquisite.",
+        "es": "Distribuye dolor exquisito.",
+        "fr": "Infligez une douleur exquise.",
+        "ja": "強烈な痛みを与えよ。",
+        "ko": "치명적인 타격을 날립니다.",
+        "pt": "Cause uma dor inesquecível.",
+        "ru": "Причиняй боль искусно",
+        "th": "มอบความเจ็บปวดอย่างสวยงาม",
+        "zh-TW": "提供精緻的疼痛。"
+      }
+    },
+    {
+      "id": "RoyaleShrineEchoing",
+      "lesser": false,
+      "buff": "shrine_echoing",
+      "seconds": 10,
+      "names": {
+        "de": "Schrein des Widerhalls",
+        "en": "Echoing Shrine",
+        "es": "Santuario resonante",
+        "fr": "Autel de l'Écho",
+        "ja": "反響するシュライン",
+        "ko": "메아리의 성소",
+        "pt": "Altar Ecoante",
+        "ru": "Алтарь отражений",
+        "th": "แท่นบูชาก้องสะท้อน",
+        "zh-TW": "回響神殿"
+      },
+      "descriptions": {
+        "de": "Lasst Eurem Zorn freien Lauf.",
+        "en": "Let your rage flow freely.",
+        "es": "Deja que tu rabia fluya libremente.",
+        "fr": "Laissez libre cours à votre rage.",
+        "ja": "怒りに身を委ねよ。",
+        "ko": "격노를 마음껏 발산하십시오.",
+        "pt": "Extravase sua raiva.",
+        "ru": "Выпусти ярость на волю",
+        "th": "ปลดปล่อยความบ้าคลั่งให้เป็นอิสระ",
+        "zh-TW": "釋放你的怒火。"
+      }
+    },
+    {
+      "id": "RoyaleShrineFreezing",
+      "lesser": false,
+      "buff": "shrine_cold",
+      "seconds": 10,
+      "names": {
+        "de": "Gefrierschrein",
+        "en": "Freezing Shrine",
+        "es": "Santuario de congelamiento",
+        "fr": "Autel du Gel",
+        "ja": "凍結のシュライン",
+        "ko": "동결의 성소",
+        "pt": "Altar Congelante",
+        "ru": "Алтарь стужи",
+        "th": "แท่นบูชาแช่แข็ง",
+        "zh-TW": "霜寒神殿"
+      },
+      "descriptions": {
+        "de": "Verwandelt Eure Welt zu Eis.",
+        "en": "Turn your world to ice.",
+        "es": "Cambia tu mundo a hielo.",
+        "fr": "Gelez le monde qui vous entoure.",
+        "ja": "世界を氷に変えろ。",
+        "ko": "주위를 얼음 바다로 만듭니다.",
+        "pt": "Congele tudo à sua volta.",
+        "ru": "Покрой мир льдами",
+        "th": "เปลี่ยนโลกเป็นน้ำแข็ง",
+        "zh-TW": "凍結你的世界。"
+      }
+    },
+    {
+      "id": "RoyaleShrineGloom",
+      "lesser": false,
+      "buff": "shrine_gloom",
+      "seconds": 10,
+      "names": {
+        "de": "Finsterschrein",
+        "en": "Gloom Shrine",
+        "es": "Santuario de penumbra",
+        "fr": "Autel de la Morosité",
+        "ja": "暗闇のシュライン",
+        "ko": "순흑의 성소",
+        "pt": "Altar Sombrio",
+        "ru": "Алтарь мрака",
+        "th": "แท่นบูชามืดมัว",
+        "zh-TW": "漆黑神殿"
+      },
+      "descriptions": {
+        "de": "Gebietet Eurer bösen Zunge niemals Einhalt.",
+        "en": "Stay not your vile tongue.",
+        "es": "No contengas tu malvada lengua.",
+        "fr": "Ne ravalez pas vos paroles profanes.",
+        "ja": "卑劣な舌を解き放て。",
+        "ko": "불온한 주문을 계속해서 외웁니다.",
+        "pt": "Não segure essa língua suja.",
+        "ru": "Напитай ядом свои слова",
+        "th": "อย่าหยุดยั้งลิ้นอันโฉดชั่ว",
+        "zh-TW": "收起你的毒舌。"
+      }
+    },
+    {
+      "id": "RoyaleShrineHexing",
+      "lesser": false,
+      "buff": "shrine_curses",
+      "seconds": 10,
+      "names": {
+        "de": "Verfluchender Schrein",
+        "en": "Hexing Shrine",
+        "es": "Santuario de embrujo",
+        "fr": "Autel des Maléfices",
+        "ja": "呪いのシュライン",
+        "ko": "사술의 성소",
+        "pt": "Altar da Feitiçaria",
+        "ru": "Алтарь проклятий",
+        "th": "แท่นบูชาคำสาป",
+        "zh-TW": "邪法神殿"
+      },
+      "descriptions": {
+        "de": "Gebietet Eurer bösen Zunge niemals Einhalt.",
+        "en": "Stay not your vile tongue.",
+        "es": "No contengas tu malvada lengua.",
+        "fr": "Ne ravalez pas vos paroles profanes.",
+        "ja": "卑劣な舌を解き放て。",
+        "ko": "불온한 주문을 계속해서 외웁니다.",
+        "pt": "Não segure essa língua suja.",
+        "ru": "Напитай ядом свои слова",
+        "th": "อย่าหยุดยั้งลิ้นอันโฉดชั่ว",
+        "zh-TW": "收起你的毒舌。"
+      }
+    },
+    {
+      "id": "RoyaleShrineImpenetrable",
+      "lesser": false,
+      "buff": "shrine_defence",
+      "seconds": 10,
+      "names": {
+        "de": "Schrein der Undurchdringlichkeit",
+        "en": "Impenetrable Shrine",
+        "es": "Santuario impenetrable",
+        "fr": "Autel de l'Impénétrabilité",
+        "ja": "強固なシュライン",
+        "ko": "중갑의 성소",
+        "pt": "Altar Impenetrável",
+        "ru": "Алтарь неуязвимости",
+        "th": "แท่นบูชาป้องกัน",
+        "zh-TW": "無畏神殿"
+      },
+      "descriptions": {
+        "de": "Nichts wird Euch aufhalten.",
+        "en": "None shall stop you.",
+        "es": "Nadie te detendrá.",
+        "fr": "Personne ne peut vous arrêter.",
+        "ja": "誰もお前を止められない。",
+        "ko": "아무도 막을 수 없는 존재가 됩니다.",
+        "pt": "Ninguém te deterá.",
+        "ru": "Ничто тебя не остановит",
+        "th": "ไม่มีสิ่งใดหยุดเจ้าได้",
+        "zh-TW": "沒啥擋的了你。"
+      }
+    },
+    {
+      "id": "RoyaleShrineLightning",
+      "lesser": false,
+      "buff": "shrine_lightning",
+      "seconds": 10,
+      "names": {
+        "de": "Gewitterschrein",
+        "en": "Tempest Shrine",
+        "es": "Santuario de tempestad",
+        "fr": "Autel de la Tempête",
+        "ja": "大嵐のシュライン",
+        "ko": "폭풍의 성소",
+        "pt": "Altar da Tempestade",
+        "ru": "Алтарь бури",
+        "th": "แท่นบูชามรสุม",
+        "zh-TW": "暴風神殿"
+      },
+      "descriptions": {
+        "de": "Öffnet das Auge des Sturms.",
+        "en": "Open the eye of the storm.",
+        "es": "Abre el ojo de la tormenta.",
+        "fr": "Écarquillez l'œil de la tempête.",
+        "ja": "嵐の中心を開け。",
+        "ko": "태풍의 눈을 개방합니다.",
+        "pt": "Abra o olho do furacão.",
+        "ru": "Пусть сильнее грянет буря",
+        "th": "เปิดดวงตาแห่งพายุ",
+        "zh-TW": "呼喚雷霆之眼。"
+      }
+    },
+    {
+      "id": "RoyaleShrineMassive",
+      "lesser": false,
+      "buff": "shrine_massive",
+      "seconds": 10,
+      "names": {
+        "de": "Ausdauernder Schrein",
+        "en": "Enduring Shrine",
+        "es": "Santuario de fortaleza",
+        "fr": "Autel de la Ténacité",
+        "ja": "不朽のシュライン",
+        "ko": "인내의 성소",
+        "pt": "Altar da Tolerância",
+        "ru": "Алтарь выносливости",
+        "th": "แท่นบูชาทนทาน",
+        "zh-TW": "耐久神殿"
+      },
+      "descriptions": {
+        "de": "Den Mutigen gehört die Welt.",
+        "en": "Courage stands tall.",
+        "es": "El coraje se mantiene alto.",
+        "fr": "Le courage grandit l'âme.",
+        "ja": "勇気で背筋が伸びる。",
+        "ko": "큰 용기를 얻습니다.",
+        "pt": "A coragem não se dobra.",
+        "ru": "Взгляни на страхи свысока",
+        "th": "ความกล้าหาญจะคงยืนหยัด",
+        "zh-TW": "勇氣戰勝一切 ─ 派翠克．陳"
+      }
+    },
+    {
+      "id": "RoyaleShrineReplenishing",
+      "lesser": false,
+      "buff": "shrine_regen",
+      "seconds": 10,
+      "names": {
+        "de": "Schrein der Erneuerung",
+        "en": "Replenishing Shrine",
+        "es": "Santuario de recarga",
+        "fr": "Autel de Régénération",
+        "ja": "補充のシュライン",
+        "ko": "회복의 성소",
+        "pt": "Altar Revigorante",
+        "ru": "Алтарь восполнения",
+        "th": "แท่นบูชาเติมพลัง",
+        "zh-TW": "回復神殿"
+      },
+      "descriptions": {
+        "de": "Zeit heilt alle Wunden.",
+        "en": "Restore that which was lost.",
+        "es": "Restaura aquello que estaba perdido.",
+        "fr": "Restaurez ce qui a été perdu.",
+        "ja": "失われた物を取り戻せ。",
+        "ko": "잃어버린 힘을 되찾습니다.",
+        "pt": "Restaure o que foi perdido.",
+        "ru": "Воздай себе за потери",
+        "th": "ฟื้นคืนสิ่งที่สูญหาย",
+        "zh-TW": "得回你失去的。"
+      }
+    },
+    {
+      "id": "RoyaleShrineResistance",
+      "lesser": false,
+      "buff": "shrine_resistance",
+      "seconds": 10,
+      "names": {
+        "de": "Schrein des Widerstands",
+        "en": "Resistance Shrine",
+        "es": "Santuario de resistencia",
+        "fr": "Autel de Résistance",
+        "ja": "耐性のシュライン",
+        "ko": "저항의 성소",
+        "pt": "Altar da Resistência",
+        "ru": "Алтарь выдержки",
+        "th": "แท่นบูชาความต้านทาน",
+        "zh-TW": "抗性神殿"
+      },
+      "descriptions": {
+        "de": "Fürchtet nicht die Elemente.",
+        "en": "Fear not the elements.",
+        "es": "No temas a los elementos.",
+        "fr": "N'ayez plus crainte des éléments.",
+        "ja": "元素を恐れるな。",
+        "ko": "원소를 두려워하지 않게 됩니다.",
+        "pt": "Não tema os elementos.",
+        "ru": "Да не убоишься стихий",
+        "th": "อย่าได้เกรงกลัวธาตุ",
+        "zh-TW": "元素？你說那個溫溫涼涼刺刺的？"
+      }
+    },
+    {
+      "id": "RoyaleShrineShrouded",
+      "lesser": false,
+      "buff": "shrine_smoke",
+      "seconds": 10,
+      "names": {
+        "de": "Verhüllter Schrein",
+        "en": "Shrouded Shrine",
+        "es": "Santuario de cobertura",
+        "fr": "Autel du Voile",
+        "ja": "帳のシュライン",
+        "ko": "연막의 성소",
+        "pt": "Altar Encoberto",
+        "ru": "Алтарь покровов",
+        "th": "แท่นบูชาควัน",
+        "zh-TW": "迷霧神殿"
+      },
+      "descriptions": {
+        "de": "Verbergt Euren Pfad im Nebel.",
+        "en": "Shroud your path in the fog of war.",
+        "es": "Cubre tu camino en la niebla de la guerra.",
+        "fr": "Masquez vos traces dans le brouillard de la guerre.",
+        "ja": "戦場の霧が行く手を包む。",
+        "ko": "전장의 안개 속에서 움직임을 숨깁니다.",
+        "pt": "Esconda seu caminho na neblina de guerra.",
+        "ru": "Сокрой свой путь войны туманом",
+        "th": "ปกคลุมเส้นทางไว้ในหมอกสงคราม",
+        "zh-TW": "用戰爭迷霧壟罩你的道路。"
+      }
+    },
+    {
+      "id": "RoyaleShrineStatic",
+      "lesser": false,
+      "buff": "shrine_arc",
+      "seconds": 10,
+      "names": {
+        "de": "Gewitterschrein",
+        "en": "Tempest Shrine",
+        "es": "Santuario de tempestad",
+        "fr": "Autel de la Tempête",
+        "ja": "大嵐のシュライン",
+        "ko": "폭풍의 성소",
+        "pt": "Altar da Tempestade",
+        "ru": "Алтарь бури",
+        "th": "แท่นบูชามรสุม",
+        "zh-TW": "暴風神殿"
+      },
+      "descriptions": {
+        "de": "Streckt Eure Hand aus, berührt den Hass.",
+        "en": "Reach out and touch hate.",
+        "es": "Estírate y toca\u00A0el odio.",
+        "fr": "Tendez la main à la haine.",
+        "ja": "手を伸ばし、憎しみに触れろ。",
+        "ko": "적에게 증오의 손길을 뻗습니다.",
+        "pt": "Estenda a mão e toque o ódio.",
+        "ru": "Протяни руку и коснись ненависти",
+        "th": "ยื่นมือออกมาและสัมผัสความเกลียดชัง",
+        "zh-TW": "伸手觸摸憎恨。"
+      }
+    },
+    {
+      "id": "Greed",
+      "lesser": false,
+      "buff": "shrine_greed",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Gier",
+        "en": "Covetous Shrine",
+        "es": "Santuario de codicia",
+        "fr": "Autel de l'Avidité",
+        "ja": "強欲なシュライン",
+        "ko": "갈망의 성소",
+        "pt": "Altar da Cobiça",
+        "ru": "Алтарь алчности",
+        "th": "แท่นบูชาละโมบ",
+        "zh-TW": "貪婪神殿"
+      },
+      "descriptions": {
+        "de": "Euer Herzenswunsch, in Blut getränkt.",
+        "en": "Your heart's desire, drenched in blood.",
+        "es": "El deseo de tu corazón, bañado en sangre.",
+        "fr": "Ce que vous désirez le plus au monde, recouvert de sang.",
+        "ja": "心の欲望、血に染めて。",
+        "ko": "피로 물든 마음속의 열망이 드러납니다.",
+        "pt": "Seu maior desejo... banhado em sangue.",
+        "ru": "Предмет твоего желания, вымокший в крови.",
+        "th": "ความปรารถนาในใจเจ้าอาบชุ่มไปด้วยเลือด",
+        "zh-TW": "你的內心渴望鮮血。"
+      }
+    },
+    {
+      "id": "BrineKing",
+      "lesser": false,
+      "buff": "shrine_brineking",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein von Tsoagoth",
+        "en": "Tsoagoth Shrine",
+        "es": "Santuario de Tsoagoth",
+        "fr": "Autel de Tsoagoth",
+        "ja": "ツォアゴスのシュライン",
+        "ko": "소아고스 성소",
+        "pt": "Altar de Tsoagoth",
+        "ru": "Алтарь Тсоагота",
+        "th": "แท่นบูชาซัวก็อธ",
+        "zh-TW": "賽根斯神殿"
+      },
+      "descriptions": {
+        "de": "Zähmt die tosenden Ozeane.",
+        "en": "Tame the roiling oceans.",
+        "es": "Domina los turbulentos océanos.",
+        "fr": "Domptez les océans impétueux.",
+        "ja": "荒れ狂う海を鎮めよ。",
+        "ko": "요동치는 바다를 길들여라.",
+        "pt": "Dome os oceanos rebeldes.",
+        "ru": "Обуздай бурлящие океаны.",
+        "th": "กำราบมหาสมุทรที่เชี่ยวกราก",
+        "zh-TW": "馴服洶湧的海洋。"
+      }
+    },
+    {
+      "id": "Lunaris",
+      "lesser": false,
+      "buff": "shrine_lunaris",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein von Lunaris",
+        "en": "Lunaris Shrine",
+        "es": "Santuario de Lunaris",
+        "fr": "Autel de Lunaris",
+        "ja": "ルナリスのシュライン",
+        "ko": "루나리스 성소",
+        "pt": "Altar de Lunaris",
+        "ru": "Алтарь Лунарис",
+        "th": "แท่นบูชาลูนาริส",
+        "zh-TW": "月影神神殿"
+      },
+      "descriptions": {
+        "de": "Der Mond erhebt sich und ruft zu den Waffen, die die sternenklare Nacht überschatten.",
+        "en": "The moon rises for war, cresting the star-filled night.",
+        "es": "La luna se alza para la guerra e ilumina la noche estrellada.",
+        "fr": "La lune se lève pour se battre, couronnant la nuit étoilée.",
+        "ja": "月は星夜の頂に立ち、戦いに臨む。",
+        "ko": "달이 전쟁을 맞아 떠오르며, 별로 가득한 밤하늘에 오른다.",
+        "pt": "A lua nasce para a guerra, coroando a noite repleta de estrelas.",
+        "ru": "Луна восходит для войны, возвышаясь над звёздной ночью.",
+        "th": "ดวงจันทร์ขึ้นสูงเพื่อรบรา ตระหง่านเหนือดวงดาราเต็มราตรี",
+        "zh-TW": "月亮為戰爭而升起，在滿天星斗的夜晚升起。"
+      }
+    },
+    {
+      "id": "Solaris",
+      "lesser": false,
+      "buff": "shrine_solaris",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein von Solaris",
+        "en": "Solaris Shrine",
+        "es": "Santuario de Solaris",
+        "fr": "Autel de Solaris",
+        "ja": "ソラリスのシュライン",
+        "ko": "솔라리스 성소",
+        "pt": "Altar de Solaris",
+        "ru": "Алтарь Солярис",
+        "th": "แท่นบูชาโซลาริส",
+        "zh-TW": "日耀神神殿"
+      },
+      "descriptions": {
+        "de": "Eine neue Morgenröte verbrennt die Welt.",
+        "en": "A new dawn burns the world.",
+        "es": "Un nuevo amanecer incinera el mundo.",
+        "fr": "Une aube nouvelle enflamme le monde.",
+        "ja": "新たな夜明けが世界を焼く。",
+        "ko": "새로운 여명이 세상을 불태운다.",
+        "pt": "Um novo amanhecer incandesce o mundo.",
+        "ru": "Новый рассвет сжигает мир.",
+        "th": "อรุณใหม่แผดเผาโลกา",
+        "zh-TW": "新的黎明燃燒著世界。"
+      }
+    },
+    {
+      "id": "Arakaali",
+      "lesser": false,
+      "buff": "shrine_arakaali",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein von Arakaali",
+        "en": "Arakaali Shrine",
+        "es": "Santuario de Arakaali",
+        "fr": "Autel d'Arakaali",
+        "ja": "アラカーリのシュライン",
+        "ko": "아라칼리 성소",
+        "pt": "Altar de Arakaali",
+        "ru": "Алтарь Аракаали",
+        "th": "แท่นบูชาอาราคาลี",
+        "zh-TW": "艾爾卡莉神殿"
+      },
+      "descriptions": {
+        "de": "Lüsternes Vergnügen, bis sie zu Asche zerfällt.",
+        "en": "Lecherous delight, unto ash.",
+        "es": "Placer lascivo, en cenizas.",
+        "fr": "Désirs pervers, jusqu'aux cendres.",
+        "ja": "色の悦び、灰と帰すまで。",
+        "ko": "끝없는 쾌락이 재가 된다.",
+        "pt": "Deleite lascivo transformado em cinzas.",
+        "ru": "Развратное наслаждение, обратившееся в пепел.",
+        "th": "ลิ้มรสราคะอันเร่าร้อนจนมอดไหม้",
+        "zh-TW": "好色的喜悅，化為灰燼。"
+      }
+    },
+    {
+      "id": "FireShrine",
+      "lesser": false,
+      "buff": "shrine_fire_2",
+      "seconds": 45,
+      "names": {
+        "de": "Meteoritenschrein",
+        "en": "Meteoric Shrine",
+        "es": "Santuario de meteoritos",
+        "fr": "Autel météorique",
+        "ja": "隕石のシュライン",
+        "ko": "유성 성소",
+        "pt": "Altar Meteórico",
+        "ru": "Алтарь метеоров",
+        "th": "แท่นบูชาอุกกาบาต",
+        "zh-TW": "隕石神殿"
+      },
+      "descriptions": {
+        "de": "Der Himmel stürzt ein. Das Land steht in Flammen.",
+        "en": "The sky falls. The land burns.",
+        "es": "El cielo se cae. La tierra se incendia.",
+        "fr": "Le ciel s'abat sur nos têtes et embrase la terre.",
+        "ja": "空が落ちる。大地が燃える。",
+        "ko": "하늘이 무너지고, 대지는 불에 휩싸입니다.",
+        "pt": "O céu desaba. A terra arde.",
+        "ru": "Да рухнут небеса и запылает твердь",
+        "th": "ฟ้าถล่ม ผืนดินลุกเป็นไฟ",
+        "zh-TW": "天空墜落、大地燃燒。"
+      }
+    },
+    {
+      "id": "LightningShrine",
+      "lesser": false,
+      "buff": "shrine_lightning_2",
+      "seconds": 45,
+      "names": {
+        "de": "Gewitterschrein",
+        "en": "Tempest Shrine",
+        "es": "Santuario de tempestad",
+        "fr": "Autel de la Tempête",
+        "ja": "大嵐のシュライン",
+        "ko": "폭풍의 성소",
+        "pt": "Altar da Tempestade",
+        "ru": "Алтарь бури",
+        "th": "แท่นบูชามรสุม",
+        "zh-TW": "暴風神殿"
+      },
+      "descriptions": {
+        "de": "Öffnet das Auge des Sturms.",
+        "en": "Open the eye of the storm.",
+        "es": "Abre el ojo de la tormenta.",
+        "fr": "Écarquillez l'œil de la tempête.",
+        "ja": "嵐の中心を開け。",
+        "ko": "태풍의 눈을 개방합니다.",
+        "pt": "Abra o olho do furacão.",
+        "ru": "Пусть сильнее грянет буря",
+        "th": "เปิดดวงตาแห่งพายุ",
+        "zh-TW": "呼喚雷霆之眼。"
+      }
+    },
+    {
+      "id": "ColdShrine",
+      "lesser": false,
+      "buff": "shrine_cold_2",
+      "seconds": 45,
+      "names": {
+        "de": "Gefrierschrein",
+        "en": "Freezing Shrine",
+        "es": "Santuario de congelamiento",
+        "fr": "Autel du Gel",
+        "ja": "凍結のシュライン",
+        "ko": "동결의 성소",
+        "pt": "Altar Congelante",
+        "ru": "Алтарь стужи",
+        "th": "แท่นบูชาแช่แข็ง",
+        "zh-TW": "霜寒神殿"
+      },
+      "descriptions": {
+        "de": "Verwandelt Eure Welt zu Eis.",
+        "en": "Turn your world to ice.",
+        "es": "Cambia tu mundo a hielo.",
+        "fr": "Gelez le monde qui vous entoure.",
+        "ja": "世界を氷に変えろ。",
+        "ko": "주위를 얼음 바다로 만듭니다.",
+        "pt": "Congele tudo à sua volta.",
+        "ru": "Покрой мир льдами",
+        "th": "เปลี่ยนโลกเป็นน้ำแข็ง",
+        "zh-TW": "凍結你的世界。"
+      }
+    },
+    {
+      "id": "GloomShrine",
+      "lesser": false,
+      "buff": "shrine_gloom_2",
+      "seconds": 45,
+      "names": {
+        "de": "Finsterschrein",
+        "en": "Gloom Shrine",
+        "es": "Santuario de penumbra",
+        "fr": "Autel de la Morosité",
+        "ja": "暗闇のシュライン",
+        "ko": "순흑의 성소",
+        "pt": "Altar Sombrio",
+        "ru": "Алтарь мрака",
+        "th": "แท่นบูชามืดมัว",
+        "zh-TW": "漆黑神殿"
+      },
+      "descriptions": {
+        "de": "Führt Eure Schatten.",
+        "en": "Wield your shadows.",
+        "es": "Empuña tus sombras.",
+        "fr": "Maniez votre part d'ombre.",
+        "ja": "自身の影を纏え。",
+        "ko": "그대의 그림자를 휘둘러라.",
+        "pt": "Use suas sombras.",
+        "ru": "Владей своими тенями.",
+        "th": "จงใช้เงาของเจ้าเสีย",
+        "zh-TW": "揮舞你的影子。"
+      }
+    },
+    {
+      "id": "AccelerationShrine",
+      "lesser": false,
+      "buff": "shrine_acceleration_2",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Beschleunigung",
+        "en": "Acceleration Shrine",
+        "es": "Santuario de aceleración",
+        "fr": "Autel de l'Accélération",
+        "ja": "加速のシュライン",
+        "ko": "가속의 성소",
+        "pt": "Altar da Aceleração",
+        "ru": "Алтарь скорости",
+        "th": "แท่นบูชาเร่งความเร็ว",
+        "zh-TW": "迅速神殿"
+      },
+      "descriptions": {
+        "de": "Der Tod wartet nicht.",
+        "en": "Death doesn't wait.",
+        "es": "La muerte no espera.",
+        "fr": "La mort n'attend pas.",
+        "ja": "死は待ってくれない。",
+        "ko": "죽음이 더 빨리 찾아옵니다.",
+        "pt": "A morte não espera.",
+        "ru": "Смерть не ждет",
+        "th": "ความตายไม่รอใคร",
+        "zh-TW": "死亡不等人。"
+      }
+    },
+    {
+      "id": "DivineShrine",
+      "lesser": false,
+      "buff": "shrine_godmode_2",
+      "seconds": 45,
+      "names": {
+        "de": "Göttlicher Schrein",
+        "en": "Divine Shrine",
+        "es": "Santuario divino",
+        "fr": "Autel Divin",
+        "ja": "神のシュライン",
+        "ko": "신성한 성소",
+        "pt": "Altar Divino",
+        "ru": "Алтарь богоподобия",
+        "th": "แท่นบูชาเทวา",
+        "zh-TW": "聖潔神殿"
+      },
+      "descriptions": {
+        "de": "Werdet zum Albtraum.",
+        "en": "Become the nightmare.",
+        "es": "Conviértete en la pesadilla.",
+        "fr": "Incarnez le cauchemar.",
+        "ja": "悪夢たれ。",
+        "ko": "악몽 그 자체가 되어보십시오.",
+        "pt": "Torne-se o pesadelo.",
+        "ru": "Стань кошмаром",
+        "th": "จงกลายเป็นฝันร้าย",
+        "zh-TW": "化身他人的夢魘。"
+      }
+    },
+    {
+      "id": "MagicFindShrine",
+      "lesser": false,
+      "buff": "shrine_magicfind_2",
+      "seconds": 45,
+      "names": {
+        "de": "Suchender Schrein",
+        "en": "Seeking Shrine",
+        "es": "Santuario de búsqueda",
+        "fr": "Autel de la Convoitise",
+        "ja": "探索のシュライン",
+        "ko": "추적의 성소",
+        "pt": "Altar da Busca",
+        "ru": "Алтарь поисков",
+        "th": "แท่นบูชาเสาะแสวง",
+        "zh-TW": "探求神殿"
+      },
+      "descriptions": {
+        "de": "Euer Herzenswunsch, in Blut getränkt.",
+        "en": "Your heart's desire, drenched in blood.",
+        "es": "El deseo de tu corazón, empapado en sangre.",
+        "fr": "Ce que vous désirez le plus au monde, recouvert de sang.",
+        "ja": "心の欲望、血に染まる。",
+        "ko": "피로 물든 마음속의 열망이 드러납니다.",
+        "pt": "Seu maior desejo... banhado em sangue.",
+        "ru": "Предмет твоего желания, вымокший в крови.",
+        "th": "ความปรารถนาในใจเจ้าอาบชุ่มไปด้วยเลือด",
+        "zh-TW": "你的內心渴望鮮血。"
+      }
+    },
+    {
+      "id": "MassiveShrine",
+      "lesser": false,
+      "buff": "shrine_massive_2",
+      "seconds": 45,
+      "names": {
+        "de": "Ausdauernder Schrein",
+        "en": "Enduring Shrine",
+        "es": "Santuario de fortaleza",
+        "fr": "Autel de la Ténacité",
+        "ja": "不朽のシュライン",
+        "ko": "인내의 성소",
+        "pt": "Altar da Tolerância",
+        "ru": "Алтарь выносливости",
+        "th": "แท่นบูชาทนทาน",
+        "zh-TW": "耐久神殿"
+      },
+      "descriptions": {
+        "de": "Den Mutigen gehört die Welt.",
+        "en": "Courage stands tall.",
+        "es": "El coraje se mantiene alto.",
+        "fr": "Le courage grandit l'âme.",
+        "ja": "勇気で背筋が伸びる。",
+        "ko": "큰 용기를 얻습니다.",
+        "pt": "A coragem não se dobra.",
+        "ru": "Взгляни на страхи свысока",
+        "th": "ความกล้าหาญจะคงยืนหยัด",
+        "zh-TW": "勇氣戰勝一切 ─ 派翠克．陳"
+      }
+    },
+    {
+      "id": "RegenerationShrine",
+      "lesser": false,
+      "buff": "shrine_regeneration_2",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Erneuerung",
+        "en": "Replenishing Shrine",
+        "es": "Santuario de recarga",
+        "fr": "Autel de Régénération",
+        "ja": "補充のシュライン",
+        "ko": "회복의 성소",
+        "pt": "Altar Revigorante",
+        "ru": "Алтарь восполнения",
+        "th": "แท่นบูชาเติมพลัง",
+        "zh-TW": "回復神殿"
+      },
+      "descriptions": {
+        "de": "Zeit heilt alle Wunden.",
+        "en": "Restore that which was lost.",
+        "es": "Restaura aquello que estaba perdido.",
+        "fr": "Restaurez ce qui a été perdu.",
+        "ja": "失われた物を取り戻せ。",
+        "ko": "잃어버린 힘을 되찾습니다.",
+        "pt": "Restaure o que foi perdido.",
+        "ru": "Воздай себе за потери",
+        "th": "ฟื้นคืนสิ่งที่สูญหาย",
+        "zh-TW": "得回你失去的。"
+      }
+    },
+    {
+      "id": "ExperienceShrine",
+      "lesser": false,
+      "buff": "shrine_experience_2",
+      "seconds": 45,
+      "names": {
+        "de": "Erleuchtender Schrein",
+        "en": "Enlightning Shrine",
+        "es": "Santuario de instrucción",
+        "fr": "Autel de l'Illumination",
+        "ja": "啓蒙のシュライン",
+        "ko": "깨달음의 성소",
+        "pt": "Altar do Esclarecimento",
+        "ru": "Алтарь просвещения",
+        "th": "แท่นบูชาเบิกปัญญา",
+        "zh-TW": "啟蒙神殿"
+      },
+      "descriptions": {
+        "de": "Erlangt Weisheit durch Handeln.",
+        "en": "Through action gain wisdom.",
+        "es": "Mediante la acción obtienes sabiduría.",
+        "fr": "C'est par l'action que s'acquiert la sagesse.",
+        "ja": "行動を通して英知を得る。",
+        "ko": "행동을 통해 지혜를 얻습니다.",
+        "pt": "A sabedoria vem com a ação.",
+        "ru": "Через деяние к мудрости.",
+        "th": "นำพาปัญญาผ่านการกระทำ",
+        "zh-TW": "透過行動來獲得智慧。"
+      }
+    },
+    {
+      "id": "GoldShrine",
+      "lesser": false,
+      "buff": "shrine_goldfind_2",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Gier",
+        "en": "Greed Shrine",
+        "es": "Santuario de avaricia",
+        "fr": "Autel de la Cupidité",
+        "ja": "貪欲なシュライン",
+        "ko": "탐욕의 성소",
+        "pt": "Altar da Ganância",
+        "ru": "Алтарь жадности",
+        "th": "แท่นบูชานำทรัพย์",
+        "zh-TW": "貪婪神殿"
+      },
+      "descriptions": {
+        "de": "Aus Blut wird Gold.",
+        "en": "From blood to gold.",
+        "es": "De la sangre al oro.",
+        "fr": "Du sang naît l'or.",
+        "ja": "血からゴールドへ。",
+        "ko": "피에서 금으로.",
+        "pt": "Do sangue ao ouro.",
+        "ru": "Кровь в золото.",
+        "th": "โลหิตหยาดหยดเป็นทองคำ",
+        "zh-TW": "由鮮血轉為金幣。"
+      }
+    },
+    {
+      "id": "ResistanceShrine",
+      "lesser": false,
+      "buff": "shrine_resistance_2",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein des Widerstands",
+        "en": "Resistance Shrine",
+        "es": "Santuario de resistencia",
+        "fr": "Autel de Résistance",
+        "ja": "耐性のシュライン",
+        "ko": "저항의 성소",
+        "pt": "Altar da Resistência",
+        "ru": "Алтарь выдержки",
+        "th": "แท่นบูชาความต้านทาน",
+        "zh-TW": "抗性神殿"
+      },
+      "descriptions": {
+        "de": "Fürchtet nicht die Elemente.",
+        "en": "Fear not the elements.",
+        "es": "No temas a los elementos.",
+        "fr": "N'ayez plus crainte des éléments.",
+        "ja": "元素を恐れるな。",
+        "ko": "원소를 두려워하지 않게 됩니다.",
+        "pt": "Não tema os elementos.",
+        "ru": "Да не убоишься стихий",
+        "th": "อย่าได้เกรงกลัวธาตุ",
+        "zh-TW": "元素？你說那個溫溫涼涼刺刺的？"
+      }
+    },
+    {
+      "id": "DiamondShrine",
+      "lesser": false,
+      "buff": "shrine_critical_2",
+      "seconds": 45,
+      "names": {
+        "de": "Diamantenschrein",
+        "en": "Diamond Shrine",
+        "es": "Santuario de diamante",
+        "fr": "Autel de Diamant",
+        "ja": "金剛石のシュライン",
+        "ko": "다이아몬드의 성소",
+        "pt": "Altar Diamante",
+        "ru": "Алтарь алмазов",
+        "th": "แท่นบูชาเพชร",
+        "zh-TW": "鑽石神殿"
+      },
+      "descriptions": {
+        "de": "Fügt außerordentlichen Schmerz zu.",
+        "en": "Deliver pain exquisite.",
+        "es": "Distribuye dolor exquisito.",
+        "fr": "Infligez une douleur exquise.",
+        "ja": "強烈な痛みを与えよ。",
+        "ko": "치명적인 타격을 날립니다.",
+        "pt": "Cause uma dor inesquecível.",
+        "ru": "Причиняй боль искусно",
+        "th": "มอบความเจ็บปวดอย่างสวยงาม",
+        "zh-TW": "提供精緻的疼痛。"
+      }
+    },
+    {
+      "id": "CorruptShrine",
+      "lesser": false,
+      "buff": "shrine_corrupt_2",
+      "seconds": 45,
+      "names": {
+        "de": "Verderbter Schrein",
+        "en": "Tainted Shrine",
+        "es": "Santuario de contaminación",
+        "fr": "Autel du Vice",
+        "ja": "汚染されたシュライン",
+        "ko": "더럽혀진 성소",
+        "pt": "Altar Corrompido",
+        "ru": "Алтарь порока",
+        "th": "แท่นบูชาแปดเปื้อน",
+        "zh-TW": "汙染神殿"
+      },
+      "descriptions": {
+        "de": "Die Narben der Welt manifestieren sich",
+        "en": "The worlds scars manifested",
+        "es": "Las cicatrices del mundo se manifiestan.",
+        "fr": "Les cicatrices du monde se révèlent.",
+        "ja": "世界の傷跡が顕現した",
+        "ko": "세계의 흉터가 나타났습니다.",
+        "pt": "A manifestação das cicatrizes do mundo",
+        "ru": "Воплощение шрамов мира",
+        "th": "แผลเป็นโลกาสำแดงเดช",
+        "zh-TW": "世界傷疤的顯現"
+      }
+    },
+    {
+      "id": "UniqueGuidingPalmFireShrine",
+      "lesser": false,
+      "buff": "shrine_fire_2",
+      "seconds": 60,
+      "names": {
+        "de": "Meteoritenschrein",
+        "en": "Meteoric Shrine",
+        "es": "Santuario de meteoritos",
+        "fr": "Autel météorique",
+        "ja": "隕石のシュライン",
+        "ko": "유성 성소",
+        "pt": "Altar Meteórico",
+        "ru": "Алтарь метеоров",
+        "th": "แท่นบูชาอุกกาบาต",
+        "zh-TW": "隕石神殿"
+      },
+      "descriptions": {
+        "de": "Der Himmel stürzt ein. Das Land steht in Flammen.",
+        "en": "The sky falls. The land burns.",
+        "es": "El cielo se cae. La tierra se incendia.",
+        "fr": "Le ciel s'abat sur nos têtes et embrase la terre.",
+        "ja": "空が落ちる。大地が燃える。",
+        "ko": "하늘이 무너지고, 대지는 불에 휩싸입니다.",
+        "pt": "O céu desaba. A terra arde.",
+        "ru": "Да рухнут небеса и запылает твердь",
+        "th": "ฟ้าถล่ม ผืนดินลุกเป็นไฟ",
+        "zh-TW": "天空墜落、大地燃燒。"
+      }
+    },
+    {
+      "id": "UniqueGuidingPalmLightningShrine",
+      "lesser": false,
+      "buff": "shrine_lightning_2",
+      "seconds": 60,
+      "names": {
+        "de": "Gewitterschrein",
+        "en": "Tempest Shrine",
+        "es": "Santuario de tempestad",
+        "fr": "Autel de la Tempête",
+        "ja": "大嵐のシュライン",
+        "ko": "폭풍의 성소",
+        "pt": "Altar da Tempestade",
+        "ru": "Алтарь бури",
+        "th": "แท่นบูชามรสุม",
+        "zh-TW": "暴風神殿"
+      },
+      "descriptions": {
+        "de": "Öffnet das Auge des Sturms.",
+        "en": "Open the eye of the storm.",
+        "es": "Abre el ojo de la tormenta.",
+        "fr": "Écarquillez l'œil de la tempête.",
+        "ja": "嵐の中心を開け。",
+        "ko": "태풍의 눈을 개방합니다.",
+        "pt": "Abra o olho do furacão.",
+        "ru": "Пусть сильнее грянет буря",
+        "th": "เปิดดวงตาแห่งพายุ",
+        "zh-TW": "呼喚雷霆之眼。"
+      }
+    },
+    {
+      "id": "UniqueGuidingPalmColdShrine",
+      "lesser": false,
+      "buff": "shrine_cold_2",
+      "seconds": 60,
+      "names": {
+        "de": "Gefrierschrein",
+        "en": "Freezing Shrine",
+        "es": "Santuario de congelamiento",
+        "fr": "Autel du Gel",
+        "ja": "凍結のシュライン",
+        "ko": "동결의 성소",
+        "pt": "Altar Congelante",
+        "ru": "Алтарь стужи",
+        "th": "แท่นบูชาแช่แข็ง",
+        "zh-TW": "霜寒神殿"
+      },
+      "descriptions": {
+        "de": "Verwandelt Eure Welt zu Eis.",
+        "en": "Turn your world to ice.",
+        "es": "Cambia tu mundo a hielo.",
+        "fr": "Gelez le monde qui vous entoure.",
+        "ja": "世界を氷に変えろ。",
+        "ko": "주위를 얼음 바다로 만듭니다.",
+        "pt": "Congele tudo à sua volta.",
+        "ru": "Покрой мир льдами",
+        "th": "เปลี่ยนโลกเป็นน้ำแข็ง",
+        "zh-TW": "凍結你的世界。"
+      }
+    },
+    {
+      "id": "UniqueClosedFistChaosShrine",
+      "lesser": false,
+      "buff": "shrine_gloom_2",
+      "seconds": 60,
+      "names": {
+        "de": "Finsterschrein",
+        "en": "Gloom Shrine",
+        "es": "Santuario de penumbra",
+        "fr": "Autel de la Morosité",
+        "ja": "暗闇のシュライン",
+        "ko": "순흑의 성소",
+        "pt": "Altar Sombrio",
+        "ru": "Алтарь мрака",
+        "th": "แท่นบูชามืดมัว",
+        "zh-TW": "漆黑神殿"
+      },
+      "descriptions": {
+        "de": "Führt Eure Schatten.",
+        "en": "Wield your shadows.",
+        "es": "Empuña tus sombras.",
+        "fr": "Maniez votre part d'ombre.",
+        "ja": "自身の影を纏え。",
+        "ko": "그대의 그림자를 휘둘러라.",
+        "pt": "Use suas sombras.",
+        "ru": "Владей своими тенями.",
+        "th": "จงใช้เงาของเจ้าเสีย",
+        "zh-TW": "揮舞你的影子。"
+      }
+    },
+    {
+      "id": "NoEquipmentShrine",
+      "lesser": false,
+      "buff": "shrine_noequipment_2",
+      "seconds": 45,
+      "names": {
+        "de": "Schrein der Gier",
+        "en": "Greed Shrine",
+        "es": "Santuario de avaricia",
+        "fr": "Autel de la Cupidité",
+        "ja": "貪欲なシュライン",
+        "ko": "탐욕의 성소",
+        "pt": "Altar da Ganância",
+        "ru": "Алтарь жадности",
+        "th": "แท่นบูชานำทรัพย์",
+        "zh-TW": "貪婪神殿"
+      },
+      "descriptions": {
+        "de": "Aus Blut wird Gold.",
+        "en": "From blood to gold.",
+        "es": "De la sangre al oro.",
+        "fr": "Du sang naît l'or.",
+        "ja": "血からゴールドへ。",
+        "ko": "피에서 금으로.",
+        "pt": "Do sangue ao ouro.",
+        "ru": "Кровь в золото.",
+        "th": "โลหิตหยาดหยดเป็นทองคำ",
+        "zh-TW": "由鮮血轉為金幣。"
+      }
+    }
+  ]
+}

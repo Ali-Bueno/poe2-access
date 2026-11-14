@@ -82,6 +82,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\ChaosTrial.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeaguePieces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeagueNews.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\ShrineCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\TimedGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HonourWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialCatalog.cs" />
