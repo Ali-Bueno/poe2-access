@@ -27,6 +27,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Snapshots after texts went away within which arrivals in the same layer count as a scroll.</summary>
         private const int ScrollSnapshots = 3;
 
+        /// <summary>A lone text shown again may be a notice repeated; from this many together a part of the layer was built again.</summary>
+        private const int RebuiltTogether = 2;
+
+        /// <summary>Per layer and text, the element that showed it last and the snapshot it was last seen in.</summary>
+        private readonly Dictionary<(IntPtr Layer, string Text), (IntPtr Address, long Seen)> shownBy = new();
+
+        /// <summary>New elements showing what another element of their layer showed until it went away.</summary>
+        private readonly HashSet<IntPtr> rebuilt = new();
+
         private readonly HashSet<IntPtr> stableLayers = new();
         private readonly HashSet<IntPtr> baseLayers = new();
         private readonly Dictionary<IntPtr, string> stableTexts = new();
@@ -67,6 +76,8 @@ namespace Poe2Accessibility.Services
             this.stableTexts.Clear();
             this.stableOff.Clear();
             this.vanishedAt.Clear();
+            this.shownBy.Clear();
+            this.rebuilt.Clear();
             this.previous = ScreenSnapshot.Empty;
             this.stableTop = IntPtr.Zero;
             this.hasBaseline = false;
@@ -98,8 +109,10 @@ namespace Poe2Accessibility.Services
                     this.vanishedAt[layer.Address] = this.applied;
                 }
 
+                this.NoteRebuilt(layer);
                 var opened = this.stableLayers.Add(layer.Address);
                 var appeared = new List<ScreenText>();
+                var again = new List<ScreenText>();
                 foreach (var text in layer.Texts)
                 {
                     var confirmed = previousTexts.TryGetValue(text.Address, out var before) && before == text.Text;
@@ -117,7 +130,18 @@ namespace Poe2Accessibility.Services
                     if (!opened && !counterTick)
                     {
                         appeared.Add(text);
+                        if (known == null && this.rebuilt.Remove(text.Address))
+                        {
+                            again.Add(text);
+                        }
                     }
+                }
+
+                if (again.Count >= RebuiltTogether && again.Count == appeared.Count)
+                {
+                    // A tab strip the game builds again at every sale shows nothing new (docs/menu-speech-rules.md);
+                    // with a new text among them they may be what it is read with, and all are told as before.
+                    appeared.Clear();
                 }
 
                 if (!this.hasBaseline)
@@ -162,12 +186,47 @@ namespace Poe2Accessibility.Services
             return changes;
         }
 
+        /// <summary>Marks the layer's new elements that show the text of one just gone from it.</summary>
+        private void NoteRebuilt(ScreenLayer layer)
+        {
+            var showing = new Dictionary<IntPtr, string>(layer.Texts.Count);
+            foreach (var text in layer.Texts)
+            {
+                showing[text.Address] = text.Text;
+            }
+
+            foreach (var text in layer.Texts)
+            {
+                var key = (layer.Address, text.Text);
+                if (this.shownBy.TryGetValue(key, out var shown) && shown.Address != text.Address)
+                {
+                    if (showing.GetValueOrDefault(shown.Address) == text.Text)
+                    {
+                        continue; // two elements with one text: the first keeps it
+                    }
+
+                    if (!showing.ContainsKey(shown.Address) && this.applied - shown.Seen <= ScrollSnapshots && !this.stableTexts.ContainsKey(text.Address))
+                    {
+                        this.rebuilt.Add(text.Address);
+                    }
+                }
+
+                this.shownBy[key] = (text.Address, this.applied);
+            }
+        }
+
         /// <summary>Layers and texts absent from two snapshots in a row are forgotten, so a reappearance is news again.</summary>
         private void Forget(ScreenSnapshot current)
         {
+            foreach (var key in this.shownBy.Where(entry => this.applied - entry.Value.Seen > ScrollSnapshots).Select(entry => entry.Key).ToList())
+            {
+                this.shownBy.Remove(key);
+            }
+
             var visibleLayers = current.Layers.Select(layer => layer.Address).Concat(this.previous.Layers.Select(layer => layer.Address)).ToHashSet();
             this.stableLayers.RemoveWhere(address => !visibleLayers.Contains(address));
             var visibleTexts = current.Layers.Concat(this.previous.Layers).SelectMany(layer => layer.Texts).Select(text => text.Address).ToHashSet();
+            this.rebuilt.RemoveWhere(address => !visibleTexts.Contains(address));
             foreach (var address in this.stableTexts.Keys.Where(address => !visibleTexts.Contains(address)).ToList())
             {
                 this.stableTexts.Remove(address);

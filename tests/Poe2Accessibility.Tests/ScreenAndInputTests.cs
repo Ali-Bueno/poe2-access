@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ChangedTextIsReportedOnce), ChangedTextIsReportedOnce),
             (nameof(CounterTicksAreIgnored), CounterTicksAreIgnored),
             (nameof(APadButtonTurningUsableIsNews), APadButtonTurningUsableIsNews),
+            (nameof(AStripBuiltAgainIsNotNews), AStripBuiltAgainIsNotNews),
             (nameof(TheEndsOfATabBarSayWhatTheyDo), TheEndsOfATabBarSayWhatTheyDo),
             (nameof(ClosedPopupIsNewsAgain), ClosedPopupIsNewsAgain),
             (nameof(InGameBaseLayersNeverOwnInput), InGameBaseLayersNeverOwnInput),
@@ -80,6 +81,29 @@ namespace Poe2Accessibility.Tests
             Equal(true, ScreenDiffer.SameBesideNumbers("1 Sekunde", "2 Sekunden"), "German plural");
             Equal(true, ScreenDiffer.SameBesideNumbers("1 minute 5 seconds", "2 minutes 5 seconds"), "English plural");
             Equal(false, ScreenDiffer.SameBesideNumbers("3 rounds left", "3 lives left"), "another word is news");
+        }
+
+        /// <summary>A merchant's tab strip is built again at every sale and "Recomprar -2-" was said 63 times in a day (play log 2026-11-13).</summary>
+        private static void AStripBuiltAgainIsNotNews()
+        {
+            ScreenSnapshot Shop(long first, params string[] extra) => Snapshot(Layer(1, 0, true,
+                new[] { Text(5, "7.491 oro") }.Concat(new[] { "-2-", "Recomprar", "-1-" }.Concat(extra).Select((text, i) => Text(first + i, text))).ToArray()));
+            var differ = new ScreenDiffer();
+            differ.Apply(Shop(10));
+            differ.Apply(Shop(10));
+            Equal(0, differ.Apply(Shop(10)).Count, "the shop as it opened");
+            Equal(0, differ.Apply(Shop(20)).Count, "one sighting of the strip's new elements");
+            Equal(0, differ.Apply(Shop(20)).Count, "the same tabs on new elements are not news");
+            differ.Apply(Shop(30, "Vendido"));
+            Equal("-2-|Recomprar|-1-|Vendido", string.Join("|", differ.Apply(Shop(30, "Vendido")).SelectMany(change => change.Texts).Select(text => text.Text)), "with a new text among them all are told, as before");
+
+            var notice = new ScreenDiffer();
+            ScreenSnapshot Told(long address) => Snapshot(Layer(1, 0, true, Text(5, "7.491 oro"), Text(address, "No tienes oro suficiente")));
+            notice.Apply(Told(10));
+            notice.Apply(Told(10));
+            notice.Apply(Told(10));
+            notice.Apply(Told(20));
+            Equal(1, notice.Apply(Told(20)).Count, "one notice shown again alone is said again");
         }
 
         /// <summary>The Options' "Guardar X" turns usable at the first change with its text as it was (heard 2026-11-10: only "Cancelar B").</summary>
