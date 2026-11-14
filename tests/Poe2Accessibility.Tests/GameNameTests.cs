@@ -48,7 +48,8 @@ namespace Poe2Accessibility.Tests
             var scripts = new Dictionary<string, string>
             {
                 [Door] = "version 3\nextends \"Metadata/Objects/DoorBase\"\nStateMachine\n{\n\tdefine_shared_state = \"wall;\"\n}\n",
-                ["Metadata/Objects/DoorBase"] = "version 3\nextends \"nothing\"\nStateMachine\n{\n\tdefine_shared_state = \"open; trap_speed = 2;\"\n}\n",
+                ["Metadata/Objects/DoorBase"] = "version 3\nextends \"nothing\"\nStateMachine\n{\n\tdefine_shared_state = \"open; trap_speed = 2;\"\n" +
+                                                "\tdefine_shared_checkpoint_state = \"activated;\"\n}\nclient\n{\n\tStateMachine\n\t{\n\t\tdefine_state = \"in_range\"\n\t}\n}\n",
             };
             var files = Files(Array.Empty<string>(), scripts);
             Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, Door, "open", "TrialDoors"), files), "declared by the script it extends");
@@ -56,6 +57,8 @@ namespace Poe2Accessibility.Tests
             Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, Door, "closed", "TrialDoors"), files), "a state no script declares");
             Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, "Metadata/Objects/Gone", null, "TrialTraps"), files), "a script gone");
             Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, Door, "trap_speed = 2", "TrialDoors"), files), "a default is no part of the name");
+            Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, Door, "activated", "LeaguePieces"), files), "a state kept over a checkpoint");
+            Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.ObjectFile, Door, "in_range", "LeaguePieces"), files), "a state of the client's own");
         }
 
         private static void AnIconOrAnImageRenamedIsGone()

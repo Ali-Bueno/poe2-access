@@ -30,6 +30,7 @@ internal static class BossScripts
 
     private static readonly Regex ExtendsLine = new(@"^\s*extends\s+""([^""]+)""", RegexOptions.Multiline);
     private static readonly Regex SharedStates = new(@"define_shared_state\s*=\s*""([^""]*)""");
+    private static readonly Regex AnyStates = new(@"define_(?:shared_)?(?:checkpoint_)?state\s*=\s*""([^""]*)""");
     private static readonly Regex StateHandler = new(@"\b(?:on_or_create_state|on_state|create_state)_(\w+)_(\d+)\s*=\s*");
     private static readonly Regex PhaseCall = new(@"SetGlobalAudioParam\(\s*(\w+)");
     private static readonly Regex LineCall = new(@"\b(?:PlayTextAudio|QueueTextAudio)\(\s*(\w+)");
@@ -97,8 +98,13 @@ internal static class BossScripts
     }
 
     /// <summary>The states a script declares itself (define_shared_state "spike; rumble; trap_speed = 2;"), without their defaults.</summary>
-    internal static IReadOnlyList<string> StatesOf(string text) =>
-        SharedStates.Matches(text).SelectMany(match => match.Groups[1].Value.Split(';'))
+    internal static IReadOnlyList<string> StatesOf(string text) => Declared(SharedStates, text);
+
+    /// <summary>Every state a script declares: shared, kept over a checkpoint (define_shared_checkpoint_state) or the client's own (define_state).</summary>
+    internal static IReadOnlyList<string> DeclaredStatesOf(string text) => Declared(AnyStates, text);
+
+    private static IReadOnlyList<string> Declared(Regex declaration, string text) =>
+        declaration.Matches(text).SelectMany(match => match.Groups[1].Value.Split(';'))
             .Select(state => state.Split('=')[0].Trim()).Where(state => state.Length > 0).Distinct().ToList();
 
     /// <summary>The scripts a script extends ("nothing" left out).</summary>

@@ -52,7 +52,7 @@ internal static class GameNameCheck
         var pending = new Queue<string>(new[] { text });
         while (pending.TryDequeue(out var next))
         {
-            states.UnionWith(BossScripts.StatesOf(next));
+            states.UnionWith(BossScripts.DeclaredStatesOf(next));
             foreach (var parent in BossScripts.ExtendsOf(next).Where(seen.Add))
             {
                 if (script(parent) is { } parentText)

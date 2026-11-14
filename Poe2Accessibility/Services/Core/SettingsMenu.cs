@@ -103,6 +103,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.AnnounceTrialCounters)),
                 Switch(nameof(AccessibilitySettings.TrialTrapCues)),
                 Switch(nameof(AccessibilitySettings.AnnounceTrialProgress)),
+                Switch(nameof(AccessibilitySettings.AnnounceLeagues)),
                 Switch(nameof(AccessibilitySettings.ObjectSounds)),
                 Switch(nameof(AccessibilitySettings.NpcSounds)),
                 Switch(nameof(AccessibilitySettings.PlayerSounds))),

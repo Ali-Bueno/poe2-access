@@ -251,6 +251,10 @@
 | Trial icons named from the game's tables | done (code, tested) | catalog/trials.json via `trial-data` (242 icons, 10 languages); `UiSemantics.TrialIcon`; `TrialCatalog.PatternOf` |
 | Trial of Chaos: round said on change | done (code) | `CheckTrialLines` on "Round {0}/{1}" |
 | Trial of Chaos: hazards, the round's pieces, Ruin | done (unit tests and the data step; never played: no character in Act 3) | [from the game's files](docs/research/trial-of-chaos.md) (§9: what the plugin does, what is left); `ChaosTrial`, `ChaosTrialWatch`, `TrialTraps.Varieties` |
+| Expedition: Verisium Remnant, markers, detonator, charge placement | done (unit tests and the data step; never played; placement silent unless the host reads client states) | `LeaguePieces`, `LeagueNews`/`PlacementNews`, `LeagueWatch`; [league mechanics](docs/research/league-mechanics.md) §13 |
+| Delirium: shards, Grand Mirror, Simulacrum waves, fog alarm | done (unit tests and the data step; never played) | same; fog from stat `is_in_affliction_fog` |
+| Breach, Azmeri spirits, strongboxes, rogue exiles, Vaal Beacon, Ritual, Abyss pit, shrines | done (unit tests and the data step; never played) | same; Abyss fissures, Essence and Breach's ring left (Transitionable, ControlZone) |
+| League hazard buffs in the hazard alarm | done (data step) | `HazardExtractor.LeagueGround` → catalog/hazards.txt |
 | A door to open: its sound, and unopened doors among the unexplored | done (unit tests; the sound by the user's ear) | `ClosedDoors`, `ObjectSounds` group `doors`; [radar](docs/radar.md), [game audio](docs/research/game-audio.md#a-door-to-open-2026-11-14) |
 | Quest exits from the game's tables | done (unit tests; the catalog checked on the Keth steps) | `QuestGoalCatalog`, `QuestMatcher.Targets(leadsTo)`; [quest goals](docs/research/quest-goals.md) |
 | Ascendancy selector | done (live 2026-11-14: cards, preview nodes, confirmation and ascending on yarkidius; the preview's help lines and finder not heard) | `AscendancyChoiceWatch` + pure `AscendancyChoice`; the preview reads as a passive tree with the build file's marks; [trials](docs/research/trials-and-campaign.md) §3 |

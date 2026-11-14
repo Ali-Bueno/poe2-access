@@ -58,6 +58,7 @@ namespace Poe2Accessibility.Services
                 .Append(new GameName(GameNameKind.ObjectFile, TrialWater.DropFile, null, nameof(TrialWater)))
                 .Concat(MinimapIconIds.All.Select(icon => new GameName(GameNameKind.MinimapIcon, icon, null, nameof(MinimapIconIds))))
                 .Concat(TrialArt.CounterMarkers.Append(TrialArt.CurrentRoomMarker).Append(TrialArt.EffectSlotMarker)
-                    .Select(marker => new GameName(GameNameKind.UiArt, marker, null, nameof(TrialArt))));
+                    .Select(marker => new GameName(GameNameKind.UiArt, marker, null, nameof(TrialArt))))
+                .Concat(LeaguePieces.NamesMatched());
     }
 }

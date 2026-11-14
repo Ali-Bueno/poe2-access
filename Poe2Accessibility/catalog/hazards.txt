@@ -1,10 +1,15 @@
 # Buffs a player gets from standing in harmful ground or an enemy's damaging zone (tools/Poe2UiExtract hazards),
 # regenerated after patches; a buff id here, or one that starts with it and "_", sounds the hazard alarm.
+abyss_desecrated_ground
+abyss_mod_apparition_beam
+affliction_corpse_degen
+affliction_demon_cold_degen
 architect_ground_blood
 atlas_orion_meteor_ground
 avarius_divine_beam_debuff
 azmeri_swamp_ground
 bestiary_spider_web
+breach_hand_mage_storm_lightning_aura
 briarpatch_ground
 brittle_ground
 caustic_cloud
@@ -18,6 +23,9 @@ demon_claw_boss_beam
 demon_claw_boss_beam_GIGA
 demon_claw_boss_blackflame_ground
 elder_ground_spores
+expedition_ele_cold_tornado
+expedition_ele_fire_tornado
+expedition_ele_lightning_tornado
 fungal_ground
 genetics_scientist_female_divine_beam_debuff
 genetics_scientist_male_divine_beam_debuff
@@ -45,6 +53,7 @@ lightning_vortex
 machinarium_fire_beam_debuff
 maven_void_ground
 monster_aura_burning
+monster_mod_abyss_mana_siphoner
 monster_mod_mana_siphoner
 mud_slow
 offering_of_judgement_chaos
