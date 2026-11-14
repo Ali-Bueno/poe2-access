@@ -85,6 +85,12 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
   changes phase or enrages, and the way out of its danger areas as it winds up ("Out!", "To the centre!",
   "Behind it!", "Move!", or a stick direction). The bosses and their mechanics come from the game's own files, so new
   bosses are covered without a mod update.
+- **Trials and league encounters:** the Trial of the Sekhemas (honour, sacred water, afflictions, the map of rooms, the
+  Death Crystals) and the Trial of Chaos (what each round asks next, hazards, Ruin); and the league mechanics, each with a
+  sound of its own and its progress said: Ritual, Breach, Delirium and the Simulacrum, Expedition (the markers, what a
+  charge would uncover, the detonator, Verisium Remnants), Essence, the Abyss pit, Azmeri spirits, strongboxes, shrines,
+  rogue exiles and Vaal Beacons. Built from the game's own files; much of it has not been played yet, so tell us what
+  you hear.
 - **Game updates:** after a game patch the mod finds its way into the game's memory again by itself and rebuilds its
   data from your installation; anything it cannot find is said once, with what stops working.
 - **Item sounds:** the game's own sounds by default, or the Diablo IV set of the Diablo II Resurrected mod (the
