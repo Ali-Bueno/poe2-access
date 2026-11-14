@@ -92,7 +92,10 @@ namespace Poe2Accessibility.Services
         private static string Ticked(string text) => Digits.Replace(CountedWord.Replace(text, "#$1"), "#");
 
         /// <summary>A counter ticking in a text nobody rests on: as <see cref="SameBesideNumbers"/>, with a number's separators part of it.</summary>
-        public static bool IsTick(string a, string b) => SameBesideNumbers(Grouped.Replace(a, "0"), Grouped.Replace(b, "0"));
+        public static bool IsTick(string a, string b) => Shape(a) == Shape(b);
+
+        /// <summary>A text without its numbers ("Maná, #/#"): what two readings of one counter share.</summary>
+        public static string Shape(string text) => Ticked(Grouped.Replace(text, "0"));
 
         public IReadOnlyList<ScreenChange> Apply(ScreenSnapshot current)
         {

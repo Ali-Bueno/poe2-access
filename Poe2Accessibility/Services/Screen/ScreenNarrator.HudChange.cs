@@ -62,11 +62,11 @@ namespace Poe2Accessibility.Services
 
         private void OnHudChange(ScreenChange change, ScreenSnapshot snapshot)
         {
-            this.hudSpoken.UnionWith(this.CheckQuestPage(snapshot).Select(text => text.Text));
+            this.hudSpoken.UnionWith(this.CheckQuestPage(snapshot).Select(text => ScreenDiffer.Shape(text.Text)));
             if (this.hudBaseline)
             {
                 this.hudBaseline = false;
-                this.hudSpoken.UnionWith(change.Texts.Select(text => text.Text));
+                this.hudSpoken.UnionWith(change.Texts.Select(text => ScreenDiffer.Shape(text.Text)));
                 return;
             }
 
@@ -85,7 +85,8 @@ namespace Poe2Accessibility.Services
                     this.Speak("alert", Describe(alertNews), false, Hold.Message);
                 }
 
-                var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
+                // By its shape: the mana orb's "Maná, 108/223" was news at every panel closed, with other numbers each time.
+                var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(ScreenDiffer.Shape(text.Text))).ToList();
                 // A tooltip that shows again while the HUD is up is another item's, or the same one aimed at again: news
                 // each time, whatever was said of that title before (a second stack of a currency was silent). The HUD
                 // coming back from behind a panel shows again what it showed before, which is none.
