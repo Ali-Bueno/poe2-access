@@ -21,6 +21,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\TextEdit.cs" Link="Plugin\TextEdit.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\MovingIndexWatch.cs" Link="Plugin\MovingIndexWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\CreationNameGuide.cs" Link="Plugin\CreationNameGuide.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Player\ControllerPrompt.cs" Link="Plugin\ControllerPrompt.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\ChatDiff.cs" Link="Plugin\ChatDiff.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\WeaponSetRows.cs" Link="Plugin\WeaponSetRows.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />

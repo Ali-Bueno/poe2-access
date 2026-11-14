@@ -610,6 +610,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   "You are here, near …". A checkpoint not seen since the host started has only its direction.
 - Before the game (login, character selection and creation) the controller hints are read when a screen
   opens, and only the new ones when the focus changes them ("Start Game").
+- Login on a first start: the game waits for the keyboard and mouse and shows no controller buttons; the mod says "The
+  game is waiting for the keyboard and mouse. Press a button on the controller to play with it." once.
 - Login: the news banner is a picture, read as "News, button, opens in a web browser" (A opens it). LB opens the patch
   notes in the browser; Steam counts the game as running until that browser is closed. Exit quits at once, with no question.
 - Character selection: Create Character and the characters are entered by holding A. The left stick click opens the

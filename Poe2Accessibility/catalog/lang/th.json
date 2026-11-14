@@ -618,6 +618,7 @@
  "The build puts here: ": "บิลด์ใส่ตรงนี้: ",
  "The death screen is hidden: Y shows it": "ซ่อนหน้าจอตายอยู่ กด Y เพื่อแสดง",
  "The element changes": "ธาตุเปลี่ยน",
+ "The game is waiting for the keyboard and mouse. Press a button on the controller to play with it.": "เกมกำลังรอคีย์บอร์ดและเมาส์ กดปุ่มบนคอนโทรลเลอร์เพื่อเล่นด้วยคอนโทรลเลอร์",
  "The game was updated. Restart the mod to update its game data": "เกมได้รับการอัปเดตแล้ว โปรดเริ่มม็อดใหม่เพื่ออัปเดตข้อมูลเกม",
  "The game was updated: the mod found everything again": "เกมมีการอัปเดต: ม็อดพบทุกอย่างอีกครั้งแล้ว",
  "The mod is connected to the game.": "ม็อดเชื่อมต่อกับเกมแล้ว",

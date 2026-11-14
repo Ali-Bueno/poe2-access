@@ -262,6 +262,34 @@ Account: name field on Y + Create on LB; Link Account on RB) → character creat
 stick, class info on the D-pad, Select on A) → name field + league combo + Continue (Enter submits) →
 Loading → Waiting → AreaLoading → InGameState (beach, Act 1).
 
+## A first start of the game (0.5.5g, 2026-11-14)
+
+Asked by the owner after a friend's first start: he could not accept the terms of use with the controller (he used the
+mouse) and could not link his Steam account (he used OCR). Replayed with `poe2_production_Config.ini` moved aside, the
+owner's Steam account, the virtual Xbox pad plugged in before the game:
+
+- MEASURED: the game starts in English whatever language Steam has, with the login screen drawn for the keyboard and
+  mouse: no hint bar, "Log In. Sao Paulo (BR) (Auto-selected). PoE2 0.5.5g". Nothing on screen names the controller.
+  The mod now says, 2.5 s after the screen and once a session, "The game is waiting for the keyboard and mouse. Press a
+  button on the controller to play with it." (`ControllerPrompt`; heard live).
+- MEASURED: A on the controller switches the input ("Input method set to Controller") and logs in with the same press.
+- MEASURED: **an account that agreed before goes straight to character selection**: no terms window, no account
+  window. Both are the server's answer to a Steam account with no Path of Exile account, not a first start's; no file
+  of the settings folder brings them back.
+- MEASURED: "Terms of Use, RB" on the login screen opens the same text with "Back, B" alone: no "I Agree", no Continue.
+- MEASURED: the language is changed blind from the login screen: D-pad up from Options to "Language, English, combo
+  box", A, "Choosing: English, 1 of 10", the D-pad through the ten names (each said in its own script), A, "Debes
+  reiniciar Path of Exile… Ok, button". The game restarts in that language and the mod follows it.
+- MEASURED: character creation reads as before on the fresh settings ("Choose your class: move the left stick, then
+  press A"); the fresh file differs from a played one in graphics, volume, `disable_tutorials=false` and the tutorial
+  flags, nothing the mod reads.
+- NOT REPLAYED: the terms window with "I Agree" (R3) and Continue (A), and the account window (Create Account: the
+  name field on Y, Create on LB; Link Account on RB, its e-mail and password fields). Last seen on 2026-10-23, before the
+  long text reader, the hint rules and the creation guide existed. What the code would do today, unproven: Continue
+  turning usable is news (`ScreenDiffer`, a control no longer off), the password field is said by its length alone
+  (`UiCatalog.IsPassword`, `password_textbox` of `createsteamaccountwindow.ui`). It needs a Steam account that never
+  opened the game, logged in to Steam on the test PC, or the friend's `logs/accessibility.log` and `.old` of that day.
+
 ## A popup list with no focus: the options' popup notifications (0.5.5f, 2026-11-08)
 
 Options > Interfaz > Chat > "Notificaciones emergentes, editar ajustes" opens "Ventanas emergentes de notificaciones": 31 rows of a

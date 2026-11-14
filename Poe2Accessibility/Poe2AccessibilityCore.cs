@@ -730,6 +730,7 @@ namespace Poe2Accessibility
                     GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState) && this.Settings.AnnounceAppearingText)
             {
                 this.Isolated("pre-game hints", snapshot, static (core, snapshot) => core.narrator?.OnPreGameHints(snapshot));
+                this.Isolated("controller prompt", snapshot, static (core, snapshot) => core.TickControllerPrompt(snapshot));
             }
         }
 

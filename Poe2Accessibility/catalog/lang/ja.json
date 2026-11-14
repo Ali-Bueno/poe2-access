@@ -618,6 +618,7 @@
  "The build puts here: ": "ビルドではここに：",
  "The death screen is hidden: Y shows it": "死亡画面は非表示です。Yで表示します",
  "The element changes": "属性が変わる",
+ "The game is waiting for the keyboard and mouse. Press a button on the controller to play with it.": "ゲームはキーボードとマウスを待っています。コントローラーで遊ぶには、コントローラーのボタンを押してください。",
  "The game was updated. Restart the mod to update its game data": "ゲームが更新されました。ゲームデータを更新するにはMODを再起動してください",
  "The game was updated: the mod found everything again": "ゲームが更新されました：MODはすべてを再び見つけました",
  "The mod is connected to the game.": "MODがゲームに接続されました。",

@@ -112,4 +112,6 @@ new `serve`, which disconnects the game to the login screen.
 - Stopping the pad server unplugs the virtual pad: in game that is a disconnect ("tu dispositivo de control se ha
   desconectado") back to the login screen.
 - A fresh first start (no `poe2_production_Config.ini`) is tested by moving that file aside with the game closed and
-  putting it back afterwards; Steam logs in without a form, the game starts in English.
+  putting it back afterwards; Steam logs in without a form, the game starts in English and for the keyboard and mouse.
+  An account that agreed to the terms before sees neither the terms window nor the account window
+  ([a first start](../../docs/research/ui-layers.md#a-first-start-of-the-game-055g-2026-11-14)).

@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(OnlyTheLoadingScreenSpeaksWhileAnAreaLoads), OnlyTheLoadingScreenSpeaksWhileAnAreaLoads),
             (nameof(DiabloLoopsStopAtTheirTopPitch), DiabloLoopsStopAtTheirTopPitch),
             (nameof(CreationNameDeadEndsAreSaid), CreationNameDeadEndsAreSaid),
+            (nameof(AKeyboardLoginAsksForTheController), AKeyboardLoginAsksForTheController),
             (nameof(ChatReportsOnlyAppendedLines), ChatReportsOnlyAppendedLines),
             (nameof(L3GesturesAreToldApart), L3GesturesAreToldApart),
             (nameof(StickDirectionsBinInWorldSpace), StickDirectionsBinInWorldSpace),
@@ -200,6 +201,27 @@ namespace Poe2Accessibility.Tests
             Equal(1.12f, ItemSoundSet.LoopPitch(1.26f), "straight up stops at the top");
             Equal(1.05f, ItemSoundSet.LoopPitch(1.05f), "under it nothing changes");
             Equal(0.8f, ItemSoundSet.LoopPitch(0.8f), "down still sounds down");
+        }
+
+        private static void AKeyboardLoginAsksForTheController()
+        {
+            var prompt = new ControllerPrompt();
+            Equal(false, prompt.Tick(0, false, false), "no login screen yet");
+            Equal(false, prompt.Tick(5000, true, false), "the screen has just come");
+            Equal(false, prompt.Tick(5000 + ControllerPrompt.SettleMs - 1, true, false), "its hints may still come");
+            Equal(true, prompt.Tick(5000 + ControllerPrompt.SettleMs, true, false), "a login screen standing without hints");
+            Equal(false, prompt.Tick(60000, true, false), "said once a session");
+
+            prompt = new ControllerPrompt();
+            prompt.Tick(0, true, false);
+            Equal(false, prompt.Tick(1000, true, true), "the hint bar came with the screen");
+            Equal(false, prompt.Tick(90000, true, false), "and a controller once in use is not asked for");
+
+            prompt = new ControllerPrompt();
+            prompt.Tick(0, true, false);
+            prompt.Tick(2000, false, false);
+            Equal(false, prompt.Tick(3000, true, false), "the screen gone and back starts its wait again");
+            Equal(true, prompt.Tick(3000 + ControllerPrompt.SettleMs, true, false), "and is told after it");
         }
 
         private static void CreationNameDeadEndsAreSaid()

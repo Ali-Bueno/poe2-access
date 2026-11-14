@@ -18,6 +18,7 @@ MAX_LOG_LINES = 60  # keep one step's log excerpt readable
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8')  # the log holds every language's text; a piped cp1252 stdout cannot print it
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pid', type=int, help='Required for all actions except list')
     parser.add_argument('--output-dir', type=Path, default=Path(os.environ['LOCALAPPDATA']) / 'Poe2Access' / 'computer-use')

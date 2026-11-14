@@ -69,6 +69,11 @@ namespace Poe2Accessibility
         /// <summary>The login's globe button: only a glyph beside it shows its button.</summary>
         public static string PatchNotesHint => T("Patch notes in the web browser, LB", "Notas del parche en el navegador, LB");
 
+        /// <summary>The login screen drawn for the keyboard and mouse (a first start of the game): what turns the controller on.</summary>
+        public static string ControllerPrompt => T(
+            "The game is waiting for the keyboard and mouse. Press a button on the controller to play with it.",
+            "El juego espera teclado y ratón. Pulsa un botón del mando para jugar con él.");
+
         /// <summary>Why a press on the name step did nothing; the game says none of it.</summary>
         public static string ForCreation(Services.CreationAdvice advice) => advice switch
         {

@@ -1,6 +1,7 @@
 namespace Poe2Accessibility
 {
     using System;
+    using System.Linq;
     using GameReader;
     using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
@@ -18,6 +19,17 @@ namespace Poe2Accessibility
         private bool creationAHeld;
         private bool loginHintSaid;
         private bool filterHintSaid;
+        private readonly ControllerPrompt controllerPrompt = new();
+
+        /// <summary>Per frame before the game: a login screen with no controller hints says how the controller is turned on.</summary>
+        private void TickControllerPrompt(ScreenSnapshot snapshot)
+        {
+            var login = this.gameState?.CurrentState == GameStateTypes.LoginState && snapshot.TopInteractive != null;
+            if (this.controllerPrompt.Tick(Environment.TickCount64, login, snapshot.Layers.Any(layer => layer.IsHintBar)))
+            {
+                this.output.Speak(Announcements.ControllerPrompt, false);
+            }
+        }
 
         private static CreationSpot CreationSpotOf(string? control) => control switch
         {

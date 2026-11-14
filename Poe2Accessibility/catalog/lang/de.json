@@ -618,6 +618,7 @@
  "The build puts here: ": "Der Build setzt hier ein: ",
  "The death screen is hidden: Y shows it": "Der Todesbildschirm ist ausgeblendet: Y zeigt ihn an",
  "The element changes": "Das Element wechselt",
+ "The game is waiting for the keyboard and mouse. Press a button on the controller to play with it.": "Das Spiel wartet auf Tastatur und Maus. Drücke eine Taste auf dem Controller, um mit ihm zu spielen.",
  "The game was updated. Restart the mod to update its game data": "Das Spiel wurde aktualisiert. Starte die Mod neu, damit ihre Spieldaten aktualisiert werden",
  "The game was updated: the mod found everything again": "Das Spiel wurde aktualisiert: Die Mod hat wieder alles gefunden",
  "The mod is connected to the game.": "Der Mod ist mit dem Spiel verbunden.",
