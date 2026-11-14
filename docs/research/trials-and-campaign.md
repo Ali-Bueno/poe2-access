@@ -43,6 +43,11 @@ the web is UNSURE until seen).
   the owner's third room the tracker showed another quest, the HUD's count came with the first crystal disabled and no
   crystal was listed or guided to). The tracker and the count still decide for the two seconds a new room's ground takes
   to be surveyed. Spawned crystals, if any exist outside the room files, were not looked for.
+  The arrival is told the same way (`CarriedWatch`): the player is farther between two looks than feet carry and the
+  place left is not on the ground they can walk to now, so a checkpoint's travel across one ground is no arrival. The
+  room is then said by the kind of the last room of the map the player could enter (`UiSemantics.TakeTrialRoomChosen`):
+  the choice is made on the map before the stairs are taken. What a kind asks is not in the catalog, and the room the
+  player is in is not read from the floor while the map is closed.
 - Honour: the run's second life ("[Honour|Honor]: <white>{288/513}" on the HUD; max = `total_sanctum_honour`, 513 =
   max life on the test character; 0.5.0 adds Runic Ward). Zero ends the run with no death screen (MEASURED, log of
   12:17). Honour resistance caps 75% (UNSURE). Buffs that drain it: `sanctum_fire_beam`, `ground_sanctum`,

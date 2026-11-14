@@ -42,6 +42,9 @@ namespace Poe2Accessibility
             _ => T("Middle of the map", "Centro del mapa"),
         };
 
+        /// <summary>The room of a Trial's floor the player arrives in, by the kind its map gave it: "Room: Escape Trial".</summary>
+        public static string TrialRoomEntered(string kind) => T($"Room: {kind}", $"Sala: {kind}");
+
         /// <summary>The part of the map just walked into and how it stands: "Top right corner. Explored 4 percent".</summary>
         public static string MapPartEntered(int across, int down, Services.MapPart? standing) => Sentences(new[]
         {

@@ -117,6 +117,7 @@ namespace Poe2Accessibility
                 playing && core.Settings.LostHint && core.beacon?.Target == null && !core.InTownOrHideout(),
                 core.fights?.InFight(FightState.AnyEnemy) == true));
             this.Isolated("map parts", playing, static (core, playing) => core.TickMapParts(playing));
+            this.Isolated("trial rooms", playing, static (core, playing) => core.TickTrialRooms(playing));
             this.Isolated("map hints", playing, static (core, playing) => core.mapHints?.Tick(playing && core.Settings.MapHints && !core.InTownOrHideout()));
             this.Isolated("discoveries", playing, static (core, playing) => core.discoveries?.Tick(playing && core.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", playing, static (core, playing) => core.enemyNews?.Tick(playing && core.Settings.AnnounceEnemies));

@@ -45,9 +45,12 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<MapPart> MapParts(MapFrame frame) => this.RoomsApart() ? Array.Empty<MapPart>() : this.explored.Parts(frame);
 
         /// <summary>Whether an entity stands on the ground the player can walk to (<see cref="ExplorationMap.OnPlayersGround"/>); null while not known.</summary>
-        private bool? OnPlayersGround(Render render) =>
+        private bool? OnPlayersGround(Render render) => this.OnPlayersGround(new Vector2(render.GridPosition.X, render.GridPosition.Y));
+
+        /// <summary>Whether a grid cell is on the ground the player can walk to; null while not known.</summary>
+        public bool? OnPlayersGround(Vector2 cell) =>
             Seats.Followed.TryGetComponent<Render>(out var player)
-                ? this.explored.OnPlayersGround(new Vector2(render.GridPosition.X, render.GridPosition.Y), new Vector2(player.GridPosition.X, player.GridPosition.Y))
+                ? this.explored.OnPlayersGround(cell, new Vector2(player.GridPosition.X, player.GridPosition.Y))
                 : null;
 
         /// <summary>

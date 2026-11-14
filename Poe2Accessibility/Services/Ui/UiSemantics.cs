@@ -350,6 +350,7 @@ namespace Poe2Accessibility.Services
             if (role == UiRole.Button && this.InGame && this.TrialRoomPlace(info) is { Length: > 0 } room)
             {
                 (label, position) = (label.Length > 0 ? label : Announcements.HiddenRoom, room);
+                this.NoteTrialRoom(label, address);
             }
             else if ((role == UiRole.Panel && label.Length > MaxCellText && longestCell > MaxCellText) || (titledByTooltip && label.Length > MaxCellText))
             {

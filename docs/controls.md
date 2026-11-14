@@ -50,6 +50,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
 - In a Trial room that asks to disable the crystals the guide locks by itself on the Death Crystal quickest to reach and on the next once it is disabled, along a route that goes
   round walls, and lets go when the room is done; you walk, and your own target is left alone (setting "Guide to each Death Crystal by itself").
   The crystals are those you can walk to from where you stand, whatever quest the tracker shows; it takes a couple of seconds after the stairs.
+- Taking a room's stairs says the room you arrive in, by the kind you chose on the Trial's map: "Room: Escape Trial" (with the Deceptive Mirror the game may take you to another). Under the switch "Trial rounds, crystals left and room doors".
 - In the Trial of the Sekhemas an affliction or boon is said by name and effect as you gain it; the vitals (double tap L3) say your honour, sacred water, keys and
   every affliction and boon you carry, and with the Trial's map open the water, the keys and what you carry. The sacred water monsters drop is named as such.
 - In the Trial of the Sekhemas your honour is said as it falls past 75, 50, 25 and 10 percent: at nothing the run ends (setting "Honour in the Trial").

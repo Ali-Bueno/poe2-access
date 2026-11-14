@@ -254,6 +254,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Parts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapCorner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapPartWatch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\CarriedWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LostWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />

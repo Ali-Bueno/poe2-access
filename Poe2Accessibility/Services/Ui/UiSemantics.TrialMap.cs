@@ -415,6 +415,25 @@ namespace Poe2Accessibility.Services
                 this.elements.TryReadElement(child, out var mark) && this.elements.ReadTextureKey(mark) is { } art &&
                 art.Contains(TrialArt.CurrentRoomMarker, StringComparison.OrdinalIgnoreCase));
 
+        /// <summary>The kind of the last room described that the player could enter ("Prueba de escape"): the one chosen, once its stairs are taken.</summary>
+        private string trialRoomChosen = string.Empty;
+
+        private void NoteTrialRoom(string kind, IntPtr room)
+        {
+            if (this.TrialRoomIsOpen(room))
+            {
+                this.trialRoomChosen = kind;
+            }
+        }
+
+        /// <summary>The room chosen on the Trial's map, to be said once on arriving in it; empty when none was chosen since last asked.</summary>
+        public string TakeTrialRoomChosen()
+        {
+            var chosen = this.trialRoomChosen;
+            this.trialRoomChosen = string.Empty;
+            return chosen;
+        }
+
         private bool TrialRoomIsOpen(IntPtr room) =>
             this.elements.TryReadElement(room, out var info) &&
             this.TooltipLines(info).Any(line => line.EndsWith($", {ControllerGlyphs.Interact}", StringComparison.Ordinal));

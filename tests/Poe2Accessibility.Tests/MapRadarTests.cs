@@ -238,6 +238,18 @@ namespace Poe2Accessibility.Tests
             rooms.Frontier(apart, 200, east, 8);
             Equal(true, rooms.OnPlayersGround(new System.Numerics.Vector2(350, 150), east), "and of the new field once it is surveyed");
 
+            // The stairs between two rooms carry the player to ground apart with no area loaded: only that is an arrival.
+            var watch = new CarriedWatch();
+            bool? FromEast(System.Numerics.Vector2 cell) => rooms.OnPlayersGround(cell, east);
+            Equal(false, watch.Update(west, FromEast), "the first place of an area");
+            Equal(false, watch.Update(west + new System.Numerics.Vector2(20, 0), FromEast), "a step");
+            Equal(true, watch.Update(east, FromEast), "carried to the field apart");
+            Equal(false, watch.Update(new System.Numerics.Vector2(350, 150), FromEast), "far across the same field, as a checkpoint carries: no new room");
+            Equal(true, watch.Update(west, _ => null), "carried while the ground is not known yet");
+            watch.Reset();
+            Equal(false, watch.Update(east, FromEast), "a new area starts again");
+            Equal("Room: Escape Trial", Announcements.TrialRoomEntered("Escape Trial"), "the room arrived in, as the map named it");
+
             Equal("Top right corner. Explored 4 percent", Announcements.MapPartEntered(1, -1, new MapPart(1, -1, 4, false)), "a part with ground left");
             Equal("Middle of the map. Already explored", Announcements.MapPartEntered(0, 0, new MapPart(0, 0, 97, true)), "only nooks left in it");
             Equal("Left edge", Announcements.MapPartEntered(-1, 0, null), "a part whose ground is not known yet");
