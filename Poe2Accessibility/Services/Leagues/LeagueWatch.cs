@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly LeagueNews news = new();
         private readonly PlacementNews placement = new();
+        private readonly EncounterNews tracker = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private readonly HashSet<string> loggedMonsters = new(StringComparer.Ordinal);
         private readonly List<(uint Id, ExpeditionFind Find)> covered = new();
@@ -45,11 +46,15 @@ namespace Poe2Accessibility.Services
             this.memory = memory;
         }
 
+        /// <summary>Gets or sets the lines of the HUD's league encounter tracker as they read now (<see cref="EncounterReader"/>).</summary>
+        public Func<IReadOnlyList<string>> TrackerLines { get; set; } = () => Array.Empty<string>();
+
         /// <summary>A new area: nothing is known of its objects.</summary>
         public void Reset()
         {
             this.news.Reset();
             this.placement.Reset();
+            this.tracker.Reset();
             (this.placing, this.fogLogged) = (false, FogNotLogged);
         }
 
@@ -113,6 +118,12 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            // The tracker first: whether it counts the charges itself decides what a charge placed says.
+            foreach (var line in this.tracker.Heard(this.TrackerLines(), now))
+            {
+                this.output.Say(SpeechKind.Quest, line);
+            }
+
             this.Placement(indicator, blocked, now);
             this.Player();
         }
@@ -149,7 +160,14 @@ namespace Poe2Accessibility.Services
 
             if (this.placement.Placed(this.charges) is { } count)
             {
-                this.output.Say(SpeechKind.Quest, Announcements.ExplosivesPlaced(count, PlacementNews.Uncovered(this.findsCovered)));
+                // The game's own "Explosivos colocados: 2/5" is said from the tracker when it shows one; ours then adds only what it lacks.
+                var text = this.tracker.ShowsCount
+                    ? Announcements.FindsUncovered(PlacementNews.Uncovered(this.findsCovered))
+                    : Announcements.ExplosivesPlaced(count, PlacementNews.Uncovered(this.findsCovered));
+                if (text.Length > 0)
+                {
+                    this.output.Say(SpeechKind.Quest, text);
+                }
             }
 
             this.placing = placingNow;

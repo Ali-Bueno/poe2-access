@@ -30,7 +30,35 @@ namespace Poe2Accessibility.Tests
             (nameof(AnEssenceCracksAndAnAbyssOpensByTheirTransitions), AnEssenceCracksAndAnAbyssOpensByTheirTransitions),
             (nameof(TheFindsNoChargeReachesAreCountedOnceTheStateReads), TheFindsNoChargeReachesAreCountedOnceTheStateReads),
             (nameof(ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName), ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName),
+            (nameof(TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep), TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep),
         };
+
+        private static void TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep()
+        {
+            var news = new EncounterNews();
+            Equal(0, news.Heard(Array.Empty<string>(), 0).Count, "nothing shown");
+            Equal("Expedition Encounter", string.Join(" | ", news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 0/5" }, 1000)), "the encounter begins: its title at once");
+            Equal(true, news.ShowsCount, "the game counts the charges itself");
+            Equal("Explosives Placed: 0/5", string.Join(" | ", news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 0/5" }, 1800)), "then how many charges there are, once it stands");
+            Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 1/5" }, 3000).Count, "a charge placed: not before the count stands still");
+            Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 3300).Count, "another at once");
+            Equal("Explosives Placed: 2/5", string.Join(" | ", news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 4100)), "two steps at once are one line");
+            Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 6000).Count, "said once");
+            Equal(0, news.Heard(Array.Empty<string>(), 7000).Count, "a menu hides the HUD");
+            Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 8000).Count, "and showing it again makes no title new");
+            Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 9000).Count, "nor the count it already said... once it stood");
+
+            var ritual = new EncounterNews();
+            Equal(0, ritual.Heard(new[] { "Ritual Encounter", "100 Tribute", "2 Rituals Remaining" }, 0).Count, "what the tracker shows when first looked at is no news");
+            Equal(0, ritual.Heard(new[] { "Ritual Encounter", "140 Tribute", "2 Rituals Remaining" }, 1000).Count, "a bare number running on is not news: it stays in the vitals");
+            Equal(0, ritual.Heard(new[] { "Ritual Encounter", "140 Tribute", "2 Rituals Remaining" }, 3000).Count, "however long it stands");
+            Equal(false, ritual.ShowsCount, "no count out of a total here");
+            ritual.Reset();
+            Equal(0, ritual.Heard(new[] { "Delirium Encounter" }, 0).Count, "a new area: looked at afresh");
+
+            Equal("2 not covered", Announcements.FindsUncovered(2), "after the game's own count, only what it lacks");
+            Equal(string.Empty, Announcements.FindsUncovered(null), "and nothing when that is not read");
+        }
 
         private static void ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName()
         {

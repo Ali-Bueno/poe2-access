@@ -161,6 +161,14 @@ namespace Poe2Accessibility
             { } left => T($"Explosives Placed: {count}; {left} not covered", $"Explosivos colocados: {count}; {left} sin cubrir"),
         };
 
+        /// <summary>How many Expedition finds no charge placed reaches yet, said after the game's own count; empty when that is not read.</summary>
+        public static string FindsUncovered(int? uncovered) => uncovered switch
+        {
+            null => string.Empty,
+            0 => T("Every find covered", "Todo cubierto"),
+            { } left => T($"{left} not covered", $"{left} sin cubrir"),
+        };
+
         private static string StrongboxName(string name) => name.Length > 0 ? name : T("Strongbox", "Caja fuerte");
 
         private static string FindCount(ExpeditionFind find, int count) => (find, count == 1) switch

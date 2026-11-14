@@ -371,7 +371,10 @@ namespace Poe2Accessibility
                 this.traps = new TrapWatch(this.audio, this.log);
                 this.trialDoors = new TrialDoorWatch(this.entities, this.output, this.log);
                 this.chaosTrial = new ChaosTrialWatch(this.output, this.log);
-                this.leagues = new LeagueWatch(this.output, this.log, elements, memory);
+                this.leagues = new LeagueWatch(this.output, this.log, elements, memory)
+                {
+                    TrackerLines = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>(),
+                };
                 this.essences = new EssenceWatch(memory, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
