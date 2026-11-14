@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
         private int gearVersion;
         private (IntPtr Address, GearPlace Place, bool Show) gearFocus;
 
+        /// <summary>The summary last said and whose it was: the same one is not said at every opening of the inventory.</summary>
+        private (string Character, string Text) gearSummarySaid;
+
         /// <summary>Where the focus is, for the gear summary: the player's own inventory and slots, another grid (stash, a merchant's stock), or anything else.</summary>
         private enum GearPlace
         {
@@ -226,6 +229,11 @@ namespace Poe2Accessibility.Services
                     : GearPlace.OtherGrid;
                 // Coming back from the stash or a merchant's stock is no entering: said once per visit, not per crossing.
                 var show = place == GearPlace.Own && (this.gearFocus.Place == GearPlace.Own ? this.gearFocus.Show : this.gearFocus.Place != GearPlace.OtherGrid);
+                if (show && this.gearFocus.Place != GearPlace.Own)
+                {
+                    show = this.GearSummaryIsNews();
+                }
+
                 this.gearFocus = (node.Address, place, show);
             }
 
@@ -236,6 +244,27 @@ namespace Poe2Accessibility.Services
 
             var notes = this.GearSummaryLines(active);
             return notes.Count == 0 ? node : node.With(node.Text, node.Tooltip, node.PanelNotes.Concat(notes).ToList());
+        }
+
+        /// <summary>
+        ///     Whether the summary differs from the one last said to this character: said unchanged at 80 of 101 openings of
+        ///     the inventory in a day, before the focused item each time (docs/research/sweep-2026-11-13.md).
+        /// </summary>
+        private bool GearSummaryIsNews()
+        {
+            if (this.GearPlan() is not { } active)
+            {
+                return true;
+            }
+
+            var entering = (AskingCharacter(), string.Join(". ", this.GearSummaryLines(active)));
+            if (entering == this.gearSummarySaid)
+            {
+                return false;
+            }
+
+            this.gearSummarySaid = entering;
+            return true;
         }
 
         /// <summary>The slots whose piece applies at this level, each against what is worn there, its lines from its tooltip or from memory.</summary>

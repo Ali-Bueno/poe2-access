@@ -355,6 +355,14 @@ the planner's list named last, else the one the game's settings name for the cha
   own word: its committed entry, read whenever the list is focused, is the character's build at once
   (`BuildPlanFolder.Shown`, by file name or the file's `name`), so a build changed with the tree closed does not wait
   for the settings. NOT MEASURED: when the game writes `active_builds` (the file was last written at 11:14:42, before
-  the game started at 11:14:56, and not in the eleven minutes after), nor the entry's text live: a text of no file
-  changes nothing.
+  the game started at 11:14:56, and not in the eleven minutes after). A text of no file changes nothing.
+- The entry's text, MEASURED from the play log of 2026-11-13 (05:41-05:57, the owner choosing in the tree's list): the
+  build's `name` as the file writes it ("ACT 1 - [0.5.5] Grenades Gemling League", "Ninguno" for none; 33 entries with
+  32 files). Over the 37 files of that evening every `name` is at most 40 characters and equals the file's own name but
+  for a trailing space (10 files) or a "/" the file name drops (4: "ACT 3/4 - …" is `ACT 34 - ….build`), so a name is
+  matched by the file name first and by the one file whose `name` it is otherwise (unit-tested with such a name). While
+  the list is open its value follows the highlighted entry ("Eligiendo: …"); the value is read again when it changes,
+  so the entry left chosen is the last one noted.
+- The log says whose build, which file and why, once per change: `Build plan: kehgan follows Lvl 1-23 - ….build (the
+  tree's marks: 27 of 27 marked, 0 besides)`, `(the planner's list)`, `(the game's settings)`.
 - The mod remembers a character's file, not its contents: a file written again is read again within five seconds.

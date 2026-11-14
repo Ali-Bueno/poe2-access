@@ -37,6 +37,7 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | A control under the free cursor that never gets a tooltip (in game) | its own caption, as a focus, once the cursor has rested 500 ms | yes | done (`BareHover`; no such control found to hear) |
 | Text appears in the owning layer (description, tooltip, class info) | the new text, after the control | queued; interrupt when the screen has no focus (navigation result) | done |
 | Live counters (timers, queue position) | never automatically | — | done (digit-only changes ignored) |
+| A part of a layer built again with the texts it had (a merchant's tab strip at every sale: "-2-", "Recomprar", "-1-" on new elements) | nothing: two or more texts back on new elements within three snapshots, and nothing new with them; one notice shown again alone is said again, and with a new text among them all are said as before | — | done (`ScreenDiffer.NoteRebuilt`; "Recomprar -2-" 63 times in the play log of 2026-11-13) |
 | Text field | label (row label or placeholder), "edit field", contents; echo typed characters | — | done (label; typed or deleted characters echoed by `ScreenNarrator.OnValueChanged`) |
 | Password field | never read the contents; say the length | — | done (`UiSemantics`, `Announcements.PasswordLength`; commit 34f9512) |
 | Hint bar | spoken on request; with a no-focus popup, name the button bound to each action, not the glyph | — | on request done (glyph names todo) |
