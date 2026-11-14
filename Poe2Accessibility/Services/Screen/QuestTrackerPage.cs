@@ -40,6 +40,11 @@ namespace Poe2Accessibility.Services
         {
             this.NoteLegend(legend);
             this.Turned = false;
+            if (quests.Count == 0 && this.turning)
+            {
+                this.lastSaid = Array.Empty<string>(); // turned to a page with nothing on it: the one turned back to is said again
+            }
+
             var fresh = quests.Count > 0 && !quests.SequenceEqual(this.lastSaid);
             this.Waiting = fresh && waits;
             if (!fresh || waits)
