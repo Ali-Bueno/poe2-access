@@ -55,7 +55,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the charges of the Expedition site at hand as the client's ruleset counts them: placed, and how many there are.</summary>
         public Func<(int Placed, int Total)?> Charges { get; set; } = () => null;
 
-        /// <summary>Gets or sets whether a Delirium encounter runs, by its ruleset: false when it is here and over, null when unknown.</summary>
+        /// <summary>Gets or sets whether a Delirium encounter runs, by its ruleset: false once one that ran here is over, null when unknown.</summary>
         public Func<bool?> FogRunning { get; set; } = () => null;
 
         /// <summary>Gets or sets whether the fog's own reader is speaking of its edges now: it says more than "out of the fog".</summary>

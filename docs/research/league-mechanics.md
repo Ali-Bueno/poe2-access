@@ -695,7 +695,9 @@ left silent. What it found, all fixed and under test:
   made them say each other over and over); the bar's quarters are said once a round even when it wavers; the interface is walked every
   3 s until an element is found, every 8 s after.
 - **Essences of a crystal:** rows read alone before pairs (pairs first could give every other row and look right).
-- **Scanner:** a hostile, living monster of a league family that the family's rule does not list rings as an enemy again.
+- **Not taken:** the review asked that a living, hostile monster of a league family its rule does not list ring as an enemy. The one
+  such family is the Azmeri spirits (`TormentedSpiritofthe…`, the `…Viper` rows included): wisps nothing can hit. Ringing one as an
+  enemy would be the Essence fault again, so an unlisted wisp stays silent.
 
 **Where it ends.** Nothing more is on the client for: the fog in a map that has only the endgame rules (the whole map is fog there, and
 the stat still says in or out); the four seconds outside the fog (the server's); the Trial's ring centre and radius and its timer's

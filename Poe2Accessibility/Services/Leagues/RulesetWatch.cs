@@ -16,6 +16,8 @@ namespace Poe2Accessibility.Services
         private const int PollMs = 400;
 
         /// <summary>How often the interface is walked for the Trial of Chaos' elements.</summary>
+        private bool fogRan;
+
         private const int TrialHudWalkMs = 3000;
 
         /// <summary>Once its elements are known the walk is only for new ones (a popup's labels).</summary>
@@ -49,7 +51,10 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the element every layer of the game's interface hangs from.</summary>
         public Func<IntPtr> Container { get; set; } = () => IntPtr.Zero;
 
-        /// <summary>Gets whether a Delirium encounter with a front and a rear runs: false when its rules are here and it is over, null when unknown.</summary>
+        /// <summary>
+        ///     Gets whether a Delirium encounter with a front and a rear runs: false only once one that ran in this area is over,
+        ///     null when unknown. Rules that are here and never ran say nothing: a map may be fogged by other rules.
+        /// </summary>
         public bool? FogRunning { get; private set; }
 
         /// <summary>Gets a value indicating whether the fog's edges are being spoken of from the computation, the player's depth known.</summary>
@@ -75,7 +80,7 @@ namespace Poe2Accessibility.Services
             this.reader.Reset();
             this.news.Reset();
             this.fogNews.Reset();
-            (this.fogWhy, this.fogLogged, this.FogRunning, this.FogSpeaks) = (string.Empty, long.MinValue / 2, null, false);
+            (this.fogWhy, this.fogLogged, this.FogRunning, this.FogSpeaks, this.fogRan) = (string.Empty, long.MinValue / 2, null, false, false);
             this.trialHudNews.Reset();
             this.trialHud.Reset();
             this.areaStatsLogged = false;
@@ -184,7 +189,8 @@ namespace Poe2Accessibility.Services
         private void Fog(Render render, long now, bool leagues)
         {
             var sample = this.fog.Read((int)render.GridPosition.X, (int)render.GridPosition.Y);
-            (this.FogRunning, this.FogSpeaks) = (this.fog.Running, false);
+            this.fogRan |= this.fog.Running == true;
+            (this.FogRunning, this.FogSpeaks) = (this.fog.Running == true ? true : this.fog.Running == false && this.fogRan ? false : null, false);
             if (this.fog.Why != this.fogWhy)
             {
                 this.fogWhy = this.fog.Why;

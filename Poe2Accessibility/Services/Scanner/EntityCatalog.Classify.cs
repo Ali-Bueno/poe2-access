@@ -149,10 +149,8 @@ namespace Poe2Accessibility.Services
                 // A league's object the rules above miss, while its states say it is there to find (docs/research/league-mechanics.md
                 // §12); an Expedition marker by what its icon says it buries, whatever its own name.
                 var leagueStates = TransitionState.With(this.memory, entity);
-                category = LeaguePieces.IsListed(league, leagueStates, icon) ? ScanCategory.Encounters
-                    // Not the piece the rule lists (an Azmeri wisp while it flees), yet alive and hostile: an enemy like any other.
-                    : entity.EntityType == EntityTypes.Monster && IsAliveEnemy(entity) ? ScanCategory.Enemies
-                    : null;
+                // The one creature here is an Azmeri spirit, a wisp nothing can hit: not listed, it is nothing, never an enemy.
+                category = LeaguePieces.IsListed(league, leagueStates, icon) ? ScanCategory.Encounters : null;
                 var find = LeaguePieces.FindOf(league.Piece, icon);
                 name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeaguePieceName(league.Piece, find);
@@ -161,8 +159,8 @@ namespace Poe2Accessibility.Services
                     name = Announcements.ExpeditionCovered(name); // the charges placed already reach it: the next goes elsewhere
                 }
 
-                kind = category == ScanCategory.Enemies ? string.Empty : league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
-                sound = category == ScanCategory.Enemies ? string.Empty : LeaguePieces.SoundOf(path);
+                kind = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
+                sound = LeaguePieces.SoundOf(path);
             }
             else if (foughtBeside)
             {
