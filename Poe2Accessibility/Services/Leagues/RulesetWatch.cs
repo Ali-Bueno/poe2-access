@@ -21,6 +21,10 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly RulesetNews news = new();
+        private readonly FogReader fog;
+        private readonly FogNews fogNews = new();
+        private string fogWhy = string.Empty;
+        private long fogLogged = long.MinValue / 2;
         private readonly ChaosTrialHudReader trialHud;
         private readonly ChaosTrialHudNews trialHudNews = new();
         private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
@@ -29,9 +33,10 @@ namespace Poe2Accessibility.Services
         private long lastPoll;
         private string lastLogged = string.Empty;
 
-        public RulesetWatch(RulesetReader reader, ChaosTrialHudReader trialHud, IAccessibilityOutputService output, PluginLog log)
+        public RulesetWatch(RulesetReader reader, FogReader fog, ChaosTrialHudReader trialHud, IAccessibilityOutputService output, PluginLog log)
         {
             this.reader = reader;
+            this.fog = fog;
             this.trialHud = trialHud;
             this.output = output;
             this.log = log;
@@ -59,6 +64,8 @@ namespace Poe2Accessibility.Services
         {
             this.reader.Reset();
             this.news.Reset();
+            this.fogNews.Reset();
+            (this.fogWhy, this.fogLogged) = (string.Empty, long.MinValue / 2);
             this.trialHudNews.Reset();
             this.trialHud.Reset();
             this.areaStatsLogged = false;
@@ -87,6 +94,7 @@ namespace Poe2Accessibility.Services
                 this.log.Info(this.reader.AreaStats());
             }
 
+            this.Fog(render, now, leagues);
             foreach (var line in this.news.Breach(ring, player, now))
             {
                 if (!leagues)
@@ -153,6 +161,75 @@ namespace Poe2Accessibility.Services
                     }
                 }
             }
+        }
+
+        /// <summary>How often the fog's numbers go to the log while an encounter runs.</summary>
+        private const int FogLogMs = 5000;
+
+        /// <summary>
+        ///     The Delirium fog's edges: which way it went when the player is out of it, and a word before the rear or the front
+        ///     reaches them. Only once the computation has agreed with the game's own stat (<see cref="FogNews"/>).
+        /// </summary>
+        private void Fog(Render render, long now, bool leagues)
+        {
+            var sample = this.fog.Read((int)render.GridPosition.X, (int)render.GridPosition.Y);
+            if (this.fog.Why != this.fogWhy)
+            {
+                this.fogWhy = this.fog.Why;
+                if (this.fogWhy != "no ruleset")
+                {
+                    this.log.Info($"Delirium fog: {this.fogWhy}{(this.reader.Ruleset(GameLayout.Fog.MapRulesName) != null ? "; the map's own rules are here too" : string.Empty)}");
+                }
+            }
+
+            if (sample is not { } read)
+            {
+                if (this.fogWhy is "not running" or "no ruleset")
+                {
+                    this.fogNews.Reset(); // each encounter earns its voice anew
+                }
+
+                return;
+            }
+
+            bool? inFog = PlayerStats.Of(Seats.Followed, LeaguePieces.FogStat) is { } stat ? stat > 0 : null;
+            var line = read.Depth is { } depth ? this.fogNews.Heard(depth, read.Front, read.Rear, read.Most, inFog, now) : null;
+            if (now - this.fogLogged >= FogLogMs)
+            {
+                // How the port is judged from a session's log: its band beside the game's own word, and their record.
+                this.fogLogged = now;
+                var (agreed, disagreed) = this.fogNews.Record;
+                this.log.Info($"Delirium fog: front {read.Front}, rear {read.Rear}, player {read.Depth?.ToString() ?? "off the map"} of {read.Most}" +
+                              $"{(read.Paused ? ", paused" : string.Empty)}; the game says {(inFog is { } said ? (said ? "in" : "out") : "nothing")}; agreed {agreed}, not {disagreed}{(this.fogNews.Trusted ? ", trusted" : string.Empty)}");
+            }
+
+            if (line is not { } heard || !leagues)
+            {
+                return;
+            }
+
+            var way = heard is FogLine.LeftBehind or FogLine.RearNear ? read.Deeper : heard == FogLine.Outran ? read.Shallower : null;
+            var text = Announcements.Fog(heard, SideOf(render, way));
+            if (heard is FogLine.LeftBehind or FogLine.Outran)
+            {
+                this.output.Urge(text);
+            }
+            else
+            {
+                this.output.Say(SpeechKind.Quest, text);
+            }
+        }
+
+        /// <summary>A way over the ground as the side of the screen it goes ("arriba a la derecha"); empty without one.</summary>
+        private static string SideOf(Render render, Vector2? way)
+        {
+            if (way is not { } step)
+            {
+                return string.Empty;
+            }
+
+            var (alongX, alongY) = ScreenProjection.Axes(render.WorldPosition);
+            return Announcements.HintSides[StickDirection.Octant(alongX, alongY, step.X, step.Y)];
         }
 
         /// <summary>

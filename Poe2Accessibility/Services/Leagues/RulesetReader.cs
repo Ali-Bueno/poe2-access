@@ -297,6 +297,9 @@ namespace Poe2Accessibility.Services
             return bytes > 0 && bytes % stride == 0 && bytes / stride <= MaxRecords && this.memory.IsValidAddress(first) ? (int)(bytes / stride) : null;
         }
 
+        /// <summary>A ruleset of the area by its name, for a reader of what it holds; null when the area has none.</summary>
+        public IntPtr? Ruleset(string name) => this.Find(name);
+
         /// <summary>
         ///     A ruleset by the name of its Rulesets.dat row: the row's number comes from the game's files (catalog/game-ids.txt),
         ///     else from what the exe of 0.5.5f had, and the object at that place of the session's array must point back to the

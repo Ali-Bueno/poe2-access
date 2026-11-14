@@ -345,6 +345,61 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     The Delirium fog in its ruleset (AfflictionEncounterRules, row 40 of Rulesets.dat, 0x140 bytes), from the exe of 0.5.5f
+        ///     read as a file (2026-11-14, docs/research/exe-layouts.md, "The Delirium fog"; the functions were ported line by
+        ///     line into <see cref="Services.FogMath"/>). The front's and rear's clocks are set by the server's packets (0x1803E05:
+        ///     89 4E 78; 0x1803E2B: 89 4E 7C; end 0x1803E51, pause 0x1803E7A) and advanced by the client each frame; the speeds come
+        ///     from the AfflictionBalancePerLevel row at +0x58; the depth map is embedded at +0xA0 and the game's progress bar
+        ///     reads all of it (0x3B74E0). Never seen in a running game: <see cref="Services.FogReader"/> checks each part for what
+        ///     it must be and <see cref="Services.FogNews"/> speaks only once the result has agreed with the game's own stat.
+        /// </summary>
+        public static class Fog
+        {
+            public const string RulesName = "AfflictionEncounterRules";
+
+            /// <summary>The endgame variant, which has no clocks: its presence is logged, nothing is read from it.</summary>
+            public const string MapRulesName = "AfflictionMapRules";
+
+            public const int RulesBytes = 0x140;
+            public const int Balance = 0x58;
+            public const int GainFactor = 0x70;
+            public const int ExtraDelay = 0x74;
+            public const int Time = 0x78;
+            public const int RearTime = 0x7C;
+            public const int End = 0x84;
+            public const int PauseLeft = 0x88;
+            public const int Active = 0x8C;
+            public const int Finished = 0x8D;
+            public const int Never = 0x8E;
+            public const int Map = 0xA0;
+            public const int Most = 0x128;
+            public const int Hold = 0x130;
+
+            /// <summary>In the depth map: the area it is of, its header (width, height and origin as four words), the regions' rows, the cells' regions, the distance grid.</summary>
+            public const int MapArea = 0x08;
+            public const int MapHeader = 0x10;
+            public const int MapRegions = 0x18;
+            public const int MapCells = 0x30;
+            public const int MapGrid = 0x48;
+            public const int GridData = 0x08;
+            public const int GridStride = 0x20;
+            public const int RegionBytes = 36;
+            public const int RegionDepth = 0x20;
+
+            /// <summary>The row of AfflictionBalancePerLevel as it is in the file: 0x50 bytes of plain numbers.</summary>
+            public const int BalanceBytes = 0x50;
+            public const int BalanceFrontSpeed = 0x04;
+            public const int BalanceRearSpeed = 0x08;
+            public const int BalanceRearDelay = 0x0C;
+            public const int BalanceRearGain = 0x10;
+            public const int BalanceRamp = 0x34;
+            public const int BalanceFirstSpeed = 0x38;
+
+            public const int DeepestBelievable = 20000;
+            public const int WidestMap = 4096;
+        }
+
+        /// <summary>
         ///     The area's own stats (a map's modifiers, a logbook's increases): a vector of int32 pairs, stat and value, in the
         ///     area instance. From upstream's layout only (GameHelper2, AreaInstanceOffsets.MapMods, read 2026-11-14), which nothing of
         ///     theirs reads but an offset viewer: not validated here, so it is logged once per area and nothing is said from it yet
@@ -397,6 +452,8 @@ namespace Poe2Accessibility
                 [BreachName] = 92,
                 [ExpeditionName] = 51,
                 [UltimatumName] = 49,
+                [Fog.RulesName] = 40,
+                [Fog.MapRulesName] = 42,
             };
 
             /// <summary>How much of the game state is searched for the session when it is not where the exe had it.</summary>

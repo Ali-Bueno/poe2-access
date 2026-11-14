@@ -34,7 +34,74 @@ namespace Poe2Accessibility.Tests
             (nameof(ABreachRingIsSaidByQuartersAndAtItsEdge), ABreachRingIsSaidByQuartersAndAtItsEdge),
             (nameof(ATrialRoundIsSaidAsItChanges), ATrialRoundIsSaidAsItChanges),
             (nameof(TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear), TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear),
+            (nameof(TheFogsFrontAndRearMoveAsTheGameMovesThem), TheFogsFrontAndRearMoveAsTheGameMovesThem),
+            (nameof(TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame), TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame),
         };
+
+        // Row 0 of AfflictionBalancePerLevel (area level 1): the front starts at 150 cells a second and slows to 30 over 100 s;
+        // the rear starts 10 s in at 1 cell a second and gains 0.38 a second each second.
+        private static readonly FogBalance LevelOne = new(30f, 1f, 10f, 0.38f, 100f, 150f);
+
+        private static void TheFogsFrontAndRearMoveAsTheGameMovesThem()
+        {
+            Equal(true, FogMath.IsPlausible(LevelOne), "the shipped row");
+            Equal(false, FogMath.IsPlausible(new FogBalance(0f, 0f, 0f, 0f, 0f, 0f)), "the row of levels nobody plays, all zero: not believed");
+            Equal(false, FogMath.IsPlausible(new FogBalance(30f, 1f, 10f, float.NaN, 100f, 150f)), "nor bytes that are no numbers");
+            Equal(0f, FogMath.Front(LevelOne, -1.8f), "before the mirror's clock starts");
+            Equal(1440f, FogMath.Front(LevelOne, 10f), "ten seconds in: 150 a second, slowing");
+            Equal(9000f, FogMath.Front(LevelOne, 100f), "the ramp over");
+            Equal(9300f, FogMath.Front(LevelOne, 110f), "then 30 cells a second");
+
+            var running = new FogClocks(20f, 20f, float.PositiveInfinity, 1f, 0f, false);
+            Equal(0f, FogMath.Rear(LevelOne, running with { RearTime = 9f }), "the rear waits its ten seconds");
+            Equal(29f, FogMath.Rear(LevelOne, running), "ten seconds moving: 10 at its speed and 19 gained");
+            Equal(0f, FogMath.Rear(LevelOne, running with { Never = true }), "a map whose fog never fades");
+            Expect(true, Math.Abs(FogMath.Rear(LevelOne, running with { RearTime = 16f, ExtraDelay = 2f }) - 7.04f) < 0.01f,
+                "the area's own delay is added to the row's: four seconds moving, 4 at its speed and 3.04 gained");
+            Expect(true, FogMath.Rear(LevelOne, new FogClocks(30f, 30f, 25f, 1f, 0f, false)) > FogMath.Rear(LevelOne, running with { Time = 30f, RearTime = 30f }),
+                "after the end the rear rushes on");
+            Equal(FogMath.Front(LevelOne, 30f), FogMath.Rear(LevelOne, new FogClocks(30f, 60f, 25f, 1f, 0f, false)), "and never passes the front: the band closes");
+            Equal(8000, FogMath.Shown(12345.6f, 8000), "the bar shows whole cells, never past the area's most");
+
+            Equal((3, 4), FogMath.CellOf(260, 510, 10, 20), "the map's cells are half tiles from its origin in tiles, the nearest one");
+            Equal(22, FogMath.NodeOf(260), "and the grid's nodes half tiles from the area's corner");
+            Equal(100f, FogMath.Between(100f, 100f, 100f, 100f, 260, 260), "flat ground between four nodes");
+            Expect(true, FogMath.Between(100f, 111.5f, 100f, 111.5f, 258, 253) is > 104f and < 108f, "between two nodes along x");
+            Equal(151, FogMath.DepthOf(100f, 50.2f, 8000), "the region's depth and the way inside it, rounded up");
+            Equal(8000, FogMath.DepthOf(100f, 9000f, 8000), "never past the most");
+            Equal(null, FogMath.DepthOf(float.PositiveInfinity, 3f, 8000), "a region the fog does not reach");
+        }
+
+        private static void TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame()
+        {
+            var news = new FogNews();
+            Equal(null, news.Heard(100, 500, 0, 8000, true, 0), "in the band, as the game says: judged, not yet trusted");
+            for (var at = 400; at <= 1600; at += 400)
+            {
+                Equal(null, news.Heard(100, 500, 0, 8000, true, at), "still earning its voice");
+            }
+
+            Equal(true, news.Trusted, "five agreements well away from the edges");
+            Equal(null, news.Heard(300, 600, 100, 8000, true, 2000), "deep in the band: nothing to say");
+            Equal(FogLine.RearNear, news.Heard(300, 900, 280, 8000, true, 3000), "the rear twenty cells behind");
+            Equal(null, news.Heard(300, 900, 285, 8000, true, 4000), "said once in seven seconds");
+            Equal(FogLine.LeftBehind, news.Heard(300, 900, 320, 8000, false, 5000), "the rear has passed: out, and the fog went on");
+            Equal(null, news.Heard(300, 900, 330, 8000, false, 6000), "not again at once");
+            Equal(FogLine.LeftBehind, news.Heard(300, 900, 340, 8000, false, 8200), "but again within the four seconds there are");
+            Equal(FogLine.Outran, news.Heard(950, 900, 340, 8000, false, 9000), "past the front: out the other way");
+            Equal(FogLine.FrontNear, news.Heard(895, 900, 340, 8000, true, 10000), "at the front's edge");
+
+            var wrong = new FogNews();
+            for (var at = 0; at <= 4000; at += 400)
+            {
+                Equal(null, wrong.Heard(100, 500, 0, 8000, false, at), "the game says out where the port says in: never trusted, never spoken");
+            }
+
+            Equal(false, wrong.Trusted, "a port that does not agree stays silent");
+            Equal(null, wrong.Heard(700, 500, 0, 8000, null, 5000), "and with the stat unread nothing is judged");
+            Equal("The fog has left you behind: it went up right", Announcements.Fog(FogLine.LeftBehind, "up right"), "which way it went, as a side of the screen");
+            Equal("The fog has left you behind", Announcements.Fog(FogLine.LeftBehind, string.Empty), "or without one where the ground does not tell");
+        }
 
         private static void TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear()
         {

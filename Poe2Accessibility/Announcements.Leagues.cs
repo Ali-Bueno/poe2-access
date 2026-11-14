@@ -83,6 +83,21 @@ namespace Poe2Accessibility
             _ => T($"Round {round} of {rounds}", $"Ronda {round} de {rounds}"),
         };
 
+        /// <summary>
+        ///     The Delirium fog's edges; <paramref name="side"/> is where to go on the screen ("arriba a la derecha"), empty when the
+        ///     ground does not tell.
+        /// </summary>
+        public static string Fog(FogLine line, string side) => (line, side.Length > 0) switch
+        {
+            (FogLine.LeftBehind, true) => T($"The fog has left you behind: it went {side}", $"La niebla te dejó atrás: se fue {side}"),
+            (FogLine.LeftBehind, false) => T("The fog has left you behind", "La niebla te dejó atrás"),
+            (FogLine.Outran, true) => T($"You are ahead of the fog: go back {side}", $"Vas por delante de la niebla: vuelve {side}"),
+            (FogLine.Outran, false) => T("You are ahead of the fog: wait for it", "Vas por delante de la niebla: espérala"),
+            (FogLine.RearNear, true) => T($"The fog is fading behind you: move on {side}", $"La niebla se disipa detrás de ti: avanza {side}"),
+            (FogLine.RearNear, false) => T("The fog is fading behind you: move on", "La niebla se disipa detrás de ti: avanza"),
+            _ => T("You are at the fog's front edge: slow down", "Estás en el borde delantero de la niebla: frena"),
+        };
+
         /// <summary>The Trial of Chaos' bar by quarters, under the game's own name of it (ClientStrings UltimatumBarDisplayName).</summary>
         public static string TrialProgress(int percent) => T($"Challenge Progress: {percent}%", $"Progreso del desafío: {percent} %");
 

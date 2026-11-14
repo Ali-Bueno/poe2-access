@@ -378,7 +378,8 @@ namespace Poe2Accessibility
                     AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
                     Charges = () => this.rulesets?.Charges,
                 };
-                this.rulesets = new RulesetWatch(new RulesetReader(memory, elements, this.log), new ChaosTrialHudReader(elements), this.output, this.log)
+                var rulesetReader = new RulesetReader(memory, elements, this.log);
+                this.rulesets = new RulesetWatch(rulesetReader, new FogReader(memory, rulesetReader), new ChaosTrialHudReader(elements), this.output, this.log)
                 {
                     Container = () => this.focus?.LayerContainer ?? IntPtr.Zero,
                 };
