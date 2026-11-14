@@ -1,7 +1,6 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
@@ -117,16 +116,19 @@ namespace Poe2Accessibility.Services
                 return reachable;
             }
 
-            var walk = Walk(grid, bytesPerRow, width, height, start);
-            for (var cell = 0; cell < width * height; cell++)
+            lock (this.walks)
             {
-                if (walk[cell] >= 0)
+                Walk(grid, bytesPerRow, width, height, start, this.walks, false);
+                var marks = this.walks.Marks;
+                for (var cell = 0; cell < width * height; cell++)
                 {
-                    reachable[((cell / width / BlockCells) * this.blocksX) + (cell % width / BlockCells)] = true;
+                    if (marks[cell] != 0)
+                    {
+                        reachable[this.BlockOf(cell, width)] = true;
+                    }
                 }
             }
 
-            ArrayPool<int>.Shared.Return(walk);
             return reachable;
         }
 
@@ -146,39 +148,35 @@ namespace Poe2Accessibility.Services
             }
 
             var cells = width * height;
-            var walk = Walk(grid, bytesPerRow, width, height, start);
-            var queue = ArrayPool<int>.Shared.Rent(cells);
-            try
+            lock (this.walks)
             {
+                Walk(grid, bytesPerRow, width, height, start, this.walks, false);
+                var (walk, queue) = (this.walks.Marks, this.walks.Queue);
                 for (var cell = 0; cell < cells; cell++)
                 {
-                    if (walk[cell] >= 0)
+                    if (walk[cell] != 0)
                     {
                         reachable[this.BlockOf(cell, width)] = true;
                     }
                 }
 
-                // The walk's steps are spent: a cell taken into a ground is marked in them, so none is taken twice.
-                const int taken = -2;
+                // A cell taken into a ground is marked so in the walk's marks, so none is taken twice.
                 var lastGround = new int[reachable.Length];
                 var touched = new List<int>();
                 var number = 0;
                 for (var first = 0; first < cells; first++)
                 {
-                    if (walk[first] < 0 || this.seen[this.BlockOf(first, width)])
+                    if (walk[first] != Reached || this.seen[this.BlockOf(first, width)])
                     {
                         continue;
                     }
 
                     number++;
                     touched.Clear();
-                    var head = 0;
-                    var tail = 0;
-                    walk[first] = taken;
-                    queue[tail++] = first;
-                    while (head < tail)
+                    walk[first] = Taken;
+                    queue.Enqueue(first);
+                    while (queue.TryDequeue(out var cell))
                     {
-                        var cell = queue[head++];
                         var block = this.BlockOf(cell, width);
                         if (lastGround[block] != number)
                         {
@@ -215,18 +213,13 @@ namespace Poe2Accessibility.Services
 
                     void Take(int cell)
                     {
-                        if (walk[cell] >= 0 && !this.seen[this.BlockOf(cell, width)])
+                        if (walk[cell] == Reached && !this.seen[this.BlockOf(cell, width)])
                         {
-                            walk[cell] = taken;
-                            queue[tail++] = cell;
+                            walk[cell] = Taken;
+                            queue.Enqueue(cell);
                         }
                     }
                 }
-            }
-            finally
-            {
-                ArrayPool<int>.Shared.Return(queue);
-                ArrayPool<int>.Shared.Return(walk);
             }
 
             return (reachable, sizes);

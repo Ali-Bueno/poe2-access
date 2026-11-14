@@ -71,23 +71,29 @@ namespace Poe2Accessibility.Services
 
         private static readonly (bool[], int[], int) NoGround = (Array.Empty<bool>(), Array.Empty<int>(), 0);
 
+        /// <summary>The buffers of this map's own walks, and those lent to its snapshots (one frontier at a time).</summary>
+        private GridWalks walks = new();
+        private GridWalks? lent;
+
         /// <summary>How many blocks have been seen: it grows while the player finds new ground.</summary>
         public int SeenBlocks { get; private set; }
 
-        /// <summary>A new area: nothing seen.</summary>
+        /// <summary>A new area: nothing seen, and the last area's walk buffers let go.</summary>
         public void Reset()
         {
             this.seen = Array.Empty<bool>();
             this.blocksX = this.blocksY = 0;
             this.ground = NoGround;
             this.SeenBlocks = 0;
+            this.walks = new GridWalks();
+            this.lent = null;
         }
 
         /// <summary>
         ///     A map sharing this one's seen blocks, for a <see cref="Frontier"/> worked out off the frame thread: on a large
         ///     floor it takes a tenth of a second (docs/research/performance.md). <see cref="Adopt"/> takes what it found.
         /// </summary>
-        public ExplorationMap Snapshot() => new() { seen = this.seen, blocksX = this.blocksX, blocksY = this.blocksY };
+        public ExplorationMap Snapshot() => new() { seen = this.seen, blocksX = this.blocksX, blocksY = this.blocksY, walks = this.lent ??= new GridWalks() };
 
         /// <summary>Takes the ground a snapshot's <see cref="Frontier"/> found; false when the map is another by now (a new area).</summary>
         public bool Adopt(ExplorationMap snapshot)
