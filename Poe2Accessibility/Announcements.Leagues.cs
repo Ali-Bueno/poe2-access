@@ -71,6 +71,17 @@ namespace Poe2Accessibility
             _ => T("Abyss closed", "Abismo cerrado"),
         };
 
+        /// <summary>What the client's rulesets tell: a Breach's ring by quarters and its edge crossed, the Trial of Chaos' round.</summary>
+        public static string Ruleset(RulesetLine line, int round, int rounds) => line switch
+        {
+            RulesetLine.BreachQuarter => T("Breach a quarter grown", "Fisura a un cuarto"),
+            RulesetLine.BreachHalf => T("Breach half grown", "Fisura a la mitad"),
+            RulesetLine.BreachThreeQuarters => T("Breach three quarters grown", "Fisura a tres cuartos"),
+            RulesetLine.OutsideBreach => T("Outside the Breach's ring", "Fuera del anillo de la fisura"),
+            RulesetLine.InsideBreach => T("Inside the Breach's ring", "Dentro del anillo de la fisura"),
+            _ => T($"Round {round} of {rounds}", $"Ronda {round} de {rounds}"),
+        };
+
         /// <summary>A monster an Azmeri spirit has reached, by the game's name of it and of the buff.</summary>
         public static string Possessed(string name) => name.Length > 0
             ? T($"{name}, Possessed by an Azmeri Spirit", $"{name}, poseído por un espíritu azmeri")
@@ -154,12 +165,13 @@ namespace Poe2Accessibility
         ///     The HUD's count of the charges set ("Explosives Placed: {0}/{1}"), without the most it does not tell us; with how many
         ///     finds no charge reaches yet, when that is read.
         /// </summary>
-        public static string ExplosivesPlaced(int count, int? uncovered) => uncovered switch
+        public static string ExplosivesPlaced(int count, int? total, int? uncovered)
         {
-            null => T($"Explosives Placed: {count}", $"Explosivos colocados: {count}"),
-            0 => T($"Explosives Placed: {count}; every find covered", $"Explosivos colocados: {count}; todo cubierto"),
-            { } left => T($"Explosives Placed: {count}; {left} not covered", $"Explosivos colocados: {count}; {left} sin cubrir"),
-        };
+            // "Explosives Placed: {0}/{1}" is the game's own line (ClientStrings SideEncounterExpeditionPlacedCount).
+            var placed = total is { } most ? T($"Explosives Placed: {count}/{most}", $"Explosivos colocados: {count}/{most}") : T($"Explosives Placed: {count}", $"Explosivos colocados: {count}");
+            var left = FindsUncovered(uncovered);
+            return left.Length == 0 ? placed : $"{placed}; {left}";
+        }
 
         /// <summary>How many Expedition finds no charge placed reaches yet, said after the game's own count; empty when that is not read.</summary>
         public static string FindsUncovered(int? uncovered) => uncovered switch

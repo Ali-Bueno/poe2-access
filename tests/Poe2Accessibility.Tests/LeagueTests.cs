@@ -31,7 +31,52 @@ namespace Poe2Accessibility.Tests
             (nameof(TheFindsNoChargeReachesAreCountedOnceTheStateReads), TheFindsNoChargeReachesAreCountedOnceTheStateReads),
             (nameof(ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName), ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName),
             (nameof(TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep), TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep),
+            (nameof(ABreachRingIsSaidByQuartersAndAtItsEdge), ABreachRingIsSaidByQuartersAndAtItsEdge),
+            (nameof(ATrialRoundIsSaidAsItChanges), ATrialRoundIsSaidAsItChanges),
         };
+
+        private static void ABreachRingIsSaidByQuartersAndAtItsEdge()
+        {
+            Equal(50f, BreachRings.ValueOf(0f, 100f, 10f, 5f), "half its time gone: half grown");
+            Equal(40f, BreachRings.ValueOf(40f, 80f, 0f, 0f) is { } stood ? stood - 40f : -1f, "no time to grow in: it stands at where it grows to");
+            Equal(null, BreachRings.ValueOf(float.NaN, 100f, 10f, 5f), "numbers that cannot be a ring's are not believed");
+            Equal(null, BreachRings.ValueOf(0f, 250f, 10f, 5f), "nor a size past 100");
+            Equal(300, (int)Math.Round(BreachRings.RadiusOf(100f)), "fully grown: 300 cells, the game's constant");
+            Equal(198, (int)Math.Round(BreachRings.RadiusOf(50f)), "half grown is two thirds of the radius: the 0.6 power");
+            Equal(0, (int)BreachRings.RadiusOf(0f), "nothing yet");
+
+            var centre = new Vector2(1000f, 1000f);
+            var news = new RulesetNews();
+            Equal(0, news.Breach(new BreachRing(centre, 5f, 1), centre, 0).Count, "the hand just touched: no news");
+            Equal(0, news.Breach(new BreachRing(centre, 20f, 1), centre, 1000).Count, "growing, the player inside");
+            Equal("BreachQuarter", string.Join(" ", news.Breach(new BreachRing(centre, 26f, 1), centre, 2000)), "a quarter");
+            Equal(0, news.Breach(new BreachRing(centre, 30f, 1), centre, 3000).Count, "said once");
+            Equal("BreachHalf", string.Join(" ", news.Breach(new BreachRing(centre, 55f, 2), centre, 4000)), "half, enraged or not");
+            var far = centre + new Vector2(BreachRings.RadiusOf(55f) * 1.2f, 0f);
+            Equal("OutsideBreach", string.Join(" ", news.Breach(new BreachRing(centre, 55f, 2), far, 9000)), "the player walks out of the ring");
+            Equal(0, news.Breach(new BreachRing(centre, 55f, 2), centre, 10000).Count, "back at once: not said within three seconds");
+            Equal("InsideBreach", string.Join(" ", news.Breach(new BreachRing(centre, 55f, 2), centre, 12500)), "then said, so what was last heard is where the player stands");
+            Equal(0, news.Breach(new BreachRing(centre, 60f, 3), far, 20000).Count, "closing: nothing more of it");
+
+            var seenFromAfar = new RulesetNews();
+            Equal(0, seenFromAfar.Breach(new BreachRing(centre, 60f, 1), far, 0).Count, "a ring first read from outside");
+            Equal(0, seenFromAfar.Breach(new BreachRing(centre, 60f, 1), far, 9000).Count, "is nothing the player left");
+            Equal(0, seenFromAfar.Breach(new BreachRing(centre, 60f, 1), centre, 12000).Count, "walking in is no news either");
+            Equal("OutsideBreach", string.Join(" ", seenFromAfar.Breach(new BreachRing(centre, 60f, 1), far, 16000)), "walking out after that is");
+        }
+
+        private static void ATrialRoundIsSaidAsItChanges()
+        {
+            var news = new RulesetNews();
+            Equal(null, news.Round(null), "no trial here");
+            Equal(null, news.Round(1), "the round standing when first read is no news");
+            Equal(2, news.Round(2), "a room completed: the next round");
+            Equal(null, news.Round(2), "said once");
+            Equal(null, news.Round(null), "the trial left");
+            Equal("Round 3 of 10", Announcements.Ruleset(RulesetLine.TrialRound, 3, 10), "as the window writes it");
+            Equal("Explosives Placed: 2/5; 1 not covered", Announcements.ExplosivesPlaced(2, 5, 1), "the game's own count, then what it lacks");
+            Equal("Explosives Placed: 2", Announcements.ExplosivesPlaced(2, null, null), "the total unread: as before");
+        }
 
         private static void TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep()
         {
@@ -132,6 +177,8 @@ namespace Poe2Accessibility.Tests
             Equal("Essence: Blood Cretin", Announcements.Essence("Blood Cretin", 1, false), "one essence, the usual, is not counted aloud");
             Equal("Essence: Blood Cretin, 3 essences, corrupted", Announcements.Essence("Blood Cretin", 3, true), "what a sighted player reads on the crystal");
             Equal("Essence", Announcements.Essence(string.Empty, 0, false), "states unread: as before");
+            Equal("Essence: Blood Cretin. Essence of Flames, Essence of the Body, corrupted",
+                Announcements.Essence("Blood Cretin", 2, true, new[] { "Essence of Flames", "Essence of the Body" }), "the essences by name when they read: the count says nothing more");
 
             var crack = LeaguePieces.RuleOf("Metadata/MiscellaneousObjects/Abyss/AbyssCrack@9")!;
             Equal("8", string.Join(" ", Enumerable.Range(1, 16).Where(state => LeaguePieces.IsListed(crack, States((LeaguePieces.Transition, state)), "AbyssCrackActive"))),

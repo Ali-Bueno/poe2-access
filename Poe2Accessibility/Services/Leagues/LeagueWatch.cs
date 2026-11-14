@@ -52,6 +52,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the lines of the HUD's league encounter tracker as they read now (<see cref="EncounterReader"/>).</summary>
         public Func<IReadOnlyList<string>> TrackerLines { get; set; } = () => Array.Empty<string>();
 
+        /// <summary>Gets or sets the charges of the Expedition site at hand as the client's ruleset counts them: placed, and how many there are.</summary>
+        public Func<(int Placed, int Total)?> Charges { get; set; } = () => null;
+
         /// <summary>Gets or sets the id of the area the player is in ("ExpeditionLogBook_Reef"): a logbook's charges reach farther.</summary>
         public Func<string> AreaId { get; set; } = () => string.Empty;
 
@@ -210,7 +213,9 @@ namespace Poe2Accessibility.Services
                 // The game's own "Explosivos colocados: 2/5" is said from the tracker when it shows one; ours then adds only what it lacks.
                 var text = this.tracker.ShowsCount
                     ? Announcements.FindsUncovered(PlacementNews.Uncovered(this.findsCovered))
-                    : Announcements.ExplosivesPlaced(count, PlacementNews.Uncovered(this.findsCovered));
+                    : this.Charges() is { } site
+                        ? Announcements.ExplosivesPlaced(site.Placed, site.Total, PlacementNews.Uncovered(this.findsCovered))
+                        : Announcements.ExplosivesPlaced(count, null, PlacementNews.Uncovered(this.findsCovered));
                 if (text.Length > 0)
                 {
                     this.output.Say(SpeechKind.Quest, text);

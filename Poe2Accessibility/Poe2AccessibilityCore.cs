@@ -99,6 +99,7 @@ namespace Poe2Accessibility
         private ChaosTrialWatch? chaosTrial;
         private LeagueWatch? leagues;
         private EssenceWatch? essences;
+        private RulesetWatch? rulesets;
         private MapPinNarrator? mapPins;
         private MinionReport? minions;
         private CullWatch? culls;
@@ -375,7 +376,9 @@ namespace Poe2Accessibility
                 {
                     TrackerLines = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>(),
                     AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
+                    Charges = () => this.rulesets?.Charges,
                 };
+                this.rulesets = new RulesetWatch(new RulesetReader(memory, elements, this.log), this.output, this.log);
                 this.essences = new EssenceWatch(memory, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);

@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
+        private readonly HashSet<uint> essenceRows = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
         /// <summary>
@@ -133,7 +134,8 @@ namespace Poe2Accessibility.Services
                     name = Announcements.Essence(
                         this.NameNear(render, EssenceWorld, IsHeldMonster),
                         crystal.FirstOrDefault(state => state.Name == LeaguePieces.EssenceCountState).Value,
-                        crystal.FirstOrDefault(state => state.Name == LeaguePieces.EssenceCorruptedState).Value > 0);
+                        crystal.FirstOrDefault(state => state.Name == LeaguePieces.EssenceCorruptedState).Value > 0,
+                        this.EssenceNamesOf(entity));
                 }
 
                 name = name.Length > 0 ? name : this.landmarks.WorldTitle(path);
@@ -361,6 +363,22 @@ namespace Poe2Accessibility.Services
             }
 
             return known == null ? string.Empty : ShrineCatalog.Shared.NameOf(known, Localization.Language);
+        }
+
+        /// <summary>
+        ///     The essences a crystal holds by the game's names of them; none when they do not read or have no name in the
+        ///     catalog. What was read is logged once per crystal: how the field is confirmed from a session's log.
+        /// </summary>
+        private IReadOnlyList<string> EssenceNamesOf(Entity crystal)
+        {
+            var ids = EssenceContents.Of(this.memory, this.elements, crystal);
+            if (this.essenceRows.Add(crystal.Id))
+            {
+                this.log.Info($"Essence contents: {(ids.Count == 0 ? "unread" : string.Join(", ", ids))}");
+            }
+
+            var names = ids.Select(id => ItemNames.Of(id) ?? string.Empty).ToList();
+            return names.Count > 0 && names.All(name => name.Length > 0) ? names : Array.Empty<string>();
         }
 
         /// <summary>A creature of the game's monster folder: what an essence's crystal holds.</summary>

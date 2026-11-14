@@ -336,6 +336,101 @@ namespace Poe2Accessibility
             public static int RadiusOffset { get; internal set; } = 0x3E;
         }
 
+        /// <summary>
+        ///     Entity Monolith component, an Essence's crystal (the client's class, pool of 0x108 bytes): its network reader
+        ///     (0x16F75E0) fills a vector of Essences rows at +0xC8 and stores the row of the monster held at +0xE0 (0x16F76D6:
+        ///     49 89 95 E0 00 00 00); exe of 0.5.5f, 2026-11-14. <see cref="Services.EssenceContents"/> believes a row only when it
+        ///     leads to an item's file.
+        /// </summary>
+        public static class MonolithComponent
+        {
+            public const string Name = "Monolith";
+
+            public static int EssencesOffset { get; internal set; } = 0xC8;
+        }
+
+        /// <summary>
+        ///     The client's rulesets: one object per row of Rulesets.dat, kept in the session of the instance server and filled from
+        ///     the server's packets. The league mechanics a sighted player sees drawn live here, not in entity components. Read from
+        ///     the exe of 0.5.5f as a file (2026-11-14, docs/research/exe-layouts.md, "Rulesets"): the session's constructor (the one
+        ///     that logs "Connecting to instance server") stores the area at +0x20F0 (0x212D805: 48 89 91 F0 20 00 00); the rulesets'
+        ///     creator fills an array of pointers by row at +0x2400 (0x212F7FB: 4A 89 9C F6 00 24 00 00), read back by row below 0x66
+        ///     (0x284BC5); every ruleset holds its row at +0x30 and its session at +0x48 (base constructor 0x1729A80). The session is
+        ///     also stored at +0x340 of an object the study took for the game state without proving it, so
+        ///     <see cref="Services.RulesetReader"/> believes a session only when its own pointer to the area is the area the host
+        ///     reads, and a ruleset only by the name of its row and its pointer back to the session.
+        /// </summary>
+        public static class Rulesets
+        {
+            public static int GameStateSession { get; internal set; } = 0x340;
+
+            /// <summary>How much of the game state is searched for the session when it is not where the exe had it.</summary>
+            public const int GameStateSearchBytes = 0x1000;
+
+            public static int SessionArea { get; internal set; } = 0x20F0;
+
+            public static int SessionRulesets { get; internal set; } = 0x2400;
+
+            /// <summary>The rows the game's own getter allows (below 0x66).</summary>
+            public const int MostRows = 0x66;
+
+            public static int RulesetRow { get; internal set; } = 0x30;
+
+            public static int RulesetSession { get; internal set; } = 0x48;
+
+            /// <summary>No area's grid is this wide: a centre beyond it is not a place.</summary>
+            public const int MostGridCells = 100000;
+
+            /// <summary>
+            ///     A Breach growing (Rulesets row 92; packet reader 0x172A8F0, per-frame update 0x172A3E0): a vector of 0x48-byte
+            ///     encounters at +0x190. Each: the size it grows from and to (floats +0 and +4, 0 to 100), over a duration (+8) of which
+            ///     +0xC has elapsed (0x172A4E7 adds each frame), its centre in grid cells (int32 pair, 0x172AA63: 48 89 48 24) and its
+            ///     state (0x172AAD5: 89 4B 38; 2 plays BreachEnrageStinger, as encounter_state of BrequelInitiator). The ring is drawn
+            ///     with a radius of 300 × (size / 100) ^ 0.6 grid cells (0x172A627).
+            /// </summary>
+            public const string BreachName = "ExpandingBrequelEncounterRules";
+
+            public static int BreachEncounters { get; internal set; } = 0x190;
+
+            public const int BreachStride = 0x48;
+            public const int BreachFrom = 0x0;
+            public const int BreachTo = 0x4;
+            public const int BreachDuration = 0x8;
+            public const int BreachElapsed = 0xC;
+            public const int BreachCentre = 0x24;
+            public const int BreachState = 0x38;
+            public const int BreachLastState = 4;
+
+            /// <summary>
+            ///     Expedition (row 51): a vector of 0x70-byte records at +0x1E0, one per detonator. The byte at +0x68 is how many
+            ///     charges it has and the vector at +0x40 the charges placed, 8 bytes each: the HUD's "Explosives Placed: {0}/{1}"
+            ///     is formatted from exactly these (0x4F4280: 0F B6 74 01 68, then the vector's length). +0x60 is its grid place.
+            /// </summary>
+            public const string ExpeditionName = "ExpeditionRules";
+
+            public static int ExpeditionSites { get; internal set; } = 0x1E0;
+
+            public const int ExpeditionStride = 0x70;
+            public const int ExpeditionPlaced = 0x40;
+            public const int ExpeditionChargeBytes = 8;
+            public const int ExpeditionPlace = 0x60;
+            public const int ExpeditionTotal = 0x68;
+            public const int ExpeditionMostCharges = 60;
+
+            /// <summary>
+            ///     The Trial of Chaos (row 49): the round's index from 0 at +0x1A8 (set by the server, 0x181F9A2; one more on
+            ///     UltimatumRoomCompleted, 0x181FE3E) and how many rounds at +0x1A9; the window's "Round {0}/{1}" is formatted from
+            ///     them (0x5721A4 adds 1 to the first).
+            /// </summary>
+            public const string UltimatumName = "UltimatumRules";
+
+            public static int UltimatumRound { get; internal set; } = 0x1A8;
+
+            public static int UltimatumTotal { get; internal set; } = 0x1A9;
+
+            public const int UltimatumMostRounds = 20;
+        }
+
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>
         public static class PadButtons
         {

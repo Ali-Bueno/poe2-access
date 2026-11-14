@@ -223,10 +223,14 @@ namespace Poe2Accessibility
         ///     The crystal with what its script says it holds (Monolith.ot: <c>num_essences</c>, <c>is_corrupted</c>): "Esencia: Cretino
         ///     de sangre, 2 esencias, corrupta". One essence, the usual, is not counted aloud.
         /// </summary>
-        public static string Essence(string monster, long essences, bool corrupted)
+        public static string Essence(string monster, long essences, bool corrupted) => Essence(monster, essences, corrupted, System.Array.Empty<string>());
+
+        /// <summary>The same with the essences by name when they read ("Esencia: Cretino de sangre. Esencia de llamas, Esencia del cuerpo"): the count then says nothing more.</summary>
+        public static string Essence(string monster, long essences, bool corrupted, System.Collections.Generic.IReadOnlyList<string> named)
         {
             var name = Essence(monster);
-            name = essences > 1 ? T($"{name}, {essences} essences", $"{name}, {essences} esencias") : name;
+            name = named.Count > 0 ? $"{name}. {string.Join(", ", named)}"
+                : essences > 1 ? T($"{name}, {essences} essences", $"{name}, {essences} esencias") : name;
             return corrupted ? T($"{name}, corrupted", $"{name}, corrupta") : name;
         }
 
