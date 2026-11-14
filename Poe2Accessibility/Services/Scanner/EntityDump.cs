@@ -83,6 +83,21 @@ namespace Poe2Accessibility.Services
                         }
                     }
 
+                    // The fields read from the exe alone (GameLayout: TransitionableComponent, ControlZoneComponent), beside the raw
+                    // bytes: a state outside 1..count, or a radius the object's file does not set, says the field moved.
+                    if (components.TryGetValue("Transitionable", out var transitionable) && transitionable != IntPtr.Zero)
+                    {
+                        var read = TransitionState.Of(this.memory, entity);
+                        sb.AppendLine($"         transition: {(read is { } state ? $"{state.State} of {state.Count}" : "unread")} " +
+                                      $"bytes[118..128]={Convert.ToHexString(this.memory.ReadBytes(transitionable + 0x118, 0x10))}");
+                    }
+
+                    if (components.TryGetValue(GameLayout.ControlZoneComponent.Name, out var zone) && zone != IntPtr.Zero &&
+                        this.memory.TryRead<ushort>(zone + GameLayout.ControlZoneComponent.RadiusOffset, out var zoneRadius))
+                    {
+                        sb.AppendLine($"         control zone radius: {zoneRadius}");
+                    }
+
                     if (entity.TryGetComponent<WorldItem>(out var worldItem) && worldItem.ItemEntityAddress != IntPtr.Zero)
                     {
                         // The item a ground entity holds: how its name can be read (gems have no base display name).

@@ -460,7 +460,7 @@ first read and at each new combination: it confirms every rule, the marker icons
 and whether the placement indicator is in the entity list) and "League monster seen: <file>: buffs …" (a mechanic's monster's buffs, once
 per file, and any possessed monster's).
 
-**Left, each for its reason:** Abyss fissures (an `AbyssCrack` carries the `AbyssCrackActive` row from its construction, hidden until
+**Left, each for its reason** (as of the afternoon; §14 closes the fissures, the pit, the Essence and the shrine's name): Abyss fissures (an `AbyssCrack` carries the `AbyssCrackActive` row from its construction, hidden until
 state 8, and the host's MinimapIcon reads the row, not whether it is shown: an open fissure cannot be told from a closed one without
 `Transitionable`'s state); the pit opening and the Essence shattered (§12 rows 9, 15: `Transitionable`'s current state, unread); Breach's
 ring (ControlZone); a shrine named before use (the Shrines row pointer, unvalidated); the lesser shrines (older buff ids shared with other
@@ -468,3 +468,85 @@ shrines, Spanish names not in this research); Ailith's life; the charges' thud a
 ear); the remnant's Tome and the Temple Console (windows: the generic reader). LIKELY only: which marker icon is which find; `started`
 → 0 of a strongbox meaning "can be opened" (the box may open itself after the ambush, `opened` → 1, which is not said); remnant value 3
 as spoiled (the script's comment says a recipe was pending as the detonation began, so it may still run, → 5, which is said).
+
+## 14. Second pass: the exe and the files the first pass skipped (2026-11-14, evening)
+
+Asked by the user ("no puedes investigar un poquito más? buscar más a fondo en los archivos del juego, o el mismo exe"). Two studies: the
+exe as a file ([exe-layouts.md](exe-layouts.md), "League components") and the parts of the files the first pass did not open. Dumps and
+scripts in the session's scratch folder only (`files2/`: `dumper.exe` of `tools/research/gamedata` with `EXTS=.ot|.ui,.xml|.ao,.epk|.csd`,
+tables through `dat.py`).
+
+**What the first pass missed in the files.** There are no `.otc` or `.aoc` files: the client part of an object is the `client { … }` block
+at the end of its own `.ot`, and it holds the client-only states, the Transitionable hooks and the minimap icon calls. Only 127 `.ui`
+files exist (tutorial panels, `hud.ui`, settings): the Ultimatum, Tome, Temple Console, Delirium, Breach and Ritual windows have no layout
+file. `GameConstants` (121 rows) holds nothing of the leagues.
+
+- **Essence** (`Metadata/MiscellaneousObjects/Monolith.ot`, MEASURED). `Transitionable { num_states = 4 }`: 2 and 3 play `CrackLevel1` and
+  `CrackLevel2`, 4 plays `Shatter`, removes its collision and deletes it 5 s later; the client at 4 does `DisableTargetable`,
+  `HideMinimapIcon` and takes the `EssenceImpale` effect off `this.monster`. Shared states `disabled`, `num_essences`, `has_greater`,
+  `has_corrupted`, `is_corrupted`, `exalted_count`, `immediate_kill`. `MiniMonolith.ot` (the small crystals around it: `is_mini_monolith`,
+  4 states, no icon, no target) and `SuperMonolith.ot` (a map's great one, never deleted) are the same thing. The held monster carries the
+  stat `monster_inside_monolith` (Stats 4785) and, freed, the hidden buff `monolith_monster_freedom` (BuffDefinitions 694); no buff marks it
+  while held. Essence names are Mods rows `MonsterEssenceMod*` (4782-4846; `Essences.MonsterMod`).
+- **Abyss** (`AbyssCrackBase.ot`, `AbyssNodeBase.ot`, MEASURED). A fissure has 16 states: 1 closed, 2-7 opening, **8 fully open** (the one
+  state its icon `AbyssCrackActive` is shown in), 9-11 and 12-14 closing slowly, 15-16 closing quickly (icon `AbyssCrackInactive`). A pit
+  has 4: 1 closed, 2 opening and spawning (icon shown), 3 failed (icon `AbyssPitInactive`), 4 won (icon hidden). `AbyssStartNode` has the icon
+  `Abyss`. How many segments a fissure has is decided as the area is built. The game's words (KeywordPopups 351, es): "abismo", "foso",
+  "grietas": monsters born near are weakened; killing them closes the fissures; once closed all the way to the pit, the pit opens.
+- **Expedition** (`ExpeditionHighlightable.ot`, MEASURED). Client states on a marker, a relic, a remnant: `in_placing_range` (the charge at
+  the cursor would reach it), **`in_range`** (the charges already placed reach it: the "placed" glow), `glow_epk`, `placed_epk`,
+  `inherent_explosion_indicator`. Shared state `inherent_explosion_radius` (default 0): `FaridunExplosive` 80, `OilWell` 110,
+  `ExplodingFill_BoomBarrel` 60, objects that blow with the chain. The base count of charges, the blast radius and the placement range are
+  in no file (only the scaling stats `map_expedition_explosives_+%`, `map_expedition_explosion_radius_+%`,
+  `map_expedition_maximum_placement_distance_+%`); the HUD line `SideEncounterExpeditionPlacedCount` "Explosivos colocados: {0}/{1}" gives
+  the total at run time. Each charge waits until most monsters of the one before are dead (web, poe2db.tw/us/Expedition).
+- **Breach.** `BrequelInitiator.encounter_state`: 0 inactive, 1 expanding, 2 enraged, 3 closing enraged, 4 closing not enraged. Every
+  `ControlZone { }` of the Breach files is empty: no radius, no growth, no duration in any file or table. Across the game 343 files have a
+  `ControlZone` block; its keys are `condition` ("players", "local_player"), `radius` (0 to 80; 25 to 60 common), `on_enter`, `on_exit`,
+  `on_empty`, the flags of the exe study, `required_quest_flag`, `disable_quest_flag`; a script can set the radius later
+  (`SetControlZoneRadius`: 0, 15, 30, 200 seen).
+- **Delirium.** `AfflictionConstants` (18 rows): `FogBankInitialDepth` 10, `BaseFogBankMaxDepth` 100, `FogBankSpawnDelayMs` 400,
+  `SpecialEventShardSpawnDonutMinRange` 30, `…MaxRange` 100, `MinimumDistanceBetweenEvents` 100, `SimulacrumWaves` 7. The fog is laid by
+  depth over the ground's nodes, not as a circle: there is no radius to read. A mirror timer exists (stats
+  `map_killing_rare_monsters_pauses_delirium_mirror_timer_for_x_seconds`, `…any_monster…_for_x_ms`; a unique kill pauses it 10 s, a rare
+  3 to 5 s: web, poe2db.tw/us/Delirium). A shard has no trigger of its own in its file: "shatter when you get near them" (KeywordPopups).
+  The campaign's encounter (`Terrain/Gallows/Act4/4_2_2/Objects/DeliriumEncounter.ot`) has a state `fog`, 1 on and 2 off.
+- **Shrines.** One object file for every kind (11 `ShrineVarieties` rows differ only in looks): the kind is the Shrines row the server
+  sends, kept in the component (exe study). The six lesser shrines are Shrines rows 24-29, 20 s, buffs `shrine_acceleration`,
+  `shrine_brutal`, `shrine_regen`, `shrine_massive`, `shrine_resistance`, `shrine_defence` (BuffDefinitions 252, 253, 255, 265, 268, 266,
+  through `Player_ShrineBuffsKey`).
+- **Strongboxes.** The box's kind changes the loot, not the monsters: Chests tags `martial_strongbox` (Blacksmith's), `caster_strongbox`
+  (Arcane), `armourer_strongbox`, `jeweller_strongbox`, `currency_strongbox` (Researcher's), `waystone_strongbox` (Cartographer's),
+  `basic_strongbox` (Large, plain, Ornate). The packs come from the area's culture (`MonsterSummonDaemonBase.ot`:
+  `PreloadStrongboxPacks('Ezomyte' / 'Maraketh' / 'Vaal' / 'Karui')`); `ChestSummonStrongboxImplicit` summons 5 to 10 packs (Cartographer's 6
+  to 12, Abyss boxes 4 to 8).
+- **Trial of Chaos.** The objective of each round kind is `UltimatumEncounterTypes.Name` (en / es): Slay "Mata a todos los monstruos",
+  Survive "Sobrevive", Collect "Implanta los núcleos de alma", Escort "Escolta a la estatua", Sacrifice "Sacrifica monstruos", Destroy
+  "Destruye los ídolos", Boss "Mata al jefe". HUD strings (ClientStrings): `UltimatumWindowRound` "Ronda {0}/{1}",
+  `UltimatumBarDisplayName` "Progreso del desafío", `UltimatumReturnToRingBannerLabel` "Vuelve al círculo",
+  `UltimatumSelectModifierDesc`, `UltimatumWindowBeginButton` "Aceptar prueba", `UltimatumWindowTakeRewardsButton` "Tomar recompensas",
+  `MapOverlayMonstersRemainingN` "Quedan {0} monstruos". Idols: still in no file.
+
+**What the plugin does with it** (unit tests and the data step only; never played):
+
+- **A monster in an Essence's crystal is out of the fight until it shatters** (`EssencePrison`, `EssenceWatch`, hook in
+  `EntityCatalog.IsHidden`). The user: "me quedaba atacando como tonto pensando que podía darles pero no podía porque tenía que
+  interactuar para romper eso, después que se rompa ahí sí pueden sonar otra vez" (2026-11-14). The held monster is alive, hostile and
+  targetable (the game aims A at it to free it), so every enemy sound took it for a foe. It is now held while it stands in a crystal
+  (within 30 world units, the rule that already named the crystal by its monster) whose transition is below its count; unread, by the
+  crystal still being usable; a small crystal whose transition does not read holds nothing. Looked at every 200 ms, whatever the league
+  announcements' setting. A targeted held monster is still said as the essence ("Esencia: Cretino de sangre, A").
+- **Said:** "Esencia agrietada" (transition 2), "Esencia más agrietada" (3), "Esencia liberada: el monstruo ataca" (4); "El foso del
+  abismo se abre: monstruos" (pit 2); a pit's end once, by its transition or its icon, whichever reads first.
+- **Listed:** an Abyss fissure while fully open ("Grieta del abismo"), ringing as the Abyss so the nearest leads along the fissure; a
+  shattered crystal is dropped at once, not five seconds later.
+- **Expedition:** a find the charges already placed reach is named "…, cubierto"; "Explosivos colocados: N; M sin cubrir" (or "todo
+  cubierto"), once any find reads as reached (which is what shows the client's state is read at all).
+- **Logged for a first session:** "Essence crystal: <file>: transition N of M, in play …, holds …" and "Essence holds: <monster>:
+  buffs […], monster_inside_monolith N" (whether the game's own stat can replace the rule by place); a Breach's "zone radius N" in its
+  "League piece seen" line (whether its ring is kept in ControlZone +0x3E); the dev command "entities" prints each Transitionable's
+  state, count and raw bytes and each ControlZone's radius.
+
+**Still left:** the Breach's ring (said from nothing until a log shows the radius moving); the Delirium fog's edge (no field); the number
+of charges and their reach (the HUD line, a window to find in play); the round objective of a Trial of Chaos round without pieces (the
+HUD's line); the Tome and Temple Console windows (no layout file: the generic reader).

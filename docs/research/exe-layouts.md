@@ -423,3 +423,50 @@ the game, what moved. Ground truth for old builds is upstream's commits: `98ef3a
 - First-pass signatures had 3 fixed bytes and were unique by accident; hence the floor of 12.
 - `0x5D8` is not a plain pointer but inline storage of a small vector (begin 0x5C0, end 0x5C8, capacity 0x5D0, room for two): reading it
   is right only while the vector stays inline.
+
+## League components (2026-11-14, build 0.5.5f, hotfix of 2026-11-06)
+
+Asked of the exe for the league mechanics ([league-mechanics.md](league-mechanics.md) §14), with the method above; scripts in the session's
+scratch folder only (`p2lib.py`, `s1_pools.py` … `s15_world.py`: pools, vtables, GEAL names, parser keys, cross references). Nothing was read
+in a running game by this study; what the plugin reads of it is judged at run time.
+
+| Field | Value | Proof | Site | Bytes |
+|---|---|---|---|---|
+| Transitionable (pool 0x128) type data | +0x118 | B | 0x1E0D334 (constructor 0x1E0D2D0) | `49 89 B8 18 01 00 00` |
+| Transitionable state, **one byte, counted from 1** | +0x120 | A | 0x2073F11, GEAL `GetTransitionState` | `0F B6 80 20 01 00 00` |
+| the same, set to 1 at construction | +0x120 | B | 0x1E0D33B | `41 C6 80 20 01 00 00 01` |
+| the same, stored by `Transition` | +0x120 | A | 0x209D150 | `88 82 20 01 00 00` |
+| Transitionable type data: `num_states` (2 to 127) | +0xB0 | A | 0x209D13D | `3A 81 B0 00 00 00` |
+| Transitionable "has transitioned" (set, never cleared) | +0x122 | B | 0x209D156 | `C6 82 22 01 00 00 01` |
+| Transitionable lock (`LockTransition` / `UnlockTransition`) | +0x123 | A | 0x2097CBC | `C6 80 23 01 00 00 01` |
+| Shrine (pool 0x68) IsUsed | +0x24 | B | 0x1DF9795 (network reader 0x1DF9720) | `88 46 24` |
+| Shrine **row of Shrines.dat** | +0x28 | B | 0x1DF981C; read again by the popup at 0xE74412 | `48 89 56 28`; `48 8B 51 28` |
+| Shrine table handle (what upstream took for the row) | +0x30 | B | 0x1DF9820 | `48 8D 56 30` |
+| ControlZone (pool 0xF0) radius, a word | +0x3E | A | 0x2093008, GEAL `SetControlZoneRadius` (component + 0x18, then +0x26) | `66 89 47 26` |
+| ControlZone centre offset, a qword | +0x40 | A | 0x2092EB8, `SetControlZoneCentreOffset` | `48 89 47 28` |
+| ControlZone objects inside, a vector of 8-byte entries | +0xD8 | B | 0x1DC6029 ("In Zone Count: ") | `48 8B 96 C8 00 00 00` |
+| StateMachine values, one 8-byte slot per declared state | +0x160 | B | constructor 0x1E06C30 | - |
+
+- **Transitionable.** Upstream's `short` at +0x120 is a byte followed by three flag bytes (+0x121 a copy of the type's
+  `transition_on_damage_taken`). There is no previous or target state. The `.ot` keys: `num_states`, `transition_on_damage_taken`,
+  `link_to_instance_group_flag`, `transition_on_damage_from_any_team`, `enable_logging`, events `on_transition`, `on_untransition`. The debug
+  dump prints `"Transitionable state: "`, the byte, then the count (0x1E0DDBD). Falsified by a live untransitioned object reading 0, or
+  any object reading above its count: `Transitions.Judge` refuses both.
+- **Shrine.** The server sends one byte: 0xFF is "used", else the top bit is IsUsed and the low seven bits the row index, multiplied by
+  0x122 (the row size of `Data/Balance/Shrines.dat`; a string "Unknown shrine sent by server" stands in the same function). The component
+  has no `.ot` keys. The row's display-name column was not reached in code: its Id (the text at the row's +0) is what a reader can trust.
+- **ControlZone.** A trigger-area shape copied from the type data sits at +0x20 (shared with ProximityTrigger, whose radius
+  `SetProximityTriggerRadius` writes at the same slot of its shape). The `.ot` key `radius` sets the default (0x1DB881D). Flags: byte +0x39
+  (`require_line_of_sight` 4, `use_manhattan_distance` 8, `use_distance_to_edge` 0x10, `use_perpendicular_distance` 0x20,
+  `trigger_on_hidden` 0x40), byte +0x3A (`match_any_condition` 1, `match_non_collidable` 2, `orientation_rotates_trigger_area` 4). **No
+  progress field**: a Breach's ring growing can only show as a script writing the radius.
+- **StateMachine.** `define_state`, `define_shared_state` and the two checkpoint kinds all append to one vector of 0xC0-byte definitions in
+  the type data (+0x10: name, initial value +0x24, shared flag +0x2C; 0x1E03EC0), and the component holds one value per definition whatever
+  its flags. The network reader skips the entries that are not shared (0x1E07CE3), so a client state (`in_placing_range`, `in_range`,
+  `blocked`) is **in the same array a memory reader walks**, holding what the client computed. One "StateMachine" registration, no client
+  class of its own. Not traced: that the `client { }` block of a file feeds the same object type (it does for every other component).
+- **GEAL names of the leagues.** `ClearControlZone`, `ForEachInControlZone`, `SetControlZoneRadius`, `SetControlZoneCentreOffset`,
+  `TickControlZone`, `SetProximityTriggerRadius`, `IfExpeditionArea` (the area's WorldAreas row), `AreaGroupRitualCompleted`,
+  `AreaGroupRitualNumCompleted`, `AreaGroupRitualTotal`, `AreaHasRitualGroup` (not examined). `DisableFog` and `ResetFog` are a shared stub
+  on the client: the Delirium fog has no field this way. No GEAL name mentions Delirium, Affliction, Breach, Abyss, Essence, Ultimatum or
+  Shrine.
