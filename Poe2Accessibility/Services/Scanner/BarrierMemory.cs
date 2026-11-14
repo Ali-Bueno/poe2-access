@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     ///     The live walkable grid is only true near the player. The client only knows the entities of its network
@@ -43,8 +44,12 @@ namespace Poe2Accessibility.Services
             this.Changes++;
         }
 
-        /// <summary>One live sample, with the grid as the area loaded (to know a barrier closed before the first sample).</summary>
-        public void Observe(byte[] live, byte[] loaded, int bytesPerRow, int playerX, int playerY)
+        /// <summary>
+        ///     One live sample, with the grid as the area loaded (to know a barrier closed before the first sample).
+        ///     <paramref name="before"/> is the sample observed last, unchanged since: a byte equal to it there can only
+        ///     change near the player, so only the rows that differ and the player's square are read.
+        /// </summary>
+        public void Observe(byte[] live, byte[] loaded, int bytesPerRow, int playerX, int playerY, byte[]? before = null)
         {
             if (bytesPerRow <= 0)
             {
@@ -57,11 +62,36 @@ namespace Poe2Accessibility.Services
                 this.closed = new byte[live.Length];
                 this.closedCount = 0;
                 this.Changes++;
+                before = null;
             }
 
+            if (before == null || before.Length != live.Length)
+            {
+                this.Observe(live, 0, live.Length, bytesPerRow, playerX, playerY);
+                return;
+            }
+
+            var (left, right) = (Math.Max(0, playerX - TrustCells) / 2, Math.Max(0, playerX + TrustCells) / 2);
+            for (var start = 0; start < live.Length; start += bytesPerRow)
+            {
+                var end = Math.Min(start + bytesPerRow, live.Length);
+                if (!ReferenceEquals(live, before) && !live.AsSpan(start, end - start).SequenceEqual(before.AsSpan(start, end - start)))
+                {
+                    this.Observe(live, start, end, bytesPerRow, playerX, playerY);
+                }
+                else if (Math.Abs((start / bytesPerRow) - playerY) <= TrustCells)
+                {
+                    this.Observe(live, Math.Min(start + left, end), Math.Min(start + right + 1, end), bytesPerRow, playerX, playerY);
+                }
+            }
+        }
+
+        /// <summary>The bytes from <paramref name="first"/> up to <paramref name="end"/> of one live sample.</summary>
+        private void Observe(byte[] live, int first, int end, int bytesPerRow, int playerX, int playerY)
+        {
             // Closed is believed at any distance (the client blocks a cell only for an entity it knows); walkable only
             // near the player.
-            for (var i = 0; i < live.Length; i++)
+            for (var i = first; i < end; i++)
             {
                 var now = Nibbles(live[i]);
                 var shut = (byte)(Nibbles(this.everOpen[i] |= live[i]) & ~now & ~this.closed[i]);
@@ -101,7 +131,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            for (var i = 0; i < grid.Length; i++)
+            // Eight bytes at a time: a Trial floor's grid is 17 MB.
+            var wide = MemoryMarshal.Cast<byte, ulong>(grid.AsSpan());
+            var shut = MemoryMarshal.Cast<byte, ulong>(this.closed.AsSpan());
+            for (var i = 0; i < wide.Length; i++)
+            {
+                wide[i] &= ~shut[i];
+            }
+
+            for (var i = wide.Length * sizeof(ulong); i < grid.Length; i++)
             {
                 grid[i] &= (byte)~this.closed[i];
             }
