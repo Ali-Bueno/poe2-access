@@ -110,7 +110,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Under this share of its top a pool has been spent: full again is news.</summary>
         public const double RearmShare = 0.8;
 
-        private readonly HashSet<string> said = new(StringComparer.Ordinal);
+        /// <summary>Per pool said full, the top it was full at: full at a higher top is news again.</summary>
+        private readonly Dictionary<string, int> said = new(StringComparer.Ordinal);
 
         /// <summary>Takes a reading; true when the pool, at its top, is news. A reading taken as a baseline is asked and not told.</summary>
         public bool Reached(string key, int count, int max)
@@ -122,7 +123,9 @@ namespace Poe2Accessibility.Services
 
             if (count >= max)
             {
-                return this.said.Add(key);
+                var news = !this.said.TryGetValue(key, out var top) || top < max;
+                this.said[key] = Math.Max(top, max);
+                return news;
             }
 
             if (count < max * RearmShare)

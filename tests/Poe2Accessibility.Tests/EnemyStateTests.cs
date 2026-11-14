@@ -235,6 +235,9 @@ namespace Poe2Accessibility.Tests
             Equal(false, full.Reached("rage", 23, 30), "spent under four fifths");
             Equal(true, full.Reached("rage", 30, 30), "full again is news again");
             Equal(false, full.Reached("totems", 0, 0), "no top, never full");
+            Equal(false, full.Reached("rage", 30, 40), "the top raised while full: no longer full");
+            Equal(true, full.Reached("rage", 40, 40), "full at the higher top is news");
+            Equal(false, full.Reached("rage", 40, 30) || full.Reached("rage", 40, 40), "a top that fell and came back is the same fullness");
             Equal(1, PlayerCharges.Held(0), "a charge buff with no stack count holds one");
             Equal(3, PlayerCharges.Held(3), "the stack count");
             var three = CueSynth.ChargeGained(ChargeKind.Power, 3, 44100);
