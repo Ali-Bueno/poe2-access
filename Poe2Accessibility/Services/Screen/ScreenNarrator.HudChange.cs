@@ -86,7 +86,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 // By its shape: the mana orb's "Maná, 108/223" was news at every panel closed, with other numbers each time.
-                var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(ScreenDiffer.Shape(text.Text))).ToList();
+                var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && !GaugeLine.IsMatch(text.Text) &&
+                                                                     this.hudSpoken.Add(ScreenDiffer.Shape(text.Text))).ToList();
                 // A tooltip that shows again while the HUD is up is another item's, or the same one aimed at again: news
                 // each time, whatever was said of that title before (a second stack of a currency was silent). The HUD
                 // coming back from behind a panel shows again what it showed before, which is none.

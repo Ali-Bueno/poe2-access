@@ -130,6 +130,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static readonly System.Text.RegularExpressions.Regex PropertyLine = new(@"^[^:]{2,60}:\s*[-+]?\d", System.Text.RegularExpressions.RegexOptions.Compiled);
 
+        /// <summary>
+        ///     An orb's own reading ("Vida, 289/289", "Espíritu, 0/30"), which the game shows on the right stick's click: said
+        ///     with every guide locked (L3 + R3) in a new area (live 2026-11-14); the vitals readout is where it is asked.
+        /// </summary>
+        private static readonly System.Text.RegularExpressions.Regex GaugeLine = new(@"^\p{L}[\p{L}\p{Zs}]*, \d[\d.,]*/\d[\d.,]*$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
         /// <summary>The in-game HUD: new texts (quest tracker, ground item) are read after the rest, never as a page.</summary>
         public IntPtr HudLayer { get; set; }
 
