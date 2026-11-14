@@ -1,7 +1,6 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
@@ -44,7 +43,7 @@ namespace Poe2Accessibility.Services
             var frontier = new List<int>();
             for (var i = 0; i < open.Length; i++)
             {
-                if (reachable[i] && !this.seen[i] && this.Neighbours4(i).Any(n => open[n] && this.seen[n]))
+                if (reachable[i] && !this.seen[i] && this.BesideSeen(i, open))
                 {
                     frontier.Add(i);
                 }
@@ -117,16 +116,19 @@ namespace Poe2Accessibility.Services
                 return reachable;
             }
 
-            var walk = Walk(grid, bytesPerRow, width, height, start);
-            for (var cell = 0; cell < width * height; cell++)
+            lock (this.walks)
             {
-                if (walk[cell] >= 0)
+                Walk(grid, bytesPerRow, width, height, start, this.walks, false);
+                var marks = this.walks.Marks;
+                for (var cell = 0; cell < width * height; cell++)
                 {
-                    reachable[((cell / width / BlockCells) * this.blocksX) + (cell % width / BlockCells)] = true;
+                    if (marks[cell] != 0)
+                    {
+                        reachable[this.BlockOf(cell, width)] = true;
+                    }
                 }
             }
 
-            ArrayPool<int>.Shared.Return(walk);
             return reachable;
         }
 
@@ -146,39 +148,35 @@ namespace Poe2Accessibility.Services
             }
 
             var cells = width * height;
-            var walk = Walk(grid, bytesPerRow, width, height, start);
-            var queue = ArrayPool<int>.Shared.Rent(cells);
-            try
+            lock (this.walks)
             {
+                Walk(grid, bytesPerRow, width, height, start, this.walks, false);
+                var (walk, queue) = (this.walks.Marks, this.walks.Queue);
                 for (var cell = 0; cell < cells; cell++)
                 {
-                    if (walk[cell] >= 0)
+                    if (walk[cell] != 0)
                     {
                         reachable[this.BlockOf(cell, width)] = true;
                     }
                 }
 
-                // The walk's steps are spent: a cell taken into a ground is marked in them, so none is taken twice.
-                const int taken = -2;
+                // A cell taken into a ground is marked so in the walk's marks, so none is taken twice.
                 var lastGround = new int[reachable.Length];
                 var touched = new List<int>();
                 var number = 0;
                 for (var first = 0; first < cells; first++)
                 {
-                    if (walk[first] < 0 || this.seen[this.BlockOf(first, width)])
+                    if (walk[first] != Reached || this.seen[this.BlockOf(first, width)])
                     {
                         continue;
                     }
 
                     number++;
                     touched.Clear();
-                    var head = 0;
-                    var tail = 0;
-                    walk[first] = taken;
-                    queue[tail++] = first;
-                    while (head < tail)
+                    walk[first] = Taken;
+                    queue.Enqueue(first);
+                    while (queue.TryDequeue(out var cell))
                     {
-                        var cell = queue[head++];
                         var block = this.BlockOf(cell, width);
                         if (lastGround[block] != number)
                         {
@@ -215,18 +213,13 @@ namespace Poe2Accessibility.Services
 
                     void Take(int cell)
                     {
-                        if (walk[cell] >= 0 && !this.seen[this.BlockOf(cell, width)])
+                        if (walk[cell] == Reached && !this.seen[this.BlockOf(cell, width)])
                         {
-                            walk[cell] = taken;
-                            queue[tail++] = cell;
+                            walk[cell] = Taken;
+                            queue.Enqueue(cell);
                         }
                     }
                 }
-            }
-            finally
-            {
-                ArrayPool<int>.Shared.Return(queue);
-                ArrayPool<int>.Shared.Return(walk);
             }
 
             return (reachable, sizes);
@@ -243,30 +236,16 @@ namespace Poe2Accessibility.Services
                    (width + BlockCells - 1) / BlockCells == this.blocksX && (height + BlockCells - 1) / BlockCells == this.blocksY;
         }
 
-        private IEnumerable<int> Neighbours4(int block)
+        /// <summary>A block beside this one (four neighbours) is seen, and walkable when <paramref name="open"/> is given; asked of every block, so nothing is allocated.</summary>
+        private bool BesideSeen(int block, bool[]? open)
         {
             var x = block % this.blocksX;
             var y = block / this.blocksX;
-            if (x > 0)
-            {
-                yield return block - 1;
-            }
-
-            if (x < this.blocksX - 1)
-            {
-                yield return block + 1;
-            }
-
-            if (y > 0)
-            {
-                yield return block - this.blocksX;
-            }
-
-            if (y < this.blocksY - 1)
-            {
-                yield return block + this.blocksX;
-            }
+            return (x > 0 && this.SeenOpen(block - 1, open)) || (x < this.blocksX - 1 && this.SeenOpen(block + 1, open)) ||
+                   (y > 0 && this.SeenOpen(block - this.blocksX, open)) || (y < this.blocksY - 1 && this.SeenOpen(block + this.blocksX, open));
         }
+
+        private bool SeenOpen(int block, bool[]? open) => this.seen[block] && (open == null || open[block]);
 
         private IEnumerable<int> Neighbours8(int block)
         {

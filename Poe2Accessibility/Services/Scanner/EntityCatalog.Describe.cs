@@ -176,19 +176,21 @@ namespace Poe2Accessibility.Services
 
         public string PinTownLabel => this.landmarks.PinTownLabel;
 
-        /// <summary>How far the walk to an entry is, in world units; infinite with no way there. A search on the frame thread: for a few entries.</summary>
-        public float WalkTo(ScanEntry entry)
+        /// <summary>
+        ///     How far the walk to each entry is, in world units (infinite with no way there), searched off the frame thread:
+        ///     a search crosses a Trial floor in a third of a second. Null without a player or a grid.
+        /// </summary>
+        public Task<float[]>? WalksTo(IReadOnlyList<ScanEntry> entries)
         {
-            var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!Seats.Followed.TryGetComponent<Render>(out var player))
+            var gridSize = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (gridSize <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player) || !this.TryLiveGrid(out var grid, out var row))
             {
-                return float.PositiveInfinity;
+                return null;
             }
 
-            var gridSize = area.WorldToGridConvertor;
             var start = new Vector2(player.WorldPosition.X, player.WorldPosition.Y) / gridSize;
-            var route = RoutePlanner.FindRoute(this.WalkableGrid(area), area.TerrainMetadata.BytesPerRow, start, new Vector2(entry.WorldX, entry.WorldY) / gridSize);
-            return route == null ? float.PositiveInfinity : RoutePlanner.Length(route) * gridSize;
+            var goals = entries.Select(entry => new Vector2(entry.WorldX, entry.WorldY) / gridSize).ToList();
+            return Task.Run(() => goals.Select(goal => RoutePlanner.FindRoute(grid, row, start, goal) is { } route ? RoutePlanner.Length(route) * gridSize : float.PositiveInfinity).ToArray());
         }
 
         /// <inheritdoc cref="Describe(ScanEntry)"/>

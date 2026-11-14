@@ -198,6 +198,7 @@ namespace Poe2Accessibility
         {
             this.beacon?.Clear(false);
             this.timedGuide.Reset();
+            this.timedRanking = null;
             this.commands?.OnAreaChanged(); // the scanner's choice was of the area left
             this.bosses?.Reset();
             this.trialScope.Reset();

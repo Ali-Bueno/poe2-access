@@ -244,6 +244,53 @@ low-level fight with few monsters: a late-game pack is still to measure.
 - Not explained: single ticks of 0.7 to 1.3 s (`sounds` and `nearby` 1337 ms at 17:24:19 in a Trial, the host's worst
   frame 1342 ms; a collection of 427 ms at 17:13). Six in two days; no pattern found.
 
+## A Trial floor's grid: memory and slow ticks (2026-11-13)
+
+- MEASURED (the user's play log of 2026-11-13, `Sanctum_1_Foyer_1`, one instance for 24 minutes): 64,080 sub-tiles of
+  23 x 23 cells, 33.9 million cells and a 16.9 MB walkable grid, four to nine times any other area of the day. The host's
+  working set went from 503 to 997 MB within a minute of entering, stayed flat while the game was paused, then grew about
+  100 MB a minute while playing (2958 MB at 18:53, small drops on the way). Frames cost 3.0–3.7 ms against 1.2–1.6, and
+  some 22 slow ticks a minute of about 70 ms (150–210 at most) landed on whichever part asked for the grid first.
+- Causes, each measured on a synthetic grid of that size with the scanner's own classes (below):
+  - `ExplorationMap`'s walks rented `ArrayPool<int>.Shared` arrays of one int a cell, which the pool rounds to 2^26 ints
+    (256 MB) on this floor. The pool keeps one per thread that ever walked, and more per core, freed only by a full
+    collection after 30–60 s unused: the memory that survives collections grew from 1.3 to 3.3 GB in 75 s of emulated
+    play, and stayed at 0.3 GB with the frontier left out.
+  - `GridSamples.Add` read every byte of every sample: `BarrierMemory.Observe` over 17 MB, then `Combine` and `Apply`
+    over the whole grid when it changed. 62–68 ms a sample unchanged, 132–141 ms changed; the first part to ask for the grid
+    after its 500 ms paid it (`Entries()` every 2 s through the frontier, the radar, the guide's searches and pings).
+  - The route workspace kept an int a cell (`Seen`, 136 of its 178 MB) only to mark pocket floods of at most 64 cells;
+    two were kept, sized for the largest area ever met.
+  - `GuideToTimed` searched up to 8 routes on the frame thread for each new Death Crystal (195–309 ms for one across the floor).
+- Changed: the walks own exactly sized buffers (a byte of marks a cell, steps only for `WayOn`, a queue as long as the
+  walk's front), let go on area change; pocket marks are a set and the workspaces are let go on area change; a sample
+  reads only the rows that differ from the last one observed and the player's trusted square (randomized test against
+  reading every byte), `Combine` only the rows where the samples differ, `Apply` eight bytes at a time; a frontier search
+  is skipped while its grid, seen ground and player's block are unchanged; the crystals' routes are searched off the
+  frame thread (the guide locks once they are known, the same crystal as before); the explored map of such a floor
+  (530,000 blocks) loads back.
+
+| Sanctum-sized grid (5822 x 5822 cells) | Before | After |
+|---|---|---|
+| Grid sample, unchanged / changed (ms, warm) | 68 / 141 | 1.4 / 9.6 |
+| Memory surviving collections, 4 min of emulated play | 1.35 → 4.9 GB | 0.21–0.23 GB, flat |
+| Working set, same run | 1.4 → 6.7 GB | 0.59–0.83 GB, flat |
+| Frames over 25 ms, same run | 465 | 33 |
+| First route search: ms, MB allocated | 51, 178 | 47, 49 |
+| Three searches at once: MB allocated | 364 | 105 |
+| `WayOn`: ms, MB allocated (after: buffers kept until the area changes) | 546, 572 | 679, 162 |
+| Frontier, one room / all reachable: ms; MB allocated a search | 91 / 760; 39–103 | 87 / 523; 11–14 |
+| **10k sub-tile map (2300 x 2300)**: sample unchanged / changed; frontier one room / all (ms) | 10.7 / 19.3; 18 / 102 | 0.2 / 1.6; 11 / 69 |
+
+A changed sample still copies the grid twice (32 MB on this floor): the grid handed out is shared with the searches'
+threads, so it stays a new array. `WayOn`'s time varies by ±100 ms between runs.
+
+- Rerun: a console project that compiles `RoutePlanner*.cs`, `ExplorationMap*.cs`, `BarrierMemory.cs` and
+  `GridSamples.cs` as the tests' project does, on a grid of 64-cell rooms joined by corridors (`<side> steady`: warm
+  sample and frontier costs; `<side> sanctum`: route, `WayOn`, frontier allocations; `<side> growth <s> [nochange|
+  nofrontier]`: the plugin's cadence in real time with the pool kept busy). Not in the repository: kept as a tool it
+  would live in `tools/GridBench/` beside the tests' project.
+
 ## Not done, and why
 
 - The screen watcher's 150 ms snapshot: its interval is the speech latency after a screen change (two snapshots confirm

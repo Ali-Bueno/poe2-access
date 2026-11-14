@@ -28,7 +28,112 @@ namespace Poe2Accessibility.Tests
             (nameof(AnOpenedBarrierTakesEffectOnTheNextCall), AnOpenedBarrierTakesEffectOnTheNextCall),
             (nameof(ASampleKeptOwnsItsArray), ASampleKeptOwnsItsArray),
             (nameof(OneSampleAnswersUntilTheNextIsDue), OneSampleAnswersUntilTheNextIsDue),
+            (nameof(TheChangedRowsGiveWhatEveryByteGives), TheChangedRowsGiveWhatEveryByteGives),
         };
+
+        /// <summary>
+        ///     Reading only the rows that changed and the player's square gives what reading every byte gives: random grids
+        ///     whose walls rise and fall by the player and far from them, the player moving, still or unknown.
+        /// </summary>
+        private static void TheChangedRowsGiveWhatEveryByteGives()
+        {
+            // 322 x 401 cells: more than twice the trusted square each way, and a length that is not a multiple of eight.
+            const int row = 161, rows = 401, steps = 120;
+            for (var seed = 1; seed <= 4; seed++)
+            {
+                var random = new Random(seed);
+                var loaded = new byte[row * rows];
+                random.NextBytes(loaded);
+                var live = (byte[])loaded.Clone();
+                var samples = new GridSamples(MaxSamples, SampleMs);
+                var reference = new EveryByte(loaded, row);
+                (int X, int Y)? player = (row, rows / 2);
+                long now = 0;
+                for (var step = 0; step < steps; step++)
+                {
+                    var change = random.Next(4);
+                    if (change > 0)
+                    {
+                        // A wall by the player (or anywhere when unknown), one far from them, and stray cells.
+                        var (x, y) = player ?? (random.Next(row * 2), random.Next(rows));
+                        Wall(live, row, x + random.Next(-8, 9), y + random.Next(-8, 9), random);
+                        Wall(live, row, (x + row) % (row * 2), (y + (rows / 2)) % rows, random);
+                        for (var i = 0; i < change * 3; i++)
+                        {
+                            live[random.Next(live.Length)] = (byte)random.Next(256);
+                        }
+                    }
+
+                    var move = random.Next(6);
+                    player = move == 0 ? null : move <= 2 ? (random.Next(row * 2), random.Next(rows)) : player ?? (row, rows / 2);
+                    if (random.Next(20) == 0)
+                    {
+                        samples.Forget();
+                        reference.Forget();
+                    }
+
+                    var grid = samples.Add(now += SampleMs, live, loaded, row, player);
+                    var expected = reference.Add(live, player);
+                    Expect(true, grid.AsSpan().SequenceEqual(expected), $"seed {seed}, sample {step}: the same grid");
+                    Expect(reference.Memory.ClosedCount, samples.ClosedCells, $"seed {seed}, sample {step}: the same cells remembered closed");
+                }
+            }
+        }
+
+        /// <summary>A wall of 6 x 3 cells at (x, y) shut, or opened to random ground.</summary>
+        private static void Wall(byte[] grid, int row, int x, int y, Random random)
+        {
+            var shut = random.Next(2) == 0;
+            for (var cy = Math.Max(0, y); cy < Math.Min(y + 3, grid.Length / row); cy++)
+            {
+                for (var cx = Math.Max(0, x); cx < Math.Min(x + 6, row * 2); cx++)
+                {
+                    var mask = (cx & 1) == 0 ? 0x0F : 0xF0;
+                    var value = shut ? 0 : random.Next(1, 16) * ((cx & 1) == 0 ? 0x01 : 0x10);
+                    grid[(cy * row) + (cx / 2)] = (byte)((grid[(cy * row) + (cx / 2)] & ~mask) | value);
+                }
+            }
+        }
+
+        /// <summary>The samples and the barrier memory as they were before rows were compared: every byte of every sample read.</summary>
+        private sealed class EveryByte
+        {
+            private readonly Queue<byte[]> kept = new();
+            private readonly byte[] loaded;
+            private readonly int row;
+
+            public EveryByte(byte[] loaded, int row) => (this.loaded, this.row) = (loaded, row);
+
+            public BarrierMemory Memory { get; } = new();
+
+            public void Forget() => this.kept.Clear();
+
+            public byte[] Add(byte[] live, (int X, int Y)? player)
+            {
+                this.kept.Enqueue((byte[])live.Clone());
+                while (this.kept.Count > MaxSamples)
+                {
+                    this.kept.Dequeue();
+                }
+
+                if (player is { } at)
+                {
+                    this.Memory.Observe(live, this.loaded, this.row, at.X, at.Y);
+                }
+
+                var grid = (byte[])live.Clone();
+                foreach (var sample in this.kept)
+                {
+                    for (var i = 0; i < grid.Length; i++)
+                    {
+                        grid[i] &= (byte)(((sample[i] & 0x0F) == 0 ? 0xF0 : 0xFF) & ((sample[i] & 0xF0) == 0 ? 0x0F : 0xFF));
+                    }
+                }
+
+                this.Memory.Apply(grid);
+                return grid;
+            }
+        }
 
         private static void ADoorThatOpensIsOpenOnceFourSamplesAgree()
         {

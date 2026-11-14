@@ -1,7 +1,6 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
@@ -74,28 +73,24 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var toPlayer = Walk(grid, bytesPerRow, width, height, start);
-            var toGoal = Walk(grid, bytesPerRow, width, height, end);
-            try
+            // One steps array for both walks: the player's steps are kept only for the cells where the seen ground ends.
+            lock (this.walks)
             {
-                return this.WhereTheWalksLeaveTheSeen(toPlayer, toGoal, width, height, end);
-            }
-            finally
-            {
-                ArrayPool<int>.Shared.Return(toPlayer);
-                ArrayPool<int>.Shared.Return(toGoal);
+                Walk(grid, bytesPerRow, width, height, start, this.walks, true);
+                var toPlayer = this.EdgeSteps(width, height);
+                Walk(grid, bytesPerRow, width, height, end, this.walks, true);
+                return this.WhereTheWalksLeaveTheSeen(toPlayer, width, end);
             }
         }
 
-        /// <summary>The unseen cell next to seen ground with the shortest walk through it, from the player's steps and the goal's.</summary>
-        private Vector2? WhereTheWalksLeaveTheSeen(int[] toPlayer, int[] toGoal, int width, int height, Vector2 end)
+        /// <summary>The reached cells of unseen blocks next to seen ones, block by block, with their steps from the last walk.</summary>
+        private List<(int Cell, int Steps)> EdgeSteps(int width, int height)
         {
-            Vector2? best = null;
-            var bestWalk = int.MaxValue;
-            var bestLeft = float.MaxValue;
+            var (marks, steps) = (this.walks.Marks, this.walks.Steps);
+            var edge = new List<(int, int)>();
             for (var block = 0; block < this.seen.Length; block++)
             {
-                if (this.seen[block] || !this.Neighbours4(block).Any(n => this.seen[n]))
+                if (this.seen[block] || !this.BesideSeen(block, null))
                 {
                     continue;
                 }
@@ -107,20 +102,38 @@ namespace Poe2Accessibility.Services
                     for (var x = left; x < Math.Min(left + BlockCells, width); x++)
                     {
                         var index = (y * width) + x;
-                        if (toPlayer[index] < 0 || toGoal[index] < 0)
+                        if (marks[index] != 0)
                         {
-                            continue;
-                        }
-
-                        // Four-neighbour walks tie across open ground: the straight line to the goal settles it.
-                        var walk = toPlayer[index] + toGoal[index];
-                        var cell = new Vector2(x + 0.5f, y + 0.5f);
-                        var remaining = Vector2.DistanceSquared(cell, end);
-                        if (walk < bestWalk || (walk == bestWalk && remaining < bestLeft))
-                        {
-                            (best, bestWalk, bestLeft) = (cell, walk, remaining);
+                            edge.Add((index, steps[index]));
                         }
                     }
+                }
+            }
+
+            return edge;
+        }
+
+        /// <summary>The unseen cell next to seen ground with the shortest walk through it, from the player's steps and the last walk's (the goal's).</summary>
+        private Vector2? WhereTheWalksLeaveTheSeen(List<(int Cell, int Steps)> toPlayer, int width, Vector2 end)
+        {
+            var (marks, toGoal) = (this.walks.Marks, this.walks.Steps);
+            Vector2? best = null;
+            var bestWalk = int.MaxValue;
+            var bestLeft = float.MaxValue;
+            foreach (var (index, steps) in toPlayer)
+            {
+                if (marks[index] == 0)
+                {
+                    continue;
+                }
+
+                // Four-neighbour walks tie across open ground: the straight line to the goal settles it.
+                var walk = steps + toGoal[index];
+                var cell = new Vector2((index % width) + 0.5f, (index / width) + 0.5f);
+                var remaining = Vector2.DistanceSquared(cell, end);
+                if (walk < bestWalk || (walk == bestWalk && remaining < bestLeft))
+                {
+                    (best, bestWalk, bestLeft) = (cell, walk, remaining);
                 }
             }
 
@@ -144,6 +157,10 @@ namespace Poe2Accessibility.Services
             return false;
         }
 
+        /// <summary>A walk's mark on a cell it reached; a survey's on one a ground already took.</summary>
+        private const byte Reached = 1;
+        private const byte Taken = 2;
+
         internal static bool Walkable(byte[] grid, int bytesPerRow, int x, int y)
         {
             var value = grid[(y * bytesPerRow) + (x / 2)];
@@ -151,34 +168,33 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Steps from <paramref name="start"/> to every walkable cell joined to it (four neighbours), -1 for the rest, in
-        ///     the first width × height entries of an array of the shared pool, which the caller gives back: two arrays of
-        ///     megabytes per call were most of what the collector had to clear in town (profile, 2026-11-10).
+        ///     Marks every walkable cell joined to <paramref name="start"/> (four neighbours) <see cref="Reached"/> in the
+        ///     buffers' marks and, when <paramref name="counted"/>, its steps from there (read only where marked).
         /// </summary>
-        private static int[] Walk(byte[] grid, int bytesPerRow, int width, int height, Vector2 start)
+        private static void Walk(byte[] grid, int bytesPerRow, int width, int height, Vector2 start, GridWalks walks, bool counted)
         {
-            var cells = width * height;
-            var steps = ArrayPool<int>.Shared.Rent(cells);
-            Array.Fill(steps, -1, 0, cells);
-            var queue = ArrayPool<int>.Shared.Rent(cells);
-            var head = 0;
-            var tail = 0;
+            var marks = walks.Fit(width * height, counted);
+            var steps = walks.Steps;
+            var queue = walks.Queue;
+            queue.Clear();
             var first = ((int)start.Y * width) + (int)start.X;
-            steps[first] = 0;
-            queue[tail++] = first;
-            while (head < tail)
+            marks[first] = Reached;
+            if (counted)
             {
-                var cell = queue[head++];
-                var x = cell % width;
-                var y = cell / width;
-                Step(x - 1, y, steps[cell] + 1);
-                Step(x + 1, y, steps[cell] + 1);
-                Step(x, y - 1, steps[cell] + 1);
-                Step(x, y + 1, steps[cell] + 1);
+                steps[first] = 0;
             }
 
-            ArrayPool<int>.Shared.Return(queue);
-            return steps;
+            queue.Enqueue(first);
+            while (queue.TryDequeue(out var cell))
+            {
+                var x = cell % width;
+                var y = cell / width;
+                var next = counted ? steps[cell] + 1 : 0;
+                Step(x - 1, y, next);
+                Step(x + 1, y, next);
+                Step(x, y - 1, next);
+                Step(x, y + 1, next);
+            }
 
             void Step(int x, int y, int count)
             {
@@ -188,11 +204,49 @@ namespace Poe2Accessibility.Services
                 }
 
                 var index = (y * width) + x;
-                if (steps[index] < 0 && Walkable(grid, bytesPerRow, x, y))
+                if (marks[index] == 0 && Walkable(grid, bytesPerRow, x, y))
                 {
-                    steps[index] = count;
-                    queue[tail++] = index;
+                    marks[index] = Reached;
+                    if (counted)
+                    {
+                        steps[index] = count;
+                    }
+
+                    queue.Enqueue(index);
                 }
+            }
+        }
+
+        /// <summary>
+        ///     A walk's buffers, kept at the area's size and let go with it: a Trial floor holds 34 million cells, and the
+        ///     shared pool kept one such array per thread that ever walked (docs/research/performance.md).
+        /// </summary>
+        private sealed class GridWalks
+        {
+            public byte[] Marks = Array.Empty<byte>();
+            public int[] Steps = Array.Empty<int>();
+
+            /// <summary>The cells to walk from next: as long as the walk's widest front, not the grid.</summary>
+            public readonly Queue<int> Queue = new();
+
+            /// <summary>Marks for <paramref name="cells"/> cleared, and steps for as many when <paramref name="counted"/>.</summary>
+            public byte[] Fit(int cells, bool counted)
+            {
+                if (this.Marks.Length == cells)
+                {
+                    Array.Clear(this.Marks);
+                }
+                else
+                {
+                    this.Marks = new byte[cells];
+                }
+
+                if (counted && this.Steps.Length != cells)
+                {
+                    this.Steps = new int[cells];
+                }
+
+                return this.Marks;
             }
         }
 

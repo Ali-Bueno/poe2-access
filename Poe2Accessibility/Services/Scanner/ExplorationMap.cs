@@ -53,8 +53,11 @@ namespace Poe2Accessibility.Services
         private const int SmallBlocks = 4 * PocketBlocks;
         private const int LargeBlocks = 20 * PocketBlocks;
 
-        /// <summary>More blocks than any area holds (a 4000-cell square): a kept map claiming more is not one.</summary>
-        private const long MaxBlocks = 500 * 500;
+        /// <summary>
+        ///     Four times the largest floor known (a Trial of the Sekhemas floor: 64,080 sub-tiles of 23 x 23 cells, 2026-11-13): a kept
+        ///     map claiming more is not one. Its file then holds at most 260 KB of bits.
+        /// </summary>
+        private const long MaxBlocks = 4L * 64_080 * 23 * 23 / (BlockCells * BlockCells);
 
         /// <summary>cos 45°: the edge of a ray's quarter.</summary>
         private static readonly float QuarterCos = MathF.Sqrt(0.5f);
@@ -71,23 +74,29 @@ namespace Poe2Accessibility.Services
 
         private static readonly (bool[], int[], int) NoGround = (Array.Empty<bool>(), Array.Empty<int>(), 0);
 
+        /// <summary>The buffers of this map's own walks, and those lent to its snapshots (one frontier at a time).</summary>
+        private GridWalks walks = new();
+        private GridWalks? lent;
+
         /// <summary>How many blocks have been seen: it grows while the player finds new ground.</summary>
         public int SeenBlocks { get; private set; }
 
-        /// <summary>A new area: nothing seen.</summary>
+        /// <summary>A new area: nothing seen, and the last area's walk buffers let go.</summary>
         public void Reset()
         {
             this.seen = Array.Empty<bool>();
             this.blocksX = this.blocksY = 0;
             this.ground = NoGround;
             this.SeenBlocks = 0;
+            this.walks = new GridWalks();
+            this.lent = null;
         }
 
         /// <summary>
         ///     A map sharing this one's seen blocks, for a <see cref="Frontier"/> worked out off the frame thread: on a large
         ///     floor it takes a tenth of a second (docs/research/performance.md). <see cref="Adopt"/> takes what it found.
         /// </summary>
-        public ExplorationMap Snapshot() => new() { seen = this.seen, blocksX = this.blocksX, blocksY = this.blocksY };
+        public ExplorationMap Snapshot() => new() { seen = this.seen, blocksX = this.blocksX, blocksY = this.blocksY, walks = this.lent ??= new GridWalks() };
 
         /// <summary>Takes the ground a snapshot's <see cref="Frontier"/> found; false when the map is another by now (a new area).</summary>
         public bool Adopt(ExplorationMap snapshot)

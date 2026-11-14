@@ -145,6 +145,9 @@ namespace Poe2Accessibility.Tests
             Equal(false, copy.Load(new byte[] { 1, 0, 0, 0 }), "too short");
             Equal(false, copy.Load(BitConverter.GetBytes(100000).Concat(BitConverter.GetBytes(100000)).ToArray()), "claims more blocks than any area");
             Equal(true, copy.IsSeen(new Vector2(100, 100)), "a bad load changes nothing");
+            var floor = new ExplorationMap();
+            floor.Visit(new Vector2(100, 100), 5822, 5822); // a Trial of the Sekhemas floor: 64,080 sub-tiles of 23 x 23 cells
+            Equal(true, new ExplorationMap().Load(floor.Save()), "the largest floor known loads");
             Equal("ice_crystal", DeployedObjects.SoundKey("Metadata/MiscellaneousObjects/FrostWall/OrbOfIce"), "the crystal's own sound");
             Equal("tempest_bell", DeployedObjects.SoundKey("Metadata/Effects/Spells/monk_bell/mtx_BellAurora"), "a bell skin tolls the bell");
         }

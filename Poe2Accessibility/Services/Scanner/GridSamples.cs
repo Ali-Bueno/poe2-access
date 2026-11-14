@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         private byte[]? newest;
         private long sampledAt;
 
+        /// <summary>The sample the barrier memory read last: samples are never written to, so the next reads only what differs.</summary>
+        private byte[]? observed;
+
         /// <param name="maxSamples">How many samples a cell must be walkable in.</param>
         /// <param name="sampleMs">How long one sample answers for.</param>
         public GridSamples(int maxSamples, long sampleMs)
@@ -53,6 +56,7 @@ namespace Poe2Accessibility.Services
             this.samples.Clear();
             this.newest = null;
             this.stable = null;
+            this.observed = null;
         }
 
         /// <summary>Another area: no samples and no barrier memory.</summary>
@@ -83,7 +87,8 @@ namespace Poe2Accessibility.Services
             var changes = this.barriers.Changes;
             if (player is { } at)
             {
-                this.barriers.Observe(live, loaded, bytesPerRow, at.X, at.Y);
+                this.barriers.Observe(this.newest, loaded, bytesPerRow, at.X, at.Y, this.observed);
+                this.observed = this.newest;
             }
 
             while (this.samples.Count > this.maxSamples)
@@ -97,7 +102,7 @@ namespace Poe2Accessibility.Services
                 return kept.Grid;
             }
 
-            var grid = this.Combine();
+            var grid = this.Combine(bytesPerRow > 0 ? bytesPerRow : Math.Max(1, live.Length));
             this.barriers.Apply(grid);
 
             // Kept under the newest sample only when it was made from that sample alone: a combination of different
@@ -120,32 +125,42 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
-        /// <summary>The newest sample with every cell closed that any other sample has closed (two cells a byte).</summary>
-        private byte[] Combine()
+        /// <summary>The newest sample with every cell closed that any other sample has closed (two cells a byte), read only in the rows where they differ.</summary>
+        private byte[] Combine(int bytesPerRow)
         {
-            var grid = (byte[])this.newest!.Clone();
+            var newest = this.newest!;
+            var grid = (byte[])newest.Clone();
             foreach (var sample in this.samples)
             {
-                if (ReferenceEquals(sample, this.newest))
+                if (ReferenceEquals(sample, newest))
                 {
                     continue;
                 }
 
-                for (var i = 0; i < grid.Length; i++)
+                for (var start = 0; start < grid.Length; start += bytesPerRow)
                 {
-                    var both = grid[i];
-                    var other = sample[i];
-                    if ((other & 0x0F) == 0)
+                    var end = Math.Min(start + bytesPerRow, grid.Length);
+                    if (sample.AsSpan(start, end - start).SequenceEqual(newest.AsSpan(start, end - start)))
                     {
-                        both &= 0xF0;
+                        continue;
                     }
 
-                    if ((other & 0xF0) == 0)
+                    for (var i = start; i < end; i++)
                     {
-                        both &= 0x0F;
-                    }
+                        var both = grid[i];
+                        var other = sample[i];
+                        if ((other & 0x0F) == 0)
+                        {
+                            both &= 0xF0;
+                        }
 
-                    grid[i] = both;
+                        if ((other & 0xF0) == 0)
+                        {
+                            both &= 0x0F;
+                        }
+
+                        grid[i] = both;
+                    }
                 }
             }
 
