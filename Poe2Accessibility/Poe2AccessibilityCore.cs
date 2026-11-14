@@ -208,6 +208,7 @@ namespace Poe2Accessibility
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.ItemModsLog = message => this.log.Info(message);
+                this.semantics.BuildPlanLog = message => this.log.Info(message);
                 this.semantics.Fields = this.locator.Fields;
                 this.semantics.CharacterName = () => PlayerAlerts.Name(Seats.Followed);
                 this.semantics.IsPlayerNamed = OtherPlayerNamed;

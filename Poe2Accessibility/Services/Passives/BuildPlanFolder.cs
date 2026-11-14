@@ -26,11 +26,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Per character, the file the planner's own list named last.</summary>
         private readonly Dictionary<string, string> named = new(StringComparer.Ordinal);
 
+        /// <summary>Per character, the last build and source told to <see cref="Log"/>.</summary>
+        private readonly Dictionary<string, string> told = new(StringComparer.Ordinal);
+
         public BuildPlanFolder(string folder, string config)
         {
             this.folder = folder;
             this.config = config;
         }
+
+        /// <summary>Told once per change of a character's build or of where it was read from (set by the plugin).</summary>
+        public Action<string>? Log { get; set; }
 
         public static string Default => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Path of Exile 2", "BuildPlanner");
 
@@ -50,7 +56,14 @@ namespace Poe2Accessibility.Services
                 return this.PlanAt(seen.Path); // the settings being written, or older than what this character's tree showed
             }
 
-            return this.SettingsFile(character) is { } name ? this.files.FirstOrDefault(file => IsFile(file.Key, name)).Value.Plan : this.PlanAt(seen.Path);
+            if (this.SettingsFile(character) is not { } name)
+            {
+                return this.PlanAt(seen.Path);
+            }
+
+            var set = this.files.FirstOrDefault(file => IsFile(file.Key, name));
+            this.Tell(character, set.Key ?? name, set.Key != null ? "the game's settings" : "the game's settings, no such file read");
+            return set.Value.Plan;
         }
 
         /// <summary>
@@ -63,7 +76,7 @@ namespace Poe2Accessibility.Services
         {
             if (markedIds.Count == 0)
             {
-                this.Remember(character, null);
+                this.Remember(character, null, "the tree marks no node");
                 return null;
             }
 
@@ -73,7 +86,7 @@ namespace Poe2Accessibility.Services
                 .OrderByDescending(entry => entry.Fit.Shared).ThenBy(entry => entry.Fit.Others).ToList();
             if (ranked.Count == 0 || ranked[0].Fit.Shared * 2 < markedIds.Count)
             {
-                this.Remember(character, null);
+                this.Remember(character, null, $"no file holds half of the tree's {markedIds.Count} marked nodes");
                 return null;
             }
 
@@ -84,7 +97,8 @@ namespace Poe2Accessibility.Services
             var name = alike.Count > 1 && listed == null && this.ReadConfig() ? this.SettingsFile(character) : null;
             var chosen = alike.FirstOrDefault(entry => entry.Path == listed || (name != null && IsFile(entry.Path, name)));
             var match = chosen.Path != null ? chosen : alike[0];
-            this.Remember(character, match.Path);
+            var among = alike.Count == 1 ? string.Empty : chosen.Path == null ? $", first of {alike.Count} files alike" : listed != null ? $", the planner's list among {alike.Count} files alike" : $", the game's settings among {alike.Count} files alike";
+            this.Remember(character, match.Path, $"the tree's marks: {match.Fit.Shared} of {markedIds.Count} marked, {match.Fit.Others} besides{among}");
             return match.Plan;
         }
 
@@ -101,7 +115,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.named[character] = path;
-            this.Remember(character, path);
+            this.Remember(character, path, "the planner's list");
         }
 
         private string? FileNamed(string name)
@@ -139,11 +153,22 @@ namespace Poe2Accessibility.Services
         /// <summary>The plan of a file as it reads now: one written again is read again, one gone is no build.</summary>
         private BuildPlan? PlanAt(string? path) => path != null && this.files.TryGetValue(path, out var file) ? file.Plan : null;
 
-        private void Remember(string character, string? path)
+        private void Remember(string character, string? path, string source)
         {
             if (character.Length > 0)
             {
                 this.matched[character] = (path, DateTime.UtcNow);
+                this.Tell(character, path, source);
+            }
+        }
+
+        private void Tell(string character, string? path, string source)
+        {
+            var line = $"{(path == null ? "no file" : Path.GetFileName(path))} ({source})";
+            if (this.Log != null && !(this.told.TryGetValue(character, out var last) && last == line))
+            {
+                this.told[character] = line;
+                this.Log($"Build plan: {character} follows {line}");
             }
         }
 

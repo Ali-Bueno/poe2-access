@@ -132,6 +132,17 @@ namespace Poe2Accessibility.Tests
                 twins.Shown("kehgan", "23+ Unarmed");
                 Expect("23+ Unarmed", twins.Active("kehgan")?.Name, "another file picked is read, and no other");
                 Expect("Lvl 1-23", twins.Matching("kehgan", new HashSet<string> { "a", "b" })?.Name, "marks of another tree outrank a name picked before");
+
+                // The list shows the name written in the file (play log 2026-11-13), which the file's own name cannot always spell.
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "ACT 34 - Grenades.build"), "{\"name\":\"ACT 3/4 - Grenades \",\"passives\":[\"x\",\"y\"],\"skills\":[]}");
+                var slashed = new BuildPlanFolder(folder, config);
+                var told = new List<string>();
+                slashed.Log = told.Add;
+                slashed.Shown("kehgan", "ACT 3/4 - Grenades");
+                Expect("ACT 3/4 - Grenades ", slashed.Active("kehgan")?.Name, "a name with a slash and a trailing space is its file");
+                Expect("Build plan: kehgan follows ACT 34 - Grenades.build (the planner's list)", told.LastOrDefault(), "and the log says whose build, which file and why");
+                slashed.Shown("kehgan", "ACT 3/4 - Grenades");
+                Expect("1", told.Count.ToString(), "once, not at every reading");
             }
             finally
             {

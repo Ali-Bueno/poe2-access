@@ -22,6 +22,13 @@ namespace Poe2Accessibility.Services
         private (IntPtr State, long At, HashSet<IntPtr> Records)? buildMarks;
         private bool buildMarksUnreadable;
 
+        /// <summary>Gets or sets the log of which build file a character follows and why (set by the plugin).</summary>
+        public Action<string>? BuildPlanLog
+        {
+            get => this.buildPlans.Log;
+            set => this.buildPlans.Log = value;
+        }
+
         /// <summary>The build marks' name in the layout report.</summary>
         private const string BuildMarksPart = "passive build marks";
 
