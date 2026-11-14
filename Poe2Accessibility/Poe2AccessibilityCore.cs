@@ -51,6 +51,9 @@ namespace Poe2Accessibility
 
         private readonly TimedGuide timedGuide = new();
         private long nextTimedGuide;
+
+        /// <summary>The walks to the next crystal's candidates being searched, and what the guide was on when they were asked for.</summary>
+        private (System.Threading.Tasks.Task<float[]> Walks, System.Collections.Generic.List<Services.ScanEntry> Candidates, uint? Guided)? timedRanking;
         private AudioCueService? audio;
 
         private WorldLayoutWatch? worldLayout;

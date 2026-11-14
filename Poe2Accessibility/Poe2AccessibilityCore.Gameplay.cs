@@ -443,7 +443,7 @@ namespace Poe2Accessibility
         private void GuideToTimed(bool playing)
         {
             var now = Environment.TickCount64;
-            if (!playing || !this.Settings.GuideTimed || this.entities == null || now < this.nextTimedGuide)
+            if (!playing || !this.Settings.GuideTimed || this.entities == null || !this.TakeTimedRanking() || now < this.nextTimedGuide)
             {
                 return;
             }
@@ -451,18 +451,57 @@ namespace Poe2Accessibility
             this.nextTimedGuide = now + TimedGuideMs;
             var timed = this.entities.Entries().Where(entry => entry.Timed && entry.Category != Services.ScanCategory.Quest &&
                                                                this.entities.DistanceTo(entry) <= TimedRoomWorld).ToList();
-            var (next, release) = this.timedGuide.Look(timed.Select(entry => entry.Id).ToList(), this.beacon!.Target?.Id);
+            var guided = this.beacon!.Target?.Id;
+            var (next, release) = this.timedGuide.Look(timed.Select(entry => entry.Id).ToList(), guided);
             if (next != null)
             {
                 // The quickest to reach, not the nearest through a wall (user 2026-11-07); with no way known, the nearest.
-                var quickest = timed.Take(MaxTimedRoutes).OrderBy(this.entities.WalkTo).First();
-                this.timedGuide.Aim(quickest.Id);
-                this.beacon.Lock(quickest);
+                var candidates = timed.Take(MaxTimedRoutes).ToList();
+                if (this.entities.WalksTo(candidates) is { } walks)
+                {
+                    this.timedRanking = (walks, candidates, guided);
+                }
+                else
+                {
+                    this.GuideToCrystal(candidates[0]);
+                }
             }
             else if (release)
             {
                 this.beacon.Clear(false);
             }
+        }
+
+        /// <summary>
+        ///     Guides to the quickest crystal once its candidates' walks are known; false while they are still searched. A target
+        ///     the player locked meanwhile stays.
+        /// </summary>
+        private bool TakeTimedRanking()
+        {
+            if (this.timedRanking is not { } ranking)
+            {
+                return true;
+            }
+
+            if (!ranking.Walks.IsCompleted)
+            {
+                return false;
+            }
+
+            this.timedRanking = null;
+            if (this.beacon!.Target is not { } target || target.Id == ranking.Guided)
+            {
+                var walks = ranking.Walks.IsCompletedSuccessfully ? ranking.Walks.Result : null;
+                this.GuideToCrystal(walks == null ? ranking.Candidates[0] : ranking.Candidates[Array.IndexOf(walks, walks.Min())]);
+            }
+
+            return true;
+        }
+
+        private void GuideToCrystal(Services.ScanEntry crystal)
+        {
+            this.timedGuide.Aim(crystal.Id);
+            this.beacon!.Lock(crystal);
         }
 
         /// <summary>
