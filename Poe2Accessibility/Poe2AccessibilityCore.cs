@@ -374,6 +374,7 @@ namespace Poe2Accessibility
                 this.leagues = new LeagueWatch(this.output, this.log, elements, memory)
                 {
                     TrackerLines = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>(),
+                    AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
                 };
                 this.essences = new EssenceWatch(memory, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);

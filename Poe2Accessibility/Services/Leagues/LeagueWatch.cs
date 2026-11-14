@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
     using GameReader;
     using GameReader.RemoteEnums.Entity;
     using GameReader.RemoteObjects.Components;
@@ -34,6 +35,8 @@ namespace Poe2Accessibility.Services
         private readonly List<(uint Id, ExpeditionFind Find)> covered = new();
         private readonly List<uint> charges = new();
         private readonly List<bool> findsCovered = new();
+        private readonly List<(uint Id, ExpeditionFind Find, Vector2 Place, bool Reached, bool WouldReach)> finds = new();
+        private readonly List<Vector2> chargePlaces = new();
         private long lastPoll;
         private bool placing;
         private int? fogLogged = FogNotLogged;
@@ -49,9 +52,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the lines of the HUD's league encounter tracker as they read now (<see cref="EncounterReader"/>).</summary>
         public Func<IReadOnlyList<string>> TrackerLines { get; set; } = () => Array.Empty<string>();
 
+        /// <summary>Gets or sets the id of the area the player is in ("ExpeditionLogBook_Reef"): a logbook's charges reach farther.</summary>
+        public Func<string> AreaId { get; set; } = () => string.Empty;
+
         /// <summary>A new area: nothing is known of its objects.</summary>
         public void Reset()
         {
+            ExpeditionReach.Publish(new HashSet<uint>());
             this.news.Reset();
             this.placement.Reset();
             this.tracker.Reset();
@@ -71,7 +78,10 @@ namespace Poe2Accessibility.Services
             this.covered.Clear();
             this.charges.Clear();
             this.findsCovered.Clear();
+            this.finds.Clear();
+            this.chargePlaces.Clear();
             var (indicator, blocked) = (false, false);
+            Vector2? cursor = null;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
                 if (!entity.IsValid)
@@ -93,23 +103,26 @@ namespace Poe2Accessibility.Services
                 var states = TransitionState.With(this.memory, entity);
                 var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
                 this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null);
-                if (LeaguePieces.FindOf(rule.Piece, icon) != null)
-                {
-                    this.findsCovered.Add(ValueOf(states, LeaguePieces.CoveredState) > 0);
-                }
+                var place = entity.TryGetComponent<Render>(out var render) ? new Vector2(render.GridPosition.X, render.GridPosition.Y) : (Vector2?)null;
 
                 if (rule.Piece == LeaguePiece.PlacementIndicator)
                 {
                     indicator = true;
                     blocked |= ValueOf(states, LeaguePieces.BlockedState) > 0;
+                    cursor = place;
                 }
                 else if (rule.Piece == LeaguePiece.ExpeditionExplosive && ValueOf(states, LeaguePieces.ActivatedState) == 0)
                 {
                     this.charges.Add(entity.Id);
+                    if (place is { } charge)
+                    {
+                        this.chargePlaces.Add(charge);
+                    }
                 }
-                else if (ValueOf(states, LeaguePieces.PlacingRangeState) > 0 && LeaguePieces.FindOf(rule.Piece, icon) is { } find)
+                else if (LeaguePieces.FindOf(rule.Piece, icon) is { } find && LeaguePieces.IsListed(rule, states, icon) && place is { } spot)
                 {
-                    this.covered.Add((entity.Id, find));
+                    // The game's own word on the find first; the charges' places are asked after the loop, when all are known.
+                    this.finds.Add((entity.Id, find, spot, ValueOf(states, LeaguePieces.CoveredState) > 0, ValueOf(states, LeaguePieces.PlacingRangeState) > 0));
                 }
 
                 foreach (var line in this.news.Heard(entity.Id, rule.Piece, states, icon))
@@ -117,6 +130,8 @@ namespace Poe2Accessibility.Services
                     this.Say(line, entity, states);
                 }
             }
+
+            this.Reach(cursor);
 
             // The tracker first: whether it counts the charges itself decides what a charge placed says.
             foreach (var line in this.tracker.Heard(this.TrackerLines(), now))
@@ -126,6 +141,38 @@ namespace Poe2Accessibility.Services
 
             this.Placement(indicator, blocked, now);
             this.Player();
+        }
+
+        /// <summary>
+        ///     Which finds the charges placed reach and which the one being placed would: by the game's own states, and where they say
+        ///     nothing by the places and the least radius of a blast (<see cref="ExpeditionReach"/>).
+        /// </summary>
+        private void Reach(Vector2? cursor)
+        {
+            if (this.finds.Count == 0)
+            {
+                ExpeditionReach.Publish(new HashSet<uint>());
+                return;
+            }
+
+            var radius = ExpeditionReach.Radius(this.AreaId());
+            var reached = new HashSet<uint>();
+            foreach (var find in this.finds)
+            {
+                var covered = find.Reached || ExpeditionReach.AnyReaches(this.chargePlaces, find.Place, radius);
+                this.findsCovered.Add(covered);
+                if (covered)
+                {
+                    reached.Add(find.Id);
+                }
+
+                if (find.WouldReach || (cursor is { } at && ExpeditionReach.Reaches(at, find.Place, radius)))
+                {
+                    this.covered.Add((find.Id, find.Find));
+                }
+            }
+
+            ExpeditionReach.Publish(reached);
         }
 
         private static long ValueOf(List<(string Name, long Value)> states, string name) =>

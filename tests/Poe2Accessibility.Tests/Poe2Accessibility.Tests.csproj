@@ -84,6 +84,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeagueNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\EssencePrison.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\EncounterNews.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\ExpeditionReach.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\Transitions.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\ShrineCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\TimedGuide.cs" />

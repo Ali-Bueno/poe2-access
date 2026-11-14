@@ -151,7 +151,7 @@ namespace Poe2Accessibility.Services
                 var find = LeaguePieces.FindOf(league.Piece, icon);
                 name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeaguePieceName(league.Piece, find);
-                if (find != null && leagueStates.Any(state => state.Name == LeaguePieces.CoveredState && state.Value > 0))
+                if (find != null && (ExpeditionReach.IsCovered(entity.Id) || leagueStates.Any(state => state.Name == LeaguePieces.CoveredState && state.Value > 0)))
                 {
                     name = Announcements.ExpeditionCovered(name); // the charges placed already reach it: the next goes elsewhere
                 }

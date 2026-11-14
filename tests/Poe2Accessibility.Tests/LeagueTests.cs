@@ -155,6 +155,19 @@ namespace Poe2Accessibility.Tests
             Equal(2, PlacementNews.Uncovered(new[] { true, false, false }), "one reached: the other two are left");
             Equal(0, PlacementNews.Uncovered(new[] { true, true }), "every find reached");
             Equal(null, PlacementNews.Uncovered(Array.Empty<bool>()), "no finds");
+
+            Equal(28, ExpeditionReach.Radius("MapSteppe"), "a charge's blast in a map, in grid units, as measured in the game");
+            Equal(34, ExpeditionReach.Radius("ExpeditionLogBook_Reef"), "and in a logbook, where it is a fifth wider");
+            Equal(90, ExpeditionReach.Range("G2_4_1"), "how far from the last charge the next can go");
+            Equal(108, ExpeditionReach.Range("ExpeditionLogBook_Tundra"), "and in a logbook");
+            var charges = new[] { new Vector2(100f, 100f), new Vector2(180f, 100f) };
+            Equal(true, ExpeditionReach.AnyReaches(charges, new Vector2(120f, 110f), 28), "a find inside one blast");
+            Equal(false, ExpeditionReach.AnyReaches(charges, new Vector2(140f, 100f), 28), "one between two blasts that do not meet");
+            Equal(false, ExpeditionReach.AnyReaches(Array.Empty<Vector2>(), new Vector2(100f, 100f), 28), "no charge placed");
+            ExpeditionReach.Publish(new HashSet<uint> { 7 });
+            Equal(true, ExpeditionReach.IsCovered(7), "told to the scanner, which names the find covered");
+            ExpeditionReach.Publish(new HashSet<uint>());
+            Equal(false, ExpeditionReach.IsCovered(7), "until the area changes");
         }
 
         private static (string, long)[] States(params (string, long)[] states) => states;
