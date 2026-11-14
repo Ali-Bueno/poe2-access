@@ -471,3 +471,58 @@ in a running game by this study; what the plugin reads of it is judged at run ti
   `AreaGroupRitualNumCompleted`, `AreaGroupRitualTotal`, `AreaHasRitualGroup` (not examined). `DisableFog` and `ResetFog` are a shared stub
   on the client: the Delirium fog has no field this way. No GEAL name mentions Delirium, Affliction, Breach, Abyss, Essence, Ultimatum or
   Shrine.
+
+## Rulesets (2026-11-14, third pass: the league mechanics are not in components)
+
+Asked: where the Breach's ring, the Expedition's charges and the Trial of Chaos' round are kept, since no component held them. Of the 233
+component pools none is a Breach, an Expedition explosive, an Ultimatum encounter or an Affliction (`BreachObject` is only a name in the
+component enum; `BrequelFruit`, `ExpeditionSaga`, `RitualEncounter`, `UltimatumKey`, `IncursionTemple` are item components). **The client keeps
+one ruleset object per row of `Rulesets.dat`, filled from server packets**, and the mechanics live there. Scripts in the session's scratch
+folder only (`exe3/`: `a1_allpools`, `a5_rulesets`, `a7_vt`, `a8_datrow` …). The pool registrar of the file on disk is at 0x1028270, not
+0x1027EB0 as written above.
+
+**Reaching a ruleset.** The session of the instance server (constructor 0x212D160, which logs "Connecting to instance server") stores the
+AreaInstance at +0x20F0 (`0x212D805: 48 89 91 F0 20 00 00`) and an array of ruleset pointers by row at +0x2400 (`0x212F7FB: 4A 89 9C F6 00
+24 00 00`), which the getter reads back for a row below 0x66 (`0x284BBB: 48 8B 80 A8 01 00 00`, `0x284BC5: 48 8B 84 C8 00 24 00 00`). The
+session is stored at +0x340 of an object taken for InGameState, not proven (`0x1631DAC: 49 89 85 40 03 00 00`). Every ruleset (base
+constructor 0x1729A80): +0x30 its Rulesets row, +0x38 the row's table handle, +0x48 the session. Rows by the constructor's argument: 92
+ExpandingBrequelEncounterRules, 93 Established…, 51 ExpeditionRules, 49 UltimatumRules, 40 AfflictionEncounterRules.
+
+| Field | Value | Proof | Site | Bytes |
+|---|---|---|---|---|
+| Breach rules (0x1B0 bytes, vtable 0x33BD200): vector of 0x48-byte encounters | +0x190 | B | packet reader 0x172A8F0, update 0x172A3E0 | - |
+| encounter: size it grows from / to, floats 0..100 | +0x0 / +0x4 | B | 0x172AB62 / 0x172AB8A | `F3 0F 11 03` / `F3 0F 11 43 04` |
+| encounter: duration / elapsed (reset on each packet) | +0x8 / +0xC | B | 0x172AB94 / 0x172ABAF; 0x172A4E7 adds dt×(1 + int +0x18 / 100) | `F3 0F 11 4B 08` / `89 7B 0C` |
+| encounter: a countdown, −dt per frame | +0x10 | C | 0x172A4AD | `F3 0F 11 40 10` |
+| encounter: centre, int32 grid x and y | +0x24 | B | 0x172AA63 | `48 89 48 24` |
+| encounter: state (2 plays BreachEnrageStinger; 3 caps the size at 100) | +0x38 | B | 0x172AAD5; 0x172ABCA | `89 4B 38`; `83 7B 38 02` |
+| Expedition rules (0x278 bytes, vtable 0x33BD938): vector of 0x70-byte records, one per detonator | +0x1E0 | B | - | - |
+| record: charges placed, a vector of int32 x,y pairs | +0x40 | A | HUD 0x4F4323 (its length is the placed count) | - |
+| record: grid place (the nearest to the player is used) | +0x60 | B | 0x172BD28 | `2B 54 38 60` |
+| record: **how many charges**, a byte | +0x68 | A | 0x4F4280, then 0x4F442D formats SideEncounterExpeditionPlacedCount | `0F B6 74 01 68` |
+| Ultimatum rules (0x1F8 bytes, vtable 0x33D2D48): round, from 0 | +0x1A8 | A | 0x181F9A2 (server), 0x181FE3E (+1 on UltimatumRoomCompleted); HUD 0x5721A4 adds 1 | `41 88 87 A8 01 00 00` |
+| Ultimatum rules: rounds in all (always 10 in this build) | +0x1A9 | A | 0x173EEA1 the only writer; HUD 0x5721E5, then 0x57220B formats UltimatumWindowRound | `66 C7 83 A8 01 00 00 00 0A` |
+| Affliction rules (0x140 bytes): the map stat `map_delirium_fog_never_dissipates` | +0x131 | A | 0x1802AD2 | `88 87 31 01 00 00` |
+| ClientMonolith (pool 0x108): Essences rows, a vector | +0xC8 | B | network reader 0x16F75E0 | - |
+| ClientMonolith: MonsterVarieties row of the monster held | +0xE0 | B | 0x16F76D6 | `49 89 95 E0 00 00 00` |
+| Counter (pool 0x20): its value, int32 | +0x18 | A | 0x1DC8CBD ("Counter value: ") | `8B 57 18` |
+
+- **The Breach's ring.** Its size is lerp(from, to, elapsed / duration), 0 to 100, and it is drawn with a radius of
+  **300 × min(size / 100, 1) ^ 0.6 grid cells** (`0x172A627: F3 41 0F 59 C3`), passed with the centre to 0x16914D0, which turns grid into
+  world with ×10.8696. ControlZone has no network reader (its vtable slot 19 is a stub): the ring was never there.
+- **Expedition's blast**, computed on the client by 0x172BFC0 and clamped to 0..255:
+  `isqrt((100 + AoE%) × 100) × (100 + Radius%) / 100 / 100 × (B + 8 × (n + byte[ruleset + 0x272]))`, with the area's map stats
+  `map_expedition_explosion_area_of_effect_+%` and `…explosion_radius_+%`, B = 30, or 37 in special areas, and n the bonus objects within
+  reach of the cursor. In units of ten world units: 30 is 27.6 grid cells and 37 is 34.0, which is what the community measured (28 and 34,
+  [league-mechanics.md](league-mechanics.md) §15). 0x172C0D0 adds each object's size and **sets the markers' client states `in_range` and
+  `in_placing_range`**: they are the game's own answer, map stats included. The placement indicator is record + 0x50 of a per-player map at
+  ruleset + 0x190; `blocked` is the byte at request + 0x18 being zero. The maximum placement distance is not in the client.
+- **Not found:** the Trial's encounter type, bar, timer and ring (`UltimatumOrigin` and `UltimatumTimeStopProgress` are shader parameters
+  whose writers were not traced); the Delirium fog's edge or timer (the rules read the player's grid place and a float at +0x84; +0x128
+  holds 8000 at construction; `AfflictionFogInterpolator`, with a radius in world units, serves only the Act 4 encounter); the crystal's
+  interactions left; anything of the Ritual (no client ruleset for row 48; `RitualSacrificePercent` and `RitualFogData` are shader
+  parameters).
+- **Debug dumps:** ControlZone "In Zone Count: ", Counter "Counter value: ", StateMachine "StateMachine state … = " and "StateMachine
+  timer … = "; the rulesets, Monolith, Timer and GroundEffect have none.
+
+**In a running game:** kehgan in the Act 1 town, 2026-11-14 night, three unattended passes: the session is not at +0x340 of the host's game state but at +0x5B8 of the area (dev command "rulesets", which looks one and two pointers deep for an object holding the area near +0x20F0 with rulesets pointing back to it); it holds the area at +0x20F0 exactly as the exe says, and the town's one ruleset, at place 79 of its array, points back to it: row 79 of Rulesets.dat is AncestralOmenRules, so a place in the array is a row of the table. The log then reads "Rulesets: session 0x…, 1 of this area: AncestralOmenRules" and "Rulesets read: no breach; charges none; trial round none"; no error line, inventory read as before. A town has no Breach, Expedition or Trial: the fields inside those three rulesets stand on the exe and the range checks until a session's log shows them.

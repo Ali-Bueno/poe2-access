@@ -570,3 +570,58 @@ object is in a town: those rules stand on the files, the exe and the unit tests 
 **Still left:** the Breach's ring (said from nothing until a log shows the radius moving); the Delirium fog's edge (no field); the number
 of charges and their reach (the HUD line, a window to find in play); the round objective of a Trial of Chaos round without pieces (the
 HUD's line); the Tome and Temple Console windows (no layout file: the generic reader).
+
+## 15. Third pass: the rulesets, the community's measurements, the HUD tracker (2026-11-14, night)
+
+The user again: "hemos agotado todas las opciones de investigación entonces? no puedes intentar nada?". Three ways not yet tried.
+
+**1. The league mechanics are in the client's rulesets, not in components** ([exe-layouts.md](exe-layouts.md), "Rulesets"): the Breach's ring
+(centre, size 0 to 100, state; radius 300 × (size / 100) ^ 0.6 cells), the Expedition site's charges (how many, which are placed), the Trial
+of Chaos' round and its ten rounds, and in the crystal's own component the essences it holds.
+
+**2. What others measured** (web, read 2026-11-14; each is the source's claim, not ours):
+
+- **Expedition**, PoE2, the open-source ExpeditionIcons plugin (github.com/exCore2/ExpeditionIcons, `ExpeditionIcons.cs`, last commit
+  2026-10-12), measured in the game: blast radius 28 grid cells in a map and 34 in a logbook, placement range 90 and 108, each
+  × (100 + the area's stat) / 100 in integers ("rounding here is extremely important to get right, this is taken from the game's code");
+  `GridToWorldMultiplier = 250 / 23f`. The values inherited from PoE1 (30 and 87) were "short for both". The count of charges it reads
+  from a UI element, there being no constant. `FaridunExplosiveRadius = 75`, `OilWellRadius = 140`.
+- **Essence:** "Interacting with it three times shatters the prison and frees the monster" (timesaver.gg): the three transitions.
+- **Abyss** (poe2db.tw/Abyss): our reading holds; the monsters the pit spawns take the rarity of the weakened ones killed and steal their
+  modifiers; a closed pit may leave an Abyssal Trove.
+- **Delirium** (maxroll.gg, poe2db.tw): the fog spreads from the mirror in a large circle that then moves forward and fades behind;
+  "staying outside the mist for longer than 4 seconds ends the encounter"; a progress bar runs from the mirror to the map's boss; a
+  unique killed pauses the timer 10 s. No tool reads the fog from memory.
+- **Breach** (poe2db.tw, maxroll.gg): a bar shows the time until it closes; filled, the Breach is Stabilised; kills keep it open. No
+  number for its speed or radius, and no tool reads the ring.
+- **Trial of Chaos** (poe-vault.com, for 0.2; maxroll.gg): ten rooms, bosses in 4, 7 and 10; the only circle rule of a round is the Blood
+  Altar's; 7 Ruin fails the run. No "Destroy the Idols" round is described anywhere: the table's row may be unused.
+- **Layouts:** GameHelper2 (upstream) and `imkk000/poe2-offsets` agree on Transitionable +0x120 (read as a short), Shrine IsUsed +0x24,
+  StateMachine values +0x160; upstream's commented-out Shrine row at +0x30 is the table handle of our exe study. Nobody publishes a
+  Breach, Expedition, Ultimatum or Monolith layout: the rulesets are, as far as was found, new.
+
+**3. The HUD's encounter tracker was already read, only never said.** The right-hand column the vitals readout takes its "Encuentro de
+ritual. 100 Tributo" from is where the game writes `SideEncounterExpeditionTitle`, `SideEncounterExpeditionPlacedCount` ("Explosivos
+colocados: {0}/{1}") and `SideEncounterDeliriumTitle` (the three `SideEncounter*` families of ClientStrings).
+
+**What the plugin does with it** (unit tests; the chain to the rulesets seen in a running game, in town: "Rulesets: session 0x…, 1 of
+this area: AncestralOmenRules"; what is inside the Breach, Expedition and Trial rulesets not yet, a town having none):
+
+- **Breach** (`RulesetReader`, `RulesetNews`, `RulesetWatch`): "Fisura a un cuarto", "a la mitad", "a tres cuartos" as its size passes
+  25, 50 and 75; "Fuera del anillo de la fisura" (urgent) and "Dentro del anillo de la fisura" as the player crosses the ring, only after
+  having been inside, with a band around the line and three seconds between two such lines.
+- **Trial of Chaos:** "Ronda N de 10" as the round changes.
+- **Expedition:** "Explosivos colocados: N/T" with the site's own total (the tracker's line when it shows one, else the ruleset's count,
+  else the charges seen), then "M sin cubrir" or "todo cubierto". A find is covered by the game's state `in_range`, else by standing within
+  28 cells (34 in a logbook) of a charge placed (`ExpeditionReach`): the least it can be, the area's increase not being read.
+- **Essence:** the crystal's entry names its essences ("Esencia: Cretino de sangre. Esencia de llamas, Esencia del cuerpo"), each row
+  believed only when it leads to an item's file and has a name in `catalog/item-names.json`.
+- **The tracker** (`EncounterNews`): a line of a new kind is said once per area ("Encuentro de expedición"); a count out of a total as it
+  steps, once it has stood 0.7 s; a bare number running on (the tribute) stays in the vitals.
+- **Every step is checked before it is believed:** the session by its pointer back to the area the host reads, a ruleset by standing at
+  the row the game's files give its name (`catalog/game-ids.txt`, "ruleset <name> <row>", data step 5) and by its pointer back to the session, a ring's numbers by their range, the charges by placed ≤ total ≤ 60, the round by
+  round < total ≤ 20. **Log lines to read in a first session:** "Rulesets: session …, N rulesets: …", "Rulesets read: breach state …,
+  quarter …; charges …; trial round …", "Essence contents: …".
+
+**Still left after three passes:** the Delirium fog's edge and its four seconds (nothing found that holds them); the Trial's round kind and
+bar; the Ritual's circle; the maximum placement distance of a charge (said by the game refusing the place, `blocked`).
