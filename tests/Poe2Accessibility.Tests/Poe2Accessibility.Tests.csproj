@@ -80,6 +80,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\CameraView.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialTraps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\ChaosTrial.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeaguePieces.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeagueNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\TimedGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HonourWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialCatalog.cs" />
@@ -92,6 +94,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialEffectNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Leagues.cs" Link="Plugin\Announcements.Leagues.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\AreaInstanceGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\StatusAilments.cs" />

@@ -286,6 +286,9 @@ namespace Poe2Accessibility
         /// <summary>The Trial of Chaos' round and the Death Crystals left are said as they change; the room door the Trial opens is said with the way to it.</summary>
         public bool AnnounceTrialProgress = true;
 
+        /// <summary>The league mechanics' progress, a shrine's effect, the Delirium fog and what an Expedition charge would blow are said.</summary>
+        public bool AnnounceLeagues = true;
+
         /// <summary>A clock falling on the HUD is said as it passes 60, 30, 20, 10 and 5 seconds.</summary>
         public bool AnnounceTimers = true;
 

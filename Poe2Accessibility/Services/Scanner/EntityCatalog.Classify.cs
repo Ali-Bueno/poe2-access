@@ -36,7 +36,9 @@ namespace Poe2Accessibility.Services
             var trap = TrialTraps.KindOf(path);
             var chaos = ChaosTrial.PieceOf(path);
             var foughtBeside = chaos is { } fought && ChaosTrial.IsFoughtBeside(fought);
-            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && !this.InPlay(entity))
+            var league = LeaguePieces.RuleOf(path) is { Lists: true } listed ? listed : null;
+            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && league is not { WithoutTarget: true } &&
+                !this.InPlay(entity))
             {
                 return null;
             }
@@ -123,6 +125,16 @@ namespace Poe2Accessibility.Services
                 name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal),
                     ObjectNames.LeagueName(minimap is null ? string.Empty : MinimapIconLabel.Of(this.memory, this.elements, minimap), path));
                 kind = MinimapMarks.DeviceKind(leagueIcon);
+            }
+            else if (league != null)
+            {
+                // A league's object the rules above miss, while its states say it is there to find (docs/research/league-mechanics.md
+                // §12); an Expedition marker by what its icon says it buries, whatever its own name.
+                category = LeaguePieces.IsListed(league, StatesOf(entity), icon) ? ScanCategory.Encounters : null;
+                var find = LeaguePieces.FindOf(league.Piece, icon);
+                name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
+                name = name.Length > 0 ? name : Announcements.LeaguePieceName(league.Piece, find);
+                kind = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
             }
             else if (foughtBeside)
             {

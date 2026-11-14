@@ -83,7 +83,9 @@ namespace Poe2Accessibility.Services
             ("chests", MaxChestVoices, entry => entry.Kind is "chest" or "corpse"),
             ("breakables", MaxBreakableVoices, entry => entry.Kind == "breakable"),
             ("shrines", 1, entry => entry.Category == ScanCategory.Chests && entry.Kind is not ("chest" or "corpse" or "breakable")),
-            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
+            // Expedition's markers are many and silent: none may take the voice of a device that sounds.
+            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind is not (MinimapMarks.RitualDoneKind or LeaguePieces.MarkerKind) &&
+                                       SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("stashes", 1, entry => entry.Kind == MinimapMarks.StashKind),

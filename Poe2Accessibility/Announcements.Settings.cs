@@ -50,6 +50,9 @@ namespace Poe2Accessibility
                 "Guide by itself to each Death Crystal and, with a soul core in hand, to a Stone Altar",
                 "Guiar solo a cada cristal de la muerte y, con un núcleo de alma en la mano, a un altar de piedra"),
             nameof(AccessibilitySettings.AnnounceTrialProgress) => T("Trial rounds, crystals left, room doors and Ruin", "Rondas, cristales restantes, puertas de la Prueba y Ruina"),
+            nameof(AccessibilitySettings.AnnounceLeagues) => T(
+                "League mechanics: progress, shrines, the Delirium fog and Expedition charges",
+                "Mecánicas de liga: progreso, santuarios, niebla del delirio y explosivos de expedición"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.ReadPlayer1) => T("Local co-op: read for player 1", "Cooperativo local: lectura para el jugador 1"),
