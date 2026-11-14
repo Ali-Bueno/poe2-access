@@ -65,6 +65,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public IReadOnlyList<string> Begun(IEnumerable<string> ids, long now, string language, Func<string, bool> isCovered)
         {
+            // Before the buffs are looked at: one last seen before a menu or a loading screen and there again is a new one.
+            foreach (var key in this.lastSeen.Where(pair => now - pair.Value >= HoldMs).Select(pair => pair.Key).ToList())
+            {
+                this.lastSeen.Remove(key);
+            }
+
             var begun = new List<string>();
             foreach (var id in ids)
             {
@@ -81,11 +87,6 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.lastSeen[key] = now;
-            }
-
-            foreach (var key in this.lastSeen.Where(pair => now - pair.Value >= HoldMs).Select(pair => pair.Key).ToList())
-            {
-                this.lastSeen.Remove(key);
             }
 
             this.baseline = false;
