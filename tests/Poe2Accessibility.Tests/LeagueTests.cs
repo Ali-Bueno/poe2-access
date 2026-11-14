@@ -74,6 +74,12 @@ namespace Poe2Accessibility.Tests
             Equal(null, news.Round(2), "said once");
             Equal(null, news.Round(null), "the trial left");
             Equal("Round 3 of 10", Announcements.Ruleset(RulesetLine.TrialRound, 3, 10), "as the window writes it");
+
+            var altar = new LeagueNews();
+            Equal(0, altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 0)), "RitualRune").Count, "an altar with its monsters around");
+            Equal("RitualReady", string.Join(" ", altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 1)), "RitualRune")), "they are dead: the altar can be used");
+            Equal(0, altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 2)), "RitualRune").Count, "the player began it: no news");
+            Equal("RitualDone", string.Join(" ", altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 3)), "RitualRuneFinished")), "won");
             Equal("Explosives Placed: 2/5; 1 not covered", Announcements.ExplosivesPlaced(2, 5, 1), "the game's own count, then what it lacks");
             Equal("Explosives Placed: 2", Announcements.ExplosivesPlaced(2, null, null), "the total unread: as before");
 

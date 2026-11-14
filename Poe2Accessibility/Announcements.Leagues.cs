@@ -64,6 +64,7 @@ namespace Poe2Accessibility
             LeagueLine.BeaconDone => T("Vaal Beacon complete", "Foco vaal completado"),
             LeagueLine.BeaconPortal => T("Portal to the Vaal Ruins open", "Portal a las Ruinas vaal abierto"),
             LeagueLine.RitualDone => T("Ritual complete", "Ritual completado"),
+            LeagueLine.RitualReady => T("Ritual altar ready: use it to revive the monsters and begin", "Altar de ritual listo: úsalo para revivir a los monstruos y empezar"),
             LeagueLine.AbyssOpens => T("The Abyss pit opens: monsters", "El foso del abismo se abre: monstruos"),
             LeagueLine.EssenceCracked => T("Essence cracked", "Esencia agrietada"),
             LeagueLine.EssenceCrackedMore => T("Essence cracked further", "Esencia más agrietada"),

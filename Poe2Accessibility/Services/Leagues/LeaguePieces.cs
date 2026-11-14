@@ -78,6 +78,7 @@ namespace Poe2Accessibility.Services
         EssenceCracked,
         EssenceCrackedMore,
         EssenceFreed,
+        RitualReady,
     }
 
     /// <summary>A shrine by the buff its use gives the player (Shrines rows 53-66 and 71, all 45 s).</summary>
@@ -265,6 +266,8 @@ namespace Poe2Accessibility.Services
             new(LeaguePiece.VaalBeacon, Activated, 2, LeagueLine.BeaconReady),
             new(LeaguePiece.VaalBeacon, Activated, 3, LeagueLine.BeaconDone),
             new(LeaguePiece.VaalBeacon, "open", 1, LeagueLine.BeaconPortal),
+            // current_state (RitualRuneInteractable): 0 inactive, monsters around; 1 ready, to be used to revive them and fight; 2 active; 3 finished.
+            new(LeaguePiece.RitualAltar, "current_state", 1, LeagueLine.RitualReady, From: 0),
             new(LeaguePiece.RitualAltar, "current_state", 3, LeagueLine.RitualDone, From: 2),
             // AbyssNodeBase: 1 closed, 2 opening and spawning, 3 failed, 4 won. Its icon dimming says the same end: once.
             new(LeaguePiece.AbyssPit, Transition, 2, LeagueLine.AbyssOpens),
