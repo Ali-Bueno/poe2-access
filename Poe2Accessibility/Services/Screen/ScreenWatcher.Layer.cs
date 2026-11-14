@@ -22,6 +22,8 @@ namespace Poe2Accessibility.Services
             units.Clear();
             setIcons.Clear();
             stack.Clear();
+            this.walkControls.Clear();
+            this.walkContainers.Clear();
             var hasControls = false;
             var (tabBars, tabBarEnds) = (this.walkTabBars, this.walkTabBarEnds);
             tabBars.Clear();
@@ -43,7 +45,13 @@ namespace Poe2Accessibility.Services
                 if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !IsOffScreen(info.Address, screen, rects))
                 {
                     hasControls = true;
+                    if (control >= 0)
+                    {
+                        this.walkContainers.Add(control);
+                    }
+
                     control = self;
+                    this.walkControls.Add(self);
                     enabled = !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit);
                 }
 
@@ -147,13 +155,29 @@ namespace Poe2Accessibility.Services
 
             // What the budget left on the stack keeps its blocks: lost to the collector, never handed out twice.
             this.blocks.Return(walked);
+            var unnamed = this.CountUnnamedControls(nodes, texts);
             PairGlyphs(nodes, texts, glyphs);
             PairUnits(nodes, texts, units);
             PairWeaponSets(nodes, texts, setIcons);
             MergeRows(nodes, texts);
             // A legend layer holds nothing but legends; a menu layer may carry its own hint bar (game menu).
             isHintBar = texts.Count > 0 && texts.TrueForAll(text => IsLegend(text.Text));
-            return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name);
+            return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name, UnnamedControls: unnamed);
+        }
+
+        /// <summary>The controls of the layer (not those holding others) with no text of their own: what a read of the screen cannot name.</summary>
+        private int CountUnnamedControls(List<WalkNode> nodes, List<(int Node, ScreenText Text)> texts)
+        {
+            var named = new HashSet<int>();
+            foreach (var (node, text) in texts)
+            {
+                if (text.Button.Length == 0)
+                {
+                    named.Add(nodes[node].Control);
+                }
+            }
+
+            return this.walkControls.Count(control => !this.walkContainers.Contains(control) && !named.Contains(control));
         }
 
         private static bool IsOffScreen(IntPtr element, RectangleF screen, PluginUiElementReflection.RectCache rects) =>

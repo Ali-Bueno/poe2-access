@@ -89,6 +89,9 @@ namespace Poe2Accessibility
 
         public static string UnnamedElement => T("Unnamed element", "Elemento sin nombre");
 
+        /// <summary>A control nothing names, said by the words of its picture's file so the player knows where the name comes from.</summary>
+        public static string ControlFromArt(string fileWords) => T($"Unnamed control, {fileWords}", $"Control sin nombre, {fileWords}");
+
         /// <summary>The icon button that empties a search box (the game's own hint for it: "Borrar búsqueda").</summary>
         public static string ClearSearch => T("Clear search", "Borrar búsqueda");
 

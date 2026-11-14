@@ -18,7 +18,7 @@ namespace Poe2Accessibility.Models
     ///     A visible top-level child of the UI root: a screen, panel, popup or the controller hint bar.
     ///     <paramref name="IsBase"/> marks in-game layers present on arrival (HUD, minimap), which never own input.
     /// </summary>
-    public sealed record ScreenLayer(IntPtr Address, int Index, IReadOnlyList<ScreenText> Texts, bool HasControls, bool IsHintBar, bool IsBase = false, string Name = "");
+    public sealed record ScreenLayer(IntPtr Address, int Index, IReadOnlyList<ScreenText> Texts, bool HasControls, bool IsHintBar, bool IsBase = false, string Name = "", int UnnamedControls = 0);
 
     /// <summary>The visible layers of the UI root at one moment, in root-child (drawing) order.</summary>
     public sealed record ScreenSnapshot(IntPtr Root, IReadOnlyList<ScreenLayer> Layers)
@@ -49,6 +49,9 @@ namespace Poe2Accessibility.Models
 
         /// <summary>Another layer now owns input (popup opened or closed, new screen); also reported for the first screen after a reset.</summary>
         TopLayerChanged,
+
+        /// <summary>Texts of a visible layer whose digits alone changed (a price, a count): news only to <see cref="NumberChanges"/>.</summary>
+        NumbersChanged,
     }
 
     public sealed record ScreenChange(ScreenChangeKind Kind, ScreenLayer Layer, IReadOnlyList<ScreenText> Texts)
@@ -58,5 +61,8 @@ namespace Poe2Accessibility.Models
         ///     under the focus), not something the focus brought.
         /// </summary>
         public bool Scrolled { get; init; }
+
+        /// <summary>For <see cref="ScreenChangeKind.NumbersChanged"/>: each text as it read before, in the order of <see cref="Texts"/>.</summary>
+        public IReadOnlyList<string> Before { get; init; } = Array.Empty<string>();
     }
 }

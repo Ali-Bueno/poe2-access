@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
             string text;
             var value = string.Empty;
             var emptyCell = false;
+            var position = string.Empty;
             List<string> details;
             var gear = (First: new List<string>(), Last: new List<string>(), Headed: false);
             var filling = false;
@@ -80,6 +81,7 @@ namespace Poe2Accessibility.Services
             else if (this.inventory.FindItemElement(info.Address) is var item && item != IntPtr.Zero)
             {
                 role = UiRole.ItemSlot;
+                position = this.SlotSiblings(info).Position;
                 details = this.ItemTooltip(item);
                 text = this.inventory.DescribeItem(item, Title(details)) ?? Announcements.UnknownItem;
             }
@@ -114,6 +116,7 @@ namespace Poe2Accessibility.Services
                 Role = role,
                 Text = text,
                 Value = value,
+                Position = position,
                 IsVisible = this.elements.IsVisible(info),
                 Context = role == UiRole.GridCell ? Announcements.InContext(this.PanelTitle(info), this.GridTab(info)) : this.PanelTitle(info),
                 Tooltip = details,
