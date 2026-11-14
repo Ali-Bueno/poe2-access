@@ -101,6 +101,9 @@ namespace Poe2Accessibility.Tests
             Equal("EssenceFreed", string.Join(" ", news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 4)), "Essence")), "shattered: the monster is free");
             Equal(0, news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 4)), "Essence").Count, "said once");
             Equal(0, news.Heard(2, LeaguePiece.EssenceCrystal, States(), "Essence").Count, "a crystal whose transition does not read says nothing");
+            Equal("Essence: Blood Cretin", Announcements.Essence("Blood Cretin", 1, false), "one essence, the usual, is not counted aloud");
+            Equal("Essence: Blood Cretin, 3 essences, corrupted", Announcements.Essence("Blood Cretin", 3, true), "what a sighted player reads on the crystal");
+            Equal("Essence", Announcements.Essence(string.Empty, 0, false), "states unread: as before");
 
             var crack = LeaguePieces.RuleOf("Metadata/MiscellaneousObjects/Abyss/AbyssCrack@9")!;
             Equal("8", string.Join(" ", Enumerable.Range(1, 16).Where(state => LeaguePieces.IsListed(crack, States((LeaguePieces.Transition, state)), "AbyssCrackActive"))),

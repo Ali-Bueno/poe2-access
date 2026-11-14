@@ -452,6 +452,7 @@ in a running game by this study; what the plugin reads of it is judged at run ti
   `link_to_instance_group_flag`, `transition_on_damage_from_any_team`, `enable_logging`, events `on_transition`, `on_untransition`. The debug
   dump prints `"Transitionable state: "`, the byte, then the count (0x1E0DDBD). Falsified by a live untransitioned object reading 0, or
   any object reading above its count: `Transitions.Judge` refuses both.
+  Read in a running game on 2026-11-14 (Clearfell Encampment, kehgan, dev command "entities all"): the six objects with the component read a state of 1 or 2 and a count of 2, the default of an empty block (Una 1, Renly and the crafting bench 2); no object with a count of its own was in town.
 - **Shrine.** The server sends one byte: 0xFF is "used", else the top bit is IsUsed and the low seven bits the row index, multiplied by
   0x122 (the row size of `Data/Balance/Shrines.dat`; a string "Unknown shrine sent by server" stands in the same function). The component
   has no `.ot` keys. The row's display-name column was not reached in code: its Id (the text at the row's +0) is what a reader can trust.

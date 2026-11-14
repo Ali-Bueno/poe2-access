@@ -562,6 +562,11 @@ file. `GameConstants` (121 rows) holds nothing of the leagues.
   "League piece seen" line (whether its ring is kept in ControlZone +0x3E); the dev command "entities" prints each Transitionable's
   state, count and raw bytes and each ControlZone's radius.
 
+**Live, 2026-11-14 evening (kehgan in the Act 1 town, unattended):** the plugin loads with the new readers, no error line; "Shrines: 72
+rows, 10 languages"; the transition reads on the six objects of the town that have one (1 or 2 of 2, never out of range); the one
+ControlZone in town reads radius 0 and its file sets none; inventory and skills read as before. No shrine, crystal, fissure or league
+object is in a town: those rules stand on the files, the exe and the unit tests until a session's log shows them.
+
 **Still left:** the Breach's ring (said from nothing until a log shows the radius moving); the Delirium fog's edge (no field); the number
 of charges and their reach (the HUD line, a window to find in play); the round objective of a Trial of Chaos round without pieces (the
 HUD's line); the Tome and Temple Console windows (no layout file: the generic reader).

@@ -129,7 +129,11 @@ namespace Poe2Accessibility.Services
                 if (leagueIcon == MinimapMarks.EssenceIcon)
                 {
                     // "Esencia: Cretino de sangre": the monster held is what the game names on the crystal.
-                    name = Announcements.Essence(this.NameNear(render, EssenceWorld, IsHeldMonster));
+                    var crystal = StatesOf(entity).ToList();
+                    name = Announcements.Essence(
+                        this.NameNear(render, EssenceWorld, IsHeldMonster),
+                        crystal.FirstOrDefault(state => state.Name == LeaguePieces.EssenceCountState).Value,
+                        crystal.FirstOrDefault(state => state.Name == LeaguePieces.EssenceCorruptedState).Value > 0);
                 }
 
                 name = name.Length > 0 ? name : this.landmarks.WorldTitle(path);
@@ -475,9 +479,9 @@ namespace Poe2Accessibility.Services
 
                 // The game targets the monster an essence holds, and A frees it: said as the essence. Held, it is out of play for
                 // every other reader (EssencePrison), so it is asked first.
-                if (EssencePrison.Holds(entity.Id) && this.EssenceHolding(render) is { } crystal)
+                if (EssencePrison.Holds(entity.Id) && this.EssenceHolding(render) is { } holding)
                 {
-                    return crystal;
+                    return holding;
                 }
 
                 if (this.Classify(entity, render) is { } entry)

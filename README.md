@@ -88,8 +88,9 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
 - **Trials and league encounters:** the Trial of the Sekhemas (honour, sacred water, afflictions, the map of rooms, the
   Death Crystals) and the Trial of Chaos (what each round asks next, hazards, Ruin); and the league mechanics, each with a
   sound of its own and its progress said: Ritual, Breach, Delirium and the Simulacrum, Expedition (the markers, what a
-  charge would uncover, the detonator, Verisium Remnants), Essence, the Abyss pit, Azmeri spirits, strongboxes, shrines,
-  rogue exiles and Vaal Beacons. Built from the game's own files; much of it has not been played yet, so tell us what
+  charge would uncover and what the charges placed already reach, the detonator, Verisium Remnants), Essence (the monster
+  held in the crystal stays silent until you break it, and each crack is said), the Abyss (its open fissures and its pit),
+  Azmeri spirits, strongboxes, shrines (named before you take them), rogue exiles and Vaal Beacons. Built from the game's own files; much of it has not been played yet, so tell us what
   you hear.
 - **Game updates:** after a game patch the mod finds its way into the game's memory again by itself and rebuilds its
   data from your installation; anything it cannot find is said once, with what stops working.

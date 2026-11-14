@@ -219,6 +219,17 @@ namespace Poe2Accessibility
         /// <summary>An essence's crystal with the monster it holds: "Essence: Blood Cretin".</summary>
         public static string Essence(string monster) => monster.Length > 0 ? T($"Essence: {monster}", $"Esencia: {monster}") : T("Essence", "Esencia");
 
+        /// <summary>
+        ///     The crystal with what its script says it holds (Monolith.ot: <c>num_essences</c>, <c>is_corrupted</c>): "Esencia: Cretino
+        ///     de sangre, 2 esencias, corrupta". One essence, the usual, is not counted aloud.
+        /// </summary>
+        public static string Essence(string monster, long essences, bool corrupted)
+        {
+            var name = Essence(monster);
+            name = essences > 1 ? T($"{name}, {essences} essences", $"{name}, {essences} esencias") : name;
+            return corrupted ? T($"{name}, corrupted", $"{name}, corrupta") : name;
+        }
+
         /// <summary>A boss's arena as its minimap icon labels it ("Sala del jefe: Corazón de la tumba"); map bosses have no label.</summary>
         public static string BossRoom(string label) => label.Length > 0
             ? T($"Boss room: {label}", $"Sala del jefe: {label}")

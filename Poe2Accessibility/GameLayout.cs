@@ -297,8 +297,9 @@ namespace Poe2Accessibility
         ///     docs/research/exe-layouts.md): the constructor stores 1 there (0x1E0D33B: 41 C6 80 20 01 00 00 01) and the type data
         ///     beside it (0x1E0D334), the game's own script function GetTransitionState reads it (0x2073F11: 0F B6 80 20 01 00 00),
         ///     Transition compares it with the count (0x209D13D: 3A 81 B0 00 00 00) and its debug dump prints both after
-        ///     "Transitionable state: ". Upstream had a short here. Not yet seen in a running game: <see cref="Services.Transitions.Judge"/>
-        ///     refuses a pair of bytes that cannot be a state and its count.
+        ///     "Transitionable state: ". Upstream had a short here. In a running game (Clearfell Encampment, 2026-11-14) six objects
+        ///     read 1 or 2 of 2, the count of an empty block; <see cref="Services.Transitions.Judge"/> refuses a pair of bytes that
+        ///     cannot be a state and its count.
         /// </summary>
         public static class TransitionableComponent
         {

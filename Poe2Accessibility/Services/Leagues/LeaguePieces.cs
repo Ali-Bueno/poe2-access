@@ -167,6 +167,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The client state of what the charges already placed will blow (ExpeditionHighlightable: CheckHighlight).</summary>
         public const string CoveredState = "in_range";
 
+        /// <summary>How many essences an Essence's crystal holds (Monolith.ot, shared state).</summary>
+        public const string EssenceCountState = "num_essences";
+
+        /// <summary>Above 0 once the crystal is corrupted: 1 plays Vaal_Corrupt, 2 shatters as Shatter_Vaal (Monolith.ot).</summary>
+        public const string EssenceCorruptedState = "is_corrupted";
+
         /// <summary>An Abyss fissure fully open, the one state its minimap icon shows in (AbyssCrackBase: 1 closed, 2-7 opening, 9-16 closing).</summary>
         public const int CrackOpen = 8;
 
@@ -426,6 +432,7 @@ namespace Poe2Accessibility.Services
                         LeaguePiece.ExpeditionMarker => new[] { PlacingRangeState, CoveredState },
                         LeaguePiece.PlacementIndicator => new[] { BlockedState },
                         LeaguePiece.Simulacrum => new[] { WaveState },
+                        LeaguePiece.EssenceCrystal => new[] { EssenceCountState, EssenceCorruptedState },
                         _ => Array.Empty<string>(),
                     })
                     .Where(state => state != Transition) // ours, not the script's: the file alone is checked

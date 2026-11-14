@@ -112,8 +112,10 @@ ObjectFile	Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable	current_state	
 ObjectFile	Metadata/MiscellaneousObjects/Abyss/AbyssNodeBase		LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Abyss/AbyssFinalNodeBase		LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Abyss/AbyssCrack		LeaguePieces
-ObjectFile	Metadata/MiscellaneousObjects/Monolith		LeaguePieces
-ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith		LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/Monolith	num_essences	LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/Monolith	is_corrupted	LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith	num_essences	LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith	is_corrupted	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Monolith		EssencePrison
 ObjectFile	Metadata/MiscellaneousObjects/MiniMonolith		EssencePrison
 ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith		EssencePrison
