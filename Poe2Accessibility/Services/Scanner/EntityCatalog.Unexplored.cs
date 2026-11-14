@@ -64,9 +64,26 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<Vector2>();
             }
 
-            var places = this.Unexplored(area, player);
+            var places = this.Unexplored(area, player).Concat(this.UnopenedDoors(area, player)).ToList();
             var best = places.Count == 0 ? 0 : places.Min(entry => ExplorationMap.Rank(entry.Kind));
             return places.Where(entry => ExplorationMap.Rank(entry.Kind) == best).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
+        }
+
+        /// <summary>The doors seen shut and not opened since, nearest first, as places still to explore (<see cref="ClosedDoors"/>).</summary>
+        private IEnumerable<ScanEntry> UnopenedDoors(AreaInstance area, Render player)
+        {
+            var toWorld = area.WorldToGridConvertor;
+            if (this.doors.Count == 0 || toWorld <= 0)
+            {
+                yield break;
+            }
+
+            this.doors.ForgetGone(id => area.AwakeEntities.Values.Any(entity => entity.Id == id), new Vector2(player.GridPosition.X, player.GridPosition.Y), toWorld);
+            foreach (var (_, at) in this.doors.Nearest(new Vector2(player.WorldPosition.X, player.WorldPosition.Y)))
+            {
+                var block = (uint)(((int)(at.Y / toWorld) / ExplorationMap.BlockCells) << 15) + (uint)((int)(at.X / toWorld) / ExplorationMap.BlockCells);
+                yield return new ScanEntry(UnexploredIdBase + block, ScanCategory.Unexplored, Announcements.UnopenedDoor, at.X, at.Y, at.Z, ClosedDoors.Kind);
+            }
         }
 
         /// <summary>What the line from <paramref name="from"/> along <paramref name="axis"/> (grid cells) soon leaves the seen ground onto, null for nothing: the radar's mark.</summary>

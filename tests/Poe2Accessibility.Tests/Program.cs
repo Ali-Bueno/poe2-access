@@ -81,6 +81,7 @@ namespace Poe2Accessibility.Tests
                 NameFallbackTests.All(),
                 ReachableRuleTests.All(),
                 TrialDataTests.All(),
+                QuestGoalTests.All(),
                 TrialFloorLocatorTests.All(),
                 PanelWidgetTests.All(),
                 DodgeGateTests.All(),

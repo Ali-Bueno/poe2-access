@@ -150,7 +150,9 @@ namespace Poe2Accessibility.Services
                 // Ancient Seal. Under the quest's icon it is no barrier but a quest object: Balbala's three Runic Seals have this
                 // component too, walk-through and not blocked, and were listed nowhere, so the fight's start was found by luck (user 2026-11-07).
                 category = blockage.IsBlocked ? ScanCategory.Objects : null;
-                sound = name.Length > 0 && MinimapMarks.IsStoryBarrier(path) ? MinimapMarks.QuestObjectKind : string.Empty;
+                // A door the player opens is found by ear: shut, it sounds where it stands (the Lost City's, user 2026-11-14).
+                sound = name.Length > 0 && MinimapMarks.IsStoryBarrier(path) ? MinimapMarks.QuestObjectKind
+                    : entity.TryGetComponent<Targetable>(out _) ? ClosedDoors.Kind : string.Empty;
                 name = name.Length > 0 ? name : Announcements.ClosedBarrier;
                 kind = "barrier";
             }

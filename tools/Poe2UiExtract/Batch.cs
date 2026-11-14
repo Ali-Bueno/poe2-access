@@ -44,6 +44,7 @@ internal static class Batch
         ["endgame"] = (_, index, output) => EndgameExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
         ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
+        ["quest-goals"] = (_, index, output) => QuestGoalExtractor.Run(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
         ["boss-mechanics"] = (_, index, output) => BossMechanicsExtractor.Run(index, output),
         ["gems"] = (_, index, output) => GemExtractor.Run(index, output),

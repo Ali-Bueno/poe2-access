@@ -115,6 +115,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool IsAreaName(string label) => this.areaNames.Contains(label.Trim());
 
+        /// <summary>The game's name of an area in the client's language (English without one); empty for an id the table lacks.</summary>
+        public string AreaNameOf(string areaId) =>
+            this.names.TryGetValue(Localization.Language, out var local) && local.TryGetValue(areaId, out var name) ? name
+            : this.names.TryGetValue("en", out var english) && english.TryGetValue(areaId, out var fallback) ? fallback : string.Empty;
+
         /// <summary>
         ///     The label in the current language: a name the game has (a whole label or any piece of it) as the game
         ///     names it, a common word of the table translated, then the radar table's own words and reward notes

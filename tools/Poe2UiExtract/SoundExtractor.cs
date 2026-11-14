@@ -77,6 +77,9 @@ internal static class SoundExtractor
         // A way that opened on its own: the Trial's entrance door striking home (user's pick 2026-11-12 of eight gate, door
         // and mechanism recordings; docs/research/game-audio.md).
         new("opened_way", "ExitDoorArena",     "Environment_Sanctum_EntranceDoor_Impact_01"),
+        // A shut door the player opens: a door's mechanism clicking (user's pick 2026-11-14 of nine door recordings;
+        // docs/research/game-audio.md).
+        new("closed_door", "PrecursorDoor",    "PrecursorDoor_Mechanic_01", Rms: 0.10),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.

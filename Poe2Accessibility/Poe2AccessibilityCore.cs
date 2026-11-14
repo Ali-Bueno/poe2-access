@@ -404,6 +404,7 @@ namespace Poe2Accessibility
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.CrystalsCounted = () => this.narrator != null && this.screen != null && this.narrator.CrystalsCounted(this.screen.Current);
                 this.entities.RoomsApart = () => this.trialScope.InTrial(Environment.TickCount64);
+                this.entities.QuestGoals = QuestGoalCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "quest-goals.json"));
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;

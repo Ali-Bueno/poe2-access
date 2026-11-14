@@ -64,7 +64,8 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var stretches = this.Unexplored(Core.States.InGameStateObject.CurrentAreaInstance, player)
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var stretches = this.Unexplored(area, player).Concat(this.UnopenedDoors(area, player)).OrderBy(entry => ExplorationMap.Rank(entry.Kind))
                 .Take(GlanceStretches).Select(entry => this.Describe(entry)).ToList();
             var here = place.Frame.Part(place.Cell, ExplorationMap.SeenRadiusCells);
             return Announcements.MapGlance(this.ExploredPercent(), here, this.MapParts(place.Frame), stretches);

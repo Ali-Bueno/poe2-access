@@ -47,12 +47,13 @@ internal static class GameDataSteps
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 2, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings
+        new Step("quest goals", 1, "quest-goals.json", "quest-goals", true),
         new Step("gems", 1, "gems.json", "gems", true),
         new Step("passive tree", 2, "passive-tree.json", "passive-tree", true), // 2: the rows a node with a choice can be made (an attribute node's three)
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
         new Step("mod stats", 2, "mod-stats.json", "mod-stats", true), // 2: a modifier keying its own buff is told apart
-        new Step(Sounds, 10, null, null, Input: ItemSounds), // 10: the opened way's sound as the user picked it
+        new Step(Sounds, 11, null, null, Input: ItemSounds), // 11: the sound of a door to open
     ];
 
     /// <summary>

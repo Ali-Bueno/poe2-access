@@ -134,6 +134,7 @@ namespace Poe2Accessibility.Services
                 if (this.Classify(entity, render) is not { } entry)
                 {
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
+                    this.doors.Forget(entity.Id); // opened: the game takes its target away
                     continue;
                 }
 
@@ -144,6 +145,10 @@ namespace Poe2Accessibility.Services
                 }
 
                 found[entry.Id] = entry;
+                if (entry.Sound == ClosedDoors.Kind)
+                {
+                    this.doors.Shut(entry.Id, new Vector3(entry.WorldX, entry.WorldY, entry.WorldZ));
+                }
                 if (Landmarks.Contains(entry.Category) || Loot.Contains(entry.Category))
                 {
                     this.remembered[entry.Id] = entry;
@@ -254,15 +259,42 @@ namespace Poe2Accessibility.Services
                 found.TryAdd(frontier.Id, frontier);
             }
 
+            foreach (var door in this.UnopenedDoors(area, player))
+            {
+                found.TryAdd(door.Id, door);
+            }
+
             var origin = player.WorldPosition;
             var sorted = found.Values.OrderBy(entry => ExplorationMap.Rank(entry.Kind)).ThenBy(entry => Distance(origin, entry)).ToList();
             // The objective is known wherever the game knows it, but said only once seen: the rest is for the player to find,
             // with the lost hint for a last resort (user 2026-11-05, over the marker of 2026-10-24; docs/radar.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
-            this.questTargets = QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom, this.questMemo);
+            var questTexts = this.QuestTexts();
+            this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);
             return sorted;
+        }
+
+        /// <summary>
+        ///     The areas next door that the tracker's step leads through, as their exits are named (<see cref="QuestGoalCatalog"/>):
+        ///     worked out once for the same texts in the same area.
+        /// </summary>
+        private IReadOnlyCollection<string> QuestLeadsTo(IReadOnlyList<string> texts)
+        {
+            var area = this.areaId();
+            if (this.leadsTo.Area != area || this.leadsTo.Language != Localization.Language || !this.leadsTo.Texts.SequenceEqual(texts))
+            {
+                var names = this.QuestGoals.StepsToward(area, this.QuestGoals.GoalsOf(texts, Localization.Language))
+                    .Select(this.landmarks.AreaNameOf).Where(name => name.Length > 0).ToList();
+                this.leadsTo = (area, Localization.Language, texts.ToArray(), names);
+                if (names.Count > 0)
+                {
+                    this.log.Info($"Quest step leads through: {string.Join(", ", names)} (from {area})");
+                }
+            }
+
+            return this.leadsTo.Names;
         }
 
         /// <summary>Whether the game's own exit of a named exit tile is among the listed (<see cref="SameExit"/>).</summary>

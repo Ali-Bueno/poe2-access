@@ -88,6 +88,9 @@ namespace Poe2Accessibility
         /// <summary>A way that opened and has not been walked to yet, in the scanner's objects and by its sound's name in the settings.</summary>
         public static string OpenedWay => T("Opened way", "Paso abierto");
 
+        /// <summary>A door seen shut and not opened yet, among the scanner's unexplored: the ground behind it is still to see.</summary>
+        public static string UnopenedDoor => T("Unopened door", "Puerta sin abrir");
+
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
 

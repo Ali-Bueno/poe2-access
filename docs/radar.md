@@ -84,6 +84,15 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
     1" by the `sounds` command): a town has no lost hint, and no ray met unseen ground in the caravan.
   Not built, offered to the user: a spoken look at the map on a key ("seen 40 percent; much left north and east"), and a
   word when a branch walked into soon ends.
+- **Doors not opened** (2026-11-14; the user, of the Lost City: the way to the Buried Shrines "estaba bien escondido dentro de
+  la ciudad"). The ground behind a shut door is out of reach, so it was no unexplored ground: nothing marked it, the explored
+  share fell from 83 to 65 percent as doors opened, and the door itself had no sound. A door the player opens, seen shut and not
+  opened since, is now a place still to explore (`ClosedDoors`, kept for the area; forgotten once opened or gone from beside the
+  player): the scanner lists "Puerta sin abrir" after the ground that goes on and before what soon ends (`ExplorationMap.Rank`),
+  the glance at the map names it among its stretches, and the hint over seen ground leads to the nearest one once no ground
+  goes on (`EntityCatalog.UnexploredCells`). Near it, its own sound ([game audio](research/game-audio.md#a-door-to-open-2026-11-14)).
+  Unit-tested; not walked in a game yet. Not done: the radar's own reading of a door on a ray (D2R's double knock), and doors
+  kept between visits to an area.
 - **Hint when lost** (`LostHint`, `LostWatch`; settings `LostHint`, `LostHintSeconds`, at the object sounds' volume): the
   D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's 44.1 kHz, shipped in
   `assets/loops/`) is not a constant loop any more (user 2026-11-05: the radar is what explores). After 180 s spent
@@ -154,7 +163,7 @@ Whether the steps could tell road from plain ground was looked into and left: [g
 
 ## Not ported yet
 
-Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat, the "inside unexplored room" cue. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.
+A door on a radar ray (no door bit in PoE2's walkable grid; a shut door sounds as an object instead, see Unexplored ground), small-obstacle timbre, wall repeat, the "inside unexplored room" cue. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.
 
 ## Settings
 

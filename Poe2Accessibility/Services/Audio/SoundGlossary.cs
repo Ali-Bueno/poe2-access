@@ -115,7 +115,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
 
-            this.AddGame(gameSounds, rate, "exit", "portal", "waypoint", "checkpoint", MinimapMarks.StashKind, MinimapMarks.WellKind, MinimapMarks.SignKind, OpenedWays.Kind, "chest", "corpse", "breakable", "switch", "shrine", "ritual");
+            this.AddGame(gameSounds, rate, "exit", "portal", "waypoint", "checkpoint", MinimapMarks.StashKind, MinimapMarks.WellKind, MinimapMarks.SignKind, OpenedWays.Kind, ClosedDoors.Kind, "chest", "corpse", "breakable", "switch", "shrine", "ritual");
             this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
             this.Add("npc_quest", CueSynth.Ring(rate));
             this.Add("player", CueSynth.Enemy(CueSynth.Layer.Player, rate));

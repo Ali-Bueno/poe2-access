@@ -62,6 +62,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Chests and bodies heard at once, nearest first: they were heard one at a time (user 2026-10-28).</summary>
         private const int MaxChestVoices = 6;
 
+        /// <summary>Shut doors heard at once, nearest first: a hall's two or three, each on its side (a first guess, not heard yet).</summary>
+        private const int MaxDoorVoices = 3;
+
         /// <summary>A crowd's voices (chests, breakables) never start within this time of each other, so a cluster is heard as several.</summary>
         private const int CrowdGapMs = 70;
 
@@ -88,6 +91,7 @@ namespace Poe2Accessibility.Services
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
             ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
+            ("doors", MaxDoorVoices, entry => SoundKind(entry) == ClosedDoors.Kind),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
@@ -300,8 +304,8 @@ namespace Poe2Accessibility.Services
 
         private static float ReachOf(ScanEntry entry) => RangeOf(entry) + ProximityFade.TailWorld;
 
-        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and it or a lever can sound as a quest object.</summary>
-        private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind ? entry.Sound : entry.Kind;
+        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and sounds as a quest object or a door to open; a lever as a quest object.</summary>
+        private static string SoundKind(ScanEntry entry) => entry.Sound is MinimapMarks.QuestObjectKind or ClosedDoors.Kind ? entry.Sound : entry.Kind;
 
         private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? SoundKind(entry) switch
         {
@@ -322,6 +326,7 @@ namespace Poe2Accessibility.Services
             MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
+            ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),
             "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,

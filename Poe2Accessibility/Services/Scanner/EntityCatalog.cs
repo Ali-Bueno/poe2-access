@@ -50,6 +50,11 @@ namespace Poe2Accessibility.Services
         private readonly GridSamples grid = new(MaxSamples, SampleMs);
         /// <summary>Closed barriers seen in this area by entity id (grid position), kept past the network bubble.</summary>
         private readonly Dictionary<uint, Vector2> closedBarriers = new();
+        private readonly ClosedDoors doors = new();
+        private (string Area, string Language, string[] Texts, IReadOnlyCollection<string> Names) leadsTo = (string.Empty, string.Empty, Array.Empty<string>(), Array.Empty<string>());
+
+        /// <summary>Where each quest step leads, by the game's tables (set by the plugin).</summary>
+        public QuestGoalCatalog QuestGoals { get; set; } = QuestGoalCatalog.Empty;
         private readonly object samplesLock = new();
 
         /// <summary>Where each sample of the live grid is read (<see cref="ReadLiveGrid"/>); never a sample itself.</summary>

@@ -38,6 +38,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | well | General_Gameplay | Wellwell_FX_Well_03 (water, 0.8 s, bright: centroid 5 kHz, apart from every other cue; the heal `WellRefill_UI_HealNew_*` sits in the chest's band and was not taken) |
 | sign | BookandQuillPetMTX | BookandQuillPet_IdleRelaxed01_FlipPages_01 (pages turned, 0.9 s; see [signs](#signs-2026-11-12)) |
 | opened_way | ExitDoorArena | Environment_Sanctum_EntranceDoor_Impact_01 (the Trial's entrance door striking home, cut to 1.5 s; the user's pick, see [an opened way](#an-opened-way-2026-11-12)) |
+| closed_door | PrecursorDoor | PrecursorDoor_Mechanic_01 (a door's mechanism clicking, 0.26 s; the user's pick, see [a door to open](#a-door-to-open-2026-11-14)) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
@@ -257,3 +258,22 @@ apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB
   twice the speed at the same pitch (ffmpeg `atempo=2`), held 0.22 s then decaying (tau 0.17 s) to 0.85 s. Three other
   takes (1.5x same pitch, 1.5x and 2x as a sampler) are on the page above.
 - The loader caps every sound at 0.9 s (`GameSoundSeconds`), so a longer recording is cut there.
+
+## A door to open (2026-11-14)
+A door the player opens (`Metadata/MiscellaneousObjects/Door` and what extends it: `TriggerableBlockage` with `start_blocked`, a
+client `Targetable`, `display_text = "ObjectDisplayTextDoor"`; opening it runs `DisableTargetable()`) was listed among the
+objects as "Puerta" with no sound, so it was found only when the game's target fell on it ("Puerta, A" eleven times in the
+user's 25 minutes of the Lost City, where the way to the Buried Shrines lay behind such doors). Now a shut one sounds where it
+stands, like the other objects: the three nearest, each on its side (`ObjectSounds`, group `doors`; the entry keeps the kind
+"barrier" for the guide and carries the sound in `ScanEntry.Sound`, `ClosedDoors.Kind`). Its volume and its line in the
+glossary are "Puerta por abrir". A barrier that opens on its own keeps [its own sound](#an-opened-way-2026-11-12).
+
+The sound is the user's pick, **F** ("me gustó el f"): nine recordings of the game were put on an
+[audition page](https://claude.ai/artifact/Jyzw6oyJDmmMoMLsvdZYJA), each once and repeated as on a walk toward the door, beside
+the exit, the opened way, the lever, the chest, the stash, the checkpoint, the quest item, the breakable and the sign. By bank
+and sample: A `ChurchDoor` `Arastas_SmallDoorDoorOpen`, B `ChurchDoor` `Environment_Arastas_ChurchDoor_Open_WoodSqueak_01`, C
+`ChurchDoor` `…_Open_Mech_01`, D `G1_15_Doors` `MTX_Hideout_VampiricManor_Doors_Squeaks_01`, E `BossArena_Doors`
+`Doors_CrowbellArena_WoodImpact2_06`, F `PrecursorDoor` `PrecursorDoor_Mechanic_01` (picked: 0.26 s, 90% of its energy
+within 0.16 s), G `VaultDoor` `Open_01`, H `G2_4_2_KethDoor` `Slow_A` (the Lost City's own door opening, 3.5 s of low stone),
+I `G1_15_Doors` `…_Doors_MetalRattle_01`. Levelled to RMS 0.10 as on the page. Not heard in a game yet. The sounds step is
+version 11, so every install extracts again once.

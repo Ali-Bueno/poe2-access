@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Numerics;
     using Poe2Accessibility.Services;
     using static Check;
@@ -14,7 +15,47 @@ namespace Poe2Accessibility.Tests
             (nameof(ADeadEndBesideUnseenGroundIsNoGroundThatGoesOn), ADeadEndBesideUnseenGroundIsNoGroundThatGoesOn),
             (nameof(UnseenGroundIsSizedAndTheRadarMarksWhatGoesOnFirst), UnseenGroundIsSizedAndTheRadarMarksWhatGoesOnFirst),
             (nameof(ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround), ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround),
+            (nameof(ADoorNotOpenedIsAWayStillToTry), ADoorNotOpenedIsAWayStillToTry),
+            (nameof(TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions), TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions),
         };
+
+        private static void ADoorNotOpenedIsAWayStillToTry()
+        {
+            const float worldPerCell = 10f;
+            var doors = new ClosedDoors();
+            doors.Shut(7, new Vector3(4000, 0, 0));
+            doors.Shut(8, new Vector3(500, 0, 0));
+            doors.Shut(9, new Vector3(90, 0, 0));
+            Equal("9 8 7", string.Join(" ", doors.Nearest(Vector2.Zero).Select(door => door.Id)), "nearest first");
+            doors.Forget(8);
+            Equal(2, doors.Count, "an opened door is no longer one to try");
+            // Door 9 stands beside the player and the game no longer has it; door 7 is past the bubble, where nothing is awake.
+            doors.ForgetGone(id => false, Vector2.Zero, worldPerCell);
+            Equal("7", string.Join(" ", doors.Nearest(Vector2.Zero).Select(door => door.Id)), "a door gone from beside the player is dropped, a far one kept");
+            doors.Shut(9, new Vector3(90, 0, 0));
+            doors.ForgetGone(id => true, Vector2.Zero, worldPerCell);
+            Equal(2, doors.Count, "a near door still awake stays");
+            Equal(true, ExplorationMap.Rank(string.Empty) < ExplorationMap.Rank(ClosedDoors.Kind) && ExplorationMap.Rank(ClosedDoors.Kind) < ExplorationMap.Rank(ExplorationMap.SmallKind),
+                "after the ground that goes on, before what soon ends");
+        }
+
+        private static void TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions()
+        {
+            var entries = new[]
+            {
+                new ScanEntry(1, ScanCategory.Exits, "Keth", 0, 0, 0, QuestMatcher.ExitKind),
+                new ScanEntry(0x80000001, ScanCategory.Exits, "Santuarios enterrados", 900, 0, 0),
+                new ScanEntry(2, ScanCategory.Npcs, "Zarka", 5, 0, 0),
+            };
+            var texts = new[] { "Encuentra el Santuario en el corazón de Keth" };
+            string Names(IReadOnlyCollection<string>? leadsTo) =>
+                string.Join(" | ", QuestMatcher.Targets(entries, texts, "La ciudad perdida", "Keth", leadsTo: leadsTo).Select(entry => entry.Name));
+            Equal("Keth", Names(null), "by the words alone, the exit back");
+            Equal("Santuarios enterrados", Names(new[] { "Santuarios enterrados" }), "the step ends on entering the Buried Shrines: its exit, seen or not");
+            Equal("Keth", Names(Array.Empty<string>()), "tables that say nothing change nothing");
+            var named = QuestMatcher.Targets(entries, new[] { "Habla con Zarka en Keth" }, "La ciudad perdida", "Keth", leadsTo: new[] { "Santuarios enterrados" });
+            Equal("Zarka | Santuarios enterrados", string.Join(" | ", named.Select(entry => entry.Name)), "whom the text names stays a target");
+        }
 
         private static void ADeadEndBesideUnseenGroundIsNoGroundThatGoesOn()
         {

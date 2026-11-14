@@ -28,10 +28,19 @@ namespace Poe2Accessibility.Services
         /// </param>
         /// <param name="cameFrom">The area the player entered this one from: the exit there is the way back.</param>
         /// <param name="memo">What an earlier call worked out for the same objective, for a caller that asks many times a second.</param>
-        public static List<ScanEntry> Targets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "", string cameFrom = "", Memo? memo = null)
+        /// <param name="leadsTo">
+        ///     The areas next door that the step leads through, by the game's own tables (<see cref="QuestGoalCatalog"/>), as the
+        ///     exits name them; empty when the tables do not say. Their exits are the target, and an exit elsewhere that the
+        ///     text only mentions is not: "Encuentra el Santuario en el corazón de Keth" made the exit back to Keth the
+        ///     target in the Lost City (user 2026-11-14).
+        /// </param>
+        public static List<ScanEntry> Targets(
+            IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "", string cameFrom = "", Memo? memo = null,
+            IReadOnlyCollection<string>? leadsTo = null)
         {
             var objective = memo?.For(questTexts, currentArea) ?? new Objective(questTexts, currentArea);
             var texts = objective.Texts;
+            var steps = leadsTo is { Count: > 0 } ? leadsTo.Select(Fold).ToHashSet() : null;
             // What the minimap marks with the quest's own icon is the objective, whatever the tracker says.
             var targets = entries.Where(entry => entry.QuestMarked).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
             if (texts.Count == 0)
@@ -47,7 +56,8 @@ namespace Poe2Accessibility.Services
                 // A sign names the place it points to ("Pueblo de Ogham" by the road), it is not that place (user 2026-10-28).
                 if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
                     entry.Kind == MinimapMarks.SignKind ||
-                    (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
+                    (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)) ||
+                    (steps != null && IsAreaExit(entry)))
                 {
                     continue;
                 }
@@ -66,6 +76,12 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            if (steps != null)
+            {
+                targets.AddRange(entries.Where(entry => IsAreaExit(entry) && steps.Contains(Fold(entry.Name)) && targets.All(target => target.Id != entry.Id))
+                    .Select(entry => entry with { Category = ScanCategory.Quest }));
+            }
+
             // "Sigue a través del Enredo sombrío" names only the area the player is in: crossing it, the way on is every
             // exit but the one back, and while none is known, the unexplored ground nearest, where it will be (the marker
             // stayed empty and the exit was lost, user 2026-10-29).
@@ -79,6 +95,9 @@ namespace Poe2Accessibility.Services
 
             return targets;
         }
+
+        /// <summary>An exit to another area: the game's own, or the tile the radar table names after the area it leads to.</summary>
+        private static bool IsAreaExit(ScanEntry entry) => entry.Category == ScanCategory.Exits && entry.Kind is ExitKind or "";
 
         /// <summary>Which part of an entry's name the objective is asked about.</summary>
         internal enum NamePart

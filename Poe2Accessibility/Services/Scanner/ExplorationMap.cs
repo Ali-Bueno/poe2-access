@@ -23,8 +23,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A scanner entry's kind for unseen ground that soon ends (<see cref="UnseenSize.Small"/>).</summary>
         public const string SmallKind = "small_unexplored";
 
-        /// <summary>Where a scanner entry of the unexplored category stands among them by its kind: ground that goes on, then what soon ends, then nooks.</summary>
-        public static int Rank(string kind) => kind == PocketKind ? 2 : kind == SmallKind ? 1 : 0;
+        /// <summary>
+        ///     Where a scanner entry of the unexplored category stands among them by its kind: ground that goes on, then a door
+        ///     not opened yet (<see cref="ClosedDoors"/>: it may be the way on), then what soon ends, then nooks.
+        /// </summary>
+        public static int Rank(string kind) => kind == PocketKind ? 3 : kind == SmallKind ? 2 : kind == ClosedDoors.Kind ? 1 : 0;
 
 
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>

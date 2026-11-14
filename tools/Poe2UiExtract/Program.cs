@@ -491,6 +491,12 @@ public static class Extractor
             return OnIndex(args[1], index => EndgameExtractor.Run(index, args[2]));
         }
 
+        // Args: quest-goals <gameDir> <outFile>  -- the areas each quest tracker line ends on entering, per language, and the areas' connections.
+        if (args.Length > 2 && string.Equals(args[0], "quest-goals", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => QuestGoalExtractor.Run(index, args[2]));
+        }
+
         // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
         if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
         {

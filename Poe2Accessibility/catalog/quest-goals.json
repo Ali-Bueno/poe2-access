@@ -1,0 +1,7263 @@
+{
+  "connections": {
+    "Abyss_Hub": [
+      "Abyss_Intro"
+    ],
+    "Abyss_Intro": [
+      "G2_5_1",
+      "Abyss_Hub"
+    ],
+    "BossRush_Area1": [
+      "BossRush_Area2"
+    ],
+    "BossRush_Area2": [
+      "BossRush_Area1",
+      "BossRush_Area3"
+    ],
+    "BossRush_Area3": [
+      "BossRush_Area2"
+    ],
+    "ExpeditionSubArea_Kalguur_Act1": [
+      "G1_4"
+    ],
+    "ExpeditionSubArea_Kalguur_Act2": [
+      "G2_town"
+    ],
+    "ExpeditionSubArea_Kalguur_Act3": [
+      "G3_2_1"
+    ],
+    "G1_1": [
+      "G1_town"
+    ],
+    "G1_10": [
+      "G1_4"
+    ],
+    "G1_11": [
+      "G1_7",
+      "G1_13_1",
+      "G1_12"
+    ],
+    "G1_12": [
+      "G1_11"
+    ],
+    "G1_13_1": [
+      "G1_11",
+      "G1_13_2"
+    ],
+    "G1_13_2": [
+      "G1_13_1",
+      "G1_14"
+    ],
+    "G1_14": [
+      "G1_13_2",
+      "G1_15"
+    ],
+    "G1_15": [
+      "G1_14"
+    ],
+    "G1_2": [
+      "G1_town",
+      "G1_3",
+      "G1_4"
+    ],
+    "G1_3": [
+      "G1_2"
+    ],
+    "G1_4": [
+      "G1_2",
+      "G1_5",
+      "G1_6",
+      "ExpeditionSubArea_Kalguur_Act1"
+    ],
+    "G1_5": [
+      "G1_4"
+    ],
+    "G1_6": [
+      "G1_4",
+      "G1_7"
+    ],
+    "G1_7": [
+      "G1_6",
+      "G1_8",
+      "G1_11",
+      "G1_9"
+    ],
+    "G1_8": [
+      "G1_7"
+    ],
+    "G1_9": [
+      "G1_7"
+    ],
+    "G1_town": [
+      "G1_1",
+      "G1_2",
+      "G2_1"
+    ],
+    "G2_1": [
+      "G1_town",
+      "G2_town"
+    ],
+    "G2_10_1": [
+      "G2_town",
+      "G2_10_2"
+    ],
+    "G2_10_2": [
+      "G2_10_1"
+    ],
+    "G2_11": [
+      "G2_town"
+    ],
+    "G2_12": [
+      "G2_town"
+    ],
+    "G2_13": [
+      "G2_town"
+    ],
+    "G2_2": [
+      "G2_town",
+      "G2_3"
+    ],
+    "G2_3": [
+      "G2_2",
+      "G2_town"
+    ],
+    "G2_3a": [
+      "G2_town"
+    ],
+    "G2_3s": [
+      "G2_town"
+    ],
+    "G2_4_1": [
+      "G2_town",
+      "G2_4_2"
+    ],
+    "G2_4_2": [
+      "G2_4_1",
+      "G2_4_3"
+    ],
+    "G2_4_3": [
+      "G2_4_2"
+    ],
+    "G2_5_1": [
+      "G2_town",
+      "G2_5_2",
+      "Abyss_Intro"
+    ],
+    "G2_5_2": [
+      "G2_5_1"
+    ],
+    "G2_6": [
+      "G2_town",
+      "G2_7"
+    ],
+    "G2_7": [
+      "G2_6"
+    ],
+    "G2_8": [
+      "G2_town",
+      "G2_9_1"
+    ],
+    "G2_9_1": [
+      "G2_8",
+      "G2_9_2"
+    ],
+    "G2_9_2": [
+      "G2_9_1"
+    ],
+    "G2_town": [
+      "G2_1",
+      "G2_2",
+      "G2_4_1",
+      "G2_5_1",
+      "G2_6",
+      "G2_8",
+      "G2_10_1",
+      "G2_11",
+      "G2_12",
+      "G2_13",
+      "G2_3a",
+      "G3_1",
+      "ExpeditionSubArea_Kalguur_Act2"
+    ],
+    "G3_1": [
+      "G2_town",
+      "G3_town"
+    ],
+    "G3_10": [
+      "G3_10_Airlock"
+    ],
+    "G3_10_Airlock": [
+      "G3_5",
+      "G3_10"
+    ],
+    "G3_11": [
+      "G3_8"
+    ],
+    "G3_12": [
+      "G3_town"
+    ],
+    "G3_14": [
+      "G3_town",
+      "G3_16"
+    ],
+    "G3_16": [
+      "G3_14",
+      "G3_17"
+    ],
+    "G3_17": [
+      "G3_16"
+    ],
+    "G3_2_1": [
+      "G3_3",
+      "G3_5",
+      "ExpeditionSubArea_Kalguur_Act3"
+    ],
+    "G3_2_2": [
+      "G3_3",
+      "G3_7"
+    ],
+    "G3_3": [
+      "G3_town",
+      "G3_2_1",
+      "G3_2_2",
+      "G3_4"
+    ],
+    "G3_4": [
+      "G3_3"
+    ],
+    "G3_5": [
+      "G3_2_1",
+      "G3_6_1",
+      "G3_10_Airlock"
+    ],
+    "G3_6_1": [
+      "G3_5",
+      "G3_6_2"
+    ],
+    "G3_6_2": [
+      "G3_6_1"
+    ],
+    "G3_7": [
+      "G3_2_2"
+    ],
+    "G3_8": [
+      "G3_town",
+      "G3_9",
+      "G3_11"
+    ],
+    "G3_9": [
+      "G3_8"
+    ],
+    "G3_town": [
+      "G3_1",
+      "G3_3",
+      "G3_12",
+      "G3_14",
+      "G3_8"
+    ],
+    "G4_10": [
+      "G4_8b"
+    ],
+    "G4_11_1a": [
+      "G4_town"
+    ],
+    "G4_11_1b": [
+      "G4_town",
+      "G4_11_2"
+    ],
+    "G4_11_2": [
+      "G4_11_1b"
+    ],
+    "G4_12": [
+      "G4_town"
+    ],
+    "G4_13": [
+      "G4_town"
+    ],
+    "G4_14": [
+      "G4_town"
+    ],
+    "G4_1_1": [
+      "G4_town",
+      "G4_1_2"
+    ],
+    "G4_1_2": [
+      "G4_1_1"
+    ],
+    "G4_2_1": [
+      "G4_town",
+      "G4_2_2"
+    ],
+    "G4_2_2": [
+      "G4_2_1"
+    ],
+    "G4_3_1": [
+      "G4_town",
+      "G4_3_2"
+    ],
+    "G4_3_2": [
+      "G4_3_1"
+    ],
+    "G4_4_1": [
+      "G4_town",
+      "G4_4_2"
+    ],
+    "G4_4_2": [
+      "G4_4_1",
+      "G4_4_3"
+    ],
+    "G4_4_3": [
+      "G4_4_2"
+    ],
+    "G4_5_1": [
+      "G4_town",
+      "G4_5_2"
+    ],
+    "G4_5_2": [
+      "G4_5_1"
+    ],
+    "G4_6": [
+      "G4_town"
+    ],
+    "G4_7": [
+      "G4_town"
+    ],
+    "G4_8a": [
+      "G4_town"
+    ],
+    "G4_8b": [
+      "G4_town",
+      "G4_10"
+    ],
+    "G4_9_": [
+      "G4_town"
+    ],
+    "G4_town": [
+      "G3_town",
+      "G4_1_1",
+      "G4_2_1",
+      "G4_3_1",
+      "G4_4_1",
+      "G4_5_1",
+      "G4_6",
+      "G4_7",
+      "G4_8a",
+      "G4_8b",
+      "G4_9_",
+      "G4_11_1a",
+      "G4_11_1b",
+      "G4_13",
+      "G4_14",
+      "MapHideoutShoreline_Claimable"
+    ],
+    "MapHideoutShoreline_Claimable": [
+      "G4_town"
+    ],
+    "P1_1": [
+      "P1_Town",
+      "P1_2",
+      "P1_3"
+    ],
+    "P1_2": [
+      "P1_1"
+    ],
+    "P1_3": [
+      "P1_1",
+      "P1_4"
+    ],
+    "P1_4": [
+      "P1_3",
+      "P1_5",
+      "P1_6"
+    ],
+    "P1_5": [
+      "P1_4"
+    ],
+    "P1_6": [
+      "P1_4"
+    ],
+    "P1_Town": [
+      "P1_1"
+    ],
+    "P2_1": [
+      "P2_Town",
+      "P2_2",
+      "P2_5"
+    ],
+    "P2_2": [
+      "P2_1",
+      "P2_3"
+    ],
+    "P2_3": [
+      "P2_2"
+    ],
+    "P2_5": [
+      "P2_1",
+      "P2_6"
+    ],
+    "P2_6": [
+      "P2_5",
+      "P2_7"
+    ],
+    "P2_7": [
+      "P2_6"
+    ],
+    "P2_Town": [
+      "P2_1"
+    ],
+    "P3_1": [
+      "P3_Town",
+      "P3_2"
+    ],
+    "P3_2": [
+      "P3_1",
+      "P3_3"
+    ],
+    "P3_3": [
+      "P3_2",
+      "P3_4",
+      "P3_5"
+    ],
+    "P3_4": [
+      "P3_3"
+    ],
+    "P3_5": [
+      "P3_3",
+      "P3_6"
+    ],
+    "P3_6": [
+      "P3_5",
+      "P3_7"
+    ],
+    "P3_7": [
+      "P3_6"
+    ],
+    "P3_Town": [
+      "P3_1"
+    ]
+  },
+  "goals": {
+    "de": {
+      "Aktiviert den Deliriumspiegel.": [
+        "G_Endgame_Town"
+      ],
+      "Aktiviert den Spiegel.": [
+        "G_Endgame_Town"
+      ],
+      "Befreit den Mann.": [
+        "G_Endgame_Town"
+      ],
+      "Befreit den Ältesten Madox.": [
+        "G_Endgame_Town"
+      ],
+      "Beginnt Eure Prüfung der Stärke.": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "Beginnt das Simulakrum.": [
+        "G_Endgame_Town"
+      ],
+      "Bekämpft den Wahnsinn.": [
+        "G_Endgame_Town"
+      ],
+      "Benutzt die Wüstenkarte und reist nach Deshar.": [
+        "G2_8"
+      ],
+      "Benutzt die Wüstenkarte und reist zur Festungskarawane.": [
+        "G2_12"
+      ],
+      "Benutzt die Wüstenkarte，um in die Mastodon-Ödlande zu reisen.": [
+        "G2_5_1"
+      ],
+      "Benutzt die Wüstenkarte，um ins Tal der Titanen zu reisen.": [
+        "G2_6"
+      ],
+      "Benutzt die Wüstenkarte，um nach Keth zu reisen.": [
+        "G2_4_1"
+      ],
+      "Benutzt die Wüstenkarte，um zum Mawdun-Steinbruch zu reisen.": [
+        "G2_10_1"
+      ],
+      "Benutzt die Wüstenkarte，um zur Klamm der Verräterin zu reisen.": [
+        "G2_2"
+      ],
+      "Benutzt die Wüstenkarte，um zur Prüfung der Sekhemas zu reisen.": [
+        "G2_13"
+      ],
+      "Besiegt Xesht, Wir die Eins sind.": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt deliriöse Kartenbosse (0/5).": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt deliriöse Kartenbosse (1/5).": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt deliriöse Kartenbosse (2/5).": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt deliriöse Kartenbosse (3/5).": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt deliriöse Kartenbosse (4/5).": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt den Rabenschwindler.": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt die Schwarmgeborenen.": [
+        "G_Endgame_Town"
+      ],
+      "Besiegt die doppelten deliriösen Bosse.": [
+        "G_Endgame_Town"
+      ],
+      "Betretet Holten.": [
+        "P1_4"
+      ],
+      "Betretet Jiquanis Machinarium.": [
+        "G3_6_1"
+      ],
+      "Betretet Qimah.": [
+        "P2_6"
+      ],
+      "Betretet Utzaal in der Vergangenheit.": [
+        "G3_14"
+      ],
+      "Betretet auf der Suche nach Asinia das Grabmal der Gemahlin.": [
+        "G1_9"
+      ],
+      "Betretet das Anwesen Holten.": [
+        "P1_6"
+      ],
+      "Betretet das Dorf Kriar.": [
+        "P3_2"
+      ],
+      "Betretet das Dunkle Reich.": [
+        "Abyss_Boss2"
+      ],
+      "Betretet das Ende der Welt.": [
+        "G4_2_2"
+      ],
+      "Betretet das Geschmolzene Gewölbe.": [
+        "G3_9"
+      ],
+      "Betretet das Herz des Stammes.": [
+        "G4_11_2"
+      ],
+      "Betretet das Mausoleum.": [
+        "G1_8"
+      ],
+      "Betretet das Portal und trefft die Mutter.": [
+        "G4_4_3"
+      ],
+      "Betretet das Qimah-Reservoir.": [
+        "P2_7"
+      ],
+      "Betretet das Sel-Khari-Heiligtum.": [
+        "P2_3"
+      ],
+      "Betretet das Verzerrte Reich.": [
+        "G_Endgame_Town"
+      ],
+      "Betretet den Aschfahlen Wald.": [
+        "P3_1"
+      ],
+      "Betretet den Brunnen der Seelen.": [
+        "G2_town"
+      ],
+      "Betretet den Gipfel des Unflats und sucht nach einem Schlüssel.": [
+        "G3_11"
+      ],
+      "Betretet den Gletschersee.": [
+        "P3_3"
+      ],
+      "Betretet den Ort der Abgeschiedenheit.": [
+        "G4_5_2"
+      ],
+      "Betretet den Parakosmos.": [
+        "G_Endgame_Town"
+      ],
+      "Betretet den Schwarzforst.": [
+        "P1_3"
+      ],
+      "Betretet den Tempel von Kopec unterhalb des Schatzjägerlagers.": [
+        "G3_12"
+      ],
+      "Betretet die Aggorat und sucht nach den Schwarzen Kammern.": [
+        "G3_16"
+      ],
+      "Betretet die Ardura-Karawane.": [
+        "G2_town"
+      ],
+      "Betretet die Ausgehöhlte Schlucht.": [
+        "P3_6"
+      ],
+      "Betretet die Ausgrabungsstätte.": [
+        "G4_10"
+      ],
+      "Betretet die Becken von Khatal.": [
+        "P2_2"
+      ],
+      "Betretet die Cuachic-Schatzkammer.": [
+        "P3_7"
+      ],
+      "Betretet die Dschungelruinen，um nach den Matlan-Wasserwegen zu suchen.": [
+        "G3_3"
+      ],
+      "Betretet die Galai-Tore.": [
+        "P2_5"
+      ],
+      "Betretet die Grotte der Titanen über den verschlossenen Eingang.": [
+        "G2_7"
+      ],
+      "Betretet die Hallen der Toten.": [
+        "G4_4_2"
+      ],
+      "Betretet die Heulenden Höhlen.": [
+        "P3_4"
+      ],
+      "Betretet die Jagdgründe.": [
+        "G1_11"
+      ],
+      "Betretet die Kriar-Gipfel.": [
+        "P3_5"
+      ],
+      "Betretet die Lichtlose Leere.": [
+        "Abyss_Boss1"
+      ],
+      "Betretet die Lichtlose Passage.": [
+        "G2_town"
+      ],
+      "Betretet die Matlan-Wasserwege und findet die Kontrollmechanismen.": [
+        "G3_2_2"
+      ],
+      "Betretet die Mawdun-Mine.": [
+        "G2_10_2"
+      ],
+      "Betretet die Singenden Höhlen.": [
+        "G4_3_2"
+      ],
+      "Betretet die Steine von Serle.": [
+        "P1_2"
+      ],
+      "Betretet die Vaal-Ruinen.": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Betretet die Versunkene Stadt und sucht nach der Aggorat.": [
+        "G3_8"
+      ],
+      "Betretet die Vulkanischen Baue.": [
+        "G4_1_2"
+      ],
+      "Betretet die verlorenen Katakomben.": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "Bezwingt die dritte Große Bestie.": [
+        "G_Endgame_Town"
+      ],
+      "Bezwingt die erste Große Bestie.": [
+        "G_Endgame_Town"
+      ],
+      "Bezwingt die vierte Große Bestie.": [
+        "G_Endgame_Town"
+      ],
+      "Bezwingt die zweite Große Bestie.": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sacred Reservoir Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sealed Vault Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sealed Vault Map Complete the Sacred Reservoir Map": [
+        "G_Endgame_Town"
+      ],
+      "Dringt tiefer in das Machinarium vor.": [
+        "G3_6_2"
+      ],
+      "Durchquert die Sandgetränkten Sümpfe auf der Suche nach einer Zikkurat.": [
+        "G3_town"
+      ],
+      "Durchsucht Deshar nach Runensteinen.": [
+        "G2_8"
+      ],
+      "Durchsucht Keth nach Runensteinen.": [
+        "G2_4_1"
+      ],
+      "Durchsucht Lichtfall nach dem Eingang zur Schlammgrube": [
+        "G1_3"
+      ],
+      "Durchsucht Lichtfall nach dem Eingang zur Schlammgrube Tötet den Verschlinger in seinem Versteck.": [
+        "G1_3"
+      ],
+      "Durchsucht das Azak-Moor nach Runensteinen.": [
+        "G3_7"
+      ],
+      "Durchsucht das Düstere Dickicht nach Runensteinen.": [
+        "G1_6"
+      ],
+      "Durchsucht das Freydorn über den Jagdgründen.": [
+        "G1_12"
+      ],
+      "Durchsucht das Rote Tal nach den 3 Runen der Macht.": [
+        "G1_5"
+      ],
+      "Durchsucht die Ackerlande von Ogham nach Runensteinen.": [
+        "G1_13_1"
+      ],
+      "Durchsucht die Dschungelruinen nach Runensteinen.": [
+        "G3_3"
+      ],
+      "Durchsucht die Giftgrüfte nach Runensteinen.": [
+        "G3_4"
+      ],
+      "Durchsucht die Jagdgründe nach Runensteinen.": [
+        "G1_11"
+      ],
+      "Durchsucht die Knochengruben nach Runensteinen.": [
+        "G2_5_2"
+      ],
+      "Erforscht das Grabmal der Gemahlin auf der Suche nach Draven und seiner Gemahlin.": [
+        "G1_9"
+      ],
+      "Erklimmt Deshar.": [
+        "G2_9_1"
+      ],
+      "Erklimmt die Klamm der Verräterin，um den höchsten Punkt der Tore zu erreichen.": [
+        "G2_3"
+      ],
+      "Erkundet das verseuchte Brachland auf der Suche nach den Feuchtlanden der Chimären.": [
+        "G3_5"
+      ],
+      "Erkundet den Parakosmos.": [
+        "G_Endgame_Town"
+      ],
+      "Erkundet die Becken von Khatal.": [
+        "P2_3"
+      ],
+      "Erkundet die Lichtlose Passage.": [
+        "G2_town"
+      ],
+      "Erkundet die Schwarmfestung.": [
+        "G_Endgame_Town"
+      ],
+      "Erreicht Hildas Lagerplatz.": [
+        "G_Endgame_Town"
+      ],
+      "Erreicht das Simulakrum der Wahnvorstellungen.": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "Findet Ailith.": [
+        "G_Endgame_Town"
+      ],
+      "Findet Graf Geonor.": [
+        "G1_15"
+      ],
+      "Findet Hilda.": [
+        "G_Endgame_Town"
+      ],
+      "Findet Unas Laute.": [
+        "G1_6"
+      ],
+      "Findet das Heiligtum im Herzen von Keth.": [
+        "G2_4_3"
+      ],
+      "Findet das Sel-Khari-Heiligtum.": [
+        "P2_2"
+      ],
+      "Findet den Eingang nach Keth，der irgendwo im Sand vergraben ist.": [
+        "G2_4_2"
+      ],
+      "Findet den Eingang zum Roten Tal": [
+        "G1_5"
+      ],
+      "Findet den Eingang zum Roten Tal Sucht im Roten Tal nach den 3 Runen der Macht.": [
+        "G1_5"
+      ],
+      "Findet den Ursprung der abgründigen Spalten.": [
+        "G2_town"
+      ],
+      "Findet die Quelle der Störung.": [
+        "G_Endgame_Town"
+      ],
+      "Findet die Quelle des Gifts der Orok.": [
+        "G3_4"
+      ],
+      "Findet mehr über den seltsamen Baum heraus.": [
+        "G_Endgame_Town"
+      ],
+      "Infiltriert das Herrenhaus jenseits des Dorfes": [
+        "G1_15"
+      ],
+      "Infiltriert das Herrenhaus jenseits des Dorfes Findet Graf Geonor.": [
+        "G1_15"
+      ],
+      "Interagiert mit dem Spiegel.": [
+        "G_Endgame_Town"
+      ],
+      "Interagiert mit dem seltsamen Spiegel.": [
+        "G_Endgame_Town"
+      ],
+      "Kehrt zu Hildas Lagerplatz zurück.": [
+        "G_Endgame_Town"
+      ],
+      "Kehrt zu Verwelkten Weide zurück.": [
+        "G_Endgame_Town"
+      ],
+      "Kehrt zu den Vaal-Ruinen zurück.": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Kehrt zum Eingang des Düsteren Dickichts im Grelwald zurück.": [
+        "G1_6"
+      ],
+      "Kehrt zum Kloster der Hüter zurück.": [
+        "G_Endgame_Town"
+      ],
+      "Kehrt zur Zikkurat-Zuflucht zurück.": [
+        "G_Endgame_Town"
+      ],
+      "Kämpft Euch durch die Aggorat und findet die Schwarzen Kammern.": [
+        "G3_17"
+      ],
+      "Kämpft Euch durch die Schwarmgeborenen": [
+        "G_Endgame_Town"
+      ],
+      "Kämpft Euch mit Ailith durch die Schwarmgeborenen.": [
+        "G_Endgame_Town"
+      ],
+      "Lasst den Fruchtkeim am Genesisbaum heranwachsen.": [
+        "G_Endgame_Town"
+      ],
+      "Legt ein Amulett in die Karaffe des Wahnsinns.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt das Rissfürsten-Kokon auf.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt das Rissfürsten-Kokon von Ailith.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt den Fruchtkeim von Ailith.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt den Riss-Stein von Ailith.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt die Delirium-Tafel vom Ältesten Madox.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt die Flüssigen Emotionen vom Ältesten Madox.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt die Reflexion des Raben an Euch.": [
+        "G_Endgame_Town"
+      ],
+      "Nehmt eine Belohnung von dem Hinekora-Totem.": [
+        "G4_4_3"
+      ],
+      "Platziert die Reflexion des Rabens im Spiegel der Verwelkten Weide.": [
+        "G_Endgame_Town"
+      ],
+      "Reist durch Lichtfall zum Grelwald.": [
+        "G1_4"
+      ],
+      "Reist durch den Pfad der Trauernden.": [
+        "G2_9_2"
+      ],
+      "Reist nach Deshar.": [
+        "G2_8"
+      ],
+      "Reist nach Königsmark.": [
+        "G_Endgame_Town"
+      ],
+      "Reist zu den Ackerlanden von Ogham": [
+        "G1_6"
+      ],
+      "Reist zu den Ackerlanden von Ogham Findet Unas Laute.": [
+        "G1_6"
+      ],
+      "Reist zu den Verbrannten Feldern.": [
+        "P1_1"
+      ],
+      "Reist zum Auge von Hinekora.": [
+        "G4_4_1"
+      ],
+      "Reist zum Dorf Ogham.": [
+        "G1_13_2"
+      ],
+      "Reist zum Kloster der Hüter und sprecht mit dem Träumer.": [
+        "G_Endgame_Town"
+      ],
+      "Reist zum Kloster der Hüter.": [
+        "G_Endgame_Town"
+      ],
+      "Reist zum Tempel des Chaos": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "Reist zum Wegbereiter-Turm.": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "Reist zur Insel Whakapanu.": [
+        "G4_3_1"
+      ],
+      "Reist zur Khari-Querung und sucht den Turm von Ab Binayi.": [
+        "P2_1"
+      ],
+      "Reist zur Khari-Querung.": [
+        "P2_1"
+      ],
+      "Reist zur Schwarmkolonie.": [
+        "G_Endgame_Town"
+      ],
+      "Reist zur Verwelkten Weide.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab. Schließt die Karte 'Heiliges Reservoir' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab. Schließt die Karte 'Heiliges Reservoir' ab. Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab. Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab. Schließt die Karte 'Versiegeltes Gewölbe' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab. Schließt die Karte 'Versiegeltes Gewölbe' ab. Schließt die Karte 'Heiliges Reservoir' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Die Jadeinseln' ab. Schließt die Karte 'Versiegeltes Gewölbe' ab. Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Heiliges Reservoir' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Heiliges Reservoir' ab. Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Versiegeltes Gewölbe' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Versiegeltes Gewölbe' ab. Schließt die Karte 'Heiliges Reservoir' ab. Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Schließt die Karte 'Versiegeltes Gewölbe' ab. Schließt die Karte 'Verfallenes Herrenhaus' ab.": [
+        "G_Endgame_Town"
+      ],
+      "Setzt Euren Weg durch das Düstere Dickicht fort.": [
+        "G1_7"
+      ],
+      "Sprecht mit Ailith, Erste der Hüter, im Kloster der Hüter.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Ailith, Erste der Hüter.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Ailith.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Alva，um nach Königsmark zu reisen.": [
+        "G4_town"
+      ],
+      "Sprecht mit Ange.": [
+        "G4_town"
+      ],
+      "Sprecht mit Ange，um zur Versteckten Küste zu reisen.": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "Sprecht mit Hilda in Eurem Versteck oder Hildas Lagerplatz.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Hilda.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Jado in Eurem Versteck.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Jado.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit Makoru und reist zur Ankerbucht.": [
+        "G4_2_1"
+      ],
+      "Sprecht mit Makoru und segelt zur Plündererklippe.": [
+        "G4_13"
+      ],
+      "Sprecht mit Rhodri，um nach Ngakanu zu segeln.": [
+        "G4_11_1b"
+      ],
+      "Sprecht mit dem Träumer.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit dem Verhüllten in Königsmark und reist zur Zikkurat-Zuflucht.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit dem Verhüllten und reist nach Oriath.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit dem Verhüllten über die Reise nach Ogham.": [
+        "P1_Town"
+      ],
+      "Sprecht mit dem Verhüllten über die Reise zum Basar.": [
+        "P2_Town"
+      ],
+      "Sprecht mit dem Verhüllten über die Reise zum Berg Kriar.": [
+        "P3_Town"
+      ],
+      "Sprecht mit dem rätselhaften Akolythen.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit dem Ältesten Madox in der Verwelkten Weide.": [
+        "G_Endgame_Town"
+      ],
+      "Sprecht mit dem Ältesten Madox.": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisiert Risse (0/5).": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisiert Risse (1/5).": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisiert Risse (2/5).": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisiert Risse (3/5).": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisiert Risse (4/5).": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisiert den Riss.": [
+        "G_Endgame_Town"
+      ],
+      "Sucht im Roten Tal nach den 3 Runen der Macht.": [
+        "G1_5"
+      ],
+      "Sucht in den Mastodon-Ödlanden nach dem Zugang zu den Knochengruben.": [
+        "G2_5_2"
+      ],
+      "Sucht nach der Bedeutung der in den Baum der Seelen eingravierten Runen.": [
+        "G1_6"
+      ],
+      "Take the Breach Tablet from Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Tötet den Verschlinger in seinem Versteck.": [
+        "G1_3"
+      ],
+      "Untersucht das Mausoleum auf der Suche nach Prätor Draven.": [
+        "G1_8"
+      ],
+      "Untersucht das Versiegelte Gewölbe.": [
+        "G_Endgame_Town"
+      ],
+      "Untersucht den Großen Spiegel.": [
+        "G_Endgame_Town"
+      ],
+      "Verbrennt die Verteidigung der Schwarmgeborenen.": [
+        "G_Endgame_Town"
+      ],
+      "Verteidigt Ailith.": [
+        "G_Endgame_Town"
+      ],
+      "Verwendet den Brunnen der Seelen.": [
+        "G2_town"
+      ],
+      "Verwendet den Riss-Stein, um die Riss-Stadt im Atlas aufzudecken.": [
+        "G_Endgame_Town"
+      ],
+      "Verwendet die Wüstenkarte und reist zum Schädel des Titanen.": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "Weiht ein Amulett an der Karaffe des Wahnsinns.": [
+        "G_Endgame_Town"
+      ],
+      "Weist den Fertigkeitspunkt zu.": [
+        "G1_town"
+      ],
+      "Öffnet den Fertigkeitenbaum.": [
+        "G1_town"
+      ],
+      "Öffnet den Fertigkeitenbaum. Weist den Fertigkeitspunkt zu.": [
+        "G1_town"
+      ],
+      "Öffnet den Riss.": [
+        "G_Endgame_Town"
+      ],
+      "Übergebt den Rissfürsten-Kokon an den Träumer.": [
+        "G_Endgame_Town"
+      ],
+      "Übergebt die Leere Tätowierung von Ngamahu an Navali.": [
+        "G4_4_3"
+      ],
+      "Übergebt die Leere Tätowierung von Tasalio an Navali.": [
+        "G4_4_3"
+      ],
+      "Übergebt die Leere Tätowierung von Tawhoa an Navali.": [
+        "G4_4_3"
+      ],
+      "Übersteht die Wahnvorstellungen des Raben.": [
+        "G_Endgame_Town"
+      ]
+    },
+    "en": {
+      "Activate the Delirium Mirror": [
+        "G_Endgame_Town"
+      ],
+      "Activate the Mirror": [
+        "G_Endgame_Town"
+      ],
+      "Anoint the Amulet at the Decanter of Madness": [
+        "G_Endgame_Town"
+      ],
+      "Ascend Deshar": [
+        "G2_9_1"
+      ],
+      "Ascend Traitor's Passage to reach the top of the Gates": [
+        "G2_3"
+      ],
+      "Begin the Simulacrum": [
+        "G_Endgame_Town"
+      ],
+      "Begin your Test of Strength": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "Burn the Hiveborn defenses": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map Complete the Sacred Reservoir Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map Complete the Sacred Reservoir Map Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map Complete the Sealed Vault Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map Complete the Sealed Vault Map Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Jade Isles Map Complete the Sealed Vault Map Complete the Sacred Reservoir Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sacred Reservoir Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sacred Reservoir Map Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sealed Vault Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sealed Vault Map Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sealed Vault Map Complete the Sacred Reservoir Map": [
+        "G_Endgame_Town"
+      ],
+      "Complete the Sealed Vault Map Complete the Sacred Reservoir Map Complete the Derelict Mansion Map": [
+        "G_Endgame_Town"
+      ],
+      "Continue through the Grim Tangle": [
+        "G1_7"
+      ],
+      "Cross the Sandswept Marsh in search of a Ziggurat": [
+        "G3_town"
+      ],
+      "Defeat Delirious Map Bosses (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Defeat Delirious Map Bosses (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Defeat Delirious Map Bosses (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Defeat Delirious Map Bosses (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Defeat Delirious Map Bosses (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Defeat Xesht, We That Are One": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the Hiveborn": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the Raven Trickster": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the Twinned Delirious Bosses": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the first Great Beast": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the fourth Great Beast": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the second Great Beast": [
+        "G_Endgame_Town"
+      ],
+      "Defeat the third Great Beast": [
+        "G_Endgame_Town"
+      ],
+      "Defend Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Enter Aggorat and search for the Black Chambers": [
+        "G3_16"
+      ],
+      "Enter Holten": [
+        "P1_4"
+      ],
+      "Enter Holten Estate": [
+        "P1_6"
+      ],
+      "Enter Jiquani's Machinarium": [
+        "G3_6_1"
+      ],
+      "Enter Journey's End": [
+        "G4_2_2"
+      ],
+      "Enter Kriar Village": [
+        "P3_2"
+      ],
+      "Enter Lightless Passage": [
+        "G2_town"
+      ],
+      "Enter Mawdun Mine": [
+        "G2_10_2"
+      ],
+      "Enter Qimah": [
+        "P2_6"
+      ],
+      "Enter Qimah Reservoir": [
+        "P2_7"
+      ],
+      "Enter Solitary Confinement": [
+        "G4_5_2"
+      ],
+      "Enter The Drowned City and search for Aggorat": [
+        "G3_8"
+      ],
+      "Enter The Matlan Waterways and find the control mechanisms": [
+        "G3_2_2"
+      ],
+      "Enter The Molten Vault": [
+        "G3_9"
+      ],
+      "Enter Utzaal in the past": [
+        "G3_14"
+      ],
+      "Enter the Apex of Filth and search for a key": [
+        "G3_11"
+      ],
+      "Enter the Ardura Caravan": [
+        "G2_town"
+      ],
+      "Enter the Ashen Forest": [
+        "P3_1"
+      ],
+      "Enter the Blackwood": [
+        "P1_3"
+      ],
+      "Enter the Cuachic Vault": [
+        "P3_7"
+      ],
+      "Enter the Dark Domain": [
+        "Abyss_Boss2"
+      ],
+      "Enter the Etched Ravine": [
+        "P3_6"
+      ],
+      "Enter the Excavation": [
+        "G4_10"
+      ],
+      "Enter the Galai Gates": [
+        "P2_5"
+      ],
+      "Enter the Glacial Tarn": [
+        "P3_3"
+      ],
+      "Enter the Halls of the Dead": [
+        "G4_4_2"
+      ],
+      "Enter the Heart of the Tribe": [
+        "G4_11_2"
+      ],
+      "Enter the Howling Caves": [
+        "P3_4"
+      ],
+      "Enter the Hunting Grounds": [
+        "G1_11"
+      ],
+      "Enter the Jungle Ruins to search for The Matlan Waterways": [
+        "G3_3"
+      ],
+      "Enter the Kriar Peaks": [
+        "P3_5"
+      ],
+      "Enter the Lightless Void": [
+        "Abyss_Boss1"
+      ],
+      "Enter the Lost Catacombs": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "Enter the Mausoleum": [
+        "G1_8"
+      ],
+      "Enter the Paracosm": [
+        "G_Endgame_Town"
+      ],
+      "Enter the Pools of Khatal": [
+        "P2_2"
+      ],
+      "Enter the Sel Khari Sanctuary": [
+        "P2_3"
+      ],
+      "Enter the Singing Caverns": [
+        "G4_3_2"
+      ],
+      "Enter the Stones of Serle": [
+        "P1_2"
+      ],
+      "Enter the Temple of Kopec underneath the treasure hunter encampment": [
+        "G3_12"
+      ],
+      "Enter the Titan Grotto at the Clasped Entry": [
+        "G2_7"
+      ],
+      "Enter the Tomb of the Consort in search of Asinia": [
+        "G1_9"
+      ],
+      "Enter the Twisted Domain": [
+        "G_Endgame_Town"
+      ],
+      "Enter the Vaal Ruins": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Enter the Volcanic Warrens": [
+        "G4_1_2"
+      ],
+      "Enter the Well of Souls": [
+        "G2_town"
+      ],
+      "Enter the portal to meet the Mother": [
+        "G4_4_3"
+      ],
+      "Explore Infested Barrens in search of the Chimeral Wetlands": [
+        "G3_5"
+      ],
+      "Explore the Hive Fortress": [
+        "G_Endgame_Town"
+      ],
+      "Explore the Lightless Passage": [
+        "G2_town"
+      ],
+      "Explore the Paracosm": [
+        "G_Endgame_Town"
+      ],
+      "Explore the Pools of Khatal": [
+        "P2_3"
+      ],
+      "Explore the Tomb of the Consort in search of Draven and his Consort": [
+        "G1_9"
+      ],
+      "Fight off the Madness": [
+        "G_Endgame_Town"
+      ],
+      "Fight through Aggorat and find the Black Chambers": [
+        "G3_17"
+      ],
+      "Fight through the Hiveborn": [
+        "G_Endgame_Town"
+      ],
+      "Fight through the Hiveborn with Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Find Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Find Count Geonor": [
+        "G1_15"
+      ],
+      "Find Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Find Una's Lute": [
+        "G1_6"
+      ],
+      "Find out more about the Strange Tree": [
+        "G_Endgame_Town"
+      ],
+      "Find the Sanctum at the heart of Keth": [
+        "G2_4_3"
+      ],
+      "Find the entrance to Keth buried somewhere in the sands": [
+        "G2_4_2"
+      ],
+      "Find the entrance to the Red Vale": [
+        "G1_5"
+      ],
+      "Find the entrance to the Red Vale Search the Red Vale for 3 Runes of Power": [
+        "G1_5"
+      ],
+      "Find the source of the Abyssal fissures": [
+        "G2_town"
+      ],
+      "Find the source of the Orok poison": [
+        "G3_4"
+      ],
+      "Find the source of the disturbance": [
+        "G_Endgame_Town"
+      ],
+      "Free Elder Madox": [
+        "G_Endgame_Town"
+      ],
+      "Free the man": [
+        "G_Endgame_Town"
+      ],
+      "Give the Breachlord Sac to The Dreamer": [
+        "G_Endgame_Town"
+      ],
+      "Go to Ogham Farmlands": [
+        "G1_6"
+      ],
+      "Go to Ogham Farmlands Find Una's Lute": [
+        "G1_6"
+      ],
+      "Grow the Wombgift in The Genesis Tree": [
+        "G_Endgame_Town"
+      ],
+      "Infiltrate the Manor beyond the Village": [
+        "G1_15"
+      ],
+      "Infiltrate the Manor beyond the Village Find Count Geonor": [
+        "G1_15"
+      ],
+      "Interact with the Mirror": [
+        "G_Endgame_Town"
+      ],
+      "Interact with the Strange Mirror": [
+        "G_Endgame_Town"
+      ],
+      "Investigate the Grand Mirror": [
+        "G_Endgame_Town"
+      ],
+      "Investigate the Mausoleum in search of Praetor Draven": [
+        "G1_8"
+      ],
+      "Investigate the Sealed Vault": [
+        "G_Endgame_Town"
+      ],
+      "Locate the Sel Khari Sanctuary": [
+        "P2_2"
+      ],
+      "Open the Breach": [
+        "G_Endgame_Town"
+      ],
+      "Open the Passive Skill Screen": [
+        "G1_town"
+      ],
+      "Open the Passive Skill Screen Spend your Passive Skill Point": [
+        "G1_town"
+      ],
+      "Pick up the Breachlord Sac": [
+        "G_Endgame_Town"
+      ],
+      "Pick up the Raven's Reflection": [
+        "G_Endgame_Town"
+      ],
+      "Place the Raven's Reflection in the Withered Willow's Mirror": [
+        "G_Endgame_Town"
+      ],
+      "Proceed deeper into the Machinarium": [
+        "G3_6_2"
+      ],
+      "Put an Amulet in the Decanter of Madness": [
+        "G_Endgame_Town"
+      ],
+      "Reach Hilda's Campsite": [
+        "G_Endgame_Town"
+      ],
+      "Reach the Simulacrum of Delusion": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "Return to Hilda's Campsite": [
+        "G_Endgame_Town"
+      ],
+      "Return to the Monastery of the Keepers": [
+        "G_Endgame_Town"
+      ],
+      "Return to the Vaal Ruins": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Return to the Withered Willow": [
+        "G_Endgame_Town"
+      ],
+      "Return to the Ziggurat Refuge": [
+        "G_Endgame_Town"
+      ],
+      "Return to the entrance to the Grim Tangle in the Grelwood": [
+        "G1_6"
+      ],
+      "Search Azak Bog for Runestones": [
+        "G3_7"
+      ],
+      "Search Clearfell to find the Mud Burrow entrance": [
+        "G1_3"
+      ],
+      "Search Clearfell to find the Mud Burrow entrance Slay the Devourer in its lair": [
+        "G1_3"
+      ],
+      "Search Deshar for Runestones": [
+        "G2_8"
+      ],
+      "Search Keth for Runestones": [
+        "G2_4_1"
+      ],
+      "Search Ogham Farmlands for Runestones": [
+        "G1_13_1"
+      ],
+      "Search for Freythorn above the Hunting Grounds": [
+        "G1_12"
+      ],
+      "Search for the meaning of the Runes etched into the Tree of Souls": [
+        "G1_6"
+      ],
+      "Search the Bone Pits for Runestones": [
+        "G2_5_2"
+      ],
+      "Search the Grim Tangle for Runestones": [
+        "G1_6"
+      ],
+      "Search the Hunting Grounds for Runestones": [
+        "G1_11"
+      ],
+      "Search the Jungle Ruins for Runestones": [
+        "G3_3"
+      ],
+      "Search the Mastodon Badlands for the entrance to the Bone Pits": [
+        "G2_5_2"
+      ],
+      "Search the Red Vale for 3 Runes of Power": [
+        "G1_5"
+      ],
+      "Search the Red Vale for the 3 Runes of Power": [
+        "G1_5"
+      ],
+      "Search the Venom Crypts for Runestones": [
+        "G3_4"
+      ],
+      "Slay the Devourer in its lair": [
+        "G1_3"
+      ],
+      "Speak to Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Ailith, First of the Keepers": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Ailith, First of the Keepers in the Monastery of the Keepers": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Alva to travel to Kingsmarch": [
+        "G4_town"
+      ],
+      "Speak to Ange": [
+        "G4_town"
+      ],
+      "Speak to Ange to travel to Shoreline Hideout": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "Speak to Elder Madox": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Elder Madox in The Withered Willow": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Hilda in your Hideout or Hilda's Campsite": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Jado": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Jado in your Hideout": [
+        "G_Endgame_Town"
+      ],
+      "Speak to Makoru to sail to Plunder's Point": [
+        "G4_13"
+      ],
+      "Speak to Makoru to travel to Kedge Bay": [
+        "G4_2_1"
+      ],
+      "Speak to Rhodri to sail to Ngakanu": [
+        "G4_11_1b"
+      ],
+      "Speak to The Dreamer": [
+        "G_Endgame_Town"
+      ],
+      "Speak to the Hooded One to travel to Mount Kriar": [
+        "P3_Town"
+      ],
+      "Speak to the Hooded One to travel to Ogham": [
+        "P1_Town"
+      ],
+      "Speak to the Hooded One to travel to Oriath": [
+        "G_Endgame_Town"
+      ],
+      "Speak to the Hooded One to travel to the Bazaar": [
+        "P2_Town"
+      ],
+      "Speak to the Hooded One to travel to the Ziggurat Refuge": [
+        "G_Endgame_Town"
+      ],
+      "Speak to the Mysterious Acolyte": [
+        "G_Endgame_Town"
+      ],
+      "Spend your Passive Skill Point": [
+        "G1_town"
+      ],
+      "Stabilise Breaches (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilise Breaches (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilise Breaches (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilise Breaches (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilise Breaches (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilise the Breach": [
+        "G_Endgame_Town"
+      ],
+      "Survive the Raven's Delusions": [
+        "G_Endgame_Town"
+      ],
+      "Take a Reward from the Hinekora Totem": [
+        "G4_4_3"
+      ],
+      "Take the Amulet from Elder Madox": [
+        "G_Endgame_Town"
+      ],
+      "Take the Breach Tablet from Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Take the Breachlord Sac from Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Take the Breachstone from Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Take the Delirium Tablet from Elder Madox": [
+        "G_Endgame_Town"
+      ],
+      "Take the Liquid Emotions from Elder Madox": [
+        "G_Endgame_Town"
+      ],
+      "Take the Wombgift from Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Travel through Clearfell to the Grelwood": [
+        "G1_4"
+      ],
+      "Travel through the Path of Mourning": [
+        "G2_9_2"
+      ],
+      "Travel to Deshar": [
+        "G2_8"
+      ],
+      "Travel to Kingsmarch": [
+        "G_Endgame_Town"
+      ],
+      "Travel to Ogham Village": [
+        "G1_13_2"
+      ],
+      "Travel to The Withered Willow": [
+        "G_Endgame_Town"
+      ],
+      "Travel to Whakapanu Island": [
+        "G4_3_1"
+      ],
+      "Travel to the Eye of Hinekora": [
+        "G4_4_1"
+      ],
+      "Travel to the Hive Colony": [
+        "G_Endgame_Town"
+      ],
+      "Travel to the Khari Crossing": [
+        "P2_1"
+      ],
+      "Travel to the Khari Crossing and locate the tower of Ab Binayi": [
+        "P2_1"
+      ],
+      "Travel to the Monastery of the Keepers": [
+        "G_Endgame_Town"
+      ],
+      "Travel to the Monastery of the Keepers and Speak to The Dreamer": [
+        "G_Endgame_Town"
+      ],
+      "Travel to the Precursor Tower": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "Travel to the Scorched Farmlands": [
+        "P1_1"
+      ],
+      "Travel to the Temple of Chaos": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "Turn in the Blank Tattoo of Ngamahu to Navali": [
+        "G4_4_3"
+      ],
+      "Turn in the Blank Tattoo of Tasalio to Navali": [
+        "G4_4_3"
+      ],
+      "Turn in the Blank Tattoo of Tawhoa to Navali": [
+        "G4_4_3"
+      ],
+      "Use the Breachstone to reveal the Breach City on your Atlas": [
+        "G_Endgame_Town"
+      ],
+      "Use the Desert Map to travel to Deshar": [
+        "G2_8"
+      ],
+      "Use the Desert Map to travel to Keth": [
+        "G2_4_1"
+      ],
+      "Use the Desert Map to travel to Mawdun Quarry": [
+        "G2_10_1"
+      ],
+      "Use the Desert Map to travel to Skull of the Titan": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "Use the Desert Map to travel to Traitor's Passage": [
+        "G2_2"
+      ],
+      "Use the Desert Map to travel to Valley of the Titans": [
+        "G2_6"
+      ],
+      "Use the Desert Map to travel to the Dreadnought": [
+        "G2_12"
+      ],
+      "Use the Desert Map to travel to the Mastodon Badlands": [
+        "G2_5_1"
+      ],
+      "Use the Desert Map to travel to the Trial of the Sekhemas": [
+        "G2_13"
+      ],
+      "Use the Well of Souls": [
+        "G2_town"
+      ]
+    },
+    "es": {
+      "Abre la fisura": [
+        "G_Endgame_Town"
+      ],
+      "Abre la pantalla de habilidades pasivas": [
+        "G1_town"
+      ],
+      "Abre la pantalla de habilidades pasivas Gasta tu punto de habilidad pasiva": [
+        "G1_town"
+      ],
+      "Accede a Holten": [
+        "P1_4"
+      ],
+      "Accede a Qimah": [
+        "P2_6"
+      ],
+      "Accede a la Cámara Cuachic": [
+        "P3_7"
+      ],
+      "Accede a la Excavación": [
+        "G4_10"
+      ],
+      "Accede a la Finca de Holten": [
+        "P1_6"
+      ],
+      "Accede a las Catacumbas perdidas": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "Accede a las Cavernas aulladoras": [
+        "P3_4"
+      ],
+      "Accede a las Cavernas melodiosas": [
+        "G4_3_2"
+      ],
+      "Accede a las Cumbres de Kriar": [
+        "P3_5"
+      ],
+      "Accede a las Madrigueras volcánicas": [
+        "G4_1_2"
+      ],
+      "Accede a las Piedras de Serle": [
+        "P1_2"
+      ],
+      "Accede a las Puertas de Galai": [
+        "P2_5"
+      ],
+      "Accede a las Ruinas vaal": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Accede a los Estanques de Khatal": [
+        "P2_2"
+      ],
+      "Accede a los Salones de los muertos": [
+        "G4_4_2"
+      ],
+      "Accede al Bosque ceniciento": [
+        "P3_1"
+      ],
+      "Accede al Corazón de la tribu": [
+        "G4_11_2"
+      ],
+      "Accede al Desfiladero grabado": [
+        "P3_6"
+      ],
+      "Accede al Dominio oscuro": [
+        "Abyss_Boss2"
+      ],
+      "Accede al Dominio retorcido": [
+        "G_Endgame_Town"
+      ],
+      "Accede al Embalse de Qimah": [
+        "P2_7"
+      ],
+      "Accede al Final del viaje": [
+        "G4_2_2"
+      ],
+      "Accede al Lago glacial": [
+        "P3_3"
+      ],
+      "Accede al Pasaje oscuro": [
+        "G2_town"
+      ],
+      "Accede al Pozo de las almas": [
+        "G2_town"
+      ],
+      "Accede al Pueblo Kriar": [
+        "P3_2"
+      ],
+      "Accede al Santuario de Sel Khari": [
+        "P2_3"
+      ],
+      "Accede al Taller de máquinas de Jiquani": [
+        "G3_6_1"
+      ],
+      "Accede al Vacío oscuro": [
+        "Abyss_Boss1"
+      ],
+      "Acepta el Amuleto del Anciano Madox": [
+        "G_Endgame_Town"
+      ],
+      "Acepta el Saco de señor de la fisura de Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Acepta el regalo del vientre de Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Acepta la Tablilla de delirio del Anciano Madox": [
+        "G_Endgame_Town"
+      ],
+      "Acepta la piedra de fisura de Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Acepta las emociones líquidas del Anciano Madox": [
+        "G_Endgame_Town"
+      ],
+      "Acepta una recompensa del Tótem de Hinekora": [
+        "G4_4_3"
+      ],
+      "Activa el espejo": [
+        "G_Endgame_Town"
+      ],
+      "Activa el espejo del delirio": [
+        "G_Endgame_Town"
+      ],
+      "Adéntrate más en el Taller de máquinas": [
+        "G3_6_2"
+      ],
+      "Atraviesa Sierraclara y adéntrate en el Bosque singular": [
+        "G1_4"
+      ],
+      "Atraviesa la Ciénaga de arena en busca del Zigurat": [
+        "G3_town"
+      ],
+      "Busca Villafrey encima de los Terrenos de caza": [
+        "G1_12"
+      ],
+      "Busca el significado de las runas grabadas en el Árbol de las almas": [
+        "G1_6"
+      ],
+      "Coloca el Reflejo del Cuervo en el espejo del Sauce marchito": [
+        "G_Endgame_Town"
+      ],
+      "Coloca un amuleto en el Decantador de locura": [
+        "G_Endgame_Town"
+      ],
+      "Combate la locura": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de la Cámara sellada": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de la Cámara sellada Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de la Cámara sellada Completa el mapa del Reservorio sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de la Cámara sellada Completa el mapa del Reservorio sagrado Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade Completa el mapa de la Cámara sellada": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade Completa el mapa de la Cámara sellada Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade Completa el mapa de la Cámara sellada Completa el mapa del Reservorio sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade Completa el mapa del Reservorio sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa de las Islas de jade Completa el mapa del Reservorio sagrado Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa del Reservorio sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Completa el mapa del Reservorio sagrado Completa el mapa de la Mansión ruinosa": [
+        "G_Endgame_Town"
+      ],
+      "Dale el Saco de señor de la fisura al Soñador": [
+        "G_Endgame_Town"
+      ],
+      "Defiende a Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a Xesht, Nosotros que somos uno": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a jefes de mapa del delirio (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a jefes de mapa del delirio (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a jefes de mapa del delirio (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a jefes de mapa del delirio (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a jefes de mapa del delirio (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a la cuarta gran bestia": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a la primera gran bestia.": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a la segunda gran bestia": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a la tercera gran bestia.": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a los jefes gemelos del delirio": [
+        "G_Endgame_Town"
+      ],
+      "Derrota a los nacidos de la colmena": [
+        "G_Endgame_Town"
+      ],
+      "Derrota al Cuervo embaucador": [
+        "G_Endgame_Town"
+      ],
+      "Derrota al Devorador en su guarida": [
+        "G1_3"
+      ],
+      "Descubre más sobre el árbol extraño": [
+        "G_Endgame_Town"
+      ],
+      "Encuentra a Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Encuentra a Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Encuentra al Conde Geonor": [
+        "G1_15"
+      ],
+      "Encuentra el Santuario en el corazón de Keth": [
+        "G2_4_3"
+      ],
+      "Encuentra el laúd de Una": [
+        "G1_6"
+      ],
+      "Encuentra el origen de la perturbación": [
+        "G_Endgame_Town"
+      ],
+      "Encuentra la entrada a Keth que está sepultada en algún lugar de la arena": [
+        "G2_4_2"
+      ],
+      "Encuentra la entrada al Valle rojo": [
+        "G1_5"
+      ],
+      "Encuentra la entrada al Valle rojo Registra el Valle rojo para encontrar las tres runas de poder": [
+        "G1_5"
+      ],
+      "Encuentra la fuente de las fisuras abisales": [
+        "G2_town"
+      ],
+      "Encuentra la fuente del veneno de los Orok": [
+        "G3_4"
+      ],
+      "Entra a Utzaal en el pasado": [
+        "G3_14"
+      ],
+      "Entra a la Caravana de los ardura": [
+        "G2_town"
+      ],
+      "Entra a la Gruta del titán por La entrada cerrada": [
+        "G2_7"
+      ],
+      "Entra a la Mina Mawdun": [
+        "G2_10_2"
+      ],
+      "Entra a la Tumba de la consorte en busca de Asinia": [
+        "G1_9"
+      ],
+      "Entra al Mausoleo": [
+        "G1_8"
+      ],
+      "Entra al portal para reunirte con la Madre": [
+        "G4_4_3"
+      ],
+      "Entra en Aggorat y busca las Cámaras negras": [
+        "G3_16"
+      ],
+      "Entra en el Bosque negro": [
+        "P1_3"
+      ],
+      "Entra en el Confinamiento solitario": [
+        "G4_5_2"
+      ],
+      "Entra en el Paracosmos": [
+        "G_Endgame_Town"
+      ],
+      "Entra en el Templo de Kopec que se encuentra debajo del campamento de los cazadores de tesoros": [
+        "G3_12"
+      ],
+      "Entra en la Ciudad sumergida y busca el Aggorat": [
+        "G3_8"
+      ],
+      "Entra en la Cámara fundida": [
+        "G3_9"
+      ],
+      "Entra en las Ruinas de la jungla y busca los Canales de Matlan": [
+        "G3_3"
+      ],
+      "Entra en los Canales de Matlan y encuentra los mecanismos de control": [
+        "G3_2_2"
+      ],
+      "Entra en los Terrenos de caza": [
+        "G1_11"
+      ],
+      "Entrega el tatuaje en blanco de Ngamahu a Navali": [
+        "G4_4_3"
+      ],
+      "Entrega el tatuaje en blanco de Tasalio a Navali": [
+        "G4_4_3"
+      ],
+      "Entrega el tatuaje en blanco de Tawhoa a Navali": [
+        "G4_4_3"
+      ],
+      "Estabiliza fisuras (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabiliza fisuras (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabiliza fisuras (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabiliza fisuras (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabiliza fisuras (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabiliza la fisura": [
+        "G_Endgame_Town"
+      ],
+      "Explora el Paracosmos": [
+        "G_Endgame_Town"
+      ],
+      "Explora el Pasaje oscuro": [
+        "G2_town"
+      ],
+      "Explora el Páramo de los mastodontes para encontrar la entrada de la Llanura de huesos": [
+        "G2_5_2"
+      ],
+      "Explora el Yermo infestado en busca de los Humedales de las quimerinas": [
+        "G3_5"
+      ],
+      "Explora el Ápice de la inmundicia y busca una llave": [
+        "G3_11"
+      ],
+      "Explora la Fortaleza de la colmena": [
+        "G_Endgame_Town"
+      ],
+      "Explora la Tumba de la consorte para buscar a Draven y a su consorte": [
+        "G1_9"
+      ],
+      "Explora los Estanques de Khatal": [
+        "P2_3"
+      ],
+      "Gasta tu punto de habilidad pasiva": [
+        "G1_town"
+      ],
+      "Habla con Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Ailith, la Primera de los protectores": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Ailith, la Primera de los protectores en el Monasterio de los protectores": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Alva para viajar a Marca del Rey": [
+        "G4_town"
+      ],
+      "Habla con Ange": [
+        "G4_town"
+      ],
+      "Habla con Ange para viajar a la Guarida de ribera": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "Habla con Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Hilda en tu guarida o en el Campamento de Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Jado": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Jado en tu guarida": [
+        "G_Endgame_Town"
+      ],
+      "Habla con Makoru para navegar a Punta del botín": [
+        "G4_13"
+      ],
+      "Habla con Makoru para viajar a la Bahía de las anclas": [
+        "G4_2_1"
+      ],
+      "Habla con Rhodri para navegar a Ngakanu": [
+        "G4_11_1b"
+      ],
+      "Habla con el Acólito misterioso": [
+        "G_Endgame_Town"
+      ],
+      "Habla con el Anciano Madox": [
+        "G_Endgame_Town"
+      ],
+      "Habla con el Anciano Madox en el Sauce marchito": [
+        "G_Endgame_Town"
+      ],
+      "Habla con el Encapuchado para viajar a Ogham": [
+        "P1_Town"
+      ],
+      "Habla con el Encapuchado para viajar a Oriath": [
+        "G_Endgame_Town"
+      ],
+      "Habla con el Encapuchado para viajar al Bazar": [
+        "P2_Town"
+      ],
+      "Habla con el Encapuchado para viajar al Monte Kriar": [
+        "P3_Town"
+      ],
+      "Habla con el Encapuchado para viajar al Refugio del zigurat": [
+        "G_Endgame_Town"
+      ],
+      "Habla con el Soñador": [
+        "G_Endgame_Town"
+      ],
+      "Haz crecer el regalo del vientre en el Árbol del génesis": [
+        "G_Endgame_Town"
+      ],
+      "Infíltrate en la Mansión más allá del pueblo": [
+        "G1_15"
+      ],
+      "Infíltrate en la Mansión más allá del pueblo Encuentra al Conde Geonor": [
+        "G1_15"
+      ],
+      "Inicia el simulacro": [
+        "G_Endgame_Town"
+      ],
+      "Inicia la prueba de fuerza": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "Interactúa con el espejo": [
+        "G_Endgame_Town"
+      ],
+      "Interactúa con el espejo extraño": [
+        "G_Endgame_Town"
+      ],
+      "Investiga el Mausoleo en busca del pretor Draven": [
+        "G1_8"
+      ],
+      "Investiga el espejo grande": [
+        "G_Endgame_Town"
+      ],
+      "Investiga la Cámara sellada": [
+        "G_Endgame_Town"
+      ],
+      "Libera al Anciano Madox": [
+        "G_Endgame_Town"
+      ],
+      "Libera al hombre": [
+        "G_Endgame_Town"
+      ],
+      "Localiza el Santuario de Sel Khari": [
+        "P2_2"
+      ],
+      "Lucha contra los nacidos de la colmena": [
+        "G_Endgame_Town"
+      ],
+      "Pelea contra los nacidos de la colmena con Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Quema las defensas de los nacidos de la colmena": [
+        "G_Endgame_Town"
+      ],
+      "Recoge el Reflejo del cuervo": [
+        "G_Endgame_Town"
+      ],
+      "Recoge el Saco de señor de la fisura": [
+        "G_Endgame_Town"
+      ],
+      "Recorre el Camino del luto": [
+        "G2_9_2"
+      ],
+      "Registra Deshar para encontrar piedras rúnicas": [
+        "G2_8"
+      ],
+      "Registra Keth para encontrar piedras rúnicas": [
+        "G2_4_1"
+      ],
+      "Registra Sierraclara para encontrar la entrada al Lodazal": [
+        "G1_3"
+      ],
+      "Registra Sierraclara para encontrar la entrada al Lodazal Derrota al Devorador en su guarida": [
+        "G1_3"
+      ],
+      "Registra el Enredo sombrío para encontrar piedras rúnicas": [
+        "G1_6"
+      ],
+      "Registra el Pantano de los azak para encontrar piedras rúnicas": [
+        "G3_7"
+      ],
+      "Registra el Valle rojo para encontrar las tres runas de poder": [
+        "G1_5"
+      ],
+      "Registra la Llanura de huesos para encontrar piedras rúnicas": [
+        "G2_5_2"
+      ],
+      "Registra las Criptas venenosas para encontrar piedras rúnicas": [
+        "G3_4"
+      ],
+      "Registra las Ruinas de la jungla para encontrar piedras rúnicas": [
+        "G3_3"
+      ],
+      "Registra las Tierras de cultivo de Ogham para encontrar piedras rúnicas": [
+        "G1_13_1"
+      ],
+      "Registra los Terrenos de caza para encontrar piedras rúnicas": [
+        "G1_11"
+      ],
+      "Regresa a la entrada del Enredo sombrío en el Bosque singular": [
+        "G1_6"
+      ],
+      "Regresa a las Ruinas vaal": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Regresa al Campamento de Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Regresa al Monasterio de los protectores": [
+        "G_Endgame_Town"
+      ],
+      "Regresa al Refugio del zigurat": [
+        "G_Endgame_Town"
+      ],
+      "Regresa al Sauce marchito": [
+        "G_Endgame_Town"
+      ],
+      "Sigue a través del Enredo sombrío": [
+        "G1_7"
+      ],
+      "Sobrevive a las alucinaciones del Cuervo": [
+        "G_Endgame_Town"
+      ],
+      "Sube a Deshar": [
+        "G2_9_1"
+      ],
+      "Sube por el Pasaje de la traidora para llegar a lo alto de las puertas": [
+        "G2_3"
+      ],
+      "Take the Breach Tablet from Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Unge el amuleto en el Decantador de locura": [
+        "G_Endgame_Town"
+      ],
+      "Usa el Mapa del desierto para viajar a Deshar": [
+        "G2_8"
+      ],
+      "Usa el Mapa del desierto para viajar a Keth": [
+        "G2_4_1"
+      ],
+      "Usa el Mapa del desierto para viajar a la Calavera del titán": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "Usa el Mapa del desierto para viajar a la Cantera Mawdun": [
+        "G2_10_1"
+      ],
+      "Usa el Mapa del desierto para viajar a la Prueba de las sekhemas": [
+        "G2_13"
+      ],
+      "Usa el Mapa del desierto para viajar al Acorazado": [
+        "G2_12"
+      ],
+      "Usa el Mapa del desierto para viajar al Pasaje de la traidora": [
+        "G2_2"
+      ],
+      "Usa el Mapa del desierto para viajar al Páramo de los mastodontes": [
+        "G2_5_1"
+      ],
+      "Usa el Mapa del desierto para viajar al Valle de los titanes": [
+        "G2_6"
+      ],
+      "Usa el Pozo de las almas": [
+        "G2_town"
+      ],
+      "Usa la piedra de fisura para revelar la Ciudad de fisura en tu Atlas": [
+        "G_Endgame_Town"
+      ],
+      "Ve al Campamento de Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Ve al Simulacro de alucinación": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "Viaja a Deshar": [
+        "G2_8"
+      ],
+      "Viaja a la Colonia de la colmena": [
+        "G_Endgame_Town"
+      ],
+      "Viaja a la Isla Whakapanu": [
+        "G4_3_1"
+      ],
+      "Viaja a la Torre de los precursores": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "Viaja a las Tierras de cultivo calcinadas": [
+        "P1_1"
+      ],
+      "Viaja a las Tierras de cultivo de Ogham": [
+        "G1_6"
+      ],
+      "Viaja a las Tierras de cultivo de Ogham Encuentra el laúd de Una": [
+        "G1_6"
+      ],
+      "Viaja al Cruce de Khari": [
+        "P2_1"
+      ],
+      "Viaja al Cruce de Khari y localiza la torre de Ab Binayi": [
+        "P2_1"
+      ],
+      "Viaja al Monasterio de los protectores": [
+        "G_Endgame_Town"
+      ],
+      "Viaja al Monasterio de los protectores y habla con el Soñador": [
+        "G_Endgame_Town"
+      ],
+      "Viaja al Ojo de Hinekora": [
+        "G4_4_1"
+      ],
+      "Viaja al Sauce marchito": [
+        "G_Endgame_Town"
+      ],
+      "Viaja al Templo de Caos": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "Viaja al pueblo de Ogham": [
+        "G1_13_2"
+      ],
+      "Viajar a Marca del rey": [
+        "G_Endgame_Town"
+      ],
+      "Ábrete camino luchando en el Aggorat y encuentra las Cámaras negras": [
+        "G3_17"
+      ]
+    },
+    "fr": {
+      "Activez le Miroir": [
+        "G_Endgame_Town"
+      ],
+      "Activez le Miroir du Délire": [
+        "G_Endgame_Town"
+      ],
+      "Allez aux Terres arables d'Ogham": [
+        "G1_6"
+      ],
+      "Allez aux Terres arables d'Ogham Trouvez le luth d'Una": [
+        "G1_6"
+      ],
+      "Atteignez le Campement d'Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Atteignez le Simulacre de l'Illusion": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "Brûlez les défenses des Ruchenés": [
+        "G_Endgame_Town"
+      ],
+      "Cherchez Freyépine au-dessus des Terrains de chasse": [
+        "G1_12"
+      ],
+      "Cherchez dans la Vallée rouge les 3 Runes de pouvoir": [
+        "G1_5"
+      ],
+      "Cherchez des Pierres runiques dans Deshar": [
+        "G2_8"
+      ],
+      "Cherchez des Pierres runiques dans Keth": [
+        "G2_4_1"
+      ],
+      "Cherchez des Pierres runiques dans l'Enchevêtrement sinistre": [
+        "G1_6"
+      ],
+      "Cherchez des Pierres runiques dans le Marais des Azaks": [
+        "G3_7"
+      ],
+      "Cherchez des Pierres runiques dans les Cryptes du Venin": [
+        "G3_4"
+      ],
+      "Cherchez des Pierres runiques dans les Ruines de la jungle": [
+        "G3_3"
+      ],
+      "Cherchez des Pierres runiques dans les Terrains de chasse": [
+        "G1_11"
+      ],
+      "Cherchez des Pierres runiques dans les Terres arables d'Ogham": [
+        "G1_13_1"
+      ],
+      "Cherchez l'entrée des Fosses à ossements dans les Terres ravagées des Mastodontes": [
+        "G2_5_2"
+      ],
+      "Cherchez la signification des Runes gravées dans l'Arbre des Âmes": [
+        "G1_6"
+      ],
+      "Combattez la Folie": [
+        "G_Endgame_Town"
+      ],
+      "Combattez les Ruchenés avec Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Commencez le Simulacre": [
+        "G_Endgame_Town"
+      ],
+      "Commencez votre Test de Force": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "Continuez à travers l'Enchevêtrement sinistre": [
+        "G1_7"
+      ],
+      "Donnez le Sac de Seigneur de Brèche au Rêveur": [
+        "G_Endgame_Town"
+      ],
+      "Découvrez-en plus sur l'Arbre étrange": [
+        "G_Endgame_Town"
+      ],
+      "Défendez Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Dépensez-y votre point de Talent": [
+        "G1_town"
+      ],
+      "Empruntez le portail pour rencontrer la Mère": [
+        "G4_4_3"
+      ],
+      "Entrez dans Holten": [
+        "P1_4"
+      ],
+      "Entrez dans Les Pierres de Serle": [
+        "P1_2"
+      ],
+      "Entrez dans Qimah": [
+        "P2_6"
+      ],
+      "Entrez dans l'Aggorat et recherchez les Chambres noires": [
+        "G3_16"
+      ],
+      "Entrez dans l'Apex des immondices et recherchez une clé": [
+        "G3_11"
+      ],
+      "Entrez dans l'Aqueduc de Matlan et trouvez les mécanismes de contrôle": [
+        "G3_2_2"
+      ],
+      "Entrez dans l'Excavation": [
+        "G4_10"
+      ],
+      "Entrez dans l'Utzaal du passé": [
+        "G3_14"
+      ],
+      "Entrez dans la Caravane des Arduras": [
+        "G2_town"
+      ],
+      "Entrez dans la Chambre forte magmatique": [
+        "G3_9"
+      ],
+      "Entrez dans la Cité engloutie et recherchez l'Aggorat": [
+        "G3_8"
+      ],
+      "Entrez dans la Fin du voyage": [
+        "G4_2_2"
+      ],
+      "Entrez dans la Forêt cendreuse": [
+        "P3_1"
+      ],
+      "Entrez dans la Grotte des Titans par l'Entrée scellée": [
+        "G2_7"
+      ],
+      "Entrez dans la Mine de Mawdun": [
+        "G2_10_2"
+      ],
+      "Entrez dans le Bois noir": [
+        "P1_3"
+      ],
+      "Entrez dans le Cœur de la Tribu": [
+        "G4_11_2"
+      ],
+      "Entrez dans le Domaine de Holten": [
+        "P1_6"
+      ],
+      "Entrez dans le Domaine distordu": [
+        "G_Endgame_Town"
+      ],
+      "Entrez dans le Domaine ténébreux": [
+        "Abyss_Boss2"
+      ],
+      "Entrez dans le Lac glaciaire": [
+        "P3_3"
+      ],
+      "Entrez dans le Machinarium de Jiquani": [
+        "G3_6_1"
+      ],
+      "Entrez dans le Mausolée": [
+        "G1_8"
+      ],
+      "Entrez dans le Mitard": [
+        "G4_5_2"
+      ],
+      "Entrez dans le Paracosme": [
+        "G_Endgame_Town"
+      ],
+      "Entrez dans le Passage sans-lumière": [
+        "G2_town"
+      ],
+      "Entrez dans le Puits des Âmes": [
+        "G2_town"
+      ],
+      "Entrez dans le Ravin gravé": [
+        "P3_6"
+      ],
+      "Entrez dans le Refuge Cuachic": [
+        "P3_7"
+      ],
+      "Entrez dans le Réservoir de Qimah": [
+        "P2_7"
+      ],
+      "Entrez dans le Sanctuaire de Sel Khari": [
+        "P2_3"
+      ],
+      "Entrez dans le Temple de Kopec qui se trouve en dessous du campement des chasseurs de trésors": [
+        "G3_12"
+      ],
+      "Entrez dans le Tombeau de la Consort à la recherche d'Asinia": [
+        "G1_9"
+      ],
+      "Entrez dans le Vide sans-lumière": [
+        "Abyss_Boss1"
+      ],
+      "Entrez dans le Village de Kriar": [
+        "P3_2"
+      ],
+      "Entrez dans les Bassins de Khatal": [
+        "P2_2"
+      ],
+      "Entrez dans les Catacombes perdues": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "Entrez dans les Cavernes chantonnantes": [
+        "G4_3_2"
+      ],
+      "Entrez dans les Couloirs des Morts": [
+        "G4_4_2"
+      ],
+      "Entrez dans les Grottes hurlantes": [
+        "P3_4"
+      ],
+      "Entrez dans les Pics de Kriar": [
+        "P3_5"
+      ],
+      "Entrez dans les Portes de Galai": [
+        "P2_5"
+      ],
+      "Entrez dans les Ruines de la jungle et partez à la recherche de l'Aqueduc de Matlan": [
+        "G3_3"
+      ],
+      "Entrez dans les Ruines vaal": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Entrez dans les Terrains de chasse": [
+        "G1_11"
+      ],
+      "Entrez dans les Terriers volcaniques": [
+        "G4_1_2"
+      ],
+      "Examinez le Grand miroir": [
+        "G_Endgame_Town"
+      ],
+      "Examinez le Refuge scellé": [
+        "G_Endgame_Town"
+      ],
+      "Explorez la Forteresse de Ruche": [
+        "G_Endgame_Town"
+      ],
+      "Explorez le Mausolée à la recherche du Préteur Draven": [
+        "G1_8"
+      ],
+      "Explorez le Paracosme": [
+        "G_Endgame_Town"
+      ],
+      "Explorez le Passage sans-lumière": [
+        "G2_town"
+      ],
+      "Explorez le Tombeau de la Consort à la recherche du Préteur Draven et de sa Consort": [
+        "G1_9"
+      ],
+      "Explorez les Bassins de Khatal": [
+        "P2_3"
+      ],
+      "Explorez les Landes infestées à la recherche des Marécages des Chimérals": [
+        "G3_5"
+      ],
+      "Faites croître le Don de la matrice dans l'Arbre de la genèse": [
+        "G_Endgame_Town"
+      ],
+      "Fouillez la Clairière pour trouver l'entrée de la Tanière boueuse": [
+        "G1_3"
+      ],
+      "Fouillez la Clairière pour trouver l'entrée de la Tanière boueuse Tuez le Dévoreur dans son antre": [
+        "G1_3"
+      ],
+      "Frayez-vous un chemin à travers l'Aggorat et trouvez les Chambres noires": [
+        "G3_17"
+      ],
+      "Frayez-vous un chemin à travers les Ruchenés": [
+        "G_Endgame_Town"
+      ],
+      "Gravissez Deshar": [
+        "G2_9_1"
+      ],
+      "Gravissez le Passage de la traîtresse pour atteindre le sommet des Portes": [
+        "G2_3"
+      ],
+      "Infiltrez le Manoir au-delà du village": [
+        "G1_15"
+      ],
+      "Infiltrez le Manoir au-delà du village Trouvez le Comte Géonor": [
+        "G1_15"
+      ],
+      "Instillez l'Amulette au Décanteur de Folie": [
+        "G_Endgame_Town"
+      ],
+      "Insérez une Amulette dans le Décanteur de Folie": [
+        "G_Endgame_Town"
+      ],
+      "Interagissez avec le Miroir": [
+        "G_Endgame_Town"
+      ],
+      "Interagissez avec le Miroir étrange": [
+        "G_Endgame_Town"
+      ],
+      "Libérez Madox l'Ancien": [
+        "G_Endgame_Town"
+      ],
+      "Libérez l'homme": [
+        "G_Endgame_Town"
+      ],
+      "Localisez le Sanctuaire de Sel Khari": [
+        "P2_2"
+      ],
+      "Ouvrez la Brèche": [
+        "G_Endgame_Town"
+      ],
+      "Ouvrez votre Arbre des Talents": [
+        "G1_town"
+      ],
+      "Ouvrez votre Arbre des Talents Dépensez-y votre point de Talent": [
+        "G1_town"
+      ],
+      "Parlez au Rêveur": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Ailith, Première des Gardiens": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Ailith, Première des Gardiens dans le Monastère des Gardiens": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Alva pour vous rendre à Marcheroi": [
+        "G4_town"
+      ],
+      "Parlez à Ange": [
+        "G4_town"
+      ],
+      "Parlez à Ange pour vous rendre au Repaire Littoral": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "Parlez à Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Hilda dans votre Repaire ou au Campement d'Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Jado": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Jado dans votre Repaire": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Madox l'Ancien": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Madox l'Ancien au Saule flétri": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à Makoru pour naviguer jusqu'à la Pointe du pillage": [
+        "G4_13"
+      ],
+      "Parlez à Makoru pour voyager jusqu'à la Baie des Ancres": [
+        "G4_2_1"
+      ],
+      "Parlez à l'Acolyte mystérieux": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à l'Encapuchonné pour vous rendre au Bazar": [
+        "P2_Town"
+      ],
+      "Parlez à l'Encapuchonné pour vous rendre au Mont Kriar": [
+        "P3_Town"
+      ],
+      "Parlez à l'Encapuchonné pour vous rendre au Refuge de la Ziggourat": [
+        "G_Endgame_Town"
+      ],
+      "Parlez à l'Encapuchonné pour vous rendre à Ogham": [
+        "P1_Town"
+      ],
+      "Parlez à l'Encapuchonné pour vous rendre à Oriath": [
+        "G_Endgame_Town"
+      ],
+      "Placez le Reflet du Corbeau dans le Miroir du Saule flétri": [
+        "G_Endgame_Town"
+      ],
+      "Poursuivez Tavakai jusqu'à Ngakanu": [
+        "G4_11_1b"
+      ],
+      "Poursuivez votre chemin dans le Machinarium": [
+        "G3_6_2"
+      ],
+      "Prenez l'Amulette que vous offre Madox l'Ancien": [
+        "G_Endgame_Town"
+      ],
+      "Prenez la Pierre de Brèche que vous offre Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Prenez la Tablette de Brèche": [
+        "G_Endgame_Town"
+      ],
+      "Prenez la Tablette de Délire que vous offre Madox l'Ancien": [
+        "G_Endgame_Town"
+      ],
+      "Prenez le Don de la matrice que vous offre Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Prenez le Sac de Seigneur de Brèche que vous offre Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Prenez les Émotions liquides que vous offre Madox l'Ancien": [
+        "G_Endgame_Town"
+      ],
+      "Prenez une récompense offerte par le Totem d'Hinekora": [
+        "G4_4_3"
+      ],
+      "Ramassez le Reflet du Corbeau": [
+        "G_Endgame_Town"
+      ],
+      "Ramassez le Sac de Seigneur de Brèche": [
+        "G_Endgame_Town"
+      ],
+      "Remettez le Tatouage vierge de Ngamahu à Navali": [
+        "G4_4_3"
+      ],
+      "Remettez le Tatouage vierge de Tasalio à Navali": [
+        "G4_4_3"
+      ],
+      "Remettez le Tatouage vierge de Tawhoa à Navali": [
+        "G4_4_3"
+      ],
+      "Rendez-vous 'à l'Œil d'Hinekora": [
+        "G4_4_1"
+      ],
+      "Rendez-vous au Monastère des Gardiens": [
+        "G_Endgame_Town"
+      ],
+      "Rendez-vous au Monastère des Gardiens et parlez au Rêveur": [
+        "G_Endgame_Town"
+      ],
+      "Rendez-vous au Passage de Khari": [
+        "P2_1"
+      ],
+      "Rendez-vous au Passage de Khari et localisez la tour d'Ab Binayi": [
+        "P2_1"
+      ],
+      "Rendez-vous au Saule flétri": [
+        "G_Endgame_Town"
+      ],
+      "Rendez-vous aux Terres arables calcinées": [
+        "P1_1"
+      ],
+      "Rendez-vous à Marcheroi": [
+        "G_Endgame_Town"
+      ],
+      "Rendez-vous à la Colonie de Ruche": [
+        "G_Endgame_Town"
+      ],
+      "Rendez-vous à la Tour des Prédécesseurs": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "Retournez au Campement d'Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Retournez au Monastère des Gardiens": [
+        "G_Endgame_Town"
+      ],
+      "Retournez au Refuge de la Ziggourat": [
+        "G_Endgame_Town"
+      ],
+      "Retournez au Saule flétri": [
+        "G_Endgame_Town"
+      ],
+      "Retournez aux Ruines vaal": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Retournez à l'entrée de l'Enchevêtrement sinistre dans Grelbois": [
+        "G1_6"
+      ],
+      "Stabilisez des Brèches (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisez des Brèches (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisez des Brèches (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisez des Brèches (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisez des Brèches (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Stabilisez la Brèche": [
+        "G_Endgame_Town"
+      ],
+      "Survivez aux Illusions du Corbeau": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Refuge scellé": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Refuge scellé Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Refuge scellé Terminez la Carte Réservoir sacré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Refuge scellé Terminez la Carte Réservoir sacré Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Réservoir sacré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Réservoir sacré Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade Terminez la Carte Refuge scellé": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade Terminez la Carte Refuge scellé Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade Terminez la Carte Refuge scellé Terminez la Carte Réservoir sacré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade Terminez la Carte Réservoir sacré": [
+        "G_Endgame_Town"
+      ],
+      "Terminez la Carte Îles de Jade Terminez la Carte Réservoir sacré Terminez la Carte Manoir délabré": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez Xesht, Nous qui ne formons qu'un": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez des Boss de Carte délirants (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez des Boss de Carte délirants (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez des Boss de Carte délirants (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez des Boss de Carte délirants (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez des Boss de Carte délirants (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez la deuxième Bête colossale": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez la première Bête colossale": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez la quatrième Bête colossale": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez la troisième Bête colossale": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez le Corbeau malicieux": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez les Boss délirants jumeaux": [
+        "G_Endgame_Town"
+      ],
+      "Terrassez les Ruchenés": [
+        "G_Endgame_Town"
+      ],
+      "Traversez la Clairière jusqu'à Grelbois": [
+        "G1_4"
+      ],
+      "Traversez le Marécage ensablé à la recherche de la Ziggourat": [
+        "G3_town"
+      ],
+      "Traversez le Sentier du deuil": [
+        "G2_9_2"
+      ],
+      "Trouvez Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Trouvez Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Trouvez l'entrée de Keth ensevelie sous les sables quelque part": [
+        "G2_4_2"
+      ],
+      "Trouvez l'entrée de la Vallée rouge": [
+        "G1_5"
+      ],
+      "Trouvez l'entrée de la Vallée rouge Cherchez dans la Vallée rouge les 3 Runes de pouvoir": [
+        "G1_5"
+      ],
+      "Trouvez la source de la perturbation": [
+        "G_Endgame_Town"
+      ],
+      "Trouvez la source des Fissures abyssales": [
+        "G2_town"
+      ],
+      "Trouvez la source du poison des Oroks": [
+        "G3_4"
+      ],
+      "Trouvez le Comte Géonor": [
+        "G1_15"
+      ],
+      "Trouvez le Sanctuaire au cœur de Keth": [
+        "G2_4_3"
+      ],
+      "Trouvez le luth d'Una": [
+        "G1_6"
+      ],
+      "Tuez le Dévoreur dans son antre": [
+        "G1_3"
+      ],
+      "Utilisez la Carte du Désert pour vous rendre au Crâne du Titan": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "Utilisez la Carte du désert pour vous rendre au Cuirassé": [
+        "G2_12"
+      ],
+      "Utilisez la Carte du désert pour vous rendre au Passage de la traîtresse": [
+        "G2_2"
+      ],
+      "Utilisez la Carte du désert pour vous rendre aux Terres ravagées des Mastodontes": [
+        "G2_5_1"
+      ],
+      "Utilisez la Carte du désert pour vous rendre à Deshar": [
+        "G2_8"
+      ],
+      "Utilisez la Carte du désert pour vous rendre à Keth": [
+        "G2_4_1"
+      ],
+      "Utilisez la Carte du désert pour vous rendre à l'épreuve des Sekhemas": [
+        "G2_13"
+      ],
+      "Utilisez la Carte du désert pour vous rendre à la Carrière de Mawdun": [
+        "G2_10_1"
+      ],
+      "Utilisez la Carte du désert pour vous rendre à la Vallée des Titans": [
+        "G2_6"
+      ],
+      "Utilisez la Pierre de Brèche pour révéler la Cité de Brèche sur votre Atlas": [
+        "G_Endgame_Town"
+      ],
+      "Utilisez le Puits des Âmes": [
+        "G2_town"
+      ],
+      "Voyagez jusqu'au Temple de Chaos": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "Voyagez jusqu'au village d'Ogham": [
+        "G1_13_2"
+      ],
+      "Voyagez jusqu'à Deshar": [
+        "G2_8"
+      ],
+      "Voyagez jusqu'à l'Île de Whakapanu": [
+        "G4_3_1"
+      ]
+    },
+    "ja": {
+      "3個の力のルーンを赤き谷で探せ": [
+        "G1_5"
+      ],
+      "この地域で他のルーンストーンを見つけろ": [
+        "ExpeditionSubArea_Kalguur_Act3"
+      ],
+      "せん妄状態のマップボスを倒せ (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "せん妄状態のマップボスを倒せ (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "せん妄状態のマップボスを倒せ (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "せん妄状態のマップボスを倒せ (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "せん妄状態のマップボスを倒せ (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "アゴラットに入り黒の間を探せ": [
+        "G3_16"
+      ],
+      "アゴラットを戦って進み、黒の間を見つけろ": [
+        "G3_17"
+      ],
+      "アザク湿原でルーンストーンを探せ": [
+        "G3_7"
+      ],
+      "アビスの亀裂の発生源を探せ。": [
+        "G2_town"
+      ],
+      "アラスタスに向かえ": [
+        "G4_8a"
+      ],
+      "アラスタスに移動しろ": [
+        "G4_8b"
+      ],
+      "アルヴァに話しかけ、キングスマーチに向かえ": [
+        "G4_town"
+      ],
+      "アンジェに話しかけ、海岸線の隠れ家に移動しろ": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "アンジェに話しかけろ": [
+        "G4_town"
+      ],
+      "アードゥラのキャラバンに入れ": [
+        "G2_town"
+      ],
+      "ウーナのリュートを見つけろ": [
+        "G1_6"
+      ],
+      "エイリスからブリーチの石板を受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "エイリスからブリーチストーンを受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "エイリスから母胎ギフトを受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "エイリスと共にハイヴボーンと戦い道を切り開け": [
+        "G_Endgame_Town"
+      ],
+      "エイリスに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "エイリスを守れ": [
+        "G_Endgame_Town"
+      ],
+      "エイリスを見つけろ": [
+        "G_Endgame_Town"
+      ],
+      "オガムの農地でルーンストーンを探せ": [
+        "G1_13_1"
+      ],
+      "オガムの農地へ向かえ": [
+        "G1_6"
+      ],
+      "オガムの農地へ向かえ ウーナのリュートを見つけろ": [
+        "G1_6"
+      ],
+      "オガム村に向かえ": [
+        "G1_13_2"
+      ],
+      "オロクの毒の源を見つけろ": [
+        "G3_4"
+      ],
+      "カオスの寺院に向かえ": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "カターリの池を探索しろ": [
+        "P2_3"
+      ],
+      "カタールの池に入れ": [
+        "P2_2"
+      ],
+      "カーリの渡り路に移動し、アブ・ビナイの塔の位置を突き止めろ": [
+        "P2_1"
+      ],
+      "カーリの渡り路に移動しろ": [
+        "P2_1"
+      ],
+      "ガライの門に入れ": [
+        "P2_5"
+      ],
+      "キングスマーチに移動しろ": [
+        "G_Endgame_Town"
+      ],
+      "キーマに入れ": [
+        "P2_6"
+      ],
+      "キーマの貯水池に入れ": [
+        "P2_7"
+      ],
+      "クアチクの地下避難所に入れ": [
+        "P3_7"
+      ],
+      "クリアフェルを抜けてグレルウッドへ向かえ": [
+        "G1_4"
+      ],
+      "クリアフェルを探索し泥の巣穴の入口を見つけろ": [
+        "G1_3"
+      ],
+      "クリアフェルを探索し泥の巣穴の入口を見つけろ デヴァウラーをその巣で倒せ": [
+        "G1_3"
+      ],
+      "クリアール山の頂上に入れ": [
+        "P3_5"
+      ],
+      "クリアール村に入れ": [
+        "P3_2"
+      ],
+      "グランドミラーを調査しろ": [
+        "G_Endgame_Town"
+      ],
+      "グレルウッドの不気味なもつれの入口に戻れ": [
+        "G1_6"
+      ],
+      "ケスでルーンストーンを探せ": [
+        "G2_4_1"
+      ],
+      "ケスの中心にある聖域を見つけろ": [
+        "G2_4_3"
+      ],
+      "シミュラクラムを開始しろ": [
+        "G_Endgame_Town"
+      ],
+      "ジオノール伯爵を見つけろ": [
+        "G1_15"
+      ],
+      "ジクアニのマシナリウムに入れ": [
+        "G3_6_1"
+      ],
+      "ジッグラトの避難所に戻れ": [
+        "G_Endgame_Town"
+      ],
+      "ジッグラトを探して砂原の沼地を越えろ": [
+        "G3_town"
+      ],
+      "ジャドに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "ジャングルの遺跡でルーンストーンを探せ": [
+        "G3_3"
+      ],
+      "セールの巨石群に入れ": [
+        "P1_2"
+      ],
+      "タウホアの空白のタトゥーをナヴァリに渡せ": [
+        "G4_4_3"
+      ],
+      "タサリオの空白のタトゥーをナヴァリに渡せ": [
+        "G4_4_3"
+      ],
+      "ツインのデリリウムボスを倒せ": [
+        "G_Endgame_Town"
+      ],
+      "デシャールでルーンストーンを探せ": [
+        "G2_8"
+      ],
+      "デシャールへ向かえ": [
+        "G2_8"
+      ],
+      "デシャールを登れ": [
+        "G2_9_1"
+      ],
+      "デリリウムの鏡を起動しろ": [
+        "G_Endgame_Town"
+      ],
+      "デヴァウラーをその巣で倒せ": [
+        "G1_3"
+      ],
+      "トレジャーハンターの野営地の地下のコペク神殿に入れ": [
+        "G3_12"
+      ],
+      "ナマフの空白のタトゥーをナヴァリに渡せ": [
+        "G4_4_3"
+      ],
+      "ハイヴコロニーに移動しろ": [
+        "G_Endgame_Town"
+      ],
+      "ハイヴフォトレスを探索しろ": [
+        "G_Endgame_Town"
+      ],
+      "ハイヴボーンと戦って道を切り開け": [
+        "G_Endgame_Town"
+      ],
+      "ハイヴボーンの守りを燃やせ": [
+        "G_Endgame_Town"
+      ],
+      "ハイヴボーンを倒せ": [
+        "G_Endgame_Town"
+      ],
+      "パッシブスキルポイントを使用しろ": [
+        "G1_town"
+      ],
+      "パッシブスキル画面を開け": [
+        "G1_town"
+      ],
+      "パッシブスキル画面を開け パッシブスキルポイントを使用しろ": [
+        "G1_town"
+      ],
+      "パラコズムに入れ": [
+        "G_Endgame_Town"
+      ],
+      "パラコズムを探索しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ 封印された避難所マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ 封印された避難所マップを完了しろ 廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ 封印された避難所マップを完了しろ 神聖な貯水池マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ 廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ 神聖な貯水池マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒスイの島マップを完了しろ 神聖な貯水池マップを完了しろ 廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒネコラのトーテムから報酬を受け取れ": [
+        "G4_4_3"
+      ],
+      "ヒネコラの目に向かえ": [
+        "G4_4_1"
+      ],
+      "ヒルダに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "ヒルダのキャンプ地にたどり着け": [
+        "G_Endgame_Town"
+      ],
+      "ヒルダのキャンプ地に戻れ": [
+        "G_Endgame_Town"
+      ],
+      "ヒルダを見つけろ": [
+        "G_Endgame_Town"
+      ],
+      "フードをかぶった者に話しかけ、オリアスに移動しろ": [
+        "G_Endgame_Town"
+      ],
+      "フードをかぶった者に話しかけ、クリアール山に移動しろ": [
+        "P3_Town"
+      ],
+      "フードをかぶった者に話しかけ、バザールに移動しろ": [
+        "P2_Town"
+      ],
+      "フードをかぶった者に話しかけオガムに移動しろ": [
+        "P1_Town"
+      ],
+      "フードをかぶった者に話しかけジッグラトの避難所に移動しろ": [
+        "G_Endgame_Town"
+      ],
+      "ブラックウッドに入れ": [
+        "P1_3"
+      ],
+      "ブリーチを安定化させろ": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチを安定化しろ (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチを安定化しろ (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチを安定化しろ (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチを安定化しろ (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチを安定化しろ (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチを開け": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチストーンを使用しアトラス上にブリーチの都市を公開しろ": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチロードの供物をエイリスから受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチロードの供物を夢見人に渡せ": [
+        "G_Endgame_Town"
+      ],
+      "ブリーチロードの供物を拾え": [
+        "G_Endgame_Town"
+      ],
+      "ホルテンに入れ": [
+        "P1_4"
+      ],
+      "ホルテン邸に入れ": [
+        "P1_6"
+      ],
+      "ポータルに入り母に会え": [
+        "G4_4_3"
+      ],
+      "マウドゥン鉱山に入れ": [
+        "G2_10_2"
+      ],
+      "マコルと話しケッジ湾に向かえ": [
+        "G4_2_1"
+      ],
+      "マコルに話しかけ、略奪の岬に航路を取れ": [
+        "G4_13"
+      ],
+      "マシナリウムの奥へ進め": [
+        "G3_6_2"
+      ],
+      "マストドンの不毛地帯で骨の穴の入口を探せ": [
+        "G2_5_2"
+      ],
+      "マトラン水路に入り制御装置を見つけろ": [
+        "G3_2_2"
+      ],
+      "マトラン水路を探すためにジャングルの遺跡に入れ": [
+        "G3_3"
+      ],
+      "マドックス長老からアミュレットを受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "マドックス長老からデリリウムの石板を受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "マドックス長老から液化した感情を受け取れ": [
+        "G_Endgame_Town"
+      ],
+      "マドックス長老に話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "マドックス長老を解放しろ": [
+        "G_Endgame_Town"
+      ],
+      "ロードリと話し、ナカヌに出航せよ": [
+        "G4_11_1b"
+      ],
+      "ワーカパヌ島に移動しろ": [
+        "G4_3_1"
+      ],
+      "ヴァールの遺跡に入れ": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "ヴァールの遺跡に戻れ": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "一つの我ら、ゼシュトを倒せ": [
+        "G_Endgame_Town"
+      ],
+      "会葬者の道を進め": [
+        "G2_9_2"
+      ],
+      "侵蝕の峡谷に入れ": [
+        "P3_6"
+      ],
+      "先人の塔に移動しろ": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "光なきものの通路に入れ": [
+        "G2_town"
+      ],
+      "光なきものの通路を探索せよ": [
+        "G2_town"
+      ],
+      "光なき虚無に入れ": [
+        "Abyss_Boss1"
+      ],
+      "創生の樹で母胎ギフトを誕生させろ": [
+        "G_Endgame_Town"
+      ],
+      "力の試験を開始しろ": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "吠える洞窟に入れ": [
+        "P3_4"
+      ],
+      "夢見人に話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "失われた地下墓所に入れ": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "奇妙な木についてもっと調べろ": [
+        "G_Endgame_Town"
+      ],
+      "奇妙な鏡とインタラクトしろ": [
+        "G_Endgame_Town"
+      ],
+      "妃の墓所に入りアシニアを探せ": [
+        "G1_9"
+      ],
+      "妃の墓所を調査しドレイヴンと彼の妻を探せ": [
+        "G1_9"
+      ],
+      "妄想のシミュラクラムにたどり着け": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "守護者の修道院で最初の守護者、エイリスに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "守護者の修道院に戻れ": [
+        "G_Endgame_Town"
+      ],
+      "守護者の修道院に移動しろ": [
+        "G_Endgame_Town"
+      ],
+      "守護者の修道院に移動し夢見人に話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "害虫の荒れ地を探索してキメラル湿地を見つけろ": [
+        "G3_5"
+      ],
+      "封印された避難所マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "封印された避難所マップを完了しろ 廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "封印された避難所マップを完了しろ 神聖な貯水池マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "封印された避難所マップを完了しろ 神聖な貯水池マップを完了しろ 廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "封印された避難所マップを調査しろ": [
+        "G_Endgame_Town"
+      ],
+      "廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "引き続き不気味なもつれを進め": [
+        "G1_7"
+      ],
+      "捻じれたもつれでルーンストーンを探せ": [
+        "G1_6"
+      ],
+      "捻じれた領域に入れ": [
+        "G_Endgame_Town"
+      ],
+      "握られた入口からタイタンの洞窟に入れ": [
+        "G2_7"
+      ],
+      "旅の終わりに入れ": [
+        "G4_2_2"
+      ],
+      "最初の守護者、エイリスに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "村を越えて邸宅に潜入しろ": [
+        "G1_15"
+      ],
+      "村を越えて邸宅に潜入しろ ジオノール伯爵を見つけろ": [
+        "G1_15"
+      ],
+      "枯れ柳でマドックス長老に話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "枯れ柳に戻れ": [
+        "G_Endgame_Town"
+      ],
+      "枯れ柳に移動しろ": [
+        "G_Endgame_Town"
+      ],
+      "枯れ柳の鏡に鴉の鏡像を設置しろ": [
+        "G_Endgame_Town"
+      ],
+      "歌う大洞窟に入れ": [
+        "G4_3_2"
+      ],
+      "死者の殿堂に入れ": [
+        "G4_4_2"
+      ],
+      "毒の地下聖堂でルーンストーンを探せ": [
+        "G3_4"
+      ],
+      "氷河の湖に入れ": [
+        "P3_3"
+      ],
+      "汚物の頂に入り、鍵を探せ": [
+        "G3_11"
+      ],
+      "沈んだ都市に入りアゴラットを探せ": [
+        "G3_8"
+      ],
+      "溶融した宝物庫に入れ": [
+        "G3_9"
+      ],
+      "火山地帯に入れ": [
+        "G4_1_2"
+      ],
+      "灰の森に入れ": [
+        "P3_1"
+      ],
+      "焼け焦げた農場に移動しろ": [
+        "P1_1"
+      ],
+      "狂気と戦って退けろ": [
+        "G_Endgame_Town"
+      ],
+      "狂気のデカンターでアミュレットにアノイントしろ": [
+        "G_Endgame_Town"
+      ],
+      "狂気のデカンターにアミュレットを置け": [
+        "G_Endgame_Town"
+      ],
+      "狩場でルーンストーンを探せ": [
+        "G1_11"
+      ],
+      "狩場に入れ": [
+        "G1_11"
+      ],
+      "狩場の上のフレイソーンを探索しろ": [
+        "G1_12"
+      ],
+      "男性を解放しろ": [
+        "G_Endgame_Town"
+      ],
+      "異変の原因を探せ": [
+        "G_Endgame_Town"
+      ],
+      "発掘現場に入れ": [
+        "G4_10"
+      ],
+      "監禁独房に入れ": [
+        "G4_5_2"
+      ],
+      "砂漠のどこかに埋まったケスの入口を見つけろ": [
+        "G2_4_2"
+      ],
+      "砂漠の地図を使用してケスに向かえ": [
+        "G2_4_1"
+      ],
+      "砂漠の地図を使用してセケマの試練に向かえ": [
+        "G2_13"
+      ],
+      "砂漠の地図を使用してタイタンの谷へ向かえ": [
+        "G2_6"
+      ],
+      "砂漠の地図を使用してデシャールへ向かえ": [
+        "G2_8"
+      ],
+      "砂漠の地図を使用してドレッドノートへ向かえ": [
+        "G2_12"
+      ],
+      "砂漠の地図を使用してマウドゥン採石場へ向かえ": [
+        "G2_10_1"
+      ],
+      "砂漠の地図を使用してマストドンの不毛地帯へ向かえ": [
+        "G2_5_1"
+      ],
+      "砂漠の地図を使用して裏切り者の通路へ向かえ": [
+        "G2_2"
+      ],
+      "砂漠の地図を使用しタイタンの頭蓋に移動しろ": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "神聖な貯水池マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "神聖な貯水池マップを完了しろ 廃屋敷マップを完了しろ": [
+        "G_Endgame_Town"
+      ],
+      "第一の偉大なる獣を倒せ": [
+        "G_Endgame_Town"
+      ],
+      "第三の偉大なる獣を倒せ": [
+        "G_Endgame_Town"
+      ],
+      "第二の偉大なる獣を倒せ": [
+        "G_Endgame_Town"
+      ],
+      "第四の偉大なる獣を倒せ": [
+        "G_Endgame_Town"
+      ],
+      "裏切り者の通路を登り門の上部にたどり着け": [
+        "G2_3"
+      ],
+      "赤き谷の入口を見つけろ": [
+        "G1_5"
+      ],
+      "赤き谷の入口を見つけろ 3個の力のルーンを赤き谷で探せ": [
+        "G1_5"
+      ],
+      "過去でウトザールに入れ": [
+        "G3_14"
+      ],
+      "部族の心臓に入れ": [
+        "G4_11_2"
+      ],
+      "鏡に触れ": [
+        "G_Endgame_Town"
+      ],
+      "鏡を起動しろ": [
+        "G_Endgame_Town"
+      ],
+      "闇の領域に入れ": [
+        "Abyss_Boss2"
+      ],
+      "隠れ家でジャドに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "隠れ家またはヒルダのキャンプ地でヒルダに話しかけろ": [
+        "G_Endgame_Town"
+      ],
+      "霊廟に入れ": [
+        "G1_8"
+      ],
+      "霊廟を調査し法務官ドレイヴンを探せ": [
+        "G1_8"
+      ],
+      "骨の穴でルーンストーンを探せ": [
+        "G2_5_2"
+      ],
+      "魂の井戸に入れ": [
+        "G2_town"
+      ],
+      "魂の井戸を使用しろ": [
+        "G2_town"
+      ],
+      "魂の木に刻まれているとの同じルーンストーンをこの地域で探せ": [
+        "G1_6"
+      ],
+      "鴉のトリックスターを倒せ": [
+        "G_Endgame_Town"
+      ],
+      "鴉の妄想を生き延びろ": [
+        "G_Endgame_Town"
+      ],
+      "鴉の鏡像を拾え": [
+        "G_Endgame_Town"
+      ]
+    },
+    "ko": {
+      "갈라이 문에 들어가기": [
+        "P2_5"
+      ],
+      "거울 사용하기": [
+        "G_Endgame_Town"
+      ],
+      "거울 활성화하기": [
+        "G_Endgame_Town"
+      ],
+      "검은 숲에 들어가기": [
+        "P1_3"
+      ],
+      "과거의 웃자알에 들어가기": [
+        "G3_14"
+      ],
+      "광기 물리치기": [
+        "G_Endgame_Town"
+      ],
+      "광기의 디캔터에서 목걸이에 성유 붓기": [
+        "G_Endgame_Town"
+      ],
+      "균열 군주 낭 챙기기": [
+        "G_Endgame_Town"
+      ],
+      "균열 군주 낭을 몽상가에게 주기": [
+        "G_Endgame_Town"
+      ],
+      "균열 안정화하기": [
+        "G_Endgame_Town"
+      ],
+      "균열 안정화하기 (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "균열 안정화하기 (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "균열 안정화하기 (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "균열 안정화하기 (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "균열 안정화하기 (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "균열 열기": [
+        "G_Endgame_Town"
+      ],
+      "균열석을 사용해 아틀라스에 균열 도시 드러내기": [
+        "G_Endgame_Town"
+      ],
+      "그렐우드에 있는 으스스한 덩굴 입구로 돌아가기": [
+        "G1_6"
+      ],
+      "그을린 농지로 이동하기": [
+        "P1_1"
+      ],
+      "기계실 안으로 더 들어가기": [
+        "G3_6_2"
+      ],
+      "기원의 나무에서 생명의 결실 키우기": [
+        "G_Endgame_Town"
+      ],
+      "나발리에게 나마후의 빈 문신 제출하기": [
+        "G4_4_3"
+      ],
+      "나발리에게 타살리오의 빈 문신 제출하기": [
+        "G4_4_3"
+      ],
+      "나발리에게 타호아의 빈 문신 제출하기": [
+        "G4_4_3"
+      ],
+      "남자 풀어주기": [
+        "G_Endgame_Town"
+      ],
+      "네 번째 거대 야수 처치하기": [
+        "G_Endgame_Town"
+      ],
+      "노래하는 암굴에 들어가기": [
+        "G4_3_2"
+      ],
+      "녹아내린 금고에 들어가기": [
+        "G3_9"
+      ],
+      "능묘에 들어가기": [
+        "G1_8"
+      ],
+      "데샤르 올라가기": [
+        "G2_9_1"
+      ],
+      "데샤르로 이동하기": [
+        "G2_8"
+      ],
+      "데샤르를 수색해 룬석 찾기": [
+        "G2_8"
+      ],
+      "독방 감금실에 들어가기": [
+        "G4_5_2"
+      ],
+      "독액 지하실에서 룬석 찾기": [
+        "G3_4"
+      ],
+      "두 번째 거대 야수 처치하기": [
+        "G_Endgame_Town"
+      ],
+      "두건 쓴 자와 대화하여 오검으로 이동하기": [
+        "P1_Town"
+      ],
+      "두건 쓴 자와 대화하여 오리아스로 이동하기": [
+        "G_Endgame_Town"
+      ],
+      "두건 쓴 자와 대화하여 장터로 이동하기": [
+        "P2_Town"
+      ],
+      "두건 쓴 자와 대화하여 지구라트 피난처로 이동하기": [
+        "G_Endgame_Town"
+      ],
+      "두건 쓴 자와 대화하여 크리아 산으로 이동하기": [
+        "P3_Town"
+      ],
+      "뒤틀린 영역에 들어가기": [
+        "G_Endgame_Town"
+      ],
+      "드레이븐과 그의 배우자를 찾아 배우자의 무덤 탐험하기": [
+        "G1_9"
+      ],
+      "들끓는 불모지를 탐험하며 키메랄 습지대 찾기": [
+        "G3_5"
+      ],
+      "로드리와 대화해 응가카누로 가기": [
+        "G4_11_1b"
+      ],
+      "마스토돈 불모지를 수색해 뼈 구덩이 입구 찾기": [
+        "G2_5_2"
+      ],
+      "마을 뒤의 저택에 침입하기": [
+        "G1_15"
+      ],
+      "마을 뒤의 저택에 침입하기 지오너 백작 찾기": [
+        "G1_15"
+      ],
+      "마코루와 대화하여 닻의 만으로 이동하기": [
+        "G4_2_1"
+      ],
+      "마코루와 대화하여 약탈의 거점으로 항해하기": [
+        "G4_13"
+      ],
+      "마틀란 수로로 들어가서 제어 장치 찾기": [
+        "G3_2_2"
+      ],
+      "망상의 복제된 영토 시작하기": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "모둔 광산에 들어가기": [
+        "G2_10_2"
+      ],
+      "모래에 묻혀 있는 케스의 입구 찾기": [
+        "G2_4_2"
+      ],
+      "모래에 휩쓸린 습지를 건너며 지구라트 찾기": [
+        "G3_town"
+      ],
+      "목걸이를 광기의 디캔터 안에 넣기": [
+        "G_Endgame_Town"
+      ],
+      "몽상가와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "무광의 공허에 들어가기": [
+        "Abyss_Boss1"
+      ],
+      "무광의 통로 탐험하기": [
+        "G2_town"
+      ],
+      "무광의 통로에 들어가기": [
+        "G2_town"
+      ],
+      "문제의 근원 찾기": [
+        "G_Endgame_Town"
+      ],
+      "물에 잠긴 도시에 들어가서 아고라트 찾기": [
+        "G3_8"
+      ],
+      "밀림 유적에 들어가서 마틀란 수로 찾기": [
+        "G3_3"
+      ],
+      "밀림 유적을 수색해 룬석 더 찾기": [
+        "G3_3"
+      ],
+      "바알 유적에 들어가기": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "바알 유적으로 돌아가기": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "발굴터에 들어가기": [
+        "G4_10"
+      ],
+      "방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "배반자의 통로로 올라가서 관문 위로 가기": [
+        "G2_3"
+      ],
+      "벌레집 군락지로 이동하기": [
+        "G_Endgame_Town"
+      ],
+      "벌레집 요새 탐험하기": [
+        "G_Endgame_Town"
+      ],
+      "벌레집 태생 처치하기": [
+        "G_Endgame_Town"
+      ],
+      "벌레집 태생의 방어 시설 태우기": [
+        "G_Endgame_Town"
+      ],
+      "보물 사냥꾼 야영지 밑에 있는 코펙의 사원에 들어가기": [
+        "G3_12"
+      ],
+      "복제된 영토 시작하기": [
+        "G_Endgame_Town"
+      ],
+      "봉인된 금고실 조사하기": [
+        "G_Endgame_Town"
+      ],
+      "봉인된 금고실 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "봉인된 금고실 지도 완료하기 방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "봉인된 금고실 지도 완료하기 성스러운 저수지 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "봉인된 금고실 지도 완료하기 성스러운 저수지 지도 완료하기 방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "부족의 심장부에 들어가기": [
+        "G4_11_2"
+      ],
+      "붉은 계곡 입구 찾기": [
+        "G1_5"
+      ],
+      "붉은 계곡 입구 찾기 붉은 계곡을 수색해서 힘의 룬 3개 찾기": [
+        "G1_5"
+      ],
+      "붉은 계곡을 수색해서 힘의 룬 3개 찾기": [
+        "G1_5"
+      ],
+      "비취 군도 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "비취 군도 지도 완료하기 방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "비취 군도 지도 완료하기 봉인된 금고실 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "비취 군도 지도 완료하기 봉인된 금고실 지도 완료하기 방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "비취 군도 지도 완료하기 봉인된 금고실 지도 완료하기 성스러운 저수지 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "비취 군도 지도 완료하기 성스러운 저수지 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "비취 군도 지도 완료하기 성스러운 저수지 지도 완료하기 방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "빙하 호수에 들어가기": [
+        "P3_3"
+      ],
+      "뼈 구덩이를 수색해 룬석 찾기": [
+        "G2_5_2"
+      ],
+      "사냥터": [
+        "G1_11"
+      ],
+      "사냥터 위에서 프레이쏜 찾기": [
+        "G1_12"
+      ],
+      "사냥터를 수색해 룬석 찾기": [
+        "G1_11"
+      ],
+      "사냥터에 들어가기": [
+        "G1_11"
+      ],
+      "사라진 사원에 들어가기": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "사막 지도를 사용해 거신의 계곡으로 이동하기": [
+        "G2_6"
+      ],
+      "사막 지도를 사용해 거신의 두개골로 이동하기": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "사막 지도를 사용해 데샤르로 이동하기": [
+        "G2_8"
+      ],
+      "사막 지도를 사용해 드레드노트로 이동하기": [
+        "G2_12"
+      ],
+      "사막 지도를 사용해 마스토돈 불모지로 이동하기": [
+        "G2_5_1"
+      ],
+      "사막 지도를 사용해 모둔 채석장으로 이동하기": [
+        "G2_10_1"
+      ],
+      "사막 지도를 사용해 배반자의 통로로 이동하기": [
+        "G2_2"
+      ],
+      "사막 지도를 사용해 세케마의 시련으로 이동하기": [
+        "G2_13"
+      ],
+      "사막 지도를 사용해 케스로 이동하기": [
+        "G2_4_1"
+      ],
+      "선도자 탑으로 이동하기": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "성스러운 저수지 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "성스러운 저수지 지도 완료하기 방치된 저택 지도 완료하기": [
+        "G_Endgame_Town"
+      ],
+      "세 번째 거대 야수 처치하기": [
+        "G_Endgame_Town"
+      ],
+      "세를의 두름돌에 들어가기": [
+        "P1_2"
+      ],
+      "셀 카리 성역 찾기": [
+        "P2_2"
+      ],
+      "셀 카리 성역에 들어가기": [
+        "P2_3"
+      ],
+      "소굴에 있는 포식자 처치하기": [
+        "G1_3"
+      ],
+      "수수께끼의 조수와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "수호자들의 수도원에서 최초의 수호자, 아일리트와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "수호자들의 수도원으로 돌아가기": [
+        "G_Endgame_Town"
+      ],
+      "수호자들의 수도원으로 이동하기": [
+        "G_Endgame_Town"
+      ],
+      "수호자들의 수도원으로 이동하여 몽상가와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "시든 버드나무로 돌아가기": [
+        "G_Endgame_Town"
+      ],
+      "시든 버드나무로 이동하기": [
+        "G_Endgame_Town"
+      ],
+      "시든 버드나무에 있는 장로 매덕스와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "시든 버드나무의 거울 속에 큰까마귀의 투영 놓기": [
+        "G_Endgame_Town"
+      ],
+      "심연 균열의 원인 찾기": [
+        "G2_town"
+      ],
+      "싸우며 벌레집 태생을 헤쳐 나아가기": [
+        "G_Endgame_Town"
+      ],
+      "싸우면서 아고라트를 헤쳐 나아가서 검은 내실 찾기": [
+        "G3_17"
+      ],
+      "쌍둥이 환영 보스 처치하기": [
+        "G_Endgame_Town"
+      ],
+      "아고라트에 들어가서 검은 내실 찾기": [
+        "G3_16"
+      ],
+      "아로새겨진 심곡에 들어가기": [
+        "P3_6"
+      ],
+      "아르듀라 카라반에 들어가기": [
+        "G2_town"
+      ],
+      "아시니아를 찾아 배우자의 무덤에 들어가기": [
+        "G1_9"
+      ],
+      "아일리트 보호하기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트 찾기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트에게 균열 군주 낭 받기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트에게 균열 서판 받기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트에게 균열석 받기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트에게 생명의 결실 받기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "아일리트와 함께 싸우며 벌레집 태생을 헤쳐 나아가기": [
+        "G_Endgame_Town"
+      ],
+      "아자크 습지대를 수색해 룬석 찾기": [
+        "G3_7"
+      ],
+      "알바와 대화해 킹스마치로 이동하기": [
+        "G4_town"
+      ],
+      "앤지와 대화하기": [
+        "G4_town"
+      ],
+      "앤지와 대화하여 해안선 은신처로 이동하기": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "어둠의 영토에 들어가기": [
+        "Abyss_Boss2"
+      ],
+      "여정의 끝에 들어가기": [
+        "G4_2_2"
+      ],
+      "영혼의 나무에 룬 가시 찔러 넣기": [
+        "G1_6"
+      ],
+      "영혼의 우물 사용하기": [
+        "G2_town"
+      ],
+      "영혼의 우물에 들어가기": [
+        "G2_town"
+      ],
+      "오검 농지로 가기": [
+        "G1_6"
+      ],
+      "오검 농지로 가기 우나의 류트 찾기": [
+        "G1_6"
+      ],
+      "오검 농지에서 우나의 류트 찾기": [
+        "G1_13_1"
+      ],
+      "오검 마을로 가기": [
+        "G1_13_2"
+      ],
+      "오로크 독의 근원 찾기": [
+        "G3_4"
+      ],
+      "오물의 정점에 들어가서 열쇠 찾기": [
+        "G3_11"
+      ],
+      "와카파누 섬으로 이동하기": [
+        "G4_3_1"
+      ],
+      "우나의 류트 찾기": [
+        "G1_6"
+      ],
+      "울부짖는 동굴에 들어가기": [
+        "P3_4"
+      ],
+      "웅장한 거울 조사하기": [
+        "G_Endgame_Town"
+      ],
+      "으스스한 덩굴 속으로 계속 가기": [
+        "G1_7"
+      ],
+      "으스스한 덩굴을 수색해 룬석 찾기": [
+        "G1_6"
+      ],
+      "은신처 또는 힐다의 야영지에서 힐다와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "은신처에서 자도와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "자도와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "잠긴 입구에서 거신 석굴에 들어가기": [
+        "G2_7"
+      ],
+      "장로 매덕스 풀어주기": [
+        "G_Endgame_Town"
+      ],
+      "장로 매덕스에게 목걸이 받기": [
+        "G_Endgame_Town"
+      ],
+      "장로 매덕스에게 액체 감정 받기": [
+        "G_Endgame_Town"
+      ],
+      "장로 매덕스에게 환영 서판 받기": [
+        "G_Endgame_Town"
+      ],
+      "장로 매덕스와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "잿빛 수림에 들어가기": [
+        "P3_1"
+      ],
+      "죽음의 전당에 들어가기": [
+        "G4_4_2"
+      ],
+      "지구라트 피난처로 돌아가기": [
+        "G_Endgame_Town"
+      ],
+      "지오너 백작 찾기": [
+        "G1_15"
+      ],
+      "지콰니의 기계실에 들어가기": [
+        "G3_6_1"
+      ],
+      "집정관 드레이븐을 찾아 능묘 조사하기": [
+        "G1_8"
+      ],
+      "첫 번째 거대 야수 처치하기": [
+        "G_Endgame_Town"
+      ],
+      "최초의 수호자, 아일리트와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "카리 교차로로 이동하기": [
+        "P2_1"
+      ],
+      "카리 교차로로 이동해 아브 비나이의 탑 찾기": [
+        "P2_1"
+      ],
+      "카탈의 웅덩이 탐험하기": [
+        "P2_3"
+      ],
+      "카탈의 웅덩이에 들어가기": [
+        "P2_2"
+      ],
+      "케스 중앙에 있는 지성소 찾기": [
+        "G2_4_3"
+      ],
+      "케스를 수색해 룬석 찾기": [
+        "G2_4_1"
+      ],
+      "쿠아식 금고실에 들어가기": [
+        "P3_7"
+      ],
+      "크리아 마을에 들어가기": [
+        "P3_2"
+      ],
+      "크리아 봉우리에 들어가기": [
+        "P3_5"
+      ],
+      "큰까마귀 협잡꾼 물리치기": [
+        "G_Endgame_Town"
+      ],
+      "큰까마귀의 망상에서 살아남기": [
+        "G_Endgame_Town"
+      ],
+      "큰까마귀의 투영 챙기기": [
+        "G_Endgame_Town"
+      ],
+      "클리어펠을 수색해서 진흙 토굴 입구 찾기": [
+        "G1_3"
+      ],
+      "클리어펠을 수색해서 진흙 토굴 입구 찾기 소굴에 있는 포식자 처치하기": [
+        "G1_3"
+      ],
+      "클리어펠을 지나 그렐우드로 가기": [
+        "G1_4"
+      ],
+      "키마 들어가기": [
+        "P2_6"
+      ],
+      "키마 저수지 들어가기": [
+        "P2_7"
+      ],
+      "킹스마치로 이동하기": [
+        "G_Endgame_Town"
+      ],
+      "통곡의 길 따라가기": [
+        "G2_9_2"
+      ],
+      "파라코즘 들어가기": [
+        "G_Endgame_Town"
+      ],
+      "파라코즘 탐험하기": [
+        "G_Endgame_Town"
+      ],
+      "패시브 스킬 창 열기": [
+        "G1_town"
+      ],
+      "패시브 스킬 창 열기 패시브 스킬 포인트 투자하기": [
+        "G1_town"
+      ],
+      "패시브 스킬 포인트 투자하기": [
+        "G1_town"
+      ],
+      "포탈에 들어가 어머니와 만나기": [
+        "G4_4_3"
+      ],
+      "하나인 우리, 제쉬트 쓰러뜨리기": [
+        "G_Endgame_Town"
+      ],
+      "혼돈의 사원으로 이동하기": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "홀튼 영지에 들어가기": [
+        "P1_6"
+      ],
+      "홀튼에 들어가기": [
+        "P1_4"
+      ],
+      "화산 땅굴에 들어가기": [
+        "G4_1_2"
+      ],
+      "환영 거울 활성화하기": [
+        "G_Endgame_Town"
+      ],
+      "환영 지도 보스 처치하기 (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "환영 지도 보스 처치하기 (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "환영 지도 보스 처치하기 (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "환영 지도 보스 처치하기 (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "환영 지도 보스 처치하기 (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "희한한 거울과 상호작용하기": [
+        "G_Endgame_Town"
+      ],
+      "희한한 나무에 대해 더 알아보기": [
+        "G_Endgame_Town"
+      ],
+      "히네코라 토템에서 보상 받기": [
+        "G4_4_3"
+      ],
+      "히네코라의 눈으로 이동하기": [
+        "G4_4_1"
+      ],
+      "힐다 찾기": [
+        "G_Endgame_Town"
+      ],
+      "힐다와 대화하기": [
+        "G_Endgame_Town"
+      ],
+      "힐다의 야영지로 가기": [
+        "G_Endgame_Town"
+      ],
+      "힐다의 야영지로 돌아가기": [
+        "G_Endgame_Town"
+      ],
+      "힘의 시험 시작하기": [
+        "Sanctum_1_Foyer_1"
+      ]
+    },
+    "pt": {
+      "Abra a Fenda": [
+        "G_Endgame_Town"
+      ],
+      "Abra a tela de habilidades passivas": [
+        "G1_town"
+      ],
+      "Abra a tela de habilidades passivas Gaste o seu ponto de habilidade passiva": [
+        "G1_town"
+      ],
+      "Acesse Qimah": [
+        "P2_6"
+      ],
+      "Acesse as Pedras de Serle": [
+        "P1_2"
+      ],
+      "Acesse o Paracosmo": [
+        "G_Endgame_Town"
+      ],
+      "Acesse o Reservatório Qimah": [
+        "P2_7"
+      ],
+      "Acesse o coração da tribo": [
+        "G4_11_2"
+      ],
+      "Acesse os Portões Galai": [
+        "P2_5"
+      ],
+      "Ative o Espelho de Delírio": [
+        "G_Endgame_Town"
+      ],
+      "Ative o espelho": [
+        "G_Endgame_Town"
+      ],
+      "Atravesse o Caminho do Luto": [
+        "G2_9_2"
+      ],
+      "Busque o significado das runas gravadas na Árvore das Almas": [
+        "G1_6"
+      ],
+      "Chegue ao Acampamento de Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Chegue ao Simulacrum da Desilusão": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "Coloque a Reflexão do Corvo no Espelho do Salgueiro Murcho": [
+        "G_Endgame_Town"
+      ],
+      "Coloque um amuleto no Decantador da Loucura": [
+        "G_Endgame_Town"
+      ],
+      "Combata a loucura": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade Complete o mapa Cofre Selado": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade Complete o mapa Cofre Selado Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade Complete o mapa Cofre Selado Complete o mapa Reservatório Sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade Complete o mapa Reservatório Sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa As Ilhas Jade Complete o mapa Reservatório Sagrado Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Cofre Selado": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Cofre Selado Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Cofre Selado Complete o mapa Reservatório Sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Cofre Selado Complete o mapa Reservatório Sagrado Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Reservatório Sagrado": [
+        "G_Endgame_Town"
+      ],
+      "Complete o mapa Reservatório Sagrado Complete o mapa Mansão Abandonada": [
+        "G_Endgame_Town"
+      ],
+      "Continue através do Emaranhado Cruel": [
+        "G1_7"
+      ],
+      "Cruze o Pântano das Areias em busca de um Zigurate": [
+        "G3_town"
+      ],
+      "Cultive a Dádiva do Ventre na Árvore de Gênese": [
+        "G_Endgame_Town"
+      ],
+      "Defenda Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Derrote Xesht, Somos Um": [
+        "G_Endgame_Town"
+      ],
+      "Derrote a primeira Grande Fera": [
+        "G_Endgame_Town"
+      ],
+      "Derrote a quarta Grande Fera": [
+        "G_Endgame_Town"
+      ],
+      "Derrote a segunda Grande Fera": [
+        "G_Endgame_Town"
+      ],
+      "Derrote a terceira Grande Fera": [
+        "G_Endgame_Town"
+      ],
+      "Derrote chefes de mapa delirantes (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrote chefes de mapa delirantes (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrote chefes de mapa delirantes (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrote chefes de mapa delirantes (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrote chefes de mapa delirantes (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Derrote o Corvo Trapaceiro": [
+        "G_Endgame_Town"
+      ],
+      "Derrote os Nascidos da Colmeia": [
+        "G_Endgame_Town"
+      ],
+      "Derrote os chefes gêmeos delirantes": [
+        "G_Endgame_Town"
+      ],
+      "Descubra mais sobre a Árvore Estranha": [
+        "G_Endgame_Town"
+      ],
+      "Encontre Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Encontre Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Encontre a entrada do Buraco de Lama em Clearfell": [
+        "G1_3"
+      ],
+      "Encontre a entrada do Buraco de Lama em Clearfell Mate o Devorador em seu covil": [
+        "G1_3"
+      ],
+      "Encontre a entrada do Vale Vermelho": [
+        "G1_5"
+      ],
+      "Encontre a entrada do Vale Vermelho Procure pelas três Runas de Poder no Vale Vermelho": [
+        "G1_5"
+      ],
+      "Encontre a entrada para Keth soterrada nas areias": [
+        "G2_4_2"
+      ],
+      "Encontre a fonte das fendas abissais": [
+        "G2_town"
+      ],
+      "Encontre a fonte do veneno dos orok": [
+        "G3_4"
+      ],
+      "Encontre a origem do distúrbio": [
+        "G_Endgame_Town"
+      ],
+      "Encontre o Conde Geonor": [
+        "G1_15"
+      ],
+      "Encontre o alaúde da Una": [
+        "G1_6"
+      ],
+      "Encontre o santuário no coração de Keth": [
+        "G2_4_3"
+      ],
+      "Enfrente os Nascidos da Colmeia": [
+        "G_Endgame_Town"
+      ],
+      "Enfrente os Nascidos da Colmeia com Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Entre em Aggorat e procure as Câmaras Sombrias": [
+        "G3_16"
+      ],
+      "Entre em Fim da Jornada": [
+        "G4_2_2"
+      ],
+      "Entre em Holten": [
+        "P1_4"
+      ],
+      "Entre em Utzaal no passado": [
+        "G3_14"
+      ],
+      "Entre na Caravana Ardura": [
+        "G2_town"
+      ],
+      "Entre na Cidade Submersa e procure por Aggorat": [
+        "G3_8"
+      ],
+      "Entre na Floresta das Cinzas": [
+        "P3_1"
+      ],
+      "Entre na Gruta do Titã na Entrada Fechada": [
+        "G2_7"
+      ],
+      "Entre na Lagoa Glacial": [
+        "P3_3"
+      ],
+      "Entre na Mina Mawdun": [
+        "G2_10_2"
+      ],
+      "Entre na Passagem Obscurecida": [
+        "G2_town"
+      ],
+      "Entre na Ravina Marcada": [
+        "P3_6"
+      ],
+      "Entre na Tumba da Consorte em busca de Asinia": [
+        "G1_9"
+      ],
+      "Entre na escavação": [
+        "G4_10"
+      ],
+      "Entre na mansão Holten": [
+        "P1_6"
+      ],
+      "Entre nas Catacumbas Perdidas": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "Entre nas Cavernas Cantoras": [
+        "G4_3_2"
+      ],
+      "Entre nas Cavernas Uivantes": [
+        "P3_4"
+      ],
+      "Entre nas Galerias Vulcânicas": [
+        "G4_1_2"
+      ],
+      "Entre nas Hidrovias de Matlan e encontre os controles": [
+        "G3_2_2"
+      ],
+      "Entre nas Poças de Khatal": [
+        "P2_2"
+      ],
+      "Entre nas Ruínas Vaal": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Entre nas ruínas da selva para procurar as Hidrovias de Matlan": [
+        "G3_3"
+      ],
+      "Entre no Bosque Sable": [
+        "P1_3"
+      ],
+      "Entre no Cofre Derretido": [
+        "G3_9"
+      ],
+      "Entre no Confinamento Solitário": [
+        "G4_5_2"
+      ],
+      "Entre no Domínio Distorcido": [
+        "G_Endgame_Town"
+      ],
+      "Entre no Domínio Sombrio": [
+        "Abyss_Boss2"
+      ],
+      "Entre no Maquinário de Jiquani": [
+        "G3_6_1"
+      ],
+      "Entre no Poço das Almas": [
+        "G2_town"
+      ],
+      "Entre no Salão dos Mortos": [
+        "G4_4_2"
+      ],
+      "Entre no Santuário Sel Khari": [
+        "P2_3"
+      ],
+      "Entre no Templo de Kopec sob o acampamento dos caçadores de tesouros": [
+        "G3_12"
+      ],
+      "Entre no Vazio Obscurecido": [
+        "Abyss_Boss1"
+      ],
+      "Entre no cofre Cuachic": [
+        "P3_7"
+      ],
+      "Entre no mausoléu": [
+        "G1_8"
+      ],
+      "Entre no portal para se encontrar com a Mãe": [
+        "G4_4_3"
+      ],
+      "Entre no vilarejo Kriar": [
+        "P3_2"
+      ],
+      "Entre no Ápice da Imundice e procure por uma chave": [
+        "G3_11"
+      ],
+      "Entre nos Campos de Caça": [
+        "G1_11"
+      ],
+      "Entre nos Picos Kriar": [
+        "P3_5"
+      ],
+      "Entregue a Bolsa do Lorde da Fenda ao Sonhador": [
+        "G_Endgame_Town"
+      ],
+      "Entregue a Tatuagem Incompleta de Ngamahu para Navali": [
+        "G4_4_3"
+      ],
+      "Entregue a Tatuagem Incompleta de Tasalio para Navali": [
+        "G4_4_3"
+      ],
+      "Entregue a Tatuagem Incompleta de Tawhoa para Navali": [
+        "G4_4_3"
+      ],
+      "Estabilize Fendas (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabilize Fendas (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabilize Fendas (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabilize Fendas (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabilize Fendas (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Estabilize a Fenda": [
+        "G_Endgame_Town"
+      ],
+      "Explore a Fortaleza da Colmeia": [
+        "G_Endgame_Town"
+      ],
+      "Explore a Passagem Obscurecida": [
+        "G2_town"
+      ],
+      "Explore a Tumba da Consorte em busca de Draven e sua consorte": [
+        "G1_9"
+      ],
+      "Explore as Poças de Khatal": [
+        "P2_3"
+      ],
+      "Explore as Terras Infestadas em busca do Pantanal Quimérico": [
+        "G3_5"
+      ],
+      "Explore o Paracosmo": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Ailith, Primeva dos Protetores": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Ailith, Primeva dos Protetores, no Monastério dos Protetores": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Alva para ir a Kingsmarch": [
+        "G4_town"
+      ],
+      "Fale com Ange": [
+        "G4_town"
+      ],
+      "Fale com Ange para ir ao Refúgio da Costa": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "Fale com Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Hilda em seu refúgio ou no acampamento dela": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Jado": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Jado em seu refúgio": [
+        "G_Endgame_Town"
+      ],
+      "Fale com Makoru para ir até o Ponto dos Saqueadores": [
+        "G4_13"
+      ],
+      "Fale com Makoru para ir à Baía Ancoreta": [
+        "G4_2_1"
+      ],
+      "Fale com Rhodri para ir até Ngakanu": [
+        "G4_11_1b"
+      ],
+      "Fale com o Acólito Misterioso": [
+        "G_Endgame_Town"
+      ],
+      "Fale com o Ancião Madox": [
+        "G_Endgame_Town"
+      ],
+      "Fale com o Ancião Madox no Salgueiro Murcho": [
+        "G_Endgame_Town"
+      ],
+      "Fale com o Encapuzado para ir a Ogham": [
+        "P1_Town"
+      ],
+      "Fale com o Encapuzado para ir a Oriath": [
+        "G_Endgame_Town"
+      ],
+      "Fale com o Encapuzado para ir ao Bazar": [
+        "P2_Town"
+      ],
+      "Fale com o Encapuzado para ir ao Monte Kriar": [
+        "P3_Town"
+      ],
+      "Fale com o Encapuzado para ir ao Refúgio Zigurate": [
+        "G_Endgame_Town"
+      ],
+      "Fale com o Sonhador": [
+        "G_Endgame_Town"
+      ],
+      "Gaste o seu ponto de habilidade passiva": [
+        "G1_town"
+      ],
+      "Infiltre-se na mansão depois da vila": [
+        "G1_15"
+      ],
+      "Infiltre-se na mansão depois da vila Encontre o Conde Geonor": [
+        "G1_15"
+      ],
+      "Inicie o Simulacrum": [
+        "G_Endgame_Town"
+      ],
+      "Inicie seu Teste de Força": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "Interaja com o Espelho Estranho": [
+        "G_Endgame_Town"
+      ],
+      "Interaja com o espelho": [
+        "G_Endgame_Town"
+      ],
+      "Investigue o Cofre Selado": [
+        "G_Endgame_Town"
+      ],
+      "Investigue o Espelho Imponente": [
+        "G_Endgame_Town"
+      ],
+      "Investigue o mausoléu em busca do pretor Draven": [
+        "G1_8"
+      ],
+      "Liberte o Ancião Madox": [
+        "G_Endgame_Town"
+      ],
+      "Liberte o homem": [
+        "G_Endgame_Town"
+      ],
+      "Localize o Santuário Sel Khari": [
+        "P2_2"
+      ],
+      "Lute através de Aggorat e encontre as Câmaras Sombrias": [
+        "G3_17"
+      ],
+      "Mate o Devorador em seu covil": [
+        "G1_3"
+      ],
+      "Pegue a Bolsa do Lorde da Fenda": [
+        "G_Endgame_Town"
+      ],
+      "Pegue a Bolsa do Lorde da Fenda com a Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Pegue a Dádiva do Ventre com a Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Pegue a Pedra de Fenda com a Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Pegue a Reflexão do Corvo": [
+        "G_Endgame_Town"
+      ],
+      "Pegue a Tábua de Delírio com o Ancião Madox": [
+        "G_Endgame_Town"
+      ],
+      "Pegue a Tábua de Fenda com a Ailith": [
+        "G_Endgame_Town"
+      ],
+      "Pegue as Emoções Líquidas com o Ancião Madox": [
+        "G_Endgame_Town"
+      ],
+      "Pegue o amuleto com o Ancião Madox": [
+        "G_Endgame_Town"
+      ],
+      "Pegue uma recompensa com o Totem Hinekora": [
+        "G4_4_3"
+      ],
+      "Proceda adiante no maquinário": [
+        "G3_6_2"
+      ],
+      "Procure a entrada para os Fossos de Ossos no Sertão dos Mastodontes": [
+        "G2_5_2"
+      ],
+      "Procure as pedras rúnicas em Deshar": [
+        "G2_8"
+      ],
+      "Procure as pedras rúnicas em Keth": [
+        "G2_4_1"
+      ],
+      "Procure as pedras rúnicas nas Criptas Venenosas": [
+        "G3_4"
+      ],
+      "Procure as pedras rúnicas nas Ruínas da Selva": [
+        "G3_3"
+      ],
+      "Procure as pedras rúnicas nas glebas de Ogham": [
+        "G1_13_1"
+      ],
+      "Procure as pedras rúnicas no Charco Azak": [
+        "G3_7"
+      ],
+      "Procure as pedras rúnicas no Emaranhado Cruel": [
+        "G1_6"
+      ],
+      "Procure as pedras rúnicas nos Campos de Caça": [
+        "G1_11"
+      ],
+      "Procure as pedras rúnicas nos Fossos de Ossos": [
+        "G2_5_2"
+      ],
+      "Procure as três Runas de Poder no Vale Vermelho": [
+        "G1_5"
+      ],
+      "Procure mais pedras rúnicas na região": [
+        "G3_3"
+      ],
+      "Procure pelas três Runas de Poder no Vale Vermelho": [
+        "G1_5"
+      ],
+      "Procure por Freythorn acima dos Campos de Caça": [
+        "G1_12"
+      ],
+      "Queime as defesas dos Nascidos da Colmeia": [
+        "G_Endgame_Town"
+      ],
+      "Sobreviva às Desilusões do Corvo": [
+        "G_Endgame_Town"
+      ],
+      "Suba Deshar": [
+        "G2_9_1"
+      ],
+      "Suba o Estreito da Traidora para chegar ao topo dos portões": [
+        "G2_3"
+      ],
+      "Unja o amuleto no Decantador da Loucura": [
+        "G_Endgame_Town"
+      ],
+      "Use a Pedra de Fenda para revelar a Cidade da Fenda no seu Atlas": [
+        "G_Endgame_Town"
+      ],
+      "Use o mapa do deserto para ir até Deshar": [
+        "G2_8"
+      ],
+      "Use o mapa do deserto para ir até Keth": [
+        "G2_4_1"
+      ],
+      "Use o mapa do deserto para ir até a Pedreira Mawdun": [
+        "G2_10_1"
+      ],
+      "Use o mapa do deserto para ir até a Provação das Sekhemas": [
+        "G2_13"
+      ],
+      "Use o mapa do deserto para ir até o Couraçado": [
+        "G2_12"
+      ],
+      "Use o mapa do deserto para ir até o Crânio do Titã": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "Use o mapa do deserto para ir até o Estreito da Traidora": [
+        "G2_2"
+      ],
+      "Use o mapa do deserto para ir até o Sertão dos Mastodontes": [
+        "G2_5_1"
+      ],
+      "Use o mapa do deserto para ir até o Vale dos Titãs": [
+        "G2_6"
+      ],
+      "Utilize o Poço das Almas": [
+        "G2_town"
+      ],
+      "Volte ao Acampamento de Hilda": [
+        "G_Endgame_Town"
+      ],
+      "Volte ao Monastério dos Protetores": [
+        "G_Endgame_Town"
+      ],
+      "Volte ao Refúgio Zigurate": [
+        "G_Endgame_Town"
+      ],
+      "Volte ao Salgueiro Murcho": [
+        "G_Endgame_Town"
+      ],
+      "Volte à entrada do Emaranhado Cruel em Grelwood": [
+        "G1_6"
+      ],
+      "Volte às Ruínas Vaal": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Vá a Deshar": [
+        "G2_8"
+      ],
+      "Vá a Kingsmarch": [
+        "G_Endgame_Town"
+      ],
+      "Vá ao Monastério dos Protetores": [
+        "G_Endgame_Town"
+      ],
+      "Vá ao Monastério dos Protetores e fale com o Sonhador": [
+        "G_Endgame_Town"
+      ],
+      "Vá ao Olho de Hinekora": [
+        "G4_4_1"
+      ],
+      "Vá ao Salgueiro Murcho": [
+        "G_Endgame_Town"
+      ],
+      "Vá ao Templo do Caos": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "Vá de Clearfell até Grelwood": [
+        "G1_4"
+      ],
+      "Vá à Colônia da Colmeia": [
+        "G_Endgame_Town"
+      ],
+      "Vá à Ilha Whakapanu": [
+        "G4_3_1"
+      ],
+      "Vá à Torre Precursora": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "Vá à Travessia Khari": [
+        "P2_1"
+      ],
+      "Vá à Travessia Khari e localize a torre de Ab Binayi": [
+        "P2_1"
+      ],
+      "Vá à vila Ogham": [
+        "G1_13_2"
+      ],
+      "Vá às glebas de Ogham": [
+        "G1_6"
+      ],
+      "Vá às glebas de Ogham Encontre o alaúde da Una": [
+        "G1_6"
+      ],
+      "Vá às glebas queimadas": [
+        "P1_1"
+      ]
+    },
+    "ru": {
+      "Активируйте Зеркало Делириума": [
+        "G_Endgame_Town"
+      ],
+      "Активируйте зеркало": [
+        "G_Endgame_Town"
+      ],
+      "Вернитесь в Лагерь Хильды": [
+        "G_Endgame_Town"
+      ],
+      "Вернитесь в Монастырь Хранителей": [
+        "G_Endgame_Town"
+      ],
+      "Вернитесь в Руины ваал": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Вернитесь в Убежище в зиккурате": [
+        "G_Endgame_Town"
+      ],
+      "Вернитесь к Увядшей иве": [
+        "G_Endgame_Town"
+      ],
+      "Вернитесь ко входу в Мрачные заросли в Грельвуде": [
+        "G1_6"
+      ],
+      "Взаимодействуйте с зеркалом": [
+        "G_Endgame_Town"
+      ],
+      "Взаимодействуйте со странным зеркалом": [
+        "G_Endgame_Town"
+      ],
+      "Взойдите на Пики Криар": [
+        "P3_5"
+      ],
+      "Взойдите на караван Ардура": [
+        "G2_town"
+      ],
+      "Возьмите награду у тотема Хинекоры": [
+        "G4_4_3"
+      ],
+      "Войдите в Аггорат и отыщите Чёрные залы": [
+        "G3_16"
+      ],
+      "Войдите в Бессветную пустоту": [
+        "Abyss_Boss1"
+      ],
+      "Войдите в Бессветный проход": [
+        "G2_town"
+      ],
+      "Войдите в Водотоки Матлан и найдите управляющие механизмы": [
+        "G3_2_2"
+      ],
+      "Войдите в Водохранилище Кима": [
+        "P2_7"
+      ],
+      "Войдите в Воды Хаталя": [
+        "P2_2"
+      ],
+      "Войдите в Ворота Галаи": [
+        "P2_5"
+      ],
+      "Войдите в Воющие пещеры": [
+        "P3_4"
+      ],
+      "Войдите в Вулканические лабиринты": [
+        "G4_1_2"
+      ],
+      "Войдите в Высеченное ущелье": [
+        "P3_6"
+      ],
+      "Войдите в Грот Титанов через Сцепленный вход": [
+        "G2_7"
+      ],
+      "Войдите в Залы мёртвых": [
+        "G4_4_2"
+      ],
+      "Войдите в Затерянные катакомбы": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "Войдите в Затопленный город и отыщите Аггорат": [
+        "G3_8"
+      ],
+      "Войдите в Искажённые владения": [
+        "G_Endgame_Town"
+      ],
+      "Войдите в Колодец душ": [
+        "G2_town"
+      ],
+      "Войдите в Мазволей": [
+        "G1_8"
+      ],
+      "Войдите в Машинариум Джиквани": [
+        "G3_6_1"
+      ],
+      "Войдите в Одиночные камеры": [
+        "G4_5_2"
+      ],
+      "Войдите в Охотничьи угодья": [
+        "G1_11"
+      ],
+      "Войдите в Паракосм": [
+        "G_Endgame_Town"
+      ],
+      "Войдите в Пепельный лес": [
+        "P3_1"
+      ],
+      "Войдите в Поместье Холтен": [
+        "P1_6"
+      ],
+      "Войдите в Поющие пещеры": [
+        "G4_3_2"
+      ],
+      "Войдите в Развалины в джунглях в поисках Водотоков Матлан": [
+        "G3_3"
+      ],
+      "Войдите в Расплавленные залы": [
+        "G3_9"
+      ],
+      "Войдите в Руины ваал": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "Войдите в Сердце племени": [
+        "G4_11_2"
+      ],
+      "Войдите в Супружескую гробницу в поисках Азинии": [
+        "G1_9"
+      ],
+      "Войдите в Тёмные владения": [
+        "Abyss_Boss2"
+      ],
+      "Войдите в Убежище Куачик": [
+        "P3_7"
+      ],
+      "Войдите в Утцааль прошлого": [
+        "G3_14"
+      ],
+      "Войдите в Холтен": [
+        "P1_4"
+      ],
+      "Войдите в Храм Копека под лагерем охотников за сокровищами": [
+        "G3_12"
+      ],
+      "Войдите в Храм Селхари": [
+        "P2_3"
+      ],
+      "Войдите в Чернолесье": [
+        "P1_3"
+      ],
+      "Войдите в Шахту Маудун": [
+        "G2_10_2"
+      ],
+      "Войдите в город Кима": [
+        "P2_6"
+      ],
+      "Войдите в деревню Криар": [
+        "P3_2"
+      ],
+      "Войдите в область Камни Серли": [
+        "P1_2"
+      ],
+      "Войдите в портал и встретьтесь с Матерью": [
+        "G4_4_3"
+      ],
+      "Войдите на Вершину мерзости и поищите ключ": [
+        "G3_11"
+      ],
+      "Войдите на Ледниковое озеро": [
+        "P3_3"
+      ],
+      "Войдите на раскопки": [
+        "G4_10"
+      ],
+      "Выживите в иллюзиях Ворона": [
+        "G_Endgame_Town"
+      ],
+      "Вырастите дар утробы на Дереве зарождения": [
+        "G_Endgame_Town"
+      ],
+      "Выясните больше о странном дереве": [
+        "G_Endgame_Town"
+      ],
+      "Доберитесь до Лагеря Хильды": [
+        "G_Endgame_Town"
+      ],
+      "Доберитесь до Симулякра обмана": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "Заберите Мешок Повелителя Разлома у Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Заберите Плитку Разлома у Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Заберите амулет у старейшины Мэдокса": [
+        "G_Endgame_Town"
+      ],
+      "Заберите дар утробы у Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Заберите жидкие эмоции у старейшины Мэдокса": [
+        "G_Endgame_Town"
+      ],
+      "Заберите камень Разлома у Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Заберите плитку Делириума у старейшины Мэдокса": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту заброшенного поместья": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту нефритовых островов": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту нефритовых островов Завершите карту заброшенного поместья": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту нефритовых островов Завершите карту священного водоёма": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту нефритовых островов Завершите карту скрытого убежища": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту нефритовых островов Завершите карту скрытого убежища Завершите карту заброшенного поместья": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту нефритовых островов Завершите карту скрытого убежища Завершите карту священного водоёма": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту священного водоёма": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту священного водоёма Завершите карту заброшенного поместья": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту скрытого убежища": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту скрытого убежища Завершите карту заброшенного поместья": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту скрытого убежища Завершите карту священного водоёма": [
+        "G_Endgame_Town"
+      ],
+      "Завершите карту скрытого убежища Завершите карту священного водоёма Завершите карту заброшенного поместья": [
+        "G_Endgame_Town"
+      ],
+      "Зачаруйте амулет в Декантере безумия": [
+        "G_Endgame_Town"
+      ],
+      "Защищайте Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Используйте Колодец душ": [
+        "G2_town"
+      ],
+      "Используйте камень Разлома и откройте город Разлома на вашем Атласе": [
+        "G_Endgame_Town"
+      ],
+      "Используйте очко пассивного умения": [
+        "G1_town"
+      ],
+      "Исследуйте Заражённые пустоши в поисках Топей химеридов": [
+        "G3_5"
+      ],
+      "Исследуйте Паракосм": [
+        "G_Endgame_Town"
+      ],
+      "Исследуйте Супружескую гробницу в поисках Дрейвена и его супруги": [
+        "G1_9"
+      ],
+      "Найдите Графа Жеонора": [
+        "G1_15"
+      ],
+      "Найдите Святилище в сердце Кета": [
+        "G2_4_3"
+      ],
+      "Найдите Хильду": [
+        "G_Endgame_Town"
+      ],
+      "Найдите Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Найдите вход в Красную Долину": [
+        "G1_5"
+      ],
+      "Найдите вход в Красную Долину Отыщите в Красной Долине 3 Руны силы": [
+        "G1_5"
+      ],
+      "Найдите значение рун на Дереве душ": [
+        "G1_6"
+      ],
+      "Найдите источник орокского яда": [
+        "G3_4"
+      ],
+      "Найдите источник тревожности": [
+        "G_Endgame_Town"
+      ],
+      "Найдите источник трещин Бездны": [
+        "G2_town"
+      ],
+      "Найдите лютню Уны": [
+        "G1_6"
+      ],
+      "Найдите на Вырубке вход в Грязевую нору": [
+        "G1_3"
+      ],
+      "Найдите на Вырубке вход в Грязевую нору Убейте Пожирателя в его логове": [
+        "G1_3"
+      ],
+      "Найдите погребённый где-то под песками вход в Кет": [
+        "G2_4_2"
+      ],
+      "Начните Симулякр": [
+        "G_Endgame_Town"
+      ],
+      "Начните ваше Испытание силы": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "Обследуйте Воды Хаталя": [
+        "P2_3"
+      ],
+      "Обследуйте Мавзолей в поисках Дрейвена": [
+        "G1_8"
+      ],
+      "Обследуйте крепость улья": [
+        "G_Endgame_Town"
+      ],
+      "Освободите мужчину": [
+        "G_Endgame_Town"
+      ],
+      "Освободите старейшину Мэдокса": [
+        "G_Endgame_Town"
+      ],
+      "Осмотрите Бессветный проход": [
+        "G2_town"
+      ],
+      "Осмотрите Скрытое убежище": [
+        "G_Endgame_Town"
+      ],
+      "Осмотрите большое зеркало": [
+        "G_Endgame_Town"
+      ],
+      "Отбейтесь от безумия": [
+        "G_Endgame_Town"
+      ],
+      "Отдайте Мешок Повелителя Разлома Спящему": [
+        "G_Endgame_Town"
+      ],
+      "Отдайте пустую татуировку Нгамаху Навали": [
+        "G4_4_3"
+      ],
+      "Отдайте пустую татуировку Тасалио Навали": [
+        "G4_4_3"
+      ],
+      "Отдайте пустую татуировку Тахоа Навали": [
+        "G4_4_3"
+      ],
+      "Откройте Разлом": [
+        "G_Endgame_Town"
+      ],
+      "Откройте карту пустыни и отправляйтесь в Бесплодные земли мастодонтов": [
+        "G2_5_1"
+      ],
+      "Откройте карту пустыни и отправляйтесь в Дешар": [
+        "G2_8"
+      ],
+      "Откройте карту пустыни и отправляйтесь в Долину Титанов": [
+        "G2_6"
+      ],
+      "Откройте карту пустыни и отправляйтесь в Кет": [
+        "G2_4_1"
+      ],
+      "Откройте карту пустыни и отправляйтесь к Дредноуту": [
+        "G2_12"
+      ],
+      "Откройте карту пустыни и отправляйтесь к Испытанию Сехем": [
+        "G2_13"
+      ],
+      "Откройте карту пустыни и отправляйтесь к Каменоломне Маудун": [
+        "G2_10_1"
+      ],
+      "Откройте карту пустыни и отправляйтесь к Тропе изменницы": [
+        "G2_2"
+      ],
+      "Откройте карту пустыни и отправляйтесь к Черепу Титана": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "Откройте экран пассивных умений": [
+        "G1_town"
+      ],
+      "Откройте экран пассивных умений Используйте очко пассивного умения": [
+        "G1_town"
+      ],
+      "Отправляйтесь в Выжженные фермерские земли": [
+        "P1_1"
+      ],
+      "Отправляйтесь в Деревню Огам": [
+        "G1_13_2"
+      ],
+      "Отправляйтесь в Дешар": [
+        "G2_8"
+      ],
+      "Отправляйтесь в Кингсмарш": [
+        "G_Endgame_Town"
+      ],
+      "Отправляйтесь в Монастырь Хранителей": [
+        "G_Endgame_Town"
+      ],
+      "Отправляйтесь в Монастырь Хранителей и поговорите со Спящим": [
+        "G_Endgame_Town"
+      ],
+      "Отправляйтесь в Храм Хаоса": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "Отправляйтесь в башню Предтеч": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "Отправляйтесь в колонию улья": [
+        "G_Endgame_Town"
+      ],
+      "Отправляйтесь в фермерские земли Огама": [
+        "G1_6"
+      ],
+      "Отправляйтесь в фермерские земли Огама Найдите лютню Уны": [
+        "G1_6"
+      ],
+      "Отправляйтесь к Глазу Хинекоры": [
+        "G4_4_1"
+      ],
+      "Отправляйтесь к Увядшей иве": [
+        "G_Endgame_Town"
+      ],
+      "Отправляйтесь на Кхарийский перевал": [
+        "P2_1"
+      ],
+      "Отправляйтесь на Кхарийский перевал и найдите башню Аб Бинайи": [
+        "P2_1"
+      ],
+      "Отправляйтесь на остров Вакапану": [
+        "G4_3_1"
+      ],
+      "Отправляйтесь через Вырубку в Грельвуд": [
+        "G1_4"
+      ],
+      "Отыщите 3 Руны силы в Красной Долине": [
+        "G1_5"
+      ],
+      "Отыщите Фрейторн над Охотничьими угодьями": [
+        "G1_12"
+      ],
+      "Отыщите Храм Селхари": [
+        "P2_2"
+      ],
+      "Отыщите в Бесплодных землях мастодонтов вход в Костяные ямы": [
+        "G2_5_2"
+      ],
+      "Отыщите в Красной Долине 3 Руны силы": [
+        "G1_5"
+      ],
+      "Отыщите рунные камни в Дешаре": [
+        "G2_8"
+      ],
+      "Отыщите рунные камни в Кете": [
+        "G2_4_1"
+      ],
+      "Отыщите рунные камни в Костяных ямах": [
+        "G2_5_2"
+      ],
+      "Отыщите рунные камни в Мрачных зарослях": [
+        "G1_6"
+      ],
+      "Отыщите рунные камни в Охотничьих угодьях": [
+        "G1_11"
+      ],
+      "Отыщите рунные камни в Развалинах в джунглях": [
+        "G3_3"
+      ],
+      "Отыщите рунные камни в Фермерских землях Огама": [
+        "G1_13_1"
+      ],
+      "Отыщите рунные камни в Ядовитых криптах": [
+        "G3_4"
+      ],
+      "Отыщите рунные камни на Болоте Азак": [
+        "G3_7"
+      ],
+      "Пересеките Занесённые песком болота в поисках зиккурата": [
+        "G3_town"
+      ],
+      "Победите Ворона-Плута": [
+        "G_Endgame_Town"
+      ],
+      "Победите Ксешта Мы-Что-Едины": [
+        "G_Endgame_Town"
+      ],
+      "Победите боссов карт в состоянии бреда (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Победите боссов карт в состоянии бреда (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Победите боссов карт в состоянии бреда (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Победите боссов карт в состоянии бреда (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Победите боссов карт в состоянии бреда (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Победите второго Великого зверя": [
+        "G_Endgame_Town"
+      ],
+      "Победите двойниковых боссов в состоянии бреда": [
+        "G_Endgame_Town"
+      ],
+      "Победите первого Великого зверя": [
+        "G_Endgame_Town"
+      ],
+      "Победите порождения улья": [
+        "G_Endgame_Town"
+      ],
+      "Победите третьего Великого зверя": [
+        "G_Endgame_Town"
+      ],
+      "Победите четвёртого Великого зверя": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Альвой и отправляйтесь в Кингсмарш": [
+        "G4_town"
+      ],
+      "Поговорите с Анге": [
+        "G4_town"
+      ],
+      "Поговорите с Анге и отправляйтесь в Убежище на берегу": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "Поговорите с Джадо": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Джадо в вашем убежище": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Макору и отправляйтесь на Мыс грабителя": [
+        "G4_13"
+      ],
+      "Поговорите с Макору и отправьтесь в Кеджский залив": [
+        "G4_2_1"
+      ],
+      "Поговорите с Родри и отплывайте на Нгакану": [
+        "G4_11_1b"
+      ],
+      "Поговорите с Хильдой": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Хильдой в вашем убежище или Лагере Хильды": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Эйлит – первой из Хранителей": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с Эйлит – первой из Хранителей – в Монастыре Хранителей": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите с таинственной послушницей": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите со Скрытным и отправляйтесь в Огам": [
+        "P1_Town"
+      ],
+      "Поговорите со Скрытным и отправляйтесь в Ориат": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите со Скрытным и отправляйтесь в Убежище в зиккурате": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите со Скрытным и отправляйтесь к горе Криар": [
+        "P3_Town"
+      ],
+      "Поговорите со Скрытным и отправляйтесь на Базар": [
+        "P2_Town"
+      ],
+      "Поговорите со Спящим": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите со Старейшиной Мэдоксом у Увядшей ивы": [
+        "G_Endgame_Town"
+      ],
+      "Поговорите со старейшиной Мэдоксом": [
+        "G_Endgame_Town"
+      ],
+      "Подберите Мешок Повелителя Разлома": [
+        "G_Endgame_Town"
+      ],
+      "Подберите Отражение Плута": [
+        "G_Endgame_Town"
+      ],
+      "Поднимитесь на Дешар": [
+        "G2_9_1"
+      ],
+      "Поднимитесь по Тропе изменницы на вершину ворот": [
+        "G2_3"
+      ],
+      "Поместите Отражение Плута в зеркало Увядшей ивы": [
+        "G_Endgame_Town"
+      ],
+      "Поместите амулет в Декантер безумия": [
+        "G_Endgame_Town"
+      ],
+      "Пробейтесь через Аггорат и найдите Чёрные залы": [
+        "G3_17"
+      ],
+      "Пробейтесь через порождения улья": [
+        "G_Endgame_Town"
+      ],
+      "Пробейтесь через порождения улья вместе с Эйлит": [
+        "G_Endgame_Town"
+      ],
+      "Продолжайте идти вглубь Мрачных зарослей": [
+        "G1_7"
+      ],
+      "Пройдите Путём скорби": [
+        "G2_9_2"
+      ],
+      "Пройдите глубже в Машинариум": [
+        "G3_6_2"
+      ],
+      "Проникните в Замок за деревней": [
+        "G1_15"
+      ],
+      "Проникните в Замок за деревней Найдите Графа Жеонора": [
+        "G1_15"
+      ],
+      "Сожгите защиту порождений улья": [
+        "G_Endgame_Town"
+      ],
+      "Стабилизируйте Разлом": [
+        "G_Endgame_Town"
+      ],
+      "Стабилизируйте Разломы (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "Стабилизируйте Разломы (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "Стабилизируйте Разломы (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "Стабилизируйте Разломы (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "Стабилизируйте Разломы (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "Ступите на Конец странствия": [
+        "G4_2_2"
+      ],
+      "Убейте Пожирателя в его логове": [
+        "G1_3"
+      ]
+    },
+    "th": {
+      "กลับไปยังค่ายฮิลด้า": [
+        "G_Endgame_Town"
+      ],
+      "กลับไปยังซากปรักหักพังวาล์": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "กลับไปยังต้นหลิวเหี่ยวแห้ง": [
+        "G_Endgame_Town"
+      ],
+      "กลับไปยังทางเข้าคูน้ำเคี้ยวคดในป่าเกรลวูด": [
+        "G1_6"
+      ],
+      "กลับไปยังที่หลบภัยซิกกุรัต": [
+        "G_Endgame_Town"
+      ],
+      "กลับไปยังอารามผู้ธำรง": [
+        "G_Endgame_Town"
+      ],
+      "ขึ้นไปตามทางผ่านผู้ทรยศเพื่อขึ้นไปยังด้านบนของประตู": [
+        "G2_3"
+      ],
+      "ขึ้นไปตามทางผ่านผู้ทรยศเพื่อขึ้นไปยังด้านบนของประตู ทั้งหลาย": [
+        "G2_3"
+      ],
+      "ขึ้นไปตามเดชาร์": [
+        "G2_9_1"
+      ],
+      "ข้ามบึงพัดทรายเพื่อค้นหาซิกกุรัต": [
+        "G3_town"
+      ],
+      "คุ้มกันเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "ค้นหาชายคาเฟรย์ธอร์นที่อยู่เหนือแดนนักล่า": [
+        "G1_12"
+      ],
+      "ค้นหาทางเข้าสู่เค็ทที่ฝังอยู่ในผืนทราย": [
+        "G2_4_2"
+      ],
+      "ค้นหาทางเข้าหลุมกระดูกภายในแดนกันดารมาสโตดอน": [
+        "G2_5_2"
+      ],
+      "ค้นหาทางเข้าห้วยสีชาด": [
+        "G1_5"
+      ],
+      "ค้นหาทางเข้าห้วยสีชาด ค้นหาอักขระแห่งพลังทั้งสามภายในห้วยสีชาด": [
+        "G1_5"
+      ],
+      "ค้นหาทางเข้าโพรงโคลนภายในเคลียร์เฟล": [
+        "G1_3"
+      ],
+      "ค้นหาทางเข้าโพรงโคลนภายในเคลียร์เฟล สังหารตัวสวาปามในรังของมัน": [
+        "G1_3"
+      ],
+      "ค้นหาปูชนียสถานเซล คารี": [
+        "P2_2"
+      ],
+      "ค้นหารูปอักขระ​อื่นๆ ที่​มี​ลักษณะ​คล้าย​กับ​รูป​ที่​สลัก​ไว้​ใน​ต้นตรึงวิญญาณ": [
+        "G1_6"
+      ],
+      "ค้นหาลูทของอูน่า": [
+        "G1_6"
+      ],
+      "ค้นหาศิลาอักขระภายในหลุมกระดูก": [
+        "G2_5_2"
+      ],
+      "ค้นหาศิลาอักขระภายในเค็ท": [
+        "G2_4_1"
+      ],
+      "ค้นหาศิลาอักขระภายในเดชาร์": [
+        "G2_8"
+      ],
+      "ค้นหาสถานพำนักที่อยู่ใจกลางเค็ท": [
+        "G2_4_3"
+      ],
+      "ค้นหาอักขระแห่งพลังทั้งสามภายในห้วยสีชาด": [
+        "G1_5"
+      ],
+      "ค้นหา​ศิลาอักขระ​ภายใน​คูน้ำเคี้ยวคด": [
+        "G1_6"
+      ],
+      "ค้นหา​ศิลาอักขระ​ภายใน​ซากปรักหักพังป่าดงดิบ": [
+        "G3_3"
+      ],
+      "ค้นหา​ศิลาอักขระ​ภายใน​ถิ่นเพาะปลูกอ็อกแฮม": [
+        "G1_13_1"
+      ],
+      "ค้นหา​ศิลาอักขระ​ภายใน​พรุอาซัค": [
+        "G3_7"
+      ],
+      "ค้นหา​ศิลาอักขระ​ภายใน​สุสานอสรพิษ": [
+        "G3_4"
+      ],
+      "ค้นหา​ศิลาอักขระ​ภายใน​แดนนักล่า": [
+        "G1_11"
+      ],
+      "ตามหาที่มาของรอยแยกอะบิส": [
+        "G2_town"
+      ],
+      "ตามหาฮิลด้า": [
+        "G_Endgame_Town"
+      ],
+      "ตามหาเคานต์จีโอนอร์": [
+        "G1_15"
+      ],
+      "ตามหาเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "ต่อสู้กับความบ้าคลั่ง": [
+        "G_Endgame_Town"
+      ],
+      "ต่อสู้กับสมุนรวงรังร่วมกับเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "ต่อสู้ฝ่าสมุนรวงรัง": [
+        "G_Endgame_Town"
+      ],
+      "ต่อสู้ฝ่าเข้าไปในแอ็กโกแรทแล้วค้นหาโถงดำ": [
+        "G3_17"
+      ],
+      "ทั้งหลาย": [
+        "G2_3"
+      ],
+      "นำสร้อยไปใส่ในคนโทบ้าคลั่ง": [
+        "G_Endgame_Town"
+      ],
+      "บททดสอบแห่งเซ็คเคมา": [
+        "G2_13"
+      ],
+      "ปลดปล่อยชายผู้นี้": [
+        "G_Endgame_Town"
+      ],
+      "ปลดปล่อยผู้เฒ่ามาด็อกซ์": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ ผ่านแผนที่ Sealed Vault ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ ผ่านแผนที่ Sealed Vault ให้สำเร็จ ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Jade Isles ให้สำเร็จ ผ่านแผนที่ Sealed Vault ให้สำเร็จ ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Sealed Vault ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Sealed Vault ให้สำเร็จ ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Sealed Vault ให้สำเร็จ ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "ผ่านแผนที่ Sealed Vault ให้สำเร็จ ผ่านแผนที่ Sacred Reservoir ให้สำเร็จ ผ่านแผนที่ Derelict Mansion ให้สำเร็จ": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับจาโด": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับจาโดในที่ซ่อนของคุณ": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับผู้คลุมกายเพื่อเดินทางไปยังตลาด": [
+        "P2_Town"
+      ],
+      "พูดคุยกับผู้คลุมกายเพื่อเดินทางไปยังภูเขาไครอาร์": [
+        "P3_Town"
+      ],
+      "พูดคุยกับผู้คลุมกายเพื่อเดินทางไปยังอ็อกแฮม": [
+        "P1_Town"
+      ],
+      "พูดคุยกับผู้คลุมกายเพื่อเดินทางไปยังโอริอาท": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับผู้ฝันใฝ่": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับผู้เฒ่ามาด็อกซ์": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับมาโครูเพื่อเดินทางไปยังอ่าวเค็ดจ์": [
+        "G4_2_1"
+      ],
+      "พูดคุยกับสาวกลึกลับ": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับอัลวาเพื่อเดินทางไปยังคิงส์มาร์ช": [
+        "G4_town"
+      ],
+      "พูดคุยกับฮิลด้า": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับเอลิธ ผู้ธำรงคนแรก": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุยกับแอนจ์": [
+        "G4_town"
+      ],
+      "พูดคุยกับแอนจ์เพื่อเดินทางไปยังที่ซ่อนชายทะเล": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "พูดคุยกับโรว์ดรีเพื่อเดินทางไปยังนาคานู": [
+        "G4_11_1b"
+      ],
+      "พูดคุยกับ​เอลิธ ผู้ธำรงคนแรก": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุย​กับ​จาโด​ใน​ที่ซ่อน​ของ​คุณ": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุย​กับ​ผู้คลุมกาย​เพื่อ​เดินทาง​ไป​ยัง​ที่หลบภัยซิกกุรัต": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุย​กับ​มาโครู​เพื่อ​ออกเรือ​ไป​ยัง​จุดนักปล้นสะดม": [
+        "G4_13"
+      ],
+      "พูดคุย​กับ​ฮิลด้า": [
+        "G_Endgame_Town"
+      ],
+      "พูดคุย​กับ​ฮิลด้า​ใน​ที่ซ่อน​ของ​คุณ​หรือ​ค่ายฮิลด้า": [
+        "G_Endgame_Town"
+      ],
+      "พูด​คุย​กับ​ผู้เฒ่ามาด็อกซ์​ในต้นหลิวเหี่ยวแห้ง": [
+        "G_Endgame_Town"
+      ],
+      "พูด​คุย​กับ​เอลิธ ผู้ธำรงคนแรก​ในอารามผู้ธำรง": [
+        "G_Endgame_Town"
+      ],
+      "พูด​คุย​กับ​เอลิธ ผู้ธำรง​คนแรก​ใน​อารามผู้ธำรง": [
+        "G_Endgame_Town"
+      ],
+      "มอบถุงน้ำบรีชลอร์ดให้กับผู้ฝันใฝ่": [
+        "G_Endgame_Town"
+      ],
+      "รักษาเสถียรภาพของบรีช": [
+        "G_Endgame_Town"
+      ],
+      "รักษาเสถียรภาพของบรีช (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "รักษาเสถียรภาพของบรีช (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "รักษาเสถียรภาพของบรีช (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "รักษาเสถียรภาพของบรีช (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "รักษาเสถียรภาพของบรีช (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "รับกระสายอารมณ์จากผู้เฒ่ามาด็อกซ์": [
+        "G_Endgame_Town"
+      ],
+      "รับถุงน้ำบรีชลอร์ดจากเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "รับรางวัลจากโทเทมฮิเนโครา": [
+        "G4_4_3"
+      ],
+      "รับศิลาบรีชจากเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "รับสร้อยจากผู้เฒ่ามาด็อกซ์": [
+        "G_Endgame_Town"
+      ],
+      "รับแผ่นหินบรีชจากเอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "รับแผ่นหินเดลิเรียมจากผู้เฒ่ามาด็อกซ์": [
+        "G_Endgame_Town"
+      ],
+      "รับ​ผลฝากครรภ์​จาก​เอลิธ": [
+        "G_Endgame_Town"
+      ],
+      "วาง​ภาพสะท้อนของเรเวน​ใน​กระจก​ของ​ต้นหลิวเหี่ยวแห้ง": [
+        "G_Endgame_Town"
+      ],
+      "สยบบอสคู่แฝดภายใต้เดลิเรียม": [
+        "G_Endgame_Town"
+      ],
+      "สยบบอสประจำแผนที่ภายใต้เดลิเรียม (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "สยบบอสประจำแผนที่ภายใต้เดลิเรียม (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "สยบบอสประจำแผนที่ภายใต้เดลิเรียม (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "สยบบอสประจำแผนที่ภายใต้เดลิเรียม (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "สยบบอสประจำแผนที่ภายใต้เดลิเรียม (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "สยบสมุนรวงรัง": [
+        "G_Endgame_Town"
+      ],
+      "สยบสัตว์ร้ายผู้ยิ่งใหญ่ตัวที่สอง": [
+        "G_Endgame_Town"
+      ],
+      "สยบสัตว์ร้ายผู้ยิ่งใหญ่ตัวที่สาม": [
+        "G_Endgame_Town"
+      ],
+      "สยบสัตว์ร้ายผู้ยิ่งใหญ่ตัวที่สี่": [
+        "G_Endgame_Town"
+      ],
+      "สยบสัตว์ร้ายผู้ยิ่งใหญ่ตัวที่หนึ่ง": [
+        "G_Endgame_Town"
+      ],
+      "สยบเซ็ชท์ เราผู้เป็นหนึ่ง": [
+        "G_Endgame_Town"
+      ],
+      "สยบเทพเรเวนผู้ลวงหลอก": [
+        "G_Endgame_Town"
+      ],
+      "สังหารตัวสวาปามในรังของมัน": [
+        "G1_3"
+      ],
+      "สำรวจทางผ่านสิ้นแสง": [
+        "G2_town"
+      ],
+      "สำรวจปราการรวงรัง": [
+        "G_Endgame_Town"
+      ],
+      "สำรวจหนองน้ำคาทาล": [
+        "P2_3"
+      ],
+      "สำรวจหลุมฝังศพภริยาเพื่อตามหาเดรเวนและภริยาของเขา": [
+        "G1_9"
+      ],
+      "สำรวจแดนแมลงรังควานเพื่อค้นหาป่าชุ่มน้ำไคมีรัล": [
+        "G3_5"
+      ],
+      "สำรวจโลกในจินตนาการ": [
+        "G_Endgame_Town"
+      ],
+      "ส่งลายสักเปล่า ทาฟัว ให้กับนาวาลี": [
+        "G4_4_3"
+      ],
+      "ส่งลายสักเปล่า ทาเซลีโอ ให้กับนาวาลี": [
+        "G4_4_3"
+      ],
+      "ส่งลายสักเปล่า นามาฮู ให้กับนาวาลี": [
+        "G4_4_3"
+      ],
+      "หยดสารกลั่นให้กับสร้อยที่คนโทบ้าคลั่ง": [
+        "G_Endgame_Town"
+      ],
+      "หาข้อมูลเพิ่มเติมเกี่ยวกับต้นไม้ประหลาด": [
+        "G_Endgame_Town"
+      ],
+      "หาต้นตอของความไม่สงบ": [
+        "G_Endgame_Town"
+      ],
+      "หาที่มาของพิษโอร็อก": [
+        "G3_4"
+      ],
+      "เก็บถุงน้ำบรีชลอร์ด": [
+        "G_Endgame_Town"
+      ],
+      "เก็บภาพสะท้อนของเรเวน": [
+        "G_Endgame_Town"
+      ],
+      "เข้าวาร์ปไปพบกับพระมารดา": [
+        "G4_4_3"
+      ],
+      "เข้าไปสำรวจกระจกมเหาฬาร": [
+        "G_Endgame_Town"
+      ],
+      "เข้าไปสำรวจห้องนิรภัยปิดตาย": [
+        "G_Endgame_Town"
+      ],
+      "เข้าไปสำรวจอนุสาวรีย์บรรจุศพเพื่อตามหาข้าหลวงเดรเวน": [
+        "G1_8"
+      ],
+      "เข้าไปในคฤหาสน์โฮลเทน": [
+        "P1_6"
+      ],
+      "เข้าไปในคาราวานอาร์ดูร่า": [
+        "G2_town"
+      ],
+      "เข้าไปในคีมาห์": [
+        "P2_6"
+      ],
+      "เข้าไปในคุกขังเดี่ยว": [
+        "G4_5_2"
+      ],
+      "เข้าไปในซากปรักหักพังป่าดงดิบเพื่อค้นหาทางน้ำมาตลาน": [
+        "G3_3"
+      ],
+      "เข้าไปในซากปรักหักพังวาล์": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "เข้าไปในถ้ำขับขาน": [
+        "G4_3_2"
+      ],
+      "เข้าไปในถ้ำลอดไททันที่ทางเข้าหัตถ์ประสาน": [
+        "G2_7"
+      ],
+      "เข้าไปในถ้ำหอน": [
+        "P3_4"
+      ],
+      "เข้าไปในทางน้ำมาตลานแล้วค้นหากลไกควบคุม": [
+        "G3_2_2"
+      ],
+      "เข้าไปในทางผ่านสิ้นแสง": [
+        "G2_town"
+      ],
+      "เข้าไปในนครจมน้ำเพื่อค้นหาแอ็กโกแรท": [
+        "G3_8"
+      ],
+      "เข้าไปในบึงภูเขาเยือกแข็ง": [
+        "P3_3"
+      ],
+      "เข้าไปในบ่อวิญญาณ": [
+        "G2_town"
+      ],
+      "เข้าไปในประตูกาไล": [
+        "P2_5"
+      ],
+      "เข้าไปในปูชนียสถานเซล คารี": [
+        "P2_3"
+      ],
+      "เข้าไปในป่าวิกาล": [
+        "P1_3"
+      ],
+      "เข้าไปในป่าเถ้าธุลี": [
+        "P3_1"
+      ],
+      "เข้าไปในพระคลังหลอมเหลว": [
+        "G3_9"
+      ],
+      "เข้าไปในยอดเขาไครอาร์": [
+        "P3_5"
+      ],
+      "เข้าไปในยอดแห่งความโสมมแอ็กโกแรทเพื่อค้นหากุญแจ": [
+        "G3_11"
+      ],
+      "เข้าไปในวิหารโคเปคที่อยู่ใต้ค่ายนักล่าสมบัติ": [
+        "G3_12"
+      ],
+      "เข้าไปในศิลาเซอร์ล": [
+        "P1_2"
+      ],
+      "เข้าไปในสถานขุดค้น": [
+        "G4_10"
+      ],
+      "เข้าไปในสถานจักรกลฮิคัวนี": [
+        "G3_6_1"
+      ],
+      "เข้าไปในสถานนิรภัยควาชิก": [
+        "P3_7"
+      ],
+      "เข้าไปในสิ้นทางสิ้นซาก": [
+        "G4_2_2"
+      ],
+      "เข้าไปในสุสานสาบสูญ": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "เข้าไปในหนองน้ำคาทาล": [
+        "P2_2"
+      ],
+      "เข้าไปในหมู่บ้านไครอาร์": [
+        "P3_2"
+      ],
+      "เข้าไปในหลุมฝังศพภริยาเพื่อตามหาอะซีเนีย": [
+        "G1_9"
+      ],
+      "เข้าไปในห้วงว่างสิ้นแสง": [
+        "Abyss_Boss1"
+      ],
+      "เข้าไปในห้วยลึกสลัก": [
+        "P3_6"
+      ],
+      "เข้าไปในอนุสาวรีย์บรรจุศพ": [
+        "G1_8"
+      ],
+      "เข้าไปในอุทซาลในอดีต": [
+        "G3_14"
+      ],
+      "เข้าไปในอ่างเก็บน้ำคีมาห์": [
+        "P2_7"
+      ],
+      "เข้าไปในเหมืองแร่มอว์ดัน": [
+        "G2_10_2"
+      ],
+      "เข้าไปในแดนนักล่า": [
+        "G1_11"
+      ],
+      "เข้าไปในแดนมืด": [
+        "Abyss_Boss2"
+      ],
+      "เข้าไปในแดนวิปลาส": [
+        "G_Endgame_Town"
+      ],
+      "เข้าไปในแอ็กโกแรทแล้วค้นหาโถงดำ": [
+        "G3_16"
+      ],
+      "เข้าไปในโถงแห่งผู้วายชนม์": [
+        "G4_4_2"
+      ],
+      "เข้าไปในโพรงภูเขาไฟ": [
+        "G4_1_2"
+      ],
+      "เข้าไปในโลกในจินตนาการ": [
+        "G_Endgame_Town"
+      ],
+      "เข้าไปในโฮลเทน": [
+        "P1_4"
+      ],
+      "เข้าไปในใจกลางเผ่า": [
+        "G4_11_2"
+      ],
+      "เดินทางต่อไปตามคูน้ำเคี้ยวคด": [
+        "G1_7"
+      ],
+      "เดินทางผ่านเคลียร์เฟลไปยังป่าเกรลวูด": [
+        "G1_4"
+      ],
+      "เดินทางผ่านเส้นทางอาลัย": [
+        "G2_9_2"
+      ],
+      "เดินทางเข้าไปยังเบื้องลึกของสถานจักรกล": [
+        "G3_6_2"
+      ],
+      "เดินทางไปยังคิงส์มาร์ช": [
+        "G_Endgame_Town"
+      ],
+      "เดินทางไปยังดวงตาแห่งฮิเนโครา": [
+        "G4_4_1"
+      ],
+      "เดินทางไปยังต้นหลิวเหี่ยวแห้ง": [
+        "G_Endgame_Town"
+      ],
+      "เดินทางไปยังถิ่นเพาะปลูกอ็อกแฮม": [
+        "G1_6"
+      ],
+      "เดินทางไปยังถิ่นเพาะปลูกอ็อกแฮม ค้นหาลูทของอูน่า": [
+        "G1_6"
+      ],
+      "เดินทางไปยังทางข้ามคารี": [
+        "P2_1"
+      ],
+      "เดินทางไปยังทางข้ามคารีแล้วค้นหาหอคอยแอ็บ บินายี": [
+        "P2_1"
+      ],
+      "เดินทางไปยังวิหารเคออส": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "เดินทางไปยังหมู่บ้านอ็อกแฮม": [
+        "G1_13_2"
+      ],
+      "เดินทางไปยังหอคอยกลุ่มชนก่อนกาล": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "เดินทางไปยังอาณานิคมรวงรัง": [
+        "G_Endgame_Town"
+      ],
+      "เดินทางไปยังอารามผู้ธำรง": [
+        "G_Endgame_Town"
+      ],
+      "เดินทางไปยังเกาะฟาคาปานู": [
+        "G4_3_1"
+      ],
+      "เดินทางไปยังเดชาร์": [
+        "G2_8"
+      ],
+      "เดินทางไปยังแดนเพาะปลูกมอดไหม้": [
+        "P1_1"
+      ],
+      "เดินทาง​ไป​ยัง​อารามผู้ธำรง​แล้ว​พูดคุย​กับ​ผู้ฝันใฝ่": [
+        "G_Endgame_Town"
+      ],
+      "เปิดกระจก": [
+        "G_Endgame_Town"
+      ],
+      "เปิดกระจกเดลิเรียม": [
+        "G_Endgame_Town"
+      ],
+      "เปิดบรีช": [
+        "G_Endgame_Town"
+      ],
+      "เปิดหน้าจอพาสซีฟ": [
+        "G1_town"
+      ],
+      "เปิดหน้าจอพาสซีฟ ใช้แต้มพาสซีฟของคุณ": [
+        "G1_town"
+      ],
+      "เผาเครื่องป้องกันของสมุนรวงรัง": [
+        "G_Endgame_Town"
+      ],
+      "เพาะปลูก​ผลฝากครรภ์​บน​ต้นมาตุรงค์": [
+        "G_Endgame_Town"
+      ],
+      "เริ่มบทพิสูจน์พละกำลังของคุณ": [
+        "Sanctum_1_Foyer_1"
+      ],
+      "เริ่มเมืองจำแลง": [
+        "G_Endgame_Town"
+      ],
+      "เอาตัวรอดจากความเพ้อคลั่งของเรเวน": [
+        "G_Endgame_Town"
+      ],
+      "แดนกันดารมาสโตดอน": [
+        "G2_5_1"
+      ],
+      "แทรกซึมเข้าไปในคฤหาสน์ที่อยู่เลยไปจากหมู่บ้าน": [
+        "G1_15"
+      ],
+      "แทรกซึมเข้าไปในคฤหาสน์ที่อยู่เลยไปจากหมู่บ้าน ตามหาเคานต์จีโอนอร์": [
+        "G1_15"
+      ],
+      "ใช้งานกระจก": [
+        "G_Endgame_Town"
+      ],
+      "ใช้งานกระจกประหลาด": [
+        "G_Endgame_Town"
+      ],
+      "ใช้บ่อวิญญาณ": [
+        "G2_town"
+      ],
+      "ใช้แต้มพาสซีฟของคุณ": [
+        "G1_town"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยัง บททดสอบแห่งเซ็คเคมา": [
+        "G2_13"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยัง แดนกันดารมาสโตดอน": [
+        "G2_5_1"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยังคาราวานประจัญบาน": [
+        "G2_12"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยังทางผ่านผู้ทรยศ": [
+        "G2_2"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยังหุบเขาแห่งไททัน": [
+        "G2_6"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยังเค็ท": [
+        "G2_4_1"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยังเดชาร์": [
+        "G2_8"
+      ],
+      "ใช้แผนที่ทะเลทรายเพื่อเดินทางไปยังเหมืองผิวดินมอว์ดัน": [
+        "G2_10_1"
+      ],
+      "ใช้​ศิลาบรีช​เผย​นครบรีช​บน​แอตลาส": [
+        "G_Endgame_Town"
+      ],
+      "ใช้​แผนที่​ทะเลทราย​เพื่อ​เดินทาง​ไป​ยัง​กะโหลกไททัน": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "ไปให้ถึงค่ายฮิลด้า": [
+        "G_Endgame_Town"
+      ],
+      "ไปให้ถึงเมืองจำแลงเพ้อคลั่ง": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ]
+    },
+    "zh-TW": {
+      "了解更多關於奇異大樹的事": [
+        "G_Endgame_Town"
+      ],
+      "使用天賦點": [
+        "G1_town"
+      ],
+      "使用沙漠地圖以前往凱斯城所在之處": [
+        "G2_4_1"
+      ],
+      "使用沙漠地圖以前往叛徒之路": [
+        "G2_2"
+      ],
+      "使用沙漠地圖以前往戴斯哈所在之處": [
+        "G2_8"
+      ],
+      "使用沙漠地圖以前往泰坦之谷所在之處": [
+        "G2_6"
+      ],
+      "使用沙漠地圖以前往泰坦之顱": [
+        "ExpeditionSubArea_Kalguur_Act2"
+      ],
+      "使用沙漠地圖以前往絲克瑪試煉所在之處": [
+        "G2_13"
+      ],
+      "使用沙漠地圖以前往莫頓挖石場所在之處": [
+        "G2_10_1"
+      ],
+      "使用沙漠地圖以快速前往無畏隊所在之處": [
+        "G2_12"
+      ],
+      "使用裂痕石在你的輿圖上揭露裂痕城市": [
+        "G_Endgame_Town"
+      ],
+      "使用靈魂深井": [
+        "G2_town"
+      ],
+      "保護艾里絲": [
+        "G_Endgame_Town"
+      ],
+      "前往乳齒象惡地": [
+        "G2_5_1"
+      ],
+      "前往先行者高塔": [
+        "MapAlpineRidge",
+        "MapBluff",
+        "MapLostTowers",
+        "MapMesa",
+        "MapSwampTower",
+        "MapUniqueInitialTower"
+      ],
+      "前往凋萎敗柳": [
+        "G_Endgame_Town"
+      ],
+      "前往卡里交匯道": [
+        "P2_1"
+      ],
+      "前往卡里交匯道並尋找艾布比納伊之塔": [
+        "P2_1"
+      ],
+      "前往奧格姆村": [
+        "G1_13_2"
+      ],
+      "前往奧格姆農地": [
+        "G1_6"
+      ],
+      "前往奧格姆農地 尋找烏娜的魯特琴": [
+        "G1_6"
+      ],
+      "前往巢裔聚落": [
+        "G_Endgame_Town"
+      ],
+      "前往悉妮蔻拉之眼": [
+        "G4_4_1"
+      ],
+      "前往戴斯哈": [
+        "G2_8"
+      ],
+      "前往混沌神殿": [
+        "G3_10",
+        "G3_10_Airlock"
+      ],
+      "前往火噬農地": [
+        "P1_1"
+      ],
+      "前往瓦卡帕努島": [
+        "G4_3_1"
+      ],
+      "前往看守者的修道院": [
+        "G_Endgame_Town"
+      ],
+      "前往看守者的修道院並和幻夢者交談": [
+        "G_Endgame_Town"
+      ],
+      "前往金司馬區": [
+        "G_Endgame_Town"
+      ],
+      "向悉妮蔻拉圖騰領取獎勵": [
+        "G4_4_3"
+      ],
+      "向艾里絲領取胎贈": [
+        "G_Endgame_Town"
+      ],
+      "向艾里絲領取裂痕石": [
+        "G_Endgame_Town"
+      ],
+      "向艾里絲領取裂痕領主囊腫": [
+        "G_Endgame_Town"
+      ],
+      "向長者．馬多克斯領取液態情感": [
+        "G_Endgame_Town"
+      ],
+      "向長者．馬多克斯領取譫妄碑牌": [
+        "G_Endgame_Town"
+      ],
+      "向長者．馬多克斯領取護符": [
+        "G_Endgame_Town"
+      ],
+      "和凋萎敗柳的長者．馬多克斯交談": [
+        "G_Endgame_Town"
+      ],
+      "和初始看守者．艾里絲交談": [
+        "G_Endgame_Town"
+      ],
+      "和奇異鏡子互動": [
+        "G_Endgame_Town"
+      ],
+      "和安潔交談": [
+        "G4_town"
+      ],
+      "和安潔交談以前往藏身處：海岸線": [
+        "MapHideoutShoreline_Claimable"
+      ],
+      "和希爾妲交談": [
+        "G_Endgame_Town"
+      ],
+      "和幻夢者交談": [
+        "G_Endgame_Town"
+      ],
+      "和拉卓里交談以前往尼加卡努": [
+        "G4_11_1b"
+      ],
+      "和法羅交談。": [
+        "G4_town"
+      ],
+      "和瑪寇魯交談，來前往凱吉灣": [
+        "G4_2_1"
+      ],
+      "和瑪寇魯交談，啟航前往掠奪者之角": [
+        "G4_13"
+      ],
+      "和看守者的修道院的初始看守者．艾里絲交談": [
+        "G_Endgame_Town"
+      ],
+      "和神秘的侍僧交談": [
+        "G_Endgame_Town"
+      ],
+      "和艾瓦交談以前往金司馬區": [
+        "G4_town"
+      ],
+      "和艾里絲一同對抗巢裔": [
+        "G_Endgame_Town"
+      ],
+      "和艾里絲交談": [
+        "G_Endgame_Town"
+      ],
+      "和賈多交談": [
+        "G_Endgame_Town"
+      ],
+      "和鏡子互動": [
+        "G_Endgame_Town"
+      ],
+      "和長者．馬多克斯交談": [
+        "G_Endgame_Town"
+      ],
+      "和黑衣幽魂交談以前往高地神塔庇護所": [
+        "G_Endgame_Town"
+      ],
+      "和黑衣幽魂交談來前往奧格姆": [
+        "P1_Town"
+      ],
+      "和黑衣幽魂交談來前往奧瑞亞": [
+        "G_Endgame_Town"
+      ],
+      "和黑衣幽魂交談來前往市集": [
+        "P2_Town"
+      ],
+      "和黑衣幽魂交談來前往庫萊亞山": [
+        "P3_Town"
+      ],
+      "啟動譫妄之鏡": [
+        "G_Endgame_Town"
+      ],
+      "啟動鏡子": [
+        "G_Endgame_Town"
+      ],
+      "回到瓦爾遺跡": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "回到過去，進入奧札爾": [
+        "G3_14"
+      ],
+      "在乳齒象惡地尋找骨坑入口": [
+        "G2_5_2"
+      ],
+      "在你的藏身處和賈多交談": [
+        "G_Endgame_Town"
+      ],
+      "在你的藏身處或希爾妲的營地和希爾妲交談": [
+        "G_Endgame_Town"
+      ],
+      "在凱斯城尋找符文石": [
+        "G2_4_1"
+      ],
+      "在創生之樹中培育胎贈": [
+        "G_Endgame_Town"
+      ],
+      "在劇毒墓穴尋找符文石": [
+        "G3_4"
+      ],
+      "在叢林遺跡尋找符文石": [
+        "G3_3"
+      ],
+      "在吞噬獸的巢穴擊殺吞噬獸": [
+        "G1_3"
+      ],
+      "在奧格姆農地尋找符文石": [
+        "G1_13_1"
+      ],
+      "在戴斯哈尋找符文石": [
+        "G2_8"
+      ],
+      "在此區域尋找更多符文石": [
+        "G2_4_1"
+      ],
+      "在沙堆中尋找失落的凱斯城的入口": [
+        "G2_4_2"
+      ],
+      "在獵場上方尋找弗雷索恩": [
+        "G1_12"
+      ],
+      "在獵場尋找符文石": [
+        "G1_11"
+      ],
+      "在癲狂之瓶為護符塗抹聖油": [
+        "G_Endgame_Town"
+      ],
+      "在纏縛陰林中尋找符文石": [
+        "G1_6"
+      ],
+      "在赤谷尋找 3 個力量符文": [
+        "G1_5"
+      ],
+      "在赤谷的遠古戰場上尋找 3 個力量符文": [
+        "G1_5"
+      ],
+      "在阿札克泥沼尋找符文石": [
+        "G3_7"
+      ],
+      "在骨坑尋找符文石": [
+        "G2_5_2"
+      ],
+      "完成封印的寶庫地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成封印的寶庫地圖 完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成封印的寶庫地圖 完成神聖水源地地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成封印的寶庫地圖 完成神聖水源地地圖 完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成神聖水源地地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成神聖水源地地圖 完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖 完成封印的寶庫地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖 完成封印的寶庫地圖 完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖 完成封印的寶庫地圖 完成神聖水源地地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖 完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖 完成神聖水源地地圖": [
+        "G_Endgame_Town"
+      ],
+      "完成翠玉群島地圖 完成神聖水源地地圖 完成廢棄宅邸地圖": [
+        "G_Endgame_Town"
+      ],
+      "將一個項鍊放入癲狂之瓶": [
+        "G_Endgame_Town"
+      ],
+      "將塔薩里奧的空白紋身交給娜瓦莉": [
+        "G4_4_3"
+      ],
+      "將塔赫亞的空白紋身交給娜瓦莉": [
+        "G4_4_3"
+      ],
+      "將拿馬乎的空白紋身交給娜瓦莉": [
+        "G4_4_3"
+      ],
+      "將渡鴉之映放入凋萎敗柳的鏡子中": [
+        "G_Endgame_Town"
+      ],
+      "將裂痕領主囊腫交給幻夢者": [
+        "G_Endgame_Town"
+      ],
+      "尋找吉恩諾伯爵": [
+        "G1_15"
+      ],
+      "尋找塞爾卡里庇護所": [
+        "P2_2"
+      ],
+      "尋找希爾妲": [
+        "G_Endgame_Town"
+      ],
+      "尋找攝魂之樹上蝕刻符文的意義": [
+        "G1_6"
+      ],
+      "尋找深淵裂縫的源頭": [
+        "G2_town"
+      ],
+      "尋找烏娜的魯特琴": [
+        "G1_6"
+      ],
+      "尋找紛亂的源頭": [
+        "G_Endgame_Town"
+      ],
+      "尋找艾里絲": [
+        "G_Endgame_Town"
+      ],
+      "對抗巢裔": [
+        "G_Endgame_Town"
+      ],
+      "從寶藏獵人營地下方進入科佩克神殿": [
+        "G3_12"
+      ],
+      "從阿戈拉殺出血路，並尋找漆黑密室": [
+        "G3_17"
+      ],
+      "找出埋在黃沙之下的凱斯城入口": [
+        "G2_4_3"
+      ],
+      "找出歐羅克毒藥的來源": [
+        "G3_4"
+      ],
+      "抵禦瘋狂": [
+        "G_Endgame_Town"
+      ],
+      "抵達妄想的幻像異界": [
+        "Delirium_Act1Town",
+        "Delirium_Act1Town_Quest",
+        "Delirium_Act2Reveal",
+        "Delirium_Act3Town",
+        "Delirium_VastiriOutskirts",
+        "G_Endgame_Town"
+      ],
+      "抵達希爾妲的營地": [
+        "G_Endgame_Town"
+      ],
+      "拾起渡鴉之映": [
+        "G_Endgame_Town"
+      ],
+      "拾起裂痕領主囊腫": [
+        "G_Endgame_Town"
+      ],
+      "拿取裂痕碑牌": [
+        "G_Endgame_Town"
+      ],
+      "探索卡塔爾之塘": [
+        "P2_3"
+      ],
+      "探索巢裔要塞": [
+        "G_Endgame_Town"
+      ],
+      "探索幻界": [
+        "G_Endgame_Town"
+      ],
+      "探索感染荒地以尋找龍蜥濕地": [
+        "G3_5"
+      ],
+      "探索無光通道": [
+        "G2_town"
+      ],
+      "探索配偶的墓室，尋找德雷文和他的配偶": [
+        "G1_9"
+      ],
+      "搜尋皆伐，找出泥沼陋居的入口": [
+        "G1_3"
+      ],
+      "搜尋皆伐，找出泥沼陋居的入口 在吞噬獸的巢穴擊殺吞噬獸": [
+        "G1_3"
+      ],
+      "擊敗孿生譫妄頭目": [
+        "G_Endgame_Town"
+      ],
+      "擊敗巢裔": [
+        "G_Endgame_Town"
+      ],
+      "擊敗渡鴉欺詐者": [
+        "G_Endgame_Town"
+      ],
+      "擊敗渡鴉的妄想": [
+        "G_Endgame_Town"
+      ],
+      "擊敗第一頭猛獸": [
+        "G_Endgame_Town"
+      ],
+      "擊敗第三頭猛獸": [
+        "G_Endgame_Town"
+      ],
+      "擊敗第二頭猛獸": [
+        "G_Endgame_Town"
+      ],
+      "擊敗第四頭猛獸": [
+        "G_Endgame_Town"
+      ],
+      "擊敗萬眾歸一．烈許": [
+        "G_Endgame_Town"
+      ],
+      "擊敗譫妄地圖頭目 (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "擊敗譫妄地圖頭目 (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "擊敗譫妄地圖頭目 (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "擊敗譫妄地圖頭目 (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "擊敗譫妄地圖頭目 (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "潛入村外的宅第": [
+        "G1_15"
+      ],
+      "潛入村外的宅第 尋找吉恩諾伯爵": [
+        "G1_15"
+      ],
+      "燃燒巢裔防禦工事": [
+        "G_Endgame_Town"
+      ],
+      "登上戴斯哈": [
+        "G2_9_1"
+      ],
+      "穩定裂痕": [
+        "G_Endgame_Town"
+      ],
+      "穩定裂痕 (0/5)": [
+        "G_Endgame_Town"
+      ],
+      "穩定裂痕 (1/5)": [
+        "G_Endgame_Town"
+      ],
+      "穩定裂痕 (2/5)": [
+        "G_Endgame_Town"
+      ],
+      "穩定裂痕 (3/5)": [
+        "G_Endgame_Town"
+      ],
+      "穩定裂痕 (4/5)": [
+        "G_Endgame_Town"
+      ],
+      "穿越沙掠濕地，尋找高地神塔": [
+        "G3_town"
+      ],
+      "穿過悼念之路": [
+        "G2_9_2"
+      ],
+      "穿過皆伐營地前往葛瑞爾林": [
+        "G1_4"
+      ],
+      "繼續深入機械迷城": [
+        "G3_6_2"
+      ],
+      "繼續穿過纏縛陰林": [
+        "G1_7"
+      ],
+      "調查宏偉之鏡": [
+        "G_Endgame_Town"
+      ],
+      "調查封印的寶庫": [
+        "G_Endgame_Town"
+      ],
+      "調查陵墓，尋找德雷文政務官": [
+        "G1_8"
+      ],
+      "返回凋萎敗柳": [
+        "G_Endgame_Town"
+      ],
+      "返回希爾妲的營地": [
+        "G_Endgame_Town"
+      ],
+      "返回看守者的修道院": [
+        "G_Endgame_Town"
+      ],
+      "返回葛瑞爾林中的纏縛陰林入口": [
+        "G1_6"
+      ],
+      "返回車隊，和芮蘇討論封閉的古老關口": [
+        "G2_3"
+      ],
+      "返回高地神塔庇護所": [
+        "G_Endgame_Town"
+      ],
+      "進入亡者之殿": [
+        "G4_4_2"
+      ],
+      "進入傳送門並和死亡之母會面": [
+        "G4_4_3"
+      ],
+      "進入冰川湖泊": [
+        "P3_3"
+      ],
+      "進入卡塔爾之塘": [
+        "P2_2"
+      ],
+      "進入叢林遺跡以尋找瑪特蘭水道": [
+        "G3_3"
+      ],
+      "進入吉卡尼的機械迷城": [
+        "G3_6_1"
+      ],
+      "進入吟謠洞窟": [
+        "G4_3_2"
+      ],
+      "進入單獨禁閉室": [
+        "G4_5_2"
+      ],
+      "進入坍塌入口處的泰坦石窟": [
+        "G2_7"
+      ],
+      "進入塞爾卡里庇護所": [
+        "P2_3"
+      ],
+      "進入奇瑪": [
+        "P2_6"
+      ],
+      "進入奇瑪水源地": [
+        "P2_7"
+      ],
+      "進入幻界": [
+        "G_Endgame_Town"
+      ],
+      "進入庫萊亞山巔": [
+        "P3_5"
+      ],
+      "進入庫萊亞村": [
+        "P3_2"
+      ],
+      "進入庫阿西克寶庫": [
+        "P3_7"
+      ],
+      "進入扭曲領域": [
+        "G_Endgame_Town"
+      ],
+      "進入挖掘場": [
+        "G4_10"
+      ],
+      "進入旅程之末": [
+        "G4_2_2"
+      ],
+      "進入污垢頂峰並尋找鑰匙": [
+        "G3_11"
+      ],
+      "進入法里登鑄造廠": [
+        "G2_10_2"
+      ],
+      "進入淹沒之城並尋找阿戈拉": [
+        "G3_8"
+      ],
+      "進入火山迷窟": [
+        "G4_1_2"
+      ],
+      "進入灰燼森林": [
+        "P3_1"
+      ],
+      "進入無光通道": [
+        "G2_town"
+      ],
+      "進入熔岩寶庫": [
+        "G3_9"
+      ],
+      "進入狂嗥洞穴": [
+        "P3_4"
+      ],
+      "進入獵場": [
+        "G1_11"
+      ],
+      "進入瑟雷之石": [
+        "P1_2"
+      ],
+      "進入瑪特蘭水道並找出控制機關": [
+        "G3_2_2"
+      ],
+      "進入瓦爾遺跡": [
+        "IncursionHub",
+        "IncursionHubEndgame"
+      ],
+      "進入蝕刻溪谷": [
+        "P3_6"
+      ],
+      "進入賈萊關口": [
+        "P2_5"
+      ],
+      "進入遺忘墓穴": [
+        "ExpeditionSubArea_Kalguur_Act1"
+      ],
+      "進入部族之心": [
+        "G4_11_2"
+      ],
+      "進入配偶的墓室，尋找阿席妮雅": [
+        "G1_9"
+      ],
+      "進入阿戈拉並尋找漆黑密室": [
+        "G3_16"
+      ],
+      "進入阿杜拉車隊": [
+        "G2_town"
+      ],
+      "進入陵墓": [
+        "G1_8"
+      ],
+      "進入霍爾登": [
+        "P1_4"
+      ],
+      "進入霍爾登宅第": [
+        "P1_6"
+      ],
+      "進入靈魂深井": [
+        "G2_town"
+      ],
+      "進入黑暗領域": [
+        "Abyss_Boss2"
+      ],
+      "進入黑木林": [
+        "P1_3"
+      ],
+      "進入黯光虛無": [
+        "Abyss_Boss1"
+      ],
+      "釋放男人": [
+        "G_Endgame_Town"
+      ],
+      "釋放長者．馬多克斯": [
+        "G_Endgame_Town"
+      ],
+      "開啟天賦樹畫面": [
+        "G1_town"
+      ],
+      "開啟天賦樹畫面 使用天賦點": [
+        "G1_town"
+      ],
+      "開啟幻像異界": [
+        "G_Endgame_Town"
+      ],
+      "開啟裂痕": [
+        "G_Endgame_Town"
+      ],
+      "開始你的力量的測試": [
+        "Sanctum_1_Foyer_1"
+      ]
+    }
+  }
+}

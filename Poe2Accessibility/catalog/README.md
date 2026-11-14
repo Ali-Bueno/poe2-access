@@ -44,6 +44,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `monster-names.json` | the radar's boss names as the game names them | `monster-names` | `LandmarkTable` |
 | `passive-tree.json` | the main passive tree by graph id: PassiveSkills Id and kind, links, class starts; node and class names per language | `passive-tree`, start | `PassiveTreeCatalog` |
 | `places.json` | named map pieces and props from the terrain files | `places`, start | `PlaceCatalog` |
+| `quest-goals.json` | the areas each quest tracker line ends on entering, per language, and every area's connections | `quest-goals`, start | `QuestGoalCatalog` |
 | `semantic-fields.txt` | the code reader's semantic rules, read with `code-fields.txt` | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | code-field check, tests |
 | `telegraph-effects.txt` | the effect files monster skills play, by `.ao` path | `telegraph-effects`, start | none yet |
 | `telegraph-skills.txt` | what the game draws before a monster skill lands | `telegraph-skills`, start | `AttackData` |

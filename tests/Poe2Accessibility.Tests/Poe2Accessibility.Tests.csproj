@@ -69,6 +69,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\UnmetRequirements.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SearchHighlightNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\QuestMatcher.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\QuestGoalCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\QuestTrackerPage.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\CountdownWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialMap.cs" />
@@ -262,6 +263,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ClosedDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\OpenedWays.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GridSamples.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\SettlingMemo.cs" />

@@ -190,6 +190,7 @@ namespace Poe2Accessibility
             Services.MinimapMarks.WellKind => T("Well", "Pozo"),
             Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
             Services.OpenedWays.Kind => OpenedWay,
+            Services.ClosedDoors.Kind => T("Door to open", "Puerta por abrir"),
             "npc_quest" => T("Character with a quest", "Personaje con misión"),
             Services.DiscoveryNarrator.SoundKey => T("Discovery", "Descubrimiento"),
             _ => key,
@@ -282,6 +283,9 @@ namespace Poe2Accessibility
             Services.OpenedWays.Kind => T(
                 "a way that opened on its own: once as it opens, then from where it stands until you have walked to it",
                 "un paso que se abrió solo: una vez al abrirse y después desde donde está, hasta que llegues a él"),
+            Services.ClosedDoors.Kind => T(
+                "a shut door you open with the interact button: the nearest ones, each on its side, until opened",
+                "una puerta cerrada que se abre con el botón de interactuar: las más cercanas, cada una a su lado, hasta que la abras"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
 

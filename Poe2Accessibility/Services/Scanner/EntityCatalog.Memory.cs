@@ -184,6 +184,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.remembered.Clear();
+            this.doors.Clear();
             this.sighted.Clear();
             this.itemTitles.Clear();
             this.explored.Reset();
