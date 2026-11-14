@@ -18,7 +18,7 @@ namespace Poe2Accessibility.Services
         private readonly string config;
         private readonly Dictionary<string, (DateTime Written, BuildPlan? Plan)> files = new(StringComparer.OrdinalIgnoreCase);
         private long? scannedAt;
-        private (DateTime Written, string Text) configRead;
+        private (DateTime Written, string Text) configRead = (DateTime.MinValue, string.Empty);
 
         /// <summary>Per character, the file its own tree's marks matched last and when: one character's build is never another's.</summary>
         private readonly Dictionary<string, (string? Path, DateTime At)> matched = new(StringComparer.Ordinal);
@@ -172,6 +172,20 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>A file's plan; null for one that is no build file, whatever it holds: one bad file must not hide the others.</summary>
+        private static BuildPlan? ParseFile(string path)
+        {
+            var text = File.ReadAllText(path);
+            try
+            {
+                return BuildPlan.Parse(text);
+            }
+            catch (Exception exception) when (exception is InvalidOperationException or FormatException or OverflowException)
+            {
+                return null;
+            }
+        }
+
         private void Rescan()
         {
             var now = Environment.TickCount64;
@@ -190,7 +204,7 @@ namespace Poe2Accessibility.Services
                     var written = File.GetLastWriteTimeUtc(path);
                     if (!this.files.TryGetValue(path, out var known) || known.Written != written)
                     {
-                        this.files[path] = (written, BuildPlan.Parse(File.ReadAllText(path)));
+                        this.files[path] = (written, ParseFile(path));
                     }
                 }
 

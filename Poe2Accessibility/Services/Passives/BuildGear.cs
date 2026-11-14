@@ -144,12 +144,12 @@ namespace Poe2Accessibility.Services
 
                 var (from, to) = (1, LastLevel);
                 if (entry.TryGetProperty("level_interval", out var interval) && interval.ValueKind == JsonValueKind.Array && interval.GetArrayLength() == 2 &&
-                    interval[0].TryGetInt32(out var first) && interval[1].TryGetInt32(out var last))
+                    BuildPlan.Whole(interval[0], out var first) && BuildPlan.Whole(interval[1], out var last))
                 {
                     (from, to) = (first, last);
                 }
 
-                var x = entry.TryGetProperty("slot_x", out var column) && column.TryGetInt32(out var number) ? number : 0;
+                var x = entry.TryGetProperty("slot_x", out var column) && BuildPlan.Whole(column, out var number) ? number : 0;
                 gear.Add(new BuildGearEntry(slot, x, lines.Count > 0 ? lines[0] : string.Empty,
                     lines.Skip(1).Select(line => Ordinal.Replace(line, string.Empty)).Where(line => line.Length > 0).ToList(), unique, from, to));
             }
@@ -266,12 +266,23 @@ namespace Poe2Accessibility.Services
             var left = new List<string>();
             foreach (var verdict in verdicts)
             {
-                var at = lines.FindIndex(line => line.Length > 0 && verdict.Length > line.Length && verdict[line.Length] == ',' && verdict.StartsWith(line, StringComparison.Ordinal));
+                // The longest line the verdict opens with: "Adds 1, 2 fire, the build asks for 3" judges "Adds 1, 2 fire", not "Adds 1".
+                var at = -1;
+                for (var i = 0; i < lines.Count; i++)
+                {
+                    var line = lines[i];
+                    if (line.Length > 0 && verdict.Length > line.Length && verdict[line.Length] == ',' && verdict.StartsWith(line, StringComparison.Ordinal) &&
+                        (at < 0 || line.Length > lines[at].Length))
+                    {
+                        at = i;
+                    }
+                }
+
                 if (at >= 0)
                 {
                     lines[at] = verdict;
                 }
-                else
+                else if (!lines.Contains(verdict))
                 {
                     left.Add(verdict);
                 }

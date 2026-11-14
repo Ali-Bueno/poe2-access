@@ -119,7 +119,7 @@ namespace Poe2Accessibility.Services
                     }
                     else if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String)
                     {
-                        var set = entry.TryGetProperty("weapon_set", out var weaponSet) && weaponSet.TryGetInt32(out var number) ? number : 0;
+                        var set = entry.TryGetProperty("weapon_set", out var weaponSet) && Whole(weaponSet, out var number) ? number : 0;
                         var note = entry.TryGetProperty("additional_text", out var text) && text.ValueKind == JsonValueKind.String ? text.GetString() ?? string.Empty : string.Empty;
                         list.Add(new BuildPassive(id.GetString() ?? string.Empty, list.Count, set, note));
                     }
@@ -174,6 +174,13 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
+        /// <summary>A whole number of the file; false for any other value: a null or a text where a number belongs stops no file.</summary>
+        public static bool Whole(JsonElement value, out int number)
+        {
+            number = 0;
+            return value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out number);
+        }
+
         private static string? Text(JsonElement entry, string name) =>
             entry.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 
@@ -211,7 +218,7 @@ namespace Poe2Accessibility.Services
 
             var (from, to) = (1, LastLevel);
             if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty("level_interval", out var interval) && interval.ValueKind == JsonValueKind.Array &&
-                interval.GetArrayLength() == 2 && interval[0].TryGetInt32(out var first) && interval[1].TryGetInt32(out var last))
+                interval.GetArrayLength() == 2 && Whole(interval[0], out var first) && Whole(interval[1], out var last))
             {
                 (from, to) = (first, last);
             }

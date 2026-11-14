@@ -266,6 +266,9 @@ namespace Poe2Accessibility.Tests
             Expect("Falta: +10 a la fuerza", string.Join('|', left), "what the item has no line for comes after it");
             Expect("+1 a la vida|+18 a la vida máxima", string.Join('|', BuildGear.JudgedInPlace(new[] { "+1 a la vida", "+18 a la vida máxima" }, new[] { "+1 a la vida máxima, cumple" }).Details), "a line that only begins alike is another line");
 
+            Expect("Adds 1|Adds 1, 2 fire, the build asks for 3", string.Join('|', BuildGear.JudgedInPlace(new[] { "Adds 1", "Adds 1, 2 fire" }, new[] { "Adds 1, 2 fire, the build asks for 3" }).Details), "the longest line a verdict opens with is the one judged");
+            Expect(0, BuildGear.JudgedInPlace(new[] { "Falta: +10 a la fuerza" }, new[] { "Falta: +10 a la fuerza" }).Left.Count, "a verdict the item already shows is not said twice");
+
             var mods = new[] { "Falta: +40 a la vida máxima" };
             var rings = new (string, string, IReadOnlyList<string>)[]
             {

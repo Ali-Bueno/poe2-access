@@ -133,6 +133,12 @@ namespace Poe2Accessibility.Tests
                 Expect("23+ Unarmed", twins.Active("kehgan")?.Name, "another file picked is read, and no other");
                 Expect("Lvl 1-23", twins.Matching("kehgan", new HashSet<string> { "a", "b" })?.Name, "marks of another tree outrank a name picked before");
 
+                // A number written as a null or a text stopped every file read after it; a settings file never written threw.
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Broken.build"), "{\"name\":\"Broken\",\"passives\":[{\"id\":\"q\",\"weapon_set\":null}],\"skills\":[{\"id\":\"g\",\"level_interval\":[null,\"3\"]}]}");
+                var mended = new BuildPlanFolder(folder, System.IO.Path.Join(folder, "no-such.ini"));
+                Expect("Broken", mended.Matching("hairin", new HashSet<string> { "q" })?.Name, "a file with a number mistyped is read without it");
+                Expect("Broken", mended.Active("hairin")?.Name, "and no settings file is no build of the settings', not a fault");
+
                 // The list shows the name written in the file (play log 2026-11-13), which the file's own name cannot always spell.
                 System.IO.File.WriteAllText(System.IO.Path.Join(folder, "ACT 34 - Grenades.build"), "{\"name\":\"ACT 3/4 - Grenades \",\"passives\":[\"x\",\"y\"],\"skills\":[]}");
                 var slashed = new BuildPlanFolder(folder, config);
