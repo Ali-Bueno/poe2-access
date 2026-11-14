@@ -370,6 +370,21 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, page.News(new[] { placed, trail }, legend: "Página de misiones 3/6 LT + cruceta derecha"), "a new quest only raises the total");
             Equal(placed, page.News(new[] { placed }, legend: "Página de misiones 4/6 LT + cruceta derecha"), "a page turned to with nothing new is said whole: the player asked");
             Equal(true, page.Turned, "and turned");
+
+            // A Trial's rooms: the Trial's quest takes the page's second place while a room asks something and leaves it when the room is done.
+            var rooms = new QuestTrackerPage();
+            var (exit, crystals) = ("La prueba de las sekhemas. Encuentra la salida", "La prueba de las sekhemas. Desactiva los cristales");
+            const string six = "Página de misiones 1/6 LT + cruceta derecha", five = "Página de misiones 1/5 LT + cruceta derecha";
+            rooms.News(new[] { rising, trail }, legend: five);
+            Equal(exit, rooms.News(new[] { rising, exit }, legend: six), "the room's objective takes the other quest's place");
+            Equal(string.Empty, rooms.News(new[] { rising, trail }, legend: five), "the room done, the quest it pushed off is back: no news");
+            Equal(crystals, rooms.News(new[] { rising, crystals }, legend: six), "the next room's objective");
+            Equal(string.Empty, rooms.News(new[] { rising, trail }, legend: five), "done too");
+            Equal(exit, rooms.News(new[] { rising, exit }, legend: six), "a later room asks the first one's again: said again");
+            var moved = "El rastro. Viaja a Keth";
+            Equal(moved, rooms.News(new[] { rising, moved }, legend: five), "the quest behind changed meanwhile: news");
+            Equal(city, rooms.News(new[] { rising, city }, legend: "Página de misiones 2/5 LT + cruceta derecha"), "a page the player turns to is said");
+            Equal(moved, rooms.News(new[] { rising, moved }, legend: five), "and so is the one turned back to");
         }
 
         private static void AFallingClockIsSaidAtItsMarks()
