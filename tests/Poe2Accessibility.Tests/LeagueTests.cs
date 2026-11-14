@@ -29,7 +29,25 @@ namespace Poe2Accessibility.Tests
             (nameof(ATransitionIsReadOnlyWhenItCanBeOne), ATransitionIsReadOnlyWhenItCanBeOne),
             (nameof(AnEssenceCracksAndAnAbyssOpensByTheirTransitions), AnEssenceCracksAndAnAbyssOpensByTheirTransitions),
             (nameof(TheFindsNoChargeReachesAreCountedOnceTheStateReads), TheFindsNoChargeReachesAreCountedOnceTheStateReads),
+            (nameof(ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName), ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName),
         };
+
+        private static void ALesserShrineIsNotTakenForTheOrdinaryOneOfItsName()
+        {
+            static bool Lesser(string id) => id is "shrine_acceleration" or "shrine_brutal";
+            Equal("shrine_acceleration", LeagueNews.LesserShrineOf("shrine_acceleration", Lesser), "the lesser shrine's own buff");
+            Equal(null, LeagueNews.LesserShrineOf("shrine_acceleration_2", Lesser), "the ordinary one ends in what the host's suffix looks like: it is no lesser one");
+            Equal("shrine_brutal", LeagueNews.LesserShrineOf("shrine_brutal_1A", Lesser), "the host's suffix on a second copy, in its capitals");
+            Equal(null, LeagueNews.LesserShrineOf("flask_effect_life", Lesser), "any other buff");
+
+            var news = new LeagueNews();
+            Equal(0, news.LesserShrines(new[] { "shrine_brutal" }, Lesser).Count, "a buff there as the area opens is no news");
+            Equal("shrine_acceleration", string.Join(" ", news.LesserShrines(new[] { "shrine_brutal", "shrine_acceleration" }, Lesser)), "the one just taken");
+            Equal(0, news.LesserShrines(new[] { "shrine_brutal", "shrine_acceleration" }, Lesser).Count, "said once");
+            Equal(0, news.LesserShrines(new[] { "shrine_acceleration_2" }, Lesser).Count, "the ordinary shrine has its own line");
+            Expect(true, Announcements.LesserShrine("Lesser Brutal Shrine", "shrine_brutal").StartsWith("Lesser Brutal Shrine. ", StringComparison.Ordinal), "the game's name, then what it does");
+            Equal("Shrine of something", Announcements.LesserShrine("Shrine of something", "shrine_new"), "a buff of none of the six: the name alone");
+        }
 
         private static void AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters()
         {

@@ -312,6 +312,18 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     Entity Shrine component (pool of 0x68 bytes): the row of Shrines.dat the server sent, which is the shrine's kind (every
+        ///     shrine is one object file). The network reader stores it (0x1DF981C: 48 89 56 28) with the table's handle after it
+        ///     (+0x30, what upstream took for the row), and the shrine's popup reads the pair back (0xE74412: 48 8B 51 28); exe of
+        ///     0.5.5f, 2026-11-14, docs/research/exe-layouts.md. Not yet seen in a running game: <see cref="Services.ShrineRow"/>
+        ///     believes the row's Id only when the catalog of the game's files knows it.
+        /// </summary>
+        public static class ShrineComponent
+        {
+            public static int RowOffset { get; internal set; } = 0x28;
+        }
+
+        /// <summary>
         ///     Entity ControlZone component (pool of 0xF0 bytes): the radius of the circle a script keeps the player in, a word the
         ///     game's SetControlZoneRadius writes (0x2093008: 66 89 47 26, on the component + 0x18) and the zone's update reads (exe of
         ///     0.5.5f, 2026-11-14). Logged for the Breach's ring, whose files set none; nothing is said from it yet.

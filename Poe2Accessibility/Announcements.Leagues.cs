@@ -112,6 +112,29 @@ namespace Poe2Accessibility
                 "Santuario de avaricia. Todo el equipamiento que cae se convierte en otros objetos."),
         };
 
+        /// <summary>
+        ///     The lesser shrine just used: the game's name of it and what its buff does (BuffDefinitions' stats: Shrines rows 24-29,
+        ///     20 seconds each). A buff of none of the six says the name alone.
+        /// </summary>
+        public static string LesserShrine(string name, string buff)
+        {
+            var effect = buff switch
+            {
+                "shrine_acceleration" => T("You act faster and your projectiles fly faster.", "Actúas más rápido y tus proyectiles vuelan más rápido."),
+                "shrine_brutal" => T(
+                    "You deal more damage, knock enemies back and stun them for longer.",
+                    "Infliges más daño, empujas a los enemigos y los aturdes durante más tiempo."),
+                "shrine_regen" => T("You are regenerating Life and Mana.", "Regeneras vida y maná."),
+                "shrine_massive" => T(
+                    "You are larger, with more Area of Effect and maximum Life.",
+                    "Eres más grande, con más área de efecto y vida máxima."),
+                "shrine_resistance" => T("You have additional Resistance to Elemental Damage.", "Tienes resistencia adicional al daño elemental."),
+                "shrine_defence" => T("You have more Armour, Evasion and Energy Shield.", "Tienes más armadura, evasión y escudo de energía."),
+                _ => string.Empty,
+            };
+            return name.Length == 0 ? effect : effect.Length == 0 ? name : $"{name}. {effect}";
+        }
+
         /// <summary>"Covers 2 chests, 1 elite": what the Expedition charge being placed would blow.</summary>
         public static string ExpeditionCovers(IReadOnlyList<(ExpeditionFind Find, int Count)> finds)
         {

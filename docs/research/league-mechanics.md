@@ -552,7 +552,12 @@ file. `GameConstants` (121 rows) holds nothing of the leagues.
   shattered crystal is dropped at once, not five seconds later.
 - **Expedition:** a find the charges already placed reach is named "…, cubierto"; "Explosivos colocados: N; M sin cubrir" (or "todo
   cubierto"), once any find reads as reached (which is what shows the client's state is read at all).
-- **Logged for a first session:** "Essence crystal: <file>: transition N of M, in play …, holds …" and "Essence holds: <monster>:
+- **Shrines:** a shrine is named before it is used ("Santuario de aceleración" in the list of chests and in its sound's entry),
+  from the Id of the Shrines row in its component (+0x28) looked up in `catalog/shrines.json` (72 rows, 10 languages, command `shrines`,
+  data step of its own); an Id the catalog does not know is not believed, and the object keeps the name it had. The six lesser shrines
+  are said as they are taken, by the game's name and what the buff does (`LeagueNews.LesserShrines`, `Announcements.LesserShrine`); the
+  ordinary shrine of the same name ends in "_2", which the host's own suffix looks like, so it is asked first.
+- **Logged for a first session:** "Shrine row: "<Id>", known / not in the catalog" (once per Id: it confirms the field); "Essence crystal: <file>: transition N of M, in play …, holds …" and "Essence holds: <monster>:
   buffs […], monster_inside_monolith N" (whether the game's own stat can replace the rule by place); a Breach's "zone radius N" in its
   "League piece seen" line (whether its ring is kept in ControlZone +0x3E); the dev command "entities" prints each Transitionable's
   state, count and raw bytes and each ControlZone's radius.

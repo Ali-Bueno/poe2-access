@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
+        private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
         /// <summary>
@@ -115,6 +116,10 @@ namespace Poe2Accessibility.Services
             {
                 category = entity.TryGetComponent<Shrine>(out var shrine) && shrine.IsUsed ? null : ScanCategory.Chests;
                 kind = "shrine";
+                if (shrine != null && this.ShrineNameOf(shrine.Address) is { Length: > 0 } shrineName)
+                {
+                    name = shrineName; // which shrine it is, before deciding to take it
+                }
             }
             else if (leagueIcon != null)
             {
@@ -336,6 +341,22 @@ namespace Poe2Accessibility.Services
             // The character at a cage: caged, they are out of play and listed nowhere.
             var held = MinimapMarks.BareName(this.NameNear(render, CageWorld, other => other.EntityType == EntityTypes.NPC));
             return held.Length > 0 ? Announcements.CageOf(held) : Announcements.Cage;
+        }
+
+        /// <summary>
+        ///     The shrine's name in the client's language, from the row the server gave it; empty when the row does not read as one
+        ///     the catalog knows. Each Id read, known or not, is logged once: how the field is confirmed from a session's log.
+        /// </summary>
+        private string ShrineNameOf(IntPtr component)
+        {
+            var id = ShrineRow.IdOf(this.memory, this.elements, component);
+            var known = ShrineCatalog.Shared.ById(id);
+            if (this.shrineRows.Add(id))
+            {
+                this.log.Info($"Shrine row: {(id.Length == 0 ? "unread" : $"\"{id}\"")}, {(known == null ? "not in the catalog" : "known")}");
+            }
+
+            return known == null ? string.Empty : ShrineCatalog.Shared.NameOf(known, Localization.Language);
         }
 
         /// <summary>A creature of the game's monster folder: what an essence's crystal holds.</summary>

@@ -165,6 +165,13 @@ namespace Poe2Accessibility.Services
                 {
                     this.output.Say(SpeechKind.StatusBegins, Announcements.Shrine(shrine));
                 }
+
+                // A lesser shrine by the game's own name of it (catalog/shrines.json) and what its buff does.
+                var catalog = ShrineCatalog.Shared;
+                foreach (var buff in this.news.LesserShrines(buffs.StatusEffects.Keys, id => catalog.ByBuff(id) is { Lesser: true }))
+                {
+                    this.output.Say(SpeechKind.StatusBegins, Announcements.LesserShrine(catalog.NameOf(catalog.ByBuff(buff)!, Localization.Language), buff));
+                }
             }
 
             if (!this.news.DeliriumRunning)

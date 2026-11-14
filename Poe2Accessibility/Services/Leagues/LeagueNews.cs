@@ -15,6 +15,8 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<(uint, LeagueLine)> saidOnce = new();
         private readonly HashSet<uint> possessed = new();
         private readonly HashSet<string> shrines = new(StringComparer.Ordinal);
+        private readonly HashSet<string> lesserShrines = new(StringComparer.Ordinal);
+        private bool lesserKnown;
         private bool shrinesKnown;
         private int? fog;
 
@@ -29,7 +31,8 @@ namespace Poe2Accessibility.Services
             this.saidOnce.Clear();
             this.possessed.Clear();
             this.shrines.Clear();
-            (this.shrinesKnown, this.fog, this.DeliriumRunning) = (false, null, false);
+            this.lesserShrines.Clear();
+            (this.shrinesKnown, this.lesserKnown, this.fog, this.DeliriumRunning) = (false, false, null, false);
         }
 
         /// <summary>The lines an object's states and icon make news of since it was last seen; what it shows when first seen is not news.</summary>
@@ -92,6 +95,40 @@ namespace Poe2Accessibility.Services
             this.shrines.Clear();
             this.shrines.UnionWith(now);
             this.shrinesKnown = true;
+            return begun;
+        }
+
+        /// <summary>
+        ///     The buff a key is among those the catalog gives a lesser shrine, or null: an ordinary shrine's key ends in "_2", which
+        ///     the host's own suffix looks like, so it is asked first and never taken for the lesser one of the same name.
+        /// </summary>
+        public static string? LesserShrineOf(string key, Func<string, bool> lesser)
+        {
+            if (LeaguePieces.ShrineBuffs.ContainsKey(BuffIds.In(key, LeaguePieces.ShrineBuffs.ContainsKey)))
+            {
+                return null;
+            }
+
+            var id = BuffIds.In(key, lesser);
+            return lesser(id) ? id : null;
+        }
+
+        /// <summary>The lesser shrines whose buffs have just come on the player, by buff id; those there as the area opens are not news.</summary>
+        public List<string> LesserShrines(IEnumerable<string> buffKeys, Func<string, bool> lesser)
+        {
+            var now = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var key in buffKeys)
+            {
+                if (LesserShrineOf(key, lesser) is { } id)
+                {
+                    now.Add(id);
+                }
+            }
+
+            var begun = this.lesserKnown ? now.Where(id => !this.lesserShrines.Contains(id)).ToList() : new List<string>();
+            this.lesserShrines.Clear();
+            this.lesserShrines.UnionWith(now);
+            this.lesserKnown = true;
             return begun;
         }
 
