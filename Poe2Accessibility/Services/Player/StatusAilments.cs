@@ -78,6 +78,23 @@ namespace Poe2Accessibility.Services
             "from", "support", "tracker", "while", "unravelling", "placeholder", "delay", "enrage",
         };
 
+        /// <summary>An end the player acts on (free to move, the weapon ready) is said once the state has been gone this long.</summary>
+        private const int PromptEndHoldMs = 500;
+
+        /// <summary>
+        ///     An end that only informs waits this long, so a state the next hit renews stays one state: of 213 ends said
+        ///     in the play log of 2026-11-13, the same state was back within 2 s after 38 (docs/research/sweep-2026-11-13.md).
+        /// </summary>
+        private const int RenewedEndHoldMs = 2500;
+
+        /// <summary>How long a state must be gone before its end is said.</summary>
+        public static int EndHoldMs(StatusAilment ailment) => ailment switch
+        {
+            StatusAilment.Frozen or StatusAilment.Electrocuted or StatusAilment.Stunned or StatusAilment.Pinned or
+                StatusAilment.StopMoving or StatusAilment.KeepMoving or StatusAilment.Overheated => PromptEndHoldMs,
+            _ => RenewedEndHoldMs,
+        };
+
         /// <summary>A boss's movement rule ("Stop moving or you will be imprisoned"): the id names what is punished.</summary>
         private const string PunishmentWord = "punishment";
 

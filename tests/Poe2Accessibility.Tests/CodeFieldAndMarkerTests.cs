@@ -96,6 +96,8 @@ namespace Poe2Accessibility.Tests
             Equal(StatusAilment.Poisoned, StatusAilments.FromBuffId("poisoned") ?? StatusAilment.Cursed, "poison");
             Equal(StatusAilment.Electrocuted, StatusAilments.FromBuffId("electrocuted") ?? StatusAilment.Cursed, "electrocution before shock");
             Equal(true, StatusAilments.FromBuffId("chill_immunity") == null, "immunities are not ailments");
+            Equal(true, StatusAilments.EndHoldMs(StatusAilment.Chilled) > StatusAilments.EndHoldMs(StatusAilment.Frozen), "a chill each hit renews waits longer for its end than a freeze, whose end frees the player");
+            Equal(StatusAilments.EndHoldMs(StatusAilment.Frozen), StatusAilments.EndHoldMs(StatusAilment.Overheated), "the weapon ready is said as soon");
             Equal(true, StatusAilments.FromBuffId("flask_effect_life") == null, "flasks are not ailments");
             Equal(true, StatusAilments.FromBuffId("flammability_ignite_chance_buildup_79") == null, "build-up is not the ailment yet");
             Equal(StatusAilment.Overheated, StatusAilments.FromBuffId("overheated_79") ?? StatusAilment.Cursed, "the crossbow at maximum heat");

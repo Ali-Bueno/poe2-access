@@ -11,8 +11,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Harmful states on the player (D2R status-effects.md): a state that begins is spoken at once and cannot be cut
-    ///     off for a moment; its end is said after it has been gone for half a second, so a chill renewed by every hit
-    ///     stays one chill. Entering an area takes the states already there silently. States come from the player's
+    ///     off for a moment; its end is said after it has been gone a while (<see cref="StatusAilments.EndHoldMs"/>), so a
+    ///     chill renewed by every hit stays one chill. Entering an area takes the states already there silently. States come from the player's
     ///     Buffs component (buff definition ids such as "chilled", "poisoned"); ids are matched by stem so PoE2's
     ///     variants share a name. Every new buff id is logged once with who applied it, to learn PoE2's ids from real
     ///     fights. A harmful buff named by the game is said only when no friend applied it (<see cref="SourceOf"/>).
@@ -20,9 +20,6 @@ namespace Poe2Accessibility.Services
     public sealed class StatusWatch
     {
         private const int PollMs = 150;
-
-        /// <summary>D2R EndHoldMs: an end is spoken once the state has been gone this long.</summary>
-        private const int EndHoldMs = 500;
 
         private readonly Func<Entity?> subject;
         private readonly IAccessibilityOutputService output;
@@ -114,7 +111,7 @@ namespace Poe2Accessibility.Services
 
             foreach (var (ailment, lastSeen) in this.active.ToList())
             {
-                if (!present.Contains(ailment) && now - lastSeen >= EndHoldMs)
+                if (!present.Contains(ailment) && now - lastSeen >= StatusAilments.EndHoldMs(ailment))
                 {
                     this.active.Remove(ailment);
                     this.output.Say(SpeechKind.StatusEnds, Announcements.AilmentEnds(ailment));
