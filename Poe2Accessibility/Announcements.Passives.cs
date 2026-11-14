@@ -25,6 +25,8 @@ namespace Poe2Accessibility
             Services.PassiveCategory.Notables => T("Notables", "Notables"),
             Services.PassiveCategory.JewelSockets => T("Jewel sockets", "Engarces de joya"),
             Services.PassiveCategory.Reachable => T("Reachable now", "Alcanzables ahora"),
+            Services.PassiveCategory.Attributes => T("Attributes", "Atributos"),
+            Services.PassiveCategory.Refundable => T("Refundable now", "Reintegrables ahora"),
             _ => T("Position", "Posición"),
         };
 
@@ -67,8 +69,9 @@ namespace Poe2Accessibility
 
         /// <summary>The build's next node, before the way to it.</summary>
         /// <param name="tree">Which of the two trees it is on, when not the cursor's (<see cref="BuildNextTree"/>); else empty.</param>
-        public static string BuildNextGoal(string name, string tree = "") =>
-            T("Next in the build: ", "Siguiente de la build: ") + (tree.Length > 0 ? $"{name}, {tree}" : name);
+        /// <param name="points">The weapon set whose points the build takes it with (<see cref="BuildWithSetPoints"/>); else empty.</param>
+        public static string BuildNextGoal(string name, string tree = "", string points = "") =>
+            T("Next in the build: ", "Siguiente de la build: ") + string.Join(", ", new[] { name, tree, points }.Where(part => part.Length > 0));
 
         /// <summary>The tree the build's next node is on, said from the other one: the ascendancy's is drawn inside the class's.</summary>
         public static string BuildNextTree(bool ascendancy) => ascendancy ? T("on the ascendancy's tree", "en el árbol de ascendencia") : T("on the main tree", "en el árbol principal");
@@ -129,8 +132,36 @@ namespace Poe2Accessibility
         /// <summary>A node the Build Planner's active build includes; the next one to take is named so.</summary>
         public static string InBuild(bool next) => next ? T("next in the build", "siguiente de la build") : T("in the build", "en la build");
 
-        /// <summary>The build's weapon set for a node (the game rings it red for set I, green for set II).</summary>
-        public static string BuildWeaponSet(int set) => T($"weapon set {set}", $"set de armas {set}");
+        /// <summary>The build takes a node with a weapon set's points (the game rings it red for set I, green for set II): held A chooses the points.</summary>
+        public static string BuildWithSetPoints(int set) => T($"with weapon set {set} points", $"con puntos del set de armas {set}");
+
+        /// <summary>
+        ///     The same on the node itself, with the game's own way to it (its hint there: "Hold A to select the type of
+        ///     points"), which the brief guide leaves for the details: the owner reached the node and left it untaken (2026-11-14).
+        /// </summary>
+        public static string BuildSetPointsHow(int set) =>
+            T($"with weapon set {set} points: hold A to choose the type of points", $"con puntos del set de armas {set}: mantén presionado A para elegir el tipo de puntos");
+
+        /// <summary>An allocated attribute node given another attribute than the build's note recommends.</summary>
+        public static string BuildAttributeDiffers(string wanted, string chosen) => T($"the build recommends {wanted}, you have {chosen}", $"la build recomienda {wanted}, tienes {chosen}");
+
+        /// <summary>An entry of the Attributes list: what the node was given, then the node and the way ("Dexterity. Attribute, down left…").</summary>
+        public static string PassiveChoice(string choice, string found) => $"{choice}. {found}";
+
+        /// <summary>Said with the Attributes list: "Strength 4, Dexterity 4".</summary>
+        public static string PassiveChoiceCounts(IEnumerable<(string Name, int Nodes)> counts) => string.Join(", ", counts.Select(count => $"{count.Name} {count.Nodes}"));
+
+        /// <summary>While the tree refunds passives: an allocated node the game lets go of now.</summary>
+        public static string PassiveRefundable => T("can be refunded", "se puede reintegrar");
+
+        /// <summary>While the tree refunds passives: an allocated node other allocated nodes hang from, which must go first.</summary>
+        public static string PassiveHolds(int nodes) => nodes == 1 ? T("holds 1 node", "sostiene 1 nodo") : T($"holds {nodes} nodes", $"sostiene {nodes} nodos");
+
+        /// <summary>The gold the unconfirmed changes cost, as the tree shows it ("4.273 > 3.826").</summary>
+        public static string PassiveChangeCost(string from, string to) => T($"Gold: {from} to {to}", $"Oro: de {from} a {to}");
+
+        /// <summary>The unconfirmed changes were applied: the gold left is what the tree announced.</summary>
+        public static string PassiveChangesApplied(string gold) => T($"Changes applied, {gold} gold left", $"Cambios aplicados, te quedan {gold} de oro");
 
         /// <summary>"Build: step 4 of 8".</summary>
         public static string BuildStep(int step, int steps) => T($"Build: step {step} of {steps}", $"Build: paso {step} de {steps}");

@@ -97,6 +97,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Core\SettingsCursor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveStick.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveMap.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveChoices.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveResume.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ProximityFade.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\MinionGroups.cs" />

@@ -393,6 +393,93 @@ namespace Poe2Accessibility.Services
             return this.reader.ReadArray<uint>(vector.First, count).Select(entry => (int)(entry & 0xFFFF)).ToList();
         }
 
+        /// <summary>The choices list's name in the layout report.</summary>
+        public const string ChoicesPart = "passive attribute choices";
+
+        private static readonly IReadOnlyDictionary<int, int> NoChoices = new Dictionary<int, int>();
+
+        private readonly int measuredChoices = GameLayout.PassiveTree.ChoicesOffset;
+        private bool choicesKnown;
+        private long choicesRetryAt;
+        private int choicesFailures;
+
+        /// <summary>
+        ///     The choice made on each allocated node that has one, by the node's graph id (<see cref="PassiveChoices"/>);
+        ///     empty when the character made none, the catalog knows no choices, or the list cannot be read. A list that
+        ///     does not read where it was measured is tried as far on as the allocated list moved, the state's fields
+        ///     moving together; said lost on its second such reading.
+        /// </summary>
+        public IReadOnlyDictionary<int, int> Choices(IntPtr state)
+        {
+            if (PassiveTreeCatalog.Shared.VariantIds.Count == 0)
+            {
+                return NoChoices; // a catalog written before the choices judges no list
+            }
+
+            if (this.ChoicesAt(state, GameLayout.PassiveTree.ChoicesOffset) is { } read)
+            {
+                if (read.Count > 0)
+                {
+                    this.Settle(ref this.choicesKnown, ChoicesPart, this.measuredChoices, GameLayout.PassiveTree.ChoicesOffset);
+                }
+
+                return read;
+            }
+
+            if (this.choicesKnown || Environment.TickCount64 < this.choicesRetryAt)
+            {
+                return NoChoices; // read while the game wrote it, or already said lost
+            }
+
+            var together = this.measuredChoices + (GameLayout.PassiveTree.AllocatedOffset - this.measuredAllocated);
+            if (together != GameLayout.PassiveTree.ChoicesOffset && this.ChoicesAt(state, together) is { Count: > 0 } moved)
+            {
+                GameLayout.PassiveTree.ChoicesOffset = together;
+                this.Settle(ref this.choicesKnown, ChoicesPart, this.measuredChoices, together);
+                return moved;
+            }
+
+            this.choicesRetryAt = Environment.TickCount64 + AllocatedRetryMs;
+            if (++this.choicesFailures >= AllocatedFailuresToSay)
+            {
+                this.choicesKnown = true;
+                this.Report?.Missing(ChoicesPart);
+            }
+
+            return NoChoices;
+        }
+
+        /// <summary>
+        ///     Research (dev command "passivenear"): the bytes held by the state's vectors beside the allocated list and the
+        ///     choices, all empty on a character with no weapon-set node (2026-11-14). Where a node taken with a weapon set's
+        ///     points is kept is not measured: this line shows which of them fills when one is.
+        /// </summary>
+        public string ListsBeside(IntPtr state) => string.Join(", ", new[] { 0x18, 0x48, 0x60 }.Select(step =>
+        {
+            var offset = GameLayout.PassiveTree.AllocatedOffset + step;
+            return this.reader.TryRead<StdVector>(state + offset, out var vector) ? $"+0x{offset:X} {vector.Last.ToInt64() - vector.First.ToInt64()} bytes" : $"+0x{offset:X} unread";
+        }));
+
+        /// <summary>The choices in a list at the offset of the state; null when no such list is there.</summary>
+        private Dictionary<int, int>? ChoicesAt(IntPtr state, int offset)
+        {
+            if (!this.reader.TryRead<StdVector>(state + offset, out var vector))
+            {
+                return null;
+            }
+
+            var bytes = vector.Last.ToInt64() - vector.First.ToInt64();
+            if (bytes < 0 || bytes % GameLayout.PassiveTree.AllocatedEntrySize != 0 || bytes / GameLayout.PassiveTree.AllocatedEntrySize > MaxAllocated ||
+                (bytes > 0 && !this.reader.IsValidAddress(vector.First)))
+            {
+                return null;
+            }
+
+            var count = (int)(bytes / GameLayout.PassiveTree.AllocatedEntrySize);
+            var entries = this.reader.ReadArray<uint>(vector.First, count);
+            return entries.Length == count ? PassiveChoices.Read(entries, PassiveTreeCatalog.Shared.GraphIds, PassiveTreeCatalog.Shared.VariantIds) : null;
+        }
+
         /// <summary>A new game process: every field is judged again from where it was measured.</summary>
         public void Reset()
         {
@@ -400,6 +487,8 @@ namespace Poe2Accessibility.Services
             GameLayout.PassiveTree.GraphContentOffset = this.measuredContent;
             GameLayout.PassiveTree.EdgeListOffset = this.measuredEdges;
             GameLayout.PassiveTree.AllocatedOffset = this.measuredAllocated;
+            GameLayout.PassiveTree.ChoicesOffset = this.measuredChoices;
+            (this.choicesKnown, this.choicesRetryAt, this.choicesFailures) = (false, 0, 0);
             (this.fileKnown, this.edgesKnown, this.allocatedKnown, this.graphIds) = (false, false, false, null);
             (GameLayout.PassiveTree.RecordInEdgesOffset, GameLayout.PassiveTree.RecordOutEdgesOffset) = this.measuredRecordEdges;
             (this.graphEdges, this.recordEdges, this.recordEdgesKnown) = (null, null, false);

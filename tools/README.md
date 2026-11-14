@@ -91,7 +91,7 @@ hand. The layout is greedy: a key with no null in it can show as numbers, an emp
 
 ### `gems` and `passive-tree` commands - static data the plugin reads from memory today
 `gems.json` (skill and support gems, their skills, tags and names) and `passive-tree.json` (the main tree's nodes, links,
-class starts and names), both from the files alone ([candidates and layouts](../docs/research/file-catalogs.md)).
+class starts, names, and the rows a node with a choice can be made: PassiveSkillVariants, an attribute node's three), both from the files alone ([candidates and layouts](../docs/research/file-catalogs.md)).
 
 ### `sequence` command - measuring aid
 `Poe2UiExtract sequence batch … -- sounds … -- object-sounds …` runs several command lines in one process with the

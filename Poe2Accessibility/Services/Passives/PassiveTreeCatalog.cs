@@ -55,7 +55,39 @@ namespace Poe2Accessibility.Services
                     this.startByClass[character] = node;
                 }
             }
+
+            foreach (var (key, value) in data.Variants ?? new())
+            {
+                var separator = value.IndexOf(FlagSeparator);
+                if (int.TryParse(key, NumberStyles.None, CultureInfo.InvariantCulture, out var graphId) && separator > 0)
+                {
+                    this.variants[graphId] = new Variant(graphId, value[..separator], value[(separator + 1)..]);
+                    this.variantIds.Add(graphId);
+                }
+            }
         }
+
+        private const string AttributeVariantType = "GenericAttribute";
+
+        private readonly Dictionary<int, Variant> variants = new();
+        private readonly HashSet<int> variantIds = new();
+
+        /// <summary>Gets the graph ids of every row a node with a choice can be made (PassiveSkillVariants); empty in a catalog written before them.</summary>
+        public IReadOnlySet<int> VariantIds => this.variantIds;
+
+        /// <summary>What a node with a choice was made, by the graph id the tree's state keeps for it; null when the files know none.</summary>
+        public Variant? VariantOf(int graphId) => this.variants.GetValueOrDefault(graphId);
+
+        /// <summary>The attribute an attribute node was given, by its choice's graph id; null for any other choice.</summary>
+        public BuildNotes.Attribute? AttributeOf(int variantGraphId) =>
+            this.VariantOf(variantGraphId) is not { Type: AttributeVariantType } variant ? null
+            : variant.Id.Contains("strength", StringComparison.OrdinalIgnoreCase) ? BuildNotes.Attribute.Strength
+            : variant.Id.Contains("dexterity", StringComparison.OrdinalIgnoreCase) ? BuildNotes.Attribute.Dexterity
+            : variant.Id.Contains("intelligence", StringComparison.OrdinalIgnoreCase) ? BuildNotes.Attribute.Intelligence
+            : null;
+
+        /// <summary>A PassiveSkills row a node becomes by the player's choice ("generic_attribute_strength" of type "GenericAttribute").</summary>
+        public sealed record Variant(int GraphId, string Id, string Type);
 
         /// <summary>The catalog the plugin loaded; empty until then, so every lookup finds nothing and memory is read.</summary>
         public static PassiveTreeCatalog Shared { get; private set; } = new(new FileData());
@@ -157,6 +189,8 @@ namespace Poe2Accessibility.Services
             public Dictionary<string, List<int>>? Links { get; set; }
 
             public Dictionary<string, List<string>>? Starts { get; set; }
+
+            public Dictionary<string, string>? Variants { get; set; }
 
             public Dictionary<string, Dictionary<string, string>>? Classes { get; set; }
 

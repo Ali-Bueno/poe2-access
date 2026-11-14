@@ -184,6 +184,14 @@ namespace Poe2Accessibility.Services
                 var said = this.tooltipSaid;
                 this.tooltipSaid = node.Tooltip;
                 var fresh = FocusDetails.NewTooltipLines(said, node.Tooltip, this.lastFocusSpeech);
+                if (node.TooltipNews.Count > 0)
+                {
+                    // The tree's count of unconfirmed changes joins the node's lines (UiSemantics.TreeNews): where the
+                    // screen's own reading of it got through first, it is not said again. Only those lines: a node's
+                    // stats are often the last node's too ("+5 to Strength"), and are said each time.
+                    fresh.RemoveAll(line => node.TooltipNews.Contains(line) && this.JustNarrated(line));
+                }
+
                 if (fresh.Count > 0)
                 {
                     this.Speak("tooltip of focus", Announcements.Sentences(fresh), FocusDetails.LineSwapped(said, node.Tooltip));

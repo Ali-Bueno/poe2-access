@@ -78,8 +78,8 @@ Foreign key = (row ptr, file ptr), file `+8` = std::wstring table name (same che
   PassiveSkillVariants.dat. It persists while the tree is closed.
 - MEASURED (one allocated node; it is all this character has): **`T+0x1A8` = std::vector of 4-byte entries
   whose low u16 is the PassiveSkillGraphId of an allocated node**: one entry `83 E9 00 56` = 59779, the only
-  node whose tooltip lacks "Sin asignar". INFERRED: entry = {u16 id, u8 (weapon set?), pad}; the empty vectors
-  at `T+0x1C0`/`T+0x1D8` may be the weapon-set lists (OPEN). Not found in PlayerServerData (`AreaInstance+0x5B0`
+  node whose tooltip lacks "Sin asignar". INFERRED: entry = {u16 id, u8 (weapon set?), pad}; `T+0x1D8` is the
+  [choices' list](#attribute-choices) (2026-11-14), `T+0x1C0` stays empty (OPEN: the weapon sets'). Not found in PlayerServerData (`AreaInstance+0x5B0`
   → `+0x48`[0]) within two hops.
 - MEASURED: **node element `+0x64C` byte = 1 when allocated** (exactly 59779 of 4477) and `+0x648` = 0 on it, 4
   on every other node, including the three nodes linked to it. So the UI holds no "can allocate" state, at
@@ -371,6 +371,97 @@ ascendancy points; `dump visible` and dev `passivenear`):
   los posibles"), and its header says so ("2 por asignar ahora").
 - **NOT MEASURED:** the stick's step from an ascendancy node, which the self-check does not judge (the game shifts it
   by the inner canvas); the ways counted across the two trees were walked by the owner without a miss heard.
+
+### Attribute choices
+
+MEASURED (0.5.5g, 2026-11-14, yarkidius, a Warrior of level 29 who had just changed three attribute nodes from
+Strength to Dexterity; a read-only read of the state while the tree was closed, and the game's files):
+
+- **`T+0x1D8` = std::vector of 4-byte entries {u16 an allocated node's graph id, u16 the graph id of the PassiveSkills
+  row chosen for it}**, one per node with a choice. Eight entries, the character's eight attribute nodes (`strength15`,
+  `19`, `21`, `58`, `61_`, `67`, `68`, `attributes32`): four read 26297 and four 14927.
+- The game's files: **PassiveSkillVariants** (249 rows of 0x20: key to PassiveSkillVariantTypes `+0x00`, key to
+  PassiveSkills `+0x10`) lists what a node with a choice can be made. Type `GenericAttribute` has three rows,
+  `generic_attribute_strength` (graph id 26297, "Fuerza"), `generic_attribute_dexterity` (14927, "Destreza") and
+  `generic_attribute_intelligence_` (57022). Four nodes of Dexterity agrees with the sheet: Dexterity 12 with one such
+  node before the change, three more after it (the gold fell by three times 447). The other types are the
+  Pathfinder's alternate attribute and the Atlas trees' choices.
+- The allocated list beside it (`T+0x1A8`, 35 entries) keeps every node's third byte 0; the fourth reads 0 on 28 and
+  FF, DD, FC, 02, FD, DF, FD on seven nodes of no common kind (not read, not understood). `T+0x1C0`, `+0x1F0` and
+  `+0x208` are empty vectors. **NOT MEASURED: where a node taken with a weapon set's points is kept** (this character
+  has none); dev `passivenear` prints the three vectors' sizes, which shows it once one is taken.
+- Mod: `passive-tree.json` carries `variants` (the variant row's graph id → "Id|type", its name with the nodes';
+  `PassiveTreeExtractor.Variants`, left out when the table is not two keys a row), `PassiveTreeFields.Choices` reads
+  the list (pure `PassiveChoices.Read`: every entry must name a node of the tree and a variant row, else the list is
+  another one; tried as far on as the allocated list moved, said lost as `passive attribute choices` on its second
+  bad reading). The D-pad's **Attributes** list holds the allocated nodes with a choice, grouped by it, each said
+  with it first ("Destreza. Atributo, abajo a la izquierda…"), under a header that counts them ("Fuerza 4, Destreza
+  4"). Where the build's note recommends an attribute (`BuildNotes.Recommended`: named, or shown by colour) and the
+  node was given another, the node's build lines and the list say so ("la build recomienda Fuerza, tienes
+  Destreza") and those nodes come first. A build file with no notes says nothing of attributes: the format has no
+  field for the choice (GGG developer docs, "BuildPassive": id, level_interval, weapon_set, additional_text).
+
+### The tree's window
+
+MEASURED (0.5.5g, 2026-11-14, a read-only walk of the window's elements while it was closed; the texts of the play
+log's 39 openings of that day, one of them the Hooded One's "Reintegrar pasivas"):
+
+- The canvas's parent holds, besides the canvas: the Build Planner and filter box with `top_points_layout_gmp` (below),
+  the zoom, and **a bar of unconfirmed changes**: a part with one child of three, a label ("1 cambio de habilidad
+  pasiva sin confirmar", "2 cambios de habilidades pasivas sin confirmar"; "0 cambio…" while hidden), a row with an
+  icon and the cost ("4.273 > 3.826", tagged `4.273 > <red>{3.826}`: the gold now and the gold left; the row is
+  hidden when the changes cost nothing) and a label with the button's glyph (`<<xbox_button_x;0>>` "Aplicar
+  cambios"). The part is hidden while nothing is pending. No element of it has a name.
+- `top_points_layout_gmp`, rows in order: skill points (icon, label, count); **one row per weapon set** (icon, "Set de
+  armas:", then a pair of labels "4" and " (4)"; two shown, a third hidden); the ascendancy's (label with the
+  `AscendancyPoints` keyword, count); **the gold** ("Tu oro:", "3.562": the live amount even while hidden), shown
+  only on the refund opening of the 39; the attributes; a hidden "Tributo" row.
+- INFERRED: a weapon set's first count is its points left and the rows stand in the sets' order (I, II). The owner had
+  "4 (4)" on both with none of the build's eight weapon-set nodes taken, four of them named for each set; what the
+  count in brackets is, and which row is which set, was not told apart (both read the same).
+- The game's own reading of the bar was said queued and survived on a plain allocation (five times that day) but not
+  on the refund: the attribute's popup closes on the node, which is read again and cuts it (three changes unsaid).
+- **The chooser of points**: the window's last part, hidden, with no name: one child, hidden too, holding one label
+  that read "Asignar\n(Principal)" on the closed tree. The game's hint on a node is "Mantén presionado A para
+  seleccionar el tipo de puntos" (2026-11-10), so this is taken for what held A shows. **NOT SEEN OPEN:** its text was
+  never among the screen's texts in the play logs, and what it reads for a weapon set is not known.
+- Mod (`UiSemantics.PassivePoints`): `PointsLeft` gives the tree's, the ascendancy's and each weapon set's points
+  (`TreePoints`); `Refunding` is the gold's row shown; `TreeNews` adds to the node under the cursor, once per change
+  of the bar, the count and "Oro: de 4.273 a 3.826", and once the bar is gone with the gold at the amount it
+  announced, "Cambios aplicados, te quedan 2.932 de oro". A line the screen's reading already said is not said again
+  (`AccessibleUiNode.TooltipNews`, `ScreenNarrator.OnTooltipChanged`). `PointsChoice` adds the chooser's label as one
+  more line of the node while both its parts are shown, so a change of it is said as a line replaced.
+- LIVE (2026-11-14 09:55, the deployed build, the owner's tree open): `passive attribute choices where measured`;
+  `passivenear`: "points 0, ascendancy 0, weapon sets 4/4/0; refunding False; choices strength21=
+  generic_attribute_dexterity strength67=generic_attribute_strength …" (four of each), the three lists beside the
+  allocated one 0 bytes; heard "Armadura, Siguiente de la build: Daño de ataques, con puntos del set de armas 1:
+  izquierda, 11" and, on the node, "…siguiente de la build, … Build: paso 33 de 43. con puntos del set de armas 1".
+  The owner came back to the node four times in sixteen seconds and left the tree with nothing taken: the line did
+  not say how, the game's hint being left for the details. It now ends "mantén presionado A para elegir el tipo de
+  puntos" (`BuildSetPointsHow`). **NOT HEARD LIVE:** the bar's lines, the refund's words and lists, the chooser.
+
+### Refunding
+
+MEASURED (the play log of 2026-11-14 09:25-09:27, the Hooded One's "Reintegrar pasivas"): the tree opens titled
+"Reintegrar pasivas" with the gold's row and a "Refund All [hold Y]" hint; an allocated node's tooltip gains its price
+("447 oro", an ascendancy's "2.235 oro"); the hint on an allocated node is "Reintegrar [A]" or "Seleccionar [A]", and
+on an attribute node A opens the three choices, a change of attribute costing as a refund does.
+
+- Which nodes the game refunds: on the owner's 35 allocated nodes the rule "a node no other allocated node hangs
+  from" (`PassiveMap.Held` = 0: the allocated nodes no line of allocated nodes would join to the class's start or the
+  ascendancy's were it gone) gives 9 nodes; the four the game offered "Reintegrar" on are among them (Metal fluido,
+  Símbolo fundido, Estímulo sangriento, and no change of hint between the first two) and the six it offered
+  "Seleccionar" on hold 1 to 22 nodes each. Not seen: the hint on an attribute node that holds none.
+- Mod: while refunding, an allocated node says "asignado, se puede reintegrar" or "asignado, sostiene 3 nodos"
+  (`RefundState`), the D-pad has a **Refundable now** list (those that hold none, nearest first; empty, so passed
+  over, on any other opening), and the build's guide does not lead (its next node is none to go to: with no target
+  chosen a node is its name, state and stats, as brief as on a guide's way). The finder's lists still lead.
+- The build's weapon sets: a node the file names with `weapon_set` (also when it names it twice, once without) is
+  paid from that set's points: `TreePoints.PoolOf`, `BuildPlan.PointsOrder` and `TakeNow` count the tree's, the
+  ascendancy's and each set's points apart, so with no skill point and four of each set the build's next node is
+  its first weapon-set node, said "Siguiente de la build: Daño de ataques, con puntos del set de armas 1" (on the
+  node itself, with the way: "…: mantén presionado A para elegir el tipo de puntos") and the Build list holds the eight. A set whose label does not read is paid from the tree's
+  own points. Before this the owner heard "sin puntos por asignar" over eight points.
 
 ### Which file the marks are
 

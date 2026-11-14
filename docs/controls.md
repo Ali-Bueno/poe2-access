@@ -256,8 +256,14 @@ outside the build, 4 more of the build are ascendancy passives, not on this tree
 shows, and the file's nodes it does not show are said apart, as ascendancy passives when their ids say so), Taken in the build (the build's nodes you already
 have, small ones too, in the build's order, each with its step over those same nodes: "Build: step 3 of 60. Attack Speed,
 …": the way made so far, to walk again), Taken outside the build (what
-you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
-list, those costing fewest points first. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
+you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets, Reachable now, Attributes (the
+allocated nodes you gave a choice, each said with it: "Attributes, Strength 4, Dexterity 4. Dexterity. Attribute, down left…";
+those the build's notes would have otherwise come first) and, while the Hooded One's tree refunds passives, Refundable now (the
+allocated nodes no other hangs from); up from Position reaches these last two first. Left and right walk a
+list, those costing fewest points first. A node the build takes with a weapon set's points says so ("Next in the build: Attack
+Damage, with weapon set 1 points": hold A on it to choose the points), and the Build list counts those points too. While
+refunding, an allocated node says "can be refunded" or "holds 3 nodes" (those must go first), and each change says the
+count the game shows and its gold ("2 unconfirmed passive skill changes. Gold: 4,273 to 3,379"), then "Changes applied" after X. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
 left, middle ring, 8 points away. From here: up, 10 pushes". Then every node ends with the way, "Toward Scarred Faith: up left,
 4 pushes"; push the left stick that way and it counts down to "Arrived at Scarred Faith", where the game reads what it does.
 If it is not yours yet, the guide then leads to the points to spend for it, one by one: "Arrived at Scarred Faith, 8 points

@@ -108,6 +108,12 @@ namespace Poe2Accessibility.Models
         /// <summary>Lines of the element's tooltip (short ones are read with the focus, long ones on request).</summary>
         public System.Collections.Generic.IReadOnlyList<string> Tooltip { get => this.tooltip; init => this.tooltip = value; }
 
+        /// <summary>
+        ///     Lines of <see cref="Tooltip"/> that report a change elsewhere on the screen (the passive tree's count of
+        ///     unconfirmed changes): not said again when the screen's own reading has just said them.
+        /// </summary>
+        public System.Collections.Generic.IReadOnlyList<string> TooltipNews { get; init; } = System.Array.Empty<string>();
+
         /// <summary>The game has not built the tooltip that holds this element's stats yet (passive node, a few frames).</summary>
         public bool TooltipPending { get; init; }
 

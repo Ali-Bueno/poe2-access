@@ -19,6 +19,8 @@ namespace Poe2Accessibility.Tests
             (nameof(BuildFilesAreReadWithTheirNotes), BuildFilesAreReadWithTheirNotes),
             (nameof(MinionsAreCountedByKind), MinionsAreCountedByKind),
             (nameof(PassiveStepsCountThePointsAlongTheLinks), PassiveStepsCountThePointsAlongTheLinks),
+            (nameof(ANodeThatHoldsNoOtherCanBeRefunded), ANodeThatHoldsNoOtherCanBeRefunded),
+            (nameof(PassiveChoicesAreReadWithTheirNodes), PassiveChoicesAreReadWithTheirNodes),
             (nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing),
             (nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists),
             (nameof(TheTreeRemembersWhereEachCharacterLeftOff), TheTreeRemembersWhereEachCharacterLeftOff),
@@ -110,6 +112,39 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, MinionGroups.Describe(Array.Empty<(string, int)>()), "none: nothing said");
             var said = MinionGroups.Describe(new[] { ("Arquero", 100), ("Lobo", 45), ("Arquero", 60), ("Arquero", 80) });
             Equal(true, said.EndsWith("3 Arquero, 80 percent; Lobo, 45 percent") || said.EndsWith("3 Arquero, 80 por ciento; Lobo, 45 por ciento"), $"the most first, life averaged: {said}");
+        }
+
+        private static void ANodeThatHoldsNoOtherCanBeRefunded()
+        {
+            // Start 0 - 1 - 2 - 3, 2 - 4, and 5 hanging from the second root 6; 7 is not taken.
+            var links = new[] { new[] { 1 }, new[] { 0, 2 }, new[] { 1, 3, 4 }, new[] { 2, 7 }, new[] { 2 }, new[] { 6 }, new[] { 5 }, new[] { 3 } };
+            var taken = new HashSet<int> { 0, 1, 2, 3, 4, 5, 6 };
+            var roots = new[] { 0, 6 };
+            Equal(0, PassiveMap.Held(links, taken, roots, 3), "the end of a line holds none");
+            Equal(0, PassiveMap.Held(links, taken, roots, 4), "nor does the other end");
+            Equal(2, PassiveMap.Held(links, taken, roots, 2), "the fork holds both ends");
+            Equal(3, PassiveMap.Held(links, taken, roots, 1), "and the node before it the fork too");
+            Equal(0, PassiveMap.Held(links, taken, roots, 5), "a node of the other tree hangs from its own root");
+            Equal(0, PassiveMap.Held(links, taken, roots, 0), "a root is not given back");
+            Equal(0, PassiveMap.Held(links, taken, roots, 7), "nor a node not taken");
+
+            // A ring: 0 - 1 - 2 - 3 - 0. Either way round still joins the rest.
+            var ring = new[] { new[] { 1, 3 }, new[] { 0, 2 }, new[] { 1, 3 }, new[] { 2, 0 } };
+            Equal(0, PassiveMap.Held(ring, new HashSet<int> { 0, 1, 2, 3 }, new[] { 0 }, 1), "a node of a ring holds none");
+        }
+
+        private static void PassiveChoicesAreReadWithTheirNodes()
+        {
+            // The owner's eight attribute nodes as the state listed them (2026-11-14): node id low, the row chosen high.
+            var nodes = new HashSet<int> { 16725, 21387, 27373 };
+            var variants = new HashSet<int> { 14927, 26297 };
+            var read = PassiveChoices.Read(new[] { 0x3A4F4155u, 0x66B9538Bu, 0x3A4F6AEDu }, nodes, variants);
+            Equal(3, read!.Count, "three nodes with a choice");
+            Equal(14927, read[16725], "strength21 was given Dexterity's row");
+            Equal(26297, read[21387], "strength67 Strength's");
+            Equal(null, PassiveChoices.Read(new[] { 0x3A4F4155u, 0x00010002u }, nodes, variants), "an entry that names no node and no choice: another list");
+            Equal(0, PassiveChoices.Read(Array.Empty<uint>(), nodes, variants)!.Count, "no choice made");
+            Equal("14927x2 26297x1", string.Join(' ', PassiveChoices.Counts(read.Values).Select(count => $"{count.Variant}x{count.Nodes}")), "the most taken first");
         }
 
         private static void PassiveStepsCountThePointsAlongTheLinks()

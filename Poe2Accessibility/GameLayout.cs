@@ -607,6 +607,14 @@ namespace Poe2Accessibility
 
             public const int AllocatedEntrySize = 4;
 
+            /// <summary>
+            ///     T +0x1D8: std::vector of 4-byte entries {u16 an allocated node's graph id, u16 the graph id of the PassiveSkills
+            ///     row chosen for it}, one per node with a choice: the eight attribute nodes of a Warrior read 26297
+            ///     (generic_attribute_strength) on four and 14927 (generic_attribute_dexterity) on four, both rows of
+            ///     PassiveSkillVariants in the game's files (0.5.5g, 2026-11-14, docs/research/passive-tree.md#attribute-choices).
+            /// </summary>
+            public static int ChoicesOffset { get; internal set; } = 0x1D8;
+
             /// <summary>PassiveSkills row (unaligned): u16 graph id; each column is followed by DatColumns.</summary>
             public static int RowGraphIdOffset { get; internal set; } = 0x30;
 

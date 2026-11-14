@@ -64,6 +64,33 @@ namespace Poe2Accessibility.Services
                 : ids;
         }
 
+        /// <summary>The choice made on each allocated node that has one, by the node's graph id: the class's tree's and the ascendancy's.</summary>
+        private IReadOnlyDictionary<int, int> ChoicesIn(PassiveGraph graph)
+        {
+            var choices = this.TreeFields.Choices(graph.State);
+            if (graph.InnerState == IntPtr.Zero || graph.InnerState == graph.State || this.TreeFields.Choices(graph.InnerState) is not { Count: > 0 } inner)
+            {
+                return choices;
+            }
+
+            var all = new Dictionary<int, int>(choices);
+            foreach (var (node, variant) in inner)
+            {
+                all[node] = variant;
+            }
+
+            return all;
+        }
+
+        /// <summary>What a node was given, as the game names it ("Strength"); empty for a node with no choice made.</summary>
+        private static string ChoiceName(PassiveNodeRow node, IReadOnlyDictionary<int, int> choices) =>
+            ChoiceOf(node, choices) is { } variant && PassiveTreeCatalog.Shared.VariantOf(variant) is { } known
+                ? ShownName(PassiveTreeCatalog.Shared.Name(known.Id, Localization.Language) ?? string.Empty)
+                : string.Empty;
+
+        private static int? ChoiceOf(PassiveNodeRow node, IReadOnlyDictionary<int, int> choices) =>
+            choices.TryGetValue(node.GraphId, out var variant) || (node.ShownGraphId >= 0 && choices.TryGetValue(node.ShownGraphId, out variant)) ? variant : null;
+
         /// <summary>A node's kind as it is said: an ascendancy's is named as such, its tree being drawn inside the class's.</summary>
         private static string KindWords(PassiveClass kind, string id) => BuildPlan.IsAscendancyNode(id)
             ? Announcements.PassiveNode(Announcements.PassiveKind(kind), Announcements.OfAscendancy, string.Empty)

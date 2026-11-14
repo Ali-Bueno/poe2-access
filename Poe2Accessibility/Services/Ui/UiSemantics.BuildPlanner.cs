@@ -104,7 +104,7 @@ namespace Poe2Accessibility.Services
         private BuildSteps BuildStepsOf(BuildPlan plan, HashSet<IntPtr> marked) => plan.StepsOver(marked.Select(this.PassiveIdOf).ToHashSet());
 
         /// <summary>The build's step, weapon set and note for a marked node, from the build file.</summary>
-        private IEnumerable<string> BuildLines(BuildPlan plan, IntPtr record, HashSet<IntPtr> marked)
+        private IEnumerable<string> BuildLines(BuildPlan plan, IntPtr record, HashSet<IntPtr> marked, IReadOnlyDictionary<int, int> choices)
         {
             var id = this.PassiveIdOf(record);
             var steps = this.BuildStepsOf(plan, marked);
@@ -114,9 +114,9 @@ namespace Poe2Accessibility.Services
             }
 
             yield return Announcements.BuildStep(step + 1, steps.Count);
-            if (passive.WeaponSet > 0)
+            if (plan.WeaponSetOf(id) is var set and > 0)
             {
-                yield return Announcements.BuildWeaponSet(passive.WeaponSet);
+                yield return Announcements.BuildSetPointsHow(set);
             }
 
             if (BuildNotes.Plain(passive.Note) is { Length: > 0 } note)
@@ -130,6 +130,33 @@ namespace Poe2Accessibility.Services
             {
                 yield return Announcements.RecommendedAttribute(colour);
             }
+
+            // An attribute node taken with another attribute than the note recommends: what a refund would set right.
+            if (this.AttributesOf(plan, record, choices) is (BuildNotes.Attribute wanted, BuildNotes.Attribute chosen) && wanted != chosen)
+            {
+                yield return Announcements.BuildAttributeDiffers(Announcements.AttributeName(wanted), Announcements.AttributeName(chosen));
+            }
+        }
+
+        /// <summary>The attribute the build's note recommends for an attribute node, and the one the node was given once it is allocated; null where there is none.</summary>
+        private (BuildNotes.Attribute? Wanted, BuildNotes.Attribute? Chosen) AttributesOf(BuildPlan? plan, IntPtr record, IReadOnlyDictionary<int, int> choices)
+        {
+            var id = this.PassiveIdOf(record);
+            var chosen = this.PassiveRow(record) is { } row && ChoiceOf(this.ReadPassiveRow(record, row), choices) is { } variant ? PassiveTreeCatalog.Shared.AttributeOf(variant) : null;
+            var wanted = plan != null && BuildNotes.IsAttributeNode(id)
+                ? plan.Passives.Where(passive => passive.Id == id && passive.Note.Length > 0).Select(passive => BuildNotes.Recommended(passive.Note, AttributeWords)).FirstOrDefault(attribute => attribute != null)
+                : null;
+            return (wanted, chosen);
+        }
+
+        /// <summary>An attribute as a note may name it: in English and in the mod's language.</summary>
+        private static IEnumerable<string> AttributeWords(BuildNotes.Attribute attribute) => new[] { attribute.ToString(), Announcements.AttributeName(attribute) };
+
+        /// <summary>The count of points that pays for a node of the build: the ascendancy's, a weapon set's where the file names one, else the tree's.</summary>
+        private int PoolOf(BuildPlan? plan, IntPtr record)
+        {
+            var id = this.PassiveIdOf(record);
+            return TreePoints.PoolOf(BuildPlan.IsAscendancyNode(id), plan?.WeaponSetOf(id) ?? 0);
         }
 
         /// <summary>
@@ -144,9 +171,9 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            // The class's tree and the ascendancy's are paid from two counts of points: the nodes there are points for come first.
-            var (skillPoints, ascendancyPoints) = this.PointsLeft(graph);
-            int Waits(IntPtr record) => BuildPlan.PointsOrder(BuildPlan.IsAscendancyNode(this.PassiveIdOf(record)), skillPoints, ascendancyPoints);
+            // The class's tree, the ascendancy's and each weapon set are paid from their own count of points: the nodes there are points for come first.
+            var points = this.PointsLeft(graph);
+            int Waits(IntPtr record) => BuildPlan.PointsOrder(this.PoolOf(plan, record), points);
             if (plan != null)
             {
                 var order = plan.Passives.GroupBy(passive => passive.Id).ToDictionary(group => group.Key, group => group.First().Order);

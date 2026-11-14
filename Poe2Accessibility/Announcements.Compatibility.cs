@@ -98,6 +98,7 @@ namespace Poe2Accessibility
             "tile grid" => T("the places on the map", "los lugares del mapa"),
             "pad buttons" => T("the controller's buttons", "los botones del mando"),
             "passive tree links" or "passive tree allocations" => T("the passive tree's links and allocated nodes", "las conexiones y los nodos asignados del árbol de pasivas"),
+            "passive attribute choices" => T("the attribute chosen on each passive node", "el atributo elegido en cada nodo de pasivas"),
             "quest marker" => T("which characters have a quest", "qué personajes tienen misión"),
             "trial map links" => T("the ways between the rooms of the Trial's map", "los caminos entre las salas del mapa de la Prueba"),
             "interactive flag" or "text input flag" or "navigable flag" or "enabled flag" => T("the kinds of interface controls", "los tipos de controles de la interfaz"),

@@ -24,6 +24,9 @@ namespace Poe2Accessibility.Tests
             (nameof(TheLargerCardIsTheChosenOne), TheLargerCardIsTheChosenOne),
             (nameof(AnAscendancysStartIsKnownByItsId), AnAscendancysStartIsKnownByItsId),
             (nameof(TheBuildsNextNodeIsOneThereArePointsFor), TheBuildsNextNodeIsOneThereArePointsFor),
+            (nameof(ANodeOfAWeaponSetIsPaidWithThatSetsPoints), ANodeOfAWeaponSetIsPaidWithThatSetsPoints),
+            (nameof(TheAttributeANoteRecommendsIsNamedOrColoured), TheAttributeANoteRecommendsIsNamedOrColoured),
+            (nameof(TheCostOfUnconfirmedChangesIsTwoAmounts), TheCostOfUnconfirmedChangesIsTwoAmounts),
             (nameof(AnAscendancysStartIsNoStepOfTheBuild), AnAscendancysStartIsNoStepOfTheBuild),
         };
 
@@ -44,21 +47,69 @@ namespace Poe2Accessibility.Tests
 
         private static void TheBuildsNextNodeIsOneThereArePointsFor()
         {
+            static TreePoints Points(int skill, int ascendancy) => new(skill, ascendancy, Array.Empty<int>());
+            const int Tree = TreePoints.SkillPool;
+            const int Ascendancy = TreePoints.AscendancyPool;
+
             // No skill points and two of the ascendancy's (yarkidius, just ascended): the ascendancy's nodes first.
-            Expect(true, BuildPlan.PointsOrder(true, 0, 2) < BuildPlan.PointsOrder(false, 0, 2));
-            Expect(true, BuildPlan.PointsOrder(false, 3, 0) < BuildPlan.PointsOrder(true, 3, 0));
+            Expect(true, BuildPlan.PointsOrder(Ascendancy, Points(0, 2)) < BuildPlan.PointsOrder(Tree, Points(0, 2)));
+            Expect(true, BuildPlan.PointsOrder(Tree, Points(3, 0)) < BuildPlan.PointsOrder(Ascendancy, Points(3, 0)));
             // Points in both, or the counts unread: the file's order alone.
-            Expect(BuildPlan.PointsOrder(false, 1, 1), BuildPlan.PointsOrder(true, 1, 1));
-            Expect(BuildPlan.PointsOrder(false, null, null), BuildPlan.PointsOrder(true, null, null));
+            Expect(BuildPlan.PointsOrder(Tree, Points(1, 1)), BuildPlan.PointsOrder(Ascendancy, Points(1, 1)));
+            Expect(BuildPlan.PointsOrder(Tree, null), BuildPlan.PointsOrder(Ascendancy, null));
             // None in either: the next point is a level's, the class's tree first.
-            Expect(true, BuildPlan.PointsOrder(false, 0, 0) < BuildPlan.PointsOrder(true, 0, 0));
+            Expect(true, BuildPlan.PointsOrder(Tree, Points(0, 0)) < BuildPlan.PointsOrder(Ascendancy, Points(0, 0)));
 
             // The Build list: as many nodes of each tree as it has points, in the order given; one alone with no points.
-            var pending = new[] { ("forge", true), ("anvil", true), ("coal", true), ("area", false), ("cry", false) };
-            Expect("forge anvil", string.Join(' ', BuildPlan.TakeNow(pending, 0, 2)));
-            Expect("forge area cry", string.Join(' ', BuildPlan.TakeNow(pending, 5, 1)));
-            Expect("forge", string.Join(' ', BuildPlan.TakeNow(pending, 0, 0)));
-            Expect(5, BuildPlan.TakeNow(pending, null, null).Count);
+            var pending = new[] { ("forge", Ascendancy), ("anvil", Ascendancy), ("coal", Ascendancy), ("area", Tree), ("cry", Tree) };
+            Expect("forge anvil", string.Join(' ', BuildPlan.TakeNow(pending, Points(0, 2))));
+            Expect("forge area cry", string.Join(' ', BuildPlan.TakeNow(pending, Points(5, 1))));
+            Expect("forge", string.Join(' ', BuildPlan.TakeNow(pending, Points(0, 0))));
+            Expect(5, BuildPlan.TakeNow(pending, null).Count);
+        }
+
+        private static void ANodeOfAWeaponSetIsPaidWithThatSetsPoints()
+        {
+            // yarkidius, 2026-11-14: no skill points, four of each weapon set, and the build's last eight nodes named with a set.
+            var plan = BuildPlan.Parse("""{"passives":[{"id":"melee17"},{"id":"slow_attacks2_","weapon_set":1},{"id":"warcries12","weapon_set":2},"dexterity82_",{"id":"dexterity82_","weapon_set":1}]}""")!;
+            Expect(1, plan.WeaponSetOf("slow_attacks2_"));
+            Expect(2, plan.WeaponSetOf("warcries12"));
+            Expect(0, plan.WeaponSetOf("melee17"));
+            Expect(1, plan.WeaponSetOf("dexterity82_")); // named again under its set, as the Twister file does
+
+            var points = new TreePoints(0, 0, new[] { 4, 4 });
+            Expect(8, points.Total);
+            Expect(TreePoints.AscendancyPool, TreePoints.PoolOf(true, 1));
+            Expect(2, TreePoints.PoolOf(false, 2));
+            Expect(true, BuildPlan.PointsOrder(1, points) < BuildPlan.PointsOrder(TreePoints.SkillPool, points));
+
+            var pending = new[] { ("area", TreePoints.SkillPool), ("slow", 1), ("slower", 1), ("cry", 2) };
+            Expect("slow slower cry", string.Join(' ', BuildPlan.TakeNow(pending, points)));
+            Expect("slow cry", string.Join(' ', BuildPlan.TakeNow(pending, new TreePoints(0, 0, new[] { 1, 3 }))));
+            // Points that pay for none of them: the next one alone, so the list is never empty.
+            Expect("area", string.Join(' ', BuildPlan.TakeNow(pending.Take(1), points)));
+            // A set whose label did not read is paid from the tree's own points.
+            var unread = new TreePoints(2, 0, Array.Empty<int>());
+            Expect(2, unread.Of(1));
+            Expect("area slow", string.Join(' ', BuildPlan.TakeNow(pending, unread)));
+        }
+
+        private static void TheAttributeANoteRecommendsIsNamedOrColoured()
+        {
+            static IEnumerable<string> Words(BuildNotes.Attribute attribute) => new[] { attribute.ToString(), attribute == BuildNotes.Attribute.Strength ? "Fuerza" : attribute == BuildNotes.Attribute.Dexterity ? "Destreza" : "Inteligencia" };
+            Expect(BuildNotes.Attribute.Strength, BuildNotes.Recommended("<m>{<red>{Strength +5 is recommended}}", Words));
+            Expect(BuildNotes.Attribute.Dexterity, BuildNotes.Recommended("Destreza +5", Words));
+            Expect(BuildNotes.Attribute.Intelligence, BuildNotes.Recommended("<m>{<blue>{Attribute is recommended}}", Words));
+            Expect(null, BuildNotes.Recommended("Strength or Dexterity", Words));
+            Expect(null, BuildNotes.Recommended("Take this one next", Words));
+        }
+
+        private static void TheCostOfUnconfirmedChangesIsTwoAmounts()
+        {
+            Expect(("4.273", "3.826"), TreePoints.SplitCost("4.273 > 3.826")!.Value);
+            Expect(null, TreePoints.SplitCost(string.Empty));
+            Expect(null, TreePoints.SplitCost("4.273"));
+            Expect(null, TreePoints.SplitCost("a > b"));
         }
 
         private static void AnAscendancysStartIsKnownByItsId()

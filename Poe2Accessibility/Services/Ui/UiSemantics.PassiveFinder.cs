@@ -121,20 +121,28 @@ namespace Poe2Accessibility.Services
             }
 
             var atlas = this.AtlasOf(graph);
-            var steps = atlas.StepsFrom(this.AllocatedIn(graph));
+            var allocated = this.AllocatedIn(graph);
+            var steps = atlas.StepsFrom(allocated);
             var marked = this.BuildMarks(graph);
             var plan = marked.Count > 0 ? this.PlanOf(graph, marked) : null;
             var order = plan == null ? null : this.BuildStepsOf(plan, marked);
             int BuildStep(IntPtr node) => order != null && order.Steps.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
             // The build's list is what its guide leads to: the nodes to take now, as many as there are points for (the owner, 2026-11-14).
-            var (skillPoints, ascendancyPoints) = this.PointsLeft(graph);
-            bool OfAscendancy(IntPtr node) => BuildPlan.IsAscendancyNode(this.PassiveIdOf(node));
-            int Waits(IntPtr node) => BuildPlan.PointsOrder(OfAscendancy(node), skillPoints, ascendancyPoints);
-            IReadOnlyList<IntPtr> Members(PassiveCategory category)
+            var points = this.PointsLeft(graph);
+            int Pool(IntPtr node) => this.PoolOf(plan, node);
+            int Waits(IntPtr node) => BuildPlan.PointsOrder(Pool(node), points);
+            // What each node with a choice was given, and which of them the build's notes would have otherwise.
+            var choices = this.ChoicesIn(graph);
+            var choiceCounts = PassiveChoices.Counts(choices.Values);
+            bool Differs(IntPtr node) => this.AttributesOf(plan, node, choices) is (BuildNotes.Attribute wanted, BuildNotes.Attribute chosen) && wanted != chosen;
+            var refunding = this.Refunding(graph);
+            IReadOnlyList<IntPtr> Members(PassiveCategory category) => category switch
             {
-                var list = atlas.Members(category, steps, record, marked, BuildStep, Waits);
-                return category == PassiveCategory.Build ? BuildPlan.TakeNow(list.Select(node => (node, OfAscendancy(node))), skillPoints, ascendancyPoints) : list;
-            }
+                PassiveCategory.Attributes => atlas.Chosen(choices, choiceCounts.Select(count => count.Variant).ToList(), record, Differs),
+                PassiveCategory.Refundable => refunding ? atlas.Refundable(allocated, record) : Array.Empty<IntPtr>(),
+                PassiveCategory.Build => BuildPlan.TakeNow(atlas.Members(category, steps, record, marked, BuildStep, Waits).Select(node => (node, Pool(node))), points),
+                _ => atlas.Members(category, steps, record, marked, BuildStep, Waits),
+            };
             var hadTarget = this.finder.Target != IntPtr.Zero;
             if (listStep != 0)
             {
@@ -157,8 +165,17 @@ namespace Poe2Accessibility.Services
                 : Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty);
             if (this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken && order != null && BuildStep(this.finder.Target) is var step and < int.MaxValue)
             {
-                // The build's nodes are walked in its order: each says which step of it it is.
-                found = $"{Announcements.BuildStep(step + 1, order.Count)}. {found}";
+                // The build's nodes are walked in its order: each says which step of it it is, and the weapon set whose points take it.
+                var set = this.finder.Category == PassiveCategory.Build ? plan?.WeaponSetOf(this.PassiveIdOf(this.finder.Target)) ?? 0 : 0;
+                found = $"{Announcements.BuildStep(step + 1, order.Count)}{(set > 0 ? ", " + Announcements.BuildWithSetPoints(set) : string.Empty)}. {found}";
+            }
+
+            if (this.finder.Category == PassiveCategory.Attributes && ChoiceName(atlas.Nodes[target], choices) is { Length: > 0 } choice)
+            {
+                var advice = this.AttributesOf(plan, this.finder.Target, choices) is (BuildNotes.Attribute wanted, BuildNotes.Attribute chosen) && wanted != chosen
+                    ? ", " + Announcements.BuildAttributeDiffers(Announcements.AttributeName(wanted), Announcements.AttributeName(chosen))
+                    : string.Empty;
+                found = Announcements.PassiveChoice(choice + advice, found);
             }
 
             if (listStep == 0)
@@ -174,10 +191,15 @@ namespace Poe2Accessibility.Services
             }
 
             var progress = this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? BuildProgress(atlas, steps, marked, order?.NotShown ?? 0, order?.Ascendancy ?? 0) : string.Empty;
-            if (this.finder.Category == PassiveCategory.Build && skillPoints is { } skill && ascendancyPoints is { } ascendancy)
+            if (this.finder.Category == PassiveCategory.Build && points != null)
             {
                 // Why the list is shorter than what is left of the build: it holds what the points pay for.
-                progress += ", " + Announcements.BuildToTakeNow(skill + ascendancy > 0 ? Members(PassiveCategory.Build).Count : 0);
+                progress += ", " + Announcements.BuildToTakeNow(Members(PassiveCategory.Build).Count(node => points.Of(Pool(node)) > 0));
+            }
+            else if (this.finder.Category == PassiveCategory.Attributes)
+            {
+                progress = Announcements.PassiveChoiceCounts(choiceCounts.Select(count =>
+                    (ShownName(PassiveTreeCatalog.Shared.VariantOf(count.Variant) is { } variant ? PassiveTreeCatalog.Shared.Name(variant.Id, Localization.Language) ?? variant.Id : string.Empty), count.Nodes)));
             }
 
             return Announcements.InContext(progress.Length > 0 ? $"{list}, {progress}" : list, found);
@@ -336,7 +358,10 @@ namespace Poe2Accessibility.Services
             // A next node on the other of the two trees says which: the ascendancy's is drawn inside the class's.
             var nextInAscendancy = BuildPlan.IsAscendancyNode(this.PassiveIdOf(next));
             var tree = nextInAscendancy == BuildPlan.IsAscendancyNode(this.PassiveIdOf(record)) ? string.Empty : Announcements.BuildNextTree(nextInAscendancy);
-            var line = this.PassiveGuideBrief ? this.GoalAndWay($"build {next}", Announcements.BuildNextGoal(name, tree), way) : this.DescribeBuildNext(graph, record, next, allocated);
+            // A node the build takes with a weapon set's points says so: held A chooses the points, and the tree's own may be none.
+            var set = this.PlanOf(graph, marked)?.WeaponSetOf(this.PassiveIdOf(next)) ?? 0;
+            var withPoints = set > 0 ? Announcements.BuildWithSetPoints(set) : string.Empty;
+            var line = this.PassiveGuideBrief ? this.GoalAndWay($"build {next}", Announcements.BuildNextGoal(name, tree, withPoints), way) : this.DescribeBuildNext(graph, record, next, allocated);
             return new GuideSay(line, false, marked.Contains(record), way?.Octant, true);
         }
 
@@ -524,6 +549,40 @@ namespace Poe2Accessibility.Services
                     .Select(index => this.Nodes[index].Record)
                     .ToList();
             }
+
+            /// <summary>The allocated nodes that were given a choice, those the build would have otherwise first, then by choice in the order given, nearest the cursor first.</summary>
+            public IReadOnlyList<IntPtr> Chosen(IReadOnlyDictionary<int, int> choices, IReadOnlyList<int> order, IntPtr near, Func<IntPtr, bool> differs)
+            {
+                var here = this.Places.Index.TryGetValue(near, out var at) ? this.Places.Positions[at] : Vector2.Zero;
+                var places = order.ToList();
+                return Enumerable.Range(0, this.Nodes.Length)
+                    .Where(index => ChoiceOf(this.Nodes[index], choices) != null)
+                    .OrderBy(index => differs(this.Nodes[index].Record) ? 0 : 1)
+                    .ThenBy(index => places.IndexOf(ChoiceOf(this.Nodes[index], choices) ?? 0))
+                    .ThenBy(index => Vector2.Distance(this.Places.Positions[index], here))
+                    .Select(index => this.Nodes[index].Record)
+                    .ToList();
+            }
+
+            /// <summary>How many allocated nodes hang from this one (<see cref="PassiveMap.Held"/>): none, and the game refunds it now.</summary>
+            public int Held(HashSet<int> allocated, int node) => PassiveMap.Held(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated).ToHashSet(), this.Roots, node);
+
+            /// <summary>The allocated nodes that hold no other, but the one under the cursor, nearest it first.</summary>
+            public IReadOnlyList<IntPtr> Refundable(HashSet<int> allocated, IntPtr near)
+            {
+                var here = this.Places.Index.TryGetValue(near, out var at) ? this.Places.Positions[at] : Vector2.Zero;
+                var links = this.Links.Append(this.StartLinks).ToArray();
+                var taken = this.Taken(allocated).ToHashSet();
+                var roots = this.Roots;
+                return Enumerable.Range(0, this.Nodes.Length)
+                    .Where(index => taken.Contains(index) && this.Nodes[index].Record != near && !this.Nodes[index].IsStart && PassiveMap.Held(links, taken, roots, index) == 0)
+                    .OrderBy(index => Vector2.Distance(this.Places.Positions[index], here))
+                    .Select(index => this.Nodes[index].Record)
+                    .ToList();
+            }
+
+            /// <summary>Where the trees begin: the ascendancy's own start and the class's, the node after the drawn ones.</summary>
+            private IReadOnlyCollection<int> Roots => this.OwnNodes.Append(this.Nodes.Length).ToList();
 
             private IEnumerable<int> Taken(HashSet<int> allocated) =>
                 Enumerable.Range(0, this.Nodes.Length).Where(index => this.Nodes[index].TakenIn(allocated)).Concat(this.OwnNodes).Append(this.Nodes.Length);

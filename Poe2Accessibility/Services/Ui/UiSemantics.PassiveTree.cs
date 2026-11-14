@@ -149,20 +149,31 @@ namespace Poe2Accessibility.Services
                 CompatibilityReport.Current?.Found(BuildMarksPart); // a file's passives under the marks: the byte is the mark
             }
             var next = marked.Count > 0 ? this.NextBuildNode(graph, marked, plan, allocated, record) : null;
-            var buildWord = marked.Contains(record) ? Announcements.InBuild(next == record) : string.Empty;
-            var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated) : StateWord(state);
+            // While passives are refunded the build's next node is none to go to: an allocated node says whether it can go.
+            var refunding = this.Refunding(graph);
+            var leads = refunding ? null : next;
+            var choices = this.ChoicesIn(graph);
+            var buildWord = marked.Contains(record) ? Announcements.InBuild(leads == record) : string.Empty;
+            var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated)
+                : state == PassiveState.Allocated && refunding ? this.RefundState(graph, record, allocated)
+                : StateWord(state);
             var text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
 
             // One guide at a time: the finder's target takes the place of the build's next node.
             this.NoteTreePlace(graph, record, allocated, next);
-            var guide = hovered ? this.GuideAt(graph, record, allocated, marked, next) : GuideSay.None;
+            var guide = hovered ? this.GuideAt(graph, record, allocated, marked, leads) : GuideSay.None;
+            var news = this.TreeNews(graph, record);
+            if (this.PointsChoice(graph) is { Length: > 0 } choosing)
+            {
+                news = news.Append(choosing).ToList(); // the chooser of points, while held A shows it: its one label is all it says
+            }
 
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
             var whole = new List<string>();
             var stats = new List<string>(tooltip); // what the node does, without the build's step and note
             if (!tooltipPending)
             {
-                var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, marked).ToList() : new List<string>();
+                var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, marked, choices).ToList() : new List<string>();
                 tooltip.AddRange(buildLines);
                 tooltip.AddRange(notes.Where(note => !buildLines.Any(line => SaysAlready(line, note))));
                 whole.AddRange(tooltip);
@@ -180,19 +191,21 @@ namespace Poe2Accessibility.Services
             }
 
             IReadOnlyList<string> said = whole;
-            if (this.PassiveGuideBrief && guide.Leading)
+            // Refunding with no target chosen: as brief as on a guide's way, with nowhere to lead.
+            var quiet = refunding && !guide.Leading;
+            if (this.PassiveGuideBrief && (guide.Leading || quiet))
             {
                 // A guide leads: its words come first, then what the node does (user 2026-11-10: "que la guía tenga más prioridad",
                 // "los tooltips del árbol, no de la build"), so the next push can cut in at once; links, button hints and, but on the
                 // node to take, the build's step and note are left for the details (L3 held). The one to take says so with its name.
-                if (!guide.Here && guide.Line.Length > 0)
+                if (!guide.Here && (guide.Line.Length > 0 || quiet))
                 {
-                    var word = state == PassiveState.Allocated ? StateWord(state)
+                    var word = state == PassiveState.Allocated ? stateWords
                         : guide.OnLine ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
                         : string.Empty;
                     text = word.Length > 0 ? $"{node.Name}, {word}" : node.Name;
-                    said = stats.Prepend(guide.Line).ToList();
-                    tooltipPending = false;
+                    said = guide.Line.Length > 0 ? stats.Prepend(guide.Line).ToList() : stats;
+                    tooltipPending = tooltipPending && guide.Line.Length == 0;
                 }
                 else if (record == this.finder.Target)
                 {
@@ -203,6 +216,14 @@ namespace Poe2Accessibility.Services
                     text = guide.Line.Length > 0 ? $"{text}, {guide.Line}" : text;
                     said = tooltip;
                 }
+            }
+
+            // What changed in the tree's bar of unconfirmed changes is said last, once, with the node it happened on.
+            var wholeSaid = ReferenceEquals(said, whole);
+            if (news.Count > 0)
+            {
+                whole.AddRange(news);
+                said = wholeSaid ? whole : said.Concat(news).ToList();
             }
 
             return new AccessibleUiNode
@@ -216,9 +237,23 @@ namespace Poe2Accessibility.Services
                 IsPassiveNode = true,
                 Context = this.PanelTitle(info),
                 Tooltip = said,
-                Details = ReferenceEquals(said, whole) ? null : whole,
+                TooltipNews = news,
+                Details = wholeSaid ? null : whole,
                 TooltipPending = tooltipPending,
             };
+        }
+
+        /// <summary>"allocated, can be refunded", or "allocated, holds 3 nodes" for one other allocated nodes hang from; a start is only allocated.</summary>
+        private string RefundState(PassiveGraph graph, IntPtr record, HashSet<int> allocated)
+        {
+            var atlas = this.AtlasOf(graph);
+            if (graph.IsOwnStart(record) || !atlas.Places.Index.TryGetValue(record, out var at))
+            {
+                return Announcements.PassiveAllocated;
+            }
+
+            var held = atlas.Held(allocated, at);
+            return $"{Announcements.PassiveAllocated}, {(held == 0 ? Announcements.PassiveRefundable : Announcements.PassiveHolds(held))}";
         }
 
         /// <summary>
@@ -302,9 +337,11 @@ namespace Poe2Accessibility.Services
             yield return $"hovered {this.PassiveIdOf(record)} at {here.X:F0},{here.Y:F0} size {size.X:F0}; {shown} of {graph.Elements.Count} node elements shown";
             // The ascendancy's tree inside the class's: its canvas and state, where its allocations are kept, the points each has left.
             var innerIds = graph.InnerState != IntPtr.Zero ? this.TreeFields.AllocatedAt(graph.InnerState, GameLayout.PassiveTree.AllocatedOffset)?.Count().ToString() ?? "unread" : "-";
-            var (skillPoints, ascendancyPoints) = this.PointsLeft(graph);
+            var points = this.PointsLeft(graph);
+            var choices = this.ChoicesIn(graph);
             yield return $"canvas @{graph.Canvas:X} state @{graph.State:X} allocated {this.AllocatedIds(graph.State).Count}; ascendancy canvas @{graph.Inner:X} state @{graph.InnerState:X} allocated {innerIds}, " +
-                         $"start {(graph.AscendancyStart != IntPtr.Zero ? this.PassiveIdOf(graph.AscendancyStart) : "none")}, alone {graph.AscendancyOnly}; points {skillPoints?.ToString() ?? "?"} and {ascendancyPoints?.ToString() ?? "?"}; " +
+                         $"start {(graph.AscendancyStart != IntPtr.Zero ? this.PassiveIdOf(graph.AscendancyStart) : "none")}, alone {graph.AscendancyOnly}; points {(points == null ? "?" : $"{points.Skill}, ascendancy {points.Ascendancy}, weapon sets {string.Join('/', points.WeaponSets)}")}; refunding {this.Refunding(graph)}; lists beside the allocated one: {this.TreeFields.ListsBeside(graph.State)}; " +
+                         $"choices {string.Join(' ', choices.Select(choice => $"{PassiveTreeCatalog.Shared.ByGraphId(choice.Key)?.Id ?? choice.Key.ToString()}={PassiveTreeCatalog.Shared.VariantOf(choice.Value)?.Id ?? choice.Value.ToString()}"))}; " +
                          $"taken of the ascendancy: {string.Join(' ', graph.Elements.Keys.Where(other => BuildPlan.IsAscendancyNode(this.PassiveIdOf(other)) && this.PassiveRow(other) is { } taken && this.RowTaken(taken, this.AllocatedIn(graph))).Select(this.PassiveIdOf))}";
             // What the stick rule says each push lands on (octants counter-clockwise from right), to check against the game,
             // with its inputs: the window, the record's own edge order against the graph file's, the row's linked-stage gate.

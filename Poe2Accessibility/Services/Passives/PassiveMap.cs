@@ -25,6 +25,18 @@ namespace Poe2Accessibility.Services
         Notables,
         JewelSockets,
         Reachable,
+
+        /// <summary>
+        ///     The allocated nodes that were given a choice, each with it ("+5 to any attribute" taken as Strength): the
+        ///     owner changed three from Strength to Dexterity with no way to find them (2026-11-14).
+        /// </summary>
+        Attributes,
+
+        /// <summary>
+        ///     While the tree refunds passives (the Hooded One's "Refund Passives"): the allocated nodes that hold no other,
+        ///     the ones the game lets go of now (<see cref="PassiveMap.Held"/>).
+        /// </summary>
+        Refundable,
     }
 
     /// <summary>What a passive node is, best first where a list mixes them.</summary>
@@ -79,6 +91,37 @@ namespace Poe2Accessibility.Services
             }
 
             return steps;
+        }
+
+        /// <returns>
+        ///     How many taken nodes <paramref name="node"/> holds: those no line of taken nodes would join to a root were it
+        ///     given back. A node that holds none is one the game refunds now: on the owner's tree (2026-11-14, 35 nodes) the
+        ///     four it offered "Refund" on held none, the six it offered "Select" on held 1 to 22.
+        /// </returns>
+        /// <param name="taken">The taken nodes; the roots need not be among them.</param>
+        /// <param name="roots">Where a tree begins: the class's start and the ascendancy's.</param>
+        public static int Held(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int node)
+        {
+            int Joined(int without)
+            {
+                var seen = new HashSet<int>(roots.Where(root => root != without));
+                var queue = new Queue<int>(seen);
+                while (queue.TryDequeue(out var at))
+                {
+                    foreach (var next in links[at])
+                    {
+                        if (next != without && taken.Contains(next) && seen.Add(next))
+                        {
+                            queue.Enqueue(next);
+                        }
+                    }
+                }
+
+                return seen.Count(taken.Contains);
+            }
+
+            const int None = -1;
+            return roots.Contains(node) || !taken.Contains(node) ? 0 : Math.Max(0, Joined(None) - Joined(node) - 1);
         }
 
         /// <returns>

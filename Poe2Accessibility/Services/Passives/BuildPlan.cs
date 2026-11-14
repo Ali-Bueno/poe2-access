@@ -21,6 +21,42 @@ namespace Poe2Accessibility.Services
         public int Ascendancy => this.NotShownIds.Count(BuildPlan.IsAscendancyNode);
     }
 
+    /// <summary>
+    ///     The points left to spend on the passive tree, by the count that pays for a node: the class's tree's, the
+    ///     ascendancy's, and one per weapon set, whose nodes a build names with "weapon_set" (the tree's labels, 0.5.5g).
+    /// </summary>
+    public sealed record TreePoints(int Skill, int Ascendancy, IReadOnlyList<int> WeaponSets)
+    {
+        public const int SkillPool = 0;
+        public const int AscendancyPool = -1;
+
+        /// <summary>Gets every point left, whatever it pays for.</summary>
+        public int Total => this.Skill + this.Ascendancy + this.WeaponSets.Sum();
+
+        /// <summary>The count that pays for a node: the ascendancy's for its nodes, a weapon set's (1, 2…) where the build names one, else the tree's.</summary>
+        public static int PoolOf(bool ascendancyNode, int weaponSet) => ascendancyNode ? AscendancyPool : Math.Max(SkillPool, weaponSet);
+
+        /// <summary>
+        ///     The cost the tree shows for its unconfirmed changes, "4.273 > 3.826", as its two amounts: the gold now and the
+        ///     gold left once they are applied; null for any other text.
+        /// </summary>
+        public static (string From, string To)? SplitCost(string cost) =>
+            cost.Split('>') is { Length: 2 } parts && parts[0].Trim() is { Length: > 0 } from && parts[1].Trim() is { Length: > 0 } to && from.Any(char.IsDigit) && to.Any(char.IsDigit)
+                ? (from, to)
+                : null;
+
+        /// <summary>A count as it is kept here: a weapon set whose label did not read is paid from the tree's own points, as the game allows.</summary>
+        public int Pool(int pool) => pool > this.WeaponSets.Count ? SkillPool : pool;
+
+        /// <summary>The points left in a count.</summary>
+        public int Of(int pool) => this.Pool(pool) switch
+        {
+            AscendancyPool => this.Ascendancy,
+            SkillPool => this.Skill,
+            var set => this.WeaponSets[set - 1],
+        };
+    }
+
     /// <summary>One gem of a build plan: its BaseItemTypes id and the character levels it is used at.</summary>
     public sealed record BuildGem(string Id, int FromLevel, int ToLevel)
     {
@@ -111,49 +147,58 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool IsAscendancyStart(string id) => IsAscendancyNode(id) && id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal);
 
+        /// <summary>The weapon set the build takes a node with (1 or 2: its points are that set's), 0 for the tree's own points.</summary>
+        public int WeaponSetOf(string id) => this.Passives.Where(passive => passive.Id == id).Select(passive => passive.WeaponSet).FirstOrDefault(set => set > 0);
+
         /// <summary>
         ///     Where a node the build has yet to take stands by the points left: 0 while its own count (the class's tree's,
-        ///     or the ascendancy's) has points, 2 while only the other has, and with none in either the ascendancy's nodes
-        ///     wait (1), the next point being a level's. All 0 while the counts are unread: the file's order alone.
+        ///     the ascendancy's or its weapon set's, <see cref="TreePoints.PoolOf"/>) has points, 2 while only another has,
+        ///     and with none anywhere the nodes of the ascendancy and of the weapon sets wait (1), the next point being a
+        ///     level's. All 0 while the counts are unread: the file's order alone.
         /// </summary>
-        public static int PointsOrder(bool ascendancyNode, int? skillPoints, int? ascendancyPoints)
+        public static int PointsOrder(int pool, TreePoints? points)
         {
-            if (skillPoints is not { } skill || ascendancyPoints is not { } ascendancy)
+            if (points == null)
             {
                 return 0;
             }
 
-            var (own, other) = ascendancyNode ? (ascendancy, skill) : (skill, ascendancy);
-            return own > 0 ? 0 : other > 0 ? 2 : ascendancyNode ? 1 : 0;
+            return points.Of(pool) > 0 ? 0 : points.Total > 0 ? 2 : points.Pool(pool) != TreePoints.SkillPool ? 1 : 0;
         }
 
         /// <summary>
         ///     The nodes to take now of those the build has yet to take, given in its order with those there are points for
-        ///     first (<see cref="PointsOrder"/>): as many of the class's tree as it has points left and as many of the
-        ///     ascendancy's as it has; with no point anywhere the next one alone, and all of them while the counts are unread.
+        ///     first (<see cref="PointsOrder"/>): as many of each count as it has points left; with no point for any of them
+        ///     the next one alone, and all of them while the counts are unread.
         /// </summary>
-        public static IReadOnlyList<T> TakeNow<T>(IEnumerable<(T Node, bool Ascendancy)> pending, int? skillPoints, int? ascendancyPoints)
+        public static IReadOnlyList<T> TakeNow<T>(IEnumerable<(T Node, int Pool)> pending, TreePoints? points)
         {
-            if (skillPoints is not { } skill || ascendancyPoints is not { } ascendancy)
+            if (points == null)
             {
                 return pending.Select(entry => entry.Node).ToList();
             }
 
-            if (skill <= 0 && ascendancy <= 0)
+            if (points.Total <= 0)
             {
                 return pending.Take(1).Select(entry => entry.Node).ToList();
             }
 
+            var left = new Dictionary<int, int>();
             var now = new List<T>();
-            foreach (var (node, ofAscendancy) in pending)
+            var all = pending.ToList();
+            foreach (var (node, asked) in all)
             {
-                if ((ofAscendancy ? ascendancy-- : skill--) > 0)
+                var pool = points.Pool(asked);
+                var has = left.TryGetValue(pool, out var known) ? known : points.Of(pool);
+                left[pool] = has - 1;
+                if (has > 0)
                 {
                     now.Add(node);
                 }
             }
 
-            return now;
+            // Points that pay for none of them (a weapon set's, with its nodes taken): the next one alone, as with no points.
+            return now.Count > 0 ? now : all.Take(1).Select(entry => entry.Node).ToList();
         }
 
         /// <summary>Null when the text is no build file.</summary>
@@ -322,6 +367,22 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            return ColourOf(markup);
+        }
+
+        /// <summary>
+        ///     The attribute an attribute node's note recommends: the one it names, in any of the words given for each,
+        ///     else the one its colour shows; null when it names several or shows none.
+        /// </summary>
+        public static Attribute? Recommended(string markup, Func<Attribute, IEnumerable<string>> words)
+        {
+            var plain = Plain(markup);
+            var named = Enum.GetValues<Attribute>().Where(attribute => words(attribute).Any(word => plain.Contains(word, StringComparison.OrdinalIgnoreCase))).ToList();
+            return named.Count == 1 ? named[0] : named.Count > 1 ? null : ColourOf(markup);
+        }
+
+        private static Attribute? ColourOf(string markup)
+        {
             var colour = Regex.Match(markup, @"<(red|green|blue|str|dex|int|strength|dexterity|intelligence)>\{", RegexOptions.IgnoreCase);
             return !colour.Success ? null : colour.Groups[1].Value.ToLowerInvariant() switch
             {

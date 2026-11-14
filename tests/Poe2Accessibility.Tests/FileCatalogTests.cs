@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(APassiveNameIsKnownInEveryLanguage), APassiveNameIsKnownInEveryLanguage),
             (nameof(AMissingOrBrokenCatalogLeavesTheLastOne), AMissingOrBrokenCatalogLeavesTheLastOne),
             (nameof(TheShippedPassiveTreeHoldsTogether), TheShippedPassiveTreeHoldsTogether),
+            (nameof(TheShippedPassiveTreeKnowsTheAttributeChoices), TheShippedPassiveTreeKnowsTheAttributeChoices),
             (nameof(ASkillIsNamedByItsGrantedEffect), ASkillIsNamedByItsGrantedEffect),
             (nameof(TheShippedGemsHoldTogether), TheShippedGemsHoldTogether),
             (nameof(TheTwoSourcesAreComparedOnce), TheTwoSourcesAreComparedOnce),
@@ -106,6 +107,23 @@ namespace Poe2Accessibility.Tests
             GemCatalog.Load(log, Path.Join(folder, "no-such-file.json"));
             GemCatalog.Load(log, broken);
             Equal(null, GemCatalog.Parse("{}").SkillName("IceNovaPlayer", "en"), "an empty catalog names nothing: memory is read");
+        }
+
+        /// <summary>The shipped file's choices: an attribute node's three, each named, by the graph ids the tree's state was read to hold (2026-11-14).</summary>
+        private static void TheShippedPassiveTreeKnowsTheAttributeChoices()
+        {
+            if (Shipped("passive-tree.json") is not { } file)
+            {
+                return; // away from the repository
+            }
+
+            var tree = PassiveTreeCatalog.Parse(File.ReadAllText(file));
+            Equal(BuildNotes.Attribute.Strength, tree.AttributeOf(26297), "generic_attribute_strength");
+            Equal(BuildNotes.Attribute.Dexterity, tree.AttributeOf(14927), "generic_attribute_dexterity");
+            Equal(1, tree.VariantIds.Count(id => tree.AttributeOf(id) == BuildNotes.Attribute.Intelligence), "one row for Intelligence");
+            Equal("Destreza", tree.Name(tree.VariantOf(14927)!.Id, "es"), "named as the game names it");
+            Equal(null, tree.AttributeOf(tree.VariantIds.First(id => tree.VariantOf(id)!.Type != "GenericAttribute")), "another node's choice is no attribute");
+            Equal(null, PassiveTreeCatalog.Parse("{}").VariantOf(26297), "a catalog written before the choices knows none");
         }
 
         /// <summary>The shipped file as the plugin reads it: a graph that closes on itself, every start a named class, every name clean.</summary>

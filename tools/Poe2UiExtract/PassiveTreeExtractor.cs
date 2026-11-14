@@ -92,6 +92,8 @@ internal static class PassiveTreeExtractor
             return 1;
         }
 
+        var variants = Variants(index, passives, columns["PassiveSkills.GraphId"], rows);
+
         var names = new SortedDictionary<string, object>(StringComparer.Ordinal);
         var classNames = new SortedDictionary<string, object>(StringComparer.Ordinal);
         var languages = AreaExtractor.Languages;
@@ -134,8 +136,50 @@ internal static class PassiveTreeExtractor
             Say.Out.WriteLine($"  {code}: {named.Count} node names, {classesNamed.Count} classes");
         }
 
-        AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["nodes"] = nodes, ["links"] = links, ["starts"] = starts, ["classes"] = classNames, ["names"] = names });
-        Say.Out.WriteLine($"Wrote {outFile}: {nodes.Count} nodes of {graph.Nodes.Count} in the graph, {starts.Count} class starts, {names.Count} languages");
+        AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["nodes"] = nodes, ["links"] = links, ["starts"] = starts, ["variants"] = variants, ["classes"] = classNames, ["names"] = names });
+        Say.Out.WriteLine($"Wrote {outFile}: {nodes.Count} nodes of {graph.Nodes.Count} in the graph, {starts.Count} class starts, {variants.Count} variants, {names.Count} languages");
         return 0;
+    }
+
+    private const string VariantTable = "passiveskillvariants";
+    private const string VariantTypeTable = "passiveskillvarianttypes";
+
+    /// <summary>A PassiveSkillVariants row: the key of its type, then the key of the PassiveSkills row a node becomes (two 16-byte keys, 0.5.5g).</summary>
+    private const int VariantRowSize = 0x20;
+    private const int VariantTypeColumn = 0x0;
+    private const int VariantPassiveColumn = 0x10;
+
+    /// <summary>
+    ///     What a node with a choice can be made ("+5 to any attribute" as Strength, Dexterity or Intelligence): { graph id of the
+    ///     variant's PassiveSkills row: "its Id|its type's Id" }, the id the tree's state keeps beside the node's own
+    ///     (docs/research/passive-tree.md#attribute-choices). The rows join <paramref name="rows"/> so that they are named too.
+    ///     A table of another shape gives none: the tree is written without them.
+    /// </summary>
+    private static SortedDictionary<string, string> Variants(Index index, DatTable passives, int graphIdColumn, SortedDictionary<string, int> rows)
+    {
+        var variants = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        var table = DatTable.Open(index, VariantTable);
+        var types = DatTable.Open(index, VariantTypeTable);
+        if (table == null || types == null || table.RowSize != VariantRowSize)
+        {
+            Say.Out.WriteLine($"  {Step}: PassiveSkillVariants not found or not {VariantRowSize} bytes a row ({table?.RowSize.ToString() ?? "no table"}): no variants written");
+            return variants;
+        }
+
+        for (var row = 0; row < table.RowCount; row++)
+        {
+            var passive = table.Key(row, VariantPassiveColumn);
+            if (DatAnchors.IdOf(passives, passive) is not { Length: > 0 } id || DatAnchors.IdOf(types, table.Key(row, VariantTypeColumn)) is not { Length: > 0 } type)
+            {
+                Say.Out.WriteLine($"  {Step}: PassiveSkillVariants row {row} names no PassiveSkills row or no type: its columns hold something else, no variants written");
+                variants.Clear();
+                return variants;
+            }
+
+            variants[passives.UInt16((int)passive, graphIdColumn).ToString(System.Globalization.CultureInfo.InvariantCulture)] = id + FlagSeparator + type;
+            rows.TryAdd(id, (int)passive);
+        }
+
+        return variants;
     }
 }
