@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Numerics;
     using GameReader.RemoteObjects.Components;
 
@@ -16,6 +17,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>How often the interface is walked for the Trial of Chaos' elements.</summary>
         private const int TrialHudWalkMs = 3000;
+
+        /// <summary>Once its elements are known the walk is only for new ones (a popup's labels).</summary>
+        private const int TrialHudRewalkMs = 8000;
 
         private readonly RulesetReader reader;
         private readonly IAccessibilityOutputService output;
@@ -45,6 +49,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the element every layer of the game's interface hangs from.</summary>
         public Func<IntPtr> Container { get; set; } = () => IntPtr.Zero;
 
+        /// <summary>Gets whether a Delirium encounter with a front and a rear runs: false when its rules are here and it is over, null when unknown.</summary>
+        public bool? FogRunning { get; private set; }
+
+        /// <summary>Gets a value indicating whether the fog's edges are being spoken of from the computation, the player's depth known.</summary>
+        public bool FogSpeaks { get; private set; }
+
         /// <summary>Gets the charges of the Expedition site nearest the player as last read: placed, and how many there are.</summary>
         public (int Placed, int Total)? Charges { get; private set; }
 
@@ -65,7 +75,7 @@ namespace Poe2Accessibility.Services
             this.reader.Reset();
             this.news.Reset();
             this.fogNews.Reset();
-            (this.fogWhy, this.fogLogged) = (string.Empty, long.MinValue / 2);
+            (this.fogWhy, this.fogLogged, this.FogRunning, this.FogSpeaks) = (string.Empty, long.MinValue / 2, null, false);
             this.trialHudNews.Reset();
             this.trialHud.Reset();
             this.areaStatsLogged = false;
@@ -137,14 +147,15 @@ namespace Poe2Accessibility.Services
             // elements; between walks only those are looked at.
             if (round != null)
             {
-                if (now - this.trialHudFound >= TrialHudWalkMs)
+                // Until an element is found, every few seconds; after, rarely: a new popup's labels are found at the next walk.
+                if (now - this.trialHudFound >= (this.trialHud.Found == 0 ? TrialHudWalkMs : TrialHudRewalkMs))
                 {
                     this.trialHudFound = now;
                     this.trialHud.Discover(this.Container());
                 }
 
                 var shown = this.trialHud.Visible();
-                foreach (var (name, text) in shown)
+                foreach (var (_, name, text) in shown)
                 {
                     if (this.trialHudLogged.Add($"{name} = {System.Text.RegularExpressions.Regex.Replace(text, @"\d+", "#")}"))
                     {
@@ -152,7 +163,7 @@ namespace Poe2Accessibility.Services
                     }
                 }
 
-                foreach (var line in this.trialHudNews.Heard(shown, now))
+                foreach (var line in this.trialHudNews.Heard(shown.Select(element => (element.Id, element.Text)).ToList(), now))
                 {
                     // The objective is said from the ruleset: the same words on screen are not said twice.
                     if (trials && line != objective?.Text)
@@ -173,6 +184,7 @@ namespace Poe2Accessibility.Services
         private void Fog(Render render, long now, bool leagues)
         {
             var sample = this.fog.Read((int)render.GridPosition.X, (int)render.GridPosition.Y);
+            (this.FogRunning, this.FogSpeaks) = (this.fog.Running, false);
             if (this.fog.Why != this.fogWhy)
             {
                 this.fogWhy = this.fog.Why;
@@ -194,6 +206,7 @@ namespace Poe2Accessibility.Services
 
             bool? inFog = PlayerStats.Of(Seats.Followed, LeaguePieces.FogStat) is { } stat ? stat > 0 : null;
             var line = read.Depth is { } depth ? this.fogNews.Heard(depth, read.Front, read.Rear, read.Most, inFog, now) : null;
+            this.FogSpeaks = read.Depth != null && this.fogNews.Trusted;
             if (now - this.fogLogged >= FogLogMs)
             {
                 // How the port is judged from a session's log: its band beside the game's own word, and their record.

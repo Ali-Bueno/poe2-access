@@ -59,6 +59,7 @@ namespace Poe2Accessibility.Services
                 .Concat(MinimapIconIds.All.Select(icon => new GameName(GameNameKind.MinimapIcon, icon, null, nameof(MinimapIconIds))))
                 .Concat(TrialArt.CounterMarkers.Append(TrialArt.CurrentRoomMarker).Append(TrialArt.EffectSlotMarker)
                     .Select(marker => new GameName(GameNameKind.UiArt, marker, null, nameof(TrialArt))))
-                .Concat(LeaguePieces.NamesMatched());
+                .Concat(LeaguePieces.NamesMatched())
+                .Append(new GameName(GameNameKind.Buff, EssencePrison.FreedBuff, null, nameof(EssencePrison)));
     }
 }

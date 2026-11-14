@@ -99,28 +99,73 @@ namespace Poe2Accessibility.Tests
 
             Equal(false, wrong.Trusted, "a port that does not agree stays silent");
             Equal(null, wrong.Heard(700, 500, 0, 8000, null, 5000), "and with the stat unread nothing is judged");
+
+            // A stat that does not read at all says "out" for ever: agreeing with it outside the band proves nothing.
+            var deaf = new FogNews();
+            for (var at = 0; at <= 8000; at += 400)
+            {
+                Equal(null, deaf.Heard(700, 500, 0, 8000, false, at), "out by both: never the fog's voice on that alone");
+            }
+
+            Equal(false, deaf.Trusted, "trust needs the game to have said in");
+
+            var early = new FogNews();
+            for (var at = 0; at <= 8000; at += 400)
+            {
+                Equal(null, early.Heard(100, 0, 0, 8000, false, at), "the mirror not yet walked through: no band, nothing judged, nothing said");
+            }
+
+            Equal((0, 0), early.Record, "the wait before the start counts for nothing");
+
+            var checkedNow = new FogNews();
+            for (var at = 0; at <= 8000; at += 400)
+            {
+                checkedNow.Heard(100, 500, 0, 8000, true, at);
+            }
+
+            Equal(null, checkedNow.Heard(700, 500, 0, 8000, true, 9000), "past the front by the port, in by the game: the game's word stands, nothing said");
+            Equal(null, checkedNow.Heard(300, 900, 280, 8000, false, 10000), "the rear near by the port, out by the game: it is not coming, it has come");
+            Equal(true, checkedNow.Trusted, "two disagreements in twenty-three do not take its voice");
+            Equal(FogLine.RearNear, checkedNow.Heard(300, 900, 280, 8000, null, 11000), "the stat unread at that moment does not gag a port that earned its voice");
+            for (var at = 12000; at <= 14000; at += 400)
+            {
+                checkedNow.Heard(700, 500, 0, 8000, true, at);
+            }
+
+            Equal(false, checkedNow.Trusted, "but one that keeps disagreeing loses it");
             Equal("The fog has left you behind: it went up right", Announcements.Fog(FogLine.LeftBehind, "up right"), "which way it went, as a side of the screen");
             Equal("The fog has left you behind", Announcements.Fog(FogLine.LeftBehind, string.Empty), "or without one where the ground does not tell");
         }
 
         private static void TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear()
         {
+            // Each element by its own address: the objective 1, the clock 2, the banner 3, a label 4.
             var news = new ChaosTrialHudNews();
-            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Slay all Monsters") }, 0).Count, "what stands when first looked at is no news");
-            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Slay all Monsters"), ("UltimatumTimerLabel", "1:30") }, 1000).Count, "a clock has no words: never said");
-            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Slay all Monsters"), ("UltimatumTimerLabel", "1:29") }, 2000).Count, "nor as it runs");
-            Equal("Survive", string.Join(" | ", news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumTimerLabel", "1:00") }, 60000)), "the next round's objective");
-            Equal("Return to the Ring", string.Join(" | ", news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 61000)), "the banner as it comes up");
-            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive") }, 62000).Count, "it blinks off");
-            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 63000).Count, "and on again: the same banner still");
-            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 64000).Count, "while it stands");
+            Equal(0, news.Heard(new[] { (1L, "Slay all Monsters") }, 0).Count, "what stands when first looked at is no news");
+            Equal(0, news.Heard(new[] { (1L, "Slay all Monsters"), (2L, "1:30") }, 1000).Count, "a clock has no words: never said");
+            Equal(0, news.Heard(new[] { (1L, "Slay all Monsters"), (2L, "1:29") }, 2000).Count, "nor as it runs");
+            Equal("Survive", string.Join(" | ", news.Heard(new[] { (1L, "Survive"), (2L, "1:00") }, 60000)), "the next round's objective");
+            Equal("Return to the Ring", string.Join(" | ", news.Heard(new[] { (1L, "Survive"), (3L, "Return to the Ring") }, 61000)), "the banner as it comes up");
+            Equal(0, news.Heard(new[] { (1L, "Survive") }, 62000).Count, "it blinks off");
+            Equal(0, news.Heard(new[] { (1L, "Survive"), (3L, "Return to the Ring") }, 63000).Count, "and on again: the same banner still");
+            Equal(0, news.Heard(new[] { (1L, "Survive"), (3L, "Return to the Ring") }, 64000).Count, "while it stands");
             for (var at = 65000; at <= 71000; at += 1000)
             {
-                Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive") }, at).Count, "the player is back in the ring: the objective stands, looked at every second");
+                Equal(0, news.Heard(new[] { (1L, "Survive") }, at).Count, "the player is back in the ring: the objective stands, looked at every second");
             }
-            Equal("Return to the Ring", string.Join(" | ", news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 72000)), "out again after a while: said again");
-            Equal("Round 3/10", string.Join(" | ", news.Heard(new[] { ("UltimatumLabel", "Round 3/10") }, 300000)), "a new line with words is said even when it carries numbers");
-            Equal(0, news.Heard(new[] { ("UltimatumLabel", "Round 4/10") }, 301000).Count, "its numbers alone changing is not: the round is said from the ruleset");
+
+            Equal("Return to the Ring", string.Join(" | ", news.Heard(new[] { (1L, "Survive"), (3L, "Return to the Ring") }, 72000)), "out again after a while: said again");
+            Equal("Round 3/10", string.Join(" | ", news.Heard(new[] { (4L, "Round 3/10") }, 300000)), "a new line with words is said even when it carries numbers");
+            Equal(0, news.Heard(new[] { (4L, "Round 4/10") }, 301000).Count, "its numbers alone changing is not: the round is said from the ruleset");
+
+            // A popup has one label of the same name per choice: each is its own line, standing side by side.
+            Equal("Lightning Runes | Blood Globules", string.Join(" | ", news.Heard(new[] { (10L, "Lightning Runes"), (11L, "Blood Globules") }, 400000)), "three choices are three lines, not one fighting itself");
+            for (var at = 401000; at <= 408000; at += 1000)
+            {
+                Equal(0, news.Heard(new[] { (10L, "Lightning Runes"), (11L, "Blood Globules") }, at).Count, "and standing, they are not said over and over");
+            }
+
+            Equal("Vaal Omnitect", string.Join(" | ", news.Heard(new[] { (10L, "Vaal Omnitect"), (12L, "Vaal Omnitect") }, 409000)), "two elements with one text are one line to hear");
         }
 
         private static void ABreachRingIsSaidByQuartersAndAtItsEdge()
@@ -145,6 +190,12 @@ namespace Poe2Accessibility.Tests
             Equal(0, news.Breach(new BreachRing(centre, 55f, 2), centre, 10000).Count, "back at once: not said within three seconds");
             Equal("InsideBreach", string.Join(" ", news.Breach(new BreachRing(centre, 55f, 2), centre, 12500)), "then said, so what was last heard is where the player stands");
             Equal(0, news.Breach(new BreachRing(centre, 60f, 3), far, 20000).Count, "closing: nothing more of it");
+
+            var two = new RulesetNews();
+            var other = centre + new Vector2(900f, 0f);
+            Equal(0, two.Breach(new BreachRing(centre, 60f, 1), centre, 0).Count, "inside one ring, past its half");
+            Equal(0, two.Breach(new BreachRing(other, 10f, 1), other, 30000).Count, "another ring just touched: no quarter of the first, nothing left");
+            Equal("BreachQuarter", string.Join(" ", two.Breach(new BreachRing(other, 30f, 1), other, 31000)), "its own quarters from its own start");
 
             var seenFromAfar = new RulesetNews();
             Equal(0, seenFromAfar.Breach(new BreachRing(centre, 60f, 1), far, 0).Count, "a ring first read from outside");
@@ -173,8 +224,16 @@ namespace Poe2Accessibility.Tests
             Equal(null, news.Progress(0.4f), "said once");
             Equal(75, news.Progress(0.8f), "two quarters at once: the one reached");
             Equal(null, news.Progress(1f), "full: the round's end is said by the game");
-            Equal(null, news.Progress(0.05f), "a new round starts it again");
+            Equal(null, news.Progress(0.02f), "a new round starts it again");
             Equal(50, news.Progress(0.5f), "and its quarters are said anew");
+            Equal(null, news.Progress(0.49f), "a bar wavering about a quarter");
+            Equal(null, news.Progress(0.51f), "says it once");
+            Equal(null, news.Progress(0.2f), "falling back is no news");
+            Equal(null, news.Progress(0.3f), "nor climbing again to what was said");
+            Equal(75, news.Progress(0.76f), "only a quarter not yet said in the round");
+            Equal(null, news.Round(3), "the round read again");
+            Equal(4, news.Round(4), "the next round");
+            Equal(25, news.Progress(0.3f), "its quarters are its own, even when the bar never read empty between");
             Equal("Challenge Progress: 50%", Announcements.TrialProgress(50), "under the bar's own name");
 
             var altar = new LeagueNews();
@@ -239,16 +298,19 @@ namespace Poe2Accessibility.Tests
         private static void AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters()
         {
             Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/Monolith@24"), "an essence's crystal, whatever its instance tail");
-            Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/MiniMonolith"), "the small crystals around it hold monsters too");
+            Equal(false, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/MiniMonolith"), "the small crystals around it were never measured: their monsters ring");
+            Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/SuperMonolith"), "a map's great crystal");
             Equal(false, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/Monolith_Landmark"), "a landmark of the same word is none");
             Equal(false, EssencePrison.IsCrystal("Metadata/Terrain/Hideouts/Monolith/Objects/ArenaLift"), "nor an object of another folder");
 
             Equal(true, EssencePrison.IsWhole((1, 4), true), "built: it holds");
             Equal(true, EssencePrison.IsWhole((3, 4), true), "cracked twice: it still holds");
             Equal(false, EssencePrison.IsWhole((4, 4), true), "shattered: it holds nothing, though the game deletes it five seconds later");
+            Equal(false, EssencePrison.IsWhole((3, 4), false), "the game no longer lets it be used: free, whatever its transition reads");
+            Equal(true, EssencePrison.IsWhole((2, 4), null), "a target that does not read leaves the transition's word");
             Equal(true, EssencePrison.IsWhole(null, true), "transition unread: by the game still letting it be used");
             Equal(false, EssencePrison.IsWhole(null, false), "and not once it cannot");
-            Equal(false, EssencePrison.IsWhole(null, null), "a small crystal has no target: unread, it holds nothing, better a foe heard");
+            Equal(false, EssencePrison.IsWhole(null, null), "neither reads: it holds nothing, better a foe heard");
             Equal(true, EssencePrison.IsShattered((4, 4)), "the last state is the shattered one");
             Equal(false, EssencePrison.IsShattered(null), "unread is not shattered: the crystal stays listed");
 

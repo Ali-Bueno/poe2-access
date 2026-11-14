@@ -55,6 +55,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the charges of the Expedition site at hand as the client's ruleset counts them: placed, and how many there are.</summary>
         public Func<(int Placed, int Total)?> Charges { get; set; } = () => null;
 
+        /// <summary>Gets or sets whether a Delirium encounter runs, by its ruleset: false when it is here and over, null when unknown.</summary>
+        public Func<bool?> FogRunning { get; set; } = () => null;
+
+        /// <summary>Gets or sets whether the fog's own reader is speaking of its edges now: it says more than "out of the fog".</summary>
+        public Func<bool> FogSpeaks { get; set; } = () => false;
+
         /// <summary>Gets or sets the id of the area the player is in ("ExpeditionLogBook_Reef"): a logbook's charges reach farther.</summary>
         public Func<string> AreaId { get; set; } = () => string.Empty;
 
@@ -257,7 +263,9 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Delirium fog stat: {inFog?.ToString() ?? "unread"}"); // whether the game sets it on the player at all
             }
 
-            if (this.news.Fog(inFog) is { } fog)
+            // The stat falls as the fog fades at an encounter's end: that is no leaving it. And where the fog's reader tells which
+            // way it went, "out of the fog" is its line to say.
+            if (this.news.Fog(inFog) is { } fog && this.FogRunning() != false && !(fog == LeagueLine.OutOfFog && this.FogSpeaks()))
             {
                 if (fog == LeagueLine.OutOfFog)
                 {

@@ -42,9 +42,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets why the last look gave no sample, for the log.</summary>
         public string Why { get; private set; } = "not looked";
 
+        /// <summary>Gets whether an encounter with a front and a rear runs: false when its rules are here and say it does not, null when they are not here or do not read.</summary>
+        public bool? Running { get; private set; }
+
         /// <summary>The fog at the player's grid place; null without a running encounter of the kind that has a front and a rear.</summary>
         public FogSample? Read(int x, int y)
         {
+            this.Running = null;
             if (this.rulesets.Ruleset(GameLayout.Fog.RulesName) is not { } rules)
             {
                 this.Why = "no ruleset";
@@ -62,6 +66,7 @@ namespace Poe2Accessibility.Services
             if (active != 1 || finished != 0)
             {
                 this.Why = active > 1 || finished > 1 ? "flags are no flags" : "not running";
+                this.Running = active > 1 || finished > 1 ? null : false;
                 return null;
             }
 
@@ -115,7 +120,9 @@ namespace Poe2Accessibility.Services
                 var (most2, least) = (here + LeastSlope, here - LeastSlope);
                 foreach (var (wayX, wayY) in Ways)
                 {
-                    if (this.DepthAt(slopes, x + (wayX * ProbeCells), y + (wayY * ProbeCells), most) is not { } there)
+                    // A place beyond a thin wall is a long way round: its depth says nothing of the way to walk.
+                    if (this.DepthAt(slopes, x + (wayX * ProbeCells), y + (wayY * ProbeCells), most) is not { } there ||
+                        Math.Abs(there - here) > (ProbeCells * 3) / 2)
                     {
                         continue;
                     }
@@ -133,6 +140,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.Why = depth == null ? "the player's depth is not on the map" : "read";
+            this.Running = true;
             return new FogSample(front, rear, most, depth, deeper, shallower, paused);
         }
 
@@ -157,7 +165,8 @@ namespace Poe2Accessibility.Services
             var nodeCount = (dataEnd.ToInt64() - data.ToInt64()) / sizeof(float);
             return width is 0 or > GameLayout.Fog.WidestMap || height is 0 or > GameLayout.Fog.WidestMap || cellCount != (long)width * height ||
                    regionBytes <= 0 || regionBytes % GameLayout.Fog.RegionBytes != 0 || regionBytes / GameLayout.Fog.RegionBytes > sbyte.MaxValue ||
-                   stride < 2 || stride > (2 * GameLayout.Fog.WidestMap) + 1 || nodeCount < stride * 2 || nodeCount % stride != 0
+                   stride < 2 || stride > (2 * GameLayout.Fog.WidestMap) + 1 || nodeCount < stride * 2 || nodeCount % stride != 0 ||
+                   nodeCount / stride > (2 * GameLayout.Fog.WidestMap) + 1
                 ? null
                 : new DepthMap(width, height, originX, originY, cells, regions, (int)(regionBytes / GameLayout.Fog.RegionBytes), data, nodeCount, (int)stride);
         }
@@ -167,7 +176,7 @@ namespace Poe2Accessibility.Services
         {
             var (cellX, cellY) = FogMath.CellOf(x, y, map.OriginX, map.OriginY);
             if (x < 0 || y < 0 || cellX < 0 || cellY < 0 || cellX >= map.Width || cellY >= map.Height ||
-                !this.memory.TryRead<sbyte>(map.Cells + cellX + (map.Width * cellY), out var region) || region < 0 || region >= map.Regions ||
+                !this.memory.TryRead<sbyte>(new IntPtr(map.Cells.ToInt64() + cellX + ((long)map.Width * cellY)), out var region) || region < 0 || region >= map.Regions ||
                 !this.memory.TryRead<float>(map.RegionRows + (GameLayout.Fog.RegionBytes * region) + GameLayout.Fog.RegionDepth, out var regionDepth))
             {
                 return null;
@@ -182,10 +191,10 @@ namespace Poe2Accessibility.Services
             var first = ((long)nodeY * map.Stride) + nodeX;
             var second = first + map.Stride;
             if (nodeX < 0 || nodeY < 0 || nodeX + 1 >= map.Stride || second + 1 >= map.Nodes ||
-                !this.memory.TryRead<float>(map.Data + (int)(first * sizeof(float)), out var v00) ||
-                !this.memory.TryRead<float>(map.Data + (int)((first + 1) * sizeof(float)), out var v10) ||
-                !this.memory.TryRead<float>(map.Data + (int)(second * sizeof(float)), out var v01) ||
-                !this.memory.TryRead<float>(map.Data + (int)((second + 1) * sizeof(float)), out var v11))
+                !this.memory.TryRead<float>(new IntPtr(map.Data.ToInt64() + (first * sizeof(float))), out var v00) ||
+                !this.memory.TryRead<float>(new IntPtr(map.Data.ToInt64() + ((first + 1) * sizeof(float))), out var v10) ||
+                !this.memory.TryRead<float>(new IntPtr(map.Data.ToInt64() + (second * sizeof(float))), out var v01) ||
+                !this.memory.TryRead<float>(new IntPtr(map.Data.ToInt64() + ((second + 1) * sizeof(float))), out var v11))
             {
                 return null;
             }

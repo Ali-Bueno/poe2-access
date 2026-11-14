@@ -56,9 +56,9 @@ namespace Poe2Accessibility.Services
                     !this.memory.TryRead<int>(record + GameLayout.Rulesets.BreachCentre, out var x) ||
                     !this.memory.TryRead<int>(record + GameLayout.Rulesets.BreachCentre + sizeof(int), out var y) ||
                     !this.memory.TryRead<byte>(record + GameLayout.Rulesets.BreachState, out var state) ||
-                    BreachRings.ValueOf(from, to, duration, elapsed) is not { } value || state > GameLayout.Rulesets.BreachLastState || !IsGridCell(x, y))
+                    BreachRings.ValueOf(from, to, duration, elapsed) is not { } value || state is not (1 or 2) || !IsGridCell(x, y))
                 {
-                    continue;
+                    continue; // unread, or a ring not growing: a record kept after its Breach closed is no ring to stand in
                 }
 
                 var ring = new BreachRing(new Vector2(x, y), value, state);

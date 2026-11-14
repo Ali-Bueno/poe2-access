@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private readonly List<Vector2> whole = new();
+        private readonly HashSet<uint> freed = new();
         private long lastPoll;
 
         public EssenceWatch(HostMemoryReader memory, PluginLog log)
@@ -33,6 +34,7 @@ namespace Poe2Accessibility.Services
         {
             EssencePrison.Publish(new HashSet<uint>());
             this.logged.Clear();
+            this.freed.Clear();
         }
 
         /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
@@ -80,10 +82,19 @@ namespace Poe2Accessibility.Services
             var monsters = new List<(uint Id, Vector2 Place)>();
             foreach (var entity in entities)
             {
-                if (entity.IsValid && entity.EntityType == EntityTypes.Monster && entity.TryGetComponent<Render>(out var render))
+                if (!entity.IsValid || entity.EntityType != EntityTypes.Monster || this.freed.Contains(entity.Id) || !entity.TryGetComponent<Render>(out var render))
                 {
-                    monsters.Add((entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)));
+                    continue;
                 }
+
+                // Freed once, free for good: the game's own mark of it outlives any doubt about the crystal's state.
+                if (entity.TryGetComponent<Buffs>(out var marks) && IsFreed(marks))
+                {
+                    this.freed.Add(entity.Id);
+                    continue;
+                }
+
+                monsters.Add((entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)));
             }
 
             var held = EssencePrison.Held(this.whole, monsters);
@@ -102,6 +113,19 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The stat the game's tables name for a monster in a crystal (Stats 4785); logged, not yet relied on.</summary>
         private const string HeldStat = "monster_inside_monolith";
+
+        private static bool IsFreed(Buffs buffs)
+        {
+            foreach (var key in buffs.StatusEffects.Keys)
+            {
+                if (key == EssencePrison.FreedBuff || BuffIds.Base(key) == EssencePrison.FreedBuff)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private void LogOnce(string line)
         {

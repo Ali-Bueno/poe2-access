@@ -27,9 +27,11 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<string>();
             }
 
-            // A table row is kept as a pair, the row and its table, or alone: whichever stride makes every element an essence.
+            // A table row is kept alone or as a pair, the row and its table: whichever stride makes every element an essence.
+            // Alone first: read as pairs, a vector of rows alone would give every other one and still look right, while a
+            // vector of pairs read alone fails at the first table handle.
             var bytes = last.ToInt64() - first.ToInt64();
-            foreach (var stride in new[] { 2 * IntPtr.Size, IntPtr.Size })
+            foreach (var stride in new[] { IntPtr.Size, 2 * IntPtr.Size })
             {
                 if (bytes <= 0 || bytes % stride != 0 || bytes / stride > MostEssences)
                 {

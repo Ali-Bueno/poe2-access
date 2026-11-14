@@ -19,8 +19,15 @@ namespace Poe2Accessibility.Services
         private const string Objects = "Metadata/MiscellaneousObjects/";
         private const char InstanceMark = '@';
 
-        /// <summary>The crystals' files: an essence's, the small ones around it, a map's great one (Monolith.ot, MiniMonolith.ot, SuperMonolith.ot).</summary>
-        private static readonly string[] Crystals = { Objects + "Monolith", Objects + "MiniMonolith", Objects + "SuperMonolith" };
+        /// <summary>
+        ///     The crystals' files: an essence's and a map's great one (Monolith.ot, SuperMonolith.ot). The small crystals around one
+        ///     (MiniMonolith.ot) have no target and no icon to check their transition against and were never measured: a monster of
+        ///     theirs rings as before, rather than risk one silent after it is freed.
+        /// </summary>
+        private static readonly string[] Crystals = { Objects + "Monolith", Objects + "SuperMonolith" };
+
+        /// <summary>The hidden buff the game gives a monster as its crystal frees it (BuffDefinitions 694): never held again.</summary>
+        public const string FreedBuff = "monolith_monster_freedom";
 
         private static volatile HashSet<uint> held = new();
 
@@ -50,12 +57,12 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Whether a crystal still holds: by its transition when that reads (the last state is the shattered one), else by the
-        ///     game still letting it be used; a small crystal has no target of its own, so one whose state does not read holds
-        ///     nothing. Better a foe heard that cannot be hit than one unheard that can.
+        ///     Whether a crystal still holds: its transition below the last state (the shattered one) and the game still letting it
+        ///     be used, which it does only while whole; the transition unread, by that alone. Either saying no frees the monster:
+        ///     better a foe heard that cannot be hit than one unheard that can.
         /// </summary>
         public static bool IsWhole((int State, int Count)? transition, bool? inPlay) =>
-            transition is { } read ? read.State < read.Count : inPlay == true;
+            transition is { } read ? read.State < read.Count && inPlay != false : inPlay == true;
 
         /// <summary>Whether a crystal's transition says it has shattered; false when it does not read.</summary>
         public static bool IsShattered((int State, int Count)? transition) => transition is { } read && read.State >= read.Count;

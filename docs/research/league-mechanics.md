@@ -543,8 +543,10 @@ file. `GameConstants` (121 rows) holds nothing of the leagues.
   `EntityCatalog.IsHidden`). The user: "me quedaba atacando como tonto pensando que podía darles pero no podía porque tenía que
   interactuar para romper eso, después que se rompa ahí sí pueden sonar otra vez" (2026-11-14). The held monster is alive, hostile and
   targetable (the game aims A at it to free it), so every enemy sound took it for a foe. It is now held while it stands in a crystal
-  (within 30 world units, the rule that already named the crystal by its monster) whose transition is below its count; unread, by the
-  crystal still being usable; a small crystal whose transition does not read holds nothing. Looked at every 200 ms, whatever the league
+  (within 30 world units, the rule that already named the crystal by its monster) whose transition is below its count and that the
+  game still lets be used; the transition unread, by that alone. The small crystals (`MiniMonolith`) hold nothing for the plugin: they
+  have no target and no icon to check a transition against and were never measured. A monster carrying the game's hidden buff
+  `monolith_monster_freedom` is never held again in the area, whatever a crystal reads. Looked at every 200 ms, whatever the league
   announcements' setting. A targeted held monster is still said as the essence ("Esencia: Cretino de sangre, A").
 - **Said:** "Esencia agrietada" (transition 2), "Esencia más agrietada" (3), "Esencia liberada: el monstruo ataca" (4); "El foso del
   abismo se abre: monstruos" (pit 2); a pit's end once, by its transition or its icon, whichever reads first.
@@ -675,6 +677,25 @@ sacrifice is a float of the altar's Render component; a charge's placement limit
 - **Log lines to read in a first session:** "Delirium fog: front …, rear …, player … of …; the game says in/out; agreed N, not M",
   "Delirium fog: <why no sample>", "Trial objective: Survive = "Sobrevive"", "Trial HUD: <element> = "<text>"", "Area stats: …",
   "League piece seen: …RitualRuneInteractable: …; sacrifice …".
+
+### The independent review before the release (2026-11-14)
+
+A second reader went through every reader and rule of the three passes against the exe notes, looking for a line said wrongly or a foe
+left silent. What it found, all fixed and under test:
+
+- **Essence:** a crystal held by its transition alone could keep a freed monster silent if the transition stuck; now either the
+  transition or the target saying "over" frees it, the freed buff frees it for good, and the small crystals are left out.
+- **Delirium fog:** the stat unread reads as "out", so agreeing with it outside the band proved nothing: trust now needs five
+  agreements while the game says "in", nothing is judged before the mirror's clock starts, and a line is said only when the game's word
+  at that moment does not contradict it. The stat's own "Fuera de la niebla" is not said as an encounter ends (the ruleset says it is
+  over), nor on top of the reader's "la niebla te ha dejado atrás". A direction probe across a thin wall (a depth more than one and a
+  half probes away) is ignored. The depth grid's rows are bounded and addressed in 64 bits.
+- **Breach:** the nearest ring among those growing (states 1 and 2) only, and each ring keeps its own quarters and inside/outside.
+- **Trial of Chaos:** the screen's elements are told apart by address, not name (a popup has one label of a name per choice, which
+  made them say each other over and over); the bar's quarters are said once a round even when it wavers; the interface is walked every
+  3 s until an element is found, every 8 s after.
+- **Essences of a crystal:** rows read alone before pairs (pairs first could give every other row and look right).
+- **Scanner:** a hostile, living monster of a league family that the family's rule does not list rings as an enemy again.
 
 **Where it ends.** Nothing more is on the client for: the fog in a map that has only the endgame rules (the whole map is fog there, and
 the stat still says in or out); the four seconds outside the fog (the server's); the Trial's ring centre and radius and its timer's

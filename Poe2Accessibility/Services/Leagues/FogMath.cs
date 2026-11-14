@@ -159,8 +159,10 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     When to speak of the fog's edges. Nothing is said until what was computed has agreed with the game's own word on
-    ///     whether the player is in the fog (the stat the server sets) a few times in a row, well away from either edge: the
-    ///     computation comes from the exe alone and has to earn its voice in each encounter. Pure.
+    ///     whether the player is in the fog (the stat the server sets) a few times in a row, well away from either edge, and at
+    ///     least that often while the game said "in": a stat that is not read at all says "out" for ever and proves nothing. The
+    ///     computation comes from the exe alone and has to earn its voice in each encounter; and even then a line is said only
+    ///     when the game's word at that moment does not contradict it. Pure.
     /// </summary>
     public sealed class FogNews
     {
@@ -173,7 +175,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Only samples this far from both edges judge the computation.</summary>
         public const int JudgedBeyondCells = 10;
 
-        /// <summary>Agreements needed before a word is said.</summary>
+        /// <summary>Agreements needed, with the game saying "in", before a word is said.</summary>
         public const int TrustAfter = 5;
 
         /// <summary>Out of the fog there are four seconds: said again this often.</summary>
@@ -181,33 +183,43 @@ namespace Poe2Accessibility.Services
 
         public const int NearRepeatMs = 7000;
 
-        private int agreed;
+        private int agreedIn;
+        private int agreedOut;
         private int disagreed;
         private FogLine? last;
         private long lastSaid = long.MinValue / 2;
 
         /// <summary>Gets a value indicating whether the computation has agreed with the game often enough to be spoken from.</summary>
-        public bool Trusted => this.agreed >= TrustAfter && this.disagreed * 5 <= this.agreed;
+        public bool Trusted => this.agreedIn >= TrustAfter && this.disagreed * 5 <= this.agreedIn + this.agreedOut;
 
         /// <summary>Gets how the computation has fared against the game's word, for the log.</summary>
-        public (int Agreed, int Disagreed) Record => (this.agreed, this.disagreed);
+        public (int Agreed, int Disagreed) Record => (this.agreedIn + this.agreedOut, this.disagreed);
 
         /// <summary>A new area or encounter: nothing has been judged.</summary>
-        public void Reset() => (this.agreed, this.disagreed, this.last, this.lastSaid) = (0, 0, null, long.MinValue / 2);
+        public void Reset() => (this.agreedIn, this.agreedOut, this.disagreed, this.last, this.lastSaid) = (0, 0, 0, null, long.MinValue / 2);
 
         /// <summary>The line to say now, or null. <paramref name="inFog"/> is the game's own word, null when unread.</summary>
         public FogLine? Heard(int depth, int front, int rear, int most, bool? inFog, long now)
         {
+            if (front <= 0)
+            {
+                return null; // the mirror's clock has not started: there is no band yet to be in or out of
+            }
+
             var inBand = rear < depth && depth <= front;
             if (inFog is { } said && Math.Abs(depth - rear) > JudgedBeyondCells && Math.Abs(front - depth) > JudgedBeyondCells)
             {
-                if (said == inBand)
+                if (said != inBand)
                 {
-                    this.agreed++;
+                    this.disagreed++;
+                }
+                else if (said)
+                {
+                    this.agreedIn++;
                 }
                 else
                 {
-                    this.disagreed++;
+                    this.agreedOut++;
                 }
             }
 
@@ -216,7 +228,9 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            FogLine? line = !inBand ? (depth <= rear ? FogLine.LeftBehind : FogLine.Outran)
+            // Out of the band only when the game does not say "in"; near an edge only when it does not say "out".
+            FogLine? line = !inBand ? (inFog == true ? null : depth <= rear ? FogLine.LeftBehind : FogLine.Outran)
+                : inFog == false ? null
                 : rear > 0 && depth - rear < RearNearCells ? FogLine.RearNear
                 : front < most && front - depth < FrontNearCells ? FogLine.FrontNear
                 : null;

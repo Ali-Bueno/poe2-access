@@ -72,10 +72,13 @@ namespace Poe2Accessibility.Services
         private int? round;
         private string? objective;
         private int progressQuarter = -1;
+        private int progressSaid;
+        private Vector2? ringCentre;
 
         /// <summary>A new area: nothing has been read.</summary>
         public void Reset() =>
-            (this.quarter, this.inside, this.edgeSaid, this.round, this.objective, this.progressQuarter) = (-1, null, long.MinValue / 2, null, null, -1);
+            (this.quarter, this.inside, this.edgeSaid, this.round, this.objective, this.progressQuarter, this.progressSaid, this.ringCentre) =
+                (-1, null, long.MinValue / 2, null, null, -1, 0, null);
 
         /// <summary>The lines of the ring nearest the player while it grows; none for a ring closing or not there.</summary>
         public List<RulesetLine> Breach(BreachRing? ring, Vector2 player, long now)
@@ -83,8 +86,14 @@ namespace Poe2Accessibility.Services
             var lines = new List<RulesetLine>();
             if (ring is not { State: 1 or 2 } open)
             {
-                (this.quarter, this.inside) = (-1, null);
+                (this.quarter, this.inside, this.ringCentre) = (-1, null, null);
                 return lines;
+            }
+
+            if (this.ringCentre != open.Centre)
+            {
+                // Another ring than the one last looked at: what was known of that one says nothing of this.
+                (this.quarter, this.inside, this.ringCentre) = (-1, null, open.Centre);
             }
 
             var reached = BreachRings.QuarterOf(open.Value);
@@ -150,16 +159,42 @@ namespace Poe2Accessibility.Services
             }
 
             var reached = Math.Clamp((int)(value * 4f), 0, 4);
-            var was = this.progressQuarter;
+            var first = this.progressQuarter < 0;
             this.progressQuarter = reached;
-            return was >= 0 && reached > was && reached is >= 1 and <= 3 ? reached * 25 : null;
+            if (value < EmptyBar)
+            {
+                this.progressSaid = 0; // the bar emptied: a new round's quarters are said anew
+            }
+
+            if (first)
+            {
+                this.progressSaid = reached; // what the bar shows when first read is not news
+                return null;
+            }
+
+            // The highest quarter said in the round is kept: a bar wavering about a quarter says it once.
+            if (reached <= this.progressSaid || reached is < 1 or > 3)
+            {
+                return null;
+            }
+
+            this.progressSaid = reached;
+            return reached * 25;
         }
+
+        /// <summary>A bar below this is a round beginning.</summary>
+        private const float EmptyBar = 0.05f;
 
         /// <summary>The Trial of Chaos round now, counted from 1, when it has just changed; null otherwise, and for what stands when first read.</summary>
         public int? Round(int? shown)
         {
             var was = this.round;
             this.round = shown;
+            if (shown != was)
+            {
+                this.progressSaid = 0;
+            }
+
             return shown is { } now && was is { } before && now != before ? now : null;
         }
     }

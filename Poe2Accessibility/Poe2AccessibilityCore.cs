@@ -377,6 +377,8 @@ namespace Poe2Accessibility
                     TrackerLines = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>(),
                     AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
                     Charges = () => this.rulesets?.Charges,
+                    FogRunning = () => this.rulesets?.FogRunning,
+                    FogSpeaks = () => this.rulesets?.FogSpeaks ?? false,
                 };
                 var rulesetReader = new RulesetReader(memory, elements, this.log);
                 this.rulesets = new RulesetWatch(rulesetReader, new FogReader(memory, rulesetReader), new ChaosTrialHudReader(elements), this.output, this.log)

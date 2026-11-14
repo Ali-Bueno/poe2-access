@@ -16,7 +16,7 @@ namespace Poe2Accessibility.Services
         private static readonly Regex Digits = new(@"\d+", RegexOptions.CultureInvariant);
         private static readonly Regex Letters = new(@"\p{L}", RegexOptions.CultureInvariant);
 
-        private readonly Dictionary<string, (string Words, long Seen)> known = new(StringComparer.Ordinal);
+        private readonly Dictionary<long, (string Words, long Seen)> known = new();
         private bool looked;
 
         /// <summary>A new area: its screen has not been looked at.</summary>
@@ -26,21 +26,24 @@ namespace Poe2Accessibility.Services
             this.looked = false;
         }
 
-        /// <summary>The texts to say now; what stands when first looked at in an area is not news.</summary>
-        public List<string> Heard(IReadOnlyList<(string Name, string Text)> shown, long now)
+        /// <summary>
+        ///     The texts to say now, each element by its own id (two labels of one name are two lines); what stands when first
+        ///     looked at in an area is not news.
+        /// </summary>
+        public List<string> Heard(IReadOnlyList<(long Id, string Text)> shown, long now)
         {
             var news = new List<string>();
-            foreach (var (name, text) in shown)
+            foreach (var (id, text) in shown)
             {
                 var words = Digits.Replace(text, "#");
-                var had = this.known.TryGetValue(name, out var before);
+                var had = this.known.TryGetValue(id, out var before);
                 // Said: a line with words in it that is new, changed in its words, or back after being gone a while.
-                if (this.looked && Letters.IsMatch(text) && (!had || before.Words != words || now - before.Seen > BlinkMs))
+                if (this.looked && Letters.IsMatch(text) && (!had || before.Words != words || now - before.Seen > BlinkMs) && !news.Contains(text))
                 {
                     news.Add(text);
                 }
 
-                this.known[name] = (words, now);
+                this.known[id] = (words, now);
             }
 
             this.looked = true;

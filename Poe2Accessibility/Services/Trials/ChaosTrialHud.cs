@@ -68,16 +68,22 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>The Trial's elements on screen now, with their text, of those last found; none outside a Trial.</summary>
-        public IReadOnlyList<(string Name, string Text)> Visible()
+        /// <summary>Gets how many of the Trial's elements the last walk found, shown or hidden.</summary>
+        public int Found => this.named.Count;
+
+        /// <summary>
+        ///     The Trial's elements on screen now, with their text, of those last found; none outside a Trial. Each by its own
+        ///     address: a popup has one label of the same name per choice.
+        /// </summary>
+        public IReadOnlyList<(long Id, string Name, string Text)> Visible()
         {
-            var found = new List<(string Name, string Text)>();
+            var found = new List<(long Id, string Name, string Text)>();
             foreach (var address in this.named)
             {
                 if (this.elements.TryReadElement(address, out var info) && info.Name is { Length: > 0 } name && name.StartsWith(NamePrefix, StringComparison.Ordinal) &&
                     this.elements.IsVisible(info) && this.elements.TryReadText(info.Address, out var text) && text.Trim() is { Length: > 0 } line)
                 {
-                    found.Add((name, line));
+                    found.Add((address.ToInt64(), name, line));
                 }
             }
 

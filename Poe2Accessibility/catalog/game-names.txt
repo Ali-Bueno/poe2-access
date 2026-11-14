@@ -117,7 +117,6 @@ ObjectFile	Metadata/MiscellaneousObjects/Monolith	is_corrupted	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith	num_essences	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith	is_corrupted	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Monolith		EssencePrison
-ObjectFile	Metadata/MiscellaneousObjects/MiniMonolith		EssencePrison
 ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith		EssencePrison
 MinimapIcon	ExpeditionChest1		LeaguePieces
 MinimapIcon	ExpeditionChest2		LeaguePieces
@@ -144,3 +143,4 @@ Buff	shrine_resistance_2		LeaguePieces
 Buff	shrine_critical_2		LeaguePieces
 Buff	shrine_corrupt_2		LeaguePieces
 Buff	shrine_noequipment_2		LeaguePieces
+Buff	monolith_monster_freedom		EssencePrison
