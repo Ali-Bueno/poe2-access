@@ -6,14 +6,17 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     What of the named places to say as the player walks (D2R named places): a map piece when its kind changes,
-    ///     held over plain ground near it so a bridge built of several pieces is one, then the nearest new prop in reach.
+    ///     held over plain ground near it so a bridge built of several pieces is one, then the nearest new prop in reach,
+    ///     unless one of its kind is still remembered: a graveyard is one "tomb", not one per grave
+    ///     (docs/research/sweep-2026-11-13.md).
     /// </summary>
     public sealed class PlaceTracker
     {
         private readonly float holdCells;
         private readonly float reachCells;
         private readonly float forgetCells;
-        private readonly HashSet<Vector2> saidProps = new();
+        private readonly Dictionary<Vector2, string> saidProps = new();
+        private readonly List<Vector2> forgotten = new();
         private string? current;
         private string? candidate;
         private Vector2 lastOnPiece;
@@ -57,14 +60,31 @@ namespace Poe2Accessibility.Services
                 this.candidate = pieceKind;
             }
 
-            this.saidProps.RemoveWhere(prop => Vector2.Distance(player, prop) > this.forgetCells);
+            this.forgotten.Clear();
+            foreach (var prop in this.saidProps.Keys)
+            {
+                if (Vector2.Distance(player, prop) > this.forgetCells)
+                {
+                    this.forgotten.Add(prop);
+                }
+            }
+
+            foreach (var prop in this.forgotten)
+            {
+                this.saidProps.Remove(prop);
+            }
+
             var nearest = props.Where(prop => Vector2.Distance(player, prop.Grid) <= this.reachCells)
                 .OrderBy(prop => Vector2.Distance(player, prop.Grid))
-                .FirstOrDefault(prop => !this.saidProps.Contains(prop.Grid));
+                .FirstOrDefault(prop => !this.saidProps.ContainsKey(prop.Grid));
             if (nearest.Kind != null)
             {
-                this.saidProps.Add(nearest.Grid);
-                say.Add(nearest.Kind);
+                var another = this.saidProps.ContainsValue(nearest.Kind);
+                this.saidProps[nearest.Grid] = nearest.Kind;
+                if (!another)
+                {
+                    say.Add(nearest.Kind);
+                }
             }
 
             return say;

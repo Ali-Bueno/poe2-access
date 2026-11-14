@@ -270,6 +270,15 @@ namespace Poe2Accessibility.Tests
             Equal("cart", Walk(null, 110), "and said again on the way back");
             Equal("", Walk("stairs", 300), "a new kind waits");
             Equal("stairs", Walk("stairs", 302), "and is said");
+
+            // A row of graves 30 cells apart was "tumba" 108 times in a day, 71 of them within 10 s of the last (play log 2026-11-13).
+            var graveyard = new PlaceTracker(23, 25, 60);
+            var graves = new List<(Vector2 Grid, string Kind)> { (new Vector2(0, 0), "tomb"), (new Vector2(30, 0), "tomb"), (new Vector2(60, 0), "tomb"), (new Vector2(70, 0), "cart"), (new Vector2(400, 0), "tomb") };
+            string Stroll(float x) => string.Join("+", graveyard.Update(null, new Vector2(x, 0), graves));
+            Equal("tomb", Stroll(0), "the first grave");
+            Equal("", Stroll(30), "the next one of the row is the same sight");
+            Equal("cart", Stroll(62) + Stroll(66), "another kind among them is said");
+            Equal("tomb", Stroll(400), "graves met again after leaving the row are news");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()
