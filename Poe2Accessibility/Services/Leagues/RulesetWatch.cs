@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Numerics;
     using GameReader.RemoteObjects.Components;
 
@@ -17,15 +18,23 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly RulesetNews news = new();
+        private readonly ChaosTrialHudReader trialHud;
+        private readonly ChaosTrialHudNews trialHudNews = new();
+        private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
+        private bool trialHudTurn;
         private long lastPoll;
         private string lastLogged = string.Empty;
 
-        public RulesetWatch(RulesetReader reader, IAccessibilityOutputService output, PluginLog log)
+        public RulesetWatch(RulesetReader reader, ChaosTrialHudReader trialHud, IAccessibilityOutputService output, PluginLog log)
         {
             this.reader = reader;
+            this.trialHud = trialHud;
             this.output = output;
             this.log = log;
         }
+
+        /// <summary>Gets or sets the element every layer of the game's interface hangs from.</summary>
+        public Func<IntPtr> Container { get; set; } = () => IntPtr.Zero;
 
         /// <summary>Gets the charges of the Expedition site nearest the player as last read: placed, and how many there are.</summary>
         public (int Placed, int Total)? Charges { get; private set; }
@@ -46,6 +55,7 @@ namespace Poe2Accessibility.Services
         {
             this.reader.Reset();
             this.news.Reset();
+            this.trialHudNews.Reset();
             (this.Charges, this.lastLogged) = (null, string.Empty);
         }
 
@@ -85,6 +95,28 @@ namespace Poe2Accessibility.Services
             if (this.news.Round(round?.Round) is { } begun && trials && round is { } trial)
             {
                 this.output.Say(SpeechKind.Quest, Announcements.Ruleset(RulesetLine.TrialRound, begun, trial.Total));
+            }
+
+            // Inside a Trial of Chaos only (its ruleset is there), and every other look: the whole interface is walked.
+            this.trialHudTurn = !this.trialHudTurn;
+            if (round != null && this.trialHudTurn)
+            {
+                var shown = this.trialHud.Visible(this.Container());
+                foreach (var (name, text) in shown)
+                {
+                    if (this.trialHudLogged.Add($"{name} = {System.Text.RegularExpressions.Regex.Replace(text, @"\d+", "#")}"))
+                    {
+                        this.log.Info($"Trial HUD: {name} = \"{text}\""); // which names the game's elements really have, and what they hold
+                    }
+                }
+
+                foreach (var line in this.trialHudNews.Heard(shown, now))
+                {
+                    if (trials)
+                    {
+                        this.output.Say(SpeechKind.Quest, line);
+                    }
+                }
             }
         }
 

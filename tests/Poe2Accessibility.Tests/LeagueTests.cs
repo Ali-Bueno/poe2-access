@@ -33,7 +33,28 @@ namespace Poe2Accessibility.Tests
             (nameof(TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep), TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep),
             (nameof(ABreachRingIsSaidByQuartersAndAtItsEdge), ABreachRingIsSaidByQuartersAndAtItsEdge),
             (nameof(ATrialRoundIsSaidAsItChanges), ATrialRoundIsSaidAsItChanges),
+            (nameof(TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear), TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear),
         };
+
+        private static void TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear()
+        {
+            var news = new ChaosTrialHudNews();
+            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Slay all Monsters") }, 0).Count, "what stands when first looked at is no news");
+            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Slay all Monsters"), ("UltimatumTimerLabel", "1:30") }, 1000).Count, "a clock has no words: never said");
+            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Slay all Monsters"), ("UltimatumTimerLabel", "1:29") }, 2000).Count, "nor as it runs");
+            Equal("Survive", string.Join(" | ", news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumTimerLabel", "1:00") }, 60000)), "the next round's objective");
+            Equal("Return to the Ring", string.Join(" | ", news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 61000)), "the banner as it comes up");
+            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive") }, 62000).Count, "it blinks off");
+            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 63000).Count, "and on again: the same banner still");
+            Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 64000).Count, "while it stands");
+            for (var at = 65000; at <= 71000; at += 1000)
+            {
+                Equal(0, news.Heard(new[] { ("UltimatumTitle", "Survive") }, at).Count, "the player is back in the ring: the objective stands, looked at every second");
+            }
+            Equal("Return to the Ring", string.Join(" | ", news.Heard(new[] { ("UltimatumTitle", "Survive"), ("UltimatumReturnToRingLabel", "Return to the Ring") }, 72000)), "out again after a while: said again");
+            Equal("Round 3/10", string.Join(" | ", news.Heard(new[] { ("UltimatumLabel", "Round 3/10") }, 300000)), "a new line with words is said even when it carries numbers");
+            Equal(0, news.Heard(new[] { ("UltimatumLabel", "Round 4/10") }, 301000).Count, "its numbers alone changing is not: the round is said from the ruleset");
+        }
 
         private static void ABreachRingIsSaidByQuartersAndAtItsEdge()
         {

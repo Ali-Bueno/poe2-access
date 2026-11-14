@@ -378,7 +378,10 @@ namespace Poe2Accessibility
                     AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
                     Charges = () => this.rulesets?.Charges,
                 };
-                this.rulesets = new RulesetWatch(new RulesetReader(memory, elements, this.log), this.output, this.log);
+                this.rulesets = new RulesetWatch(new RulesetReader(memory, elements, this.log), new ChaosTrialHudReader(elements), this.output, this.log)
+                {
+                    Container = () => this.focus?.LayerContainer ?? IntPtr.Zero,
+                };
                 this.essences = new EssenceWatch(memory, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
