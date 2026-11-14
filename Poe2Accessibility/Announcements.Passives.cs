@@ -172,6 +172,14 @@ namespace Poe2Accessibility
                 : progress;
         }
 
+        /// <summary>Said with the Build list after the progress: how many of its nodes the points left pay for, which is what it holds.</summary>
+        public static string BuildToTakeNow(int nodes) => nodes switch
+        {
+            0 => T("no points to spend, the next one follows", "sin puntos por asignar, sigue el próximo"),
+            1 => T("1 to allocate now", "1 por asignar ahora"),
+            _ => T($"{nodes} to allocate now", $"{nodes} por asignar ahora"),
+        };
+
         /// <summary>The same push several times running, counted: "right 3" for "right, right, right".</summary>
         private static IEnumerable<string> Runs(IEnumerable<string> pushes)
         {

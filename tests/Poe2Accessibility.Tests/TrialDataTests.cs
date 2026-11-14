@@ -52,6 +52,13 @@ namespace Poe2Accessibility.Tests
             Expect(BuildPlan.PointsOrder(false, null, null), BuildPlan.PointsOrder(true, null, null));
             // None in either: the next point is a level's, the class's tree first.
             Expect(true, BuildPlan.PointsOrder(false, 0, 0) < BuildPlan.PointsOrder(true, 0, 0));
+
+            // The Build list: as many nodes of each tree as it has points, in the order given; one alone with no points.
+            var pending = new[] { ("forge", true), ("anvil", true), ("coal", true), ("area", false), ("cry", false) };
+            Expect("forge anvil", string.Join(' ', BuildPlan.TakeNow(pending, 0, 2)));
+            Expect("forge area cry", string.Join(' ', BuildPlan.TakeNow(pending, 5, 1)));
+            Expect("forge", string.Join(' ', BuildPlan.TakeNow(pending, 0, 0)));
+            Expect(5, BuildPlan.TakeNow(pending, null, null).Count);
         }
 
         private static void AnAscendancysStartIsKnownByItsId()

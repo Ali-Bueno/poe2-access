@@ -249,8 +249,9 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 ("not linked, 7 points away": the nodes to take along the links from what you have).
 
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
-default): D-pad down and up walk the lists Build (with a Build Planner build active: every node of it not taken yet, the one
-under the cursor too, in the build's order, those there are points for first, each with its step; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
+default): D-pad down and up walk the lists Build (with a Build Planner build active: the nodes of it to take now, in the build's
+order, each with its step: as many of the class's tree as you have skill points and as many of the ascendancy's as you
+have ascendancy points, "2 to allocate now", or the next one alone when no point is left; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
 outside the build, 4 more of the build are ascendancy passives, not on this tree yet": the count is of the nodes the tree
 shows, and the file's nodes it does not show are said apart, as ascendancy passives when their ids say so), Taken in the build (the build's nodes you already
 have, small ones too, in the build's order, each with its step over those same nodes: "Build: step 3 of 60. Attack Speed,

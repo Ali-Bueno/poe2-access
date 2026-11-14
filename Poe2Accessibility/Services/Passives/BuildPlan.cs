@@ -127,6 +127,35 @@ namespace Poe2Accessibility.Services
             return own > 0 ? 0 : other > 0 ? 2 : ascendancyNode ? 1 : 0;
         }
 
+        /// <summary>
+        ///     The nodes to take now of those the build has yet to take, given in its order with those there are points for
+        ///     first (<see cref="PointsOrder"/>): as many of the class's tree as it has points left and as many of the
+        ///     ascendancy's as it has; with no point anywhere the next one alone, and all of them while the counts are unread.
+        /// </summary>
+        public static IReadOnlyList<T> TakeNow<T>(IEnumerable<(T Node, bool Ascendancy)> pending, int? skillPoints, int? ascendancyPoints)
+        {
+            if (skillPoints is not { } skill || ascendancyPoints is not { } ascendancy)
+            {
+                return pending.Select(entry => entry.Node).ToList();
+            }
+
+            if (skill <= 0 && ascendancy <= 0)
+            {
+                return pending.Take(1).Select(entry => entry.Node).ToList();
+            }
+
+            var now = new List<T>();
+            foreach (var (node, ofAscendancy) in pending)
+            {
+                if ((ofAscendancy ? ascendancy-- : skill--) > 0)
+                {
+                    now.Add(node);
+                }
+            }
+
+            return now;
+        }
+
         /// <summary>Null when the text is no build file.</summary>
         public static BuildPlan? Parse(string json)
         {

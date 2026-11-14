@@ -126,10 +126,15 @@ namespace Poe2Accessibility.Services
             var plan = marked.Count > 0 ? this.PlanOf(graph, marked) : null;
             var order = plan == null ? null : this.BuildStepsOf(plan, marked);
             int BuildStep(IntPtr node) => order != null && order.Steps.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
-            // The build's list begins where its guide leads: the nodes there are points for.
+            // The build's list is what its guide leads to: the nodes to take now, as many as there are points for (the owner, 2026-11-14).
             var (skillPoints, ascendancyPoints) = this.PointsLeft(graph);
-            int Waits(IntPtr node) => BuildPlan.PointsOrder(BuildPlan.IsAscendancyNode(this.PassiveIdOf(node)), skillPoints, ascendancyPoints);
-            IReadOnlyList<IntPtr> Members(PassiveCategory category) => atlas.Members(category, steps, record, marked, BuildStep, Waits);
+            bool OfAscendancy(IntPtr node) => BuildPlan.IsAscendancyNode(this.PassiveIdOf(node));
+            int Waits(IntPtr node) => BuildPlan.PointsOrder(OfAscendancy(node), skillPoints, ascendancyPoints);
+            IReadOnlyList<IntPtr> Members(PassiveCategory category)
+            {
+                var list = atlas.Members(category, steps, record, marked, BuildStep, Waits);
+                return category == PassiveCategory.Build ? BuildPlan.TakeNow(list.Select(node => (node, OfAscendancy(node))), skillPoints, ascendancyPoints) : list;
+            }
             var hadTarget = this.finder.Target != IntPtr.Zero;
             if (listStep != 0)
             {
@@ -168,7 +173,14 @@ namespace Poe2Accessibility.Services
                 this.TreeFields.Log?.Invoke($"Build nodes not on this tree ({order.Ascendancy} of an ascendancy): {absent}");
             }
 
-            return Announcements.InContext(this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? $"{list}, {BuildProgress(atlas, steps, marked, order?.NotShown ?? 0, order?.Ascendancy ?? 0)}" : list, found);
+            var progress = this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? BuildProgress(atlas, steps, marked, order?.NotShown ?? 0, order?.Ascendancy ?? 0) : string.Empty;
+            if (this.finder.Category == PassiveCategory.Build && skillPoints is { } skill && ascendancyPoints is { } ascendancy)
+            {
+                // Why the list is shorter than what is left of the build: it holds what the points pay for.
+                progress += ", " + Announcements.BuildToTakeNow(skill + ascendancy > 0 ? Members(PassiveCategory.Build).Count : 0);
+            }
+
+            return Announcements.InContext(progress.Length > 0 ? $"{list}, {progress}" : list, found);
         }
 
         /// <summary>The build's absent node ids last written to the log.</summary>
@@ -484,8 +496,8 @@ namespace Poe2Accessibility.Services
 
             /// <summary>
             ///     A list's nodes but the one under the cursor, those nearest in points first, then nearest the cursor; what is already
-            ///     taken last. The build's two lists hold every node of it not taken, and taken, the one under the cursor too (what their
-            ///     header counts: "0 of 3 taken" over two entries, the owner 2026-11-14), in the build file's order when it is here.
+            ///     taken last. The build's two lists hold every node of it not taken, and taken, the one under the cursor too, in the
+            ///     build file's order when it is here; the caller keeps of the first those the points left pay for.
             /// </summary>
             /// <param name="waits">Where a node to take stands by the points left (<see cref="BuildPlan.PointsOrder"/>): the build's list begins with those there are points for.</param>
             public IReadOnlyList<IntPtr> Members(PassiveCategory category, int[] steps, IntPtr near, HashSet<IntPtr> marked, Func<IntPtr, int> buildStep, Func<IntPtr, int> waits)

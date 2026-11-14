@@ -281,8 +281,9 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   (`PassiveMap.TrailCost`: a point = 1024, 2 off on the active build's marked nodes, 1 off on a notable, so the fewest
   points win and ties go to the build, then to notables; toward a marked node an unmarked one costs 64 points, so the trail
   keeps to the build's own line). The line names the trail's first node (always reachable) and the cursor way to it. The D-pad's
-  Build list holds every marked node not taken, the hovered one too, in the `.build` file's order when it is here (the
-  keystones, notables and sockets alone until 2026-11-14: the owner heard "0 de 3 asignados" over two entries).
+  Build list holds the marked nodes to take now, small ones and the hovered one too, in the `.build` file's order when it
+  is here ([as many as the points pay for](#the-ascendancys-tree); the keystones, notables and sockets not taken until
+  2026-11-14: the owner heard "0 de 3 asignados" over two entries).
 - Brief guide (2026-11-10, the user's play log: one node read as name, stats, "Seleccionar, A. Mantén presionado A para
   seleccionar el tipo de puntos", "No cumples los requisitos", the build step, the author's note twice (the `.build`
   file's and the game's own note tooltip, differing by one full stop), every link, then the build's way, 5-10 s a push):
@@ -362,9 +363,14 @@ ascendancy points; `dump visible` and dev `passivenear`):
   steps and the finder cover both. The ascendancy's start is the character's own (`PassiveGraph.AscendancyStart`,
   `IsOwnStart`); allocated ids are both states' lists (`AllocatedIn`); the build's next node is one there are points
   for (`PointsLeft`, pure `BuildPlan.PointsOrder`). The graph is read again when the canvas's group count changes.
-- **NOT MEASURED:** which of the two lists an allocated ascendancy node is written to (none was allocated; `passivenear`
-  prints both counts and the ascendancy's nodes read as taken), and the stick's step from an ascendancy node, which
-  the self-check does not judge (the game shifts it by the inner canvas).
+- MEASURED (the owner took the build's three ascendancy nodes): both canvases got new state objects and **both
+  allocated lists hold the ascendancy's nodes** (30 → 33 entries each; `passivenear`: "taken of the ascendancy:
+  AscendancyWarrior3Notable6_0 …6_8 …6_9"); the nodes read "asignado" and the guide went back to the class's tree.
+- The D-pad's Build list holds what the points left pay for, in the build's order: as many nodes of each tree as it
+  has points, the next one alone with none (`BuildPlan.TakeNow`; the owner: "los que puedo asignar en este momento, no
+  los posibles"), and its header says so ("2 por asignar ahora").
+- **NOT MEASURED:** the stick's step from an ascendancy node, which the self-check does not judge (the game shifts it
+  by the inner canvas); the ways counted across the two trees were walked by the owner without a miss heard.
 
 ### Which file the marks are
 
