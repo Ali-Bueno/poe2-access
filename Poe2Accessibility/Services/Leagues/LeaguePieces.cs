@@ -272,6 +272,66 @@ namespace Poe2Accessibility.Services
 
         private static readonly LeagueRule[] Families = Rules.Where(rule => rule.Family).ToArray();
 
+        /// <summary>The start of every league sound's key: each mechanic rings with its own recording of the game (docs/research/game-audio.md).</summary>
+        public const string SoundPrefix = "league_";
+
+        public const string BreachSound = SoundPrefix + "breach";
+        public const string DeliriumSound = SoundPrefix + "delirium";
+        public const string EssenceSound = SoundPrefix + "essence";
+        public const string ExpeditionSound = SoundPrefix + "expedition";
+        public const string AbyssSound = SoundPrefix + "abyss";
+        public const string SpiritSound = SoundPrefix + "spirit";
+        public const string VaalSound = SoundPrefix + "vaal";
+        public const string StrongboxSound = SoundPrefix + "strongbox";
+
+        /// <summary>Every league sound, for the extractor's cues and the glossary.</summary>
+        public static readonly string[] Sounds = { BreachSound, DeliriumSound, EssenceSound, ExpeditionSound, AbyssSound, SpiritSound, VaalSound, StrongboxSound };
+
+        /// <summary>
+        ///     The sound a league's object rings with, by its piece or, for one the table does not hold, by its folder; empty for
+        ///     what has a sound of its own (a Ritual altar) or none (an Expedition marker, an exile).
+        /// </summary>
+        public static string SoundOf(string path)
+        {
+            switch (RuleOf(path)?.Piece)
+            {
+                case LeaguePiece.VerisiumRemnant or LeaguePiece.ExpeditionRelic or LeaguePiece.ExpeditionDetonator:
+                    return ExpeditionSound;
+                case LeaguePiece.DeliriumMirror or LeaguePiece.ShardBoss or LeaguePiece.ShardMirroredBoss or LeaguePiece.ShardPortal or LeaguePiece.ShardElites
+                    or LeaguePiece.ShardPauseFog or LeaguePiece.ShardRareMods or LeaguePiece.ShardGrandMirror or LeaguePiece.GrandMirror or LeaguePiece.Simulacrum:
+                    return DeliriumSound;
+                case LeaguePiece.AzmeriSpirit:
+                    return SpiritSound;
+                case LeaguePiece.BreachInitiator or LeaguePiece.BreachSkill:
+                    return BreachSound;
+                case LeaguePiece.Strongbox:
+                    return StrongboxSound;
+                case LeaguePiece.VaalBeacon:
+                    return VaalSound;
+                case LeaguePiece.AbyssPit:
+                    return AbyssSound;
+                case not null:
+                    return string.Empty;
+            }
+
+            foreach (var (folder, sound) in FolderSounds)
+            {
+                if (path.Contains(folder, StringComparison.OrdinalIgnoreCase))
+                {
+                    return sound;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>A league's folder in an object's path, for the objects the minimap icon lists and the table does not hold.</summary>
+        private static readonly (string Folder, string Sound)[] FolderSounds =
+        {
+            ("/Brequel/", BreachSound), ("/Breach/", BreachSound), ("/Delirium/", DeliriumSound), ("/Essence", EssenceSound),
+            ("/Expedition", ExpeditionSound), ("/Abyss/", AbyssSound), ("/Incursion", VaalSound),
+        };
+
         /// <summary>The rule of an object's path, whatever its instance tail; null for anything else.</summary>
         public static LeagueRule? RuleOf(string path)
         {

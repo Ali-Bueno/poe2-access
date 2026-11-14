@@ -80,6 +80,16 @@ internal static class SoundExtractor
         // A shut door the player opens: a door's mechanism clicking (user's pick 2026-11-14 of nine door recordings;
         // docs/research/game-audio.md).
         new("closed_door", "PrecursorDoor",    "PrecursorDoor_Mechanic_01", Rms: 0.10),
+        // Each league's encounter rings with a recording of its own (wired 2026-11-14, the user's ear pending on the audition
+        // page; docs/research/game-audio.md).
+        new("league_breach",     "BreachEncounterPortal",        "Environment_Breach_Portal_Open_01", Rms: 0.10),
+        new("league_delirium",   "DeliriumEncounterObject",      "Gameplay_Delirium_EncounterObject_Activate_Stinger_01", Rms: 0.10),
+        new("league_essence",    "Four_EssenceStingers",         "Environment_Endgame_EssenceMonoliths_Stinger_Activate_01", Rms: 0.10),
+        new("league_expedition", "ExplosivesMechanic_Expedition", "ActivatePlunger_01", Rms: 0.10),
+        new("league_abyss",      "Abyss_General",                "Abyss_QuestStart", Rms: 0.10),
+        new("league_spirit",     "Four_TormentedSpirits",        "TormentedSpirit_Wisp_Vocal_Call_01", Rms: 0.10),
+        new("league_vaal",       "Four_Incursion",               "StartEncounter_01", Rms: 0.10),
+        new("league_strongbox",  "Strongboxes",                  "Gameplay_Endgame_Strongboxes_Stinger_Activate_01", Rms: 0.10),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.

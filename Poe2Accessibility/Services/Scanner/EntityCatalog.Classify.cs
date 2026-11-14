@@ -103,7 +103,7 @@ namespace Poe2Accessibility.Services
                 // a body searched for loot sounded like a chest (2026-10-28).
                 kind = Switches.IsSwitch(path) ? "switch" : Breakables.IsCorpse(path) ? "corpse"
                     : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
-                sound = kind == "breakable" ? Breakables.Material(path) : string.Empty;
+                sound = kind == "breakable" ? Breakables.Material(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound : string.Empty;
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {
@@ -125,6 +125,7 @@ namespace Poe2Accessibility.Services
                 name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal),
                     ObjectNames.LeagueName(minimap is null ? string.Empty : MinimapIconLabel.Of(this.memory, this.elements, minimap), path));
                 kind = MinimapMarks.DeviceKind(leagueIcon);
+                sound = leagueIcon == MinimapMarks.EssenceIcon ? LeaguePieces.EssenceSound : LeaguePieces.SoundOf(path);
             }
             else if (league != null)
             {
@@ -135,6 +136,7 @@ namespace Poe2Accessibility.Services
                 name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeaguePieceName(league.Piece, find);
                 kind = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
+                sound = LeaguePieces.SoundOf(path);
             }
             else if (foughtBeside)
             {

@@ -18,7 +18,21 @@ namespace Poe2Accessibility.Tests
             (nameof(ADoorNotOpenedIsAWayStillToTry), ADoorNotOpenedIsAWayStillToTry),
             (nameof(TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions), TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions),
             (nameof(AChaosRoundIsToldByItsPieces), AChaosRoundIsToldByItsPieces),
+            (nameof(EachLeagueRingsWithItsOwnSound), EachLeagueRingsWithItsOwnSound),
         };
+
+        private static void EachLeagueRingsWithItsOwnSound()
+        {
+            Equal(LeaguePieces.ExpeditionSound, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Expedition/ExpeditionDetonator@12"), "the detonator, by its piece");
+            Equal(string.Empty, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Expedition/ExpeditionMarker"), "a marker is listed, not sounded: there are dozens");
+            Equal(LeaguePieces.DeliriumSound, LeaguePieces.SoundOf("Metadata/Terrain/Gallows/Leagues/Delirium/Objects/DeliriumInitiator"), "the mirror");
+            Equal(LeaguePieces.BreachSound, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Brequel/BrequelInitiator"), "the breach");
+            Equal(LeaguePieces.AbyssSound, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Abyss/AbyssNodeBase"), "the pit");
+            Equal(LeaguePieces.AbyssSound, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Abyss/SomethingNew"), "an object the table does not hold, by its league's folder");
+            Equal(string.Empty, LeaguePieces.SoundOf("Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable"), "the Ritual altar keeps its own");
+            Equal(string.Empty, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Stash"), "anything else has none");
+            Equal(LeaguePieces.Sounds.Length, new HashSet<string>(LeaguePieces.Sounds).Count, "eight sounds, each its own key");
+        }
 
         private static void AChaosRoundIsToldByItsPieces()
         {

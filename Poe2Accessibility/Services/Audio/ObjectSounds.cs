@@ -307,7 +307,11 @@ namespace Poe2Accessibility.Services
         private static float ReachOf(ScanEntry entry) => RangeOf(entry) + ProximityFade.TailWorld;
 
         /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and sounds as a quest object or a door to open; a lever as a quest object.</summary>
-        private static string SoundKind(ScanEntry entry) => entry.Sound is MinimapMarks.QuestObjectKind or ClosedDoors.Kind ? entry.Sound : entry.Kind;
+        private static string SoundKind(ScanEntry entry) =>
+            entry.Sound is MinimapMarks.QuestObjectKind or ClosedDoors.Kind ||
+            (entry.Sound.StartsWith(LeaguePieces.SoundPrefix, StringComparison.Ordinal) && entry.Kind is "encounter" or "chest")
+                ? entry.Sound
+                : entry.Kind;
 
         private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? SoundKind(entry) switch
         {
@@ -329,6 +333,9 @@ namespace Poe2Accessibility.Services
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),
+            // A league's own recording; a strongbox is a chest until the sounds are extracted again.
+            LeaguePieces.StrongboxSound => this.sounds.Get(LeaguePieces.StrongboxSound) ?? this.sounds.Get("chest"),
+            var league when league.StartsWith(LeaguePieces.SoundPrefix, StringComparison.Ordinal) => this.sounds.Get(league),
             "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,
