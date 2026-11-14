@@ -36,6 +36,12 @@ They expect, beside this folder's parent as they were run: `dat/data_balance_<ta
   They expect the Trial's terrain files dumped beside them (`dumper <gameDir> <out> metadata/terrain/gallows/leagues/sanctum/`,
   `EXTS=.arm`). What they showed: docs/research/trials-and-campaign.md §1.6.
 
+## League mechanics (2026-11-14)
+
+- `leagues/` (set `POE_DUMP` to a dump with `dat/`, `allot/` = every `metadata/**/*.ot`, `schema_dl/`): `otsum.py <regex>` prints a
+  one-card summary of each matching `.ot` (components, states, handlers), `texts.py strings|buffs <regex>` the en / es ClientStrings or
+  BuffDefinitions rows. What they showed: docs/research/league-mechanics.md.
+
 ## The Trial of Chaos rooms (2026-11-14)
 
 - `ultimatum/rooms.py <dump folder>` lists each G3_10 encounter room's objective objects, the exit lever and the escort path, in cells
