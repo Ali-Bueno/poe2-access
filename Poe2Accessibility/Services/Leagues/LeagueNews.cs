@@ -59,7 +59,9 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (this.icons.TryGetValue(id, out var iconBefore) && iconBefore != icon && LeaguePieces.IconLine(piece, icon) is { } dimmed)
+            // A pit's end is told by its transition and by its icon: whichever reads first says it, once.
+            if (this.icons.TryGetValue(id, out var iconBefore) && iconBefore != icon && LeaguePieces.IconLine(piece, icon) is { } dimmed &&
+                this.saidOnce.Add((id, dimmed)))
             {
                 lines.Add(dimmed);
             }
@@ -165,6 +167,16 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>How many charges the area has once a new one appears; null otherwise, and for those there as the area opens.</summary>
+        /// <summary>
+        ///     How many of the area's finds no charge placed reaches yet; null until one find reads as reached, which is what shows
+        ///     the client's state is read at all.
+        /// </summary>
+        public static int? Uncovered(IReadOnlyCollection<bool> findsCovered)
+        {
+            var covered = findsCovered.Count(reached => reached);
+            return covered == 0 ? null : findsCovered.Count - covered;
+        }
+
         public int? Placed(IEnumerable<uint> charges)
         {
             var grew = false;

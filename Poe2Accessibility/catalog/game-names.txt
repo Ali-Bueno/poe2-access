@@ -73,6 +73,7 @@ UiArt	/Sanctum/BoonCurseIcons/		TrialArt
 ObjectFile	Metadata/MiscellaneousObjects/Expedition2/Expedition2Encounter	activated	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Expedition2/Expedition2EncounterQuest	activated	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Expedition/ExpeditionMarker	in_placing_range	LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/Expedition/ExpeditionMarker	in_range	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Expedition/ExpeditionRelic	exploded	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Expedition/ExpeditionDetonator	explosives_placed	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Expedition/ExpeditionDetonator	activated	LeaguePieces
@@ -110,6 +111,12 @@ ObjectFile	Metadata/MiscellaneousObjects/LeagueIncursionNew/IncursionPedestalEnc
 ObjectFile	Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable	current_state	LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Abyss/AbyssNodeBase		LeaguePieces
 ObjectFile	Metadata/MiscellaneousObjects/Abyss/AbyssFinalNodeBase		LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/Abyss/AbyssCrack		LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/Monolith		LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith		LeaguePieces
+ObjectFile	Metadata/MiscellaneousObjects/Monolith		EssencePrison
+ObjectFile	Metadata/MiscellaneousObjects/MiniMonolith		EssencePrison
+ObjectFile	Metadata/MiscellaneousObjects/SuperMonolith		EssencePrison
 MinimapIcon	ExpeditionChest1		LeaguePieces
 MinimapIcon	ExpeditionChest2		LeaguePieces
 MinimapIcon	ExpeditionChest3		LeaguePieces

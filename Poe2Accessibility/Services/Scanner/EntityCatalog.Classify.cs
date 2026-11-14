@@ -17,7 +17,7 @@ namespace Poe2Accessibility.Services
         private const float CageWorld = 100f;
 
         /// <summary>How far (world units) the monster an essence holds stands from its crystal: the same grid cell.</summary>
-        private const float EssenceWorld = 30f;
+        private const float EssenceWorld = EssencePrison.ReachWorld;
 
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
@@ -31,12 +31,18 @@ namespace Poe2Accessibility.Services
         private ScanEntry? Classify(Entity entity, Render render)
         {
             var path = entity.Path ?? string.Empty;
-            var leagueIcon = LeagueDeviceIcon(entity, path);
+            var league = LeaguePieces.RuleOf(path) is { Lists: true } listed ? listed : null;
+            // An Abyss fissure carries its icon closed or open: its transition lists it, not the icon.
+            var leagueIcon = league?.Piece == LeaguePiece.AbyssCrack ? null : LeagueDeviceIcon(entity, path);
+            if (leagueIcon == MinimapMarks.EssenceIcon && EssencePrison.IsCrystal(path) && EssencePrison.IsShattered(TransitionState.Of(this.memory, entity)))
+            {
+                return null; // shattered: the game hides its icon and deletes it five seconds later
+            }
+
             // A league's altar stays listed out of play; what a quest icon marks does not: a Trial's reward is spent once used.
             var trap = TrialTraps.KindOf(path);
             var chaos = ChaosTrial.PieceOf(path);
             var foughtBeside = chaos is { } fought && ChaosTrial.IsFoughtBeside(fought);
-            var league = LeaguePieces.RuleOf(path) is { Lists: true } listed ? listed : null;
             if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && league is not { WithoutTarget: true } &&
                 !this.InPlay(entity))
             {
@@ -131,10 +137,16 @@ namespace Poe2Accessibility.Services
             {
                 // A league's object the rules above miss, while its states say it is there to find (docs/research/league-mechanics.md
                 // §12); an Expedition marker by what its icon says it buries, whatever its own name.
-                category = LeaguePieces.IsListed(league, StatesOf(entity), icon) ? ScanCategory.Encounters : null;
+                var leagueStates = TransitionState.With(this.memory, entity);
+                category = LeaguePieces.IsListed(league, leagueStates, icon) ? ScanCategory.Encounters : null;
                 var find = LeaguePieces.FindOf(league.Piece, icon);
                 name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeaguePieceName(league.Piece, find);
+                if (find != null && leagueStates.Any(state => state.Name == LeaguePieces.CoveredState && state.Value > 0))
+                {
+                    name = Announcements.ExpeditionCovered(name); // the charges placed already reach it: the next goes elsewhere
+                }
+
                 kind = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
                 sound = LeaguePieces.SoundOf(path);
             }
@@ -435,8 +447,19 @@ namespace Poe2Accessibility.Services
         {
             foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
-                if (entity.IsValid && this.IsTargeted(entity) &&
-                    entity.TryGetComponent<Render>(out var render) && this.Classify(entity, render) is { } entry)
+                if (!entity.IsValid || !this.IsTargeted(entity) || !entity.TryGetComponent<Render>(out var render))
+                {
+                    continue;
+                }
+
+                // The game targets the monster an essence holds, and A frees it: said as the essence. Held, it is out of play for
+                // every other reader (EssencePrison), so it is asked first.
+                if (EssencePrison.Holds(entity.Id) && this.EssenceHolding(render) is { } crystal)
+                {
+                    return crystal;
+                }
+
+                if (this.Classify(entity, render) is { } entry)
                 {
                     if (entry.Category is not ScanCategory.Enemies)
                     {
@@ -501,6 +524,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Set aside by the game (<see cref="BuffIds.HiddenMonster"/>): alive and flagged targetable, yet out of the fight.</summary>
         public static bool IsHidden(Entity entity)
         {
+            if (EssencePrison.Holds(entity.Id))
+            {
+                return true; // in an Essence's crystal until it shatters: it cannot be hit
+            }
+
             if (!entity.TryGetComponent<Buffs>(out var buffs))
             {
                 return false;

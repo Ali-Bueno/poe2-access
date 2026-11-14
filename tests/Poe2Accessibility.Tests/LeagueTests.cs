@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -24,7 +25,88 @@ namespace Poe2Accessibility.Tests
             (nameof(TheFogIsSaidOnlyWhileTheMirrorRuns), TheFogIsSaidOnlyWhileTheMirrorRuns),
             (nameof(WhatAChargeWouldBlowIsSaidOnChangeAndNotTooOften), WhatAChargeWouldBlowIsSaidOnChangeAndNotTooOften),
             (nameof(LeagueLinesReadAsTheGameWritesThem), LeagueLinesReadAsTheGameWritesThem),
+            (nameof(AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters), AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters),
+            (nameof(ATransitionIsReadOnlyWhenItCanBeOne), ATransitionIsReadOnlyWhenItCanBeOne),
+            (nameof(AnEssenceCracksAndAnAbyssOpensByTheirTransitions), AnEssenceCracksAndAnAbyssOpensByTheirTransitions),
+            (nameof(TheFindsNoChargeReachesAreCountedOnceTheStateReads), TheFindsNoChargeReachesAreCountedOnceTheStateReads),
         };
+
+        private static void AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters()
+        {
+            Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/Monolith@24"), "an essence's crystal, whatever its instance tail");
+            Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/MiniMonolith"), "the small crystals around it hold monsters too");
+            Equal(false, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/Monolith_Landmark"), "a landmark of the same word is none");
+            Equal(false, EssencePrison.IsCrystal("Metadata/Terrain/Hideouts/Monolith/Objects/ArenaLift"), "nor an object of another folder");
+
+            Equal(true, EssencePrison.IsWhole((1, 4), true), "built: it holds");
+            Equal(true, EssencePrison.IsWhole((3, 4), true), "cracked twice: it still holds");
+            Equal(false, EssencePrison.IsWhole((4, 4), true), "shattered: it holds nothing, though the game deletes it five seconds later");
+            Equal(true, EssencePrison.IsWhole(null, true), "transition unread: by the game still letting it be used");
+            Equal(false, EssencePrison.IsWhole(null, false), "and not once it cannot");
+            Equal(false, EssencePrison.IsWhole(null, null), "a small crystal has no target: unread, it holds nothing, better a foe heard");
+            Equal(true, EssencePrison.IsShattered((4, 4)), "the last state is the shattered one");
+            Equal(false, EssencePrison.IsShattered(null), "unread is not shattered: the crystal stays listed");
+
+            var crystals = new[] { new Vector2(1000f, 1000f) };
+            var held = EssencePrison.Held(crystals, new[] { (7u, new Vector2(1004f, 998f)), (8u, new Vector2(1200f, 1000f)) });
+            Equal("7", string.Join(" ", held), "the monster standing in the crystal is held, one a few steps off is not");
+            Equal(0, EssencePrison.Held(Array.Empty<Vector2>(), new[] { (7u, new Vector2(1004f, 998f)) }).Count, "no whole crystal: nobody is held");
+
+            EssencePrison.Publish(held);
+            Equal(true, EssencePrison.Holds(7), "told to every reader that asks whether a monster is in the fight");
+            Equal(false, EssencePrison.Holds(8), "and only of the held");
+            EssencePrison.Publish(new HashSet<uint>());
+            Equal(false, EssencePrison.Any, "freed: it rings again at the next look");
+        }
+
+        private static void ATransitionIsReadOnlyWhenItCanBeOne()
+        {
+            Equal((1, 4), Transitions.Judge(1, 4), "an object as it is built");
+            Equal((8, 16), Transitions.Judge(8, 16), "an Abyss fissure fully open");
+            Equal(null, Transitions.Judge(0, 4), "the game counts from 1: a 0 says the byte is not the state");
+            Equal(null, Transitions.Judge(5, 4), "nor is one past the file's count");
+            Equal(null, Transitions.Judge(1, 1), "the game's parser takes 2 to 127 states");
+            Equal(null, Transitions.Judge(1, 200), "so a count beyond is another field");
+        }
+
+        private static void AnEssenceCracksAndAnAbyssOpensByTheirTransitions()
+        {
+            var crystal = LeaguePieces.RuleOf("Metadata/MiscellaneousObjects/Monolith@3")!;
+            Equal(LeaguePiece.EssenceCrystal, crystal.Piece, "the crystal is followed");
+            Equal(false, crystal.Lists, "and listed by its icon, as before");
+            Equal(null, LeaguePieces.RuleOf("Metadata/MiscellaneousObjects/MiniMonolith"), "the small ones crack with it: no news of their own");
+
+            var news = new LeagueNews();
+            Equal(0, news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 1)), "Essence").Count, "whole when first seen: no news");
+            Equal("EssenceCracked", string.Join(" ", news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 2)), "Essence")), "the first crack");
+            Equal("EssenceCrackedMore", string.Join(" ", news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 3)), "Essence")), "the second");
+            Equal("EssenceFreed", string.Join(" ", news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 4)), "Essence")), "shattered: the monster is free");
+            Equal(0, news.Heard(1, LeaguePiece.EssenceCrystal, States((LeaguePieces.Transition, 4)), "Essence").Count, "said once");
+            Equal(0, news.Heard(2, LeaguePiece.EssenceCrystal, States(), "Essence").Count, "a crystal whose transition does not read says nothing");
+
+            var crack = LeaguePieces.RuleOf("Metadata/MiscellaneousObjects/Abyss/AbyssCrack@9")!;
+            Equal("8", string.Join(" ", Enumerable.Range(1, 16).Where(state => LeaguePieces.IsListed(crack, States((LeaguePieces.Transition, state)), "AbyssCrackActive"))),
+                "a fissure is listed while fully open, the one state its icon shows in");
+            Equal(false, LeaguePieces.IsListed(crack, States(), "AbyssCrackActive"), "its icon alone lists nothing: the row is there closed or open");
+            Equal(LeaguePieces.AbyssSound, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Abyss/AbyssCrack"), "it rings as the Abyss: the nearest leads along the fissure");
+
+            Equal(0, news.Heard(5, LeaguePiece.AbyssPit, States((LeaguePieces.Transition, 1)), "AbyssPit").Count, "a pit closed when first seen");
+            Equal("AbyssOpens", string.Join(" ", news.Heard(5, LeaguePiece.AbyssPit, States((LeaguePieces.Transition, 2)), "AbyssPit")), "the fissures closed up to it: it opens");
+            Equal("AbyssClosed", string.Join(" ", news.Heard(5, LeaguePiece.AbyssPit, States((LeaguePieces.Transition, 3)), LeaguePieces.PitClosedIcon)),
+                "its end, told by the transition and by the icon at once, is said once");
+            Equal(0, news.Heard(6, LeaguePiece.AbyssPit, States(), "AbyssPit").Count, "a pit whose transition does not read");
+            Equal("AbyssClosed", string.Join(" ", news.Heard(6, LeaguePiece.AbyssPit, States(), LeaguePieces.PitClosedIcon)), "is still told closed by its icon");
+
+            Expect(true, LeaguePieces.NamesMatched().All(name => name.State != LeaguePieces.Transition), "the transition is ours: no file is asked for a state of that name");
+        }
+
+        private static void TheFindsNoChargeReachesAreCountedOnceTheStateReads()
+        {
+            Equal(null, PlacementNews.Uncovered(new[] { false, false, false }), "none reads as reached: the state may not be read at all, nothing is claimed");
+            Equal(2, PlacementNews.Uncovered(new[] { true, false, false }), "one reached: the other two are left");
+            Equal(0, PlacementNews.Uncovered(new[] { true, true }), "every find reached");
+            Equal(null, PlacementNews.Uncovered(Array.Empty<bool>()), "no finds");
+        }
 
         private static (string, long)[] States(params (string, long)[] states) => states;
 

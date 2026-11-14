@@ -212,6 +212,7 @@ namespace Poe2Accessibility
             this.trialDoors?.Reset();
             this.chaosTrial?.Reset();
             this.leagues?.Reset();
+            this.essences?.Reset();
             this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();

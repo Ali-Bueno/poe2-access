@@ -31,8 +31,12 @@ namespace Poe2Accessibility
             LeaguePiece.GrandMirror => T("Grand Mirror", "Espejo grande"),
             LeaguePiece.AzmeriSpirit => T("Azmeri spirit", "Espíritu azmeri"),
             LeaguePiece.BreachSkill => T("Breach skill", "Habilidad de fisura"),
+            LeaguePiece.AbyssCrack => T("Abyss fissure", "Grieta del abismo"),
             _ => string.Empty,
         };
+
+        /// <summary>An Expedition find the charges already placed will blow.</summary>
+        public static string ExpeditionCovered(string find) => T($"{find}, covered", $"{find}, cubierto");
 
         /// <summary>A league object's news; <paramref name="name"/> is the game's name of a strongbox or an exile, <paramref name="wave"/> the Simulacrum's from 1.</summary>
         public static string League(LeagueLine line, string name, int wave) => line switch
@@ -60,6 +64,10 @@ namespace Poe2Accessibility
             LeagueLine.BeaconDone => T("Vaal Beacon complete", "Foco vaal completado"),
             LeagueLine.BeaconPortal => T("Portal to the Vaal Ruins open", "Portal a las Ruinas vaal abierto"),
             LeagueLine.RitualDone => T("Ritual complete", "Ritual completado"),
+            LeagueLine.AbyssOpens => T("The Abyss pit opens: monsters", "El foso del abismo se abre: monstruos"),
+            LeagueLine.EssenceCracked => T("Essence cracked", "Esencia agrietada"),
+            LeagueLine.EssenceCrackedMore => T("Essence cracked further", "Esencia más agrietada"),
+            LeagueLine.EssenceFreed => T("Essence freed: the monster attacks", "Esencia liberada: el monstruo ataca"),
             _ => T("Abyss closed", "Abismo cerrado"),
         };
 
@@ -119,8 +127,16 @@ namespace Poe2Accessibility
         /// <summary>The Expedition charge being placed cannot go where it stands.</summary>
         public static string ExplosiveRefused => T("Cannot be placed here", "No se puede colocar aquí");
 
-        /// <summary>The HUD's count of the charges set ("Explosives Placed: {0}/{1}"), without the most it does not tell us.</summary>
-        public static string ExplosivesPlaced(int count) => T($"Explosives Placed: {count}", $"Explosivos colocados: {count}");
+        /// <summary>
+        ///     The HUD's count of the charges set ("Explosives Placed: {0}/{1}"), without the most it does not tell us; with how many
+        ///     finds no charge reaches yet, when that is read.
+        /// </summary>
+        public static string ExplosivesPlaced(int count, int? uncovered) => uncovered switch
+        {
+            null => T($"Explosives Placed: {count}", $"Explosivos colocados: {count}"),
+            0 => T($"Explosives Placed: {count}; every find covered", $"Explosivos colocados: {count}; todo cubierto"),
+            { } left => T($"Explosives Placed: {count}; {left} not covered", $"Explosivos colocados: {count}; {left} sin cubrir"),
+        };
 
         private static string StrongboxName(string name) => name.Length > 0 ? name : T("Strongbox", "Caja fuerte");
 

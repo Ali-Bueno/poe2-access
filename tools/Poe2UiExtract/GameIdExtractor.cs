@@ -26,6 +26,7 @@ internal static class GameIdExtractor
         "uncapped_fire_damage_resistance_%", "uncapped_cold_damage_resistance_%", "uncapped_lightning_damage_resistance_%", "uncapped_chaos_damage_resistance_%",
         "is_dead", // the host's dormant-monster check
         "is_in_affliction_fog", // the Delirium fog alarm (LeaguePieces.FogStat)
+        "monster_inside_monolith", // a monster an Essence's crystal holds (EssenceWatch logs it beside the rule by place)
     };
 
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>

@@ -31,6 +31,8 @@ namespace Poe2Accessibility.Services
         VaalBeacon,
         RitualAltar,
         AbyssPit,
+        AbyssCrack,
+        EssenceCrystal,
     }
 
     /// <summary>What an Expedition charge can dig up, as its marker's minimap icon tells.</summary>
@@ -72,6 +74,10 @@ namespace Poe2Accessibility.Services
         BeaconPortal,
         RitualDone,
         AbyssClosed,
+        AbyssOpens,
+        EssenceCracked,
+        EssenceCrackedMore,
+        EssenceFreed,
     }
 
     /// <summary>A shrine by the buff its use gives the player (Shrines rows 53-66 and 71, all 45 s).</summary>
@@ -152,6 +158,18 @@ namespace Poe2Accessibility.Services
         /// <summary>The state of a remnant's progress, a detonator or charge blown, a beacon's progress.</summary>
         public const string ActivatedState = "activated";
 
+        /// <summary>
+        ///     Not a state of any script: how far the object has gone through its transitions (<see cref="TransitionState"/>), read
+        ///     beside its states so a rule keys on it the same way.
+        /// </summary>
+        public const string Transition = "transition";
+
+        /// <summary>The client state of what the charges already placed will blow (ExpeditionHighlightable: CheckHighlight).</summary>
+        public const string CoveredState = "in_range";
+
+        /// <summary>An Abyss fissure fully open, the one state its minimap icon shows in (AbyssCrackBase: 1 closed, 2-7 opening, 9-16 closing).</summary>
+        public const int CrackOpen = 8;
+
         private const char InstanceMark = '@';
         private const string EntityMonsters = "Metadata/Monsters/";
         private const string Expedition = "Metadata/MiscellaneousObjects/Expedition/";
@@ -207,6 +225,11 @@ namespace Poe2Accessibility.Services
             new(LeaguePiece.RitualAltar, "Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable"),
             new(LeaguePiece.AbyssPit, "Metadata/MiscellaneousObjects/Abyss/AbyssNodeBase"),
             new(LeaguePiece.AbyssPit, "Metadata/MiscellaneousObjects/Abyss/AbyssFinalNodeBase"),
+            // Its icon row is there from the start, hidden until the fissure is open: only the transition tells an open one.
+            new(LeaguePiece.AbyssCrack, "Metadata/MiscellaneousObjects/Abyss/AbyssCrack", ListedWhile: new[] { Is(Transition, CrackOpen) }, WithoutTarget: true),
+            // Listed by its icon; followed here for its cracks. The small crystals around it crack with it and are not news.
+            new(LeaguePiece.EssenceCrystal, "Metadata/MiscellaneousObjects/Monolith"),
+            new(LeaguePiece.EssenceCrystal, "Metadata/MiscellaneousObjects/SuperMonolith"),
         };
 
         /// <summary>The state changes that are news, in the order said when several come at once.</summary>
@@ -237,6 +260,14 @@ namespace Poe2Accessibility.Services
             new(LeaguePiece.VaalBeacon, Activated, 3, LeagueLine.BeaconDone),
             new(LeaguePiece.VaalBeacon, "open", 1, LeagueLine.BeaconPortal),
             new(LeaguePiece.RitualAltar, "current_state", 3, LeagueLine.RitualDone, From: 2),
+            // AbyssNodeBase: 1 closed, 2 opening and spawning, 3 failed, 4 won. Its icon dimming says the same end: once.
+            new(LeaguePiece.AbyssPit, Transition, 2, LeagueLine.AbyssOpens),
+            new(LeaguePiece.AbyssPit, Transition, 3, LeagueLine.AbyssClosed, Once: true),
+            new(LeaguePiece.AbyssPit, Transition, 4, LeagueLine.AbyssClosed, Once: true),
+            // Monolith: 2 and 3 play CrackLevel1 and CrackLevel2, 4 shatters it and frees the monster.
+            new(LeaguePiece.EssenceCrystal, Transition, 2, LeagueLine.EssenceCracked),
+            new(LeaguePiece.EssenceCrystal, Transition, 3, LeagueLine.EssenceCrackedMore),
+            new(LeaguePiece.EssenceCrystal, Transition, 4, LeagueLine.EssenceFreed, Once: true),
         };
 
         /// <summary>The shrines' buffs (BuffDefinitions; the lesser shrines' older buffs are left out).</summary>
@@ -308,8 +339,10 @@ namespace Poe2Accessibility.Services
                     return StrongboxSound;
                 case LeaguePiece.VaalBeacon:
                     return VaalSound;
-                case LeaguePiece.AbyssPit:
+                case LeaguePiece.AbyssPit or LeaguePiece.AbyssCrack:
                     return AbyssSound;
+                case LeaguePiece.EssenceCrystal:
+                    return EssenceSound;
                 case not null:
                     return string.Empty;
             }
@@ -390,11 +423,12 @@ namespace Poe2Accessibility.Services
                     .Concat(Cues.Where(cue => cue.Piece == piece.Piece).SelectMany(cue => cue.Unless is { } unless ? new[] { cue.State, unless } : new[] { cue.State }))
                     .Concat(piece.Piece switch
                     {
-                        LeaguePiece.ExpeditionMarker => new[] { PlacingRangeState },
+                        LeaguePiece.ExpeditionMarker => new[] { PlacingRangeState, CoveredState },
                         LeaguePiece.PlacementIndicator => new[] { BlockedState },
                         LeaguePiece.Simulacrum => new[] { WaveState },
                         _ => Array.Empty<string>(),
                     })
+                    .Where(state => state != Transition) // ours, not the script's: the file alone is checked
                     .Distinct().ToList();
                 if (states.Count == 0)
                 {
@@ -410,6 +444,11 @@ namespace Poe2Accessibility.Services
                 {
                     yield return new GameName(GameNameKind.Monster, piece.Path[(piece.Path.LastIndexOf('/') + 1)..], null, rule);
                 }
+            }
+
+            foreach (var crystal in EssencePrison.Files)
+            {
+                yield return new GameName(GameNameKind.ObjectFile, crystal, null, nameof(EssencePrison));
             }
 
             foreach (var icon in FindIcons.Keys.Append(PitClosedIcon))

@@ -291,6 +291,38 @@ namespace Poe2Accessibility
             public static int MeetsQuestStateOffset => IsTargetableOffset + 5;
         }
 
+        /// <summary>
+        ///     Entity Transitionable component (pool of 0x128 bytes). The state is one byte counted from 1, the object as built, to the
+        ///     <c>num_states</c> of its file, which the type data keeps as a byte. Read from the exe of 0.5.5f as a file (2026-11-14,
+        ///     docs/research/exe-layouts.md): the constructor stores 1 there (0x1E0D33B: 41 C6 80 20 01 00 00 01) and the type data
+        ///     beside it (0x1E0D334), the game's own script function GetTransitionState reads it (0x2073F11: 0F B6 80 20 01 00 00),
+        ///     Transition compares it with the count (0x209D13D: 3A 81 B0 00 00 00) and its debug dump prints both after
+        ///     "Transitionable state: ". Upstream had a short here. Not yet seen in a running game: <see cref="Services.Transitions.Judge"/>
+        ///     refuses a pair of bytes that cannot be a state and its count.
+        /// </summary>
+        public static class TransitionableComponent
+        {
+            public static int StateOffset { get; internal set; } = 0x120;
+
+            /// <summary>The pointer to the type's data, shared by every object of the file.</summary>
+            public static int TypeOffset { get; internal set; } = 0x118;
+
+            /// <summary>In the type's data: the file's <c>num_states</c>, 2 to 127.</summary>
+            public static int TypeCountOffset { get; internal set; } = 0xB0;
+        }
+
+        /// <summary>
+        ///     Entity ControlZone component (pool of 0xF0 bytes): the radius of the circle a script keeps the player in, a word the
+        ///     game's SetControlZoneRadius writes (0x2093008: 66 89 47 26, on the component + 0x18) and the zone's update reads (exe of
+        ///     0.5.5f, 2026-11-14). Logged for the Breach's ring, whose files set none; nothing is said from it yet.
+        /// </summary>
+        public static class ControlZoneComponent
+        {
+            public const string Name = "ControlZone";
+
+            public static int RadiusOffset { get; internal set; } = 0x3E;
+        }
+
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>
         public static class PadButtons
         {

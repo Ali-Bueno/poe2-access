@@ -25,21 +25,24 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly UiElementReader elements;
+        private readonly HostMemoryReader memory;
         private readonly LeagueNews news = new();
         private readonly PlacementNews placement = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private readonly HashSet<string> loggedMonsters = new(StringComparer.Ordinal);
         private readonly List<(uint Id, ExpeditionFind Find)> covered = new();
         private readonly List<uint> charges = new();
+        private readonly List<bool> findsCovered = new();
         private long lastPoll;
         private bool placing;
         private int? fogLogged = FogNotLogged;
 
-        public LeagueWatch(IAccessibilityOutputService output, PluginLog log, UiElementReader elements)
+        public LeagueWatch(IAccessibilityOutputService output, PluginLog log, UiElementReader elements, HostMemoryReader memory)
         {
             this.output = output;
             this.log = log;
             this.elements = elements;
+            this.memory = memory;
         }
 
         /// <summary>A new area: nothing is known of its objects.</summary>
@@ -62,6 +65,7 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             this.covered.Clear();
             this.charges.Clear();
+            this.findsCovered.Clear();
             var (indicator, blocked) = (false, false);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
@@ -81,11 +85,14 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var states = entity.TryGetComponent<StateMachine>(out var machine)
-                    ? machine.States.Select(state => (state.Name, state.Value)).ToList()
-                    : new List<(string Name, long Value)>();
+                var states = TransitionState.With(this.memory, entity);
                 var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
-                this.LogOnce(path, states, icon);
+                this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null);
+                if (LeaguePieces.FindOf(rule.Piece, icon) != null)
+                {
+                    this.findsCovered.Add(ValueOf(states, LeaguePieces.CoveredState) > 0);
+                }
+
                 if (rule.Piece == LeaguePiece.PlacementIndicator)
                 {
                     indicator = true;
@@ -142,7 +149,7 @@ namespace Poe2Accessibility.Services
 
             if (this.placement.Placed(this.charges) is { } count)
             {
-                this.output.Say(SpeechKind.Quest, Announcements.ExplosivesPlaced(count));
+                this.output.Say(SpeechKind.Quest, Announcements.ExplosivesPlaced(count, PlacementNews.Uncovered(this.findsCovered)));
             }
 
             this.placing = placingNow;
@@ -220,14 +227,25 @@ namespace Poe2Accessibility.Services
                 : string.Empty;
 
         /// <summary>Each followed object's states (and icon) as they first read, and as they change: how the rules are confirmed from a session's log.</summary>
-        private void LogOnce(string path, List<(string Name, long Value)> states, string icon)
+        private void LogOnce(string path, List<(string Name, long Value)> states, string icon, int? zoneRadius)
         {
-            var line = $"{FileOf(path)}: {string.Join(", ", states.Select(state => $"{state.Name}={state.Value}"))}{(icon.Length > 0 ? $"; icon {icon}" : string.Empty)}";
+            var line = $"{FileOf(path)}: {string.Join(", ", states.Select(state => $"{state.Name}={state.Value}"))}{(icon.Length > 0 ? $"; icon {icon}" : string.Empty)}" +
+                       (zoneRadius is { } radius ? $"; zone radius {radius}" : string.Empty);
             if (this.logged.Add(line))
             {
                 this.log.Info($"League piece seen: {line}");
             }
         }
+
+        /// <summary>
+        ///     Research: the radius of the object's control zone as a script last set it (<see cref="GameLayout.ControlZoneComponent"/>),
+        ///     logged as it changes to learn whether a Breach's ring is kept there; null without the component.
+        /// </summary>
+        private int? ZoneRadius(Entity entity) =>
+            EntityComponents.AddressOf(entity, GameLayout.ControlZoneComponent.Name) is { } zone &&
+            this.memory.TryRead<ushort>(zone + GameLayout.ControlZoneComponent.RadiusOffset, out var radius)
+                ? (int?)radius
+                : null;
 
         private static string FileOf(string path)
         {
