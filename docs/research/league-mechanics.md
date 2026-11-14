@@ -323,6 +323,16 @@ some of them quote are PoE1 Kirac mission lines still in ClientStrings (LIKELY u
   buff (`shrine_*_2_monster`, MEASURED columns; area UNSURE). The elemental shrines' effect spawns `Metadata/Monsters/Daemon/Shrines/Shrine{Fire,
   Lightning,Cold}Daemon` (the player's own, not a danger).
 
+  **Catalog (2026-11-14, `catalog/shrines.json`, `Poe2UiExtract shrines`, `ShrineCatalog`).** All 72 rows of `Shrines` (row size 0x122) as
+  `{id, lesser, buff, seconds, names, descriptions}` in ten languages. Columns, each found by what it holds and checked on named rows: `Id` +0x0;
+  `Player_ShrineBuffsKey` +0xD, a key into `BuffTemplates` (665 rows), whose key at +0x8 is the `BuffDefinitions` row, so
+  `AccelerationLesser` -> `acceleration_lesser` (template 414) -> `shrine_acceleration`; `IsLesserShrine` +0x80 (set on exactly the six `*Lesser`
+  rows); `Description` +0x81 and `Name` +0x91, keys into `ClientStrings` (`ShrineColdActivation` is the flavour line, `ShrineColdName` the name);
+  `Duration` +0x59, whole seconds (45 ordinary, 20 lesser and CTF, 60 the unique rows, 12 or 10 PvP and royale). The 15 ordinary rows above reproduce the
+  15 buffs of `LeaguePieces.ShrineBuffs`. Several rows share a buff: the rows 0-52 (old, PvP, CTF, royale and lesser rows) give ids without `_2`, so six
+  of them are shared by an old row and a lesser one; `ByBuff` returns the lesser shrine for those six (UNSURE: that the old rows are not placed in
+  the world, as `LeaguePieces.ShrineBuffs` assumes) and the first row otherwise. The +0x25 key (33 rows) is the monsters' buff, not the player's.
+
 ## 8. Rogue exiles
 
 `Metadata/Monsters/RogueExiles/` (base `RogueExileBase`, extends `Monsters/Monster`; `RogueExiles` 14 rows = MonsterVarieties 2184-2197):

@@ -497,6 +497,12 @@ public static class Extractor
             return OnIndex(args[1], index => QuestGoalExtractor.Run(index, args[2]));
         }
 
+        // Args: shrines <gameDir> <outFile>  -- every Shrines row: Id, lesser or not, the buff it gives the player, its seconds, names and descriptions per language.
+        if (args.Length > 2 && string.Equals(args[0], "shrines", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => ShrineExtractor.Run(index, args[2]));
+        }
+
         // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
         if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
         {

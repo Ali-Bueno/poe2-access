@@ -89,6 +89,11 @@ values of the rows asked for. It is the judge every step's second opinion uses (
 [self-describing tables](../docs/compatibility.md#self-describing-tables)), and how a column a patch moved is found by
 hand. The layout is greedy: a key with no null in it can show as numbers, an empty list as the text after it.
 
+### `shrines` command
+`Poe2UiExtract shrines <gameDir> <outFile>` writes every row of the `Shrines` table (Id, lesser flag, the buff it gives the player through
+`BuffTemplates` and `BuffDefinitions`, seconds, name and flavour text in ten languages) as `catalog/shrines.json`; it fails and writes nothing when
+the row size or a column is not as measured ([columns](../docs/research/league-mechanics.md)). Also in `batch`.
+
 ### `gems` and `passive-tree` commands - static data the plugin reads from memory today
 `gems.json` (skill and support gems, their skills, tags and names) and `passive-tree.json` (the main tree's nodes, links,
 class starts, names, the rows a node with a choice can be made: PassiveSkillVariants, an attribute node's three, which nodes offer a choice and which belong to an ascendancy), both from the files alone ([candidates and layouts](../docs/research/file-catalogs.md)).
