@@ -109,10 +109,10 @@ namespace Poe2Accessibility.Services
         public static bool HasGlyphs(string tagged) => MarkupToken.IsMatch(tagged);
 
         /// <summary>
-        ///     A name the game's tables give with a button in it, spoken: a fallen ally's body is named "Hold
-        ///     &lt;&lt;xbox_button_a&gt;&gt; to revive", and the token itself was said (heard in play, 2026-11-10).
+        ///     A name the game's tables give with markup in it, spoken: a button ("Hold &lt;&lt;xbox_button_a&gt;&gt; to revive")
+        ///     or a colour ("&lt;rgb(157,157,157)&gt;{Arcón del arcanista de plata}", a Trial's reward chest).
         /// </summary>
-        public static string InName(string name) => HasGlyphs(name) ? Render(name) : name;
+        public static string InName(string name) => name.Contains('<') ? Render(name) : name;
 
         /// <summary>
         ///     The variant suffix is the player: ";0" legends are player one's, ";1" belong to a second controller

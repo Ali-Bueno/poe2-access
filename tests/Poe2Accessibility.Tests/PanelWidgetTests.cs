@@ -180,6 +180,7 @@ namespace Poe2Accessibility.Tests
             Expect(ControllerGlyphs.Render("Hold <<xbox_button_a>> to revive"), ControllerGlyphs.InName("Hold <<xbox_button_a>> to revive"), "a name with a button in it is spoken");
             Expect(false, ControllerGlyphs.InName("Hold <<xbox_button_a>> to revive").Contains('<'), "and never keeps the token");
             Expect("Ritual Altar", ControllerGlyphs.InName("Ritual Altar"), "a plain name is left as it is");
+            Expect("Arcón del arcanista de plata", ControllerGlyphs.InName("<rgb(157,157,157)>{Arcón del arcanista de plata}"), "a coloured name loses its colour tag");
         }
 
         private static void OnlyMoneyPicturesArePriceUnits()
