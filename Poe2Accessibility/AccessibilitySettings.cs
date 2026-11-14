@@ -256,6 +256,9 @@ namespace Poe2Accessibility
         /// <summary>The area's announcement says which part of the map the player starts in.</summary>
         public bool AreaCorner = true;
 
+        /// <summary>Walking into another part of the map says it, with how much of it is explored.</summary>
+        public bool AnnounceMapParts = true;
+
         /// <summary>How far ahead a wall starts to sound for the wall tones, in world units (~400 per second of walking).</summary>
         public int WallToneRange = 600;
 

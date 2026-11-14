@@ -100,7 +100,7 @@ namespace Poe2Accessibility
                 this.commands.CloseSettingsMenu();
             }
 
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick)))
+            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), state.IsDown(GameLayout.PadButtons.LeftTrigger)))
             {
                 this.commands.OnGesture(gesture);
             }

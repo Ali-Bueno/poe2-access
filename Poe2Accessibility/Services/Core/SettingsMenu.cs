@@ -16,7 +16,7 @@ namespace Poe2Accessibility.Services
     public sealed class SettingsMenu
     {
         /// <summary>The list opens on the controls help (D2R onboarding): one topic per entry, read in full.</summary>
-        private static readonly string[] HelpTopics = { "help_l3", "help_scanner", "help_guide", "help_menus", "help_settings" };
+        private static readonly string[] HelpTopics = { "help_l3", "help_scanner", "help_guide", "help_map", "help_menus", "help_settings" };
 
         /// <summary>The submenus between the help and Sound; Sound is built from the sounds the glossary holds.</summary>
         private static readonly Entry[] SettingMenus =
@@ -84,6 +84,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.MapHints)),
                 Switch(nameof(AccessibilitySettings.MapHintSides)),
                 Switch(nameof(AccessibilitySettings.AreaCorner)),
+                Switch(nameof(AccessibilitySettings.AnnounceMapParts)),
                 Switch(nameof(AccessibilitySettings.WallTones)),
                 Number(nameof(AccessibilitySettings.WallToneRange), 200, 1600, 100),
                 Switch(nameof(AccessibilitySettings.WallBump)),

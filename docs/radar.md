@@ -132,6 +132,23 @@ the other way. Screen directions, the stick's: the camera draws the grid's corne
 all the walkable ground, not what is reachable (a closed gate would shrink the map), leaving out 2% at each end for
 stray patches. More than a sighted player knows on arrival, as `WayOn` is. Not in towns and hideouts.
 
+## The parts of the map
+
+Asked by the owner on 2026-11-14 (lost in large maps; the third ritual of Freythorn lay in the last unexplored room
+tried): the player's dot on the large map, in words. Walking into another third of the map says it with how it stands,
+"Top right corner. Explored 4 percent", or "Middle of the map. Already explored" once only nooks are left unseen in it
+(`MapPartWatch`, `ExplorationMap.Parts`, setting `AnnounceMapParts`). The part changes once the player is a look (the
+reveal radius) past the line, so a walk along it says nothing twice; a fight holds the line back until it is over. A map
+whose third is narrower than two looks has no parts that way: a corridor map has three, a boss arena none. A part with
+less reachable ground than a nook is the fringe of its neighbour and is never listed.
+
+The glance at the map (left trigger held, R3; `EntityCatalog.MapGlance`) is the same look on request: the explored
+share, the part the player is in, the parts with ground that goes on and their share seen, then the scanner's first
+three unexplored stretches with their way. Standing still was considered as the trigger and dropped for the button
+(the owner): a stop for anything else would have spoken.
+
+Whether the steps could tell road from plain ground was looked into and left: [ground types](research/ground-types.md).
+
 ## Not ported yet
 
 Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat, the "inside unexplored room" cue. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.

@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
 
-    /// <summary>What the player did with the mod button (L3), alone or with the right stick.</summary>
+    /// <summary>What the player did with the mod button (L3), alone or with the right stick, or with the left trigger and R3.</summary>
     public enum PadGesture
     {
         Tap,
@@ -19,6 +19,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>L3 held for a second and a half: the mod settings menu.</summary>
         LongHold,
+
+        /// <summary>The right stick pressed (R3) while the left trigger is held, without L3: a glance at the map.</summary>
+        TriggerClick,
     }
 
     /// <summary>
@@ -69,11 +72,16 @@ namespace Poe2Accessibility.Services
         private bool freeStickOut;
         private long? pendingTapAt;
 
-        public IReadOnlyList<PadGesture> Update(long nowMs, bool l3, float rightX, float rightY, bool r3 = false)
+        public IReadOnlyList<PadGesture> Update(long nowMs, bool l3, float rightX, float rightY, bool r3 = false, bool leftTrigger = false)
         {
             var gestures = new List<PadGesture>();
             var r3Pressed = r3 && !this.r3Down;
             this.r3Down = r3;
+            if (r3Pressed && leftTrigger && !l3)
+            {
+                gestures.Add(PadGesture.TriggerClick);
+            }
+
             if (this.FlicksWithoutL3 && !l3)
             {
                 var free = Math.Max(Math.Abs(rightX), Math.Abs(rightY));

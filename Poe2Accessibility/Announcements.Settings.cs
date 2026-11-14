@@ -65,6 +65,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.MapHintSides) => T("Map hints: say which way they go", "Pistas del mapa: decir hacia qué lado van"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
             nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),
+            nameof(AccessibilitySettings.AnnounceMapParts) => T("Say the part of the map you walk into", "Decir la parte del mapa en la que entras"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
             nameof(AccessibilitySettings.SpeechLifeAndMana) => T("Speech: low life and mana", "Voz: vida y maná bajos"),
@@ -290,6 +291,7 @@ namespace Poe2Accessibility
             "help_l3" => T("The L3 button in play", "El botón L3 en el juego"),
             "help_scanner" => T("Scanner", "Escáner"),
             "help_guide" => T("Guide", "Guía"),
+            "help_map" => T("A glance at the map", "Vistazo al mapa"),
             "help_menus" => T("Menus", "Menús"),
             _ => T("This menu", "Este menú"),
         };
@@ -305,6 +307,9 @@ namespace Poe2Accessibility
             "help_guide" => T(
                 "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again while it guides turns it off",
                 "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez mientras guía la apaga"),
+            "help_map" => T(
+                "Hold the left trigger and press the right stick: how much of the area you have explored, the part of the map you are in, the parts with ground left to explore and the nearest unexplored ground with its way. Walking into another part of the map says it by itself",
+                "Mantén el gatillo izquierdo y presiona el stick derecho: cuánto has explorado del área, la parte del mapa en la que estás, las partes con terreno por explorar y las zonas sin explorar más cercanas con su camino. Al entrar en otra parte del mapa se dice sola"),
             "help_menus" => T(
                 "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
                 "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),

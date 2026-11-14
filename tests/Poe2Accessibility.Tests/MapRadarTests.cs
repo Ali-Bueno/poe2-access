@@ -18,6 +18,8 @@ namespace Poe2Accessibility.Tests
             (nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge),
             (nameof(RadarFindsTheDoorwayToAnotherRoom), RadarFindsTheDoorwayToAnotherRoom),
             (nameof(MapCornerFollowsTheScreenNotTheGrid), MapCornerFollowsTheScreenNotTheGrid),
+            (nameof(MapPartsSayHowEachThirdStands), MapPartsSayHowEachThirdStands),
+            (nameof(MapPartChangesALookPastTheLine), MapPartChangesALookPastTheLine),
             (nameof(RadarHearsAnExitInItsWallAndOffItsLane), RadarHearsAnExitInItsWallAndOffItsLane),
             (nameof(FrontierTellsNooksFromGroundThatGoesOn), FrontierTellsNooksFromGroundThatGoesOn),
             (nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal),
@@ -177,6 +179,80 @@ namespace Poe2Accessibility.Tests
             var stray = Carved(1000, 400, (0, 0, 400, 400), (990, 0, 1000, 8));
             Equal(((int, int)?)(1, 0), MapCorner.Of(stray, 500, new System.Numerics.Vector2(380, 200), flatX, flatY), "a stray patch far out is no edge");
             Equal(null, MapCorner.Of(new byte[200 * 400], 200, new System.Numerics.Vector2(10, 10), flatX, flatY), "no ground");
+            // The ground runs from 0 to 384 as drawn: a third is 128 cells, wider than a look of 60 around, narrower than one of 70.
+            var frame = MapCorner.Frame(grid, width / 2, flatX, flatY)!.Value;
+            var corner = new System.Numerics.Vector2(380, 20);
+            Equal((true, true), frame.Splits(60), "thirds wider than a look are parts of their own");
+            Equal((false, false), frame.Splits(70), "narrower, the map is one part");
+            Equal((1, -1), frame.Part(corner, 60), "the top right part");
+            Equal((0, 0), frame.Part(corner, 70), "a small map has no parts");
+        }
+
+        private static void MapPartsSayHowEachThirdStands()
+        {
+            // An open field of 1200 cells a side: thirds of 384 cells, at 400 and 784 as drawn by a flat camera.
+            const int side = 1200;
+            var row = side / 2;
+            var grid = Carved(side, side, (0, 0, side, side));
+            var frame = MapCorner.Frame(grid, row, new System.Numerics.Vector2(1, 0), new System.Numerics.Vector2(0, 1))!.Value;
+            var start = new System.Numerics.Vector2(100, 100);
+            var map = new ExplorationMap();
+            for (var x = 0; x <= 480; x += 40)
+            {
+                for (var y = 0; y <= 480; y += 40)
+                {
+                    map.Visit(new System.Numerics.Vector2(x, y), side, side);
+                }
+            }
+
+            Equal(0, map.Parts(frame).Count, "nothing known of the ground before the first frontier");
+            map.Frontier(grid, row, start, 8);
+            var parts = map.Parts(frame);
+            MapPart Of(int across, int down) => parts.Single(part => (part.Across, part.Down) == (across, down));
+            Equal(9, parts.Count, "every third of a large field is a part");
+            Equal((100, true), (Of(-1, -1).Percent, Of(-1, -1).Explored), "the corner walked all over");
+            Equal((0, false), (Of(1, 1).Percent, Of(1, 1).Explored), "the far corner, never seen");
+            Equal(true, Of(0, -1) is { Percent: > 20 and < 50, Explored: false }, "the part beside, seen from its edge");
+
+            // A small field: no third is wider than a look, so it is one part.
+            const int small = 240;
+            var smallGrid = Carved(small, small, (0, 0, small, small));
+            var smallFrame = MapCorner.Frame(smallGrid, small / 2, new System.Numerics.Vector2(1, 0), new System.Numerics.Vector2(0, 1))!.Value;
+            var smallMap = new ExplorationMap();
+            smallMap.Visit(start, small, small);
+            smallMap.Frontier(smallGrid, small / 2, start, 8);
+            Equal("0,0", string.Join(" ", smallMap.Parts(smallFrame).Select(part => $"{part.Across},{part.Down}")), "a small map is one part");
+
+            Equal("Top right corner. Explored 4 percent", Announcements.MapPartEntered(1, -1, new MapPart(1, -1, 4, false)), "a part with ground left");
+            Equal("Middle of the map. Already explored", Announcements.MapPartEntered(0, 0, new MapPart(0, 0, 97, true)), "only nooks left in it");
+            Equal("Left edge", Announcements.MapPartEntered(-1, 0, null), "a part whose ground is not known yet");
+            Equal(
+                "Explored 60 percent. You are at: Middle of the map. Left to explore: Top right corner, 4 percent; Right edge, 30 percent. Large unexplored ground, 40 steps, left",
+                Announcements.MapGlance(60, (0, 0), new[] { new MapPart(0, 0, 97, true), new MapPart(1, -1, 4, false), new MapPart(1, 0, 30, false) }, new[] { "Large unexplored ground, 40 steps, left" }),
+                "a glance at a large map");
+            Equal("Explored 100 percent. No unexplored ground in reach", Announcements.MapGlance(100, (0, 0), new[] { new MapPart(0, 0, 100, true) }, Array.Empty<string>()),
+                "a small map all seen");
+        }
+
+        private static void MapPartChangesALookPastTheLine()
+        {
+            var look = new System.Numerics.Vector2(0.05f, 0.05f);
+            var watch = new MapPartWatch();
+            (int, int)? At(float across, float down) => watch.Update(new System.Numerics.Vector2(across, down), look);
+            Equal(null, At(0.2f, 0.5f), "where the player starts is no part entered");
+            Equal(((int, int)?)(-1, 0), watch.Current, "the left edge");
+            Equal(null, At(0.35f, 0.5f), "just over the line: still the part left");
+            Equal(((int, int)?)(0, 0), At(0.39f, 0.5f), "a look past the line: the middle");
+            Equal(null, At(0.32f, 0.5f), "back over the line by a little: still the middle");
+            Equal(((int, int)?)(-1, 0), At(0.28f, 0.5f), "a look back past it");
+            Equal(((int, int)?)(1, 1), At(0.9f, 0.9f), "carried across the map");
+            watch.Reset();
+            Equal(null, At(0.9f, 0.9f), "a new area starts again");
+            // A map narrower across than two looks has no thirds that way.
+            var narrow = new System.Numerics.Vector2(0.2f, 0.05f);
+            watch.Reset();
+            Equal(null, watch.Update(new System.Numerics.Vector2(0.1f, 0.9f), narrow), "its first place");
+            Equal(((int, int)?)(0, -1), watch.Update(new System.Numerics.Vector2(0.9f, 0.1f), narrow), "only up and down change");
         }
 
         private static void RadarHearsAnExitInItsWallAndOffItsLane()

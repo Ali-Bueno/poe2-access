@@ -179,6 +179,15 @@ namespace Poe2Accessibility.Services
                     this.focus.IgnoreNextFocus(ChordFocusMs);
                     this.ToggleBeacon();
                     break;
+                case PadGesture.TriggerClick:
+                    // R3 puts the game's HUD cursor on the screen, as in the guide's chord.
+                    this.focus.IgnoreNextFocus(ChordFocusMs);
+                    if (this.catalog.MapGlance() is { Length: > 0 } glance)
+                    {
+                        this.output.Moved(glance);
+                    }
+
+                    break;
                 case PadGesture.LongHold:
                     if (this.Settings?.Invoke() is { } settings)
                     {

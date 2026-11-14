@@ -235,6 +235,7 @@ namespace Poe2Accessibility
             }
 
             this.lostHint?.Reset();
+            this.mapPart.Reset();
             this.nearby?.Reset();
             this.places?.Reset();
         }

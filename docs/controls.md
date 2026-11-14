@@ -111,12 +111,25 @@ closed"; the ping goes on by itself once the barrier opens.
 ping starts on whatever the scanner names, as in the D2R mod, and the next flick moves it to the next choice. Nothing extra
 is said. The same gesture turns it off.
 
+## Glance at the map (gameplay)
+
+Hold the left trigger (L2, LT) and press the right stick (R3), without L3: "Explored 60 percent. You are at: Middle of
+the map. Left to explore: Top right corner, 4 percent; Right edge, 30 percent. Large unexplored ground, 40 steps, left
+3, then up". It is what a look at the large map tells: how much of the ground you can reach you have seen, the part of
+the map you are in (thirds across and down, as on entering the area), the parts where ground that goes on is left with
+how much of each you have seen, and the three nearest unexplored stretches with their way. A small map has no parts and
+says the share and the stretches alone. The left trigger alone only shows the second skill set, as ever.
+
+Walking into another part of the map says it by itself: "Right edge. Explored 12 percent", or "Middle of the map. Already
+explored" when only nooks are left there. Not in towns; during a fight it waits until the fight is over (setting "Say
+the part of the map you walk into", Navigation, on by default).
+
 ## Settings menu (gameplay)
 
 Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 10". The settings come in submenus (D2R), some
 with submenus of their own:
 
-- Help (five controls topics); Your character (life, mana, energy shield, flasks, states, level up);
+- Help (six controls topics); Your character (life, mana, energy shield, flasks, states, level up);
 - Combat: Enemies (coming into view, aim, enemy sounds, melee reach), Bosses and enemy states (boss life and weak
   point, enemy states, primed for stun, Culling Strike), Defence (dodge, parry, shield, stun bar, harmful ground),
   Charges and skills (charges, combo, placed objects), Quiet in fights (loot, chests and altars; characters' lines);

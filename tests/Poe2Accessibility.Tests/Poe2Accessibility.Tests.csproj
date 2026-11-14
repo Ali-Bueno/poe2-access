@@ -251,7 +251,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Frontier.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Walks.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Parts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapCorner.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapPartWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LostWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
@@ -301,6 +303,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\TableHeadings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Panels.cs" Link="Plugin\Announcements.Panels.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Radar.cs" Link="Plugin\Announcements.Radar.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Places.cs" Link="Plugin\Announcements.Places.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Gameplay.cs" Link="Plugin\Announcements.Gameplay.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceTracker.cs" />

@@ -42,6 +42,40 @@ namespace Poe2Accessibility
             _ => T("Middle of the map", "Centro del mapa"),
         };
 
+        /// <summary>The part of the map just walked into and how it stands: "Top right corner. Explored 4 percent".</summary>
+        public static string MapPartEntered(int across, int down, Services.MapPart? standing) => Sentences(new[]
+        {
+            CornerOfMap(across, down),
+            standing is not { } part ? string.Empty : part.Explored ? T("Already explored", "Ya explorado") : Explored(part.Percent),
+        });
+
+        /// <summary>
+        ///     A look at the map in words: the explored share, the part the player is in, the parts with ground left and the
+        ///     nearest unexplored stretches. A map too small for parts says none.
+        /// </summary>
+        public static string MapGlance(int? percent, (int Across, int Down) here, IReadOnlyList<Services.MapPart> parts, IReadOnlyList<string> stretches)
+        {
+            var place = CornerOfMap(here.Across, here.Down);
+            var left = string.Join("; ", parts.Where(part => !part.Explored).Select(part =>
+            {
+                var name = CornerOfMap(part.Across, part.Down);
+                return T($"{name}, {part.Percent} percent", $"{name}, {part.Percent} por ciento");
+            }));
+            var lines = new List<string>
+            {
+                percent is { } share ? Explored(share) : string.Empty,
+                parts.Count > 1 ? T($"You are at: {place}", $"Estás en: {place}") : string.Empty,
+                left.Length > 0 ? T($"Left to explore: {left}", $"Por explorar: {left}") : string.Empty,
+            };
+            lines.AddRange(stretches);
+            if (stretches.Count == 0)
+            {
+                lines.Add(T("No unexplored ground in reach", "Sin zonas por explorar a tu alcance"));
+            }
+
+            return Sentences(lines);
+        }
+
         /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
         public static string DeathPlace => T("Where you died", "Donde moriste");
 

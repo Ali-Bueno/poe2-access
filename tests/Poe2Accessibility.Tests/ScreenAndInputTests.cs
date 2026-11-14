@@ -301,6 +301,16 @@ namespace Poe2Accessibility.Tests
             Equal("FlickUp|FlickRight", Play(Down(0), Stick(100, 0f, 0.9f), Stick(150, 0f, 0f), Stick(200, 0.9f, 0f), Stick(900, 0.9f, 0f), Up(1000), Up(1400)),
                 "flicks while held, no hold or tap");
             Equal("Tap", Play(Down(0), Stick(100, 0f, 0.5f), Up(200), Up(600)), "half deflection is no flick");
+            // R3 under the left trigger is the glance at the map; with L3 held it stays the guide's chord.
+            static string Names(IReadOnlyList<PadGesture> gestures) => string.Join("|", gestures);
+            var chord = new L3Gestures();
+            Equal(string.Empty, Names(chord.Update(0, false, 0f, 0f, false, true)), "the trigger alone is the game's");
+            Equal("TriggerClick", Names(chord.Update(50, false, 0f, 0f, true, true)), "R3 pressed under the trigger");
+            Equal(string.Empty, Names(chord.Update(100, false, 0f, 0f, true, true)), "once per press");
+            Equal(string.Empty, Names(new L3Gestures().Update(0, false, 0f, 0f, true, false)), "R3 alone is the game's");
+            var both = new L3Gestures();
+            both.Update(0, true, 0f, 0f, false, true);
+            Equal("StickClick", Names(both.Update(50, true, 0f, 0f, true, true)), "with L3 held it is the guide's chord");
         }
 
         private static void StickDirectionsBinInWorldSpace()
