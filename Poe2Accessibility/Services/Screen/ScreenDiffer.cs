@@ -33,6 +33,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A lone text shown again may be a notice repeated; from this many together a part of the layer was built again.</summary>
         private const int RebuiltTogether = 2;
 
+        /// <summary>
+        ///     Built again means the new element came as the old one went: a snapshot without either between them is a notice
+        ///     closed and shown again, which is news.
+        /// </summary>
+        private const int RebuiltWithin = 1;
+
         /// <summary>Per layer and text, the element that showed it last and the snapshot it was last seen in.</summary>
         private readonly Dictionary<(IntPtr Layer, string Text), (IntPtr Address, long Seen)> shownBy = new();
 
@@ -214,7 +220,7 @@ namespace Poe2Accessibility.Services
                         continue; // two elements with one text: the first keeps it
                     }
 
-                    if (!showing.ContainsKey(shown.Address) && this.applied - shown.Seen <= ScrollSnapshots && !this.stableTexts.ContainsKey(text.Address))
+                    if (!showing.ContainsKey(shown.Address) && this.applied - shown.Seen <= RebuiltWithin && !this.stableTexts.ContainsKey(text.Address))
                     {
                         this.rebuilt.Add(text.Address);
                     }

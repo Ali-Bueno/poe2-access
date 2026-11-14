@@ -90,8 +90,11 @@ namespace Poe2Accessibility.Services
                 this.held.Clear();
             }
 
-            this.held.RemoveAll(phrase => phrase.Text == text); // waiting already: said once when its turn comes
-            this.held.Add((text, interrupt, now, reading));
+            if (!this.held.Exists(phrase => phrase.Text == text))
+            {
+                this.held.Add((text, interrupt, now, reading)); // one waiting already keeps its turn and is said once
+            }
+
             return false;
         }
 
