@@ -28,6 +28,19 @@ internal static class HazardExtractor
         "voodoo_king_ratnado_degen", "voodoo_king_plant_slow",
     };
 
+    /// <summary>
+    ///     League ground and zones whose buff says only "You are taking ... Damage over time" (inside a tornado, or nothing of where):
+    ///     Expedition's tornadoes, Delirium's frozen ground and rot, Abyss's desecration, siphons and beams, Esh's storm
+    ///     (docs/research/league-mechanics.md §12, row 16). The siphon's id also covers its outer ring's ("_outer").
+    /// </summary>
+    private static readonly string[] LeagueGround =
+    {
+        "expedition_ele_fire_tornado", "expedition_ele_cold_tornado", "expedition_ele_lightning_tornado",
+        "affliction_demon_cold_degen", "affliction_corpse_degen",
+        "abyss_desecrated_ground", "monster_mod_abyss_mana_siphoner", "abyss_mod_apparition_beam",
+        "breach_hand_mage_storm_lightning_aura",
+    };
+
     private static readonly Regex Standing = new(@"standing (in|on)|in the (beam|aura|cloud)", RegexOptions.IgnoreCase);
     private static readonly Regex Taking = new(@"taking .*damage", RegexOptions.IgnoreCase);
 
@@ -66,7 +79,7 @@ internal static class HazardExtractor
                 ids.Add(buffs.String(row, 0));
             }
 
-            if (Array.IndexOf(UnsaidGround, buffs.String(row, 0)) >= 0)
+            if (Array.IndexOf(UnsaidGround, buffs.String(row, 0)) >= 0 || Array.IndexOf(LeagueGround, buffs.String(row, 0)) >= 0)
             {
                 ids.Add(buffs.String(row, 0)); // only while the game still has it
             }
