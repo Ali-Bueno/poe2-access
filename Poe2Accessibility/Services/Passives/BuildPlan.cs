@@ -98,6 +98,13 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool IsAscendancyNode(string id) => id.StartsWith("Ascendancy", StringComparison.Ordinal);
 
+        /// <summary>
+        ///     An ascendancy's own start by its id ("AscendancyWarrior3Start", "AscendancyWitch3Start_": the 36 of
+        ///     catalog/passive-tree.json): the node ascending gives, which the tree's allocated list does not hold and a
+        ///     build's file lists first (live 2026-11-14).
+        /// </summary>
+        public static bool IsAscendancyStart(string id) => IsAscendancyNode(id) && id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal);
+
         /// <summary>Null when the text is no build file.</summary>
         public static BuildPlan? Parse(string json)
         {

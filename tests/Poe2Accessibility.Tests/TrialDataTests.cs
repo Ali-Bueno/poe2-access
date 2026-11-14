@@ -22,7 +22,16 @@ namespace Poe2Accessibility.Tests
             (nameof(AnOpeningDoorIsNewOnce), AnOpeningDoorIsNewOnce),
             (nameof(AClassIsKnownByItsCardsLine), AClassIsKnownByItsCardsLine),
             (nameof(TheLargerCardIsTheChosenOne), TheLargerCardIsTheChosenOne),
+            (nameof(AnAscendancysStartIsKnownByItsId), AnAscendancysStartIsKnownByItsId),
         };
+
+        private static void AnAscendancysStartIsKnownByItsId()
+        {
+            Expect(true, BuildPlan.IsAscendancyStart("AscendancyWarrior3Start"));
+            Expect(true, BuildPlan.IsAscendancyStart("AscendancyWitch1Start__"));
+            Expect(false, BuildPlan.IsAscendancyStart("AscendancyWarrior3Notable6_0"));
+            Expect(false, BuildPlan.IsAscendancyStart("marauder_start"));
+        }
 
         private static void AClassIsKnownByItsCardsLine()
         {

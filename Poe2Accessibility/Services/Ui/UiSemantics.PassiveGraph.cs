@@ -264,7 +264,10 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return IntPtr.Zero;
+            // An ascendancy's tree is drawn apart from the class's: its own start is where it begins.
+            return nodes.Count > 0 && nodes.Values.All(node => BuildPlan.IsAscendancyNode(node.Id))
+                ? nodes.FirstOrDefault(pair => BuildPlan.IsAscendancyStart(pair.Value.Id)).Key
+                : IntPtr.Zero;
         }
 
         /// <summary>

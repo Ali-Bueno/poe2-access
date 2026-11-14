@@ -14,9 +14,9 @@ namespace Poe2Accessibility.Services
     {
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
         {
-            if (node.TakenIn(allocated))
+            if (node.TakenIn(allocated) || node.Record == graph.OwnStart)
             {
-                return PassiveState.Allocated;
+                return PassiveState.Allocated; // the start is the character's own: an ascendancy's is in no allocated list
             }
 
             // Reachable: linked to an allocated node, or to the class's own start.
@@ -150,7 +150,7 @@ namespace Poe2Accessibility.Services
                     // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
                     var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
                     var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
-                    return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart, known.Class, gated) { Id = known.Id };
+                    return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart || BuildPlan.IsAscendancyStart(known.Id), known.Class, gated) { Id = known.Id };
                 }
 
                 known = null; // the game's row says otherwise and the rows read right: the node is read from it, as one the files lack

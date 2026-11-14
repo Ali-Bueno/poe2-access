@@ -172,9 +172,11 @@ namespace Poe2Accessibility.Services
         /// <summary>How far along the active build the character is: its nodes taken, the points spent outside it, and the file's nodes this tree does not show.</summary>
         private static string BuildProgress(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked, int notShown, int ascendancy)
         {
-            var taken = marked.Count(node => atlas.Places.Index.TryGetValue(node, out var index) && steps[index] == 0);
+            // A start is no point to spend: an ascendancy's is marked with the build's nodes and never in the allocated list.
+            var toTake = marked.Where(node => !(atlas.Places.Index.TryGetValue(node, out var index) && atlas.Nodes[index].IsStart)).ToList();
+            var taken = toTake.Count(node => atlas.Places.Index.TryGetValue(node, out var index) && steps[index] == 0);
             var outside = atlas.Places.Index.Count(place => steps[place.Value] == 0 && !marked.Contains(place.Key) && !atlas.Nodes[place.Value].IsStart);
-            return Announcements.BuildProgress(taken, marked.Count, outside, notShown, ascendancy);
+            return Announcements.BuildProgress(taken, toTake.Count, outside, notShown, ascendancy);
         }
 
         /// <summary>Research (dev command "passivemap"): from each class's start, how many points the nearest keystones and notables cost.</summary>
