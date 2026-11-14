@@ -59,6 +59,7 @@ MinimapIcon	MarakethSanctumFountain		MinimapIconIds
 MinimapIcon	MarakethSanctumKey		MinimapIconIds
 MinimapIcon	MarakethSanctumKeyConverterActive		MinimapIconIds
 MinimapIcon	SanctumPact		MinimapIconIds
+MinimapIcon	UltimatumRewardChestActive		MinimapIconIds
 MinimapIcon	StoryGlyph		MinimapIconIds
 MinimapIcon	RitualRune		MinimapIconIds
 MinimapIcon	RitualRuneFinished		MinimapIconIds
