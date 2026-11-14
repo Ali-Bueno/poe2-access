@@ -229,6 +229,12 @@ namespace Poe2Accessibility.Tests
             Equal(null, PlayerCharges.RageEdge(30, 25, 30), "draining is no news");
             Equal(false, PlayerCharges.RageEdge(3, 0, 30), "Rage runs out");
             Equal(null, PlayerCharges.RageEdge(0, 0, 30), "a character without Rage");
+            var full = new FullEdges();
+            Equal(true, full.Reached("rage", 30, 30), "full is news");
+            Equal(false, full.Reached("rage", 29, 30) || full.Reached("rage", 30, 30), "a point spent and regained is the same fullness");
+            Equal(false, full.Reached("rage", 23, 30), "spent under four fifths");
+            Equal(true, full.Reached("rage", 30, 30), "full again is news again");
+            Equal(false, full.Reached("totems", 0, 0), "no top, never full");
             Equal(1, PlayerCharges.Held(0), "a charge buff with no stack count holds one");
             Equal(3, PlayerCharges.Held(3), "the stack count");
             var three = CueSynth.ChargeGained(ChargeKind.Power, 3, 44100);

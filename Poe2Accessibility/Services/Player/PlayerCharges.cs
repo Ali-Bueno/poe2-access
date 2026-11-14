@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     ///     What a player builds up and spends, by class: charges (Power from the Monk's Killing Palm, Frenzy, Endurance,
@@ -98,5 +99,40 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool? RageEdge(int before, int after, int max) =>
             after >= max && before < max ? true : after == 0 && before > 0 ? false : null;
+    }
+
+    /// <summary>
+    ///     A pool said full once, and again only after it fell under <see cref="RearmShare"/> of its top: Rage at 30 loses a
+    ///     point and regains it with every hit, and each time was "full" again (docs/research/sweep-2026-11-13.md). Pure.
+    /// </summary>
+    public sealed class FullEdges
+    {
+        /// <summary>Under this share of its top a pool has been spent: full again is news.</summary>
+        public const double RearmShare = 0.8;
+
+        private readonly HashSet<string> said = new(StringComparer.Ordinal);
+
+        /// <summary>Takes a reading; true when the pool, at its top, is news. A reading taken as a baseline is asked and not told.</summary>
+        public bool Reached(string key, int count, int max)
+        {
+            if (max <= 0)
+            {
+                return false;
+            }
+
+            if (count >= max)
+            {
+                return this.said.Add(key);
+            }
+
+            if (count < max * RearmShare)
+            {
+                this.said.Remove(key);
+            }
+
+            return false;
+        }
+
+        public void Reset() => this.said.Clear();
     }
 }

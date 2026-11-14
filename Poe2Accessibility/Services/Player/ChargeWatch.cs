@@ -32,6 +32,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<(ChargeKind, int), float[]> gained = new();
         private readonly Dictionary<ChargeKind, float[]> lost = new();
         private (int Count, int Max) rage;
+        private readonly FullEdges rageFull = new();
         private bool rageLogged;
         private bool baseline = true;
 
@@ -63,6 +64,7 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.rage = default;
+            this.rageFull.Reset();
             this.held.Clear();
             this.unsaid.Clear();
             this.baseline = true;
@@ -181,7 +183,8 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Rage seen: {now.Item1} of {max}");
             }
 
-            if (this.baseline || PlayerCharges.RageEdge(before, now.Item1, max) is not { } full)
+            var reached = this.rageFull.Reached(nameof(ChargeKind.Rage), now.Item1, max);
+            if (this.baseline || PlayerCharges.RageEdge(before, now.Item1, max) is not { } full || (full && !reached))
             {
                 return;
             }

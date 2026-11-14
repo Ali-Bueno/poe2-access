@@ -50,6 +50,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The count of each counted resource the player knows: the last one told, or taken silently as the baseline.</summary>
         private readonly Dictionary<string, int> known = new();
+        private readonly FullEdges full = new();
         private long changedAt;
         private long baselineAt = long.MinValue;
         private bool baseline = true;
@@ -82,6 +83,7 @@ namespace Poe2Accessibility.Services
             this.held.Clear();
             this.unsaid.Clear();
             this.known.Clear();
+            this.full.Reset();
             this.baseline = true;
             this.baselineAt = long.MinValue;
         }
@@ -140,6 +142,7 @@ namespace Poe2Accessibility.Services
             if (this.baseline)
             {
                 this.known[reading.Key] = reading.Count;
+                this.full.Reached(reading.Key, reading.Count, reading.Max);
                 return;
             }
 
@@ -156,7 +159,7 @@ namespace Poe2Accessibility.Services
                     this.unsaid.Add(reading.Key);
                 }
             }
-            else if (reading.Max > 0 && reading.Count >= reading.Max && before.Count < reading.Max)
+            else if (reading.Max > 0 && this.full.Reached(reading.Key, reading.Count, reading.Max))
             {
                 news.Add(new News(reading.Key, ResourceChange.Full, reading.Count, reading.Max));
             }
