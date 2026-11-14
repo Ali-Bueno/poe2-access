@@ -120,8 +120,8 @@
 | Scanner (hold L3 + right stick flicks; tap = where the choice is now) | done (live) | `EntityCatalog` + `RoutePlanner` + `ScanBrowser`: 8 categories, routed steps, leg + next turn ("Una, 14 steps, right 3, then up right"); walked Riverbank → Miller → Clearfell → town NPCs on it |
 | Low-life warnings | done (live) | `VitalAlarm`: "Life 50 percent" / "Life 25 percent" once per fall; the Miller was beaten reacting to them |
 | Skill crafting (engrave an uncut gem): grid in reading order, details after the name, Engrave confirm with its buttons, categories | done (live) | "Skeletal Sniper, Level 1, 1 of 24"; LB/RB say the category first (`category_name_label`, a tab title: "Elemental. Muro de fuego, Nivel 2, 1 de 24", live 2026-10-31); an uncut support goes straight into the skill its category names: "Furia I, engarzada en Campana de tempestad" (`ScreenNarrator.Engraving`, code; user 2026-10-31: where did it go?) |
-| Build Planner gear: the build's base and wanted modifiers per slot against the worn item (slot), any wearable item under the cursor (short line), summary on entering the inventory | done (live 2026-11-13: the summary and four worn slots on yarkey; an item in the bag against the worn one not heard) | "Build: 1 de 11 piezas con su base, 9 de 20 modificadores… Más lejos de la build: Armadura corporal"; "Cinturón, Lazo de arrebato, raro, Build: 2 de 3 modificadores. Falta +40 a la vida máxima. … Build: Cinturón de placas, otra base"; `UiSemantics.BuildGear` + pure `BuildGear`, `Announcements.BuildGear`; [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10) |
-| Build Planner gems: the build's skills and supports set against the character's (Skills panel rows, empty slots, sockets; cut gems in the inventory, stash, merchants; engraving choices) | done (live 2026-11-10; engraving choices fixed 2026-11-11 after a live miss, not heard since) | `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `BuildPlanFolder.Active`, `GameLayout.GemSockets`; [ui layers](docs/research/ui-layers.md#build-planner-gems-055f-2026-11-10) |
+| Build Planner gear: the build's base and wanted modifiers per slot against the worn item (slot), any wearable item under the cursor (short line), summary on entering the inventory | done (live 2026-11-13: the summary and four worn slots on yarkey; 2026-11-14 on kehgan: a ring in the bag against both ring slots as one line, the summary only when it changed, each judged modifier once) | "Build: 1 de 11 piezas con su base, 9 de 20 modificadores… Más lejos de la build: Armadura corporal"; "Cinturón, Lazo de arrebato, raro, Build: 2 de 3 modificadores. Falta +40 a la vida máxima. … Build: Cinturón de placas, otra base"; `UiSemantics.BuildGear` + pure `BuildGear`, `Announcements.BuildGear`; [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10) |
+| Build Planner gems: the build's skills and supports set against the character's (Skills panel rows, empty slots, sockets; cut gems in the inventory, stash, merchants; engraving choices) | done (live 2026-11-10; engraving choices heard through the play log of 2026-11-13 and live on kehgan 2026-11-14: "Furia I, 1 de 14, en la build, para Corte giratorio. ya engarzada en Corte giratorio") | `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `BuildPlanFolder.Active`, `GameLayout.GemSockets`; [ui layers](docs/research/ui-layers.md#build-planner-gems-055f-2026-11-10) |
 | Skill gems in the inventory named from their tooltip (no base display name) | done (live) | "Unearth, column 1, row 1" |
 | Read the whole panel (`screen` command) | done (live) | character detailed stats read fully; summary block order is jumbled |
 | Options section names on entering a section | done (live) | "UI. Controller. HUD Mode, Central, combo box, 1 of 8" |
@@ -547,11 +547,10 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   allocates or refunds one weapon-set node and reads the header before and after; then the words are one phrase
   ("1 sin asignar de 4" or "1 asignado de 4"). The game's popup key `WeaponSetPassiveSkillPoints` exists
   (`catalog/game-keys.txt`), its text is not extracted.
-- **Which gems are Spirit gems, and the engraving window with the build's lines.** The files give the Meta kind (44
-  gems) and the Persistent tag (193), neither says which uncut gem engraves a gem. Neither yarkey nor malgdhler holds
-  an uncut gem, nor hairin (dev `inventories`, the three read that evening), so the window could not be
-  opened. **Unblocks:** an uncut gem in a bag (the owner keeps one instead of engraving it), then its window opened and
-  read without confirming.
+- **Which gems are Spirit gems.** The files give the Meta kind (44 gems) and the Persistent tag (193), neither says
+  which uncut gem engraves a gem. The engraving window itself was opened from kehgan's uncut support gem on 2026-11-14
+  and read with the build's lines ([sweep](docs/research/sweep-2026-11-13.md)); an uncut spirit gem was not at hand.
+  **Unblocks:** an uncut spirit gem in a bag, its window opened and read without confirming.
 - **The cosmetics shop's purchase confirmation.** Only the owner may spend points (150): he presses A on a buy button
   once and says what he hears, or allows one purchase.
 - **Item modifiers on kinds of item not at hand:** a piece with a rune or soul core socketed (is the rune's line in a
@@ -561,9 +560,9 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
 - **Build Planner gear:** heard live on 2026-11-13 as it is (the item's name, then "Build: 2 de 3 modificadores. Falta …", the item, then the build's base; the
   inventory's summary before the focused item): kept, the owner can overrule the wording in `Announcements.BuildGear`. Charms, quivers and foci are not compared and a
   unique is judged only when its name equals the author's: needs a build file that uses them.
-- **Build Planner supports:** "Engarzadas", "En otra habilidad" and "Fuera de la build" have unit tests only: needs a
-  build support socketed at the build's tier on yarkey (the owner's gems). The Sockets component's second socket
-  (+0x38) is unmeasured for the same reason: one support per skill.
+- **Build Planner supports:** "ya engarzada en …" heard live in the engraving window (kehgan, 2026-11-14); "En otra
+  habilidad" and "Fuera de la build" have unit tests only: needs a build support socketed elsewhere than the build
+  says (the owner's gems). The Sockets component's second socket (+0x38) is unmeasured: one support per skill.
 - **A sale said as "used"** when the gold lags the inventory by more than 300 ms (`InventoryWatch.SettleMs`), and
   "Vendido: …" kept: need a sale, the owner's.
 - **The cull cue for a culling support, passive or item:** the mod reads no live stat that says the player culls
