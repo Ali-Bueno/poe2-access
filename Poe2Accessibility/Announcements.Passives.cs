@@ -24,6 +24,7 @@ namespace Poe2Accessibility
             Services.PassiveCategory.Keystones => T("Keystones", "Piedras angulares"),
             Services.PassiveCategory.Notables => T("Notables", "Notables"),
             Services.PassiveCategory.JewelSockets => T("Jewel sockets", "Engarces de joya"),
+            Services.PassiveCategory.Ascendancy => T("Ascendancy", "Ascendencia"),
             Services.PassiveCategory.Reachable => T("Reachable now", "Alcanzables ahora"),
             Services.PassiveCategory.Attributes => T("Attributes", "Atributos"),
             Services.PassiveCategory.Refundable => T("Refundable now", "Reintegrables ahora"),

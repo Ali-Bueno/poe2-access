@@ -196,6 +196,12 @@ namespace Poe2Accessibility.Services
                 // Why the list is shorter than what is left of the build: it holds what the points pay for.
                 progress += ", " + Announcements.BuildToTakeNow(Members(PassiveCategory.Build).Count(node => points.Of(Pool(node)) > 0));
             }
+            else if (this.finder.Category == PassiveCategory.Ascendancy)
+            {
+                // How far along the ascendancy is: its nodes taken of those it shows, the one under the cursor too.
+                var own = Enumerable.Range(0, atlas.Nodes.Length).Where(index => BuildPlan.IsAscendancyNode(atlas.Nodes[index].Id) && !atlas.Nodes[index].IsStart).ToList();
+                progress = Announcements.BuildProgress(own.Count(index => steps[index] == 0), own.Count, 0);
+            }
             else if (this.finder.Category == PassiveCategory.Attributes)
             {
                 progress = Announcements.PassiveChoiceCounts(choiceCounts.Select(count =>
@@ -538,6 +544,7 @@ namespace Poe2Accessibility.Services
                         PassiveCategory.Keystones => this.Nodes[index].Class == PassiveClass.Keystone,
                         PassiveCategory.Notables => this.Nodes[index].Class == PassiveClass.Notable,
                         PassiveCategory.JewelSockets => this.Nodes[index].Class == PassiveClass.JewelSocket,
+                        PassiveCategory.Ascendancy => BuildPlan.IsAscendancyNode(this.Nodes[index].Id) && !this.Nodes[index].IsStart,
                         PassiveCategory.Reachable => steps[index] == 1,
                         _ => false,
                     })

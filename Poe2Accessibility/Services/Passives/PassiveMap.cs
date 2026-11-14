@@ -24,6 +24,12 @@ namespace Poe2Accessibility.Services
         Keystones,
         Notables,
         JewelSockets,
+
+        /// <summary>
+        ///     The nodes of the ascendancy the tree shows, the character's own or the one previewed, but its start: to hear
+        ///     what each does and how to reach it (the owner, 2026-11-14). Empty, so passed over, before ascending.
+        /// </summary>
+        Ascendancy,
         Reachable,
 
         /// <summary>

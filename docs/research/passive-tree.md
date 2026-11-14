@@ -369,6 +369,16 @@ ascendancy points; `dump visible` and dev `passivenear`):
 - The D-pad's Build list holds what the points left pay for, in the build's order: as many nodes of each tree as it
   has points, the next one alone with none (`BuildPlan.TakeNow`; the owner: "los que puedo asignar en este momento, no
   los posibles"), and its header says so ("2 por asignar ahora").
+- The D-pad's **Ascendancy** list (the owner, 2026-11-14: "una sección para los nodos de ascensión, por si algún día
+  se quiere ver qué hace cada uno y cómo llegar"): the shown nodes whose id is an ascendancy's, but its start
+  (`PassiveCategory.Ascendancy`; the places hold shown elements only, so they are the character's own ascendancy's, or
+  the previewed class's on the altar), fewest points first, taken ones last, under a header that counts them
+  ("Ascendencia, 3 de 23 asignados"). Empty before ascending, so passed over. What a node does is the game's tooltip,
+  read on arriving. LIVE (2026-11-14 10:32, the owner on another ascended character): "Ascendencia, 2 de 16
+  asignados. Velocidad de lanzamiento de hechizos y ataque de tótems, arriba a la izquierda, anillo interior, a 1
+  punto. Desde aquí: abajo, 12 empujones", and the Attributes list on the same tree: "Atributos, Inteligencia 4,
+  Destreza 2, Fuerza 1. Inteligencia. Atributo, arriba a la izquierda, anillo medio, asignado. Desde aquí: abajo, 3
+  empujones".
 - **NOT MEASURED:** the stick's step from an ascendancy node, which the self-check does not judge (the game shifts it
   by the inner canvas); the ways counted across the two trees were walked by the owner without a miss heard.
 

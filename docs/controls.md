@@ -256,7 +256,9 @@ outside the build, 4 more of the build are ascendancy passives, not on this tree
 shows, and the file's nodes it does not show are said apart, as ascendancy passives when their ids say so), Taken in the build (the build's nodes you already
 have, small ones too, in the build's order, each with its step over those same nodes: "Build: step 3 of 60. Attack Speed,
 …": the way made so far, to walk again), Taken outside the build (what
-you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets, Reachable now, Attributes (the
+you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets, Ascendancy (once ascended, or on a class's preview: every node of the ascendancy but its
+start, those costing fewest points first, under "Ascendancy, 3 of 23 taken": to hear what each does and the way to it),
+Reachable now, Attributes (the
 allocated nodes you gave a choice, each said with it: "Attributes, Strength 4, Dexterity 4. Dexterity. Attribute, down left…";
 those the build's notes would have otherwise come first) and, while the Hooded One's tree refunds passives, Refundable now (the
 allocated nodes no other hangs from); up from Position reaches these last two first. Left and right walk a
