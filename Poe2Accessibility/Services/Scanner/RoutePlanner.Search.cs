@@ -133,7 +133,9 @@ namespace Poe2Accessibility.Services
             var width = space.Width;
             var queue = new Queue<int>();
             var start = (from.Y * width) + from.X;
-            space.Seen[start] = space.Search;
+            space.Flooding.Clear();
+            space.Flooding.Add(start);
+            space.Flooded.Add(start);
             queue.Enqueue(start);
             var count = 0;
             while (queue.Count > 0 && count < PocketCells)
@@ -144,9 +146,9 @@ namespace Poe2Accessibility.Services
                 foreach (var (dx, dy, _) in Neighbours.Take(4))
                 {
                     var next = ((cy + dy) * width) + cx + dx;
-                    if (IsWalkable(grid, bytesPerRow, cx + dx, cy + dy) && space.Seen[next] != space.Search)
+                    if (IsWalkable(grid, bytesPerRow, cx + dx, cy + dy) && space.Flooding.Add(next))
                     {
-                        space.Seen[next] = space.Search;
+                        space.Flooded.Add(next);
                         queue.Enqueue(next);
                     }
                 }

@@ -8,13 +8,22 @@ namespace Poe2Accessibility.Services
     /// <summary>The search state of <see cref="RoutePlanner"/>: the per-thread workspaces and their pool, and the jump scans over the padded cell array.</summary>
     public static partial class RoutePlanner
     {
-        /// <summary>Most workspaces kept between searches: a workspace holds about 14 MB on a 1600 x 1600 area, so one per pool thread that ever searched was unbounded.</summary>
+        /// <summary>Most workspaces kept between searches: a workspace holds one and a half bytes a cell (50 MB on a Trial floor), so one per pool thread that ever searched was unbounded.</summary>
         public const int MaxPooledWorkspaces = 2;
 
         private static readonly Stack<Workspace> Pool = new();
 
         /// <summary>Workspaces kept for the next search (the tests check the bound).</summary>
         public static int PooledWorkspaces { get { lock (Pool) { return Pool.Count; } } }
+
+        /// <summary>Another area: the workspaces sized for the last one's grid are let go.</summary>
+        public static void ReleaseWorkspaces()
+        {
+            lock (Pool)
+            {
+                Pool.Clear();
+            }
+        }
 
         private static Workspace Rent()
         {
@@ -40,23 +49,21 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>
-        ///     Per-thread search state, kept between searches (fresh arrays per search cost more than the search): a
-        ///     cell's mark says in which search it was looked at, so nothing is cleared.
-        /// </summary>
+        /// <summary>Per-thread search state, kept between searches (fresh arrays per search cost more than the search).</summary>
         private sealed class Workspace
         {
             public readonly PriorityQueue<int, double> Open = new();
             public readonly Dictionary<int, (float Cost, int Parent)> Nodes = new();
             public int Width;
             public int Height;
-            public int[] Seen = Array.Empty<int>();
-            public int Search;
-            public int CallFirst;
+
+            /// <summary>Cells the failed pocket searches of the current route request flooded, and those of the flood under way.</summary>
+            public readonly HashSet<int> Flooded = new();
+            public readonly HashSet<int> Flooding = new();
             private readonly Scanner scanner = new();
 
             /// <summary>True when a failed pocket search of the current route request already flooded the cell.</summary>
-            public bool Searched(int index) => this.Seen[index] >= this.CallFirst;
+            public bool Searched(int index) => this.Flooded.Contains(index);
 
             /// <summary>One byte per cell with a rock border all round (no bounds checks in the scans); rebuilt only when the grid changed.</summary>
             public byte[] Cells = Array.Empty<byte>();
@@ -70,12 +77,7 @@ namespace Poe2Accessibility.Services
                 var width = bytesPerRow * 2;
                 var height = (grid.Length + bytesPerRow - 1) / bytesPerRow;
                 (this.Width, this.Height, this.Stride) = (width, height, width + 2);
-                if (this.Seen.Length < width * height)
-                {
-                    (this.Seen, this.Search) = (new int[width * height], 0);
-                }
-
-                this.CallFirst = this.Search + 1;
+                this.Flooded.Clear();
                 // Cells[(y + 1) * Stride + x + 1] is 1 when the cell is walkable. Only the rows that changed are decoded
                 // (a barrier opening touches a few rows; the whole grid is a few milliseconds).
                 var same = this.packedRow == bytesPerRow && this.packed.Length == grid.Length && this.Cells.Length == this.Stride * (height + 2);
@@ -105,7 +107,6 @@ namespace Poe2Accessibility.Services
 
             public Scanner Begin(bool track, (int X, int Y) goal)
             {
-                this.Search++;
                 this.Nodes.Clear();
                 this.Open.Clear();
                 this.scanner.Reset(this, track, goal);

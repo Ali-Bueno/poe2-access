@@ -193,6 +193,7 @@ namespace Poe2Accessibility.Services
                 this.grid.Reset();
                 this.closedBarriers.Clear();
             }
+            RoutePlanner.ReleaseWorkspaces();
             this.unexplored = Array.Empty<ScanEntry>();
             this.unexploredAt = long.MinValue / 2;
             this.frontierSearch = null; // what it finds is another area's: the map it read is no longer this one

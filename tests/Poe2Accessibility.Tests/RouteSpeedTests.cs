@@ -61,7 +61,7 @@ namespace Poe2Accessibility.Tests
             (nameof(SearchWorkspacesKeptBetweenSearchesAreBounded), SearchWorkspacesKeptBetweenSearchesAreBounded),
         };
 
-        /// <summary>Many threads searching at once must not leave a workspace (about 14 MB on a large area) each behind.</summary>
+        /// <summary>Many threads searching at once must not leave a workspace each behind, and an area change frees those kept.</summary>
         private static void SearchWorkspacesKeptBetweenSearchesAreBounded()
         {
             var (grid, row) = Cave(SmallSide, 1);
@@ -74,6 +74,8 @@ namespace Poe2Accessibility.Tests
             threads.ForEach(t => t.Start());
             threads.ForEach(t => t.Join());
             Check.Equal(true, RoutePlanner.PooledWorkspaces <= RoutePlanner.MaxPooledWorkspaces, "pooled workspaces within the bound");
+            RoutePlanner.ReleaseWorkspaces();
+            Check.Equal(0, RoutePlanner.PooledWorkspaces, "an area change lets the workspaces go");
         }
         /// <summary>Cave-like grid: scattered rock blobs and walls with gaps; row = side / 2 bytes (two cells per byte).</summary>
         internal static (byte[] Grid, int Row) Cave(int side, int seed)
