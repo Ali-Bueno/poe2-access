@@ -90,6 +90,7 @@ namespace Poe2Accessibility.Services
                 this.held.Clear();
             }
 
+            this.held.RemoveAll(phrase => phrase.Text == text); // waiting already: said once when its turn comes
             this.held.Add((text, interrupt, now, reading));
             return false;
         }
