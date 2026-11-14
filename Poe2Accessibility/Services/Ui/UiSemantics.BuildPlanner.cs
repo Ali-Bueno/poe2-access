@@ -43,6 +43,43 @@ namespace Poe2Accessibility.Services
             : this.buildMarksUnreadable ? null
             : this.buildPlans.Matching(AskingCharacter(), marked.Select(this.PassiveIdOf).ToHashSet());
 
+        private int treeOpenings;
+        private (string Build, int Opening) buildFitTold = (string.Empty, -1);
+
+        /// <summary>
+        ///     The line saying the build does not fit the tree, once per build and per opening of the tree: the plan's passives
+        ///     the catalog does not know (the build is for another version), or marks no file holds while files exist. Empty when
+        ///     it fits, when the catalog is itself the older (<see cref="PassiveTreeFields.CatalogStale"/>) or when it was said.
+        /// </summary>
+        private string StaleBuildLine(BuildPlan? plan, HashSet<IntPtr> marked)
+        {
+            var catalog = PassiveTreeCatalog.Shared;
+            if (catalog.Count == 0 || this.TreeFields.CatalogStale)
+            {
+                return string.Empty;
+            }
+
+            string key, line;
+            if (plan != null)
+            {
+                var (gone, total) = plan.Gone(id => catalog.ById(id) != null, catalog.OfUnknownAscendancy);
+                (key, line) = ($"{plan.Name}/{total}", gone > 0 ? Announcements.BuildGone(gone, total) : string.Empty);
+            }
+            else
+            {
+                (key, line) = (string.Empty, marked.Count > 0 && this.buildPlans.FilesButNoMatch(AskingCharacter()) ? Announcements.BuildNoFile(marked.Count) : string.Empty);
+            }
+
+            if (line.Length == 0 || this.buildFitTold == (key, this.treeOpenings))
+            {
+                return string.Empty;
+            }
+
+            this.buildFitTold = (key, this.treeOpenings);
+            this.BuildPlanLog?.Invoke($"Build plan: {(plan == null ? "no file holds the marked nodes" : $"{plan.Name}: {line}")}");
+            return line;
+        }
+
         /// <summary>Gets or sets the log of which build file a character follows and why (set by the plugin).</summary>
         public Action<string>? BuildPlanLog
         {

@@ -25,11 +25,16 @@ namespace Poe2Accessibility.Services
             var catalog = PassiveTreeCatalog.Shared;
             if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress && state == cached.State && !this.CanvasChanged(cached) && !this.EdgesReadNow(cached, canvasAddress))
             {
-                if (cached.OwnStart == IntPtr.Zero && this.OwnStartDue() && this.OwnStart(cached.Links.Keys, cached.Nodes) is var start && start != IntPtr.Zero)
+                if (cached.OwnStart == IntPtr.Zero && this.OwnStartDue())
                 {
                     // The character was not readable when the tree was first read: without its start nothing reads as reachable.
-                    this.passiveGraph = cached = cached with { OwnStart = start };
-                    this.passiveAtlas = null;
+                    if (this.OwnStart(cached.Links.Keys, cached.Nodes) is var start && start != IntPtr.Zero)
+                    {
+                        this.passiveGraph = cached = cached with { OwnStart = start };
+                        this.passiveAtlas = null;
+                    }
+
+                    this.NoteOwnStart(cached);
                 }
 
                 return cached;
@@ -80,18 +85,34 @@ namespace Poe2Accessibility.Services
             var otherClasses = new HashSet<IntPtr>();
             var (inner, innerState) = (IntPtr.Zero, IntPtr.Zero);
             var innerRecords = new List<IntPtr>();
+            var children = new DroppedChildren();
             void TakeNodes(in UiElementReader.ElementInfo holder, List<IntPtr>? taken)
             {
                 foreach (var element in this.elements.ReadChildren(holder))
                 {
                     if (budget-- <= 0)
                     {
+                        children.OverBudget = true;
                         break;
                     }
 
+                    children.Seen++;
                     var head = this.reader.ReadArray<IntPtr>(element, 1);
-                    if (head.Length != 1 || otherClasses.Contains(head[0]) || this.NodeRecordAt(element, nodeShift) is not { } record)
+                    if (head.Length != 1)
                     {
+                        children.Unreadable++;
+                        continue;
+                    }
+
+                    if (otherClasses.Contains(head[0]))
+                    {
+                        children.OtherClass++;
+                        continue;
+                    }
+
+                    if (this.NodeRecordAt(element, nodeShift) is not { } record)
+                    {
+                        children.NoRecord++;
                         continue;
                     }
 
@@ -105,6 +126,10 @@ namespace Poe2Accessibility.Services
                     {
                         elementsByRecord[record] = element;
                         taken?.Add(record);
+                    }
+                    else
+                    {
+                        children.NotPassive++;
                     }
                 }
             }
@@ -137,6 +162,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.TreeFields.Log?.Invoke(children.Describe(otherClasses.Count));
             var nodes = this.FileNodes(catalog, elementsByRecord.Keys.Concat(links.Keys));
             if (edgeList == null && nodes.Count == 0)
             {
@@ -164,7 +190,41 @@ namespace Poe2Accessibility.Services
                 AscendancyOnly = ascendancyOnly,
             };
             this.passiveGraph = graph;
+            this.NoteOwnStart(graph);
             return graph;
+        }
+
+        /// <summary>
+        ///     The group children a tree's read left out, by why: counted per read of the canvas and logged, so an element of a new
+        ///     kind in a rebuilt tree shows in a user's log (<see cref="PassiveGraphOf"/>).
+        /// </summary>
+        private sealed class DroppedChildren
+        {
+            public int Seen { get; set; }
+
+            public int Unreadable { get; set; }
+
+            public int OtherClass { get; set; }
+
+            public int NoRecord { get; set; }
+
+            public int NotPassive { get; set; }
+
+            public bool OverBudget { get; set; }
+
+            public string Describe(int otherClasses) =>
+                $"Passive tree: {this.Unreadable + this.OtherClass + this.NoRecord + this.NotPassive} of {this.Seen} group children read are no node " +
+                $"({this.NoRecord} with no node record, {this.NotPassive} whose record has no PassiveSkills row, {this.OtherClass} of {otherClasses} other element classes, {this.Unreadable} unreadable" +
+                $"{(this.OverBudget ? "; the read stopped at its limit" : string.Empty)})";
+        }
+
+        /// <summary>The own start is looked for with the tree open and the character readable: a tree that is an ascendancy's alone or a class's preview has none to find.</summary>
+        private void NoteOwnStart(PassiveGraph graph)
+        {
+            if ((this.PlayerPath?.Invoke() ?? string.Empty).Length > 0 && !graph.AscendancyOnly && !this.IsClassPreview(graph))
+            {
+                this.TreeFields.NoteOwnStart(graph.OwnStart != IntPtr.Zero);
+            }
         }
 
         /// <summary>
@@ -245,14 +305,26 @@ namespace Poe2Accessibility.Services
                 return nodes;
             }
 
+            var (seen, drawn, unknown) = (new HashSet<IntPtr>(), 0, 0);
             foreach (var record in records)
             {
-                if (!nodes.ContainsKey(record) && this.PassiveRow(record) is { } row && this.RowId(row) is { } id && catalog.ById(id) is { } node)
+                if (!seen.Add(record) || this.PassiveRow(record) is not { } row || this.RowId(row) is not { } id)
+                {
+                    continue;
+                }
+
+                drawn++;
+                if (catalog.ById(id) is { } node)
                 {
                     nodes[record] = node;
                 }
+                else
+                {
+                    unknown++;
+                }
             }
 
+            this.TreeFields.NoteCoverage(drawn, unknown);
             return nodes;
         }
 
@@ -295,8 +367,10 @@ namespace Poe2Accessibility.Services
                 links.TryAdd(record, read);
             }
 
-            this.TreeFields.NoteLinks(compared, differing, first);
-            return links;
+            // A catalog of another tree disagrees on most nodes: then the game's own list stands for all of them.
+            var memoryDecides = PassiveTreeVerdicts.LinksDisagree(compared, differing);
+            this.TreeFields.NoteLinks(compared, differing, first, memoryDecides);
+            return memoryDecides ? fromMemory : links;
         }
 
         private static void Link(Dictionary<IntPtr, List<IntPtr>> links, IntPtr from, IntPtr to)
@@ -449,6 +523,9 @@ namespace Poe2Accessibility.Services
 
             /// <summary>Gets the PassiveSkills Id of the row shown; empty when unread.</summary>
             public string Id { get; init; } = string.Empty;
+
+            /// <summary>Gets a value indicating whether the node holds a jewel, whatever else its kind says (a notable can).</summary>
+            public bool JewelSocket { get; init; }
 
             /// <summary>Whether the node is in the allocated list, under its own graph id or its class override's.</summary>
             public bool TakenIn(HashSet<int> allocated) => allocated.Contains(this.GraphId) || (this.ShownGraphId >= 0 && allocated.Contains(this.ShownGraphId));

@@ -20,6 +20,16 @@ namespace Poe2Accessibility.Services
         private const char NotableFlag = 'n';
         private const char JewelSocketFlag = 'j';
         private const char IconOnlyFlag = 'i';
+        private const char AscendancyFlag = 'a';
+        private const char AscendancyStartFlag = 's';
+
+        /// <summary>Every PassiveSkills Id of an ascendancy's node starts so, and its start ends "Start" (0.5.5f: 669 and 36 rows); read only when the catalog has no such flags.</summary>
+        private const string AscendancyPrefix = "Ascendancy";
+
+        private const string StartSuffix = "Start";
+
+        /// <summary>The PassiveSkillVariantTypes Id of the choice an attribute node offers.</summary>
+        private const string AttributeVariantType = "GenericAttribute";
 
         private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -27,6 +37,10 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, Node> byId = new(StringComparer.Ordinal);
         private readonly Dictionary<string, Node> startByClass = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<int> graphIds = new();
+        private readonly HashSet<string> ascendancyIds = new(StringComparer.Ordinal);
+        private readonly bool hasAscendancyFlags;
+        private readonly bool hasStartFlags;
+        private readonly bool hasOffers;
         private readonly Dictionary<string, Dictionary<string, string>> names;
         private readonly Dictionary<string, Dictionary<string, string>> classes;
 
@@ -46,7 +60,24 @@ namespace Poe2Accessibility.Services
                 var flags = value[(separator + 1)..];
                 var links = data.Links != null && data.Links.TryGetValue(key, out var linked) ? linked.Where(other => other != graphId).ToArray() : Array.Empty<int>();
                 var starts = data.Starts != null && data.Starts.TryGetValue(key, out var characters) ? characters.ToArray() : Array.Empty<string>();
-                var node = new Node(graphId, value[..separator], flags.Contains(KeystoneFlag), flags.Contains(NotableFlag), flags.Contains(JewelSocketFlag), flags.Contains(IconOnlyFlag), links, starts);
+                var ascendancy = flags.Contains(AscendancyFlag);
+                var offers = data.Offers != null && data.Offers.TryGetValue(key, out var offered) ? offered : null;
+                var ascendancyId = ascendancy && data.Ascendancies != null && data.Ascendancies.TryGetValue(key, out var named) ? named : null;
+                var node = new Node(graphId, value[..separator], flags.Contains(KeystoneFlag), flags.Contains(NotableFlag), flags.Contains(JewelSocketFlag), flags.Contains(IconOnlyFlag), links, starts)
+                {
+                    Ascendancy = ascendancy,
+                    AscendancyStart = flags.Contains(AscendancyStartFlag),
+                    AscendancyId = ascendancyId,
+                    Offers = offers,
+                };
+                this.hasAscendancyFlags |= node.Ascendancy;
+                this.hasStartFlags |= node.AscendancyStart;
+                this.hasOffers |= offers != null;
+                if (ascendancyId != null)
+                {
+                    this.ascendancyIds.Add(ascendancyId);
+                }
+
                 this.byGraphId[graphId] = node;
                 this.byId[node.Id] = node;
                 this.graphIds.Add(graphId);
@@ -66,8 +97,6 @@ namespace Poe2Accessibility.Services
                 }
             }
         }
-
-        private const string AttributeVariantType = "GenericAttribute";
 
         private readonly Dictionary<int, Variant> variants = new();
         private readonly HashSet<int> variantIds = new();
@@ -123,7 +152,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     A node's kind as the plugin says it, the same from the files' flags and from the row's bytes: keystone before
-        ///     notable before jewel socket (one node is both notable and socket); a start or an icon is none of them.
+        ///     notable before jewel socket; a start or an icon is none of them. A notable can be a socket too: the socket stays
+        ///     a property of the node (<see cref="Node.JewelSocket"/>), said and listed beside its kind.
         /// </summary>
         public static PassiveClass ClassOf(bool keystone, bool notable, bool jewelSocket, bool iconOnly, bool isStart) =>
             keystone ? PassiveClass.Keystone
@@ -137,6 +167,30 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The node with this PassiveSkills Id (a row's first column); null for a node newer than the catalog.</summary>
         public Node? ById(string passiveId) => this.byId.GetValueOrDefault(passiveId);
+
+        /// <summary>An id spelt as an ascendancy's node ("AscendancyMercenary3Notable1_"): the rule for a node the files give no flag.</summary>
+        public static bool IsAscendancyId(string passiveId) => passiveId.StartsWith(AscendancyPrefix, StringComparison.Ordinal);
+
+        /// <summary>Whether the node is one of an ascendancy: the files' flag, else (a node newer than them, or files without the flag) the id's spelling.</summary>
+        public bool IsAscendancy(string passiveId) =>
+            this.hasAscendancyFlags && this.ById(passiveId) is { } node ? node.Ascendancy : IsAscendancyId(passiveId);
+
+        /// <summary>Whether the node is an ascendancy's own start: the files' flag, else the id's spelling.</summary>
+        public bool IsAscendancyStart(string passiveId) =>
+            this.hasStartFlags && this.ById(passiveId) is { } node ? node.AscendancyStart
+            : IsAscendancyId(passiveId) && passiveId.TrimEnd('_').EndsWith(StartSuffix, StringComparison.Ordinal);
+
+        /// <summary>Whether the node offers the choice of an attribute: the files' word, else (without any) the id's spelling.</summary>
+        public bool IsAttributeNode(string passiveId) =>
+            this.hasOffers && this.ById(passiveId) is { } node ? node.Offers == AttributeVariantType : BuildNotes.NamedLikeAttributeNode(passiveId);
+
+        /// <summary>
+        ///     Whether an id the files do not know is spelt as a node of an ascendancy they do not know either (one a patch adds): the
+        ///     catalog is older than it, so its absence says nothing of a build.
+        /// </summary>
+        public bool OfUnknownAscendancy(string passiveId) =>
+            this.ascendancyIds.Count > 0 && this.ById(passiveId) == null && IsAscendancyId(passiveId) &&
+            !this.ascendancyIds.Any(ascendancy => passiveId.StartsWith(AscendancyPrefix + ascendancy, StringComparison.Ordinal));
 
         /// <summary>The start node of a character class, by the player's metadata path; null when no node starts it.</summary>
         public Node? StartOf(string characterPath) => this.startByClass.GetValueOrDefault(characterPath);
@@ -174,6 +228,18 @@ namespace Poe2Accessibility.Services
         /// <summary>One node of the tree; <paramref name="Links"/> are graph ids, both directions, itself left out.</summary>
         public sealed record Node(int GraphId, string Id, bool Keystone, bool Notable, bool JewelSocket, bool IconOnly, IReadOnlyList<int> Links, IReadOnlyList<string> StartClasses)
         {
+            /// <summary>Gets a value indicating whether the node belongs to an ascendancy's tree (its PassiveSkills row names an Ascendancy).</summary>
+            public bool Ascendancy { get; init; }
+
+            /// <summary>Gets a value indicating whether the node is an ascendancy's own start.</summary>
+            public bool AscendancyStart { get; init; }
+
+            /// <summary>Gets the Id of the node's ascendancy ("Warrior3"); null for a node of none or a catalog without it.</summary>
+            public string? AscendancyId { get; init; }
+
+            /// <summary>Gets the Id of the choice the node offers ("GenericAttribute"); null for a node with none.</summary>
+            public string? Offers { get; init; }
+
             /// <summary>Gets a value indicating whether a class starts here (the portrait at the tree's centre).</summary>
             public bool IsStart => this.StartClasses.Count > 0;
 
@@ -191,6 +257,10 @@ namespace Poe2Accessibility.Services
             public Dictionary<string, List<string>>? Starts { get; set; }
 
             public Dictionary<string, string>? Variants { get; set; }
+
+            public Dictionary<string, string>? Ascendancies { get; set; }
+
+            public Dictionary<string, string>? Offers { get; set; }
 
             public Dictionary<string, Dictionary<string, string>>? Classes { get; set; }
 

@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Per character, the file the planner's own list named last.</summary>
         private readonly Dictionary<string, string> named = new(StringComparer.Ordinal);
 
+        /// <summary>Per character, whether the last matching found build files and none held half of the tree's marks.</summary>
+        private readonly Dictionary<string, bool> noneMatched = new(StringComparer.Ordinal);
+
         /// <summary>Per character, the last build and source told to <see cref="Log"/>.</summary>
         private readonly Dictionary<string, string> told = new(StringComparer.Ordinal);
 
@@ -76,6 +79,7 @@ namespace Poe2Accessibility.Services
         {
             if (markedIds.Count == 0)
             {
+                this.noneMatched[character] = false;
                 this.Remember(character, null, "the tree marks no node");
                 return null;
             }
@@ -86,9 +90,12 @@ namespace Poe2Accessibility.Services
                 .OrderByDescending(entry => entry.Fit.Shared).ThenBy(entry => entry.Fit.Others).ToList();
             if (ranked.Count == 0 || ranked[0].Fit.Shared * 2 < markedIds.Count)
             {
+                this.noneMatched[character] = ranked.Count > 0;
                 this.Remember(character, null, $"no file holds half of the tree's {markedIds.Count} marked nodes");
                 return null;
             }
+
+            this.noneMatched[character] = false;
 
             // Files of one tree (a guide's variants) differ in their gems alone: the planner's list says which is active,
             // else the game's settings.
@@ -101,6 +108,9 @@ namespace Poe2Accessibility.Services
             this.Remember(character, match.Path, $"the tree's marks: {match.Fit.Shared} of {markedIds.Count} marked, {match.Fit.Others} besides{among}");
             return match.Plan;
         }
+
+        /// <summary>Whether the last <see cref="Matching"/> of the character found build files and none held half of the nodes the tree marks (a build of the website has no file at all).</summary>
+        public bool FilesButNoMatch(string character) => this.noneMatched.GetValueOrDefault(character);
 
         /// <summary>
         ///     The planner's own list showing <paramref name="name"/> as the character's build: the file of that name, or

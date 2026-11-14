@@ -14,7 +14,7 @@ internal static class EndgameExtractor
 {
     private const int IdOffset = 0x0;
 
-    /// <summary>The main tree, read from game memory by the plugin (GameLayout.PassiveTree.GraphFileName).</summary>
+    /// <summary>The main tree, read from game memory by the plugin (GameLayout.PassiveTree.GraphFileNamePrefix).</summary>
     private const string MainGraph = "metadata/passiveskillgraph.psg";
 
     /// <summary>Nodes the game names "do not translate" (the Atlas map's layout nodes) have no name worth saying.</summary>

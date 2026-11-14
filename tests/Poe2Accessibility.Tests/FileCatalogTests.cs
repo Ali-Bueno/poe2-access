@@ -59,7 +59,7 @@ namespace Poe2Accessibility.Tests
             Equal(PassiveClass.Small, tree.ById("blind17")!.Class, "no flag");
             Equal(PassiveClass.Notable, tree.ByGraphId(11)!.Class, "n");
             Equal(PassiveClass.Keystone, tree.ByGraphId(12)!.Class, "k");
-            Equal(PassiveClass.Notable, tree.ByGraphId(13)!.Class, "a notable that is a socket too reads as the row does: notable first");
+            Equal(PassiveClass.Notable, tree.ByGraphId(13)!.Class, "a notable that is a socket too is a notable first");
             Equal(true, tree.ByGraphId(13)!.JewelSocket, "and keeps its socket flag");
             Equal(PassiveClass.Other, tree.ByGraphId(14)!.Class, "a mastery icon");
             Equal(true, tree.ByGraphId(14)!.IconOnly, "i");
@@ -150,6 +150,11 @@ namespace Poe2Accessibility.Tests
             }
 
             Equal(true, nodes.Any(node => node.Keystone) && nodes.Any(node => node.Notable) && nodes.Any(node => node.JewelSocket) && nodes.Any(node => node.IconOnly), "each kind of node is there");
+            Equal(true, nodes.Any(node => node.JewelSocket && node.Class == PassiveClass.Notable), "a notable that is a socket too (0.5.5f: an ascendancy's)");
+            Equal(nodes.Count(node => PassiveTreeCatalog.IsAscendancyId(node.Id)), nodes.Count(node => node.Ascendancy), "the files' ascendancy nodes are the ones spelt so (0.5.5f)");
+            Equal(nodes.Count(node => node.Ascendancy && node.Id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal)), nodes.Count(node => node.AscendancyStart), "and their starts (0.5.5f)");
+            Equal(0, nodes.Count(node => node.AscendancyStart && !node.Ascendancy), "a start belongs to an ascendancy");
+            Equal(true, nodes.Count(node => tree.IsAttributeNode(node.Id)) > 0 && nodes.All(node => !tree.IsAttributeNode(node.Id) || node.Offers != null), "an attribute node is one that offers it");
         }
 
         private static void ASkillIsNamedByItsGrantedEffect()

@@ -299,6 +299,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\SecondLook.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\EnabledBitCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\AllocatedListCheck.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveTreeVerdicts.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\PassiveColumnRules.cs" Link="Extract\PassiveColumnRules.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaKind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\PluginLog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\TickCosts.cs" />

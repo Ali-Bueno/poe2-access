@@ -16,6 +16,20 @@ namespace Poe2Accessibility
             _ => string.Empty,
         };
 
+        /// <summary>How many passives of the build the tree no longer has: the build is older than the game's tree.</summary>
+        public static string BuildGone(int gone, int total) =>
+            T($"{gone} of {total} passives of this build no longer exist in the tree: the build was made for an older version",
+              $"{gone} de {total} pasivas de esta build ya no existen en el árbol: la build se hizo para una versión anterior");
+
+        /// <summary>The tree marks a build's nodes that none of the build files holds.</summary>
+        public static string BuildNoFile(int marked) =>
+            T($"The tree marks {marked} nodes of a build that none of your build files holds: it may be for another version",
+              $"El árbol marca {marked} nodos de una build que ninguno de tus archivos de build contiene: puede ser de otra versión");
+
+        /// <summary>A node's kind with its socket: a notable or keystone that holds a jewel says both ("notable, jewel socket").</summary>
+        public static string PassiveKind(Services.PassiveClass kind, bool jewelSocket) =>
+            jewelSocket && kind is Services.PassiveClass.Keystone or Services.PassiveClass.Notable ? $"{PassiveKind(kind)}, {PassiveJewelSocket}" : PassiveKind(kind);
+
         public static string PassiveCategoryName(Services.PassiveCategory category) => category switch
         {
             Services.PassiveCategory.Build => T("Build", "Build"),

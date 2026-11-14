@@ -400,6 +400,7 @@ namespace Poe2Accessibility.Services
             var now = Environment.TickCount64;
             var opened = now - this.lastPassiveAt > TreeLeftMs;
             this.lastPassiveAt = now;
+            this.treeOpenings += opened ? 1 : 0;
             if (this.resume == null || this.CharacterName?.Invoke() is not { Length: > 0 } character)
             {
                 return;
@@ -543,7 +544,7 @@ namespace Poe2Accessibility.Services
                         PassiveCategory.OutsideBuild => marked.Count > 0 && steps[index] == 0 && !marked.Contains(this.Nodes[index].Record) && !this.Nodes[index].IsStart,
                         PassiveCategory.Keystones => this.Nodes[index].Class == PassiveClass.Keystone,
                         PassiveCategory.Notables => this.Nodes[index].Class == PassiveClass.Notable,
-                        PassiveCategory.JewelSockets => this.Nodes[index].Class == PassiveClass.JewelSocket,
+                        PassiveCategory.JewelSockets => this.Nodes[index].JewelSocket,
                         PassiveCategory.Ascendancy => BuildPlan.IsAscendancyNode(this.Nodes[index].Id) && !this.Nodes[index].IsStart,
                         PassiveCategory.Reachable => steps[index] == 1,
                         _ => false,

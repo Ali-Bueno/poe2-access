@@ -106,9 +106,18 @@ namespace Poe2Accessibility.Services
         private AccessibleUiNode? DescribePassiveNode(in UiElementReader.ElementInfo info, bool hovered)
         {
             // A node is a child of a group of the canvas that holds the tree state; its record is judged only there.
-            if (!this.InGame || !hovered ||
-                !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) || this.TreeState(group.Raw.ParentPtr) == IntPtr.Zero ||
-                this.NodeRecord(info.Address) is not { } record || this.PassiveRow(record) is not { } row ||
+            if (!this.InGame || !hovered || !this.elements.TryReadElement(info.Raw.ParentPtr, out var group))
+            {
+                return null;
+            }
+
+            if (this.TreeState(group.Raw.ParentPtr) == IntPtr.Zero)
+            {
+                this.NoteNodeWithoutGraph(info.Address, group.Raw.ParentPtr);
+                return null;
+            }
+
+            if (this.NodeRecord(info.Address) is not { } record || this.PassiveRow(record) is not { } row ||
                 this.PassiveGraphOf(this.TreeCanvasOf(group.Raw.ParentPtr), info) is not { } graph)
             {
                 return null;
@@ -163,6 +172,10 @@ namespace Poe2Accessibility.Services
             this.NoteTreePlace(graph, record, allocated, next);
             var guide = hovered ? this.GuideAt(graph, record, allocated, marked, leads) : GuideSay.None;
             var news = this.TreeNews(graph, record);
+            if (this.StaleBuildLine(plan, marked) is { Length: > 0 } stale)
+            {
+                news = news.Append(stale).ToList(); // once per build and opening: the build does not fit this tree
+            }
             if (this.PointsChoice(graph) is { Length: > 0 } choosing)
             {
                 news = news.Append(choosing).ToList(); // the chooser of points, while held A shows it: its one label is all it says

@@ -7,12 +7,12 @@ using Index = LibBundle3.Index;
 ///     English table (<see cref="NameAnchor"/>) and reads as text in a translated copy; flags and keys are found by what they
 ///     hold (<see cref="DatContentColumns"/>). The file's column offset is the row offset in memory, a string or key being as
 ///     wide as its pointers. Writes { "Table.Column": offset } and each table's "Table.RowSize", by which the plugin judges
-///     a compiled offset the file does not name; a column not found fails the step.
+///     a compiled offset the file does not name; a column not found fails the step, but an optional one (<see cref="DatContentColumns.Optional"/>).
 /// </summary>
 internal static class DatColumnExtractor
 {
-    /// <summary>Every column the file must hold: the name columns and <see cref="DatContentColumns.Names"/>.</summary>
-    private static IEnumerable<string> ExpectedColumns => NameAnchor.Written.Select(anchor => anchor.Column).Concat(DatContentColumns.Names);
+    /// <summary>Every column the file must hold: the name columns and <see cref="DatContentColumns.Names"/> but its optional ones.</summary>
+    private static IEnumerable<string> ExpectedColumns => NameAnchor.Written.Select(anchor => anchor.Column).Concat(DatContentColumns.Names.Except(DatContentColumns.Optional));
 
     private const string Translation = "spanish";
     private const string RowSizeSuffix = ".RowSize";

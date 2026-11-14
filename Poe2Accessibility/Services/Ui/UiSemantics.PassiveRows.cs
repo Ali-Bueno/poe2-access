@@ -92,9 +92,9 @@ namespace Poe2Accessibility.Services
             choices.TryGetValue(node.GraphId, out var variant) || (node.ShownGraphId >= 0 && choices.TryGetValue(node.ShownGraphId, out variant)) ? variant : null;
 
         /// <summary>A node's kind as it is said: an ascendancy's is named as such, its tree being drawn inside the class's.</summary>
-        private static string KindWords(PassiveClass kind, string id) => BuildPlan.IsAscendancyNode(id)
-            ? Announcements.PassiveNode(Announcements.PassiveKind(kind), Announcements.OfAscendancy, string.Empty)
-            : Announcements.PassiveKind(kind);
+        private static string KindWords(PassiveClass kind, string id, bool jewelSocket) => BuildPlan.IsAscendancyNode(id)
+            ? Announcements.PassiveNode(Announcements.PassiveKind(kind, jewelSocket), Announcements.OfAscendancy, string.Empty)
+            : Announcements.PassiveKind(kind, jewelSocket);
 
         private const int AllocatedKeptMs = 2000;
         private (IntPtr State, long At, HashSet<int> Ids) lastAllocated = (IntPtr.Zero, 0, new HashSet<int>());
@@ -168,6 +168,20 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a node record keeps its PassiveSkills key: at its start in 0.5.5f, found again by the table its file names.</summary>
         private static readonly DatKeySite PassiveSkillKey = new("passive node key", GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
 
+        /// <summary>
+        ///     A hovered element that is a passive node (its record keeps a PassiveSkills key) hanging from a canvas of groups that
+        ///     no state names a graph for: counted by <see cref="PassiveTreeFields.NoteNoGraph"/>, which says it when it lasts.
+        /// </summary>
+        private void NoteNodeWithoutGraph(IntPtr node, IntPtr canvasAddress)
+        {
+            if (this.NodeRecordAt(node, this.elements.Controls?.Current(ControlGroup.PassiveNode) ?? 0) is { } record &&
+                DatKey.Row(this.reader, this.elements, record + PassiveSkillKey.Offset, GameLayout.PassiveTree.SkillTable) != null &&
+                this.elements.TryReadElement(canvasAddress, out var canvas) && this.elements.ReadChildren(canvas).Length >= MinCanvasGroups)
+            {
+                this.TreeFields.NoteNoGraph();
+            }
+        }
+
         /// <summary>The PassiveSkills row of a node record, trusted only when its key names the table.</summary>
         private IntPtr? PassiveRow(IntPtr record) => PassiveSkillKey.Row(this.reader, this.elements, record);
 
@@ -192,7 +206,7 @@ namespace Poe2Accessibility.Services
                     // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
                     var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
                     var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
-                    return new PassiveNodeRow(record, known.GraphId, named, KindWords(known.Class, known.Id), known.IconOnly, known.IsStart || BuildPlan.IsAscendancyStart(known.Id), known.Class, gated) { Id = known.Id };
+                    return new PassiveNodeRow(record, known.GraphId, named, KindWords(known.Class, known.Id, known.JewelSocket), known.IconOnly, known.IsStart || BuildPlan.IsAscendancyStart(known.Id), known.Class, gated) { Id = known.Id, JewelSocket = known.JewelSocket };
                 }
 
                 known = null; // the game's row says otherwise and the rows read right: the node is read from it, as one the files lack
@@ -213,15 +227,16 @@ namespace Poe2Accessibility.Services
             var name = KeywordLink.Replace(this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(shown, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty, ShownText);
             var isStart = known?.IsStart ?? BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowCharactersOffset) > 0;
             var iconOnly = shown[GameLayout.PassiveTree.RowIconOnlyOffset] == 1;
+            var jewelSocket = shown[GameLayout.PassiveTree.RowJewelSocketOffset] == 1;
             var kind = PassiveTreeCatalog.ClassOf(
-                shown[GameLayout.PassiveTree.RowKeystoneOffset] == 1, shown[GameLayout.PassiveTree.RowNotableOffset] == 1,
-                shown[GameLayout.PassiveTree.RowJewelSocketOffset] == 1, iconOnly, isStart);
+                shown[GameLayout.PassiveTree.RowKeystoneOffset] == 1, shown[GameLayout.PassiveTree.RowNotableOffset] == 1, jewelSocket, iconOnly, isStart);
             var noLinkedStep = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNoLinkedStepOffset) != 0;
             var shownId = this.RowId(shownRow) ?? string.Empty;
-            return new PassiveNodeRow(record, known?.GraphId ?? BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, KindWords(kind, shownId), iconOnly, isStart, kind, noLinkedStep)
+            return new PassiveNodeRow(record, known?.GraphId ?? BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, KindWords(kind, shownId, jewelSocket), iconOnly, isStart, kind, noLinkedStep)
             {
                 ShownGraphId = BitConverter.ToUInt16(shown, GameLayout.PassiveTree.RowGraphIdOffset),
                 Id = shownId,
+                JewelSocket = jewelSocket,
             };
         }
 

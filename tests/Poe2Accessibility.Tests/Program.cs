@@ -102,6 +102,7 @@ namespace Poe2Accessibility.Tests
                 BuildGemTests.All(),
                 BuildGearTests.All(),
                 FileCatalogTests.All(),
+                PassiveRebuildTests.All(),
                 AgreedChoiceTests.All(),
                 BaselineGraceTests.All(),
                 ShopPurchaseTests.All(),

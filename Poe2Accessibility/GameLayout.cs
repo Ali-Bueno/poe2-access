@@ -576,7 +576,8 @@ namespace Poe2Accessibility
             /// <summary>T +0x160 → the graph file (name at +8); file +0x28 → the graph content C.</summary>
             public static int StateGraphFileOffset { get; internal set; } = 0x160;
 
-            public const string GraphFileName = "Metadata/PassiveSkillGraph.psg";
+            /// <summary>The graph file's name up to its extension ("Metadata/PassiveSkillGraph.psg", 0.5.5f): the atlas trees' files lie under another folder.</summary>
+            public const string GraphFileNamePrefix = "Metadata/PassiveSkillGraph";
 
             public static int GraphContentOffset { get; internal set; } = 0x28;
 

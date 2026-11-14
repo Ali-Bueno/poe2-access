@@ -8,7 +8,7 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Fields of the passive tree's state and graph objects a game update can move (docs/compatibility.md), each found
-    ///     again by what it holds: the state's graph file (named Metadata/PassiveSkillGraph.psg), the file's content (an
+    ///     again by what it holds: the state's graph file (named Metadata/PassiveSkillGraph…), the file's content (an
     ///     edge list joining node records that lead to PassiveSkills rows) and the state's allocated list (graph ids of the
     ///     graph's nodes). Each is looked for near where it was measured, then through its whole object
     ///     (<see cref="PassiveGraphSearch"/>); the state itself is found by the canvas, the file in a found state.
@@ -129,8 +129,11 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>The files' links set beside the graph's edge list in memory, once per game process: a log line, nothing said.</summary>
-        public void NoteLinks(int compared, int differing, string first)
+        /// <summary>
+        ///     The files' links set beside the graph's edge list in memory, once per game process: a log line. When so many differ
+        ///     that the catalog is the older tree (<paramref name="memoryUsed"/>), the part is said as well.
+        /// </summary>
+        public void NoteLinks(int compared, int differing, string first, bool memoryUsed)
         {
             if (this.linksCompared || compared == 0)
             {
@@ -140,7 +143,83 @@ namespace Poe2Accessibility.Services
             this.linksCompared = true;
             this.Log?.Invoke(differing == 0
                 ? $"Passive tree catalog: the game files' links and the graph in memory agree on {compared} nodes"
-                : $"Passive tree catalog: the game files' links and the graph in memory DISAGREE on {differing} of {compared} nodes (first {first}); the files' are used");
+                : $"Passive tree catalog: the game files' links and the graph in memory DISAGREE on {differing} of {compared} nodes (first {first}); " +
+                  (memoryUsed ? "the graph in memory's are used for the whole tree" : "the files' are used"));
+            if (memoryUsed)
+            {
+                this.CatalogStale = true;
+                this.Report?.Missing(PassiveTreeVerdicts.StaleCatalogPart);
+            }
+        }
+
+        /// <summary>Gets a value indicating whether the catalog was found older than the game's tree (<see cref="NoteCoverage"/>, <see cref="NoteLinks"/>).</summary>
+        public bool CatalogStale { get; private set; }
+
+        private bool coverageJudged;
+
+        /// <summary>
+        ///     How many of the nodes drawn have an Id the catalog knows, once per game process: a log line, and the part said when
+        ///     the tree drawn is another than the catalog's (<see cref="PassiveTreeVerdicts.CatalogStale"/>).
+        /// </summary>
+        public void NoteCoverage(int drawn, int unknown)
+        {
+            if (this.coverageJudged || drawn < PassiveTreeVerdicts.MinNodesJudged)
+            {
+                return;
+            }
+
+            this.coverageJudged = true;
+            var stale = PassiveTreeVerdicts.CatalogStale(drawn, unknown);
+            this.Log?.Invoke($"Passive tree catalog: {unknown} of {drawn} nodes drawn are unknown to it" + (stale ? "; it is older than the game's tree" : string.Empty));
+            if (stale)
+            {
+                this.CatalogStale = true;
+                this.Report?.Missing(PassiveTreeVerdicts.StaleCatalogPart);
+            }
+        }
+
+        private long noGraphAt;
+        private int noGraphMisses;
+
+        /// <summary>
+        ///     A hovered element is a passive node and the canvas it hangs from has no state naming a graph: counted once per ten
+        ///     seconds, and the part said on the third (<see cref="PassiveTreeVerdicts.MissesToSay"/>) while no graph was found.
+        /// </summary>
+        public void NoteNoGraph()
+        {
+            var now = Environment.TickCount64;
+            if (this.fileKnown || this.noGraphMisses >= PassiveTreeVerdicts.MissesToSay || now < this.noGraphAt)
+            {
+                return;
+            }
+
+            this.noGraphAt = now + EdgesRetryMs;
+            if (++this.noGraphMisses >= PassiveTreeVerdicts.MissesToSay)
+            {
+                this.Log?.Invoke($"Passive tree: nodes are drawn but no state of the canvas names a graph file under {GameLayout.PassiveTree.GraphFileNamePrefix}");
+                this.Report?.Missing(PassiveTreeVerdicts.GraphFilePart);
+            }
+        }
+
+        private int ownStartMisses;
+
+        /// <summary>
+        ///     The own class's start node looked for with the tree open and the character readable: said lost on the third miss
+        ///     in a row, since every node not allocated then reads as locked.
+        /// </summary>
+        public void NoteOwnStart(bool found)
+        {
+            if (found)
+            {
+                this.ownStartMisses = 0;
+                return;
+            }
+
+            if (++this.ownStartMisses == PassiveTreeVerdicts.MissesToSay)
+            {
+                this.Log?.Invoke("Passive tree: no node starts the player's class (the files' starts and the rows' class lists name none); free nodes read as locked");
+                this.Report?.Missing(PassiveTreeVerdicts.OwnStartPart);
+            }
         }
 
         /// <summary>The state's graph file, or zero; a state whose file is not where measured is searched once for it.</summary>
@@ -497,6 +576,7 @@ namespace Poe2Accessibility.Services
             this.RowsDecide = false;
             this.ownRows.Clear();
             (this.linksCompared, this.edgesFromFiles) = (false, false);
+            (this.CatalogStale, this.coverageJudged, this.noGraphAt, this.noGraphMisses, this.ownStartMisses) = (false, false, 0, 0, 0);
         }
 
         /// <summary>Research (dev command "layout"): which of the tree's fields have been judged.</summary>
@@ -510,7 +590,7 @@ namespace Poe2Accessibility.Services
 
         private bool NamesGraph(IntPtr file) =>
             file != IntPtr.Zero && this.reader.IsValidAddress(file) &&
-            this.elements.ReadWStringStructAt(file + GameLayout.SkillSlot.FileNameOffset) == GameLayout.PassiveTree.GraphFileName;
+            this.elements.ReadWStringStructAt(file + GameLayout.SkillSlot.FileNameOffset) is { } name && name.StartsWith(GameLayout.PassiveTree.GraphFileNamePrefix, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>Where the file keeps its content and the content its edge list (<see cref="PassiveGraphSearch.Edges"/>); null when nowhere.</summary>
         private (int Content, int List)? FindEdges(IntPtr graphFile, int minEdges) =>

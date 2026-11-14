@@ -134,18 +134,24 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     An ascendancy's node by its PassiveSkills id: every such row is named "Ascendancy" + class + number + kind
-        ///     ("AscendancyMercenary3Notable1_"; the 669 of catalog/passive-tree.json, 0.5.5f, and no other row). yarkey's four
-        ///     nodes "not on this tree" were the four of his file's ascendancy, "Mercenary3" (2026-11-10).
+        ///     Whether the node is an ascendancy's, as the game's files say (<see cref="PassiveTreeCatalog.IsAscendancy"/>); yarkey's
+        ///     four nodes "not on this tree" were the four of his file's ascendancy, "Mercenary3" (2026-11-10).
         /// </summary>
-        public static bool IsAscendancyNode(string id) => id.StartsWith("Ascendancy", StringComparison.Ordinal);
+        public static bool IsAscendancyNode(string id) => PassiveTreeCatalog.Shared.IsAscendancy(id);
 
         /// <summary>
-        ///     An ascendancy's own start by its id ("AscendancyWarrior3Start", "AscendancyWitch3Start_": the 36 of
-        ///     catalog/passive-tree.json): the node ascending gives, which the tree's allocated list does not hold and a
-        ///     build's file lists first (live 2026-11-14).
+        ///     Whether the node is an ascendancy's own start: the node ascending gives, which the tree's allocated list does not
+        ///     hold and a build's file lists first (live 2026-11-14).
         /// </summary>
-        public static bool IsAscendancyStart(string id) => IsAscendancyNode(id) && id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal);
+        public static bool IsAscendancyStart(string id) => PassiveTreeCatalog.Shared.IsAscendancyStart(id);
+
+        /// <summary>
+        ///     How many of the plan's passives the tree no longer has: its ids <paramref name="inTree"/> does not know, each
+        ///     counted once, and how many it names. Those <paramref name="leftOut"/> do not count (an ascendancy a newer tree
+        ///     adds says nothing of the build), nor does anything when the tree's own data is the older (the caller's say).
+        /// </summary>
+        public (int Gone, int Of) Gone(Func<string, bool> inTree, Func<string, bool> leftOut) =>
+            (this.nodeIds.Count(id => !inTree(id) && !leftOut(id)), this.nodeIds.Count);
 
         /// <summary>The weapon set the build takes a node with (1 or 2: its points are that set's), 0 for the tree's own points.</summary>
         public int WeaponSetOf(string id) => this.Passives.Where(passive => passive.Id == id).Select(passive => passive.WeaponSet).FirstOrDefault(set => set > 0);
@@ -339,8 +345,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A tag alone, and a brace left without its pair that is no part of a "{0}".</summary>
         private static readonly Regex Stray = new(@"<[^<>{}]*>\{?|\{(?!\d+\})|(?<!\{\d+)\}", RegexOptions.Compiled);
 
-        /// <summary>An attribute node's PassiveSkills id ("strength17", "intelligence21_", "attributes65": the +5 to any attribute nodes).</summary>
-        public static bool IsAttributeNode(string id) => Regex.IsMatch(id, @"^(strength|dexterity|intelligence|attributes)\d+_*$");
+        /// <summary>Whether the node offers the choice of an attribute, as the game's files say (<see cref="PassiveTreeCatalog.IsAttributeNode"/>).</summary>
+        public static bool IsAttributeNode(string id) => PassiveTreeCatalog.Shared.IsAttributeNode(id);
+
+        /// <summary>An id spelt as an attribute node's ("strength17", "intelligence21_", "attributes65"): the rule when the files name no node that offers a choice.</summary>
+        public static bool NamedLikeAttributeNode(string id) => Regex.IsMatch(id, @"^(strength|dexterity|intelligence|attributes)\d+_*$");
 
         /// <summary>"&lt;m&gt;{&lt;red&gt;{Strength +5 is recommended}}" → "Strength +5 is recommended".</summary>
         public static string Plain(string markup)

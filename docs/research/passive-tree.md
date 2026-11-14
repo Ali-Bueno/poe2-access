@@ -47,8 +47,8 @@ Foreign key = (row ptr, file ptr), file `+8` = std::wstring table name (same che
   title on all 4 hovered nodes), `+0x3A` Characters list (count, ptr → FKs to "Data/Balance/Characters.dat"),
   **`+0x4A` IsKeystone** (33, = the 82×84 elements), **`+0x4B` IsNotable** (984), **`+0x54` icon-only** (368 of
   the 375 "Maestría …" rows, no stats; INFERRED decoration), **`+0x65` IsJewelSocket** (17/17, 0 others),
-  `+0x12F` attribute node (293/293 "Atributo", 0 others), `+0xAC` FK PassiveSkillMasteryGroups, **`+0x167` FK
-  "Data/Balance/Ascendancy.dat"** (ascendancy nodes), `+0x178` FK PassiveSkillTreeNodeFrameArt, `+0x1B3` FK
+  `+0x12F` attribute node (293/293 "Atributo", 0 others), `+0xAC` FK PassiveSkillMasteryGroups, **`+0x66` FK
+  "Data/Balance/Ascendancy.dat"** (ascendancy nodes; `+0x167` read so in 0.5.5e is not, see the end), `+0x178` FK PassiveSkillTreeNodeFrameArt, `+0x1B3` FK
   PassiveSkillVariantTypes.
 - MEASURED: stat lines are not cheap: the row holds Stats ids and raw values only; the text needs the stat
   description files (12 per minute is shown "0.2% de vida por segundo"). Use the hover tooltip for stats.
@@ -499,3 +499,51 @@ the planner's list named last, else the one the game's settings name for the cha
 - The log says whose build, which file and why, once per change: `Build plan: kehgan follows Lvl 1-23 - ….build (the
   tree's marks: 27 of 27 marked, 0 besides)`, `(the planner's list)`, `(the game's settings)`.
 - The mod remembers a character's file, not its contents: a file written again is read again within five seconds.
+
+## Ready for a rebuilt tree (2026-11-14)
+
+Version 1.0 (2026-12-11) rebuilds the tree (jewel sockets move inside the skill groups), adds the Shadow and Duelist
+ascendancies and makes every saved build stale. What was a fact of today's tree is now taken from the data, and what
+cannot follow says so.
+
+**From the data** (`passive-tree.json`, `Poe2UiExtract passive-tree`; each falls back on the old rule when the catalog
+lacks the field):
+
+| Fact | Source in the files | Reader |
+|---|---|---|
+| A node of an ascendancy (flag `a`, `ascendancies`: its Id) | PassiveSkills `+0x66` key into Ascendancy (684 rows, 669 in the graph; found as the key that reaches nearly all the table), not the Id's "Ascendancy" prefix; `+0x167` of the 0.5.5e notes is no such key | `PassiveTreeCatalog.IsAscendancy`, `BuildPlan.IsAscendancyNode` |
+| An ascendancy's start (flag `s`) | PassiveSkills `+0x76`, a flag set on 36 rows, all of them the starts (found as the flag set on rows whose Id says "start", 90% of its rows) | `IsAscendancyStart` |
+| An attribute node (`offers`: the choice's type) | PassiveSkills `+0x1B3` key into PassiveSkillVariantTypes: 293 nodes offer "GenericAttribute"; the Id rule matched 34 that offer none and missed `attributes20-` | `IsAttributeNode`, `BuildNotes.IsAttributeNode` |
+| A socket beside a kind | the flag stays a property of the node: "notable, jewel socket" is said and the finder's Jewel sockets list holds it (one node today, an ascendancy's) | `Node.JewelSocket`, `PassiveKind(kind, socket)` |
+| The graph file | `Metadata/PassiveSkillGraph` by prefix in memory; the extractor takes the only `.psg` under it when the exact name is gone | `PassiveTreeFields.NamesGraph`, `GraphFileOf` |
+
+**Said when it does not fit** (`CompatibilityReport.Missing`, once; each part's words are in `Announcements.CompatibilityPart`):
+
+| Part | When | Where |
+|---|---|---|
+| `passive tree catalog` | more than a tenth of the drawn nodes' Ids are unknown to the catalog (at least 64 drawn), or more than a tenth of the compared nodes' links differ from the graph in memory; the whole tree's links are then the graph's | `PassiveTreeFields.NoteCoverage`, `NoteLinks`, `PassiveTreeVerdicts` |
+| `passive tree graph file` | a hovered passive node whose canvas (10 groups or more) has no state naming a graph, three readings ten seconds apart | `PassiveTreeFields.NoteNoGraph` |
+| `passive tree start` | the tree open, the character readable and no start found, three readings a second apart (not on an ascendancy's own tree or a class's preview) | `PassiveTreeFields.NoteOwnStart` |
+
+A build that the catalog does not know passives of says, once per build and opening of the tree, "12 of 96 passives of
+this build no longer exist in the tree" (`BuildPlan.Gone`; an ascendancy the catalog has none of is left out, being the
+catalog's lack; nothing when the catalog is itself found stale); with build files in the folder and none holding half
+of the marked nodes it says so too (`BuildPlanFolder.FilesButNoMatch`; a build of the website has no file and says
+nothing). All 37 build files of 2026-11-14 hold only known Ids. The log says how many group children of the canvas read
+no node, and why (`Passive tree: N of M group children read are no node (…)`), so a new element class shows.
+
+**In the extractor:** the mastery flag (`IsIconOnly`) is optional (the step and `dat-columns` run without it, logged);
+a flag set on ten rows of the tree that no kind uses is logged with its offset and three Ids (today: `+0x8C`, `+0xA1`,
+`+0x156`, `+0x1A2` and the attribute flag `+0x12F`); the graph id column needs 99% of its rows nonzero and unique, the
+class list at least half of the Characters rows named once each, the exceptions logged; a graph id over 65535 fails the
+step instead of being cut.
+
+**Literals that remain** (a patch can break them; the checks above or the tests say so):
+- the `.psg` version 3 group layout (`SkillGraphFile`; another version is read only when it validates);
+- the memory offsets that are constants: state `+0x3D8`, graph file `+0x160`, allocated `+0x1A8`, choices `+0x1D8`,
+  record edge vectors `+0x38`/`+0x50`, row `+0x66` (the stick's "no linked step" is the Ascendancy key above), the
+  16-bit graph id of the allocated entries and the row (`PassiveTreeFields.AllocatedAt`, `GameLayout.PassiveTree`);
+- the points rows' shapes (`top_points_layout_gmp`, the "AscendancyPoints" keyword) and the choices' words
+  ("generic_attribute_strength" and the other two, under the type "GenericAttribute");
+- the tests' pins on today's catalog (`FileCatalogTests.TheShippedPassiveTreeHoldsTogether`) and the recorded stick walks
+  (`Fixtures/stick-walks.txt`, 240 pushes): re-record them on the 1.0 tree.

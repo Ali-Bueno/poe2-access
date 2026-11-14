@@ -18,6 +18,9 @@ internal static class DatContentColumns
     /// <summary>A key column into a table referenced row by row (levels of an effect) reaches nearly all of its rows.</summary>
     private const double MostTargetRows = 0.9;
 
+    /// <summary>A flag that only starts an ascendancy: set on rows whose Id says "start", and on hardly any other (0.5.5f: 36 of 36).</summary>
+    private const double MinStartFlagShare = 0.9;
+
     /// <summary>The ActiveSkills key: target Ids found inside the effect's Id (0.5.5e: 1160 rows, the next column 41).</summary>
     private const int MinNamedKeys = 100;
 
@@ -33,6 +36,17 @@ internal static class DatContentColumns
         "GrantedEffects.ActiveSkill", "GrantedEffectStatSetsPerLevel.AdditionalStats", "GrantedEffectStatSetsPerLevel.AdditionalStatsValues",
     };
 
+    /// <summary>
+    ///     Columns <see cref="Find"/> yields that a step may do without: the file is written and the step runs when they are not
+    ///     found (the mastery flag: a tree with no such rows has none).
+    /// </summary>
+    internal static readonly string[] Optional = { "PassiveSkills.IsIconOnly" };
+
+    /// <summary>What the passive tree's catalog writes beyond <see cref="Names"/>; each is left out of it when not found.</summary>
+    internal const string AscendancyColumn = "PassiveSkills.Ascendancy";
+    internal const string AscendancyStartColumn = "PassiveSkills.IsAscendancyStart";
+    internal const string VariantTypeColumn = "PassiveSkills.VariantType";
+
     /// <summary>The stat that tells a skill's additional stats apart from the table's other lists of Stats keys: Rapid Shot's.</summary>
     private const string HeatStat = "maximum_number_of_crossbow_heat_stacks";
 
@@ -40,14 +54,30 @@ internal static class DatContentColumns
     private const int HeatBase = 25;
     private const int MaxGemLevel = 40;
 
+    /// <summary>
+    ///     PassiveSkills' key into Ascendancy (the nodes of an ascendancy), the flag of an ascendancy's start and the key into
+    ///     PassiveSkillVariantTypes (a node that offers a choice), each found by content; 0.5.5f offsets of the file's rows.
+    /// </summary>
+    public static IEnumerable<(string Column, int? Offset, int Measured)> FindPassiveExtras(Index index)
+    {
+        if (DatTable.Open(index, "passiveskills") is not { } passives)
+        {
+            yield break;
+        }
+
+        yield return (AscendancyColumn, DatTable.Open(index, "ascendancy") is { } ascendancies ? FullestKey(passives, ascendancies.RowCount) : null, 0x66);
+        yield return (AscendancyStartColumn, FlagOfIds(passives, "start", MinMarkedRows, MinStartFlagShare), 0x76);
+        yield return (VariantTypeColumn, DatTable.Open(index, "passiveskillvarianttypes") is { } types ? FullestKey(passives, types.RowCount) : null, 0x1B3);
+    }
+
     public static IEnumerable<(string Column, int? Offset, int Measured)> Find(Index index)
     {
         if (DatTable.Open(index, "passiveskills") is { } passives)
         {
-            yield return ("PassiveSkills.GraphId", Nearest(passives, 0x30, offset => IsUniqueUInt16(passives, offset)), 0x30);
+            yield return ("PassiveSkills.GraphId", Nearest(passives, 0x30, offset => PassiveColumnRules.IsUniqueUInt16(passives, offset)), 0x30);
             if (DatTable.Open(index, "characters") is { } characters)
             {
-                yield return ("PassiveSkills.Characters", Nearest(passives, 0x3A, offset => IsKeyListInto(passives, offset, characters.RowCount)), 0x3A);
+                yield return ("PassiveSkills.Characters", Nearest(passives, 0x3A, offset => PassiveColumnRules.IsKeyListInto(passives, offset, characters.RowCount)), 0x3A);
             }
 
             yield return ("PassiveSkills.IsKeystone", FlagOfIds(passives, "keystone"), 0x4A);
@@ -183,51 +213,15 @@ internal static class DatContentColumns
         Enumerable.Range(0, pins.RowCount).All(row => pins.StringOrNull(row, offset) != null) &&
         Enumerable.Range(0, pins.RowCount).Count(row => pins.String(row, offset).Contains(' ', StringComparison.Ordinal)) >= MinMarkedRows;
 
-    private static bool IsUniqueUInt16(DatTable table, int offset)
-    {
-        var seen = new HashSet<int>();
-        for (var row = 0; row < table.RowCount; row++)
-        {
-            if (table.UInt16(row, offset) is var value && (value <= 0 || !seen.Add(value)))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    ///     A list of keys into a table that names each of its rows once over a few rows: every class has one start node
-    ///     (0.5.5e: six start nodes list the twelve Characters rows, two each).
-    /// </summary>
-    private static bool IsKeyListInto(DatTable table, int offset, int targetRows)
-    {
-        var named = new HashSet<long>();
-        var filled = 0;
-        for (var row = 0; row < table.RowCount; row++)
-        {
-            var keys = table.KeyList(row, offset);
-            if (keys.Any(key => key < 0 || key >= targetRows || !named.Add(key)))
-            {
-                return false;
-            }
-
-            filled += keys.Count > 0 ? 1 : 0;
-        }
-
-        return filled > 0 && filled <= targetRows && named.Count == targetRows;
-    }
-
     /// <summary>The flag column set on the most rows whose Id carries <paramref name="word"/>, those being a fair share of its rows.</summary>
-    private static int? FlagOfIds(DatTable table, string word, int minRows = MinMarkedRows)
+    private static int? FlagOfIds(DatTable table, string word, int minRows = MinMarkedRows, double minShare = MinMarkedShare)
     {
         var marked = Enumerable.Range(0, table.RowCount).Where(row => table.String(row, 0).Contains(word, StringComparison.OrdinalIgnoreCase)).ToList();
         using var probe = DatTable.Probe();
         return Enumerable.Range(0, table.RowSize)
             .Where(table.IsFlagColumn)
             .Select(offset => (Offset: offset, Marked: marked.Count(row => table.Bool(row, offset)), Set: Enumerable.Range(0, table.RowCount).Count(row => table.Bool(row, offset))))
-            .Where(column => column.Marked >= minRows && column.Marked >= column.Set * MinMarkedShare)
+            .Where(column => column.Marked >= minRows && column.Marked >= column.Set * minShare)
             .OrderByDescending(column => column.Marked)
             .Select(column => (int?)column.Offset)
             .FirstOrDefault();
