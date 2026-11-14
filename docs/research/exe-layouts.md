@@ -526,3 +526,55 @@ ExpandingBrequelEncounterRules, 93 Established…, 51 ExpeditionRules, 49 Ultima
   timer … = "; the rulesets, Monolith, Timer and GroundEffect have none.
 
 **In a running game:** kehgan in the Act 1 town, 2026-11-14 night, three unattended passes: the session is not at +0x340 of the host's game state but at +0x5B8 of the area (dev command "rulesets", which looks one and two pointers deep for an object holding the area near +0x20F0 with rulesets pointing back to it); it holds the area at +0x20F0 exactly as the exe says, and the town's one ruleset, at place 79 of its array, points back to it: row 79 of Rulesets.dat is AncestralOmenRules, so a place in the array is a row of the table. The log then reads "Rulesets: session 0x…, 1 of this area: AncestralOmenRules" and "Rulesets read: no breach; charges none; trial round none"; no error line, inventory read as before. A town has no Breach, Expedition or Trial: the fields inside those three rulesets stand on the exe and the range checks until a session's log shows them.
+
+## The Delirium fog, the Trial's room, the Ritual's sacrifice (2026-11-14, fourth pass)
+
+The loose ends of the Rulesets pass, followed to the end; scripts in the session's scratch folder (`exe4/`, `b1_strgrep` … `b17_bytes`).
+
+**The Delirium fog is not a circle.** Every place of the area has a *depth*: its path distance in grid cells from the mirror, along the
+walkable ground. The fog is the band of depths between a *rear* and a *front*, both computed on the client from two clocks the server
+sets and the client advances. The whole computation, written out for a port (every width, rounding and clamp, with what is unsure
+marked), is in [evidence/delirium-fog-port.md](evidence/delirium-fog-port.md); `FogMath` and `FogReader` are that port.
+
+| Field (R = AfflictionEncounterRules, row 40, 0x140 bytes) | Value | Proof | Site | Bytes |
+|---|---|---|---|---|
+| row of AfflictionBalancePerLevel for the area's level | R+0x58 | B | chosen once by 0x1F66C40 | - |
+| the area's factor on the rear's acceleration; its extra delay | R+0x70; R+0x74 | B | 0x1F66E5E; 0x1F66E97 (three map stats) | - |
+| the front's clock; the rear's clock, seconds (−1.8 at construction) | R+0x78; R+0x7C | B | packets 0x1803E05, 0x1803E2B; tick 0x1803A7D | `89 4E 78`; `89 4E 7C` |
+| the end, on the rear's clock; +inf while running | R+0x84 | B | 0x1803E51 | `89 8E 84 00 00 00` |
+| pause seconds left; pause hold | R+0x88; R+0x130 | B | 0x1803E7A | `89 8E 88 00 00 00` |
+| active; finished; never dissipates | R+0x8C; +0x8D; +0x8E | B | - | - |
+| the depth map, embedded: area +0x08, header +0x10, regions +0x18, cells +0x30, distance grid +0x48 | R+0xA0 | B | constructor 0x1F65A50, lookup 0x1F66820 | - |
+| the deepest depth of the area (8000 until the first packet) | R+0x128 | B | 0x1803F63 | - |
+| balance row: front speed after the ramp, rear speed, rear delay, rear acceleration, ramp seconds, first speed | +0x04, +0x08, +0x0C, +0x10, +0x34, +0x38 | B | Front 0x1F66EF0, Rear 0x1F66F60 | `F3 0F 10 58 34` … |
+
+- Front = v0·t + ½(v1 − v0)/T·t² until t = T, then + v1 a second. Rear: starts after the row's delay plus the area's, at the row's
+  speed with the row's acceleration times the area's factor; after the end it accelerates two thousand times faster; it never passes the
+  front. Row 0 (area level 1): 150 slowing to 30 cells a second over 100 s; the rear 10 s in, at 1 cell a second, gaining 0.38.
+- The player's depth: the cell of a map of half tiles gives a region; the region's own depth plus the distance inside it, read between
+  four nodes of a grid of half tiles; rounded up, between 1 and the most; a region the fog cannot reach gives 8000.
+- The game's progress bar (0x3B74E0, the art `DeliriumProgressBar*`) shows rear / most, front / most, the player's depth / most and
+  "paused": exactly these numbers.
+- **Being in the fog is the server's word**: the client only reads the player stat key 10259 `is_in_affliction_fog` (0x12FD33:
+  `BA 13 28 00 00`), which confirms `catalog/game-ids.txt`. The four seconds a guide gives outside the fog are not in the client either
+  (no 4.0 or 4000 compare in the rules' code).
+- **Maps:** AfflictionMapRules (row 42) has no clocks, no front and no rear: its bar shows `map_endgame_fog_depth` / 4000 beside the
+  player's depth, and the fog is drawn over the whole map. The bar prefers row 40 whenever it exists. Which of the two an endgame map
+  creates the client's code does not say: the plugin logs it.
+
+**The Trial of Chaos.** UltimatumRules +0x1B0 is the room being played, a row of UltimatumRooms (packet type 5, 0x181FBF8, which loads the
+table by name); its +0x10 is the row of UltimatumEncounterTypes, whose +8 is the text the HUD's label shows (0x572860: `48 8B 92 B0 01 00
+00`, then +0x10, then +8). The modifiers taken are 16-byte {row, table} pairs at +0x1C0 / +0x1C8, those offered at +0x1D8. The bar
+"Challenge Progress" reads a float of the *session*, +0x23E0 (0x5787D2: `F3 0F 10 B8 E0 23 00 00`), 0 to 1. "Return to the Ring" is a
+UI event (9) carrying a countdown in seconds; nothing on the client holds the ring's centre or radius, and the shader parameters
+`UltimatumOrigin` and `UltimatumTimeStopProgress` are never filled. The timer's source was not found.
+
+**The Ritual.** The altar's Render component +0x46C is the float the shader parameter `RitualSacrificePercent` is fed from (0x170D90F:
+`F3 0F 10 88 6C 04 00 00`), eased toward the entity's variable `ritual_sacrifice_percent` (the Render tick fetches it by the game's own
+hash 0x460E6134, reproduced). Its scale is not known. `RitualFogData` has no provider: the circle's centre and radius are not on the
+client.
+
+**Expedition's placement.** The limit is a path length of 90 grid cells (108 in a logbook: area +0x1B4 being 0x1C or 0x27) times
+(100 + `map_expedition_maximum_placement_distance_+%`) / 100, checked on the client (0x1F6A363: `6B C8 5A`; 0x1F6A35D: `6B D1 6C`) from
+record +0x60; another charge within 20 cells also blocks a place (0x172C783: `81 F9 90 01 00 00`), as does ground tagged
+`expedition_no_placement`. The same 90 and 108 the community measured.

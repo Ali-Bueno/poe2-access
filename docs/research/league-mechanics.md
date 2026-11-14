@@ -625,3 +625,58 @@ this area: AncestralOmenRules"; what is inside the Breach, Expedition and Trial 
 
 **Still left after three passes:** the Delirium fog's edge and its four seconds (nothing found that holds them); the Trial's round kind and
 bar; the Ritual's circle; the maximum placement distance of a charge (said by the game refusing the place, `blocked`).
+
+## 16. Fourth pass: the fog's band, the Trial's room, what no public source has (2026-11-14, late)
+
+The user: "no hay nada más que puedas investigar para lo que no pudiste encontrar? más datos públicos en repositorios de github, guías
+en internet", and then: "investiga hasta que realmente, realmente, realmente no tengas ninguna opción más". What was left after §15 and
+where each ended.
+
+**From the exe** ([exe-layouts.md](exe-layouts.md), "The Delirium fog, the Trial's room, the Ritual's sacrifice"; the fog's computation
+in full in [evidence/delirium-fog-port.md](evidence/delirium-fog-port.md)): the fog is a band of depths along the ground with a front
+and a rear on two clocks; the Trial's room gives its kind and the objective's text; its bar is a float of the session; the Ritual's
+sacrifice is a float of the altar's Render component; a charge's placement limit is 90 cells of path (108 in a logbook).
+
+**From public sources** (read 2026-11-14; each the source's claim):
+
+- Nobody publishes a reader of the Delirium fog, the Trial of Chaos' state, a Breach's ring or an Expedition's charges for PoE2: checked
+  in `Gordin/GameHelper2`, `imkk000/poe2-offsets`, `GTAteemo/PoE2GameHelper`, `zeaxth1bee/poe2helper`, `Drackrath/poe2_pointer_api` and
+  the `exCore2` plugins (ExileCore2 itself ships its offsets only as a binary). PoE1's `exApiTools/UltimatumCheck` reads the choice
+  panel's modifiers from UI classes, no round, objective or timer.
+- `imkk000/poe2-offsets` `ritual.go` reads the Ritual's reward window and tribute only (window vtable, tribute pool, cost entries of 12
+  bytes), and names a float on the Render component "sacrifice percent" at +0x4BC of an older build: the same field the exe study found
+  at +0x46C in 0.5.5f.
+- Upstream (`Gordin/GameHelper2`, `AreaInstanceOffsets`) places the area's stats, int32 pairs, at +0x158 (`MapMods`), read by nothing of
+  theirs but an offset viewer. Unvalidated here: the plugin logs them once per area ("Area stats: …") and uses nothing of them.
+- UI elements carry a name (`GTAteemo/PoE2GameHelper`: string id pointer at +0x0F8, examples "LeftPanel", "UltimatumTitle"); the exe holds
+  "UltimatumTitle", "UltimatumLabel", "UltimatumProgressBarLabel", "UltimatumTimerLabel", "UltimatumReturnToRingLabel",
+  "UltimatumPopupLabel", "UltimatumVoteCountLabel", and for the Delirium bar only art names (`DeliriumProgressBarFill`, `…Player`,
+  `…FillPaused`).
+- Delirium (maxroll.gg, gamesfuze.com of 2026-06-08): the fog "slowly moves forward" from the mirror and "fades behind you"; more than 4
+  seconds outside ends it; the gauge at the bottom shows how deep the player is. That is the band, seen from outside.
+- Trial of Chaos in 0.5.5 (kami-labs.fr, 2026-09-03, a secondary source): Escort gained a short grace before the statue stops; a chest
+  at each room's end; leaving and resuming allowed; rounds 4, 7 and 10 are bosses. No "Destroy the Idols" round is described anywhere.
+- The Ritual's circle: a dark mist keeps the player in (a wall, not a timer); no radius published.
+
+**What the plugin does with it** (unit tests only; no league content has been played):
+
+- **Delirium** (`FogMath`, `FogReader`, `FogNews`, in `RulesetWatch`): the band and the player's depth are computed as the game's bar
+  does. **Nothing is said until, in that encounter, the result has agreed five times with the game's own stat** well away from both edges
+  (and not disagreed more than one time in five). Then: "La niebla te dejó atrás: se fue <lado>" (urgent, again every 3 s: there are four),
+  "Vas por delante de la niebla: vuelve <lado>", "La niebla se disipa detrás de ti: avanza <lado>" (the rear within 30 cells of depth),
+  "Estás en el borde delantero de la niebla: frena" (the front within 12). The side is where the ground's depth rises or falls most
+  within 34 cells, as a side of the screen. The stat's own "En la niebla / Fuera de la niebla" stays as it was. A map with only row 42
+  gets nothing of this.
+- **Trial of Chaos:** the room's objective in the game's own words as it changes ("Sobrevive"), the first of a run included; "Progreso
+  del desafío: 25 / 50 / 75 %"; whatever is on screen under an element named "Ultimatum…" as it appears or changes its words (a clock is
+  not said; the walk of the interface is every 3 s, the elements found are looked at each 0.4 s).
+- **Ritual:** "Altar de ritual listo: úsalo para revivir a los monstruos y empezar" as its `current_state` goes from 0 to 1; the
+  sacrifice float is logged with the altar's states, nothing is said from it.
+- **Log lines to read in a first session:** "Delirium fog: front …, rear …, player … of …; the game says in/out; agreed N, not M",
+  "Delirium fog: <why no sample>", "Trial objective: Survive = "Sobrevive"", "Trial HUD: <element> = "<text>"", "Area stats: …",
+  "League piece seen: …RitualRuneInteractable: …; sacrifice …".
+
+**Where it ends.** Nothing more is on the client for: the fog in a map that has only the endgame rules (the whole map is fog there, and
+the stat still says in or out); the four seconds outside the fog (the server's); the Trial's ring centre and radius and its timer's
+source (server events); the Ritual's circle (a wall of the server's). Each of those is now either said from the game's own stat or text,
+or logged for the first session to show.
