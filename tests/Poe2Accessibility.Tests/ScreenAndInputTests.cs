@@ -81,6 +81,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, ScreenDiffer.SameBesideNumbers("1 Sekunde", "2 Sekunden"), "German plural");
             Equal(true, ScreenDiffer.SameBesideNumbers("1 minute 5 seconds", "2 minutes 5 seconds"), "English plural");
             Equal(false, ScreenDiffer.SameBesideNumbers("3 rounds left", "3 lives left"), "another word is news");
+            Equal(true, ScreenDiffer.IsTick("999 oro", "1.000 oro"), "a counter gaining its thousands separator");
+            Equal(true, ScreenDiffer.IsTick("Gold 1,000", "Gold 5"), "or losing it");
+            Equal(false, ScreenDiffer.IsTick("999 oro", "999 puntos"), "another word is still news");
         }
 
         /// <summary>A merchant's tab strip is built again at every sale and "Recomprar -2-" was said 63 times in a day (play log 2026-11-13).</summary>
