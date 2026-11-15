@@ -661,6 +661,11 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   against rares and uniques by default, against any enemy, or never), what characters say aloud nearby, a boss's
   taunts, NPC shouts and local chat, is skipped, not kept for later; whispers, party, guild, system notices and your
   own lines are still read ("Silence characters' lines in fights" in Combat, `QuietChatInFights`).
+- Cinematics (switch "Cinematics: the skip prompt and the narrator's lines" in Chat, `AnnounceCinematics`): a video is
+  announced with the game's own prompt, "Cinematic. Press A to skip", and the loading tips hidden under it are not read.
+  The game has no subtitles for them. The Hooded One's narration over the videos between acts is in English only: in
+  Spanish each sentence is spoken as he reaches it; in English nothing is added to his voice; the other languages have
+  no translation yet. Not heard in a game yet ([what is known](research/cinematic-subtitles.md)).
 - Weapon swap (RT in the inventory, `AnnounceMoves`): "Weapon set 2: Crude Bow, Blunt Quiver" or "Weapon set 2, empty".
 - Legends with inline item art name the item: "Identify Scroll of Wisdom x 1, X" (catalog/item-names.json).
 - Requirements drawn in red come right after the item name (and price): "Cannot use: Requires Level 5".

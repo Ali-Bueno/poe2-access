@@ -36,6 +36,9 @@ namespace Poe2Accessibility.Services
         /// <summary>An area is loading: the HUD and the chat can stay in the tree, so only the loading screen's own lines are news.</summary>
         public bool LoadingArea { get; set; }
 
+        /// <summary>A video covers the screen: its skip prompt is said by <see cref="CinematicWatch"/> and the loading screen under it is not seen.</summary>
+        public bool CinematicPlaying { get; set; }
+
         /// <summary>The screen's title as the state announcement already said it ("Menú del juego."); empty for none.</summary>
         public string SaidTitle { get; set; } = string.Empty;
 

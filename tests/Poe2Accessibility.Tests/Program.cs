@@ -65,6 +65,7 @@ namespace Poe2Accessibility.Tests
                 LeagueTests.All(),
                 ShrineCatalogTests.All(),
                 ChangeSignTests.All(),
+                CinematicTests.All(),
                 ShrineCostTests.All(),
                 BreakablePromptTests.All(),
                 PassiveAndMenuTests.All(),

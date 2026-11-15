@@ -98,6 +98,7 @@ namespace Poe2Accessibility
         private TrialDoorWatch? trialDoors;
         private ChaosTrialWatch? chaosTrial;
         private LeagueWatch? leagues;
+        private CinematicWatch? cinematics;
         private EssenceWatch? essences;
         private RulesetWatch? rulesets;
         private MapPinNarrator? mapPins;
@@ -372,6 +373,11 @@ namespace Poe2Accessibility
                 this.traps = new TrapWatch(this.audio, this.log);
                 this.trialDoors = new TrialDoorWatch(this.entities, this.output, this.log);
                 this.chaosTrial = new ChaosTrialWatch(this.output, this.log);
+                this.cinematics = new CinematicWatch(this.output, this.log)
+                {
+                    LoadingAreaId = () => this.gameState?.LoadingAreaId(),
+                    AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
+                };
                 this.leagues = new LeagueWatch(this.output, this.log, elements, memory)
                 {
                     TrackerLines = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>(),
@@ -711,6 +717,14 @@ namespace Poe2Accessibility
             // Another window in front (a notification, alt-tab): what the game redraws meanwhile is not news, and is
             // taken in silently so coming back does not read it (tooltips read out on a notification, 2026-10-26).
             var watching = !this.gameState.IsAttached || Core.Process.Foreground;
+            this.Isolated("cinematic", static core =>
+            {
+                if (core.cinematics != null && core.screen != null && core.narrator != null)
+                {
+                    core.cinematics.Tick(core.screen.Current, core.Settings.AnnounceCinematics);
+                    core.narrator.CinematicPlaying = core.cinematics.Playing;
+                }
+            });
             while (this.screen.TryDequeue(out var change))
             {
                 if (change.Kind != ScreenChangeKind.NumbersChanged) // a running counter would fill the log

@@ -205,6 +205,10 @@ namespace Poe2Accessibility.Services
                 : null;
         }
 
+        /// <summary>The id of the area row the loading state holds now; null when it holds none that reads.</summary>
+        public string? LoadingAreaId() =>
+            LoadingStateAddress() is var loading && loading != IntPtr.Zero ? this.AreaRowAt(loading, this.areaRowOffset)?.Id : null;
+
         private static IntPtr LoadingStateAddress()
         {
             var loading = IntPtr.Zero;

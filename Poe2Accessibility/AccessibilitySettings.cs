@@ -36,6 +36,9 @@ namespace Poe2Accessibility
         /// <summary>Read new chat lines from NPCs, your character, the system, whispers and party (not global or trade).</summary>
         public bool AnnounceChat = true;
 
+        /// <summary>A video's skip prompt is said and, where the mod has them in the language spoken, its narrator's lines as they are voiced.</summary>
+        public bool AnnounceCinematics = true;
+
         /// <summary>Also read other players' global and trade chat (busy, so off by default).</summary>
         public bool AnnouncePlayerChat;
 

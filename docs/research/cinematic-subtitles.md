@@ -88,13 +88,28 @@ every 0.8 s, were looked at and not kept.
 - MEASURED: the area row the mod tracks named `G2_1` when the state ended. OPEN: whether the loading state already holds the
   destination while the video plays (the mod reads that row only in game).
 
-## What it takes to speak them
+## What the mod does (2026-11-15)
 
-1. **Know a cinematic is on:** the `Skip_Cutscene` control visible (both sightings). OPEN: the name the watcher gives its label and
-   its layer in `AreaLoadingState` (the 2026-11-06 dump was not kept); any load with the F6 dump shows whether the control is in the
-   tree while hidden.
-2. **Know which one:** by the travel, from the `NPCTalk` rows above: the area left (`G1_town` seen) or the destination, if the
-   loading state holds it in time. Act 4 has two videos, so the destination is needed there. Both need a look at one plain load.
-3. **The text:** a table of the mod's own, keyed by the video, English from the transcripts above and its translations; the
-   translatable layer as for any other spoken text.
-4. **While it plays:** the loading tips stay unsaid (the game hides them), and the skip prompt is said once.
+The owner's word: the lines one by one as the narrator says them, and nothing in English, whose voice is understood.
+
+1. **A cinematic is on** while a visible element named `Skip_Cutscene` is in the tree: the screen watcher marks the layer that
+   holds it (`ScreenLayer.SkipsCinematic`, whatever its depth), and it lasts until the state ends. Said once: "Cinemática." and the
+   prompt's own text. The narrator leaves that layer and, in a load, the loading screen's lines unsaid meanwhile.
+2. **Which one:** by the area being loaded, from the `NPCTalk` rows above (`Cinematics.VideoTo`). MEASURED live on two plain loads:
+   the loading state holds the destination from the first tick of `AreaLoadingState` ("Loading: G2_town known 0 ms in (leaving no
+   area)", "Loading: G2_1 known 0 ms in (leaving G2_town)", loads of 2.7 and 2.2 s); the log writes that line at every load.
+3. **The text:** `Announcements.Cinematics.cs`, English as transcribed and Spanish in the game's own words for its names
+   (`NPCTextAudio`: "la bestia", "Marca del rey", "Orden del crepúsculo", "ezomitas", "imperio vaal"). English says none of it; another language
+   says a line only if its language file carries one under the English sentence (none does yet).
+4. **When:** each sentence at the second it starts in the video, counted from the start of the load (the first frame is on screen
+   0.4 s later). The prompt shows about 2.5 s in, so the first sentence comes late and the rest on time; a line whose moment has
+   passed is still said.
+5. Switch "Cinemáticas: el aviso para saltarlas y las frases del narrador" (`AnnounceCinematics`, Chat).
+
+**Not heard in a game:** a cinematic plays once per character and act. The pure part is under test (`CinematicTests`); the plugin
+loaded and ran two loads with it and no error line. The first log lines to read at the next one: "Cinematic: skip prompt on layer",
+"Cinematic narration:".
+
+**Left, and why:** `Act4_Interlude_Transition` (its narration is above, its trigger is in the executable and unknown);
+`FortressCinematic`, `cinematic_video` and the video after creating a character (audio not readable with ffmpeg, so only their
+prompt is said); the narration in the eight other languages (not translated).

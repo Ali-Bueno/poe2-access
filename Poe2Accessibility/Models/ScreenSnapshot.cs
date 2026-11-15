@@ -16,9 +16,10 @@ namespace Poe2Accessibility.Models
 
     /// <summary>
     ///     A visible top-level child of the UI root: a screen, panel, popup or the controller hint bar.
-    ///     <paramref name="IsBase"/> marks in-game layers present on arrival (HUD, minimap), which never own input.
+    ///     <paramref name="IsBase"/> marks in-game layers present on arrival (HUD, minimap), which never own input;
+    ///     <paramref name="SkipsCinematic"/> the one that shows a video's skip prompt.
     /// </summary>
-    public sealed record ScreenLayer(IntPtr Address, int Index, IReadOnlyList<ScreenText> Texts, bool HasControls, bool IsHintBar, bool IsBase = false, string Name = "", int UnnamedControls = 0);
+    public sealed record ScreenLayer(IntPtr Address, int Index, IReadOnlyList<ScreenText> Texts, bool HasControls, bool IsHintBar, bool IsBase = false, string Name = "", int UnnamedControls = 0, bool SkipsCinematic = false);
 
     /// <summary>The visible layers of the UI root at one moment, in root-child (drawing) order.</summary>
     public sealed record ScreenSnapshot(IntPtr Root, IReadOnlyList<ScreenLayer> Layers)

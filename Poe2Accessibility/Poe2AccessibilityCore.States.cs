@@ -80,6 +80,7 @@ namespace Poe2Accessibility
                 this.barriers?.Reset();
             }
 
+            this.cinematics?.StateChanged(current == GameStateTypes.AreaLoadingState);
             this.screen?.Reset(false);
             this.narrator?.Reset(current == GameStateTypes.InGameState);
             if (this.narrator != null)

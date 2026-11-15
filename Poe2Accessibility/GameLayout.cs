@@ -1198,6 +1198,12 @@ namespace Poe2Accessibility
             public const int DimmedAfterHighlight = 3;
         }
 
+        public static class Cinematic
+        {
+            /// <summary>The "press A to skip" control over a pre-rendered video (F6 dump, 2026-11-06; docs/research/cinematic-subtitles.md).</summary>
+            public const string SkipControlName = "Skip_Cutscene";
+        }
+
         public static class AreaLoadingState
         {
             /// <summary>Current WorldArea.dat row ("G1_1", "The Riverbank"); GameHelper's +0xF40 is null in 0.5.5e (2026-10-23).</summary>

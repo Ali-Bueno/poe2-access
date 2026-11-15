@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Services
             this.walkControls.Clear();
             this.walkContainers.Clear();
             var hasControls = false;
+            var skipsCinematic = false;
             var (tabBars, tabBarEnds) = (this.walkTabBars, this.walkTabBarEnds);
             tabBars.Clear();
             tabBarEnds.Clear();
@@ -62,6 +63,7 @@ namespace Poe2Accessibility.Services
 
                 var position = info.Raw.RelativePosition;
                 nodes.Add(new WalkNode(parent, childIndex, above.Depth + 1, above.X + position.X, above.Y + position.Y, control, enabled));
+                skipsCinematic |= info.Name == GameLayout.Cinematic.SkipControlName;
                 var children = this.elements.ReadChildren(info, ref this.walkChildren);
                 var hasText = this.elements.TryReadText(info, out var text, out var tagged);
                 if (!hasText && this.capturedLongText == IntPtr.Zero && info.Raw.UnscaledSize.Y >= LongTextMinHeight && this.elements.IsLongText(info.Address))
@@ -162,7 +164,7 @@ namespace Poe2Accessibility.Services
             MergeRows(nodes, texts);
             // A legend layer holds nothing but legends; a menu layer may carry its own hint bar (game menu).
             isHintBar = texts.Count > 0 && texts.TrueForAll(text => IsLegend(text.Text));
-            return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name, UnnamedControls: unnamed);
+            return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name, UnnamedControls: unnamed, SkipsCinematic: skipsCinematic);
         }
 
         /// <summary>The controls of the layer (not those holding others) with no text of their own: what a read of the screen cannot name.</summary>

@@ -27,6 +27,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),
             nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
+            nameof(AccessibilitySettings.AnnounceCinematics) => T("Cinematics: the skip prompt and the narrator's lines", "Cinemáticas: el aviso para saltarlas y las frases del narrador"),
             nameof(AccessibilitySettings.AnnouncePlayerChat) => T("Global and trade chat", "Chat global y de comercio"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.RepeatOnBlockedMove) => T("Say the control again when a direction moves nothing", "Repetir el control cuando una dirección no mueve nada"),

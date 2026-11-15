@@ -235,6 +235,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.CinematicPlaying && (this.LoadingArea || change.Layer.SkipsCinematic))
+            {
+                return;
+            }
+
             if (this.LoadingArea)
             {
                 change = change with { Texts = change.Texts.Where(text => text.IsLoadingScreen).ToList() };
