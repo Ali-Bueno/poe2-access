@@ -1,42 +1,100 @@
-# Cinematic subtitles (0.5.5f, 2026-11-06)
+# Cinematic subtitles (0.5.5f, 2026-11-06; narration found 2026-11-15)
 
-Can the mod read the subtitles of the pre-rendered cinematics? First answered from files; "Seen live" is the first look at one
-playing. **MEASURED** = found in the files or the logs; **INFERRED** = consistent, not proven; **OPEN** = unknown.
+Can the mod read the subtitles of the pre-rendered cinematics? No: the game draws none and ships none. The act transitions carry
+an English voice-over whose text is nowhere in the game's data, so the mod has to bring the text itself.
+**MEASURED** = found in the files or the logs; **INFERRED** = consistent, not proven; **OPEN** = unknown.
 
 ## What the files say
 
-- MEASURED: no subtitle text or timings on disk. The bundles (4.3M paths) hold no `.srt`, `.vtt` or `.ass`, and no `.dat` table has
-  subtitle text; no `.ui` layout or past UI dump has a subtitle control.
-- MEASURED: the videos are loose Bink 2 files in `<install>\Art\Videos\` (65 entries): `Act1`, `Act2`, `Act3`, `Act4_Interlude` and
-  `Interlude_Endgame` `_Transition.bk2` (28-39 s), `FortressCinematic.bk2` (about 28 s), `cinematic_video.bk2` (about 5 min), `GGG.bk2`.
-- MEASURED: the executable imports `BinkLoadSubtitles` and `BinkCurrentSubtitle`, and holds `ShowCinematicState`/`HideCinematicState`.
+- MEASURED: the videos are loose Bink 2 files in `<install>\Art\Videos\` (321 `.bk2`, 55 at the top level). The cinematics, from
+  their headers (all 3840x2160, one audio track):
+
+  | Video | Signature | Length |
+  |---|---|---|
+  | `Act1_Transition.bk2` | KB2j | 32.8 s |
+  | `Act2_Transition.bk2` | KB2j | 39.5 s |
+  | `Act3_Transition.bk2` | KB2j | 28.1 s |
+  | `Act4_Interlude_Transition.bk2` | KB2j | 35.2 s |
+  | `Interlude_Endgame_Transition.bk2` | KB2j | 39.5 s |
+  | `FortressCinematic.bk2` | KB2n | 27.8 s |
+  | `cinematic_video.bk2` | KB2n | 298.2 s |
+
+- MEASURED: the game is built to load subtitles and has none to load. The executable imports `BinkLoadSubtitles` and
+  `BinkCurrentSubtitle` and holds the suffixes `_EN.srt`, `_en_US.srt`, `_ES.srt`, `_es_ES.srt` (the same pair for FR, DE, KO, JA,
+  ZHCN, TH, ZHTW, PTBR, RU), a `<subtitle>{` markup and `SubtitleAdditionalLineSpacing`. No `.srt`, `.vtt`, `.ass`, `.sub` or `.ssa`
+  exists in the install or among the 4,325,172 bundled paths; nothing bundled sits under `art/videos`.
 - MEASURED: the option exists: "Enable Subtitles", `enable_subtitles` in `poe2_production_Config.ini`, on for the user.
-- MEASURED: past dumps show Bink videos as picture controls with the `Art/Videos/...bk2` path as a string, none of them a cinematic.
-- MEASURED: `NPCTextAudio` ids ending `_Cinematic` (`Tecrod_ArbiterOfAsh_Cinematic`) are voiced lines with text. OPEN: whether they
-  play over the videos.
-- INFERRED: the game gets the subtitles through Bink and draws the current one. OPEN: from what source, and when each video plays.
+- MEASURED: which video a travel plays is a script in `NPCTalk` (2,227 rows of 423 bytes; the script string is at row cells 92, 156
+  and 164, the travel script at 76, column 0 is the `NPCs` row), the same in every language copy:
 
-## Ways to read them, best first
+  | NPCTalk row | NPC | Option | Travels to | `SetAreaTransitionVideoPath` |
+  |---|---|---|---|---|
+  | 286 | `Four_Act1/HoodedMentor` | "Follow the Beast's trail" | `G2_1` | `Act1_Transition.bk2` |
+  | 411 | `Four_Act2/MarakethMatriarchCouncil` | "Travel to the Sandswept Marsh" | `G3_1` | `Act2_Transition.bk2` |
+  | 527 | `Four_Act3/AlvaZigguratEncampment` | "Travel to Kingsmarch" | `G4_town` | `Act3_Transition.bk2` |
+  | 679 | `Four_Act4/HoodedMentorKingsmarch` | "Travel to Oriath" | `G_Endgame_Town` | `Interlude_Endgame_Transition.bk2` |
 
-1. The text as the game draws it: a label in the UI tree, or the string Bink returns from `BinkCurrentSubtitle`.
-2. If they are burned into the image there is no data: a narration written per cinematic, keyed by the video's `.bk2` path.
+  `Act4_Interlude_Transition.bk2` is in no table: the executable names it itself. OPEN: from which area and to which it plays.
+- MEASURED: the narration's text is not in the data: none of its sentences is in any of the 2,996 `data/balance` tables (English and
+  the nine language folders, 219 tables each) nor in 21,998 other bundled text files, as UTF-16 or UTF-8. `NPCTextAudio` ids ending
+  `_Cinematic` are other lines.
 
-## Seen live (2026-11-06, creating a Druid)
+## The narration (speech-to-text of the audio tracks, 2026-11-15)
 
-A cinematic plays right after creating a character. Evidence: the F6 dump `ui-tree-CreateCharacterState-20261106-222102.txt` taken
-during it, and the screen watcher running through it (a snapshot every 150 ms; a text counts after two).
-- MEASURED: it has no state of its own: `CreateCharacterState` holds from "Esperando respuesta..." to `LoadingState`, 22:20:58 to
-  22:21:11.9, about 13 s. OPEN: whether the user skipped it; the transition videos last 28-39 s.
+The Hooded One speaks over each transition, in English only. Two models agree except where marked `[?]`; names are spelt as the
+game spells them.
+
+- **Act1** (0.4-26.8 s): The Countess has escaped with the Beast. Every attempt to control it has ended in cataclysm. We must pursue
+  her to the plains of Vastiri. We should find a `[? the]` Maraketh caravan. Only they can lead us through that harsh and
+  unforgiving land.
+- **Act2** (0-34.9 s): The Beast has grown too powerful. We can no longer contain it through mortal means. There was once an empire
+  that embraced corruption. They studied it, mastered it, and became the greatest civilization the world has ever known. But it led
+  to their destruction. Our allies will continue the pursuit of the Beast, but we shall undertake a different search. We must go to
+  the ruins of the Vaal Empire, in search of a weapon against the coming cataclysm.
+- **Act3** (0-24 s): Doryani has one piece of an ancient weapon that can control corruption. The other three pieces lie somewhere
+  in the countless islands of the Karui archipelago. `[? But]` Their current leader is distrustful of outsiders. He would never give
+  us passage. Our only path forward lies through Kingsmarch. Perhaps there we shall find a ship and crew brave enough to take us
+  where we need to go.
+- **Act4_Interlude** (0.9-29.9 s): The Countess leads the Twilight Order, and we now know she has taken the Beast to Oriath. By
+  using the weapon, the Karui have been cured of their blood fever, and have pledged to aid our cause. But we need a sizable army
+  for the battle ahead. It is time to rally our allies. We must recruit the Ezomytes, the Maraketh, and the living Vaal that
+  Doryani speaks of. Then, our siege may stand a chance.
+- **Interlude_Endgame** (0.8-37.9 s): With our forces united, we set sail from Kingsmarch and head for Oriath. But as we
+  approached, the unthinkable took place. We were too late. My worst fears have come to pass. The world is consumed by madness once
+  more. Our last hope for refuge is the Ziggurat of Utzaal. Perhaps Doryani's preparations will shield us while we plan our next
+  move. It appears Doryani truly does have a plan for every contingency.
+
+How: `ffmpeg -i <video>.bk2 -vn -ac 1 -ar 16000 <out>.wav`, then faster-whisper (`medium`, and `large-v3-turbo` with the names as
+`initial_prompt`). ffmpeg 8.1 opens KB2j and refuses KB2n ("Invalid data"), so OPEN: what `FortressCinematic.bk2` and
+`cinematic_video.bk2` say, and which video plays after creating a character.
+
+## Seen live
+
+**2026-11-06, creating a Druid.** Evidence: an F6 dump taken during the cinematic and the screen watcher running through it.
+- MEASURED: no state of its own: `CreateCharacterState` holds from "Esperando respuesta..." to `LoadingState`, about 13 s.
 - MEASURED: on screen, only `root_control`, `visible_area` and `Skip_Cutscene` (`[0,13]`, also at state+0x2B8) with its label
-  "Presiona <<xbox_button_a>> para saltar". No subtitle label in the tree.
-- MEASURED: the watcher saw no other text appear in those 13 s, so this is not one unlucky snapshot between two lines.
-- MEASURED: no `.bk2` path for the cinematic; the only one in the dump is the class preview
-  `Art/Videos/CharacterCreation/DruidShapeshifting.bk2`. The client log names no video.
-- INFERRED: `Skip_Cutscene` visible marks a cinematic. Subtitles, if any, do not come through the UI tree: Bink or burned in.
+  "Presiona <<xbox_button_a>> para saltar". No other text in those 13 s, and no `.bk2` path in the dump.
 
-## To check next
+**2026-11-15, Act 1 to Act 2** (the Hooded One in `G1_town`, "Entrando a Alrededores del Vastiri..."). Evidence:
+[the log lines and the watcher's events](evidence/cinematic-act1-transition-20261115.txt); 32 screenshots of the game window, one
+every 0.8 s, were looked at and not kept.
+- MEASURED: the video plays inside `AreaLoadingState`, which lasts 33.4 s (12:05:05.3 to 12:05:38.7) against 2 to 4 s for the plain loads before it:
+  the first frame of the video is on screen 0.4 s after the state begins, the last seconds are black, then the area.
+- MEASURED: no subtitle is drawn. Every frame shows ink drawings over a map of the journey and, at the bottom, "Presiona A para
+  saltar"; the watcher sees that label 2.5 s into the state (layer 5) and no other text but the loading tips.
+- MEASURED: the mod speaks over the narration: "Cargando área." and two of the three loading tips (layer 2, hidden under the video).
+- MEASURED: the video is `Act1_Transition.bk2`: its last-access time moved at 12:06:07.3, 29 s after the video ended, so that time
+  is written when the game lets the file go and cannot name a video while it plays.
+- MEASURED: the area row the mod tracks named `G2_1` when the state ended. OPEN: whether the loading state already holds the
+  destination while the video plays (the mod reads that row only in game).
 
-- Let one run to its end without skipping: a line heard with no text in the log rules the UI tree out for good.
-- Name the video: `LastAccessTime` of `Art\Videos\*.bk2` from PowerShell right after it plays. Git Bash `ls` there overwrites those
-  times (it did here, so this look named nothing).
-- Burned in or not: a screenshot during a spoken line, or `enable_subtitles` off and on (needs a restart).
+## What it takes to speak them
+
+1. **Know a cinematic is on:** the `Skip_Cutscene` control visible (both sightings). OPEN: the name the watcher gives its label and
+   its layer in `AreaLoadingState` (the 2026-11-06 dump was not kept); any load with the F6 dump shows whether the control is in the
+   tree while hidden.
+2. **Know which one:** by the travel, from the `NPCTalk` rows above: the area left (`G1_town` seen) or the destination, if the
+   loading state holds it in time. Act 4 has two videos, so the destination is needed there. Both need a look at one plain load.
+3. **The text:** a table of the mod's own, keyed by the video, English from the transcripts above and its translations; the
+   translatable layer as for any other spoken text.
+4. **While it plays:** the loading tips stay unsaid (the game hides them), and the skip prompt is said once.

@@ -1,0 +1,41 @@
+Act 1 -> Act 2 transition cinematic (Art/Videos/Act1_Transition.bk2), 2026-11-15, game 0.5.5f, language es, enable_subtitles=true.
+Lines of accessibility.log from the travel prompt to the arrival (State, Screen and Speech only, cut at 200 characters),
+then the events of the scratch watcher (last-access time of the loose videos, game window in the foreground).
+
+12:05:04.245 INFO Screen TextsAppeared layer 12: Misión completa
+12:05:04.245 INFO Speech queued: Misión completa
+12:05:04.264 INFO Speech stopped, said again: Misión completa
+12:05:04.417 INFO Screen TextsAppeared layer 12: Entrando a Alrededores del Vastiri...
+12:05:04.417 INFO Speech queued: Entrando a Alrededores del Vastiri...
+12:05:05.279 INFO State InGameState -> AreaLoadingState
+12:05:05.279 INFO Speech queued, kept: Cargando área.
+12:05:07.829 INFO Screen TextsAppeared layer 5: Presiona A para saltar
+12:05:15.329 INFO Screen TextsAppeared layer 2: Para usar un pergamino o un orbe, presiona X sobre él y luego A en tu objeto objetivo.
+12:05:25.311 INFO Screen TextsAppeared layer 2: Asigna afinidades de pestañas a una pestaña a través de Editar ajustes de pestañas para forzar a que los objetos se guarden rápidamente en la pestaña se
+12:05:25.312 INFO Speech queued: Asigna afinidades de pestañas a una pestaña a través de Editar ajustes de pestañas para forzar a que los objetos se guarden rápidamente en la pestaña seleccionada en f
+12:05:35.295 INFO Screen TextsAppeared layer 2: Presiona X sobre una gema sin tallar de tu inventario para tallarla en el panel de Fabricación de gemas de habilidad.
+12:05:35.295 INFO Speech queued: Presiona X sobre una gema sin tallar de tu inventario para tallarla en el panel de Fabricación de gemas de habilidad.
+12:05:38.729 INFO State AreaLoadingState -> InGameState
+12:05:38.729 INFO Area: Alrededores del Vastiri (G2_1)
+12:05:38.779 INFO Area stats: 4 pairs: map_disable_shrines_from_chance (15945) = 1052, base_consume_enemy_armour_broken_on_hit (20079) = -70, is_essence_monster_from_corrupted_monolith (24795) = 63252
+12:05:39.050 INFO Area level 16 (instance 2275ED8A)
+12:05:39.060 INFO Speech queued, kept: Área: Alrededores del Vastiri, nivel 16. Borde superior.
+12:05:39.063 INFO Screen TopLayerChanged layer 12: 5 | 6 | En tiempo de recarga | Espíritu, 0/30 | Maná, 136/136 | Ganarse el pasaje | Habla con el Encapuchado | Página de misiones 1/2 LT + cruceta de
+12:05:39.063 INFO Speech queued, kept: Misión: Ganarse el pasaje. Habla con el Encapuchado
+12:05:40.618 INFO Screen TextsAppeared layer 12: Acto II | Lo que antaño fueron verdes llanuras, hoy es arena teñida de rojo y negro. | Penalización de resistencias: 10%
+12:05:40.618 INFO Speech waits for the kept line: Acto II. Lo que antaño fueron verdes llanuras, hoy es arena teñida de rojo y negro.
+12:05:45.386 INFO Speech after the kept line: Acto II. Lo que antaño fueron verdes llanuras, hoy es arena teñida de rojo y negro.
+
+--- watcher
+12:04:27.537 start: 323 files watched, hwnd=854572
+12:04:27.937 game foreground=False
+12:04:33.009 game foreground=True
+12:05:07.982 game foreground=False
+12:05:16.628 game foreground=True
+12:05:42.898 game foreground=False
+12:05:48.675 game foreground=True
+12:06:07.615 ACCESS Act1_Transition.bk2 at 12:06:07.337
+12:06:15.817 ACCESS Loading.bk2 at 12:06:15.275
+12:06:21.761 ACCESS MagmaOrb.bk2 at 12:06:20.644
+12:06:43.641 game foreground=False
+12:07:01.669 game foreground=True
