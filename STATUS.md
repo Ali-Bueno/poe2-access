@@ -600,7 +600,8 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   and dev `itemmodscheck` (yarkey holds a Runa de piedra menor; socketing it is the owner's).
 - **Build Planner gear:** heard live on 2026-11-13 as it is (the item's name, then "Build: 2 de 3 modificadores. Falta …", the item, then the build's base; the
   inventory's summary before the focused item): kept, the owner can overrule the wording in `Announcements.BuildGear`. Charms, quivers and foci are not compared and a
-  unique is judged only when its name equals the author's: needs a build file that uses them.
+  unique is judged only when its name equals the author's: needs a build file that uses them. A weapon is told for the
+  set that asks its class ([where an item goes](docs/research/ui-layers.md), 2026-11-15, unit tests; not heard live yet).
 - **Build Planner supports:** "ya engarzada en …" heard live in the engraving window (kehgan, 2026-11-14); "En otra
   habilidad" and "Fuera de la build" have unit tests only: needs a build support socketed elsewhere than the build
   says (the owner's gems). The Sockets component's second socket (+0x38) is unmeasured: one support per skill.

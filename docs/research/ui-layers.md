@@ -452,7 +452,12 @@ Code and unit tests only (the game was in use): what a live session must check i
   2026-11-08..10): `/Armours/Helmets/`, `/BodyArmours/`, `/Gloves/`, `/Boots/`, `/Armours/Shields/` (bucklers too:
   `FourShieldDex`) → both off-hands, `/Weapons/` → both main hands, `/Rings/` → both rings, `/Amulets/`, `/Belts/`,
   `/Flasks/FourFlaskLife…` and `…FourFlaskMana…`. Charms (`/Flasks/FourCharm…`), quivers and foci (folders not seen) go
-  nowhere.
+  nowhere. Of two slots that take it, one whose base is of the item's class silences one that asks another class
+  (`BuildGear.OfItsKind`; yarkey 2026-11-15, "ACT 1 … Grenades": a talisman was set against the first set's Tense
+  Crossbow before the second set's Changeling Talisman); a class not known (a unique, a base the files lack) stays.
+- **Weapon sets in the file.** Gear is per set (`Weapon1`/`Offhand1`, `Weapon2`/`Offhand2`) and a passive may carry
+  `weapon_set`; a skill carries none (28 files, 2026-11-15: `id`, `level_interval`, `support_skills` only), so which set
+  a skill goes with is not in the build.
 - **What is compared, and from what.** The worn item per slot and its base id come from the server inventories without
   any tooltip (`ServerInventory`); its base name from the item (`ItemBaseName`), its rarity from `ItemKind`. Its modifier
   lines exist only in its tooltip, which the game builds when the cursor rests on it: the lines of each worn item are

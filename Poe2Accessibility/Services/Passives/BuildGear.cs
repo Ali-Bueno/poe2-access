@@ -213,6 +213,18 @@ namespace Poe2Accessibility.Services
             return new GearFit(entry, item, item == null ? BaseFit.Unknown : BaseFitOf(entry, item, bases, language), mods);
         }
 
+        /// <summary>Whether the item is of the class of the build's base there; null when either class is unknown (a unique, a base the files lack).</summary>
+        public static bool? SameKind(GearFit fit, IItemBases bases) =>
+            fit.Item == null || fit.Entry.IsUnique || (bases.ById(fit.Item.BaseId) ?? bases.ByName(fit.Item.BaseName)) is not { ItemClass.Length: > 0 } own ||
+            bases.ByName(fit.Entry.Base) is not { ItemClass.Length: > 0 } wanted ? null : own.ItemClass == wanted.ItemClass;
+
+        /// <summary>The slots to tell an item for: once one asks for its class (a talisman for the second weapon set), not those that ask for another.</summary>
+        public static IReadOnlyList<GearFit> OfItsKind(IReadOnlyList<GearFit> fits, IItemBases bases)
+        {
+            var kinds = fits.Select(fit => SameKind(fit, bases)).ToList();
+            return kinds.Contains(true) ? fits.Where((_, slot) => kinds[slot] != false).ToList() : fits;
+        }
+
         /// <summary>
         ///     What an item's lines made from memory give the comparison: the certain ones, partial when some line is in
         ///     doubt, and none at all (an item not read) when every line is.

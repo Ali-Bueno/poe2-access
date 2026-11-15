@@ -52,6 +52,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheHelmetSlotSaysWhatTheBuildWants), TheHelmetSlotSaysWhatTheBuildWants),
             (nameof(AnEmptySlotAndALaterPieceSayWhatIsAsked), AnEmptySlotAndALaterPieceSayWhatIsAsked),
             (nameof(AShopItemIsCountedAgainstTheWornOne), AShopItemIsCountedAgainstTheWornOne),
+            (nameof(AWeaponIsToldForTheSetThatAsksItsClass), AWeaponIsToldForTheSetThatAsksItsClass),
             (nameof(WithoutCatalogsNothingIsClaimed), WithoutCatalogsNothingIsClaimed),
             (nameof(ALineForAllElementsAnswersOneResistance), ALineForAllElementsAnswersOneResistance),
             (nameof(AUniqueIsToldByItsOwnName), AUniqueIsToldByItsOwnName),
@@ -206,6 +207,26 @@ namespace Poe2Accessibility.Tests
             Expect("Build, Casco: 2 de 3 modificadores, otra base, igual que el puesto", Announcements.BuildGearItem(Fit(entry, Worn), Fit(entry, Worn), 40, new Bases()),
                 "another base of the same class stays another base");
         });
+
+        // yarkey's bag, 2026-11-15: a talisman was set against the first set's crossbow, and the second set's talisman said little after it.
+        private static void AWeaponIsToldForTheSetThatAsksItsClass()
+        {
+            const string sets = "{\"passives\":[],\"inventory_slots\":[" +
+                "{\"additional_text\":\"War Spear\\n1. +40 to maximum Life\",\"inventory_id\":\"Weapon1\",\"level_interval\":[1,100],\"slot_x\":0}," +
+                "{\"additional_text\":\"Wrapped Quarterstaff\",\"inventory_id\":\"Weapon2\",\"level_interval\":[1,100],\"slot_x\":0}]}";
+            var bases = new Bases();
+            string Told(GearItem item, string file = sets) => string.Join(' ', BuildGear.OfItsKind(
+                BuildGear.SlotsFor(item.BaseId).Select(slot => Fit(Piece(file, slot.Slot, 40), item)).ToList(), bases).Select(fit => fit.Entry.Slot));
+
+            var staff = new GearItem("Metadata/Items/Weapons/TwoHandWeapons/Warstaves/FourWarstaff2", "Bastón envuelto", "Bastón envuelto pesado", false, null);
+            var spear = new GearItem("Metadata/Items/Weapons/OneHandWeapons/OneHandSpears/FourSpear4", "Lanza de guerra", "Lanza de guerra", false, null);
+            var bow = new GearItem("Metadata/Items/Weapons/TwoHandWeapons/Bows/FourBow1", "Arco tosco", "Arco tosco", false, null);
+            Expect("Weapon2", Told(staff), "a staff is for the set that asks a staff");
+            Expect("Weapon1", Told(spear), "a spear for the one that asks a spear");
+            Expect("Weapon1 Weapon2", Told(bow), "a class the files lack is told for both");
+            Expect("Weapon1 Weapon2", Told(staff, sets.Replace("Wrapped Quarterstaff", "War Spear")), "a class neither set asks is told for both");
+            Expect("Weapon1 Weapon2", Told(staff, sets.Replace("\"additional_text\":\"War Spear\\n1. +40 to maximum Life\"", "\"unique_name\":\"Redemption\"")), "a unique's class is not known: its slot stays");
+        }
 
         private static void WithoutCatalogsNothingIsClaimed() => InSpanish(() =>
         {

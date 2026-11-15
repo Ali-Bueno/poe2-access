@@ -186,23 +186,23 @@ namespace Poe2Accessibility.Services
                 return (first, last, false);
             }
 
-            var slots = BuildGear.SlotsFor(this.inventory.ItemBaseId(entity))
-                .Select(slot => (Slot: slot, Entry: BuildGear.EntryFor(active.Plan, slot.Slot, slot.X, active.Level))).Where(slot => slot.Entry != null).ToList();
+            var fits = BuildGear.OfItsKind(
+                BuildGear.SlotsFor(this.inventory.ItemBaseId(entity)).Select(slot => BuildGear.EntryFor(active.Plan, slot.Slot, slot.X, active.Level))
+                    .Where(entry => entry != null).Select(entry => Fit(entry!, entity, tooltip)).ToList(), BuildGear.Bases);
             var told = new List<(string Slot, string Line, IReadOnlyList<string> Mods)>();
-            foreach (var (slot, entry) in slots)
+            foreach (var fit in fits)
             {
-                var fit = Fit(entry!, entity, tooltip);
-                var held = worn.GetValueOrDefault(slot);
-                var wornFit = held == IntPtr.Zero ? null : BuildGear.Fit(entry!, this.WornItemOf(held), BuildGear.Bases, BuildGear.Texts, Localization.Language);
+                var held = worn.GetValueOrDefault((fit.Entry.Slot, fit.Entry.SlotX));
+                var wornFit = held == IntPtr.Zero ? null : BuildGear.Fit(fit.Entry, this.WornItemOf(held), BuildGear.Bases, BuildGear.Texts, Localization.Language);
                 var line = Announcements.BuildGearItem(fit, wornFit, active.Level);
                 if (line.Length > 0)
                 {
-                    told.Add((Announcements.GearSlotName(slot.Slot, slot.X), line, Announcements.GearMods(fit, BuildGear.Texts).ToList()));
+                    told.Add((Announcements.GearSlotName(fit.Entry.Slot, fit.Entry.SlotX), line, Announcements.GearMods(fit, BuildGear.Texts).ToList()));
                 }
             }
 
             // Two slots take it (rings, weapon sets): each one's modifiers under its name, or once when both say the same.
-            return BuildGear.SlotLines(told, slots.Count > 1);
+            return BuildGear.SlotLines(told, fits.Count > 1);
         }
 
         /// <summary>On the player's own inventory, entered from outside a stash or a shop: how the worn gear stands against the build.</summary>

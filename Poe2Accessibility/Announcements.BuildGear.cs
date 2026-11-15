@@ -192,14 +192,12 @@ namespace Poe2Accessibility
         /// <summary>An item of another class than the build's base, which its slot takes all the same (a staff for a spear); empty otherwise.</summary>
         private static string GearOtherKind(GearFit fit, IItemBases bases)
         {
-            if (fit.Item == null || fit.Base != BaseFit.Other || fit.Entry.IsUnique ||
-                (bases.ById(fit.Item.BaseId) ?? bases.ByName(fit.Item.BaseName)) is not { ItemClass.Length: > 0 } own || bases.ByName(fit.Entry.Base) is not { ItemClass.Length: > 0 } wanted ||
-                own.ItemClass == wanted.ItemClass)
+            if (fit.Base != BaseFit.Other || BuildGear.SameKind(fit, bases) != false)
             {
                 return string.Empty;
             }
 
-            var name = wanted.Name(Localization.Language);
+            var name = bases.ByName(fit.Entry.Base)!.Name(Localization.Language);
             return T($"another kind of item, the build asks for {name}", $"otra clase de objeto, la build pide {name}");
         }
 
