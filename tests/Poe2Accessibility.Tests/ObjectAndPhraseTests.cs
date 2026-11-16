@@ -273,6 +273,9 @@ namespace Poe2Accessibility.Tests
             Equal("cart", Walk(null, 110), "and said again on the way back");
             Equal("", Walk("stairs", 300), "a new kind waits");
             Equal("stairs", Walk("stairs", 302), "and is said");
+            Equal("", Walk(null, 330) + Walk("stairs", 320) + Walk("stairs", 321), "stepping off and on the stairs again nearby is not news");
+            Equal("", Walk(null, 500) + Walk("stairs", 520), "far away it waits a step");
+            Equal("stairs", Walk("stairs", 522), "and is said again");
 
             // A row of graves 30 cells apart was "tumba" 108 times in a day, 71 of them within 10 s of the last (play log 2026-11-13).
             var graveyard = new PlaceTracker(23, 25, 60);

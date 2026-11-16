@@ -21,6 +21,9 @@ namespace Poe2Accessibility.Services
         private string? candidate;
         private Vector2 lastOnPiece;
 
+        /// <summary>The piece kind said last and where: stepping off and on it again near there is not news.</summary>
+        private (string Kind, Vector2 At)? saidPiece;
+
         /// <param name="holdCells">Plain ground this far from the last named piece keeps its name (one sub-tile).</param>
         /// <param name="reachCells">A prop this near is named.</param>
         /// <param name="forgetCells">A named prop is named again once the player went this far from it.</param>
@@ -53,7 +56,13 @@ namespace Poe2Accessibility.Services
                 this.current = pieceKind;
                 this.lastOnPiece = player;
                 this.candidate = null;
-                say.Add(pieceKind);
+                // A fight on a staircase stepped off and on it four times in five seconds, "escaleras" each time (owner's log,
+                // Ogham Manor, 2026-11-16): the same kind is news again only once the player went far from where it was said.
+                if (this.saidPiece is not { } last || last.Kind != pieceKind || Vector2.Distance(player, last.At) > this.forgetCells)
+                {
+                    this.saidPiece = (pieceKind, player);
+                    say.Add(pieceKind);
+                }
             }
             else
             {
