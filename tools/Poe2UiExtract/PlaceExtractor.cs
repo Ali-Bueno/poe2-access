@@ -14,7 +14,7 @@ internal static partial class PlaceExtractor
     private static readonly (string Kind, Regex Token)[] TileKinds =
     {
         ("bridge", W("bridge")),
-        ("stairs", W("stair(s|case|way)?")),
+        ("stairs", W("stair(s|case|way)?(down|up|lower|upper)?")),
         ("door", W("doors?|doorway")),
         ("gate", W("gates?|gateway|gatehouse")),
         ("ruins", W("ruins?")),
@@ -30,7 +30,7 @@ internal static partial class PlaceExtractor
         ("encampment", W("encampment|camp")),
         ("courtyard", W("courtyard")),
         ("alley", W("alley|alleyway")),
-        ("ramp", W("ramp")),
+        ("ramp", W("ramp|excavation")),
         ("lake", W("lake")),
         ("corridor", W("corridor")),
         ("tomb", W("tomb|crypt|mausoleum")),
@@ -41,7 +41,31 @@ internal static partial class PlaceExtractor
         ("market", W("market|bazaar|stalls?")),
         ("garden", W("garden")),
         ("library", W("library")),
+        ("ballroom", W("ballroom")),
+        ("fireplace", W("fireplace")),
+        ("window", W("windows?")),
+        ("organ", W("organ")),
+        ("hole", W("hole")),
+        ("walkway", W("walkways?")),
+        ("platform", W("platforms?")),
+        ("throne", W("throne")),
+        ("chasm", W("chasm")),
+        ("pillar", W("pillars?|columns?")),
+        ("cell", W("cells?")),
+        ("oven", W("ovens?")),
     };
+
+    /// <summary>
+    ///     Kinds that also name wall and cliff trims ("walkwaytrim", "outer_edge_st_pillar"): a tile with one of these words is a trim, not the place.
+    ///     Rejected whole after the sweep of 2026-11-16: ledge (684 cliff edges), crevice (206 cave edge pieces), ziggurat (outer walls).
+    /// </summary>
+    private static readonly HashSet<string> TrimKinds = new() { "walkway", "pillar", "platform", "hole" };
+
+    private static readonly Regex TrimWord = new("^(?:walls?|trim|edge|thinwall|thickwall|cliffs?|abyss)$", RegexOptions.Compiled);
+
+    /// <summary>Stairs' way from words of the file name or the designer tags: "StairsDown", "stairsup", "grand_stairs_lower", "TransitionDown".</summary>
+    private static readonly Regex DownWord = new("^(?:down|lower|stairs?down|stairlower|stairslower|transitiondown)$", RegexOptions.Compiled);
+    private static readonly Regex UpWord = new("^(?:up|upper|stairs?up|stairupper|stairsupper|transitionup)$", RegexOptions.Compiled);
 
     /// <summary>Kinds of prop a player would name, by the whole tokens of the model's file name.</summary>
     private static readonly (string Kind, Regex Token)[] PropKinds =
@@ -96,8 +120,13 @@ internal static partial class PlaceExtractor
         {
             // The file name only: the binary's other strings ("door" in ledge tiles, edge types) named 395 tiles wrongly
             // (review 2026-10-25), and the useful designer tags (SlashBridge, EncampmentFront) repeat the name anyway.
-            if (Kind(TileKinds, Path.GetFileNameWithoutExtension(path)) is { } kind)
+            if (TileKind(Path.GetFileNameWithoutExtension(path)) is { } kind)
             {
+                if (kind == "stairs")
+                {
+                    kind = StairsKind(Path.GetFileNameWithoutExtension(path), file);
+                }
+
                 tiles[path] = kind;
             }
 
@@ -123,6 +152,42 @@ internal static partial class PlaceExtractor
         Say.Out.WriteLine($"Wrote {outFile}: {tiles.Count} named tiles ({string.Join(", ", tiles.Values.GroupBy(kind => kind).OrderByDescending(group => group.Count()).Select(group => $"{group.Key} {group.Count()}"))}), " +
                           $"{tileProps.Count} tiles with props, {rooms.Count} rooms with anchors and props");
         return tiles.Count == 0 ? 1 : 0;
+    }
+
+    /// <summary>A designer tag that is only the stairs' way ("TransitionDown", "StairLower", "Stairs_Upper"); the strings around it are model paths and edge types.</summary>
+    private static readonly Regex DirectionTag = new("^(?:transition|stairs?)_?(?:up|down|lower|upper)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>"stairs_down", "stairs_up" or plain "stairs": the way the file name says, else the .tdt's designer tag; both ways or none stay plain.</summary>
+    private static string StairsKind(string name, LibBundle3.Records.FileRecord file)
+    {
+        var way = Way(Words().Matches(name).Select(match => match.Value.ToLowerInvariant()));
+        if (way == null)
+        {
+            way = Way(TdtTags(file.Read().ToArray()).Where(tag => DirectionTag.IsMatch(tag)).SelectMany(tag => Words().Matches(tag).Select(match => match.Value.ToLowerInvariant())));
+        }
+
+        return way ?? "stairs";
+    }
+
+    internal static string? TileKind(string name)
+    {
+        var kind = Kind(TileKinds, name);
+        return kind != null && TrimKinds.Contains(kind) && Words().Matches(name).Any(match => TrimWord.IsMatch(match.Value.ToLowerInvariant())) ? null : kind;
+    }
+
+    internal static string? Way(IEnumerable<string> tokens)
+    {
+        var list = tokens.ToList();
+        var down = list.Any(DownWord.IsMatch);
+        var up = list.Any(UpWord.IsMatch);
+        return down == up ? null : down ? "stairs_down" : "stairs_up";
+    }
+
+    /// <summary>The designer tags of a .tdt: its UTF-16 strings that are not paths.</summary>
+    private static IEnumerable<string> TdtTags(byte[] data)
+    {
+        var text = Encoding.Unicode.GetString(data, 0, data.Length & ~1);
+        return Regex.Matches(text, @"[A-Za-z_]{4,40}").Select(match => match.Value);
     }
 
     /// <summary>The first kind whose pattern matches a whole token of the name (camel case and separators split it).</summary>

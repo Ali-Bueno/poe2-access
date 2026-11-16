@@ -15,10 +15,14 @@ tile prop lists (plus `.ao` models, `.gt`/`.et` ground and edge types). The runt
   then `.gt`/`.et` paths. A tile's kind comes from its file name only, split into words (camel case, underscores,
   digits) and matched as whole words against a list (`PlaceExtractor.TileKinds`: bridge, stairs, door,
   gate, ruins, church, graveyard, hut, tower, temple, arena/boss, entrance, dock, waterfall, encampment, mill, …).
-  Whole words keep `cave_wall`, `gatewallborder` or `outdoor` out. The tags are not used: the binary's other strings
+  Stairs split into `stairs_down`/`stairs_up` by the name's words (`StairsDown`, `stairsup`, `lower`, `upper`) or a .tdt string that is
+  only the way (`TransitionDown`); no way, or both, stays `stairs`. Manor and other words added 2026-11-16: ballroom, fireplace,
+  window, organ, oven, cell, hole, walkway, platform, chasm, pillar/column, excavation (ramp); walkway, pillar, platform and hole
+  drop tiles with a wall/trim/edge/cliff word. Rejected: ledge (684 cliff edges), crevice (206 cave edge pieces), ziggurat
+  (outer walls); throne names no tile. Whole words keep `cave_wall`, `gatewallborder` or `outdoor` out. The tags are not used: the binary's other strings
   named 395 tiles against their file names (`ledgesand_abysswall_*` → door, `shoreline_*overlay_*` → boat), and the
-  useful tags repeat the name. 2,148 tiles named on 0.5.5e (stairs 415, door 289, entrance 180, bridge 180, ruins 154,
-  hut 154, tomb 150, …); in Act 1 only bridges, the encampment and arenas.
+  useful tags repeat the name. 2,663 tiles named on 0.5.5e (stairs 445 of which 19 down and 15 up, door 289, walkway 230, entrance 181, bridge 180,
+  ruins 154, hut 154, tomb 150, …); in Act 1 only bridges, the encampment and arenas.
 - **`.tmd`** (UTF-16 text, `version 8`): one object per line, `x y … "model.ao" … "class"`, x/y in grid cells from the
   tile's corner in the file's orientation. 132 tiles have named props (`PlaceExtractor.PropKinds`: cart/wagon, well,
   campfire, anvil, notice board, mill wheel, tent, stall, statue, altar, fountain, boat, throne).

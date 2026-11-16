@@ -252,6 +252,7 @@ namespace Poe2Accessibility.Tests
             Equal(false, map.MatchRooms(new[] { ("waypoint", new Vector2(282, 252)) }), "one anchor of two does not place a room");
             Equal(true, map.MatchRooms(new[] { ("waypoint", new Vector2(283, 252)), ("well", new Vector2(349, 236)) }), "both anchors place it");
             Equal(3, map.Props.Count, "the room's cart joins the tiles'");
+            Equal("stairs down, stairs up, ballroom, columns", string.Join(", ", new[] { "stairs_down", "stairs_up", "ballroom", "pillar" }.Select(Announcements.PlaceName)), "the named kinds have their words");
         }
 
         private static void PlacesAreSaidOnceAsTheyChange()
