@@ -25,6 +25,20 @@ namespace Poe2Accessibility.Services
             if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
             {
                 var caption = this.FindDescendantText(info, CaptionSearchDepth, null);
+                if (this.InGame && caption.Length == 0)
+                {
+                    // A card whose texts sit one level deeper than a caption: the Sekhemas merchant's offers (picture | title and
+                    // what it does | price) were said by their picture's file name ("Merchant Healing Flask", 2026-11-16).
+                    var deeper = new RowWalk();
+                    this.CollectTexts(info, 0, RowCellDepth, deeper);
+                    if (deeper.Texts.Count is > 0 and <= MaxRowCells)
+                    {
+                        cellRow = deeper.Texts.Count > 1;
+                        longestCell = deeper.Texts.Max(text => text.Text.Length);
+                        return Announcements.Cells(deeper.Texts.Select(text => text.Text));
+                    }
+                }
+
                 if (this.InGame && caption.Length > 0)
                 {
                     // A choice drawn as a row of cells: the Instance Manager's "Enter the instance | Sao Paulo (BR) | Created:
@@ -101,6 +115,12 @@ namespace Poe2Accessibility.Services
         private string WithUnitPicture(in UiElementReader.ElementInfo holder, string text)
         {
             var pictures = this.elements.ReadChildren(holder);
+            if (pictures.Length == 0 && this.elements.TryReadElement(holder.Raw.ParentPtr, out var pair) && this.elements.ReadChildren(pair) is { Length: 2 } both)
+            {
+                // The picture drawn beside the number, its sibling: the Sekhemas merchant's price, the water icon then "200".
+                pictures = both;
+            }
+
             if (pictures.Length is 0 or > 2)
             {
                 return text;
@@ -108,15 +128,28 @@ namespace Poe2Accessibility.Services
 
             foreach (var address in pictures)
             {
-                if (this.elements.TryReadElement(address, out var picture) && picture.IsVisibleFlag && this.elements.ReadTextureKey(picture) is { } art &&
-                    InlineIcons.WithPicture(text, art) is var said && said != text)
+                if (address == holder.Address || !this.elements.TryReadElement(address, out var picture) || !picture.IsVisibleFlag || this.elements.ReadTextureKey(picture) is not { } art)
+                {
+                    continue;
+                }
+
+                if (InlineIcons.WithPicture(text, art) is var said && said != text)
                 {
                     return said;
+                }
+
+                if (this.InGame && BareNumber.IsMatch(text) && art.Contains(TrialArt.CounterMarkers[0], StringComparison.OrdinalIgnoreCase) &&
+                    this.WaterLabel?.Invoke() is { Length: > 0 } water)
+                {
+                    return Announcements.AmountOf(text.Trim(), water); // "200 de Agua sagrada"
                 }
             }
 
             return text;
         }
+
+        /// <summary>The Trial's sacred water in the client's language (the scanner's table), for a price drawn with its icon.</summary>
+        public Func<string>? WaterLabel { get; set; }
 
         /// <summary>A row's texts in drawing order and the weapon-set icons among them, as a tree for <see cref="WeaponSetRows" />.</summary>
         private sealed class RowWalk

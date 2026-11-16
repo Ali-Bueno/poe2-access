@@ -307,6 +307,18 @@ tables: `tools/research/gamedata/trial-rooms/` (`armlinks.py` parses a room's ob
   distances between its levers and doors (all 28 differ) and the wiring comes from a table; whether the next room's map device is
   among the entities from inside the room; `lever_pull` 1 against 2; an indicator's `active` when the room does not set it.
 
+### 1.7 The merchant's offers (Balbala, "Comprar objetos"; live 2026-11-16, build 0.5.5f)
+
+Each offer is an interactive button (`flags=0x8546EF1`, no name) with three children: the picture
+(`…/Sanctum/BoonCurseIcons/MerchantHealingFlask.dds`, `BoonAssassinsBlade`…), a column whose wrapper holds the title
+("Ventaja: Vial sanguino"; the healing flask has none) and what it does, and the price: a holder with two children, the
+`…/Sanctum/GoldIcon.dds` picture and the number ("200"). The texts sit three levels under the button, one deeper than a
+button's caption is looked for, so the reader fell back to the picture's file name ("Control sin nombre, Merchant Healing
+Flask"). Now an interactive control with no caption within two levels is said by the texts under it within three
+(`UiSemantics.RowText`), and a bare number whose only sibling is the Trial's water icon carries the water's word
+(`WithUnitPicture`, `WaterLabel`): "Ventaja: Vial sanguino, Los monstruos tienen un 30% menos de vida máxima, 220 de Agua
+sagrada, botón, 3 de 6" (heard in the owner's run, 2026-11-16). Source: `dump visible` and `focusinfo` on the open panel.
+
 ## 2. Trial of Chaos (Ultimatum)
 
 ### 2.1 Mechanics

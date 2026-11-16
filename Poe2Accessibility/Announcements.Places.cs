@@ -170,6 +170,9 @@ namespace Poe2Accessibility
         public static string SacredWater(string label, int water, int toCome) =>
             toCome > 0 ? T($"{label} {water}, plus {toCome}", $"{label} {water}, más {toCome}") : T($"{label} {water}", $"{label} {water}");
 
+        /// <summary>A price drawn as a number beside the currency's picture: "200 de Agua sagrada".</summary>
+        public static string AmountOf(string amount, string currency) => T($"{amount} {currency}", $"{amount} de {currency}");
+
         /// <summary>"Llaves: bronce 1, plata 0, oro 0".</summary>
         public static string TrialKeys(int bronze, int silver, int gold) =>
             T($"Keys: bronze {bronze}, silver {silver}, gold {gold}", $"Llaves: bronce {bronze}, plata {silver}, oro {gold}");
