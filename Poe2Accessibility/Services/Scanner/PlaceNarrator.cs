@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Room anchors are looked for this often: the game wakes entities as the player nears them.</summary>
         private const int AnchorPollMs = 2000;
 
+        /// <summary>Rooms are matched by the entities met at most this often: new ones wake at every step.</summary>
+        private const int ObjectMatchMs = 10_000;
+
         /// <summary>A prop this near (grid cells, about a step and a half: right beside or over it) is named; again after going four and a half steps away.</summary>
         private const float ReachCells = 14f;
         private const float ForgetCells = 45f;
@@ -61,6 +64,13 @@ namespace Poe2Accessibility.Services
         private long lastPoll = long.MinValue / 2;
         private long lastAnchorPoll = long.MinValue / 2;
 
+        /// <summary>The entities a room may place met in this area, by entity id: object key and grid cell.</summary>
+        private readonly Dictionary<uint, (int Key, Vector2 Grid)> roomObjects = new();
+
+        /// <summary>How many of <see cref="roomObjects"/> the last object match saw (-1: match again), and when it ran.</summary>
+        private int objectsMatched;
+        private long lastObjectMatch = long.MinValue / 2;
+
         /// <summary>The last build's verdict on the tile grid layout (1 fits, 2 found moved, -1 neither, 0 none new), for the frame thread.</summary>
         private int tileLayout;
 
@@ -88,6 +98,9 @@ namespace Poe2Accessibility.Services
             this.generation++; // a build still running belongs to the area left
             this.tracker = NewTracker();
             this.lastAnchorPoll = long.MinValue / 2;
+            this.roomObjects.Clear();
+            this.objectsMatched = 0;
+            this.lastObjectMatch = long.MinValue / 2;
         }
 
         /// <summary>What the player stands on when no tile names it, by grid cell: a narrow passage of the map's shape.</summary>
@@ -254,9 +267,11 @@ namespace Poe2Accessibility.Services
                               $"({Kinds(built.Pieces.Concat(built.Props))}) in {timer.ElapsedMilliseconds} ms" +
                               (built.UnknownRotations.Count > 0 ? $"; tile props left out for rotations {string.Join(",", built.UnknownRotations)}" : string.Empty));
                 timer.Restart();
-                built.NamedRooms = RoomMatcher.Match(this.rooms, placements, TileStructure.TileToGridConversion);
+                built.NamedRooms = built.TileRooms = RoomMatcher.Match(this.rooms, placements, TileStructure.TileToGridConversion);
+                built.ObjectRooms = RoomObjectMatcher.Candidates(this.rooms, placements);
                 this.log.Info($"Rooms: {built.NamedRooms.Count} named in {timer.ElapsedMilliseconds} ms" +
-                              (built.NamedRooms.Count > 0 ? $" ({string.Join(", ", built.NamedRooms.Select(room => $"{room.Label} at {room.X},{room.Y}"))})" : string.Empty));
+                              (built.NamedRooms.Count > 0 ? $" ({string.Join(", ", built.NamedRooms.Select(room => $"{room.Label} at {room.X},{room.Y}"))})" : string.Empty) +
+                              $"; {built.ObjectRooms.Count} more its entities may place");
                 return (built, count, generation);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -379,6 +394,8 @@ namespace Poe2Accessibility.Services
                 {
                     this.map = fresh.Map;
                     this.lastAnchorPoll = long.MinValue / 2;
+                    this.objectsMatched = -1; // the new map holds its tile rooms only
+                    this.lastObjectMatch = long.MinValue / 2;
                 }
             }
 
@@ -406,10 +423,19 @@ namespace Poe2Accessibility.Services
                 var anchors = new List<(string Kind, Vector2 Grid)>();
                 foreach (var entity in area.AwakeEntities.Values)
                 {
-                    if (entity.IsValid && entity.Path is { } path && entity.TryGetComponent<Render>(out var render) &&
-                        AnchorPaths.FirstOrDefault(anchor => path.Contains(anchor.Path, StringComparison.Ordinal)).Kind is { } kind)
+                    if (entity.IsValid && entity.Path is { } path && entity.TryGetComponent<Render>(out var render))
                     {
-                        anchors.Add((kind, new Vector2(render.GridPosition.X, render.GridPosition.Y)));
+                        var cell = new Vector2(render.GridPosition.X, render.GridPosition.Y);
+                        if (AnchorPaths.FirstOrDefault(anchor => path.Contains(anchor.Path, StringComparison.Ordinal)).Kind is { } kind)
+                        {
+                            anchors.Add((kind, cell));
+                        }
+
+                        // Where each object a room may place was first met: entities wake only near the player.
+                        if (this.map.ObjectRooms.Count > 0 && !this.roomObjects.ContainsKey(entity.Id) && this.rooms.KeyOf(path) is >= 0 and var key)
+                        {
+                            this.roomObjects[entity.Id] = (key, cell);
+                        }
                     }
                 }
 
@@ -417,9 +443,30 @@ namespace Poe2Accessibility.Services
                 {
                     this.log.Info($"Places: rooms placed by {anchors.Count} anchors, {this.map.Props.Count} props now");
                 }
+
+                this.MatchObjectRooms(this.map, now);
             }
 
             return this.map;
+        }
+
+        /// <summary>Places the rooms the entities met tell (<see cref="RoomObjectMatcher"/>) when new ones were met, at most every <see cref="ObjectMatchMs"/>.</summary>
+        private void MatchObjectRooms(PlaceMap places, long now)
+        {
+            if (this.roomObjects.Count == this.objectsMatched || now - this.lastObjectMatch < ObjectMatchMs)
+            {
+                return;
+            }
+
+            (this.objectsMatched, this.lastObjectMatch) = (this.roomObjects.Count, now);
+            var found = RoomObjectMatcher.Match(this.rooms, places.ObjectRooms, this.roomObjects.Values.ToList(), TileStructure.TileToGridConversion);
+            var named = RoomObjectMatcher.Merge(places.TileRooms, found);
+            if (!named.SequenceEqual(places.NamedRooms))
+            {
+                places.NamedRooms = named;
+                this.log.Info($"Rooms by objects: {string.Join(", ", named.Skip(places.TileRooms.Count).Select(room => $"{room.Label} at {room.X},{room.Y}"))} " +
+                              $"({this.roomObjects.Count} objects met)");
+            }
         }
     }
 }

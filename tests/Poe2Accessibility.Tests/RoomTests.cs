@@ -144,7 +144,7 @@ namespace Poe2Accessibility.Tests
         }
 
         /// <summary>A tile dump's sub-tiles: "x y path idX idY rotation", x and y the sub-tile's top-left grid cell.</summary>
-        private static List<TilePlacement> Placements(IEnumerable<string> lines) =>
+        internal static List<TilePlacement> Placements(IEnumerable<string> lines) =>
             lines.Select(line => line.Split(' ')).Where(parts => parts.Length == 6 && int.TryParse(parts[0], out _))
                 .Select(parts => new TilePlacement(parts[2], int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), new Vector2(int.Parse(parts[0]), int.Parse(parts[1])))).ToList();
 
@@ -152,7 +152,7 @@ namespace Poe2Accessibility.Tests
             Find(Path.Join("tests", "Poe2Accessibility.Tests", "Fixtures", name)) ?? throw new FileNotFoundException(name);
 
         /// <summary>A file under this repository or a checkout above it (a worktree finds the main checkout's debug dumps); null when none has it.</summary>
-        private static string? Find(string relative)
+        internal static string? Find(string relative)
         {
             foreach (var start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
             {

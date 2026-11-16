@@ -44,7 +44,7 @@ internal static class GameDataSteps
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
         new Step("game names", 3, "game-names.txt", "game-names", true), // 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
         new Step("places", 2, "places.json", "places", true), // 2: the props vocabulary, every rotation, each tile's own .tmd (2026-11-16)
-        new Step("rooms", 1, "rooms.json", "rooms", true),
+        new Step("rooms", 2, "rooms.json", "rooms", true), // 2: outdoor rooms by the entity objects they place (2026-11-16)
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 2, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings

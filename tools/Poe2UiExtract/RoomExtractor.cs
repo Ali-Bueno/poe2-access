@@ -5,8 +5,9 @@ using Poe2Accessibility.Services;
 using Index = LibBundle3.Index;
 
 /// <summary>
-///     `rooms` command: the named rooms of the game's room files (.arm) as patterns of tile classes, and the class of every
-///     tile (.tdt) those patterns can meet, for the plugin's RoomMatcher (docs/research/rooms.md). Read-only on the game.
+///     `rooms` command: the named rooms of the game's room files (.arm) as patterns of tile classes and of the entity objects
+///     they place, and the class of every tile (.tdt) those patterns can meet, for the plugin's RoomMatcher and
+///     RoomObjectMatcher (docs/research/rooms.md). Read-only on the game.
 /// </summary>
 internal static class RoomExtractor
 {
@@ -24,18 +25,24 @@ internal static class RoomExtractor
 
     private const string TerrainPrefix = "metadata/terrain/";
 
+    /// <summary>The world map's region rooms: their objects are map pins, not a place to walk.</summary>
+    private const string WorldMaps = TerrainPrefix + "worldmaps/";
+
     public static int Run(Index index, string outFile)
     {
         var clock = Stopwatch.StartNew();
         var files = BundleFiles.ByLowerPath(index).Where(pair => pair.Key.StartsWith(TerrainPrefix, StringComparison.Ordinal)).ToDictionary(pair => pair.Key, pair => pair.Value);
         var arms = files.Where(pair => pair.Key.EndsWith(".arm", StringComparison.Ordinal)).ToDictionary(pair => pair.Value, pair => pair.Key);
         var parsed = new ConcurrentDictionary<string, RoomFiles.Room>(StringComparer.Ordinal);
+        var objects = new ConcurrentDictionary<string, List<RoomObjects.Spot>>(StringComparer.Ordinal);
         var failed = 0;
         BundleFiles.ReadGrouped(arms.Keys, (file, bytes) =>
         {
             try
             {
-                parsed[arms[file]] = RoomFiles.Parse(PlaceExtractor.Text(bytes, arms[file]));
+                var text = PlaceExtractor.Text(bytes, arms[file]);
+                parsed[arms[file]] = RoomFiles.Parse(text);
+                objects[arms[file]] = RoomObjects.Read(text);
             }
             catch (Exception ex) when (ex is FormatException or IndexOutOfRangeException or ArgumentException or OverflowException)
             {
@@ -55,16 +62,20 @@ internal static class RoomExtractor
             }
         }
 
-        var kept = new List<(string Path, string Label, RoomFiles.Room Room, Dictionary<(int X, int Y), string> Cells, List<string> Families)>();
+        // A label's own object classes, among every room file's (an unlabelled room counts alone).
+        var unique = RoomObjects.Unique(parsed.Select(pair => (RoomLabels.Key(pair.Value.Label) is { Length: > 0 } key ? key : pair.Key, (IReadOnlyList<RoomObjects.Spot>)objects[pair.Key])));
+        var kept = new List<(string Path, string Label, RoomFiles.Room Room, Dictionary<(int X, int Y), string> Cells, List<string> Families, List<RoomObjects.Spot> Objects)>();
         foreach (var (path, room) in parsed.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             var label = RoomLabels.Key(room.Label);
             var pattern = cells[path];
             var distinctive = pattern.Values.Distinct().Any(cls => IsHard(cls) && askedBy[(Set(path), cls)].Count <= DistinctiveLabels);
-            if (RoomLabels.Spoken.Contains(label) && (pattern.Count >= ShapeCells || (distinctive && pattern.Count >= MinCells)))
+            var byTiles = pattern.Count >= ShapeCells || (distinctive && pattern.Count >= MinCells);
+            var byObjects = RoomObjects.Placeable(objects[path], unique) && !path.StartsWith(WorldMaps, StringComparison.Ordinal);
+            if (RoomLabels.Spoken.Contains(label) && (byTiles || byObjects))
             {
                 var families = room.Strings.Select(RoomFiles.Family).OfType<string>().Distinct().Order(StringComparer.Ordinal).ToList();
-                kept.Add((path, label, room, pattern, families));
+                kept.Add((path, label, room, byTiles ? pattern : new Dictionary<(int X, int Y), string>(), families, byObjects ? objects[path] : new List<RoomObjects.Spot>()));
             }
         }
 
@@ -72,9 +83,12 @@ internal static class RoomExtractor
         var classIds = used.Select((cls, id) => (cls, id)).ToDictionary(pair => pair.cls, pair => pair.id, StringComparer.Ordinal);
         var familyList = kept.SelectMany(room => room.Families).Distinct().Order(StringComparer.Ordinal).ToList();
         var familyIds = familyList.Select((family, id) => (family, id)).ToDictionary(pair => pair.family, pair => pair.id, StringComparer.Ordinal);
+        var keyList = kept.SelectMany(room => room.Objects).Select(spot => spot.Class).Distinct().Order(StringComparer.Ordinal).ToList();
+        var keyIds = keyList.Select((key, id) => (key, id)).ToDictionary(pair => pair.key, pair => pair.id, StringComparer.Ordinal);
 
-        // Only the tiles of the kept rooms' families can be part of one; a tile of any other class is no cell's.
-        var tdts = files.Keys.Where(path => path.EndsWith(".tdt", StringComparison.Ordinal) && RoomFiles.Family(path) is { } family && familyIds.ContainsKey(family)).ToList();
+        // Only the tiles of the families of rooms told by their tiles can be part of one; a tile of any other class is no cell's.
+        var tileFamilies = kept.Where(room => room.Cells.Count > 0).SelectMany(room => room.Families).ToHashSet(StringComparer.Ordinal);
+        var tdts = files.Keys.Where(path => path.EndsWith(".tdt", StringComparison.Ordinal) && RoomFiles.Family(path) is { } family && tileFamilies.Contains(family)).ToList();
         var read = ReadTiles(files, tdts);
         var tiles = new SortedDictionary<string, int>(StringComparer.Ordinal);
         var unread = 0;
@@ -96,6 +110,8 @@ internal static class RoomExtractor
             soft = used.Where(cls => RoomFiles.SoftClass().IsMatch(cls)).Select(cls => classIds[cls]).ToList(),
             softAccepts = RoomFiles.SoftAccepts.Select(cls => classIds[cls]).ToList(),
             families = familyList,
+            objectKeys = keyList,
+            uniqueKeys = keyList.Where(unique.Contains).Select(key => keyIds[key]).ToList(),
             tiles = tiles.GroupBy(tile => tile.Key[..tile.Key.LastIndexOf('/')], StringComparer.Ordinal)
                 .ToDictionary(folder => folder.Key, folder => folder.ToDictionary(tile => tile.Key[(folder.Key.Length + 1)..], tile => tile.Value)),
             rooms = kept.Select(room => new
@@ -106,11 +122,13 @@ internal static class RoomExtractor
                 h = room.Room.Height,
                 families = room.Families.Select(family => familyIds[family]).ToList(),
                 runs = Runs(room.Cells, classIds),
+                objects = room.Objects.SelectMany(spot => new[] { spot.X, spot.Y, keyIds[spot.Class] }).ToList(),
             }).ToList(),
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllText(outFile, JsonSerializer.Serialize(catalog));
-        Say.Out.WriteLine($"Wrote {outFile}: {kept.Count} rooms of {parsed.Count} room files ({failed} unreadable), {kept.Select(room => room.Label).Distinct().Count()} labels " +
+        Say.Out.WriteLine($"Wrote {outFile}: {kept.Count} rooms of {parsed.Count} room files ({failed} unreadable), {kept.Count(room => room.Cells.Count > 0)} by tiles, " +
+                          $"{kept.Count(room => room.Objects.Count > 0)} by {kept.Sum(room => room.Objects.Count)} objects of {keyList.Count} classes, {kept.Select(room => room.Label).Distinct().Count()} labels " +
                           $"({string.Join(", ", kept.GroupBy(room => room.Label).OrderByDescending(group => group.Count()).Take(12).Select(group => $"{group.Key} {group.Count()}"))}); " +
                           $"{tiles.Count} tiles of {tdts.Count} in {familyList.Count} families ({unread} unreadable), {used.Count} classes; {new FileInfo(outFile).Length / 1024} KB in {clock.Elapsed.TotalSeconds:0.0} s");
         return kept.Count == 0 ? 1 : 0;
