@@ -20,7 +20,27 @@ namespace Poe2Accessibility.Services
             .Concat(Enumerable.Range(0x30, 10)).Concat(Enumerable.Range(0x41, 26)).Concat(Enumerable.Range(0x60, 16))
             .Select(code => (VK)code).ToArray();
 
+        /// <summary>Keys held on the last <see cref="WentDown"/> check, so a held key counts once.</summary>
+        private readonly System.Collections.Generic.HashSet<VK> held = new();
+
         public bool Pressed(VK key) => key != 0 && KeyState.IsKeyPressedAndNotTimeout(key, DebounceMs);
+
+        /// <summary>The key went down since the last check: once per press, however long it is held (Ctrl held for Ctrl+click stops speech once).</summary>
+        public bool WentDown(VK key)
+        {
+            if (key == 0)
+            {
+                return false;
+            }
+
+            if (!KeyState.IsKeyPressed(key))
+            {
+                this.held.Remove(key);
+                return false;
+            }
+
+            return this.held.Add(key);
+        }
 
         public bool Enter() => this.Pressed((VK)EnterKey);
 
