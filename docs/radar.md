@@ -147,6 +147,9 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   Coming back after going two looks away says "Cruce 3, ya estuviste aquí" and the ways still new. A way counts as explored
   once the next place along it and the first stretch of each of its ways were seen (a look from the fork reveals 60 cells of
   every way, so the way's own first cell told nothing).
+- **Named rooms** (setting `AnnounceRooms`, [rooms](research/rooms.md)): a room the game's layout names (Ogham Manor's
+  chapel, wine cellar, throne room…) is said on walking into it, "ya estuviste aquí" when come back to; a fork inside it is
+  named after it, in one line ("Capilla: sigue a la izquierda").
 - **Rays that follow the map** (setting `RadarFollowsMap`): the four rays turn to the screen's diagonals where 85% of the ways
   of the forks within a look run diagonal on screen (a grid-built map: the Manor's corridors run diagonal under the camera),
   and back at 60% or less; said twice running (1 s apart) before turning, and a turn starts the readings afresh. An opening
