@@ -269,6 +269,12 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Frontier.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Walks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Parts.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.Raster.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.Graph.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.Segments.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.Ground.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.Tree.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapCorner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapPartWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\CarriedWatch.cs" />
