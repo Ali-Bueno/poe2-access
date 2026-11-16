@@ -205,7 +205,7 @@ internal static partial class PlaceExtractor
         return null;
     }
 
-    private static string Text(byte[] data, string? path) => GameFormats.Noted(path,
+    internal static string Text(byte[] data, string? path) => GameFormats.Noted(path,
         data.Length >= 2 && data[0] == 0xFF && data[1] == 0xFE ? Encoding.Unicode.GetString(data, 2, data.Length - 2)
         : data.Length >= 2 && data[1] == 0 ? Encoding.Unicode.GetString(data)
         : Encoding.UTF8.GetString(data));

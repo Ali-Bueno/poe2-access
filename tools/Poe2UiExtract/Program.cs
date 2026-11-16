@@ -425,6 +425,12 @@ public static class Extractor
             return OnIndex(args[1], index => PlaceExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json"));
         }
 
+        // Args: rooms <gameDir> [outFile]  -- the named rooms of the room files as tile-class patterns (docs/research/rooms.md).
+        if (args.Length > 1 && string.Equals(args[0], "rooms", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => RoomExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\rooms.json"));
+        }
+
         // Args: gems <gameDir> [outFile]  -- skill and support gems, their names, tags and skills (docs/research/file-catalogs.md).
         if (args.Length > 1 && string.Equals(args[0], "gems", StringComparison.OrdinalIgnoreCase))
         {

@@ -41,6 +41,7 @@ internal static class Batch
         ["class-mechanics"] = (_, index, output) => ClassMechanicExtractor.Run(index, output),
         ["currency-art"] = (_, index, output) => CurrencyArtExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
+        ["rooms"] = (_, index, output) => RoomExtractor.Run(index, output),
         ["endgame"] = (_, index, output) => EndgameExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
         ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
