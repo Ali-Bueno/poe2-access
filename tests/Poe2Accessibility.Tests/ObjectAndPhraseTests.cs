@@ -318,9 +318,8 @@ namespace Poe2Accessibility.Tests
         private static void AForkIsToldOnceWithoutTheWayBack()
         {
             var forks = new ForkTracker(awayCells: 100);
-            var at = new Vector2(0, 0);
             string Walk(int? node, float x, string stem = "Fork", bool numbered = true) =>
-                forks.Enter(node, at, new Vector2(x, 0), () => (stem, numbered)) is { } told ? $"{told.Name}{(told.Again ? " again" : string.Empty)}" : string.Empty;
+                forks.Enter(node, new Vector2(x, 0), () => (stem, numbered)) is { } told ? $"{told.Name}{(told.Again ? " again" : string.Empty)}" : string.Empty;
             Equal("", Walk(null, 0), "no fork");
             Equal("Fork 1", Walk(7, 0), "walking into a fork names it");
             Equal("", Walk(7, 1), "staying in it is not news");
@@ -329,6 +328,12 @@ namespace Poe2Accessibility.Tests
             Equal("Fork with stairs 2", Walk(10, 70, "Fork with stairs", false), "a second of that name is numbered");
             Equal("", Walk(null, 300), "going far away");
             Equal("Fork 1 again", Walk(7, 5), "coming back keeps its name and says it was visited");
+
+            // An open desert is one room hundreds of cells across: walking on through it and stepping out to a path's edge is no coming back.
+            Equal("Room 1", Walk(20, 1000, "Room"), "walking into a wide room");
+            Equal("", Walk(20, 1150) + Walk(20, 1300) + Walk(null, 1310) + Walk(20, 1320), "far from where it was entered, out a step and back in");
+            Equal("", Walk(null, 1500), "going far from where the player last stood in it");
+            Equal("Room 1 again", Walk(20, 1320), "coming back is news");
 
             var ways = new List<Vector2> { new(1, 0), new(0, -1), new(-1, 0.1f) };
             Equal(2, ForkTracker.WayBack(ways, new Vector2(-5, 0)), "the way nearest where the player came from is the way back");
@@ -340,7 +345,7 @@ namespace Poe2Accessibility.Tests
             Equal("Fork 2: goes on up and right, dead end left, explored down", Announcements.Fork("Fork 2", false, told), "said in one line");
             Equal("GoesOn up right", string.Join("; ", ForkTracker.Tell(new[] { ("up right", ForkWay.GoesOn), ("up right", ForkWay.Explored) }).Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "a side that goes on is not also explored");
             Equal("Fork 2, you've been here", Announcements.Fork("Fork 2", true, Array.Empty<(ForkWay, IReadOnlyList<string>)>()), "a place come back to");
-            Equal(("Room with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
+            Equal(("Area with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
             Equal(("Ballroom", false), Announcements.ForkName(true, "ballroom"), "a ballroom is a room by itself");
             Equal(("Fork", true), Announcements.ForkName(false, null), "nothing in it: numbered");
             var manor = new Dictionary<string, int> { ["stairs"] = 37, ["organ"] = 1, ["fireplace"] = 13, ["window"] = 25 };

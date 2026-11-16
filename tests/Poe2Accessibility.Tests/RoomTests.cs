@@ -170,9 +170,9 @@ namespace Poe2Accessibility.Tests
             Equal(null, Say(RoomTracker.Line(null, null, null, empty)), "nothing");
 
             var forks = new ForkTracker(awayCells: 100);
-            Equal("Chapel", forks.Enter(3, Vector2.Zero, Vector2.Zero, () => ("Fork", true), "Chapel")?.Name, "a fork in a named room takes its name");
-            Equal("Chapel", forks.Enter(4, new Vector2(30, 0), new Vector2(30, 0), () => ("Fork", true), "Chapel")?.Name, "a second fork in it too, not numbered");
-            Equal("Fork 1", forks.Enter(5, new Vector2(60, 0), new Vector2(60, 0), () => ("Fork", true))?.Name, "outside, the forks are numbered from the first");
+            Equal("Chapel", forks.Enter(3, Vector2.Zero, () => ("Fork", true), "Chapel")?.Name, "a fork in a named room takes its name");
+            Equal("Chapel", forks.Enter(4, new Vector2(30, 0), () => ("Fork", true), "Chapel")?.Name, "a second fork in it too, not numbered");
+            Equal("Fork 1", forks.Enter(5, new Vector2(60, 0), () => ("Fork", true))?.Name, "outside, the forks are numbered from the first");
         }
 
         /// <summary>A tile dump's sub-tiles: "x y path idX idY rotation", x and y the sub-tile's top-left grid cell.</summary>

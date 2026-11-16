@@ -119,7 +119,7 @@ namespace Poe2Accessibility.Services
             // A bend or a corridor through a junction is no place; a room is one whatever its ways.
             var place = room || ways.Count >= 3 ? node : null;
             var centre = place is { } p ? topology.Nodes[p].Centre : here;
-            if (this.tracker.Enter(place, centre, here, () => Announcements.ForkName(room, this.Feature(topology.Nodes[place!.Value])), roomName) is not { } entered)
+            if (this.tracker.Enter(place, here,() => Announcements.ForkName(room, this.Feature(topology.Nodes[place!.Value])), roomName) is not { } entered)
             {
                 return null;
             }

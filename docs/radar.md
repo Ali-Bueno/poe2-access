@@ -143,8 +143,11 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   back while the player is still in it.
 - **Places named, and come back to** (same day, the owner lost in Ogham Manor: no way to tell a loop walked twice): each fork
   of three ways or more and each room is named on the first visit after the most telling map piece in it ("Salón de baile",
-  "Sala con chimenea", "Cruce con escaleras de bajada"; a name given twice is numbered), else by kind and order ("Cruce 3").
-  Coming back after going two looks away says "Cruce 3, ya estuviste aquí" and the ways still new. A way counts as explored
+  "Zona con chimenea", "Cruce con escaleras de bajada"; a name given twice is numbered), else by kind and order ("Cruce 3",
+  "Zona 2": an open place is a "zona", since the map's rooms are as often a stretch of desert as a hall).
+  Coming back after going two looks away says "Cruce 3, ya estuviste aquí" and the ways still new; away is measured from where
+  the player last stood in the place, not its centre (a desert is one room hundreds of cells across: walking on through it and
+  a step out to a path's edge said "Sala 1, ya estuviste aquí", the owner 2026-11-16). A way counts as explored
   once the next place along it and the first stretch of each of its ways were seen (a look from the fork reveals 60 cells of
   every way, so the way's own first cell told nothing).
 - **Named rooms** (setting `AnnounceRooms`, [rooms](research/rooms.md)): a room the game's layout names (Ogham Manor's

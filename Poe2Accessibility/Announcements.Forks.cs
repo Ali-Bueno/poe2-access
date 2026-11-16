@@ -12,13 +12,14 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     A place's name stem from what stands in it (the most telling map piece, null for none) and whether it is numbered:
-        ///     "Salón de baile", "Sala con chimenea", "Cruce con escaleras de bajada", or "Cruce" numbered by the tracker.
+        ///     "Salón de baile", "Zona con chimenea", "Cruce con escaleras de bajada", or "Cruce" numbered by the tracker. An
+        ///     open place is a "Zona", not a "Sala": the map's rooms are as often a stretch of desert as a hall (the owner, 2026-11-16).
         /// </summary>
         public static (string Stem, bool Numbered) ForkName(bool room, string? kind)
         {
             if (kind == null)
             {
-                return (room ? T("Room", "Sala") : T("Fork", "Cruce"), true);
+                return (room ? T("Area", "Zona") : T("Fork", "Cruce"), true);
             }
 
             var piece = PlaceName(kind);
@@ -27,7 +28,7 @@ namespace Poe2Accessibility
                 return (char.ToUpperInvariant(piece[0]) + piece[1..], false);
             }
 
-            return (room ? T($"Room with {piece}", $"Sala con {piece}") : T($"Fork with {piece}", $"Cruce con {piece}"), false);
+            return (room ? T($"Area with {piece}", $"Zona con {piece}") :T($"Fork with {piece}", $"Cruce con {piece}"), false);
         }
 
         /// <summary>A place's line: its name, "ya estuviste aquí" when come back to, then each state with its sides, the way on first.</summary>

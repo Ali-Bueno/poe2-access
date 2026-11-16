@@ -21,7 +21,9 @@ namespace Poe2Accessibility.Services
     ///     Which fork or room of the map's shape (<see cref="MapTopology"/>) is news as the player walks into it: the first
     ///     time, and again once the player went away and came back ("ya estuviste aquí": the owner, 2026-11-16, lost in Ogham
     ///     Manor, could not tell a loop walked twice); never the way the player came by. Each place keeps the name it was
-    ///     given on the first visit. Pure; docs/radar.md "Forks".
+    ///     given on the first visit. Away is measured from the last spot the player stood in the place, not its centre: an
+    ///     open desert is one room hundreds of cells across, and a step out to a path's edge far from its centre said "Sala
+    ///     1, ya estuviste aquí" while the player was only going on (the owner, 2026-11-16). Pure; docs/radar.md "Forks".
     /// </summary>
     public sealed class ForkTracker
     {
@@ -29,11 +31,11 @@ namespace Poe2Accessibility.Services
         private const float BackCosine = 0.5f;
 
         private readonly float awayCells;
-        private readonly Dictionary<int, (string Name, Vector2 Centre, bool Away)> told = new();
+        private readonly Dictionary<int, (string Name, Vector2 Last, bool Away)> told = new();
         private readonly Dictionary<string, int> names = new();
         private int? inside;
 
-        /// <param name="awayCells">Coming back to a place is news once the player went this far from it.</param>
+        /// <param name="awayCells">Coming back to a place is news once the player went this far from where they last stood in it.</param>
         public ForkTracker(float awayCells = 2 * ExplorationMap.SeenRadiusCells) => this.awayCells = awayCells;
 
         /// <summary>A new area, or a new map shape: every place is news again and names start over.</summary>
@@ -46,15 +48,19 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The place just walked into, when it is news: its name and whether it was visited before; null otherwise.
-        ///     <paramref name="name"/> gives a new place its name's stem ("Cruce", "Sala con chimenea"); a stem given twice is
+        ///     <paramref name="name"/> gives a new place its name's stem ("Cruce", "Zona con chimenea"); a stem given twice is
         ///     numbered from its second place, and a plain kind is always numbered ("Cruce 3"). A place inside a named room takes
         ///     <paramref name="room"/>'s name as it is: every fork of the chapel is the chapel.
         /// </summary>
-        public (int Node, string Name, bool Again)? Enter(int? node, Vector2 centre, Vector2 player, System.Func<(string Stem, bool Numbered)> name, string? room = null)
+        public (int Node, string Name, bool Again)? Enter(int? node, Vector2 player, System.Func<(string Stem, bool Numbered)> name, string? room = null)
         {
             foreach (var (id, place) in this.told.ToList())
             {
-                if (!place.Away && Vector2.Distance(player, place.Centre) > this.awayCells)
+                if (id == node)
+                {
+                    this.told[id] = place with { Last = player };
+                }
+                else if (!place.Away && Vector2.Distance(player, place.Last) > this.awayCells)
                 {
                     this.told[id] = place with { Away = true };
                 }
@@ -90,7 +96,7 @@ namespace Poe2Accessibility.Services
                 named = numbered || count > 1 ? $"{stem} {count}" : stem;
             }
 
-            this.told[entered] = (named, centre, false);
+            this.told[entered] = (named, player, false);
             return (entered, named, false);
         }
 
