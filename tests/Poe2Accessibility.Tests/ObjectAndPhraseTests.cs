@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Tests
             (nameof(MapPiecesAndPropsArePlaced), MapPiecesAndPropsArePlaced),
             (nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange),
             (nameof(PiecesAheadAreSaidAsTheyComeInSight), PiecesAheadAreSaidAsTheyComeInSight),
+            (nameof(AForkIsToldOnceWithoutTheWayBack), AForkIsToldOnceWithoutTheWayBack),
             (nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid),
             (nameof(OnlyASwappedLineCutsIn), OnlyASwappedLineCutsIn),
             (nameof(AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice), AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice),
@@ -302,6 +303,26 @@ namespace Poe2Accessibility.Tests
             Equal("door@110", Walk(160), "seen again on the way back, nearest first");
             Equal("stairs_down@105", Walk(161), "then the stairs, once for both pieces");
             Equal("bridge@0", Walk(55), "the bridge left behind unsaid is news when it comes in sight");
+        }
+
+        private static void AForkIsToldOnceWithoutTheWayBack()
+        {
+            var forks = new ForkTracker();
+            Equal(null, forks.Enter(null), "no fork");
+            Equal(7, forks.Enter(7), "walking into a fork is news");
+            Equal(null, forks.Enter(7), "staying in it is not");
+            Equal(null, forks.Enter(null), "leaving it");
+            Equal(null, forks.Enter(7), "coming back is not news either");
+            Equal(9, forks.Enter(9), "another fork is");
+
+            var ways = new List<Vector2> { new(1, 0), new(0, -1), new(-1, 0.1f) };
+            Equal(2, ForkTracker.WayBack(ways, new Vector2(-5, 0)), "the way nearest where the player came from is the way back");
+            Equal(null, ForkTracker.WayBack(ways, new Vector2(0, 5)), "none within 60° of it: every way is told");
+
+            Equal(null, ForkTracker.Tell(new[] { ("up", ForkWay.Explored), ("left", ForkWay.DeadEnd) }), "no new way: nothing to tell");
+            var told = ForkTracker.Tell(new[] { ("left", ForkWay.DeadEnd), ("up", ForkWay.GoesOn), ("right", ForkWay.GoesOn), ("down", ForkWay.Explored) })!;
+            Equal("GoesOn up+right; DeadEnd left; Explored down", string.Join("; ", told.Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "the way on first, sides grouped");
+            Equal("Fork: goes on up and right, dead end left, explored down", Announcements.Fork(false, told), "said in one line");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()

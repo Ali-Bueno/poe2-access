@@ -95,6 +95,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.PassiveGuideBrief)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlaces)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlacesAhead)),
+                Switch(nameof(AccessibilitySettings.AnnounceForks)),
                 Switch(nameof(AccessibilitySettings.AnnounceDiscoveries))),
             Menu("surroundings",
                 Switch(nameof(AccessibilitySettings.AnnounceNearby)),

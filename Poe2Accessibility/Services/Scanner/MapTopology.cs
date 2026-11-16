@@ -16,8 +16,12 @@ namespace Poe2Accessibility.Services
         /// <summary>What one look shows (π · 60², <see cref="ExplorationMap.SeenRadiusCells"/>): a branch smaller than this is a nook.</summary>
         public const int RevealDiscCells = (int)(Math.PI * ExplorationMap.SeenRadiusCells * ExplorationMap.SeenRadiusCells);
 
-        /// <summary>A passage at most this many cells wide (about 40 world units) is narrow: easy to walk past without seeing it.</summary>
-        public const float NarrowWidthCells = 4f;
+        /// <summary>
+        ///     A passage at most this many cells wide (about 90 world units, a quarter of the Manor's usual corridor) is narrow:
+        ///     easy to walk past without seeing it (the owner, 2026-11-16). 4 cells found none in the four study dumps; 8 finds
+        ///     0-4 an area, all joining parts of the map.
+        /// </summary>
+        public const float NarrowWidthCells = 8f;
 
         /// <summary>Pieces of ground under half a look (the explorer's pocket) have no ways to tell apart: left out.</summary>
         private const int MinPieceCells = RevealDiscCells / 2;

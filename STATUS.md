@@ -276,6 +276,7 @@
 | Patch coverage report | done (code) | `GameNews` + `GameNewsNotes`: per table new/gone, covered or not, spoken summary |
 | Names for new content (nameless objects, league devices, harmful buffs, currency icons) | done (code; live partly) | `ObjectNames`, MinimapIconLabel, buff-names.json, currency-art.json |
 | One executable | done | host/Poe2Access: launcher + host + extractor in one process; spoken regeneration; 52 s first regeneration |
+| Map shape: dead-end pip, forks, narrow passages; more map pieces (stairs up/down, ballroom, fireplace…), pieces ahead (off) | done (unit tests; not walked live) | `MapTopology` (pure), `EntityCatalog.Topology`, `ForkNarrator`/`ForkTracker`, `LandmarkAhead`; [radar](docs/radar.md#the-maps-shape-dead-ends-forks-narrow-passages-2026-11-16), [study](docs/research/map-topology.md) |
 | Radar labels in the game's language | done (live) | 130 of 211 labels with a game name, 26 as written (2026-11-12; 92 on 2026-11-08); "En el mapa: Sala del jefe: Beira, de la manada putrefacta (10% de resistencia al frío)" near her arena (2026-11-08) |
 | Popup lists with no focus (options' popup notifications) | done (live) | `NoFocusList` + pure `MovingIndexWatch`: the list whose index (`GameLayout.HighlightList` +0x398) moves with the stick under the last focus's layer; "…, marcado, casilla de verificación, 8 de 31", A toggles ([notes](docs/research/ui-layers.md)) |
 | One dodge cue for blows together | done (live) | `DodgeCueMerge`: blows within 250 ms share one cue, rarer then nearer plays, a rare's never covered by a lesser cue; Mud Burrow swarm 2.87 → 1.66 cues a second, seconds with 3+ cues 500 → 117, recall unchanged ([table](docs/research/dodge-timing.md#one-cue-for-blows-together-2026-11-08)) |
@@ -502,6 +503,8 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**Session of 2026-11-16, later (the owner: "intentemos sacar más descripciones… me cuesta encontrar salidas… que explorar sea lo más dinámico posible, sin depender de pulsar teclas"):** the map's shape worked out per area and used without keys: the radar's one pip is now a dead end a look shows whole (no new sound, the owner's call), forks are said once as walked into, narrow passages are named when walked into, 13 more map-piece kinds and stairs by direction ([radar](docs/radar.md#the-maps-shape-dead-ends-forks-narrow-passages-2026-11-16), [study](docs/research/map-topology.md)). The owner turned down help levels, a rush mode and distances in speech. **First to read in his next log:** `Map shape worked out in`, `Map shape not worked out`. **Left:** the named rooms of the room graphs (Chapel, ThroneRoom… in Ogham Manor's `.dgr`) need the placed room found in the live world; the shape is not rebuilt when a barrier opens.
+
 **Session of 2026-11-16 (the owner: "arregla las issues"):** issue #7, Sekhema Asala not listed after the Jamanra fight. The
 exe and the game's files did not settle the cause from outside play; two likely causes fixed (an unattackable NPC-component
 creature is a character whatever side it reads; the `hidden_monster` buff no longer hides a character) and a log line added,

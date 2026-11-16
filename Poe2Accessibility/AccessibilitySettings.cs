@@ -143,6 +143,9 @@ namespace Poe2Accessibility
         /// </summary>
         public bool AnnouncePlacesAhead;
 
+        /// <summary>Say a fork of the map as you walk into it: which ways go on, which are dead ends, which are explored.</summary>
+        public bool AnnounceForks = true;
+
         /// <summary>Say what A uses (the label the game marks with the button) whenever it changes: "Stash, A".</summary>
         public bool AnnounceInteractTarget = true;
 

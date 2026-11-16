@@ -88,6 +88,9 @@ namespace Poe2Accessibility.Services
             this.lastAnchorPoll = long.MinValue / 2;
         }
 
+        /// <summary>What the player stands on when no tile names it, by grid cell: a narrow passage of the map's shape.</summary>
+        public Func<Vector2, string?>? MoreKindAt { get; set; }
+
         /// <summary>More places to say ahead than the tiles name, in grid cells: the narrow passages of the map's shape.</summary>
         public Func<IEnumerable<(Vector2 Grid, string Kind)>>? MorePlaces { get; set; }
 
@@ -116,7 +119,7 @@ namespace Poe2Accessibility.Services
             }
 
             var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            var said = this.tracker.Update(places.KindAt(here), here, places.Props);
+            var said = this.tracker.Update(places.KindAt(here) ?? this.MoreKindAt?.Invoke(here), here, places.Props);
             var lines = said.Select(Announcements.PlaceName).ToList();
             if (sayAhead && area.WorldToGridConvertor is > 0 and var toWorld)
             {

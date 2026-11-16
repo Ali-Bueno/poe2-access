@@ -79,7 +79,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Open and exit cues ending in D2R's unexplored mark (two pips).</summary>
         private readonly Dictionary<(RadarReading, RadarSynth.Direction), float[]> markedSounds = new();
 
-        /// <summary>The same with one pip: unexplored ground that soon ends (<see cref="UnseenSize.Small"/>).</summary>
+        /// <summary>The same with one pip: unexplored ground in a dead end a look shows whole (<see cref="LeadsToDeadEnd"/>).</summary>
         private readonly Dictionary<(RadarReading, RadarSynth.Direction), float[]> smallMarkedSounds = new();
 
         /// <summary>The key of the one-pip mark's volume and glossary line.</summary>
@@ -134,6 +134,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>What the line from a cell along an axis soon leaves the seen ground onto (<see cref="ExplorationMap.UnseenAlong"/>), for the unexplored mark; null: no mark.</summary>
         public Func<Vector2, Vector2, UnseenSize?>? LeadsToUnseen { get; set; }
+
+        /// <summary>
+        ///     Whether the way from a cell along an axis leads into a dead end a look shows whole, by the map's shape
+        ///     (<see cref="EntityCatalog.DeadEndToward(Vector2, Vector2)"/>): its unexplored mark is one pip, not two.
+        /// </summary>
+        public Func<Vector2, Vector2, bool>? LeadsToDeadEnd { get; set; }
 
         /// <summary>A wall that is a rock, tree or pillar standing alone knocks hollow instead (D2R small obstacles).</summary>
         public bool SmallObstacles { get; set; } = true;
@@ -266,11 +272,14 @@ namespace Poe2Accessibility.Services
             var due = Directions.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
             var direction = due[this.rotation++ % due.Count];
             this.pending.Remove(direction);
-            // D2R: a way that leads onto ground never seen ends in two pips (docs/radar.md); in one when that ground soon ends,
-            // so walking tells a dead end from the way on as the map does (user 2026-11-12).
-            var unseen = urgency != RadarReading.Wall && this.axes.TryGetValue(direction, out var axis) ? this.LeadsToUnseen?.Invoke(this.lastPosition, axis) : null;
+            // D2R: a way that leads onto ground never seen ends in two pips (docs/radar.md); in one when it is a dead end a look
+            // shows whole, by the map's shape, so walking tells a dead end from the way on as the map does (user 2026-11-12).
+            // The size of the unseen ground alone said "soon ends" of rooms whose way on was a narrow gap (owner, 2026-11-16).
+            var axis = this.axes.TryGetValue(direction, out var found) ? found : (Vector2?)null;
+            var unseen = urgency != RadarReading.Wall && axis is { } along ? this.LeadsToUnseen?.Invoke(this.lastPosition, along) : null;
+            var deadEnd = unseen != null && axis is { } way && this.LeadsToDeadEnd?.Invoke(this.lastPosition, way) == true;
             var (sound, key) = urgency == RadarReading.Wall && this.smallObstacles.Contains(direction) ? (this.obstacleSounds[direction], $"{this.soundPrefix}_obstacle")
-                : unseen is UnseenSize.Small or UnseenSize.Pocket ? (this.smallMarkedSounds[(urgency, direction)], SmallMarkKey)
+                : deadEnd ? (this.smallMarkedSounds[(urgency, direction)], SmallMarkKey)
                 : unseen != null ? (this.markedSounds[(urgency, direction)], "radar_unexplored")
                 : (this.sounds[(urgency, direction)], $"{this.soundPrefix}_{urgency.ToString().ToLowerInvariant()}");
             this.audio.Play(sound, RadarSynth.Pan(direction) * PanStrength, 1f, this.Gain, key);

@@ -120,6 +120,32 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   hint: a quest place not seen is not listed, unless the game's quest icon marks it. The game's own exit, once in reach,
   is listed as any exit.
 
+## The map's shape: dead ends, forks, narrow passages (2026-11-16)
+
+Asked by the owner on 2026-11-16 ("aún siento que me quedo atascado en algunos sitios, o me cuesta encontrar salidas"; ground
+that seemed to end had "una salida súper estrecha"). `MapTopology` works out the area's shape once, off the frame thread, from
+the whole walkable grid at full resolution (0.4 s on the Manor Ramparts' 8.4 M cells; not for grids over 24 M cells): its
+skeleton's forks, rooms and ends, the bridges between parts and what lies beyond each, and the passages at most 8 cells wide
+that join two parts ([study](research/map-topology.md)). A gap of one cell is a way on: connectivity is never coarsened.
+`EntityCatalog.Topology` holds it and counts the goals a dead end must not hold every 2 s: exits, what the objective names,
+boss rooms not found, doors not opened. **What a sighted player sees, no more:** a dead end is told only when a look shows it
+whole (its side at most two reveal radii, its ground at most two reveal discs, `EntityCatalog.SeenWhole`); a larger one is
+walked, as anyone would. The owner turned down help levels and a rush mode: the guide is not always on.
+
+- **The radar's one pip** now means unexplored ground in such a dead end, by the shape (`Radar.LeadsToDeadEnd`, probed 30 cells
+  along the ray); two pips, unexplored ground otherwise. The size of the unseen ground alone (`UnseenSize.Small`) no longer
+  makes one pip: it called rooms whose way on was a narrow gap "soon ends". No new sound (the owner: two marks would be
+  duplicates).
+- **Forks** (`ForkNarrator` over pure `ForkTracker`, setting `AnnounceForks`): walking into a fork or a room with three ways or
+  more that are not nooks says it once an area, after what is being said: "Cruce: sigue arriba y a la izquierda, sin salida a
+  la derecha, explorado abajo". The way the player came by (within 60° of where they were 20 cells back) is not told; a way is
+  explored when the cell 40 cells along it and the next fork are seen. Nothing is said when no way is new; a fight holds a fork
+  back while the player is still in it.
+- **Narrow passages:** "paso estrecho" when walked into, as a map piece (`PlaceNarrator.MoreKindAt`).
+- **Pieces ahead** (`LandmarkAhead`, setting `AnnouncePlacesAhead`, **off**): stairs, doors, bridges, narrow passages… named
+  with their side as they come within a look. The owner: the distance was too much speech, the sounds are what to learn; the
+  pieces are named when walked into.
+
 ## Another room
 
 D2R's tin means "the route leads out: into another chamber, or to a level exit"; the breath, "floor, it leads nowhere

@@ -340,6 +340,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkAhead.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ForkTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\LocalPlayerList.cs" />
@@ -356,6 +357,7 @@
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />
     <Compile Include="..\..\Poe2Accessibility\Phrase.cs" Link="Plugin\Phrase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.cs" Link="Plugin\Announcements.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Forks.cs" Link="Plugin\Announcements.Forks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Status.cs" Link="Plugin\Announcements.Status.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.World.cs" Link="Plugin\Announcements.World.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Landmarks.cs" Link="Plugin\Announcements.Landmarks.cs" />

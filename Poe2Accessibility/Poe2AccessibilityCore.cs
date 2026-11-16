@@ -64,6 +64,7 @@ namespace Poe2Accessibility
         private Radar? radar;
         private LostHint? lostHint;
         private MapHintNarrator? mapHints;
+        private ForkNarrator? forks;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
@@ -413,6 +414,13 @@ namespace Poe2Accessibility
                 this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")),
                                                     () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark ? this.entities.UnseenToward(from, axis) : null;
+                this.radar.LeadsToDeadEnd = (from, axis) => this.Settings.UnexploredMark && this.entities.DeadEndToward(from, axis);
+                this.forks = new ForkNarrator(this.entities, this.output);
+                if (this.places != null)
+                {
+                    this.places.MoreKindAt = this.entities.NarrowAt;
+                    this.places.MorePlaces = this.entities.NarrowPlaces;
+                }
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
                 this.deaths = new DeathWatch(this.locator, elements, this.output, this.log)
