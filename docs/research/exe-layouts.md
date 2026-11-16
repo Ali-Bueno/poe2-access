@@ -578,3 +578,22 @@ client.
 (100 + `map_expedition_maximum_placement_distance_+%`) / 100, checked on the client (0x1F6A363: `6B C8 5A`; 0x1F6A35D: `6B D1 6C`) from
 record +0x60; another charge within 20 cells also blocks a place (0x172C783: `81 F9 90 01 00 00`), as does ground tagged
 `expedition_no_placement`. The same 90 and 108 the community measured.
+
+## The Targetable component's flags (2026-11-16, build 0.5.5f)
+
+Read for issue #7 (Sekhema Asala, `Metadata/Monsters/NPC/MarakethMatriarchDreadnought`, not listed after the Jamanra fight).
+The parser (0x17E86B0) stores the file's keys in the shared type data: `attackable` +0x17, `targetable` +0x18,
+`force_targetable` +0x19, `queens_sacrifice` +0x26, `always_targetable_in_couch_coop` +0x30. The constructor (0x17E8380, size
+0x90) keeps the type at +0x48 and copies +0x17 to **+0x68 (attackable)** and +0x18 to **+0x69 (in play)**; +0x6A is "not
+`no_highlight`"; +0x6E (quest state), +0x6F (item requirements) and +0x72 start at 1. The debug dump (0x17EB540) names +0x69
+"Targetable:", +0x73 "Hidden from Player:", +0x6F "Meets Item Requirements:". `EnableTargetable`/`DisableTargetable` write +0x69.
+
+The game's test, inline at about eight places (0x1A7720 also needs +0x68: attacking; 0x1A7AE0: interacting):
+`type+0x26 || (type+0x30 && couch co-op) || (!(entity+0x8D & 1) && +0x69 && !+0x73 && +0x72 && +0x6E && +0x6F && !+0x74)`.
+No buff is read. `force_targetable` only lets an entity be interacted with while its InteractionAction is unavailable; it does
+not stand in for +0x69. The plugin reads +0x69, +0x6E and, since this pass, +0x68 (`TargetableComponent.AttackableOffset`):
+1 on all 313 living targetable monsters and players of 47 entity dumps, 0 on all 186 NPCs and chests.
+
+What changed for #7: a creature with the NPC component that cannot be attacked is a character whatever side its reaction byte
+reads (town NPCs read "hostile" in every dump), and the `hidden_monster` buff no longer takes a character out of play. Not seen
+in play: the log line `Character not listed: <path> (<reason>)`, once per file, says why any character is left out.

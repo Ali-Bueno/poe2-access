@@ -297,6 +297,13 @@ namespace Poe2Accessibility
             ///     relic locker not yet unlocked; 1 on the other 823 targetable entities.
             /// </summary>
             public static int MeetsQuestStateOffset => IsTargetableOffset + 5;
+
+            /// <summary>
+            ///     1 when the player can attack it: the file's <c>attackable</c> (type data +0x17), copied by the constructor one byte
+            ///     before the in-play flag (exe 0.5.5f, 2026-11-16: 0x17E843A; the attack test 0x1A7720 reads it). In 47 entity dumps
+            ///     1 on all 313 living targetable monsters and players, 0 on all 186 NPCs and chests.
+            /// </summary>
+            public static int AttackableOffset => IsTargetableOffset - 1;
         }
 
         /// <summary>

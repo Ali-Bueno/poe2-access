@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
+        private readonly HashSet<string> silentCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
@@ -48,6 +49,7 @@ namespace Poe2Accessibility.Services
             if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && league is not { WithoutTarget: true } &&
                 !this.InPlay(entity))
             {
+                this.LogLeftOutCharacter(entity, path, "not in play");
                 return null;
             }
 
@@ -181,8 +183,11 @@ namespace Poe2Accessibility.Services
             else if (entity.EntityType == EntityTypes.Monster && (path.StartsWith(CreatureFolder, StringComparison.Ordinal) || !entity.TryGetComponent<MinimapIcon>(out _)))
             {
                 // A "monster" outside the creatures that the minimap marks is a device: it goes on as a plain object below.
-                // A friendly monster with the NPC component is a character (Mortimer by the Miller); minions have none.
-                category = IsAliveEnemy(entity) ? ScanCategory.Enemies : entity.TryGetComponent<NPC>(out _) ? ScanCategory.Npcs : null;
+                // A friendly monster with the NPC component is a character (Mortimer by the Miller); minions have none. So is one
+                // the player cannot attack, whatever side it reads: Sekhema Asala in the Dreadnought (issue #7).
+                var character = entity.TryGetComponent<NPC>(out _);
+                category = character && !this.Attackable(entity) ? ScanCategory.Npcs
+                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : character ? ScanCategory.Npcs : null;
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
                 {
                     name = Announcements.EnemyWithRarity(name, magic.Rarity);
@@ -287,6 +292,7 @@ namespace Poe2Accessibility.Services
                     this.log.Info($"Minimap mark not listed: {path} (icon {icon}, {entity.EntityType})");
                 }
 
+                this.LogLeftOutCharacter(entity, path, category == null ? $"no category, {entity.EntityType}" : "no name");
                 return null; // unnamed placeholders are not things a player can find
             }
 
@@ -565,6 +571,20 @@ namespace Poe2Accessibility.Services
 
         private bool InPlay(Entity entity) => IsInPlay(this.memory, entity);
 
+        /// <summary>The player can attack it (<see cref="GameLayout.TargetableComponent.AttackableOffset"/>); unread counts as yes.</summary>
+        private bool Attackable(Entity entity) =>
+            !EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
+            !this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.AttackableOffset, out var flag) || flag != 0;
+
+        /// <summary>A character the scanner leaves out, logged once per file with the reason, so a missing one is found from the log.</summary>
+        private void LogLeftOutCharacter(Entity entity, string path, string reason)
+        {
+            if (entity.TryGetComponent<NPC>(out _) && this.silentCharacters.Add(path))
+            {
+                this.log.Info($"Character not listed: {path} ({reason})");
+            }
+        }
+
         /// <summary>Set aside by the game (<see cref="BuffIds.HiddenMonster"/>): alive and flagged targetable, yet out of the fight.</summary>
         public static bool IsHidden(Entity entity)
         {
@@ -595,7 +615,8 @@ namespace Poe2Accessibility.Services
         ///     the rune seals sounded before their step, user 2026-11-11); no component: in play.
         /// </summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
-            !IsHidden(entity) &&
+            // The game's own interact test reads no buff (exe 0.5.5f, 0x1A7AE0): a set-aside mark does not hide a character.
+            (!IsHidden(entity) || entity.TryGetComponent<NPC>(out _)) &&
             (!EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
              (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0 &&
               (!EntityFields.QuestStateTrusted ||
