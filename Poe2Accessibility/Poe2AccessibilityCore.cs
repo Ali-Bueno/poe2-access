@@ -427,6 +427,7 @@ namespace Poe2Accessibility
                 {
                     KindAt = this.places != null ? this.places.KindAt : null,
                     BiomeAt = this.places != null ? this.places.BiomeAt : null,
+                    Sounds = GameSounds.LoadExits(Path.Join(this.DllDirectory, "sounds", "exits"), this.log),
                 };
                 if (this.places != null)
                 {

@@ -47,13 +47,19 @@ namespace Poe2Accessibility.Services
         /// <summary>An explored exit's level beside a new one's (its loop is also the muffled one).</summary>
         private const float ExploredGain = 0.45f;
 
+        /// <summary>
+        ///     The exits sit under the game's own ambience: heard when listened for, never covering it (the owner, 2026-11-16:
+        ///     "tienen que ser algo sutiles"). A first guess beside the radar's level, to tune by ear.
+        /// </summary>
+        private const float SubtleGain = 0.5f;
+
         /// <summary>The level during a fight: the exits stay, under the fight's own sounds.</summary>
         private const float FightGain = 0.35f;
 
         private readonly EntityCatalog catalog;
         private readonly AudioCueService audio;
         private readonly Dictionary<(int Node, int Edge), Exit> exits = new();
-        private readonly Dictionary<(int Node, int Edge, bool Explored), AudioCueService.Bed> beds = new();
+        private readonly Dictionary<(int Node, int Edge, bool Explored), Emitter> beds = new();
         private MapTopology? shape;
         private long lastPoll = long.MinValue / 2;
 
@@ -63,8 +69,8 @@ namespace Poe2Accessibility.Services
             this.audio = audio;
         }
 
-        /// <summary>The material's loop: as recorded for a way not walked, muffled for an explored one; null: that material is silent.</summary>
-        public Func<string, bool, float[]?>? SoundOf { get; set; }
+        /// <summary>The materials' beds and events (the game's own recordings); null or empty: the exits are silent.</summary>
+        public ExitSoundSet? Sounds { get; set; }
 
         /// <summary>The kind of map piece at a grid cell (<see cref="PlaceMap.KindAt"/>).</summary>
         public Func<Vector2, string?>? KindAt { get; set; }
@@ -94,7 +100,7 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
-            if (!playing || !enabled || this.SoundOf == null || toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player) ||
+            if (!playing || !enabled || this.Sounds is not { IsEmpty: false } sounds || toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player) ||
                 this.catalog.Topology() is not { } topology)
             {
                 this.StopAll();
@@ -155,37 +161,42 @@ namespace Poe2Accessibility.Services
             var origin = player.WorldPosition;
             foreach (var (exit, distance) in chosen)
             {
-                if (this.SoundOf(exit.Material, exit.Explored) is not { } loop)
-                {
-                    continue;
-                }
-
                 var key = (exit.Node, exit.Edge, exit.Explored);
-                if (!this.beds.TryGetValue(key, out var bed))
+                if (!this.beds.TryGetValue(key, out var emitter))
                 {
-                    // From anywhere in the recording: two exits of one material must not play in step.
-                    bed = this.beds[key] = this.audio.AddBed(loop, $"exit_{exit.Material}", Random.Shared.Next(loop.Length));
+                    // One bed of the material per exit, from anywhere in it: two exits of one material must not play in step.
+                    var bedSound = sounds.Bed(exit.Material, exit.Explored, Random.Shared.Next());
+                    var (min, max) = ExitMaterial.EventGapMs(exit.Material);
+                    emitter = this.beds[key] = new Emitter(
+                        bedSound == null ? null : this.audio.AddBed(bedSound, $"exit_{exit.Material}", Random.Shared.Next(bedSound.Length)),
+                        new ExitScatter(min, max, now, Random.Shared));
                 }
 
                 var offset = (exit.At - here) * toWorld;
                 var (pan, pitch) = ScreenProjection.Voice(origin, offset, offset.Length(), CentreWorld);
                 var fade = 1f - (distance / ReachCells);
-                bed.Set(pan, this.Gain * fade * fade * (exit.Explored ? ExploredGain : 1f) * (quiet ? FightGain : 1f), pitch);
+                var gain = this.Gain * SubtleGain * fade * fade * (exit.Explored ? ExploredGain : 1f) * (quiet ? FightGain : 1f);
+                emitter.Bed?.Set(pan, gain, pitch);
+                if (emitter.Scatter.Next(now, sounds.EventCount(exit.Material)) is { } next)
+                {
+                    this.audio.Play(sounds.Event(exit.Material, exit.Explored, next.Index), pan, pitch * next.Pitch, gain * next.Gain, $"exit_{exit.Material}");
+                }
+
                 playingNow.Add(key);
             }
 
             foreach (var key in this.beds.Keys.Where(key => !playingNow.Contains(key)).ToList())
             {
-                this.beds[key].Stop();
+                this.beds[key].Bed?.Stop();
                 this.beds.Remove(key);
             }
         }
 
         private void StopAll()
         {
-            foreach (var bed in this.beds.Values)
+            foreach (var emitter in this.beds.Values)
             {
-                bed.Stop();
+                emitter.Bed?.Stop();
             }
 
             this.beds.Clear();
@@ -210,6 +221,9 @@ namespace Poe2Accessibility.Services
             var material = ExitMaterial.Of(piece, narrow, this.BiomeAt?.Invoke(at + (way.Direction * MaterialReachCells)));
             return this.exits[(node.Id, way.Edge)] = new Exit(node.Id, way.Edge, at, material);
         }
+
+        /// <summary>An exit heard: its bed (null when the material has none) and when its next event comes.</summary>
+        private sealed record Emitter(AudioCueService.Bed? Bed, ExitScatter Scatter);
 
         private sealed class Exit
         {
