@@ -29,7 +29,6 @@ namespace Poe2Accessibility.Tests
             (nameof(PiecesAheadAreSaidAsTheyComeInSight), PiecesAheadAreSaidAsTheyComeInSight),
             (nameof(AForkIsToldOnceWithoutTheWayBack), AForkIsToldOnceWithoutTheWayBack),
             (nameof(TilesTellTheirSetting), TilesTellTheirSetting),
-            (nameof(ExitsSoundInRoundsWhileThePlayerStays), ExitsSoundInRoundsWhileThePlayerStays),
             (nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid),
             (nameof(OnlyASwappedLineCutsIn), OnlyASwappedLineCutsIn),
             (nameof(AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice), AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice),
@@ -350,16 +349,6 @@ namespace Poe2Accessibility.Tests
             Equal("bridge", ExitMaterial.Of("walkway", false, "forest"), "a walkway sounds as a bridge");
             Equal("narrow", ExitMaterial.Of(null, true, "forest"), "a narrow passage before the setting");
             Equal("desert", ExitMaterial.Of(null, false, "desert"), "else the setting");
-        }
-
-        private static void ExitsSoundInRoundsWhileThePlayerStays()
-        {
-            var round = new ExitRound(5000);
-            string Run(int? place, params long[] times) => string.Join(",", times.Select(time => round.Due(time, place) ? "x" : "-"));
-            Equal("x,-,-", Run(4, 0, 200, 4900), "walking in: the exits sound at once, then wait");
-            Equal("x", Run(4, 5100), "again while the player stays");
-            Equal("x", Run(9, 5200), "another place sounds at once");
-            Equal("-", Run(null, 6000), "out of every place: nothing");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()

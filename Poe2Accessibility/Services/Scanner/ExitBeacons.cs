@@ -8,15 +8,26 @@ namespace Poe2Accessibility.Services
     using GameReader.RemoteObjects.Components;
 
     /// <summary>
-    ///     The exits of the room or fork the player stands in, all sounding together, each from where it leaves, as a sighted player
-    ///     sees a room's doorways at a glance (the owner, 2026-11-16, lost in Ogham Manor: "me cuesta encontrar salidas").
-    ///     What sounds tells the exit's material or setting ("madera crujiendo para un puente, viento en salidas de desiertos");
-    ///     how it sounds tells its state: a way not walked full, an explored one quieter and muffled, a dead end a look shows
-    ///     whole not at all. Silent in fights, menus and when the option is off. docs/radar.md "Exits that sound".
+    ///     The exits of the rooms and forks near the player as ambient sounds placed in their doorways, as a game's ambient
+    ///     emitters are: wind blowing in from a desert exit, wood creaking on a bridge, water toward a dock, louder as the player
+    ///     nears them (the owner, 2026-11-16, lost in Ogham Manor: "me cuesta encontrar salidas"; then "que sonasen más en loop,
+    ///     como si de un sonido ambiente se tratasen… landmarks inmersivos, pero que a la vez ayuden al jugador"). What sounds
+    ///     tells the exit's material or setting; an explored exit is quieter and muffled; a dead end a look shows whole is
+    ///     silent. The nearest few are heard; a fight lowers them, menus and the option off stop them.
+    ///     docs/radar.md "Exits that sound".
     /// </summary>
     public sealed class ExitBeacons
     {
-        private const int PollMs = 50;
+        private const int PollMs = 100;
+
+        /// <summary>How often each heard exit's state (explored, dead end) is judged again.</summary>
+        private const int StateMs = 1000;
+
+        /// <summary>An exit is heard within this many cells (about two seconds of walking), fading with distance.</summary>
+        private const float ReachCells = 80f;
+
+        /// <summary>At most this many exits are heard at once, the nearest.</summary>
+        private const int MostHeard = 4;
 
         /// <summary>An exit sounds this far past the place's edge (cells): its doorway, not the middle of the room.</summary>
         private const float DoorwayCells = 6f;
@@ -27,18 +38,23 @@ namespace Poe2Accessibility.Services
         /// <summary>A map piece this far along an exit (cells) gives it its material: a bridge, stairs, a door.</summary>
         private const float MaterialReachCells = 30f;
 
-        /// <summary>Walked into from this much past its radius (cells): a little before the fork's centre.</summary>
-        private const float EnterSlackCells = 4f;
+        /// <summary>Two exits of one material this near (cells) are one doorway: the two ends of a short corridor.</summary>
+        private const float SameDoorwayCells = 20f;
 
         /// <summary>Distance (world units) at which an exit is fully to its side; nearer, it draws to the centre.</summary>
         private const float CentreWorld = 250f;
 
-        /// <summary>An explored exit's level beside a new one's.</summary>
+        /// <summary>An explored exit's level beside a new one's (its loop is also the muffled one).</summary>
         private const float ExploredGain = 0.45f;
+
+        /// <summary>The level during a fight: the exits stay, under the fight's own sounds.</summary>
+        private const float FightGain = 0.35f;
 
         private readonly EntityCatalog catalog;
         private readonly AudioCueService audio;
-        private readonly ExitRound round = new(RoundEveryMs);
+        private readonly Dictionary<(int Node, int Edge), Exit> exits = new();
+        private readonly Dictionary<(int Node, int Edge, bool Explored), AudioCueService.Bed> beds = new();
+        private MapTopology? shape;
         private long lastPoll = long.MinValue / 2;
 
         public ExitBeacons(EntityCatalog catalog, AudioCueService audio)
@@ -47,10 +63,7 @@ namespace Poe2Accessibility.Services
             this.audio = audio;
         }
 
-        /// <summary>The exits sound again this often while the player stays in the place (ms).</summary>
-        public const long RoundEveryMs = 5000;
-
-        /// <summary>The material's sound: full for a way not walked, muffled for an explored one; null: that material is silent.</summary>
+        /// <summary>The material's loop: as recorded for a way not walked, muffled for an explored one; null: that material is silent.</summary>
         public Func<string, bool, float[]?>? SoundOf { get; set; }
 
         /// <summary>The kind of map piece at a grid cell (<see cref="PlaceMap.KindAt"/>).</summary>
@@ -62,10 +75,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Volume, a fraction of the recorded level.</summary>
         public float Gain { get; set; } = 1f;
 
-        /// <summary>A new area: the next place starts a round at once.</summary>
-        public void Reset() => this.round.Reset();
+        /// <summary>A new area: every exit goes.</summary>
+        public void Reset()
+        {
+            this.StopAll();
+            this.exits.Clear();
+            this.shape = null;
+        }
 
-        /// <summary>Per frame; <paramref name="quiet"/> (a fight) silences the round.</summary>
+        /// <summary>Per frame; <paramref name="quiet"/> (a fight) lowers the exits.</summary>
         public void Tick(bool playing, bool enabled, bool quiet)
         {
             var now = Environment.TickCount64;
@@ -75,66 +93,113 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
-            if (!playing || !enabled || quiet || this.SoundOf == null || !Seats.Followed.TryGetComponent<Render>(out var player) ||
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (!playing || !enabled || this.SoundOf == null || toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player) ||
                 this.catalog.Topology() is not { } topology)
             {
-                this.round.Reset();
+                this.StopAll();
                 return;
             }
 
-            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (!ReferenceEquals(topology, this.shape))
+            {
+                this.Reset();
+                this.shape = topology;
+            }
+
             var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            var near = topology.NodeNear(here, EnterSlackCells);
-            var ways = new List<Way>();
-            int? place = null;
-            if (near is { } id && topology.Nodes[id].Kind != TopologyNodeKind.End)
+            var heard = new List<(Exit Exit, float Distance)>();
+            foreach (var node in topology.Nodes)
             {
-                ways = topology.Ways(id).Where(way => !way.Nook).ToList();
-                place = topology.Nodes[id].Kind == TopologyNodeKind.Room || ways.Count >= 3 ? id : null;
-            }
-
-            // The exits are worked out only when they sound: their state changes as the player walks.
-            if (toWorld <= 0 || !this.round.Due(now, place) || place is not { } at)
-            {
-                return;
-            }
-
-            var node = topology.Nodes[at];
-            var exits = new List<(Vector2 At, string Material, bool Explored)>();
-            foreach (var way in ways)
-            {
-                if (topology.IsDeadEndWay(at, way, out var end) && EntityCatalog.SeenWhole(end))
+                if (node.Kind == TopologyNodeKind.End || Vector2.Distance(node.Centre, here) > ReachCells + node.Radius + MinExitCells)
                 {
                     continue;
                 }
 
-                var spot = node.Centre + (way.Direction * MathF.Max(node.Radius + DoorwayCells, MinExitCells));
-                exits.Add((spot, this.MaterialOf(topology, way, spot), this.catalog.WayExplored(topology, at, way)));
+                var ways = topology.Ways(node.Id).Where(way => !way.Nook).ToList();
+                if (node.Kind != TopologyNodeKind.Room && ways.Count < 3)
+                {
+                    continue; // a bend in a corridor has no doorways
+                }
+
+                foreach (var way in ways)
+                {
+                    var exit = this.ExitOf(topology, node, way);
+                    if (now - exit.JudgedAt >= StateMs)
+                    {
+                        exit.JudgedAt = now;
+                        exit.DeadEnd = topology.IsDeadEndWay(node.Id, way, out var end) && EntityCatalog.SeenWhole(end);
+                        exit.Explored = this.catalog.WayExplored(topology, node.Id, way);
+                    }
+
+                    var distance = Vector2.Distance(exit.At, here);
+                    if (!exit.DeadEnd && distance <= ReachCells)
+                    {
+                        heard.Add((exit, distance));
+                    }
+                }
             }
 
-            if (exits.Count == 0)
+            // The nearest few; of two of one material at one doorway (a short corridor's two ends), the nearer.
+            var chosen = new List<(Exit Exit, float Distance)>();
+            foreach (var candidate in heard.OrderBy(pair => pair.Distance))
             {
-                return;
+                if (chosen.Count < MostHeard && !chosen.Any(pair => pair.Exit.Material == candidate.Exit.Material &&
+                                                                   Vector2.Distance(pair.Exit.At, candidate.Exit.At) < SameDoorwayCells))
+                {
+                    chosen.Add(candidate);
+                }
             }
 
-            // All together, each from its doorway; the level shared so a room of four is no louder than one exit.
+            var playingNow = new HashSet<(int, int, bool)>();
             var origin = player.WorldPosition;
-            var share = 1f / MathF.Sqrt(exits.Count);
-            foreach (var (spot, material, explored) in exits)
+            foreach (var (exit, distance) in chosen)
             {
-                if (this.SoundOf(material, explored) is not { } sound)
+                if (this.SoundOf(exit.Material, exit.Explored) is not { } loop)
                 {
                     continue;
                 }
 
-                var offset = (spot - here) * toWorld;
+                var key = (exit.Node, exit.Edge, exit.Explored);
+                if (!this.beds.TryGetValue(key, out var bed))
+                {
+                    // From anywhere in the recording: two exits of one material must not play in step.
+                    bed = this.beds[key] = this.audio.AddBed(loop, $"exit_{exit.Material}", Random.Shared.Next(loop.Length));
+                }
+
+                var offset = (exit.At - here) * toWorld;
                 var (pan, pitch) = ScreenProjection.Voice(origin, offset, offset.Length(), CentreWorld);
-                this.audio.Play(sound, pan, pitch, this.Gain * share * (explored ? ExploredGain : 1f), $"exit_{material}");
+                var fade = 1f - (distance / ReachCells);
+                bed.Set(pan, this.Gain * fade * fade * (exit.Explored ? ExploredGain : 1f) * (quiet ? FightGain : 1f), pitch);
+                playingNow.Add(key);
+            }
+
+            foreach (var key in this.beds.Keys.Where(key => !playingNow.Contains(key)).ToList())
+            {
+                this.beds[key].Stop();
+                this.beds.Remove(key);
             }
         }
 
-        private string MaterialOf(MapTopology topology, Way way, Vector2 at)
+        private void StopAll()
         {
+            foreach (var bed in this.beds.Values)
+            {
+                bed.Stop();
+            }
+
+            this.beds.Clear();
+        }
+
+        /// <summary>A place's exit along a way, its doorway and material worked out once.</summary>
+        private Exit ExitOf(MapTopology topology, TopologyNode node, Way way)
+        {
+            if (this.exits.TryGetValue((node.Id, way.Edge), out var known))
+            {
+                return known;
+            }
+
+            var at = node.Centre + (way.Direction * MathF.Max(node.Radius + DoorwayCells, MinExitCells));
             string? piece = null;
             for (var step = 0f; step <= MaterialReachCells && piece == null; step += 3f)
             {
@@ -142,7 +207,34 @@ namespace Poe2Accessibility.Services
             }
 
             var narrow = topology.Narrows.Any(passage => passage.Edge == way.Edge);
-            return ExitMaterial.Of(piece, narrow, this.BiomeAt?.Invoke(at + (way.Direction * MaterialReachCells)));
+            var material = ExitMaterial.Of(piece, narrow, this.BiomeAt?.Invoke(at + (way.Direction * MaterialReachCells)));
+            return this.exits[(node.Id, way.Edge)] = new Exit(node.Id, way.Edge, at, material);
+        }
+
+        private sealed class Exit
+        {
+            public Exit(int node, int edge, Vector2 at, string material)
+            {
+                this.Node = node;
+                this.Edge = edge;
+                this.At = at;
+                this.Material = material;
+                this.JudgedAt = long.MinValue / 2;
+            }
+
+            public int Node { get; }
+
+            public int Edge { get; }
+
+            public Vector2 At { get; }
+
+            public string Material { get; }
+
+            public long JudgedAt { get; set; }
+
+            public bool DeadEnd { get; set; }
+
+            public bool Explored { get; set; }
         }
     }
 }

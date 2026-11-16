@@ -342,7 +342,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkAhead.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ForkTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TerrainBiome.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExitRound.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExitMaterial.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\LocalPlayerList.cs" />
