@@ -29,9 +29,6 @@ namespace Poe2Accessibility.Services
         /// <summary>A piece first met this near (half a sub-tile) is underfoot: the step's own line names it.</summary>
         private const float AheadUnderfootCells = 12f;
 
-        /// <summary>World units in a spoken step, as the scanner counts them.</summary>
-        private const float StepWorldUnits = 100f;
-
         /// <summary>Scanner ids of places, between the tile landmarks and the death place (<see cref="EntityCatalog"/>).</summary>
         private const uint PlaceIdBase = 0xA0000000;
 
@@ -96,7 +93,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Per frame: keeps the area's map current and, while playing with the option on, names new places; with
-        ///     <paramref name="sayAhead"/>, also the pieces that come in sight, with their side and distance.
+        ///     <paramref name="sayAhead"/>, also the pieces that come in sight, with their side.
         /// </summary>
         public void Tick(bool playing, bool speak, bool sayAhead)
         {
@@ -128,7 +125,7 @@ namespace Poe2Accessibility.Services
                 {
                     var offset = (grid - here) * toWorld;
                     var side = Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, offset)];
-                    lines.Add(Announcements.PlaceAhead(kind, side, Math.Max(1, (int)MathF.Round(offset.Length() / StepWorldUnits))));
+                    lines.Add(Announcements.PlaceAhead(kind, side));
                 }
             }
 

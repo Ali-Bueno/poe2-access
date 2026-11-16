@@ -137,8 +137,11 @@ namespace Poe2Accessibility
         /// <summary>Name the places of the map you walk into and the props in reach: "bridge", "stairs", "cart", "well".</summary>
         public bool AnnouncePlaces = true;
 
-        /// <summary>Name the stairs, doors, bridges and narrow passages that come in sight, with their side and distance.</summary>
-        public bool AnnouncePlacesAhead = true;
+        /// <summary>
+        ///     Name the stairs, doors and bridges that come in sight, with their side; off: they are named when walked into
+        ///     (the owner, 2026-11-16: the distance was too much speech, the sounds are what to learn).
+        /// </summary>
+        public bool AnnouncePlacesAhead;
 
         /// <summary>Say what A uses (the label the game marks with the button) whenever it changes: "Stash, A".</summary>
         public bool AnnounceInteractTarget = true;
