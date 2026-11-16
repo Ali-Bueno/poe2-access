@@ -35,9 +35,25 @@ namespace Poe2Accessibility.Tests
 
         private static readonly string[] Areas = { string.Empty, "El bosque singular", "Sierraclara", "Clearfell", "Campamento de Sierraclara" };
 
+        private static void ACharacterOutOfPlayWhoWalksIsAnEscort()
+        {
+            var walking = new WalkingCharacters();
+            const uint asala = 813, variant = 42;
+            Equal(false, walking.Walks(asala, new Vector2(100, 100)), "first seen: not yet known to walk");
+            Equal(false, walking.Walks(variant, new Vector2(500, 500)), "a story variant set aside");
+            Equal(false, walking.Walks(asala, new Vector2(130, 100)), "a sway in place is no walk");
+            Equal(true, walking.Walks(asala, new Vector2(300, 100)), "walked on: in play");
+            Equal(true, walking.Walks(asala, new Vector2(300, 100)), "and stays so while she stands at a gate");
+            Equal(false, walking.Walks(variant, new Vector2(500, 500)), "the variant never moves");
+            Equal(true, walking.Walked(asala), "followed as an escort");
+            walking.Clear();
+            Equal(false, walking.Walked(asala), "another area's ids are other entities");
+        }
+
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TheObjectiveNamesWhatItAlwaysDid), TheObjectiveNamesWhatItAlwaysDid),
+            (nameof(ACharacterOutOfPlayWhoWalksIsAnEscort), ACharacterOutOfPlayWhoWalksIsAnEscort),
             (nameof(AnObjectiveKeptBetweenListingsAnswersTheSame), AnObjectiveKeptBetweenListingsAnswersTheSame),
             (nameof(ANamedTileStandsWhereItAlwaysDid), ANamedTileStandsWhereItAlwaysDid),
         };

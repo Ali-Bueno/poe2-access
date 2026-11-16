@@ -52,3 +52,14 @@ component (`ExitEntities`, used by the scanner and the radar); the players' and 
 (`MultiplexPortal`) have a Portal component and no AreaTransition (dumps of 2026-11-05 and 11-07). The crane is then
 "Nueva salida: Mina Mawdun", the tile copy within 250 cells is dropped, and the goal leads to the crane itself. Built
 and unit-tested; not heard live yet.
+
+## An escort held out of play: Asala at Halani's gates (2026-11-16)
+
+The quest "Encuentra una forma de abrir las puertas con Asala" has the player walk with Sekhema Asala
+(`Metadata/Monsters/NPC/MarakethMatriarchGate`, a monster with NPC, InteractionAction and MinimapIcon "NPC") from gate to gate.
+An entity dump at the boss beside her: friendly, Targetable in-play `+0x69` = 0, attackable 0, quest state 1. The in-play flag
+is how the scanner leaves out an NPC's story variants, so she was never listed and the beacon had nothing to lock on.
+A story variant set aside never moves; Asala walks. So a character out of play is listed once it has moved more than half a
+step from where it was first seen in the area (`WalkingCharacters`, kept until the area changes). Such a character is an
+escort to the beacon (`EntityCatalog.IsEscort`): reaching it does not release the lock. Beside it the ping is quiet, with
+"Asala, aquí" said once. It pings again when she is three steps ahead. A second press of the chord releases it.

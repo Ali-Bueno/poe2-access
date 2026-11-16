@@ -41,6 +41,13 @@ namespace Poe2Accessibility.Services
         /// <summary>"No longer in sight" is said once per lock: a boss that burrows comes and goes all fight.</summary>
         private bool lostSaid;
 
+        /// <summary>Beside an escort (<see cref="EntityCatalog.IsEscort"/>): quiet until it draws ahead; said once per lock.</summary>
+        private bool beside;
+        private bool besideSaid;
+
+        /// <summary>An escort this far ahead is guided to again: three steps, so a few of hers do not start the ping at once.</summary>
+        private const float EscortAheadWorld = 2 * ArrivalWorld;
+
         /// <summary>The category the scanner lists the target under; a target locked from the Quest category is a copy.</summary>
         private ScanCategory listedAs;
 
@@ -103,7 +110,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void Lock(ScanEntry entry, bool asked = false)
         {
-            if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
+            if (this.catalog.DistanceTo(entry) <= ArrivalWorld && !this.catalog.IsEscort(entry.Id))
             {
                 // Already there: locking would say the way and then the arrival at once.
                 this.Answer(Announcements.Here(entry.Name), asked);
@@ -133,7 +140,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void Follow(ScanEntry entry, bool cut, bool longWay = false)
         {
-            if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
+            if (this.catalog.DistanceTo(entry) <= ArrivalWorld && !this.catalog.IsEscort(entry.Id))
             {
                 this.Clear(false); // already there: nothing to guide to, and no ping left going to the last one
                 return;
@@ -152,6 +159,8 @@ namespace Poe2Accessibility.Services
             this.targetGone = false;
             this.everListed = false;
             this.lostSaid = false;
+            this.beside = false;
+            this.besideSaid = false;
             this.listedAs = entry.Category;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             this.lockedIn = (area.Address, area.AreaHash ?? string.Empty);
@@ -216,7 +225,14 @@ namespace Poe2Accessibility.Services
             }
 
             this.CollectSearch();
-            if (Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= ArrivalWorld)
+            var away = Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY));
+            var escort = this.catalog.IsEscort(goal.Id);
+            if (escort && this.Beside(goal, away))
+            {
+                return;
+            }
+
+            if (away <= ArrivalWorld)
             {
                 this.Arrive(goal);
                 return;
@@ -232,7 +248,7 @@ namespace Poe2Accessibility.Services
             var remainingWorld = BeaconMath.Remaining(path, from, playerGrid) * gridSize;
             if (remainingWorld <= ArrivalWorld)
             {
-                if (!this.partialRoute)
+                if (!this.partialRoute && !escort)
                 {
                     this.Arrive(goal);
                 }
@@ -420,6 +436,29 @@ namespace Poe2Accessibility.Services
             {
                 this.output.Speak(text, false);
             }
+        }
+
+        /// <summary>
+        ///     An escort is followed, never reached: beside it the ping is quiet, and it is guided to again once it draws
+        ///     <see cref="EscortAheadWorld"/> ahead; the lock holds until released.
+        /// </summary>
+        private bool Beside(ScanEntry goal, float away)
+        {
+            if (away <= ArrivalWorld && !this.beside)
+            {
+                this.beside = true;
+                if (!this.besideSaid)
+                {
+                    this.besideSaid = true;
+                    this.output.Say(SpeechKind.Arrivals, Announcements.Here(goal.Name));
+                }
+            }
+            else if (away > EscortAheadWorld)
+            {
+                this.beside = false;
+            }
+
+            return this.beside;
         }
 
         private void Arrive(ScanEntry goal)

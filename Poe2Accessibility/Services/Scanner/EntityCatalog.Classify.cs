@@ -47,7 +47,7 @@ namespace Poe2Accessibility.Services
             var chaos = ChaosTrial.PieceOf(path);
             var foughtBeside = chaos is { } fought && ChaosTrial.IsFoughtBeside(fought);
             if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && league is not { WithoutTarget: true } &&
-                !this.InPlay(entity))
+                !this.InPlay(entity) && !(IsCharacter(entity) && this.walking.Walks(entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y))))
             {
                 this.LogLeftOutCharacter(entity, path, "not in play");
                 return null;
@@ -571,6 +571,9 @@ namespace Poe2Accessibility.Services
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly);
 
         private bool InPlay(Entity entity) => IsInPlay(this.memory, entity);
+
+        /// <summary>A character the game holds out of play who walks (<see cref="WalkingCharacters"/>): an escort, followed rather than reached.</summary>
+        public bool IsEscort(uint id) => this.walking.Walked(id);
 
         /// <summary>The player can attack it (<see cref="GameLayout.TargetableComponent.AttackableOffset"/>); unread counts as yes.</summary>
         private bool Attackable(Entity entity) =>

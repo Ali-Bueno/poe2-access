@@ -37,6 +37,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<uint, ScanEntry> remembered = new();
         /// <summary>Entities and named tiles the player has seen in this area (see <see cref="Sighted"/>).</summary>
         private readonly HashSet<uint> sighted = new();
+        private readonly WalkingCharacters walking = new();
         /// <summary>
         ///     Title of each ground item seen in this area ("Pergamino de sabiduría") → its spoken name ("Pergamino de
         ///     sabiduría, 3"; empty for gold, which its pick-up says), kept past the pick-up: its HUD tooltip can come later.
