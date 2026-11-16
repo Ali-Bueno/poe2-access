@@ -108,7 +108,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> Tell(IEnumerable<(string Side, ForkWay State)> ways)
         {
-            var groups = ways.GroupBy(way => way.State).OrderBy(group => group.Key)
+            // Two ways on one side: the one that goes on is what the side means ("sigue arriba… explorado arriba" told nothing).
+            var all = ways.ToList();
+            var onward = all.Where(way => way.State == ForkWay.GoesOn).Select(way => way.Side).ToHashSet();
+            var groups = all.Where(way => way.State == ForkWay.GoesOn || !onward.Contains(way.Side))
+                .GroupBy(way => way.State).OrderBy(group => group.Key)
                 .Select(group => (group.Key, (IReadOnlyList<string>)group.Select(way => way.Side).Distinct().ToList())).ToList();
             return groups.Any(group => group.Key == ForkWay.GoesOn) ? groups : new List<(ForkWay, IReadOnlyList<string>)>();
         }

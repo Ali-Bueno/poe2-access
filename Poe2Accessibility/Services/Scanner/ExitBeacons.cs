@@ -49,9 +49,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The exits sit under the game's own ambience: heard when listened for, never covering it (the owner, 2026-11-16:
-        ///     "tienen que ser algo sutiles"). A first guess beside the radar's level, to tune by ear.
+        ///     "tienen que ser algo sutiles"); 0.5 at first was "algo bajos" in the Manor (same day).
         /// </summary>
-        private const float SubtleGain = 0.5f;
+        private const float SubtleGain = 1f;
 
         /// <summary>The level during a fight: the exits stay, under the fight's own sounds.</summary>
         private const float FightGain = 0.35f;
@@ -174,8 +174,9 @@ namespace Poe2Accessibility.Services
 
                 var offset = (exit.At - here) * toWorld;
                 var (pan, pitch) = ScreenProjection.Voice(origin, offset, offset.Length(), CentreWorld);
+                // Linear with distance: squared, an exit half the reach away was a quarter as loud and lost under the game.
                 var fade = 1f - (distance / ReachCells);
-                var gain = this.Gain * SubtleGain * fade * fade * (exit.Explored ? ExploredGain : 1f) * (quiet ? FightGain : 1f);
+                var gain = this.Gain * SubtleGain * fade * (exit.Explored ? ExploredGain : 1f) * (quiet ? FightGain : 1f);
                 emitter.Bed?.Set(pan, gain, pitch);
                 if (emitter.Scatter.Next(now, sounds.EventCount(exit.Material)) is { } next)
                 {

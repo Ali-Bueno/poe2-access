@@ -333,6 +333,7 @@ namespace Poe2Accessibility.Tests
             var told = ForkTracker.Tell(new[] { ("left", ForkWay.DeadEnd), ("up", ForkWay.GoesOn), ("right", ForkWay.GoesOn), ("down", ForkWay.Explored) });
             Equal("GoesOn up+right; DeadEnd left; Explored down", string.Join("; ", told.Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "the way on first, sides grouped");
             Equal("Fork 2: goes on up and right, dead end left, explored down", Announcements.Fork("Fork 2", false, told), "said in one line");
+            Equal("GoesOn up right", string.Join("; ", ForkTracker.Tell(new[] { ("up right", ForkWay.GoesOn), ("up right", ForkWay.Explored) }).Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "a side that goes on is not also explored");
             Equal("Fork 2, you've been here", Announcements.Fork("Fork 2", true, Array.Empty<(ForkWay, IReadOnlyList<string>)>()), "a place come back to");
             Equal(("Room with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
             Equal(("Ballroom", false), Announcements.ForkName(true, "ballroom"), "a ballroom is a room by itself");
