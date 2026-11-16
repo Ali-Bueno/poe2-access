@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
             "hunting grounds", "alley", "graveyard", "lair", "airlock", "armoury", "garrison", "smithy", "commander", "thaumaturge",
             "corruption", "golemworks", "generator", "alchemylab", "fleshsurgeon", "synthfleshlab", "viperspymaster",
             "viperspymaster defeated", "sacrificechamber", "transcendentbarracks", "viperlegionbarracks",
+
+            // Outdoor rooms told by their objects (docs/research/rooms.md).
+            "mud", "ritual", "stone", "settlement", "landmark well", "tree root", "runestones", "mausoleum wall", "sinkhole", "oasis", "bossman",
         };
 
         private static readonly Regex Words = new(@"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+", RegexOptions.Compiled);
