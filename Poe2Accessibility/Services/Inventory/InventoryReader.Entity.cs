@@ -140,6 +140,39 @@ namespace Poe2Accessibility.Services
                 : new Dictionary<string, IntPtr>();
         }
 
+        /// <summary>
+        ///     The item's sockets in order (<see cref="GameLayout.Sockets"/>): the item entity socketed in each (a rune, a
+        ///     soul core, a support gem), zero for an empty one; empty for an item without sockets, and when any entry is
+        ///     not believed (more sockets than the component holds, an entry that is no item), so a misread is never said.
+        /// </summary>
+        public IReadOnlyList<IntPtr> SocketedItems(IntPtr entity)
+        {
+            const int MaxSockets = (GameLayout.Sockets.EndOffset - GameLayout.Sockets.FirstOffset) / 8;
+            if (!this.ItemComponents(entity).TryGetValue(GameLayout.Sockets.Component, out var sockets) || !this.reader.IsValidAddress(sockets) ||
+                !this.reader.TryRead<GameOffsets.Natives.StdVector>(sockets + GameLayout.Sockets.KindsOffset, out var kinds))
+            {
+                return Array.Empty<IntPtr>();
+            }
+
+            var count = kinds.TotalElements(1);
+            if (count is <= 0 or > MaxSockets || kinds.End.ToInt64() < kinds.Last.ToInt64())
+            {
+                return Array.Empty<IntPtr>();
+            }
+
+            var socketed = new IntPtr[count];
+            for (var at = 0; at < count; at++)
+            {
+                if (!this.reader.TryRead<IntPtr>(sockets + GameLayout.Sockets.FirstOffset + (at * IntPtr.Size), out socketed[at]) ||
+                    (socketed[at] != IntPtr.Zero && !this.IsItemEntity(socketed[at])))
+                {
+                    return Array.Empty<IntPtr>();
+                }
+            }
+
+            return socketed;
+        }
+
         /// <summary>Research (dev command "itemmods"): the host's Mods lists of an item, to set against its tooltip (docs/research/item-mods.md).</summary>
         public string ModsReport(IntPtr entity)
         {

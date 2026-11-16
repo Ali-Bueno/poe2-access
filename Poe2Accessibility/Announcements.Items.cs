@@ -1,5 +1,6 @@
 namespace Poe2Accessibility
 {
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>Items and inventory: grid cells, equipment slots, weapon sets, search results, gold and amounts.</summary>
@@ -20,6 +21,17 @@ namespace Poe2Accessibility
         /// <summary>A slot of a window the mod has no table for, with no item in it beside slots that hold one.</summary>
         public static string EmptySlot => T("empty slot", "ranura vacía");
         public static string UnknownItem => T("unknown item", "objeto desconocido");
+
+        /// <summary>
+        ///     A piece of gear's sockets, each with what fills it (null for an empty one), then the lines its runes give:
+        ///     "2 engarces: Runa de hierro menor, vacío. Efecto: Daño físico aumentado un 14%".
+        /// </summary>
+        public static string Sockets(IReadOnlyList<string?> socketed, IReadOnlyList<string> gives)
+        {
+            var held = string.Join(", ", socketed.Select(name => name ?? EmptyCell));
+            var head = socketed.Count == 1 ? T($"1 socket: {held}", $"1 engarce: {held}") : T($"{socketed.Count} sockets: {held}", $"{socketed.Count} engarces: {held}");
+            return gives.Count == 0 ? head : head + T(". Effect: ", ". Efecto: ") + string.Join(". ", gives);
+        }
 
         /// <summary>
         ///     Item text and position for a grid cell: equipment slots name the slot ("Gloves, empty") and have no

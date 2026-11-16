@@ -100,9 +100,11 @@ namespace Poe2Accessibility.Services
                 this.itemModChecks.Clear();
             }
 
-            // An item without modifiers (a rune, a currency) is kept too, so it is not read again at every look.
+            // An item without modifiers (a rune, a currency) is kept too, so it is not read again at every look. Its runes'
+            // lines are in no Mods list: left out, so they are no difference.
+            var runeLines = this.RuneLinesOf(entity, tooltip);
             var result = this.inventory.ItemMods(entity) is { } mods
-                ? ItemModCheck.Compare(ItemModLines.Render(mods, Localization.Language, ModStatCatalog.Shared, ModTextCatalog.Shared), tooltip, ModTextCatalog.Shared)
+                ? ItemModCheck.Compare(ItemModLines.Render(mods, Localization.Language, ModStatCatalog.Shared, ModTextCatalog.Shared), tooltip.Where((_, at) => !runeLines.Contains(at)).ToList(), ModTextCatalog.Shared)
                 : null;
             this.itemModChecks[entity] = (read, name, result);
             if (result is { Differs: true })

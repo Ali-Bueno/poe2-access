@@ -21,9 +21,13 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> mods;
         private readonly Dictionary<string, string> unproven;
         private readonly HashSet<string> hidden;
+        private readonly Dictionary<string, Dictionary<string, string>> runes;
 
-        private ModStatCatalog(FileData data) =>
+        private ModStatCatalog(FileData data)
+        {
             (this.mods, this.unproven, this.hidden) = (new(data.Mods ?? new(), StringComparer.Ordinal), new(data.Unproven ?? new(), StringComparer.Ordinal), new(data.Hidden ?? new(), StringComparer.Ordinal));
+            this.runes = new(data.Runes ?? new(), StringComparer.Ordinal);
+        }
 
         /// <summary>The catalog the plugin loaded; empty until then, so every modifier is unknown.</summary>
         public static ModStatCatalog Shared { get; private set; } = new(new FileData());
@@ -43,7 +47,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 Shared = Parse(File.ReadAllText(path));
-                log.Info($"Modifier stat catalog: {Shared.mods.Count} modifiers, {Shared.unproven.Count} not told apart, {Shared.hidden.Count} hidden stats from the game files");
+                log.Info($"Modifier stat catalog: {Shared.mods.Count} modifiers, {Shared.unproven.Count} not told apart, {Shared.hidden.Count} hidden stats, {Shared.runes.Count} runes from the game files");
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException)
             {
@@ -82,6 +86,42 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<string>? UnprovenStatsOf(string mod) =>
             this.unproven.TryGetValue(mod, out var written) ? written.Split(' ', StringSplitOptions.RemoveEmptyEntries) : null;
 
+        /// <summary>
+        ///     What a rune or soul core gives socketed, by its base item's path: one entry a category of item (its
+        ///     SoulCoreStatCategories row), each stat with its fixed value; empty for an item the catalog does not know.
+        /// </summary>
+        public IReadOnlyDictionary<string, IReadOnlyList<(string Stat, int Value)>> RuneStatsOf(string basePath)
+        {
+            var found = new Dictionary<string, IReadOnlyList<(string Stat, int Value)>>(StringComparer.Ordinal);
+            if (!this.runes.TryGetValue(basePath, out var categories))
+            {
+                return found;
+            }
+
+            foreach (var (category, written) in categories)
+            {
+                var words = written.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var stats = new List<(string Stat, int Value)>();
+                for (var at = 0; at + 1 < words.Length; at += 2)
+                {
+                    if (!int.TryParse(words[at + 1], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var value))
+                    {
+                        stats.Clear();
+                        break;
+                    }
+
+                    stats.Add((words[at], value));
+                }
+
+                if (stats.Count > 0 && words.Length % 2 == 0)
+                {
+                    found[category] = stats;
+                }
+            }
+
+            return found;
+        }
+
         /// <summary>Whether the game's description file says the stat has no line.</summary>
         public bool IsHidden(string stat) => this.hidden.Contains(stat);
 
@@ -93,6 +133,8 @@ namespace Poe2Accessibility.Services
             public Dictionary<string, string>? Mods { get; set; }
 
             public Dictionary<string, string>? Unproven { get; set; }
+
+            public Dictionary<string, Dictionary<string, string>>? Runes { get; set; }
         }
     }
 }

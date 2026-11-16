@@ -16110,6 +16110,1108 @@
     "qweMapModsForPOE2StartHere": "map_monsters_%_all_damage_to_gain_as_fire 0 0 map_map_item_drop_chance_+%_final_from_map 0 0 map_monster_potency_+%_final_from_map 0 0",
     "qweTabletMods_StartHere": "map_monsters_%_all_damage_to_gain_as_fire 0 0 map_map_item_drop_chance_+%_final_from_map 0 0 map_monster_potency_+%_final_from_map 0 0"
   },
+  "runes": {
+    "Metadata/Items/SoulCores/AmanamusGaze": {
+      "10": "remove_damaging_ailment_on_using_command_skill 1",
+      "5": "armour_+_per_1_spirit 2",
+      "6": "abyss_socketable_movement_speed_is_only_base_+%_per_15_spirit_up_to_+40% 1"
+    },
+    "Metadata/Items/SoulCores/AugmentAnoint": {
+      "10": "local_item_can_be_instilled 1"
+    },
+    "Metadata/Items/SoulCores/CarvedCunning": {
+      "10": "cannot_miss_against_full_life_enemies 1",
+      "5": "base_damage_%_deflected_if_you_have_not_deflected_recently 5",
+      "6": "gain_onslaught_for_x_seconds_when_your_marks_activate 4"
+    },
+    "Metadata/Items/SoulCores/CarvedMajesty": {
+      "5": "base_spirit_per_socketed_idol 3",
+      "6": "sprint_movement_speed_+%_per_active_persistent_minion 1",
+      "9": "companions_gain_onslaught_on_hitting_enemies_marked_by_you_ms 4000"
+    },
+    "Metadata/Items/SoulCores/CarvedMischief": {
+      "10": "gain_guard_%_of_maximum_life_for_4_seconds_on_taking_savage_hit 10",
+      "5": "stun_threshold_+%_if_stunned_recently 200",
+      "9": "additional_maximum_block_%_if_blocked_with_active_block_recently 5"
+    },
+    "Metadata/Items/SoulCores/CarvedTenacity": {
+      "10": "enemies_you_blind_have_no_crit_bonus_for_x_seconds 4",
+      "6": "slows_have_no_potency_on_you_while_sprinting 1",
+      "9": "critical_hits_apply_life_regeneration_rate_+%_for_4_seconds -100"
+    },
+    "Metadata/Items/SoulCores/EmergentInstinct": {
+      "10": "hits_cannot_be_evaded_vs_blinded_maimed_bleeding_enemies 1",
+      "5": "thorns_damage_is_lucky_against_enemies_with_fully_broken_armour 1",
+      "9": "life_regeneration_per_minute_%_if_used_a_command_skill_recently 300"
+    },
+    "Metadata/Items/SoulCores/EmergentPossibility": {
+      "5": "chaos_damage_from_hits_%_taken_as_random_element 15",
+      "6": "ward_regeneration_rate_+%_while_sprinting 50",
+      "9": "non_skill_base_all_damage_%_to_gain_as_random_element_per_socketed_rune 1"
+    },
+    "Metadata/Items/SoulCores/EmergentProtection": {
+      "10": "gain_endurance_charge_on_reaching_low_life_once_per_2s 1",
+      "6": "gain_guard_after_sprinting_equal_to_x%_of_maximum_life_per_second_sprinted_up_to_20% 4",
+      "9": "base_banner_life_regeneration_rate_per_minute_%_to_apply 120"
+    },
+    "Metadata/Items/SoulCores/EmergentVigour": {
+      "10": "gain_X_max_life_per_8_armour_on_equipped_helmet 1",
+      "5": "gain_maximum_energy_shield_equal_to_%_total_strength_requirement_of_equipped_armour_items 50",
+      "6": "self_take_no_extra_damage_from_critical_strikes_while_on_consecrated_ground 1"
+    },
+    "Metadata/Items/SoulCores/IdolCorrupted1": {
+      "11": "companions_in_presence_non_skill_base_all_damage_%_to_gain_as_random_element 20 companions_in_presence_base_resist_all_elements_% -20",
+      "24": "non_skill_base_all_damage_%_to_gain_as_random_element 20 base_resist_all_elements_% -20"
+    },
+    "Metadata/Items/SoulCores/IdolCorrupted2": {
+      "11": "aura_effect_+% 25 presence_area_+% -40",
+      "24": "energy_generated_+% 40 spirit_+% -25"
+    },
+    "Metadata/Items/SoulCores/IdolCorrupted3": {
+      "11": "minion_commanded_skill_damage_+% 60 base_mana_cost_efficiency_+%_of_command_skills -30",
+      "24": "non_skill_base_all_damage_%_to_gain_as_physical_per_10%_missing_mana_permyriad 200 maximum_mana_+% -30"
+    },
+    "Metadata/Items/SoulCores/IdolHawk": {
+      "11": "companion_attack_speed_+% 12",
+      "5": "deflection_rating_+% 10"
+    },
+    "Metadata/Items/SoulCores/IdolPanther": {
+      "11": "minion_chaos_resistance_% 20",
+      "5": "base_armour_%_applies_to_chaos_damage 10"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial1": {
+      "11": "companion_damage_+%_final_from_idol_per_different_dead_companion 10",
+      "12": "armour_%_applies_to_fire_cold_lightning_damage 25",
+      "13": "base_deflection_rating_%_of_evasion_rating 20"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial2": {
+      "11": "chance_%_for_plants_to_overgrow_when_entering_your_presence 25",
+      "6": "plant_skill_effect_duration_+% 30"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial3": {
+      "11": "allies_in_your_presence_share_charges_with_you 1",
+      "5": "charge_skip_consume_chance_% 10"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial4": {
+      "11": "endurance_only_conduit 1",
+      "6": "chance_to_gain_1_more_endurance_charge_% 15"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial5": {
+      "10": "chance_to_gain_1_more_power_charge_% 15",
+      "11": "power_only_conduit 1"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial6": {
+      "11": "frenzy_only_conduit 1",
+      "9": "chance_to_gain_1_more_frenzy_charge_% 15"
+    },
+    "Metadata/Items/SoulCores/IdolSpecial7": {
+      "11": "companions_in_presence_gain_x_rage_on_hit 1",
+      "12": "block_chance_+%_while_companion_in_presence 15",
+      "13": "companions_gain_onslaught_when_you_parry 1"
+    },
+    "Metadata/Items/SoulCores/IdolStoat": {
+      "11": "companion_maximum_life_+% 25",
+      "5": "base_all_damage_bypass_energy_shield_% 5"
+    },
+    "Metadata/Items/SoulCores/KurgalsGaze": {
+      "10": "additive_modifiers_to_life_regeneration_also_apply_to_mana_regeneration_rate 1",
+      "6": "mana_cost_efficiency_+%_if_not_dodge_rolled_recently 15",
+      "9": "arcane_surge_effect_on_self_+% 40"
+    },
+    "Metadata/Items/SoulCores/RuneAccuracy": {
+      "1": "local_accuracy_rating 90",
+      "3": "spell_critical_strike_chance_+% 20",
+      "4": "flask_life_and_mana_to_recover_+% 12"
+    },
+    "Metadata/Items/SoulCores/RuneAccuracyGreater": {
+      "1": "local_accuracy_rating 120",
+      "3": "spell_critical_strike_chance_+% 24",
+      "4": "flask_life_and_mana_to_recover_+% 16"
+    },
+    "Metadata/Items/SoulCores/RuneAccuracyLesser": {
+      "1": "local_accuracy_rating 60",
+      "3": "spell_critical_strike_chance_+% 16",
+      "4": "flask_life_and_mana_to_recover_+% 8"
+    },
+    "Metadata/Items/SoulCores/RuneAccuracyPerfect": {
+      "1": "local_accuracy_rating 150",
+      "3": "spell_critical_strike_chance_+% 28",
+      "4": "flask_life_and_mana_to_recover_+% 20"
+    },
+    "Metadata/Items/SoulCores/RuneCold": {
+      "1": "local_minimum_added_cold_damage 6 local_maximum_added_cold_damage 10",
+      "3": "non_skill_base_all_damage_%_to_gain_as_cold 8",
+      "4": "base_cold_damage_resistance_% 14"
+    },
+    "Metadata/Items/SoulCores/RuneColdGreater": {
+      "1": "local_minimum_added_cold_damage 9 local_maximum_added_cold_damage 15",
+      "3": "non_skill_base_all_damage_%_to_gain_as_cold 10",
+      "4": "base_cold_damage_resistance_% 18"
+    },
+    "Metadata/Items/SoulCores/RuneColdLesser": {
+      "1": "local_minimum_added_cold_damage 3 local_maximum_added_cold_damage 5",
+      "3": "non_skill_base_all_damage_%_to_gain_as_cold 6",
+      "4": "base_cold_damage_resistance_% 10"
+    },
+    "Metadata/Items/SoulCores/RuneColdPerfect": {
+      "1": "local_minimum_added_cold_damage 16 local_maximum_added_cold_damage 20",
+      "3": "non_skill_base_all_damage_%_to_gain_as_cold 12",
+      "4": "base_cold_damage_resistance_% 22"
+    },
+    "Metadata/Items/SoulCores/RuneConvertChaos": {
+      "23": "dummy_display_stat_rune_chaos_convert 1"
+    },
+    "Metadata/Items/SoulCores/RuneConvertCold": {
+      "23": "dummy_display_stat_rune_cold_convert 1"
+    },
+    "Metadata/Items/SoulCores/RuneConvertFire": {
+      "23": "dummy_display_stat_rune_fire_convert 1"
+    },
+    "Metadata/Items/SoulCores/RuneConvertLightning": {
+      "23": "dummy_display_stat_rune_lightning_convert 1"
+    },
+    "Metadata/Items/SoulCores/RuneDexterity": {
+      "0": "additional_dexterity 9"
+    },
+    "Metadata/Items/SoulCores/RuneDexterityGreater": {
+      "0": "additional_dexterity 12"
+    },
+    "Metadata/Items/SoulCores/RuneDexterityLesser": {
+      "0": "additional_dexterity 6"
+    },
+    "Metadata/Items/SoulCores/RuneDexterityPerfect": {
+      "0": "additional_dexterity 15"
+    },
+    "Metadata/Items/SoulCores/RuneEnhance": {
+      "1": "local_physical_damage_+% 16",
+      "3": "spell_damage_+% 25",
+      "4": "local_armour_and_evasion_and_energy_shield_+% 16"
+    },
+    "Metadata/Items/SoulCores/RuneEnhanceGreater": {
+      "1": "local_physical_damage_+% 18",
+      "3": "spell_damage_+% 30",
+      "4": "local_armour_and_evasion_and_energy_shield_+% 18"
+    },
+    "Metadata/Items/SoulCores/RuneEnhanceLesser": {
+      "1": "local_physical_damage_+% 14",
+      "3": "spell_damage_+% 20",
+      "4": "local_armour_and_evasion_and_energy_shield_+% 14"
+    },
+    "Metadata/Items/SoulCores/RuneEnhancePerfect": {
+      "1": "local_physical_damage_+% 20",
+      "3": "spell_damage_+% 35",
+      "4": "local_armour_and_evasion_and_energy_shield_+% 20"
+    },
+    "Metadata/Items/SoulCores/RuneFire": {
+      "1": "local_minimum_added_fire_damage 7 local_maximum_added_fire_damage 11",
+      "3": "non_skill_base_all_damage_%_to_gain_as_fire 8",
+      "4": "base_fire_damage_resistance_% 14"
+    },
+    "Metadata/Items/SoulCores/RuneFireGreater": {
+      "1": "local_minimum_added_fire_damage 13 local_maximum_added_fire_damage 16",
+      "3": "non_skill_base_all_damage_%_to_gain_as_fire 10",
+      "4": "base_fire_damage_resistance_% 18"
+    },
+    "Metadata/Items/SoulCores/RuneFireLesser": {
+      "1": "local_minimum_added_fire_damage 4 local_maximum_added_fire_damage 6",
+      "3": "non_skill_base_all_damage_%_to_gain_as_fire 6",
+      "4": "base_fire_damage_resistance_% 10"
+    },
+    "Metadata/Items/SoulCores/RuneFirePerfect": {
+      "1": "local_minimum_added_fire_damage 17 local_maximum_added_fire_damage 20",
+      "3": "non_skill_base_all_damage_%_to_gain_as_fire 12",
+      "4": "base_fire_damage_resistance_% 22"
+    },
+    "Metadata/Items/SoulCores/RuneIntelligence": {
+      "0": "additional_intelligence 9"
+    },
+    "Metadata/Items/SoulCores/RuneIntelligenceGreater": {
+      "0": "additional_intelligence 12"
+    },
+    "Metadata/Items/SoulCores/RuneIntelligenceLesser": {
+      "0": "additional_intelligence 6"
+    },
+    "Metadata/Items/SoulCores/RuneIntelligencePerfect": {
+      "0": "additional_intelligence 15"
+    },
+    "Metadata/Items/SoulCores/RuneLife": {
+      "1": "local_life_leech_from_physical_damage_permyriad 400",
+      "3": "base_maximum_energy_shield 40",
+      "4": "base_maximum_life 45"
+    },
+    "Metadata/Items/SoulCores/RuneLifeGreater": {
+      "1": "local_life_leech_from_physical_damage_permyriad 500",
+      "3": "base_maximum_energy_shield 50",
+      "4": "base_maximum_life 60"
+    },
+    "Metadata/Items/SoulCores/RuneLifeLesser": {
+      "1": "local_life_leech_from_physical_damage_permyriad 300",
+      "3": "base_maximum_energy_shield 30",
+      "4": "base_maximum_life 30"
+    },
+    "Metadata/Items/SoulCores/RuneLifePerfect": {
+      "1": "local_life_leech_from_physical_damage_permyriad 600",
+      "3": "base_maximum_energy_shield 60",
+      "4": "base_maximum_life 75"
+    },
+    "Metadata/Items/SoulCores/RuneLifeRecovery": {
+      "1": "base_life_gained_on_enemy_death 25",
+      "3": "energy_shield_recharge_rate_+% 8",
+      "4": "life_regeneration_rate_per_minute_% 24"
+    },
+    "Metadata/Items/SoulCores/RuneLifeRecoveryGreater": {
+      "1": "base_life_gained_on_enemy_death 35",
+      "3": "energy_shield_recharge_rate_+% 10",
+      "4": "life_regeneration_rate_per_minute_% 27"
+    },
+    "Metadata/Items/SoulCores/RuneLifeRecoveryLesser": {
+      "1": "base_life_gained_on_enemy_death 15",
+      "3": "energy_shield_recharge_rate_+% 6",
+      "4": "life_regeneration_rate_per_minute_% 21"
+    },
+    "Metadata/Items/SoulCores/RuneLifeRecoveryPerfect": {
+      "1": "base_life_gained_on_enemy_death 45",
+      "3": "energy_shield_recharge_rate_+% 12",
+      "4": "life_regeneration_rate_per_minute_% 30"
+    },
+    "Metadata/Items/SoulCores/RuneLightning": {
+      "1": "local_minimum_added_lightning_damage 1 local_maximum_added_lightning_damage 20",
+      "3": "non_skill_base_all_damage_%_to_gain_as_lightning 8",
+      "4": "base_lightning_damage_resistance_% 14"
+    },
+    "Metadata/Items/SoulCores/RuneLightningGreater": {
+      "1": "local_minimum_added_lightning_damage 1 local_maximum_added_lightning_damage 30",
+      "3": "non_skill_base_all_damage_%_to_gain_as_lightning 10",
+      "4": "base_lightning_damage_resistance_% 18"
+    },
+    "Metadata/Items/SoulCores/RuneLightningLesser": {
+      "1": "local_minimum_added_lightning_damage 1 local_maximum_added_lightning_damage 10",
+      "3": "non_skill_base_all_damage_%_to_gain_as_lightning 6",
+      "4": "base_lightning_damage_resistance_% 10"
+    },
+    "Metadata/Items/SoulCores/RuneLightningPerfect": {
+      "1": "local_minimum_added_lightning_damage 1 local_maximum_added_lightning_damage 40",
+      "3": "non_skill_base_all_damage_%_to_gain_as_lightning 12",
+      "4": "base_lightning_damage_resistance_% 22"
+    },
+    "Metadata/Items/SoulCores/RuneMana": {
+      "1": "local_mana_leech_from_physical_damage_permyriad 300",
+      "3": "base_maximum_mana 60",
+      "4": "base_maximum_mana 30"
+    },
+    "Metadata/Items/SoulCores/RuneManaGreater": {
+      "1": "local_mana_leech_from_physical_damage_permyriad 400",
+      "3": "base_maximum_mana 75",
+      "4": "base_maximum_mana 40"
+    },
+    "Metadata/Items/SoulCores/RuneManaLesser": {
+      "1": "local_mana_leech_from_physical_damage_permyriad 200",
+      "3": "base_maximum_mana 45",
+      "4": "base_maximum_mana 20"
+    },
+    "Metadata/Items/SoulCores/RuneManaPerfect": {
+      "1": "local_mana_leech_from_physical_damage_permyriad 500",
+      "3": "base_maximum_mana 90",
+      "4": "base_maximum_mana 50"
+    },
+    "Metadata/Items/SoulCores/RuneManaRecovery": {
+      "1": "base_mana_gained_on_enemy_death 20",
+      "3": "mana_regeneration_rate_+% 25",
+      "4": "mana_regeneration_rate_+% 15"
+    },
+    "Metadata/Items/SoulCores/RuneManaRecoveryGreater": {
+      "1": "base_mana_gained_on_enemy_death 30",
+      "3": "mana_regeneration_rate_+% 30",
+      "4": "mana_regeneration_rate_+% 18"
+    },
+    "Metadata/Items/SoulCores/RuneManaRecoveryLesser": {
+      "1": "base_mana_gained_on_enemy_death 10",
+      "3": "mana_regeneration_rate_+% 20",
+      "4": "mana_regeneration_rate_+% 12"
+    },
+    "Metadata/Items/SoulCores/RuneManaRecoveryPerfect": {
+      "1": "base_mana_gained_on_enemy_death 40",
+      "3": "mana_regeneration_rate_+% 35",
+      "4": "mana_regeneration_rate_+% 21"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients1": {
+      "7": "chance_to_fire_1_additional_projectile_%_with_rollover_with_bow_attacks 50"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients10": {
+      "11": "minion_attack_and_cast_speed_+% 8"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients11": {
+      "22": "gain_X_druidic_prowess_on_heavy_stunning_rare_or_unique_enemy 2"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients12": {
+      "17": "grenade_skill_%_chance_to_explode_twice 10"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients13": {
+      "12": "attack_speed_+%_if_have_blocked_recently 8"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients14": {
+      "14": "recover_X_life_on_block 15",
+      "23": "base_maximum_life 80"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients15": {
+      "11": "companion_damage_+% 30",
+      "6": "sprint_movement_speed_+% 8"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients16": {
+      "23": "generate_x_charges_for_any_flask_per_minute 12",
+      "6": "dodge_roll_base_travel_distance 3"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients17": {
+      "29": "local_physical_damage_roll_always_min_or_max 1",
+      "9": "additional_combo_gain_chance_% 50"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients18": {
+      "2": "archon_delay_expires_x%_faster 30",
+      "9": "glory_generation_+% 50"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients19": {
+      "28": "local_maximum_added_cold_damage_equal_to_total_monster_power_of_enemies_hit_in_past_20_seconds_up_to_X 32",
+      "9": "base_life_gain_per_target 3 mana_gain_per_target 1"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients2": {
+      "13": "parried_magnitude_+% 30"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients20": {
+      "5": "local_base_physical_damage_reduction_rating 30 local_base_evasion_rating 30 local_energy_shield 10"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients21": {
+      "5": "base_resist_all_elements_% 20 additional_maximum_all_elemental_resistances_% -10"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients22": {
+      "5": "base_spirit 50 spirit_+_per_2_levels -1"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients23": {
+      "10": "critical_strike_chance_+% 200 no_critical_strike_multiplier 1",
+      "2": "spell_damage_+%_while_companion_in_presence 50"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients24": {
+      "10": "remnant_effect_+% 15",
+      "3": "remnant_pickup_range_+% 50 remnant_effect_+% -25"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients25": {
+      "27": "local_minimum_added_fire_damage 13 local_maximum_added_fire_damage 16 base_skill_cost_life_instead_of_mana_% 15"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients26": {
+      "25": "gain_x_rage_on_melee_hit 4 maximum_rage -10"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients3": {
+      "15": "your_slam_aftershock_chance_% 10"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients4": {
+      "16": "broken_armour_and_sundered_armour_debuff_effect_+% 40"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients5": {
+      "18": "chance_to_gain_1_more_charge_% 30"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients6": {
+      "19": "hit_damage_immobilisation_multiplier_+% 50"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients7": {
+      "21": "chance_%_to_create_additional_remnant 30"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients8": {
+      "20": "withered_magnitude_+% 25"
+    },
+    "Metadata/Items/SoulCores/RuneOfTheAncients9": {
+      "8": "curse_area_of_effect_+% 40"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyAdoniasEgo": {
+      "20": "max_power_charges 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyAlkemEira": {
+      "12": "damage_blocked_%_recouped_as_mana 30"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyAmorMandragora": {
+      "22": "gain_druidic_prowess_per_X_rage_spent 20"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyAshrend": {
+      "5": "base_cannot_be_ignited 1 physical_attack_damage_taken_+ -10"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBlackbraid": {
+      "5": "armour_%_applies_to_fire_cold_lightning_damage 50"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBrainRattler": {
+      "15": "local_all_damage_can_electrocute 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBramblejack": {
+      "5": "melee_physical_damage_taken_%_to_deal_to_attacker 250"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBriarpatch": {
+      "6": "base_thorns_critical_strike_chance 1500"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBriskwrap": {
+      "5": "base_deflection_rating_%_of_evasion_rating 30"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBristleboar": {
+      "5": "gain_x_rage_when_hit 5 gain_x_rage_when_taken_crit 10"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBrynhandsMark": {
+      "16": "local_double_hit_damage_stun_build_up 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyBushwhack": {
+      "6": "base_physical_damage_can_pin 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyCandlemaker": {
+      "9": "chance_to_ignite_is_doubled 1 fire_damage_+% 40"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyChernobogsPillar": {
+      "12": "non_skill_all_damage_%_to_gain_as_fire_+_per_2%_attack_block_chance 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyCrownofThorns": {
+      "10": "keystone_pain_attunement 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyCursecarver": {
+      "20": "curse_skill_gem_level_+ 3"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyDeathblow": {
+      "9": "kill_enemy_on_hit_if_under_10%_life 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyDeidbell": {
+      "10": "corpses_in_your_area_of_effect_explode_dealing_%_maximum_life_physical_damage_on_warcry 10"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyDionadair": {
+      "12": "local_shield_double_stun_threshold_while_active_blocking 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyDuality": {
+      "19": "unique_gain_x_guard_for_500_ms_per_combo_lost_using_skills 250"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyDunkelhalt": {
+      "13": "parried_magnitude_+% 50"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyDuskVigil": {
+      "21": "non_skill_base_physical_damage_%_to_gain_as_fire 30"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyEdyrnsTusks": {
+      "5": "base_chance_to_inflict_bleeding_% 50 base_slow_potency_+% -50"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyElevore": {
+      "10": "generate_x_charges_for_charms_per_minute 60 num_charm_slots 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyEriansCobble": {
+      "10": "accuracy_rating 30 base_maximum_life 10 base_maximum_mana 10 base_item_found_rarity_+% 10 critical_strike_chance_+% 10 additional_all_attributes 5 base_resist_all_elements_% 5 base_life_regeneration_rate_per_minute 180"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyEyesOfTheRunefather": {
+      "12": "off_hand_apply_ancients_challenge_on_hit 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyEzomytePeak": {
+      "10": "base_skill_area_of_effect_+% 15 keystone_unwavering_stance 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyFacebreaker": {
+      "9": "gain_armour_equal_to_strength 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyFoxshade": {
+      "5": "movement_velocity_+%_when_on_full_life 10 evasion_rating_+%_when_on_full_life 100"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyGreymake": {
+      "10": "base_all_attributes 50"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyHoghunt": {
+      "15": "local_critical_strike_chance 500 local_always_maim_on_crit 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyHornsofBynden": {
+      "10": "armour_+%_per_rage 1 gain_x_rage_on_melee_hit 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyHrimnorsHymn": {
+      "15": "your_slam_aftershock_chance_% 25"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyIronbound": {
+      "7": "main_hand_attacks_with_this_weapon_minimum_added_physical_damage_per_1%_block_chance 1 main_hand_attacks_with_this_weapon_maximum_added_physical_damage_per_1%_block_chance 3"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyKeeperoftheArc": {
+      "10": "has_trickster_alternating_damage_taken_+%_final -20"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyKingsguard": {
+      "5": "recover_%_life_per_endurance_charge_consumed 5"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyLegionstride": {
+      "6": "additional_block_% 10"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyLifesprig": {
+      "20": "spell_skill_gem_level_+ 2"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyMjölner": {
+      "16": "local_intelligence_requirement_+ 200 lightning_skill_gem_level_+ 3"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyNorthpaw": {
+      "9": "override_weapon_base_critical_strike_chance 700"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyOaksworn": {
+      "12": "life_regeneration_rate_+% 50"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyObernsBastion": {
+      "6": "base_stun_recovery_+% 200"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyOlrovasara": {
+      "16": "local_maximum_added_lightning_damage_equal_to_total_monster_power_of_enemies_hit_in_past_20_seconds_up_to_X 120"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyQuillRain": {
+      "7": "local_attack_speed_+% 50 unique_quill_rain_damage_+%_final -20"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyRondeldeEzo": {
+      "13": "curse_on_block_enfeeble_chance_% 100"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyRuneseekersCall": {
+      "20": "local_rune_effect_+% 75"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacySerlesGrit": {
+      "16": "local_maximum_quality_is_% 40"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacySpitefulFloret": {
+      "22": "x%_damage_taken_recouped_as_life_per_5_rage 5"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyStarkonjasHead": {
+      "10": "companion_takes_%_damage_before_you 5 evasion_rating_+%_when_on_low_life 100"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacySvalinn": {
+      "12": "base_block_chance_luck 1 base_block_%_damage_taken 20"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTheBloodThorn": {
+      "19": "local_bleed_on_hit 1 local_minimum_added_physical_damage 4 local_maximum_added_physical_damage 8"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTheKnight-errant": {
+      "6": "keystone_iron_reflexes 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTheSentry": {
+      "19": "ignite_chance_+% 100 attack_minimum_added_fire_damage 23 attack_maximum_added_fire_damage 34"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTheSmilingKnight": {
+      "10": "aggravate_bleeding_on_attack_crit_chance_% 100"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTheUnleashed": {
+      "5": "hit_damage_bypass_energy_shield_%_when_below_half_energy_shield 25"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTheVileKnight": {
+      "10": "unique_damage_+%_vs_rare_or_unique_enemy_per_second_ever_in_presence_up_to_max 4"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTrampletoe": {
+      "6": "overkill_damage_%_as_physical_to_nearby_enemies 10"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTrenchtimbre": {
+      "16": "additive_modifiers_to_minion_attack_speed_also_affect_you 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTwistedEmpyrean": {
+      "15": "local_attacks_have_added_min_cold_damage_equal_to_%_of_maximum_mana 6 local_attacks_have_added_max_cold_damage_equal_to_%_of_maximum_mana 10"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyTyrannysGrip": {
+      "18": "melee_splash 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyWanderlust": {
+      "6": "slows_have_no_potency_on_you 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyWingsofCaelyn": {
+      "10": "stun_threshold_+%_per_rage 1 gain_x_rage_on_melee_hit 1"
+    },
+    "Metadata/Items/SoulCores/RuneOlrothsLegacyWulfsbane": {
+      "12": "intimidate_enemy_on_block_for_duration_ms 8000"
+    },
+    "Metadata/Items/SoulCores/RunePhysical": {
+      "1": "local_minimum_added_physical_damage 6 local_maximum_added_physical_damage 9",
+      "4": "thorns_minimum_base_physical_damage 14 thorns_maximum_base_physical_damage 21"
+    },
+    "Metadata/Items/SoulCores/RunePhysicalGreater": {
+      "1": "local_minimum_added_physical_damage 9 local_maximum_added_physical_damage 12",
+      "4": "thorns_minimum_base_physical_damage 31 thorns_maximum_base_physical_damage 52"
+    },
+    "Metadata/Items/SoulCores/RunePhysicalLesser": {
+      "1": "local_minimum_added_physical_damage 3 local_maximum_added_physical_damage 4",
+      "4": "thorns_minimum_base_physical_damage 6 thorns_maximum_base_physical_damage 9"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial1": {
+      "1": "minion_physical_damage_%_to_gain_as_lightning 10",
+      "4": "minion_physical_hit_and_dot_damage_%_taken_as_lightning 10"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial10": {
+      "5": "curse_effect_on_self_+% -50"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial11": {
+      "10": "experience_gain_+% 2"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial12": {
+      "10": "exposure_effect_+% 25"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial13": {
+      "1": "attack_damage_+%_vs_rare_or_unique_enemy 50"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial14": {
+      "5": "energy_shield_recharge_rate_+% 30"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial15": {
+      "9": "base_damaging_ailment_effect_+% 20"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial16": {
+      "9": "non_damaging_ailment_effect_+% 30"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial17": {
+      "9": "base_cast_speed_+% 8"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial18": {
+      "7": "number_of_additional_arrows 1"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial19": {
+      "3": "spell_skills_fire_2_additional_projectiles_final_chance_% 25"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial2": {
+      "1": "energy_generated_+% 10",
+      "4": "thorns_minimum_base_lightning_damage 1 thorns_maximum_base_lightning_damage 100"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial20": {
+      "9": "withered_magnitude_+% 20"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial21": {
+      "1": "minimum_added_fire_damage_vs_ignited_enemies 23 maximum_added_fire_damage_vs_ignited_enemies 34"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial22": {
+      "1": "minimum_added_cold_damage_vs_chilled_enemies 19 maximum_added_cold_damage_vs_chilled_enemies 28"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial23": {
+      "1": "global_minimum_added_lightning_damage_vs_shocked_enemies 1 global_maximum_added_lightning_damage_vs_shocked_enemies 60"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial24": {
+      "9": "attack_minimum_added_physical_damage 5 attack_maximum_added_physical_damage 12"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial25": {
+      "5": "base_damage_removed_from_mana_before_life_% 15"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial3": {
+      "1": "skill_speed_+% 8",
+      "4": "debuff_time_passed_+% 8"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial4": {
+      "1": "local_inflict_exposure_on_hit_%_chance 10",
+      "4": "shocked_effect_on_self_+% -10"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial5": {
+      "3": "spell_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial6": {
+      "1": "non_skill_base_all_damage_%_to_gain_as_cold_fire_lightning 5",
+      "3": "non_skill_base_all_damage_%_to_gain_as_cold_fire_lightning 5"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial7": {
+      "1": "non_skill_base_all_damage_%_to_gain_as_chaos 13",
+      "3": "non_skill_base_all_damage_%_to_gain_as_chaos 13"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial8": {
+      "6": "deflection_rating_+%_while_moving 8"
+    },
+    "Metadata/Items/SoulCores/RuneSpecial9": {
+      "6": "base_movement_velocity_+% 5"
+    },
+    "Metadata/Items/SoulCores/RuneStrength": {
+      "0": "additional_strength 9"
+    },
+    "Metadata/Items/SoulCores/RuneStrengthGreater": {
+      "0": "additional_strength 12"
+    },
+    "Metadata/Items/SoulCores/RuneStrengthLesser": {
+      "0": "additional_strength 6"
+    },
+    "Metadata/Items/SoulCores/RuneStrengthPerfect": {
+      "0": "additional_strength 15"
+    },
+    "Metadata/Items/SoulCores/RuneStun": {
+      "1": "local_hit_damage_stun_multiplier_+% 30",
+      "3": "stun_threshold_+_from_%_maximum_energy_shield 12",
+      "4": "stun_threshold_+ 75"
+    },
+    "Metadata/Items/SoulCores/RuneStunGreater": {
+      "1": "local_hit_damage_stun_multiplier_+% 40",
+      "3": "stun_threshold_+_from_%_maximum_energy_shield 14",
+      "4": "stun_threshold_+ 100"
+    },
+    "Metadata/Items/SoulCores/RuneStunLesser": {
+      "1": "local_hit_damage_stun_multiplier_+% 20",
+      "3": "stun_threshold_+_from_%_maximum_energy_shield 10",
+      "4": "stun_threshold_+ 50"
+    },
+    "Metadata/Items/SoulCores/RuneStunPerfect": {
+      "1": "local_hit_damage_stun_multiplier_+% 50",
+      "3": "stun_threshold_+_from_%_maximum_energy_shield 16",
+      "4": "stun_threshold_+ 125"
+    },
+    "Metadata/Items/SoulCores/RuneUpgrade": {
+      "0": "dummy_display_stat_rune_upgrade 1"
+    },
+    "Metadata/Items/SoulCores/RuneWard1Greater": {
+      "4": "local_ward 25"
+    },
+    "Metadata/Items/SoulCores/RuneWard1Lesser": {
+      "4": "local_ward 15"
+    },
+    "Metadata/Items/SoulCores/RuneWard1Normal": {
+      "4": "local_ward 20"
+    },
+    "Metadata/Items/SoulCores/RuneWard1Perfect": {
+      "4": "local_ward 30"
+    },
+    "Metadata/Items/SoulCores/RuneWard2Greater": {
+      "4": "ward_regeneration_rate_+% 16"
+    },
+    "Metadata/Items/SoulCores/RuneWard2Lesser": {
+      "4": "ward_regeneration_rate_+% 8"
+    },
+    "Metadata/Items/SoulCores/RuneWard2Normal": {
+      "4": "ward_regeneration_rate_+% 12"
+    },
+    "Metadata/Items/SoulCores/RuneWard2Perfect": {
+      "4": "ward_regeneration_rate_+% 20"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial1": {
+      "4": "local_ward_+% 20"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial10": {
+      "14": "stun_threshold_+_per_10_maximum_ward 4"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial13": {
+      "5": "+_deflection_rating_per_10_maximum_ward 3"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial14": {
+      "5": "base_maximum_life_%_to_gain_as_maximum_ward 5"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial15": {
+      "4": "life_recovery_from_flasks_also_recovers_ward_% 15"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial16": {
+      "1": "attack_spend_x%_maximum_ward_for_added_physical_damage 5"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial18": {
+      "1": "local_socketable_%_maximum_weapon_damage_to_gain_as_maximum_ward 15"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial19": {
+      "20": "damage_cannot_be_taken_from_ward 1 ward_regeneration_rate_is_doubled 1"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial2": {
+      "4": "gain_guard_%_of_max_ward_for_2s_every_4s 20"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial20": {
+      "2": "recover_ward_as_well_as_mana_from_mana_regeneration 1 mana_regeneration_rate_+%_final_from_caster_weapon_runic_ward_socketable -40"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial21": {
+      "11": "recover_x%_of_maximum_ward_on_persistent_minion_death 3"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial23": {
+      "11": "minions_in_presence_have_onslaught_while_you_are_on_low_ward 1"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial24": {
+      "2": "maximum_life_+%_final_from_caster_weapon_runic_ward_socketable -15 base_maximum_life_%_to_gain_as_maximum_ward 15"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial3": {
+      "1": "break_armour_on_attack_hit_%_of_max_ward 15"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial4": {
+      "3": "spells_penetrates_elemental_resist_%_while_on_low_ward 25"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial8": {
+      "6": "energy_shield_recharge_rate_+%_per_X_maximum_ward 30"
+    },
+    "Metadata/Items/SoulCores/RuneWardSpecial9": {
+      "10": "armour_and_evasion_rating_+%_while_on_low_ward 25"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingAdditionalCraftedMod": {
+      "0": "local_can_have_additional_crafted_mods 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingAdditionalSuffix": {
+      "0": "local_maximum_suffixes_allowed_+ 1 local_maximum_mods_allowed_+ 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingBerserkerInfluence": {
+      "10": "warping_rune_add_item_tag_3 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingCreateJewelSocket": {
+      "9": "dummy_display_stat_rune_create_jewel_socket 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingDecayInfluence": {
+      "9": "warping_rune_add_item_tag_5 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingDestructionInfluence": {
+      "23": "warping_rune_add_item_tag_6 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingMarksmanInfluence": {
+      "9": "warping_rune_add_item_tag_4 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingOlrothsLegacy": {
+      "0": "dummy_display_stat_rune_olroths_legacy 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingSoulInfluence": {
+      "5": "warping_rune_add_item_tag_2 1"
+    },
+    "Metadata/Items/SoulCores/RuneWarpingTimeInfluence": {
+      "6": "warping_rune_add_item_tag_1 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreBleed": {
+      "1": "base_bleeding_effect_+% 40",
+      "10": "pin_duration_+% 25"
+    },
+    "Metadata/Items/SoulCores/SoulCoreChaos": {
+      "1": "base_poison_effect_+% 25",
+      "4": "base_chaos_damage_resistance_% 13"
+    },
+    "Metadata/Items/SoulCores/SoulCoreCrit": {
+      "1": "local_critical_strike_multiplier_+ 5",
+      "14": "base_self_critical_strike_multiplier_-% 50",
+      "5": "base_self_critical_strike_multiplier_-% 50"
+    },
+    "Metadata/Items/SoulCores/SoulCoreDexterity": {
+      "1": "local_requirements_%_to_convert_to_dexterity 40",
+      "4": "local_requirements_%_to_convert_to_dexterity 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreElemental": {
+      "1": "local_elemental_penetration_% 25",
+      "6": "non_damaging_ailment_effect_+%_on_self -25"
+    },
+    "Metadata/Items/SoulCores/SoulCoreEnlighten": {
+      "1": "elemental_damage_with_attack_skills_+% 40",
+      "4": "base_resist_all_elements_% 6"
+    },
+    "Metadata/Items/SoulCores/SoulCoreFreeze": {
+      "1": "hit_damage_freeze_multiplier_+% 60",
+      "10": "base_maximum_cold_damage_resistance_% 2"
+    },
+    "Metadata/Items/SoulCores/SoulCoreIgnite": {
+      "1": "base_ignite_effect_+% 40",
+      "9": "base_maximum_fire_damage_resistance_% 2"
+    },
+    "Metadata/Items/SoulCores/SoulCoreIntelligence": {
+      "1": "local_requirements_%_to_convert_to_intelligence 40",
+      "4": "local_requirements_%_to_convert_to_intelligence 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreLight": {
+      "1": "base_spirit_from_equipment 15",
+      "9": "gold_+%_from_enemies 10"
+    },
+    "Metadata/Items/SoulCores/SoulCoreMaxLife": {
+      "1": "recover_%_maximum_life_on_kill 5",
+      "5": "maximum_life_+% 5"
+    },
+    "Metadata/Items/SoulCores/SoulCoreMaxMana": {
+      "1": "recover_%_maximum_mana_on_kill 4",
+      "10": "maximum_mana_+% 5"
+    },
+    "Metadata/Items/SoulCores/SoulCoreShock": {
+      "1": "shock_effect_+% 25",
+      "6": "base_maximum_lightning_damage_resistance_% 2"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial1": {
+      "10": "base_armour_%_applies_to_cold_damage 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial10": {
+      "1": "chance_to_gain_1_more_power_charge_% 50",
+      "3": "chance_to_gain_1_more_power_charge_% 50"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial11": {
+      "10": "damage_taken_goes_to_life_over_4_seconds_% 10",
+      "6": "recoup_speed_+% 15"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial12": {
+      "10": "enemies_chaos_resistance_%_while_cursed -5"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial13": {
+      "7": "projectile_chance_to_chain_1_extra_time_from_terrain_% 20"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial14": {
+      "1": "local_minimum_added_chaos_damage 19 local_maximum_added_chaos_damage 29"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial15": {
+      "11": "minion_commanded_skill_damage_+% 40",
+      "3": "minion_commanded_skill_damage_+% 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial16": {
+      "23": "totem_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial17": {
+      "23": "curse_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial18": {
+      "23": "mark_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial19": {
+      "23": "warcry_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial2": {
+      "6": "base_armour_%_applies_to_lightning_damage 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial20": {
+      "23": "herald_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial21": {
+      "23": "strike_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial22": {
+      "23": "nova_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial23": {
+      "23": "slam_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial24": {
+      "23": "grenade_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial25": {
+      "23": "hazard_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial26": {
+      "23": "plant_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial27": {
+      "23": "wind_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial28": {
+      "23": "storm_skill_gem_level_+ 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial29": {
+      "10": "soul_core_cannot_roll_no_outcome_with_corruption 1 spirit_+%_per_equipped_corrupted_item 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial3": {
+      "9": "base_armour_%_applies_to_fire_damage 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial30": {
+      "5": "soul_core_cannot_roll_no_outcome_with_corruption 1 maximum_life_+%_per_equipped_corrupted_item 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial31": {
+      "9": "soul_core_cannot_roll_no_outcome_with_corruption 1 skill_speed_+%_per_equipped_corrupted_item 1"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial32": {
+      "6": "soul_core_cannot_roll_no_outcome_with_corruption 1 base_chaos_damage_resistance_%_per_equipped_corrupted_item 2"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial4": {
+      "5": "energy_shield_from_focus_+% 40",
+      "8": "maximum_energy_shield_from_body_armour_+% 30"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial5": {
+      "10": "skill_effect_duration_+% 8 base_cooldown_speed_+% 8"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial6": {
+      "10": "maximum_rage 4"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial7": {
+      "6": "base_curse_duration_+% 20 base_poison_duration_+% 20"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial8": {
+      "1": "chance_to_gain_1_more_frenzy_charge_% 50",
+      "3": "chance_to_gain_1_more_frenzy_charge_% 50"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpecial9": {
+      "1": "chance_to_gain_1_more_endurance_charge_% 50",
+      "3": "chance_to_gain_1_more_endurance_charge_% 50"
+    },
+    "Metadata/Items/SoulCores/SoulCoreSpeed": {
+      "1": "local_attack_speed_+% 5",
+      "6": "base_slow_potency_+% -15"
+    },
+    "Metadata/Items/SoulCores/SoulCoreStrength": {
+      "1": "local_requirements_%_to_convert_to_strength 40",
+      "4": "local_requirements_%_to_convert_to_strength 40"
+    },
+    "Metadata/Items/SoulCores/SoulCoreVision": {
+      "1": "local_accuracy_rating 150",
+      "3": "spell_critical_strike_chance_+% 30"
+    },
+    "Metadata/Items/SoulCores/TalismanBear": {
+      "10": "base_skill_area_of_effect_+% 10",
+      "11": "allies_in_presence_attack_minimum_added_physical_damage 12 allies_in_presence_attack_maximum_added_physical_damage 18"
+    },
+    "Metadata/Items/SoulCores/TalismanBoar": {
+      "11": "allies_in_presence_life_regeneration_rate_per_minute_equal_to_your_maximum_life_% 30",
+      "9": "gain_x_rage_on_melee_hit 1"
+    },
+    "Metadata/Items/SoulCores/TalismanCat": {
+      "11": "allies_in_presence_critical_strike_chance_+% 14",
+      "9": "accuracy_rating_+% 25"
+    },
+    "Metadata/Items/SoulCores/TalismanFox": {
+      "11": "presence_area_+% 50",
+      "5": "local_idols_gain_additional_socketable_mods 1 display_additional_socketable_mods_for_idols 1"
+    },
+    "Metadata/Items/SoulCores/TalismanMonkey": {
+      "10": "minion_maximum_life_+% 15",
+      "11": "allies_in_presence_damage_+% 40"
+    },
+    "Metadata/Items/SoulCores/TalismanOwl": {
+      "11": "allies_in_presence_cast_speed_+% 10",
+      "8": "base_cooldown_speed_+% 12"
+    },
+    "Metadata/Items/SoulCores/TalismanOx": {
+      "11": "allies_in_presence_resist_all_elements_% 12",
+      "14": "local_block_chance_+% 15"
+    },
+    "Metadata/Items/SoulCores/TalismanRabbit": {
+      "11": "local_spirit_+% 15",
+      "5": "base_item_found_rarity_+% 12"
+    },
+    "Metadata/Items/SoulCores/TalismanSnake": {
+      "11": "allies_in_presence_attack_speed_+% 10",
+      "9": "curse_effect_+% 8"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial1": {
+      "11": "allies_in_presence_movement_speed_+% 8",
+      "9": "attack_speed_+% 8"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial2": {
+      "1": "number_of_additional_poison_stacks 1 base_poison_duration_+% -25",
+      "11": "allies_in_presence_attack_minimum_added_chaos_damage 13 allies_in_presence_attack_maximum_added_chaos_damage 27"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial3": {
+      "11": "damage_+%_per_different_companion_in_presence 15",
+      "6": "warcry_monster_power_+% 50"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial4": {
+      "10": "base_skill_cost_efficiency_+% 15",
+      "11": "mana_recovery_rate_+%_while_companion_in_presence 15"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial5": {
+      "10": "enemies_damage_taken_+%_while_cursed 6",
+      "11": "base_curse_duration_+% 20"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial6": {
+      "11": "generate_x_charges_for_any_flask_per_minute 12",
+      "5": "num_charm_slots 1"
+    },
+    "Metadata/Items/SoulCores/TalismanSpecial7": {
+      "10": "reservation_efficiency_+%_of_minion_skills 8",
+      "11": "global_armour_evasion_energy_shield_while_in_presence_of_companion_+% 40"
+    },
+    "Metadata/Items/SoulCores/TalismanStag": {
+      "10": "projectile_chance_to_fork_% 15",
+      "11": "allies_in_presence_attack_minimum_added_lightning_damage 1 allies_in_presence_attack_maximum_added_lightning_damage 40"
+    },
+    "Metadata/Items/SoulCores/TalismanWolf": {
+      "11": "allies_in_presence_critical_strike_multiplier_+ 20",
+      "9": "base_bleeding_effect_+% 15"
+    },
+    "Metadata/Items/SoulCores/TecrodsGaze": {
+      "5": "life_regeneration_rate_per_minute_% 90",
+      "6": "movement_velocity_+%_when_on_low_life 10",
+      "9": "base_life_cost_efficiency_+% 25"
+    },
+    "Metadata/Items/SoulCores/ThesisOfBlood": {
+      "10": "gain_armour_from_%_life_loss_from_hits_lasting_8_seconds 35",
+      "5": "physical_damage_prevented_recouped_as_life_% 10",
+      "6": "life_loss_%_per_minute_while_sprinting 300 sprint_movement_speed_+% 25"
+    },
+    "Metadata/Items/SoulCores/ThesisOfExperiments": {
+      "10": "mark_grants_%_max_glory_to_random_skill_on_activate 50",
+      "5": "armour_%_also_applies_to_chaos_damage_while_at_full_es 75",
+      "9": "energy_shield_recharge_start_when_minions_reform 1"
+    },
+    "Metadata/Items/SoulCores/ThesisOfSacrifice": {
+      "5": "recoup_life_equal_to_%_of_hit_damage_dealt_to_your_offerings 50",
+      "6": "sacrifice_%_life_to_gain_as_guard_on_dodge_roll 10",
+      "9": "revive_random_persistent_minion_on_offering_expiration 1"
+    },
+    "Metadata/Items/SoulCores/ThesisOfSouls": {
+      "10": "gain_X_max_mana_per_3_armour_on_equipped_helmet 1",
+      "6": "increases_and_reductions_to_move_speed_apply_to_es_recharge_rate 1",
+      "9": "energy_shield_recharge_starts_after_spending_2000_mana_every_2_seconds 1"
+    },
+    "Metadata/Items/SoulCores/UlamansGaze": {
+      "10": "accuracy_rating_+_per_evasion_rating_on_helmet 1",
+      "5": "base_damage_%_deflected 3",
+      "9": "critical_chance_luck_against_parry_debuffed_enemies 1"
+    }
+  },
   "source": "data/balance/mods.datc64, data/balance/stats.datc64, data/statdescriptions/stat_descriptions.csd",
   "unproven": {
     "AbberathsFuryEnrageStance": "active_skill_attack_speed_+%_final base_movement_velocity_+% base_damage_taken_+% non_skill_base_physical_damage_%_to_gain_as_fire action_speed_cannot_be_reduced_below_base",

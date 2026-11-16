@@ -327,6 +327,43 @@ were named "Wrath Halo, rare", "Fate Beads, rare", "Ghoul Clutches, rare", "Domi
 unique" (dev `itemmodscheck`, `tooltip not read yet`), the names their tooltips then showed; dev `layout` was not run
 there.
 
+## Sockets and runes (0.5.5f, 2026-11-16)
+
+The owner: looking at a piece of gear, nothing said whether it had sockets for runes, nor which rune was in one and what
+it gave. The tooltip draws the sockets as art, with no text, and shows a rune's line among the modifier lines with
+nothing to tell it apart ("Daño físico aumentado un 14%" on Chainsting, said, but not as the rune's).
+
+- **The sockets, from memory:** every worn piece has a `Sockets` component (dev command `inventories`), the same one a
+  skill gem holds its supports in (`GameLayout.Sockets`). Read with `tools/computer_use/peek.py` on the owner's play
+  session (the character wielding Chainsting): the spear's component holds at +0x30 the entity of
+  `Metadata/Items/SoulCores/RuneEnhanceLesser` (Runa de hierro menor) and at +0x60 a std::vector of one byte (1); seven
+  pieces without sockets hold zeros and an empty vector; Frost Bomb, two support sockets with one support, its gem at
+  +0x30, zero at +0x38 and a vector of two bytes. So: one entity pointer a socket in order, zero for an empty one, the
+  vector's length the number of sockets. `InventoryReader.SocketedItems` believes the vector only up to six sockets (the
+  room before it) and every entry only when it is an item.
+- **The rune's line is in no Mods list:** dev `itemmodscheck` on Chainsting, 6 lines equal and `tooltip only: Daño
+  físico aumentado un 14%` (the question of step 4 above, answered: only in the tooltip).
+- **What a rune gives, from the files:** `data/balance/SoulCores` (313 rows, +0x00 a key into BaseItemTypes) and
+  `SoulCoreStats` (526 rows of 0x60: +0x00 a key into SoulCores, +0x10 into SoulCoreStatCategories, +0x20 a list of keys
+  into Stats, +0x30 their values, fixed; a range is two stats). The iron rune's Martial Weapon row is
+  `local_physical_damage_+%` 14, the spear's line; the storm rune's 1 and 10 added lightning, its own tooltip's "Agrega de
+  1 a 10". A second pair of lists (+0x40, +0x50) matched no tooltip and is not read. SoulCoreStatCategories (30 rows)
+  names the kind of item: All, Martial Weapon, Caster Weapon, Wand or Staff, Armour, then single classes and pairs; the
+  broad ones list no ItemClasses, so which category a piece is cannot be taken from the files. `mod-stats` writes every
+  core's rows under "runes" (step version 3; `RuneStatColumns`, searched from the measured offsets and failing unless
+  the iron rune reads 14 physical): 305 runes and soul cores, talismans among them.
+- **Which lines are the runes':** every category's rows are written as lines (all the socketed runes summed in each
+  category, and each rune's rows alone) and a tooltip line counts when the tooltip shows it more often than the item's
+  own modifiers make it, the first showings first, since the game puts the runes' lines before the implicit ones
+  (`SocketedRunes`, unit tests on Chainsting's tooltip). The modifier check leaves those lines out, so a runed piece is
+  no difference any more.
+- **What is said** (`UiSemantics.Sockets`, `Announcements.Sockets`): where the runes' first line was, "1 engarce: Runa de
+  hierro menor. Efecto: Daño físico aumentado un 14%"; with an empty socket "2 engarces: Runa de hierro menor, vacío";
+  without a rune line, before the item's first modifier line, else at the end. A skill gem's sockets are its supports,
+  said by the build's lines, and are left alone.
+- **Not seen yet:** an empty socket on gear (only a gem's), a piece with two runes, a soul core, a talisman. The game
+  keeps one byte a socket (1 on the spear): what other values mean is not known, so it is not read.
+
 ## Not done
 
 - `ModsAndObjectMagicProperties.StatsFromMods` (`+0x148`, the summed stats) was not read: it may answer the rune and

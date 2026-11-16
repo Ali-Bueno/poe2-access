@@ -406,7 +406,7 @@ tree's planner, the Skills panel and the inventory, a UI dump with the Skills pa
   a std::vector at +0x60 two bytes long (the panel shows two sockets), …, 0x90 bytes}. Twister's and Herald of Thunder's,
   with no support, hold zeros from +0x30 to +0x60. Only one support per skill was there to see, so the second socket's
   place (+0x38 by the layout) is not measured: every pointer from +0x30 up to the vector is read and believed only when
-  it is an item entity whose id is a support gem's (`GameLayout.GemSockets`). The support socket elements
+  it is an item entity whose id is a support gem's (`GameLayout.Sockets`). The support socket elements
   (`new_support_gem_entry`) hold no entity: a socketed gem's tooltip names it, and that name tells which socketed gem it is.
 - **Skills panel elements** (dump): each row = `skillgem_socket_frame` → `skillgem_inventory_view` (an inventory view
   whose child item element holds the skill gem at `+0x4E0`), `skill_title_layout` (NIVEL:, number, name), `dps_frame`,

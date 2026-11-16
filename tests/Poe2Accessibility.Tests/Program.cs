@@ -122,6 +122,7 @@ namespace Poe2Accessibility.Tests
                 GearCatalogTests.All(),
                 ModStatColumnTests.All(),
                 ItemModTests.All(),
+                SocketTests.All(),
                 StaleValueTests.All(),
                 StaticAnchorTests.All(),
                 ExtractionGuardTests.All(),

@@ -73,6 +73,20 @@ namespace Poe2Accessibility.Services
                     (known != null ? $"{mod.Values.Count} values for {known.Count} stats" : theirs != null ? "its values are not told apart" : "not in the game files")));
             }
 
+            Write(lines, sums, doubted, seen && !unknown, language, stats, texts);
+        }
+
+        /// <summary>The lines stats summed this way give (a rune's, whose values are fixed): each stat's description block written for the sums.</summary>
+        public static IReadOnlyList<ItemModLine> OfStats(IReadOnlyDictionary<string, double> sums, string language, ModStatCatalog stats, ModTextCatalog texts)
+        {
+            var lines = new List<ItemModLine>();
+            Write(lines, sums, new HashSet<string>(StringComparer.Ordinal), true, language, stats, texts);
+            return lines;
+        }
+
+        /// <param name="trusted">Whether the sums are known whole: a line is certain only then.</param>
+        private static void Write(List<ItemModLine> lines, IReadOnlyDictionary<string, double> sums, HashSet<string> doubted, bool trusted, string language, ModStatCatalog stats, ModTextCatalog texts)
+        {
             var blocks = new SortedSet<int>();
             foreach (var (stat, sum) in sums)
             {
@@ -101,7 +115,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var (text, certain) = texts.Show(block, values, language);
-                lines.Add(new ItemModLine(text, certain && seen && !unknown && text.Length > 0 && !ids.Any(doubted.Contains), string.Join(' ', ids)));
+                lines.Add(new ItemModLine(text, certain && trusted && text.Length > 0 && !ids.Any(doubted.Contains), string.Join(' ', ids)));
             }
         }
     }

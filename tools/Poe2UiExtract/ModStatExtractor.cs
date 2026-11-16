@@ -6,7 +6,8 @@ using Index = LibBundle3.Index;
 ///     modifiers it holds in memory, without its tooltip (docs/research/item-mods.md):
 ///     { "source", "hidden": [ stats the description file says have no line ], "mods": { Mods Id: "stat least most …" in
 ///     the order the modifier's values follow }, "unproven": { Mods Id: "stat …" for a modifier whose values cannot be
-///     told apart } }. The lines themselves stay in mod-texts.json, found there by stat. The columns are
+///     told apart }, "runes": { a rune's or soul core's base path: { SoulCoreStatCategories row: "stat value …" } } }. The
+///     lines themselves stay in mod-texts.json, found there by stat. The columns are
 ///     <see cref="ModStatColumns"/>'; the step fails on a handler <see cref="StatHandlers"/> does not know. Read-only on the game.
 /// </summary>
 internal static class ModStatExtractor
@@ -77,12 +78,36 @@ internal static class ModStatExtractor
         var hidden = parsed.Hidden.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
         var silent = used.Count(stat => !described.Contains(stat) && !hidden.Contains(stat));
         Say.Out.WriteLine($"  {used.Count} stats in use: {used.Count(described.Contains)} described, {used.Count(hidden.Contains)} said to have no description, {silent} the file does not mention; {repeated} Ids on more than one row");
+        var runes = Runes(index, stats);
         AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal)
         {
-            ["source"] = $"{mods.Name}, {stats.Name}, {ModTextExtractor.Source}", ["hidden"] = hidden, ["mods"] = proven, ["unproven"] = unproven,
+            ["source"] = $"{mods.Name}, {stats.Name}, {ModTextExtractor.Source}", ["hidden"] = hidden, ["mods"] = proven, ["unproven"] = unproven, ["runes"] = runes,
         });
-        Say.Out.WriteLine($"Wrote {outFile}: {proven.Count} modifiers, {unproven.Count} whose values are not told apart, {hidden.Count} hidden stats");
+        Say.Out.WriteLine($"Wrote {outFile}: {proven.Count} modifiers, {unproven.Count} whose values are not told apart, {hidden.Count} hidden stats, {runes.Count} runes and soul cores");
         return proven.Count > 0 ? 0 : 1;
+    }
+
+    /// <summary>
+    ///     What each rune and soul core gives socketed, by its base item's path and by category row ({ path: { category:
+    ///     "stat value …" } }, <see cref="RuneStatColumns"/>); empty, and said, when the tables or their columns are not
+    ///     found: the modifiers do not depend on them.
+    /// </summary>
+    private static SortedDictionary<string, SortedDictionary<string, string>> Runes(Index index, DatTable stats)
+    {
+        var (cores, coreStats, categories, bases) = (DatTable.Open(index, "soulcores"), DatTable.Open(index, "soulcorestats"), DatTable.Open(index, "soulcorestatcategories"), DatTable.Open(index, "baseitemtypes"));
+        if (cores == null || coreStats == null || categories == null || bases == null)
+        {
+            Say.Out.WriteLine("  SoulCores, SoulCoreStats, SoulCoreStatCategories or BaseItemTypes is missing: no rune is told");
+            return new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        }
+
+        if (RuneStatColumns.Find(cores, coreStats, categories, bases, stats, Step) is not { } columns)
+        {
+            return new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        }
+
+        Say.Out.WriteLine($"  SoulCoreStats: soul core +0x{columns.Core:X}, category +0x{columns.Category:X}, stats +0x{columns.Stats:X}, values +0x{columns.Values:X}; SoulCores' base +0x{columns.Base:X}");
+        return columns.All(cores, coreStats, bases, stats);
     }
 
     /// <summary>Every handler name the file's lines use, with how many lines use it.</summary>

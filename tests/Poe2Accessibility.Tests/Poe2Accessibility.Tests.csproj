@@ -129,6 +129,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\StatHandlers.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ModStatCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemModLines.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SocketedRunes.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemModCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ComboIdentity.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\BaselineGrace.cs" />

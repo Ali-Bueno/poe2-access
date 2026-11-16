@@ -137,16 +137,16 @@ namespace Poe2Accessibility.Services
             return holdings;
         }
 
-        /// <summary>The support gems socketed in a skill gem item (<see cref="GameLayout.GemSockets"/>), as gem keys.</summary>
+        /// <summary>The support gems socketed in a skill gem item (<see cref="GameLayout.Sockets"/>), as gem keys.</summary>
         private IReadOnlyList<string> SocketedSupports(IntPtr skillGem)
         {
             var keys = new List<string>();
-            if (!this.inventory.ItemComponents(skillGem).TryGetValue(GameLayout.GemSockets.Component, out var sockets) || sockets == IntPtr.Zero)
+            if (!this.inventory.ItemComponents(skillGem).TryGetValue(GameLayout.Sockets.Component, out var sockets) || sockets == IntPtr.Zero)
             {
                 return keys;
             }
 
-            for (var at = GameLayout.GemSockets.FirstOffset; at < GameLayout.GemSockets.EndOffset; at += IntPtr.Size)
+            for (var at = GameLayout.Sockets.FirstOffset; at < GameLayout.Sockets.EndOffset; at += IntPtr.Size)
             {
                 if (this.reader.TryRead<IntPtr>(sockets + at, out var gem) && gem != IntPtr.Zero && this.reader.IsValidAddress(gem) &&
                     this.inventory.ItemBaseId(gem) is var id && BuildGems.IsGemId(id) && BuildGems.IsSupport(BuildGems.KeyOf(id), GemIndex.Shared))
