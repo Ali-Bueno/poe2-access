@@ -25,7 +25,13 @@ namespace Poe2Accessibility.Services
         public const float PieceAgainCells = 100f;
 
         /// <summary>The piece kind said last and where: stepping off and on it again near there is not news.</summary>
-        private (string Kind, Vector2 At)? saidPiece;
+        private (string Kind, Vector2 At, long When)? saidPiece;
+
+        /// <summary>
+        ///     A piece of the kind said last waits this long too (ms): a fight across the Manor's ballroom, its stairs many pieces
+        ///     apart, still said "escaleras" six times in 36 s at ten steps alone (the owner's run, same day).
+        /// </summary>
+        public const long PieceAgainMs = 20000;
 
         /// <param name="holdCells">Plain ground this far from the last named piece keeps its name (one sub-tile).</param>
         /// <param name="reachCells">A prop this near is named.</param>
@@ -38,7 +44,8 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The kinds to say now, piece first; a piece's kind is said once it is seen on two updates running.</summary>
-        public IReadOnlyList<string> Update(string? pieceKind, Vector2 player, IReadOnlyList<(Vector2 Grid, string Kind)> props)
+        /// <param name="now">The clock in milliseconds: a kind said is news again only after <see cref="PieceAgainMs"/>.</param>
+        public IReadOnlyList<string> Update(string? pieceKind, Vector2 player, IReadOnlyList<(Vector2 Grid, string Kind)> props, long now)
         {
             var say = new List<string>();
             if (pieceKind == null)
@@ -62,9 +69,10 @@ namespace Poe2Accessibility.Services
                 // A fight on a staircase stepped off and on it four times in five seconds, "escaleras" each time (owner's log,
                 // Ogham Manor, 2026-11-16): the same kind is news again only once the player went far from where it was said.
                 // The Manor's many staircases still said "escaleras" eight times a minute at the props' 45 cells (same day).
-                if (this.saidPiece is not { } last || last.Kind != pieceKind || Vector2.Distance(player, last.At) > PieceAgainCells)
+                if (this.saidPiece is not { } last || last.Kind != pieceKind ||
+                    (Vector2.Distance(player, last.At) > PieceAgainCells && now - last.When >= PieceAgainMs))
                 {
-                    this.saidPiece = (pieceKind, player);
+                    this.saidPiece = (pieceKind, player, now);
                     say.Add(pieceKind);
                 }
             }

@@ -133,7 +133,7 @@ namespace Poe2Accessibility.Services
             }
 
             var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            var said = this.tracker.Update(places.KindAt(here) ?? this.MoreKindAt?.Invoke(here), here, places.Props);
+            var said = this.tracker.Update(places.KindAt(here) ?? this.MoreKindAt?.Invoke(here), here, places.Props, now);
             var lines = said.Select(Announcements.PlaceName).ToList();
             if (sayAhead && area.WorldToGridConvertor is > 0 and var toWorld)
             {

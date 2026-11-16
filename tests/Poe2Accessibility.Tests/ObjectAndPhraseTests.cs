@@ -265,7 +265,8 @@ namespace Poe2Accessibility.Tests
         {
             var tracker = new PlaceTracker(23, 14, 45);
             var props = new List<(Vector2 Grid, string Kind)> { (new Vector2(100, 0), "cart") };
-            string Walk(string? kind, float x) => string.Join("+", tracker.Update(kind, new Vector2(x, 0), props));
+            var clock = 0L;
+            string Walk(string? kind, float x, long after = 1000) => string.Join("+", tracker.Update(kind, new Vector2(x, 0), props, clock += after));
             Equal("", Walk("bridge", 0), "a piece waits one update");
             Equal("bridge", Walk("bridge", 2), "then it is said");
             Equal("", Walk("bridge", 4), "once");
@@ -279,12 +280,14 @@ namespace Poe2Accessibility.Tests
             Equal("stairs", Walk("stairs", 302), "and is said");
             Equal("", Walk(null, 330) + Walk("stairs", 320) + Walk("stairs", 321), "stepping off and on the stairs again nearby is not news");
             Equal("", Walk(null, 500) + Walk("stairs", 520), "far away it waits a step");
-            Equal("stairs", Walk("stairs", 522), "and is said again");
+            Equal("", Walk("stairs", 522), "and still waits while it was said under 20 s ago");
+            Equal("", Walk(null, 700, 30000) + Walk("stairs", 720), "later and far again: a step");
+            Equal("stairs", Walk("stairs", 722), "then it is said");
 
             // A row of graves 30 cells apart was "tumba" 108 times in a day, 71 of them within 10 s of the last (play log 2026-11-13).
             var graveyard = new PlaceTracker(23, 14, 45);
             var graves = new List<(Vector2 Grid, string Kind)> { (new Vector2(0, 0), "tomb"), (new Vector2(30, 0), "tomb"), (new Vector2(60, 0), "tomb"), (new Vector2(70, 0), "cart"), (new Vector2(400, 0), "tomb") };
-            string Stroll(float x) => string.Join("+", graveyard.Update(null, new Vector2(x, 0), graves));
+            string Stroll(float x) => string.Join("+", graveyard.Update(null, new Vector2(x, 0), graves, 0));
             Equal("tomb", Stroll(0), "the first grave");
             Equal("", Stroll(30), "the next one of the row is the same sight");
             Equal("cart", Stroll(62) + Stroll(66), "another kind among them is said");
