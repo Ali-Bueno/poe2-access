@@ -18,35 +18,74 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>
-    ///     Which fork of the map's shape (<see cref="MapTopology"/>) is news: each once an area, when the player walks into it,
-    ///     and the way the player came by, which is not told (the owner, 2026-11-16: "me cuesta encontrar salidas").
-    ///     Pure; docs/radar.md "Forks".
+    ///     Which fork or room of the map's shape (<see cref="MapTopology"/>) is news as the player walks into it: the first
+    ///     time, and again once the player went away and came back ("ya estuviste aquí": the owner, 2026-11-16, lost in Ogham
+    ///     Manor, could not tell a loop walked twice); never the way the player came by. Each place keeps the name it was
+    ///     given on the first visit. Pure; docs/radar.md "Forks".
     /// </summary>
     public sealed class ForkTracker
     {
         /// <summary>A way within this angle (60°) of where the player came from is the way back.</summary>
         private const float BackCosine = 0.5f;
 
-        private readonly HashSet<int> said = new();
+        private readonly float awayCells;
+        private readonly Dictionary<int, (string Name, Vector2 Centre, bool Away)> told = new();
+        private readonly Dictionary<string, int> names = new();
         private int? inside;
 
-        /// <summary>The fork just walked into, when it was never told this area; null otherwise.</summary>
-        public int? Enter(int? node)
+        /// <param name="awayCells">Coming back to a place is news once the player went this far from it.</param>
+        public ForkTracker(float awayCells = 2 * ExplorationMap.SeenRadiusCells) => this.awayCells = awayCells;
+
+        /// <summary>A new area, or a new map shape: every place is news again and names start over.</summary>
+        public void Reset()
         {
+            this.told.Clear();
+            this.names.Clear();
+            this.inside = null;
+        }
+
+        /// <summary>
+        ///     The place just walked into, when it is news: its name and whether it was visited before; null otherwise.
+        ///     <paramref name="name"/> gives a new place its name's stem ("Cruce", "Sala con chimenea"); a stem given twice is
+        ///     numbered from its second place, and a plain kind is always numbered ("Cruce 3").
+        /// </summary>
+        public (int Node, string Name, bool Again)? Enter(int? node, Vector2 centre, Vector2 player, System.Func<(string Stem, bool Numbered)> name)
+        {
+            foreach (var (id, place) in this.told.ToList())
+            {
+                if (!place.Away && Vector2.Distance(player, place.Centre) > this.awayCells)
+                {
+                    this.told[id] = place with { Away = true };
+                }
+            }
+
             if (node == this.inside)
             {
                 return null;
             }
 
             this.inside = node;
-            return node is { } entered && this.said.Add(entered) ? entered : null;
-        }
+            if (node is not { } entered)
+            {
+                return null;
+            }
 
-        /// <summary>A new area: every fork is news again.</summary>
-        public void Reset()
-        {
-            this.said.Clear();
-            this.inside = null;
+            if (this.told.TryGetValue(entered, out var known))
+            {
+                if (!known.Away)
+                {
+                    return null;
+                }
+
+                this.told[entered] = known with { Away = false };
+                return (entered, known.Name, true);
+            }
+
+            var (stem, numbered) = name();
+            var count = this.names[stem] = this.names.GetValueOrDefault(stem) + 1;
+            var named = numbered || count > 1 ? $"{stem} {count}" : stem;
+            this.told[entered] = (named, centre, false);
+            return (entered, named, false);
         }
 
         /// <summary>The index of the way the player came by (the one nearest <paramref name="cameFrom"/>), or null when none is near it.</summary>
@@ -64,14 +103,14 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     What to tell of a fork's ways (side words, state): grouped by state, the way on first; null when no way is new,
-        ///     since a fork whose ways are all walked or dead ends tells nothing a player needs.
+        ///     What to tell of a place's ways (side words, state): grouped by state, the way on first; empty when no way is new,
+        ///     since ways all walked or dead ends tell nothing a player needs.
         /// </summary>
-        public static IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)>? Tell(IEnumerable<(string Side, ForkWay State)> ways)
+        public static IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> Tell(IEnumerable<(string Side, ForkWay State)> ways)
         {
             var groups = ways.GroupBy(way => way.State).OrderBy(group => group.Key)
                 .Select(group => (group.Key, (IReadOnlyList<string>)group.Select(way => way.Side).Distinct().ToList())).ToList();
-            return groups.Any(group => group.Key == ForkWay.GoesOn) ? groups : null;
+            return groups.Any(group => group.Key == ForkWay.GoesOn) ? groups : new List<(ForkWay, IReadOnlyList<string>)>();
         }
     }
 }

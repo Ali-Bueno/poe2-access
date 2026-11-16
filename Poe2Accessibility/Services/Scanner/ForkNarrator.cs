@@ -22,6 +22,17 @@ namespace Poe2Accessibility.Services
         /// <summary>A fork is walked into within its radius and this much more (cells).</summary>
         private const float EnterSlackCells = 2f;
 
+        /// <summary>A map piece this much past a place's radius (cells, about a step) still stands in it.</summary>
+        private const float FeatureSlackCells = 10f;
+
+        /// <summary>Which piece names a place, the most telling first: rooms by themselves, then what changes the way, then furniture.</summary>
+        private static readonly string[] FeatureOrder =
+        {
+            "ballroom", "church", "temple", "library", "courtyard", "arena", "forge", "market", "graveyard",
+            "stairs_down", "stairs_up", "stairs", "ramp", "bridge", "hole", "chasm", "waterfall", "gate", "door", "walkway", "platform",
+            "fireplace", "organ", "statue", "well", "window", "pillar", "cell", "oven", "tomb", "ruins", "tower", "hut", "boat", "dock", "garden", "lake",
+        };
+
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
         private readonly ForkTracker tracker = new();
@@ -35,6 +46,9 @@ namespace Poe2Accessibility.Services
             this.catalog = catalog;
             this.output = output;
         }
+
+        /// <summary>The map pieces the tiles name, in grid cells (<see cref="PlaceNarrator.Pieces"/>).</summary>
+        public Func<IReadOnlyList<(Vector2 Grid, string Kind)>>? Pieces { get; set; }
 
         /// <summary>A new area: every fork is news again.</summary>
         public void Reset()
@@ -85,19 +99,24 @@ namespace Poe2Accessibility.Services
 
             var near = topology.NodeNear(here, EnterSlackCells);
             var node = near is { } id && topology.Nodes[id].Kind != TopologyNodeKind.End ? near : null;
-            if (this.tracker.Enter(node) is not { } fork)
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (toWorld <= 0)
             {
                 return;
             }
 
-            var ways = topology.Ways(fork).Where(way => !way.Nook).ToList();
-            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
-            if (ways.Count < 3 || toWorld <= 0)
+            var ways = node is { } at ? topology.Ways(at).Where(way => !way.Nook).ToList() : new List<Way>();
+            var room = node is { } placed && topology.Nodes[placed].Kind == TopologyNodeKind.Room;
+
+            // A bend or a corridor through a junction is no place; a room is one whatever its ways.
+            var place = room || ways.Count >= 3 ? node : null;
+            var centre = place is { } p ? topology.Nodes[p].Centre : here;
+            if (this.tracker.Enter(place, centre, here, () => Announcements.ForkName(room, this.Feature(topology.Nodes[place!.Value]))) is not { } entered)
             {
-                return; // a bend or a corridor through a room is no fork
+                return;
             }
 
-            var back = ForkTracker.WayBack(ways.Select(way => way.Direction).ToList(), this.cameFrom + (here - topology.Nodes[fork].Centre));
+            var back = ForkTracker.WayBack(ways.Select(way => way.Direction).ToList(), this.cameFrom + (here - centre));
             var told = new List<(string Side, ForkWay State)>();
             for (var i = 0; i < ways.Count; i++)
             {
@@ -107,16 +126,38 @@ namespace Poe2Accessibility.Services
                 }
 
                 var way = ways[i];
-                var state = topology.IsDeadEndWay(fork, way, out var end) && EntityCatalog.SeenWhole(end) ? ForkWay.DeadEnd
-                    : this.catalog.WasSeen(way.Ahead) && this.catalog.WasSeen(topology.Nodes[way.To].Centre) ? ForkWay.Explored
+                var state = topology.IsDeadEndWay(entered.Node, way, out var end) && EntityCatalog.SeenWhole(end) ? ForkWay.DeadEnd
+                    : this.Explored(topology, entered.Node, way) ? ForkWay.Explored
                     : ForkWay.GoesOn;
                 told.Add((Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld)], state));
             }
 
-            if (ForkTracker.Tell(told) is { } line)
+            IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> line = ways.Count >= 3 ? ForkTracker.Tell(told) : Array.Empty<(ForkWay, IReadOnlyList<string>)>();
+            this.output.Say(SpeechKind.Places, Announcements.Fork(entered.Name, entered.Again, line));
+        }
+
+        /// <summary>
+        ///     A way is explored once the next place along it and the first stretch of each of its own ways were seen: a look
+        ///     from the fork already reveals the way's first 60 cells, so its own first cell tells nothing.
+        /// </summary>
+        private bool Explored(MapTopology topology, int from, Way way)
+        {
+            if (!this.catalog.WasSeen(way.Ahead) || !this.catalog.WasSeen(topology.Nodes[way.To].Centre))
             {
-                this.output.Say(SpeechKind.Places, Announcements.Fork(topology.Nodes[fork].Kind == TopologyNodeKind.Room, line));
+                return false;
             }
+
+            return topology.Ways(way.To).Where(next => next.To != from && !next.Nook).All(next => this.catalog.WasSeen(next.Ahead));
+        }
+
+        /// <summary>The most telling map piece standing in a place, to name it by; null for none.</summary>
+        private string? Feature(TopologyNode place)
+        {
+            var reach = place.Radius + FeatureSlackCells;
+            var kinds = (this.Pieces?.Invoke() ?? Array.Empty<(Vector2 Grid, string Kind)>())
+                .Where(piece => Vector2.Distance(piece.Grid, place.Centre) <= reach)
+                .Select(piece => piece.Kind).ToHashSet();
+            return FeatureOrder.FirstOrDefault(kinds.Contains);
         }
     }
 }

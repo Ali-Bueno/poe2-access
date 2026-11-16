@@ -310,22 +310,31 @@ namespace Poe2Accessibility.Tests
 
         private static void AForkIsToldOnceWithoutTheWayBack()
         {
-            var forks = new ForkTracker();
-            Equal(null, forks.Enter(null), "no fork");
-            Equal(7, forks.Enter(7), "walking into a fork is news");
-            Equal(null, forks.Enter(7), "staying in it is not");
-            Equal(null, forks.Enter(null), "leaving it");
-            Equal(null, forks.Enter(7), "coming back is not news either");
-            Equal(9, forks.Enter(9), "another fork is");
+            var forks = new ForkTracker(awayCells: 100);
+            var at = new Vector2(0, 0);
+            string Walk(int? node, float x, string stem = "Fork", bool numbered = true) =>
+                forks.Enter(node, at, new Vector2(x, 0), () => (stem, numbered)) is { } told ? $"{told.Name}{(told.Again ? " again" : string.Empty)}" : string.Empty;
+            Equal("", Walk(null, 0), "no fork");
+            Equal("Fork 1", Walk(7, 0), "walking into a fork names it");
+            Equal("", Walk(7, 1), "staying in it is not news");
+            Equal("", Walk(null, 50) + Walk(7, 2), "stepping out and back in nearby is not either");
+            Equal("Fork with stairs", Walk(9, 60, "Fork with stairs", false), "a fork named after what stands in it");
+            Equal("Fork with stairs 2", Walk(10, 70, "Fork with stairs", false), "a second of that name is numbered");
+            Equal("", Walk(null, 300), "going far away");
+            Equal("Fork 1 again", Walk(7, 5), "coming back keeps its name and says it was visited");
 
             var ways = new List<Vector2> { new(1, 0), new(0, -1), new(-1, 0.1f) };
             Equal(2, ForkTracker.WayBack(ways, new Vector2(-5, 0)), "the way nearest where the player came from is the way back");
             Equal(null, ForkTracker.WayBack(ways, new Vector2(0, 5)), "none within 60° of it: every way is told");
 
-            Equal(null, ForkTracker.Tell(new[] { ("up", ForkWay.Explored), ("left", ForkWay.DeadEnd) }), "no new way: nothing to tell");
-            var told = ForkTracker.Tell(new[] { ("left", ForkWay.DeadEnd), ("up", ForkWay.GoesOn), ("right", ForkWay.GoesOn), ("down", ForkWay.Explored) })!;
+            Equal(0, ForkTracker.Tell(new[] { ("up", ForkWay.Explored), ("left", ForkWay.DeadEnd) }).Count, "no new way: no ways to tell");
+            var told = ForkTracker.Tell(new[] { ("left", ForkWay.DeadEnd), ("up", ForkWay.GoesOn), ("right", ForkWay.GoesOn), ("down", ForkWay.Explored) });
             Equal("GoesOn up+right; DeadEnd left; Explored down", string.Join("; ", told.Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "the way on first, sides grouped");
-            Equal("Fork: goes on up and right, dead end left, explored down", Announcements.Fork(false, told), "said in one line");
+            Equal("Fork 2: goes on up and right, dead end left, explored down", Announcements.Fork("Fork 2", false, told), "said in one line");
+            Equal("Fork 2, you've been here", Announcements.Fork("Fork 2", true, Array.Empty<(ForkWay, IReadOnlyList<string>)>()), "a place come back to");
+            Equal(("Room with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
+            Equal(("Ballroom", false), Announcements.ForkName(true, "ballroom"), "a ballroom is a room by itself");
+            Equal(("Fork", true), Announcements.ForkName(false, null), "nothing in it: numbered");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()

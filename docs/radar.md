@@ -141,6 +141,17 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   la derecha, explorado abajo". The way the player came by (within 60° of where they were 20 cells back) is not told; a way is
   explored when the cell 40 cells along it and the next fork are seen. Nothing is said when no way is new; a fight holds a fork
   back while the player is still in it.
+- **Places named, and come back to** (same day, the owner lost in Ogham Manor: no way to tell a loop walked twice): each fork
+  of three ways or more and each room is named on the first visit after the most telling map piece in it ("Salón de baile",
+  "Sala con chimenea", "Cruce con escaleras de bajada"; a name given twice is numbered), else by kind and order ("Cruce 3").
+  Coming back after going two looks away says "Cruce 3, ya estuviste aquí" and the ways still new. A way counts as explored
+  once the next place along it and the first stretch of each of its ways were seen (a look from the fork reveals 60 cells of
+  every way, so the way's own first cell told nothing).
+- **Rays that follow the map** (setting `RadarFollowsMap`): the four rays turn to the screen's diagonals where 85% of the ways
+  of the forks within a look run diagonal on screen (a grid-built map: the Manor's corridors run diagonal under the camera),
+  and back at 60% or less; said twice running (1 s apart) before turning, and a turn starts the readings afresh. An opening
+  beside a corridor walked toward does not turn them (the owner). Diagonal rays pan 0.7 to their side; the upper two breathe
+  as ahead, the lower two as behind (`RadarSynth.Diagonal`).
 - **Narrow passages:** "paso estrecho" when walked into, as a map piece (`PlaceNarrator.MoreKindAt`).
 - **Pieces ahead** (`LandmarkAhead`, setting `AnnouncePlacesAhead`, **off**): stairs, doors, bridges, narrow passages… named
   with their side as they come within a look. The owner: the distance was too much speech, the sounds are what to learn; the

@@ -421,7 +421,7 @@ namespace Poe2Accessibility
                 {
                     this.partnerRadar.WaysRunDiagonal = layout;
                 }
-                this.forks = new ForkNarrator(this.entities, this.output);
+                this.forks = new ForkNarrator(this.entities, this.output) { Pieces = this.places != null ? this.places.Pieces : null };
                 if (this.places != null)
                 {
                     this.places.MoreKindAt = this.entities.NarrowAt;

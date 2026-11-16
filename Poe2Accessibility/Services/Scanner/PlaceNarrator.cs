@@ -91,6 +91,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What the player stands on when no tile names it, by grid cell: a narrow passage of the map's shape.</summary>
         public Func<Vector2, string?>? MoreKindAt { get; set; }
 
+        /// <summary>The map pieces of the current area (grid cells), for naming the places of the map's shape.</summary>
+        public IReadOnlyList<(Vector2 Grid, string Kind)> Pieces() => this.map?.Pieces ?? Array.Empty<(Vector2 Grid, string Kind)>();
+
         /// <summary>More places to say ahead than the tiles name, in grid cells: the narrow passages of the map's shape.</summary>
         public Func<IEnumerable<(Vector2 Grid, string Kind)>>? MorePlaces { get; set; }
 
