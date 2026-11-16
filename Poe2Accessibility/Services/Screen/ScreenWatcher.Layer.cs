@@ -130,6 +130,12 @@ namespace Poe2Accessibility.Services
                         // An icon that says what a quest gives ("Recompensa:" then a support gem and gold).
                         texts.Add((self, new ScreenText(info.Address, reward, info.Name, false, true)));
                     }
+                    else if (control >= 0 && LooksLikeGlyph(key) && this.loggedGlyphLike.Add(key))
+                    {
+                        // The Sekhemas merchant's "comprar" has a 72x72 picture beside it that pairs with nothing, though the
+                        // owner buys with Cross (2026-11-16): its art, once, so the next look tells which glyph it is.
+                        this.log.Info($"Picture in a control not read as a button glyph: {key}");
+                    }
                 }
 
                 if (nodes[self].Depth >= MaxDepth)
@@ -206,6 +212,10 @@ namespace Poe2Accessibility.Services
 
             return false;
         }
+
+        private static bool LooksLikeGlyph(string key) =>
+            key.Contains("Gamepad", StringComparison.OrdinalIgnoreCase) || key.Contains("Controller", StringComparison.OrdinalIgnoreCase) ||
+            key.Contains("Button", StringComparison.OrdinalIgnoreCase) || key.Contains("Glyph", StringComparison.OrdinalIgnoreCase);
 
         private string? TextureKeyOf(in UiElementReader.ElementInfo info)
         {

@@ -94,6 +94,9 @@ namespace Poe2Accessibility.Services
         private const int TextureKeyKeepMs = 2000;
 
         private readonly Dictionary<IntPtr, (string? Key, long At)> textureKeys = new();
+
+        /// <summary>Art in a control that looks like a button glyph but is not read as one, each logged once.</summary>
+        private readonly HashSet<string> loggedGlyphLike = new(StringComparer.Ordinal);
         private readonly Stopwatch sinceSlowReport = Stopwatch.StartNew();
 
         /// <summary>When a snapshot that ran out of its element budget may next be logged (Environment.TickCount64): the first one at once.</summary>

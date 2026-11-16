@@ -327,7 +327,10 @@ shows the water alone opens ("Agua sagrada 269") and whenever it changes ("Agua 
 shows the keys beside it, says only a change. F8 in the merchant says the water too. Unit-tested, **not heard yet**.
 
 **Left for the next merchant:** the buy button ("comprar" and a 72×72 picture beside it, `[…,0,0,2]`) is said "Comprar"
-without its pad button: the picture's art was not read before the panel closed; and the keyword links in the descriptions
+without its pad button: the picture's art was not read before the panel closed (no Gamepad-folder art in that subtree,
+or it would have paired). The owner buys with Cross, which this game shows as A (it draws Xbox glyphs for their pad: "Adiós
+[B]", "Seleccionar [A]"). The screen walk now logs once any art in a control that looks like a glyph and is not read as one
+("Picture in a control not read as a button glyph: …"), so the next opening names it; and the keyword links in the descriptions
 (`[Afflictions|desventaja]`, `[Hit|impactes]`, `[SacredWater|agua sagrada]`) through inspect mode were not tried there.
 
 ## 2. Trial of Chaos (Ultimatum)
