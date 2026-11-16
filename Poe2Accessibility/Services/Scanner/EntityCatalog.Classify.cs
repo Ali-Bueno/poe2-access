@@ -80,7 +80,7 @@ namespace Poe2Accessibility.Services
                     name = Announcements.OtherPlayer(other.Name, name, other.Level); // the render name is the class
                 }
             }
-            else if (path.Contains("AreaTransition", StringComparison.Ordinal))
+            else if (ExitEntities.IsExit(entity, path))
             {
                 category = ScanCategory.Exits;
                 kind = "exit";

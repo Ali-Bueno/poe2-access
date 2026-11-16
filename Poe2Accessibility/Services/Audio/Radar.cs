@@ -58,8 +58,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Widest blocked group still a small obstacle, in cells (D2R: 5×5 subtiles).</summary>
         private const int SmallObstacleCells = 5;
 
-        private const string TransitionPathMarker = "AreaTransition";
-
         private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
 
         /// <summary>How often the map is asked which way its ways run around the player.</summary>
@@ -384,7 +382,7 @@ namespace Poe2Accessibility.Services
             var found = new List<Vector2>();
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
-                if (entity.IsValid && (entity.Path ?? string.Empty).Contains(TransitionPathMarker, StringComparison.Ordinal) &&
+                if (entity.IsValid && ExitEntities.IsExit(entity, entity.Path ?? string.Empty) &&
                     entity.TryGetComponent<Render>(out var render))
                 {
                     found.Add(new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / cellSize);

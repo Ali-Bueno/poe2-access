@@ -34,3 +34,21 @@ while (the user: "el sonidito sí sonó en el sitio correcto"); only the Quest c
 
 Unit tests (`QuestGoalTests`, `ExplorationHintTests`); not heard in a game. UNSURE: a quest whose states branch may have a
 next state that is not the one the player reaches; the log line above tells which exits were taken.
+
+## An exit whose path says "Portal" (Mawdun Quarry, 2026-11-16)
+
+The owner, by the way down to the Mawdun Mine: the reader named it "Portal: Mina Mawdun" and the scanner's quest goal led
+to a place with nothing to use ("Llegaste a Mina Mawdun", no prompt). The way down is the quarry's crane,
+`Metadata/Terrain/Gallows/Act2/2_10_1/Objects/QuarryCrane_ExitPortal` (entity dump of his session): an AreaTransition
+component naming G2_10_2 "Mina Mawdun" and no Portal component, in play and meeting the quest (Targetable +0x69 and
++0x6E both 1). Its path holds "Portal" and not "AreaTransition", so the classifier filed it as a portal in Waypoints.
+Two things followed: the exit was not in Exits, so the tile exit of the same name (the centre of the crane's tile
+pieces, `EntityCatalog.Tiles`) was not dropped as a copy; and the quest's "leads through" pass takes only Exits of kind
+exit, so the Quest goal was that tile point, not the crane, and the beacon arrived there (`Beacon.ArrivalWorld`, 150
+world units, from the point as it is).
+
+Now an entity is an exit when its path holds "AreaTransition" or it has an AreaTransition component and no Portal
+component (`ExitEntities`, used by the scanner and the radar); the players' and the map device's portals
+(`MultiplexPortal`) have a Portal component and no AreaTransition (dumps of 2026-11-05 and 11-07). The crane is then
+"Nueva salida: Mina Mawdun", the tile copy within 250 cells is dropped, and the goal leads to the crane itself. Built
+and unit-tested; not heard live yet.
