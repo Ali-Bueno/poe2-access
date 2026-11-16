@@ -433,6 +433,7 @@ namespace Poe2Accessibility
                 if (this.places != null)
                 {
                     this.places.MoreKindAt = this.entities.NarrowAt;
+                    this.places.Seen = this.entities.WasSeen;
                     this.places.MorePlaces = this.entities.NarrowPlaces;
                 }
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));

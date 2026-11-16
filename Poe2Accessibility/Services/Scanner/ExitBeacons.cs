@@ -51,7 +51,7 @@ namespace Poe2Accessibility.Services
         ///     The exits sit under the game's own ambience: heard when listened for, never covering it (the owner, 2026-11-16:
         ///     "tienen que ser algo sutiles"); 0.5 at first was "algo bajos" in the Manor (same day).
         /// </summary>
-        private const float SubtleGain = 1f;
+        private const float SubtleGain = 1.4f; // 1 was "un poquitín" low in the Manor (same day)
 
         /// <summary>The level during a fight: the exits stay, under the fight's own sounds.</summary>
         private const float FightGain = 0.35f;

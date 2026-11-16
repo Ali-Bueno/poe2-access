@@ -21,6 +21,9 @@ namespace Poe2Accessibility.Services
         private string? candidate;
         private Vector2 lastOnPiece;
 
+        /// <summary>A piece of the kind said last is news again only this far (cells, about ten steps) from where it was said.</summary>
+        public const float PieceAgainCells = 100f;
+
         /// <summary>The piece kind said last and where: stepping off and on it again near there is not news.</summary>
         private (string Kind, Vector2 At)? saidPiece;
 
@@ -58,7 +61,8 @@ namespace Poe2Accessibility.Services
                 this.candidate = null;
                 // A fight on a staircase stepped off and on it four times in five seconds, "escaleras" each time (owner's log,
                 // Ogham Manor, 2026-11-16): the same kind is news again only once the player went far from where it was said.
-                if (this.saidPiece is not { } last || last.Kind != pieceKind || Vector2.Distance(player, last.At) > this.forgetCells)
+                // The Manor's many staircases still said "escaleras" eight times a minute at the props' 45 cells (same day).
+                if (this.saidPiece is not { } last || last.Kind != pieceKind || Vector2.Distance(player, last.At) > PieceAgainCells)
                 {
                     this.saidPiece = (pieceKind, player);
                     say.Add(pieceKind);

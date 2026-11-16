@@ -166,7 +166,25 @@ namespace Poe2Accessibility.Services
             {
                 yield return new ScanEntry(PlaceIdBase + index++, ScanCategory.Places, Announcements.PlaceName(kind), grid.X * toWorld, grid.Y * toWorld, height, kind);
             }
+
+            // The named rooms the player has seen, to walk back to as to any place: what a sighted player's map shows.
+            foreach (var room in places.NamedRooms)
+            {
+                var centre = new Vector2(room.X + (room.Width / 2f), room.Y + (room.Height / 2f));
+                if (Announcements.RoomName(room.Label) is { } name && this.Seen?.Invoke(centre) == true)
+                {
+                    yield return new ScanEntry(PlaceIdBase + index, ScanCategory.Places, name, centre.X * toWorld, centre.Y * toWorld, height, RoomKind);
+                }
+
+                index++;
+            }
         }
+
+        /// <summary>A scanner entry's kind for a named room.</summary>
+        public const string RoomKind = "named_room";
+
+        /// <summary>Whether a grid cell was seen (the explored ground): only rooms seen are listed.</summary>
+        public Func<Vector2, bool>? Seen { get; set; }
 
         /// <summary>Research: every sub-tile (grid cell, file, placed ids, rotation selector) and the anchor entities, to a file.</summary>
         public void Dump(string file)
