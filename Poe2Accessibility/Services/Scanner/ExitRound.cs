@@ -21,63 +21,38 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>
-    ///     When a place's exits sound (<see cref="ExitBeacons"/>): one round on walking into the place, each exit in turn a
-    ///     beat apart, then another round every so often while the player is still in it, as a sighted player glances at the
-    ///     doorways again. Pure: the caller passes the clock, the place and how many exits it has now.
+    ///     When a place's exits sound (<see cref="ExitBeacons"/>): all together on walking into the place, then again every so
+    ///     often while the player is still in it, as a sighted player glances at the doorways again (the owner, 2026-11-16: "no
+    ///     hace falta que suenen por turno… pueden sonar al mismo tiempo"). Pure: the caller passes the clock and the place.
     /// </summary>
     public sealed class ExitRound
     {
-        private readonly long beatMs;
-        private readonly long roundEveryMs;
+        private readonly long everyMs;
         private int? place;
-        private int next;
-        private long lastBeat = long.MinValue / 2;
-        private long roundStarted = long.MinValue / 2;
+        private long lastRound = long.MinValue / 2;
 
-        /// <param name="beatMs">Between two exits of a round.</param>
-        /// <param name="roundEveryMs">From the start of one round to the start of the next while the player stays.</param>
-        public ExitRound(long beatMs, long roundEveryMs)
-        {
-            this.beatMs = beatMs;
-            this.roundEveryMs = roundEveryMs;
-        }
+        /// <param name="everyMs">Between two rounds while the player stays in a place.</param>
+        public ExitRound(long everyMs) => this.everyMs = everyMs;
 
-        /// <summary>Out of every place, or silenced: the next place starts a round at once.</summary>
-        public void Reset()
-        {
-            this.place = null;
-            this.next = 0;
-        }
+        /// <summary>Out of every place, or silenced: the next place sounds at once.</summary>
+        public void Reset() => this.place = null;
 
-        /// <summary>The index of the exit to sound now (in the caller's order), or null.</summary>
-        public int? Due(long now, int? place, int exits)
+        /// <summary>Whether the place's exits sound now.</summary>
+        public bool Due(long now, int? place)
         {
             if (place != this.place)
             {
                 this.place = place;
-                this.next = 0;
-                this.roundStarted = now;
-                this.lastBeat = long.MinValue / 2;
+                this.lastRound = long.MinValue / 2;
             }
 
-            if (place == null || exits <= 0 || now - this.lastBeat < this.beatMs)
+            if (place == null || now - this.lastRound < this.everyMs)
             {
-                return null;
+                return false;
             }
 
-            if (this.next >= exits)
-            {
-                if (now - this.roundStarted < this.roundEveryMs)
-                {
-                    return null;
-                }
-
-                this.next = 0;
-                this.roundStarted = now;
-            }
-
-            this.lastBeat = now;
-            return this.next++;
+            this.lastRound = now;
+            return true;
         }
     }
 }

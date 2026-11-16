@@ -8,7 +8,7 @@ namespace Poe2Accessibility.Services
     using GameReader.RemoteObjects.Components;
 
     /// <summary>
-    ///     The exits of the room or fork the player stands in, each sounding in turn from where it leaves, as a sighted player
+    ///     The exits of the room or fork the player stands in, all sounding together, each from where it leaves, as a sighted player
     ///     sees a room's doorways at a glance (the owner, 2026-11-16, lost in Ogham Manor: "me cuesta encontrar salidas").
     ///     What sounds tells the exit's material or setting ("madera crujiendo para un puente, viento en salidas de desiertos");
     ///     how it sounds tells its state: a way not walked full, an explored one quieter and muffled, a dead end a look shows
@@ -38,7 +38,7 @@ namespace Poe2Accessibility.Services
 
         private readonly EntityCatalog catalog;
         private readonly AudioCueService audio;
-        private readonly ExitRound round = new(BeatMs, RoundEveryMs);
+        private readonly ExitRound round = new(RoundEveryMs);
         private long lastPoll = long.MinValue / 2;
 
         public ExitBeacons(EntityCatalog catalog, AudioCueService audio)
@@ -47,11 +47,8 @@ namespace Poe2Accessibility.Services
             this.audio = audio;
         }
 
-        /// <summary>Between two exits of a round (ms).</summary>
-        public const long BeatMs = 550;
-
-        /// <summary>A new round while the player stays in the place (ms).</summary>
-        public const long RoundEveryMs = 6000;
+        /// <summary>The exits sound again this often while the player stays in the place (ms).</summary>
+        public const long RoundEveryMs = 5000;
 
         /// <summary>The material's sound: full for a way not walked, muffled for an explored one; null: that material is silent.</summary>
         public Func<string, bool, float[]?>? SoundOf { get; set; }
@@ -88,46 +85,53 @@ namespace Poe2Accessibility.Services
             var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
             var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
             var near = topology.NodeNear(here, EnterSlackCells);
+            var ways = new List<Way>();
+            int? place = null;
+            if (near is { } id && topology.Nodes[id].Kind != TopologyNodeKind.End)
+            {
+                ways = topology.Ways(id).Where(way => !way.Nook).ToList();
+                place = topology.Nodes[id].Kind == TopologyNodeKind.Room || ways.Count >= 3 ? id : null;
+            }
+
+            // The exits are worked out only when they sound: their state changes as the player walks.
+            if (toWorld <= 0 || !this.round.Due(now, place) || place is not { } at)
+            {
+                return;
+            }
+
+            var node = topology.Nodes[at];
             var exits = new List<(Vector2 At, string Material, bool Explored)>();
-            if (near is { } id && topology.Nodes[id] is { Kind: not TopologyNodeKind.End } node)
+            foreach (var way in ways)
             {
-                var ways = topology.Ways(id).Where(way => !way.Nook).ToList();
-                if (node.Kind == TopologyNodeKind.Room || ways.Count >= 3)
+                if (topology.IsDeadEndWay(at, way, out var end) && EntityCatalog.SeenWhole(end))
                 {
-                    foreach (var way in ways)
-                    {
-                        if (topology.IsDeadEndWay(id, way, out var end) && EntityCatalog.SeenWhole(end))
-                        {
-                            continue;
-                        }
-
-                        var at = node.Centre + (way.Direction * MathF.Max(node.Radius + DoorwayCells, MinExitCells));
-                        exits.Add((at, this.MaterialOf(topology, way, at), this.catalog.WayExplored(topology, id, way)));
-                    }
+                    continue;
                 }
+
+                var spot = node.Centre + (way.Direction * MathF.Max(node.Radius + DoorwayCells, MinExitCells));
+                exits.Add((spot, this.MaterialOf(topology, way, spot), this.catalog.WayExplored(topology, at, way)));
             }
 
-            // Clockwise from the top of the screen, so a round sweeps the room as an eye would.
+            if (exits.Count == 0)
+            {
+                return;
+            }
+
+            // All together, each from its doorway; the level shared so a room of four is no louder than one exit.
             var origin = player.WorldPosition;
-            exits = exits.OrderBy(exit => Clockwise(ScreenProjection.Octant(origin, (exit.At - here) * toWorld))).ToList();
-            if (toWorld <= 0 || this.round.Due(now, exits.Count > 0 ? near : null, exits.Count) is not { } due || due >= exits.Count)
+            var share = 1f / MathF.Sqrt(exits.Count);
+            foreach (var (spot, material, explored) in exits)
             {
-                return;
-            }
+                if (this.SoundOf(material, explored) is not { } sound)
+                {
+                    continue;
+                }
 
-            var (spot, material, explored) = exits[due];
-            if (this.SoundOf(material, explored) is not { } sound)
-            {
-                return;
+                var offset = (spot - here) * toWorld;
+                var (pan, pitch) = ScreenProjection.Voice(origin, offset, offset.Length(), CentreWorld);
+                this.audio.Play(sound, pan, pitch, this.Gain * share * (explored ? ExploredGain : 1f), $"exit_{material}");
             }
-
-            var offset = (spot - here) * toWorld;
-            var (pan, pitch) = ScreenProjection.Voice(origin, offset, offset.Length(), CentreWorld);
-            this.audio.Play(sound, pan, pitch, this.Gain * (explored ? ExploredGain : 1f), $"exit_{material}");
         }
-
-        /// <summary>An octant (0 right, counter-clockwise) as its place in a clockwise sweep from the top.</summary>
-        private static int Clockwise(int octant) => (10 - octant) % 8;
 
         private string MaterialOf(MapTopology topology, Way way, Vector2 at)
         {
