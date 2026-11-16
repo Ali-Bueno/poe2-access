@@ -146,6 +146,9 @@ namespace Poe2Accessibility
         /// <summary>Say a fork of the map as you walk into it: which ways go on, which are dead ends, which are explored.</summary>
         public bool AnnounceForks = true;
 
+        /// <summary>Name the rooms the game's layouts name as you walk into them: "Chapel", "Wine cellar"; again when you come back.</summary>
+        public bool AnnounceRooms = true;
+
         /// <summary>The radar's rays turn to the screen's diagonals where the map's ways run only along them (Ogham Manor).</summary>
         public bool RadarFollowsMap = true;
 

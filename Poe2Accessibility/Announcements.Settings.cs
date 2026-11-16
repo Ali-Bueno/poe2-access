@@ -26,6 +26,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
             nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),
             nameof(AccessibilitySettings.AnnounceForks) => T("Say the forks you walk into and where their ways lead", "Decir los cruces por los que pasas y adónde llevan sus caminos"),
+            nameof(AccessibilitySettings.AnnounceRooms) => T("Name the rooms you walk into: chapel, wine cellar", "Nombrar las salas en las que entras: capilla, bodega"),
             nameof(AccessibilitySettings.AnnouncePlacesAhead) => T("Name the stairs, doors and passages you see coming", "Nombrar las escaleras, puertas y pasos que se ven venir"),
             nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),

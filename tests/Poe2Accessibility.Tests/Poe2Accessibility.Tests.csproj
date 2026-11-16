@@ -341,6 +341,11 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkAhead.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ForkTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomLabels.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomMatcher.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Rooms.cs" Link="Plugin\Announcements.Rooms.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TerrainBiome.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExitMaterial.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ExitSoundSet.cs" />

@@ -124,6 +124,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Rotation selectors of tiles with props whose turn is not known, so their props were left out.</summary>
         public IReadOnlyCollection<int> UnknownRotations => this.unknownRotations;
 
+        /// <summary>The named rooms found on the tiles (<see cref="RoomMatcher"/>), set by the build that made the map.</summary>
+        public IReadOnlyList<NamedRoom> NamedRooms { get; set; } = Array.Empty<NamedRoom>();
+
         /// <summary>Builds the map from the area's tile grid (one placement per sub-tile).</summary>
         public static PlaceMap Build(PlaceCatalog catalog, IReadOnlyList<TilePlacement> placements, int subTileCells)
         {

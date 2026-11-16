@@ -47,9 +47,10 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The place just walked into, when it is news: its name and whether it was visited before; null otherwise.
         ///     <paramref name="name"/> gives a new place its name's stem ("Cruce", "Sala con chimenea"); a stem given twice is
-        ///     numbered from its second place, and a plain kind is always numbered ("Cruce 3").
+        ///     numbered from its second place, and a plain kind is always numbered ("Cruce 3"). A place inside a named room takes
+        ///     <paramref name="room"/>'s name as it is: every fork of the chapel is the chapel.
         /// </summary>
-        public (int Node, string Name, bool Again)? Enter(int? node, Vector2 centre, Vector2 player, System.Func<(string Stem, bool Numbered)> name)
+        public (int Node, string Name, bool Again)? Enter(int? node, Vector2 centre, Vector2 player, System.Func<(string Stem, bool Numbered)> name, string? room = null)
         {
             foreach (var (id, place) in this.told.ToList())
             {
@@ -81,9 +82,14 @@ namespace Poe2Accessibility.Services
                 return (entered, known.Name, true);
             }
 
-            var (stem, numbered) = name();
-            var count = this.names[stem] = this.names.GetValueOrDefault(stem) + 1;
-            var named = numbered || count > 1 ? $"{stem} {count}" : stem;
+            var named = room;
+            if (named == null)
+            {
+                var (stem, numbered) = name();
+                var count = this.names[stem] = this.names.GetValueOrDefault(stem) + 1;
+                named = numbered || count > 1 ? $"{stem} {count}" : stem;
+            }
+
             this.told[entered] = (named, centre, false);
             return (entered, named, false);
         }

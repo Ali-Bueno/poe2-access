@@ -41,6 +41,7 @@ namespace Poe2Accessibility.Services
         private const int MaxSubTiles = 1 << 20;
 
         private readonly PlaceCatalog catalog;
+        private readonly RoomCatalog rooms;
         private readonly HostMemoryReader memory;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
@@ -66,9 +67,10 @@ namespace Poe2Accessibility.Services
         /// <summary>The self-test's line on the tile grid, from the last build.</summary>
         private string gridTest = "not judged yet (needs an area)";
 
-        public PlaceNarrator(PlaceCatalog catalog, HostMemoryReader memory, IAccessibilityOutputService output, PluginLog log)
+        public PlaceNarrator(PlaceCatalog catalog, RoomCatalog rooms, HostMemoryReader memory, IAccessibilityOutputService output, PluginLog log)
         {
             this.catalog = catalog;
+            this.rooms = rooms;
             this.memory = memory;
             this.output = output;
             this.log = log;
@@ -96,6 +98,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The setting of the ground at a grid cell of the current area (<see cref="TerrainBiome"/>), or null.</summary>
         public string? BiomeAt(Vector2 grid) => this.map?.BiomeAt(grid);
+
+        /// <summary>The named room at a grid cell of the current area (its name: <see cref="Announcements.RoomName"/>), or null.</summary>
+        public NamedRoom? RoomAt(Vector2 grid) => this.map is { } places ? RoomMatcher.At(places.NamedRooms, grid) : null;
 
         /// <summary>The map pieces of the current area (grid cells), for naming the places of the map's shape.</summary>
         public IReadOnlyList<(Vector2 Grid, string Kind)> Pieces() => this.map?.Pieces ?? Array.Empty<(Vector2 Grid, string Kind)>();
@@ -230,6 +235,10 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Places: {built.Pieces.Count} map pieces, {built.Props.Count} props from {placements.Count} sub-tiles " +
                               $"({Kinds(built.Pieces.Concat(built.Props))}) in {timer.ElapsedMilliseconds} ms" +
                               (built.UnknownRotations.Count > 0 ? $"; tile props left out for rotations {string.Join(",", built.UnknownRotations)}" : string.Empty));
+                timer.Restart();
+                built.NamedRooms = RoomMatcher.Match(this.rooms, placements, TileStructure.TileToGridConversion);
+                this.log.Info($"Rooms: {built.NamedRooms.Count} named in {timer.ElapsedMilliseconds} ms" +
+                              (built.NamedRooms.Count > 0 ? $" ({string.Join(", ", built.NamedRooms.Select(room => $"{room.Label} at {room.X},{room.Y}"))})" : string.Empty));
                 return (built, count, generation);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
