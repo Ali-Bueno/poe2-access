@@ -123,6 +123,14 @@ namespace Poe2Accessibility.Tests
             Equal(true, places[0].Cell.X > 100 && places[0].Cell.Y < 140, "reached by the east corridor");
             Equal(UnseenSize.Pocket, places[1].Size, "the corridor that ends at the room's wall is a nook, whatever lies behind the wall");
             Equal(true, places[1].Cell.Y > 140, "south of the hall");
+
+            // At the nook's end, the room ten cells behind its wall is reachable only round by the hall (owner, 2026-11-16).
+            var nookEnd = new Vector2(286, 226);
+            var east = new Vector2(1, 0);
+            map.Visit(nookEnd, width, height);
+            map.Frontier(grid, width / 2, nookEnd, 8);
+            Equal(null, map.UnseenAlong(grid, width / 2, nookEnd, east, ExplorationMap.MarkReachCells), "no mark through the nook's end wall");
+            Equal(true, map.UnseenAlong(grid, width / 2, new Vector2(310, 226), east, ExplorationMap.MarkReachCells) != null, "the same ground is marked from inside the room");
         }
 
         private static void UnseenGroundIsSizedAndTheRadarMarksWhatGoesOnFirst()
@@ -138,9 +146,9 @@ namespace Poe2Accessibility.Tests
             Equal(UnseenSize.Large, places[0].Size, "the great hall first, though the room is nearer");
             Equal(true, places[0].Cell.Y < 180, "north of the hall");
             Equal(UnseenSize.Small, places[1].Size, "one room soon ends");
-            Equal(UnseenSize.Large, map.UnseenAlong(player, new Vector2(0, -1), ExplorationMap.MarkReachCells), "the radar's two pips toward the great hall");
-            Equal(UnseenSize.Small, map.UnseenAlong(player, new Vector2(1, 0), ExplorationMap.MarkReachCells), "one pip toward the room that soon ends");
-            Equal(null, map.UnseenAlong(player, new Vector2(-1, 0), ExplorationMap.MarkReachCells), "none toward the hall's own wall");
+            Equal(UnseenSize.Large, map.UnseenAlong(grid, width / 2, player, new Vector2(0, -1), ExplorationMap.MarkReachCells), "the radar's two pips toward the great hall");
+            Equal(UnseenSize.Small, map.UnseenAlong(grid, width / 2, player, new Vector2(1, 0), ExplorationMap.MarkReachCells), "one pip toward the room that soon ends");
+            Equal(null, map.UnseenAlong(grid, width / 2, player, new Vector2(-1, 0), ExplorationMap.MarkReachCells), "none toward the hall's own wall");
             var onePip = RadarSynth.WithUnexploredTail(new float[100], RadarSynth.Direction.Left, 44100, pips: 1).Length;
             var twoPips = RadarSynth.WithUnexploredTail(new float[100], RadarSynth.Direction.Left, 44100).Length;
             Equal(true, onePip > 100 && onePip < twoPips, "the one-pip mark is the cue and one pip, shorter than the two");

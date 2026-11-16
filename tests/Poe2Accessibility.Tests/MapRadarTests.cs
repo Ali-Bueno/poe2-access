@@ -528,25 +528,25 @@ namespace Poe2Accessibility.Tests
                 map.Visit(new System.Numerics.Vector2(200, y), width, height);
             }
 
-            Equal(false, map.LeavesTheSeen(from, up, reach), "nothing is marked before the ground was read");
+            Equal(false, map.LeavesTheSeen(grid, row, from, up, reach), "nothing is marked before the ground was read");
             // The ground is read off the frame thread, on a map sharing the seen blocks, and taken once found.
             var elsewhere = new ExplorationMap();
             elsewhere.Visit(from, width, height);
             var stale = elsewhere.Snapshot();
             stale.Frontier(grid, row, from, 8);
             Equal(false, map.Adopt(stale), "what another area's search found is not taken");
-            Equal(false, map.LeavesTheSeen(from, up, reach), "and marks nothing");
+            Equal(false, map.LeavesTheSeen(grid, row, from, up, reach), "and marks nothing");
             var search = map.Snapshot();
             Equal(true, search.Frontier(grid, row, from, 8).Count > 0, "the search finds the places on the shared blocks");
             Equal(true, map.Adopt(search), "and its ground is taken");
-            Equal(true, map.LeavesTheSeen(from, up, reach), "unseen ground ahead marks the ray");
-            Equal(true, map.LeavesTheSeen(from, -right, reach), "and the ground beside the way, never seen");
+            Equal(true, map.LeavesTheSeen(grid, row, from, up, reach), "unseen ground ahead marks the ray");
+            Equal(true, map.LeavesTheSeen(grid, row, from, -right, reach), "and the ground beside the way, never seen");
             // "Up is unexplored", then a few seconds on "down is": the edge of the walked strip lay in the ray's quarter (user 2026-11-11).
-            Equal(false, map.LeavesTheSeen(from, -up, reach), "the way the player came is not unexplored");
-            Equal(false, map.LeavesTheSeen(from, System.Numerics.Vector2.Normalize(new System.Numerics.Vector2(0.4f, 1)), reach), "nor a way back a little aslant");
+            Equal(false, map.LeavesTheSeen(grid, row, from, -up, reach), "the way the player came is not unexplored");
+            Equal(false, map.LeavesTheSeen(grid, row, from, System.Numerics.Vector2.Normalize(new System.Numerics.Vector2(0.4f, 1)), reach), "nor a way back a little aslant");
             var byTheWall = new System.Numerics.Vector2(340, 200);
             map.Visit(byTheWall, width, height);
-            Equal(false, map.LeavesTheSeen(byTheWall, right, reach), "ground past a wall with no way round is no way on");
+            Equal(false, map.LeavesTheSeen(grid, row, byTheWall, right, reach), "ground past a wall with no way round is no way on");
 
             // Walked on, what was ahead is behind and seen: nothing stale marks it.
             for (var y = 190; y >= 60; y -= 10)
@@ -554,9 +554,9 @@ namespace Poe2Accessibility.Tests
                 map.Visit(new System.Numerics.Vector2(200, y), width, height);
             }
 
-            Equal(false, map.LeavesTheSeen(new System.Numerics.Vector2(200, 60), -up, reach), "what was ahead is seen once walked");
+            Equal(false, map.LeavesTheSeen(grid, row, new System.Numerics.Vector2(200, 60), -up, reach), "what was ahead is seen once walked");
             map.Reset();
-            Equal(false, map.LeavesTheSeen(from, up, reach), "a new area knows nothing of the last one's ground");
+            Equal(false, map.LeavesTheSeen(grid, row, from, up, reach), "a new area knows nothing of the last one's ground");
             const int rate = 44100;
             var open = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate);
             var marked = RadarSynth.WithUnexploredTail(open, RadarSynth.Direction.Up, rate);

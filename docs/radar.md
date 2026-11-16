@@ -50,9 +50,11 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
 ## Unexplored ground (D2R / LeAccess)
 
 - **Mark:** an open-way or exit cue whose ray points toward unseen ground ends in D2R's tail: 30 ms gap, two 900 Hz
-  pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's own line, walls
-  ignored, must leave the seen ground onto ground the player can reach within 2 × the 60-cell reveal radius
-  (`ExplorationMap.LeavesTheSeen`, read from the seen map at the moment of the cue). Pockets count only once nothing
+  pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's own line, up to its
+  first wall (a blocked run over 7 cells; a small obstacle is stepped over), must leave the seen ground onto ground the
+  player can reach within 2 × the 60-cell reveal radius (`ExplorationMap.LeavesTheSeen`, read from the seen map at the
+  moment of the cue). Walls were once ignored: a closed nook in the Mawdun foundry was marked toward the unseen hall forty
+  cells of wall behind it (owner, 2026-11-16). Pockets count only once nothing
   else is left. Setting `UnexploredMark`.
   Until 2026-11-11 the test was a frontier place of the scanner within the ray's quarter (±45°) and 180 cells: walking
   a straight line reveals a strip 120 cells wide, and its edge, 60 cells to the side, lies 22° off the line 157 cells

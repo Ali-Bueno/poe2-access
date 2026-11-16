@@ -39,6 +39,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const float MarkReachCells = 2 * SeenRadiusCells;
 
+        /// <summary>
+        ///     A longer blocked run ends a radar ray's line: the diagonal across the radar's widest small obstacle (5 cells,
+        ///     D2R's 5×5 subtiles), which the line steps over.
+        /// </summary>
+        public const int LineObstacleCells = 7;
+
         /// <summary>A block with fewer walkable cells is wall (a corridor three cells wide crossing it still counts).</summary>
         private const int MinWalkableCells = 6;
 

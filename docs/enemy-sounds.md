@@ -6,7 +6,9 @@ After the D2R mod's design (`d2r-access/docs/entity-cues.md`). Code: `EnemyCues`
 - Every living hostile monster on screen, in play (not still buried or dormant: Targetable `+0x69`; not set aside by the game: buff `hidden_monster`) and in line of
   sight on the terrain's projectile layer (`TerrainMetadata.GridLandscapeData`, read once per area; more than two
   blocking cells in a row hide it); uniques are heard through walls. The walkable grid was tried first and hid
-  almost everything: it marks every log and rock. It stays the fallback (runs over 8 cells) if the layer is unreadable.
+  almost everything: it marks every log and rock. Runs over 8 cells of it hide a monster too (`SightLine.Seen`, the live grid):
+  the projectile layer leaves pits and water open, and a pack forty cells of wall away in the Mawdun foundry sounded though
+  it could be neither walked to nor hit (owner, 2026-11-16).
 - One shared sound: a 90 ms low growl (175 → 125 Hz, fluttering at 36 Hz). Magic and rare monsters add a bright 750 Hz
   buzz chattering at 62 Hz; uniques add a struck-metal ring. So pitch only ever means up or down.
 - Stereo = side of the screen (±0.9); below the player the pitch drops to 0.8 at the bottom edge.

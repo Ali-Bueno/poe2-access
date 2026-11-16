@@ -95,7 +95,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.Unexplored(Core.States.InGameStateObject.CurrentAreaInstance, player); // keeps the reachable ground fresh
-            return this.explored.UnseenAlong(from, axis, ExplorationMap.MarkReachCells);
+            return this.TryLiveGrid(out var grid, out var row) ? this.explored.UnseenAlong(grid, row, from, axis, ExplorationMap.MarkReachCells) : null;
         }
 
         /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>) as last worked out; a new search starts every UnexploredRefreshMs.</summary>

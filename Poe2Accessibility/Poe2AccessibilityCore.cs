@@ -284,7 +284,10 @@ namespace Poe2Accessibility
                 var checkpointPlaces = new CheckpointPlaces(this.entities);
                 this.semantics.MarkerPlaces = checkpointPlaces.Describe;
                 this.audio = new AudioCueService(this.log);
-                this.enemyCues = new EnemyCues(this.audio, memory, this.log);
+                this.enemyCues = new EnemyCues(this.audio, memory, this.log)
+                {
+                    Walkable = () => this.entities is { } catalog && catalog.TryLiveGrid(out var grid, out _) ? grid : null,
+                };
                 var radarTurn = new Radar.Turn();
                 this.radar = new Radar(this.audio, () => Seats.Followed, RadarSynth.Voice.First, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.localPlayers = new LocalPlayers(memory, this.log);

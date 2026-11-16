@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(EnemyCuesPulseFasterWhenNearAndTakeTurns), EnemyCuesPulseFasterWhenNearAndTakeTurns),
+            (nameof(AnEnemyPastAWallThatSightLeavesOpenIsNotHeard), AnEnemyPastAWallThatSightLeavesOpenIsNotHeard),
             (nameof(EnemyCueSoundsStayInRangeAndDiffer), EnemyCueSoundsStayInRangeAndDiffer),
             (nameof(CuesRingOutAndTheMixerRoundsOff), CuesRingOutAndTheMixerRoundsOff),
             (nameof(LoudCuesAreLimitedNotSaturated), LoudCuesAreLimitedNotSaturated),
@@ -29,6 +30,20 @@ namespace Poe2Accessibility.Tests
             (nameof(LocalPlayerListTrustsOnlyItsOwnPlayerFirst), LocalPlayerListTrustsOnlyItsOwnPlayerFirst),
             (nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach),
         };
+
+        private static void AnEnemyPastAWallThatSightLeavesOpenIsNotHeard()
+        {
+            const int width = 300, height = 200, row = width / 2;
+            // Two halls forty cells apart (the Mawdun foundry, 2026-11-16); the sight layer leaves all of it open, as over a pit.
+            var walkable = MapRadarTests.Carved(width, height, (10, 10, 50, 190), (54, 10, 100, 190), (140, 10, 290, 190));
+            var sight = Enumerable.Repeat((byte)0x55, row * height).ToArray();
+            var player = new Vector2(90, 100);
+            var acrossTheWall = new Vector2(150, 100);
+            Equal(true, SightLine.Clear(sight, row, player, acrossTheWall, SightLine.MaxBlockedSightCells), "the sight layer alone sees across");
+            Equal(false, SightLine.Seen(sight, walkable, row, player, acrossTheWall), "but no one walks or fights across forty cells of wall");
+            Equal(false, SightLine.Seen(Array.Empty<byte>(), walkable, row, player, acrossTheWall), "nor without the sight layer");
+            Equal(true, SightLine.Seen(sight, walkable, row, player, new Vector2(20, 100)), "a prop four cells wide hides nothing");
+        }
 
         private static void EnemyCuesPulseFasterWhenNearAndTakeTurns()
         {

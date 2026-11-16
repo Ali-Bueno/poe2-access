@@ -14,35 +14,47 @@ namespace Poe2Accessibility.Services
         ///     ground that goes on while any is left, then what soon ends, pockets last. The line alone, not what lies beside it: ground to a side of the way
         ///     the player came is not ahead on the way back (docs/radar.md).
         /// </summary>
-        public bool LeavesTheSeen(Vector2 from, Vector2 axis, float reach) => this.UnseenAlong(from, axis, reach) != null;
+        public bool LeavesTheSeen(byte[] grid, int bytesPerRow, Vector2 from, Vector2 axis, float reach) =>
+            this.UnseenAlong(grid, bytesPerRow, from, axis, reach) != null;
 
         /// <summary>
         ///     What that line leaves the seen ground onto, as walking past it shows a sighted player on the map: ground that goes
         ///     on (the radar's two pips), or ground that soon ends (one pip: a room, a short branch, and a nook once nothing
-        ///     else is left); null when it stays on seen ground. The largest the line meets within reach.
+        ///     else is left); null when it stays on seen ground. The largest the line meets within reach, up to the first wall.
         /// </summary>
-        public UnseenSize? UnseenAlong(Vector2 from, Vector2 axis, float reach)
+        public UnseenSize? UnseenAlong(byte[] grid, int bytesPerRow, Vector2 from, Vector2 axis, float reach)
         {
-            if (this.ground.Reachable.Length != this.seen.Length || axis.LengthSquared() <= 0)
+            if (this.ground.Reachable.Length != this.seen.Length || axis.LengthSquared() <= 0 || !this.Fits(grid, bytesPerRow, out var width, out var height))
             {
                 return null;
             }
 
             UnseenSize? met = null;
-
             var along = Vector2.Normalize(axis);
-            const float step = BlockCells / 2f; // no block the line crosses is stepped over
-            for (var distance = step; distance <= reach; distance += step)
+            var blocked = 0;
+            var lastBlock = -1;
+            for (var distance = 1f; distance <= reach; distance++)
             {
                 var cell = from + (along * distance);
-                var x = (int)(cell.X / BlockCells);
-                var y = (int)(cell.Y / BlockCells);
-                if (cell.X < 0 || cell.Y < 0 || x >= this.blocksX || y >= this.blocksY)
+                if (cell.X < 0 || cell.Y < 0 || cell.X >= width || cell.Y >= height)
                 {
                     return met;
                 }
 
-                var block = (y * this.blocksX) + x;
+                // Ground behind a wall is no way on, though reachable from elsewhere (owner, 2026-11-16: a nook marked toward the next hall).
+                blocked = Walkable(grid, bytesPerRow, (int)cell.X, (int)cell.Y) ? 0 : blocked + 1;
+                if (blocked > LineObstacleCells)
+                {
+                    return met;
+                }
+
+                var block = ((int)(cell.Y / BlockCells) * this.blocksX) + (int)(cell.X / BlockCells);
+                if (blocked > 0 || block == lastBlock)
+                {
+                    continue;
+                }
+
+                lastBlock = block;
                 if (this.seen[block] || !this.ground.Reachable[block])
                 {
                     continue;

@@ -33,16 +33,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Pitch ratio at the bottom edge; at or above the player the cue plays as synthesized.</summary>
         private const float LowestPitch = 0.8f;
 
-        /// <summary>Line-of-sight cells skipped at each end: the player and the monster stand on the edge of what they block.</summary>
-        private const int SightEndCells = 2;
-
-        /// <summary>
-        ///     Cells in a row that may block sight before the target counts as hidden: on the sight layer only the
-        ///     staircase of a diagonal past a corner; on the walkable fallback ~90 units, thicker than props.
-        /// </summary>
-        private const int MaxBlockedSightCells = 2;
-        private const int MaxBlockedWalkCells = 8;
-
         /// <summary>How often the log gets a summary of what played (never one line per pulse).</summary>
         private const int ReportMs = 5000;
 
@@ -82,6 +72,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Cue volume, a fraction of the synthesized level.</summary>
         public float Gain { get; set; } = 1f;
+
+        /// <summary>The walkable grid as the game holds it now (doors and barriers opened); null: the area's first copy.</summary>
+        public Func<byte[]?>? Walkable { get; set; }
 
         /// <summary>Growls for enemies (setting EnemySounds).</summary>
         public bool Enemies { get; set; } = true;
@@ -163,7 +156,7 @@ namespace Poe2Accessibility.Services
                 return found;
             }
 
-            var (grid, maxBlocked) = this.SightGrid(area);
+            var (sight, walkable) = this.SightGrids(area);
             var row = area.TerrainMetadata.BytesPerRow;
             var toGrid = area.WorldToGridConvertor;
             var from = new Vector2(player.WorldPosition.X, player.WorldPosition.Y) / toGrid;
@@ -196,7 +189,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var to = new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / toGrid;
-                if (!down && layer != CueSynth.Layer.Boss && grid.Length > 0 && !InSight(grid, row, from, to, maxBlocked))
+                if (!down && layer != CueSynth.Layer.Boss && !SightLine.Seen(sight, walkable, row, from, to))
                 {
                     continue;
                 }
@@ -246,12 +239,12 @@ namespace Poe2Accessibility.Services
                 }
 
                 var to = new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / toGrid;
-                var (grid, maxBlocked) = this.SightGrid(area);
+                var (sight, walkable) = this.SightGrids(area);
                 var life = entity.TryGetComponent<Life>(out var vitals) ? $"{vitals.Health.Current}/{vitals.Health.Total}" : "-";
                 var animation = entity.TryGetComponent<Actor>(out var actor) ? AnimationNames.Of(actor.Animation) ?? $"{(int)actor.Animation}" : "-";
                 var buffs = entity.TryGetComponent<Buffs>(out var effects) ? string.Join(",", effects.StatusEffects.Keys.Take(12)) : "-";
                 lines.Add($"  {entity.Id} {entity.Path}: alive enemy {EntityCatalog.IsAliveEnemy(entity)}, in play {EntityCatalog.IsInPlay(this.memory, entity)}, " +
-                          $"screen {world.WorldToScreen(render.WorldPosition)}, in sight {InSight(grid, area.TerrainMetadata.BytesPerRow, from, to, maxBlocked)}, " +
+                          $"screen {world.WorldToScreen(render.WorldPosition)}, in sight {SightLine.Seen(sight, walkable, area.TerrainMetadata.BytesPerRow, from, to)}, " +
                           $"life {life}, animation {animation}, buffs [{buffs}]");
             }
 
@@ -309,10 +302,10 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The terrain layer that blocks sight (GameLayout.Terrain.SightLayer), read once per area; the walkable grid,
-        ///     which also blocks at every prop, with a thicker tolerance when that layer cannot be read.
+        ///     The terrain layer that blocks sight (GameLayout.Terrain.SightLayer), read once per area, empty when it cannot be;
+        ///     and the walkable grid, live when the catalog has it.
         /// </summary>
-        private (byte[] Grid, int MaxBlocked) SightGrid(GameReader.RemoteObjects.States.InGameStateObjects.AreaInstance area)
+        private (byte[] Sight, byte[] Walkable) SightGrids(GameReader.RemoteObjects.States.InGameStateObjects.AreaInstance area)
         {
             var walkable = area.GridWalkableData;
             var layer = area.TerrainMetadata.GridLandscapeData;
@@ -323,27 +316,8 @@ namespace Poe2Accessibility.Services
                 this.sightGrid = this.memory.ReadStdVector<byte>(layer, walkable.Length);
             }
 
-            return this.sightGrid.Length == walkable.Length && walkable.Length > 0
-                ? (this.sightGrid, MaxBlockedSightCells)
-                : (walkable, MaxBlockedWalkCells);
-        }
-
-        /// <summary>No run of more than <paramref name="maxBlocked"/> blocking cells on the straight line, ends excepted.</summary>
-        private static bool InSight(byte[] grid, int row, Vector2 from, Vector2 to, int maxBlocked)
-        {
-            var cells = (int)MathF.Ceiling(Vector2.Distance(from, to));
-            var run = 0;
-            for (var i = SightEndCells; i <= cells - SightEndCells; i++)
-            {
-                var cell = Vector2.Lerp(from, to, (float)i / cells);
-                run = RoutePlanner.IsWalkable(grid, row, (int)cell.X, (int)cell.Y) ? 0 : run + 1;
-                if (run > maxBlocked)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            var live = this.Walkable?.Invoke() is { } now && now.Length == walkable.Length ? now : walkable;
+            return (this.sightGrid.Length == walkable.Length ? this.sightGrid : Array.Empty<byte>(), live);
         }
     }
 }
