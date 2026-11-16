@@ -65,6 +65,7 @@ namespace Poe2Accessibility
         private LostHint? lostHint;
         private MapHintNarrator? mapHints;
         private ForkNarrator? forks;
+        private ExitBeacons? exitBeacons;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
@@ -422,6 +423,11 @@ namespace Poe2Accessibility
                     this.partnerRadar.WaysRunDiagonal = layout;
                 }
                 this.forks = new ForkNarrator(this.entities, this.output) { Pieces = this.places != null ? this.places.Pieces : null };
+                this.exitBeacons = new ExitBeacons(this.entities, this.audio)
+                {
+                    KindAt = this.places != null ? this.places.KindAt : null,
+                    BiomeAt = this.places != null ? this.places.BiomeAt : null,
+                };
                 if (this.places != null)
                 {
                     this.places.MoreKindAt = this.entities.NarrowAt;

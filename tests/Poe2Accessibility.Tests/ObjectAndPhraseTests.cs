@@ -28,6 +28,8 @@ namespace Poe2Accessibility.Tests
             (nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange),
             (nameof(PiecesAheadAreSaidAsTheyComeInSight), PiecesAheadAreSaidAsTheyComeInSight),
             (nameof(AForkIsToldOnceWithoutTheWayBack), AForkIsToldOnceWithoutTheWayBack),
+            (nameof(TilesTellTheirSetting), TilesTellTheirSetting),
+            (nameof(ExitsSoundInRoundsWhileThePlayerStays), ExitsSoundInRoundsWhileThePlayerStays),
             (nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid),
             (nameof(OnlyASwappedLineCutsIn), OnlyASwappedLineCutsIn),
             (nameof(AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice), AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice),
@@ -335,6 +337,29 @@ namespace Poe2Accessibility.Tests
             Equal(("Room with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
             Equal(("Ballroom", false), Announcements.ForkName(true, "ballroom"), "a ballroom is a room by itself");
             Equal(("Fork", true), Announcements.ForkName(false, null), "nothing in it: numbered");
+        }
+
+        private static void TilesTellTheirSetting()
+        {
+            Equal("interior", TerrainBiome.Of("metadata/terrain/woods/manor/interior/hall_st_01.tdt"), "a manor's hall inside the woods folder is an interior");
+            Equal("forest", TerrainBiome.Of("metadata/terrain/woods/oldforestwoods/fill_01.tdt"), "Clearfell's ground");
+            Equal("water", TerrainBiome.Of("metadata/terrain/woods/mudbankgentle/riverbed_fill_01.tdt"), "a riverbed");
+            Equal("desert", TerrainBiome.Of("metadata/terrain/desert/pillars/pillar_01.tdt"), "the desert");
+            Equal("cave", TerrainBiome.Of("metadata/terrain/mountain/mines/mine_st_01.tdt"), "mines are caves before mountains");
+            Equal(null, TerrainBiome.Of("metadata/terrain/dungeon/black_nofog.tdt"), "filler is nothing");
+            Equal("bridge", ExitMaterial.Of("walkway", false, "forest"), "a walkway sounds as a bridge");
+            Equal("narrow", ExitMaterial.Of(null, true, "forest"), "a narrow passage before the setting");
+            Equal("desert", ExitMaterial.Of(null, false, "desert"), "else the setting");
+        }
+
+        private static void ExitsSoundInRoundsWhileThePlayerStays()
+        {
+            var round = new ExitRound(500, 5000);
+            string Run(int? place, int exits, params long[] times) => string.Join(",", times.Select(time => round.Due(time, place, exits)?.ToString() ?? "-"));
+            Equal("0,-,1,2,-", Run(4, 3, 0, 200, 500, 1000, 1500), "walking in: each exit in turn, a beat apart, once");
+            Equal("-,0", Run(4, 3, 4900, 5100), "another round once the first started long enough ago");
+            Equal("0", Run(9, 2, 5200), "another place starts its round at once");
+            Equal("-", Run(null, 0, 6000), "out of every place: nothing");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()

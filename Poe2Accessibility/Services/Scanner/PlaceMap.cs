@@ -96,6 +96,12 @@ namespace Poe2Accessibility.Services
         private const float SamePropCells = 3f;
 
         private readonly Dictionary<(int, int), string> cells = new();
+
+        /// <summary>Each sub-tile's setting (<see cref="TerrainBiome"/>), where its file names one.</summary>
+        private readonly Dictionary<(int, int), string> biomes = new();
+
+        /// <summary>The setting most of the area's ground has; null when no tile names one.</summary>
+        public string? AreaBiome { get; private set; }
         private readonly List<(Vector2 Grid, string Kind)> props = new();
         private readonly List<(Vector2 Grid, string Kind)> pieces = new();
         private readonly HashSet<PlaceRoom> matched = new();
@@ -128,7 +134,14 @@ namespace Poe2Accessibility.Services
                 {
                     map.cells[map.CellOf(placement.Grid)] = kind;
                 }
+
+                if (TerrainBiome.Of(placement.Path) is { } biome)
+                {
+                    map.biomes[map.CellOf(placement.Grid)] = biome;
+                }
             }
+
+            map.AreaBiome = map.biomes.Values.GroupBy(biome => biome).OrderByDescending(group => group.Count()).Select(group => group.Key).FirstOrDefault();
 
             var ground = placements.Count(placement => !Path.GetFileName(placement.Path).Contains("blank", StringComparison.Ordinal));
             foreach (var whole in map.cells.Values.GroupBy(kind => kind).Where(group => group.Count() > ground * WholeAreaShare).Select(group => group.Key).ToList())
@@ -151,6 +164,9 @@ namespace Poe2Accessibility.Services
             map.FindPieces();
             return map;
         }
+
+        /// <summary>The setting of the ground at a grid cell: its tile's, else the area's; null when none is known.</summary>
+        public string? BiomeAt(Vector2 grid) => this.biomes.TryGetValue(this.CellOf(grid), out var biome) ? biome : this.AreaBiome;
 
         /// <summary>The kind of map piece at a grid cell, or null on plain ground.</summary>
         public string? KindAt(Vector2 grid) => this.cells.TryGetValue(this.CellOf(grid), out var kind) ? kind : null;

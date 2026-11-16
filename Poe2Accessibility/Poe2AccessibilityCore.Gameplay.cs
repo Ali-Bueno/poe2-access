@@ -52,6 +52,7 @@ namespace Poe2Accessibility
             this.Isolated("fights", playing, static (core, playing) => core.fights?.Tick(playing));
             this.Isolated("nearby", playing, static (core, playing) => core.nearby?.Tick(playing, core.Settings.AnnounceNearby, core.Settings.AnnounceInteractTarget));
             this.Isolated("places", playing, static (core, playing) => core.places?.Tick(playing, core.Settings.AnnouncePlaces, core.Settings.AnnouncePlacesAhead));
+            this.Isolated("exit beacons", playing, static (core, playing) => core.exitBeacons?.Tick(playing, core.Settings.ExitBeacons, core.fights?.InFight(core.Settings.QuietItemsInFights) ?? false));
             this.Isolated("forks", playing, static (core, playing) => core.forks?.Tick(playing, core.Settings.AnnounceForks, core.fights?.InFight(core.Settings.QuietItemsInFights) ?? false));
             this.Isolated("exploration", playing, static (core, playing) =>
             {

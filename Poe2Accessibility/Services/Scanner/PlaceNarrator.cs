@@ -91,6 +91,12 @@ namespace Poe2Accessibility.Services
         /// <summary>What the player stands on when no tile names it, by grid cell: a narrow passage of the map's shape.</summary>
         public Func<Vector2, string?>? MoreKindAt { get; set; }
 
+        /// <summary>The kind of map piece at a grid cell of the current area, or null.</summary>
+        public string? KindAt(Vector2 grid) => this.map?.KindAt(grid);
+
+        /// <summary>The setting of the ground at a grid cell of the current area (<see cref="TerrainBiome"/>), or null.</summary>
+        public string? BiomeAt(Vector2 grid) => this.map?.BiomeAt(grid);
+
         /// <summary>The map pieces of the current area (grid cells), for naming the places of the map's shape.</summary>
         public IReadOnlyList<(Vector2 Grid, string Kind)> Pieces() => this.map?.Pieces ?? Array.Empty<(Vector2 Grid, string Kind)>();
 

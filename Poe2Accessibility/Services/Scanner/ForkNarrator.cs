@@ -127,27 +127,13 @@ namespace Poe2Accessibility.Services
 
                 var way = ways[i];
                 var state = topology.IsDeadEndWay(entered.Node, way, out var end) && EntityCatalog.SeenWhole(end) ? ForkWay.DeadEnd
-                    : this.Explored(topology, entered.Node, way) ? ForkWay.Explored
+                    : this.catalog.WayExplored(topology, entered.Node, way) ? ForkWay.Explored
                     : ForkWay.GoesOn;
                 told.Add((Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld)], state));
             }
 
             IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> line = ways.Count >= 3 ? ForkTracker.Tell(told) : Array.Empty<(ForkWay, IReadOnlyList<string>)>();
             this.output.Say(SpeechKind.Places, Announcements.Fork(entered.Name, entered.Again, line));
-        }
-
-        /// <summary>
-        ///     A way is explored once the next place along it and the first stretch of each of its own ways were seen: a look
-        ///     from the fork already reveals the way's first 60 cells, so its own first cell tells nothing.
-        /// </summary>
-        private bool Explored(MapTopology topology, int from, Way way)
-        {
-            if (!this.catalog.WasSeen(way.Ahead) || !this.catalog.WasSeen(topology.Nodes[way.To].Centre))
-            {
-                return false;
-            }
-
-            return topology.Ways(way.To).Where(next => next.To != from && !next.Nook).All(next => this.catalog.WasSeen(next.Ahead));
         }
 
         /// <summary>The most telling map piece standing in a place, to name it by; null for none.</summary>

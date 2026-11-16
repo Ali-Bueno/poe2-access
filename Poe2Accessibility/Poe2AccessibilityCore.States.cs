@@ -245,6 +245,7 @@ namespace Poe2Accessibility
             this.nearby?.Reset();
             this.places?.Reset();
             this.forks?.Reset();
+            this.exitBeacons?.Reset();
         }
 
         /// <summary>The tile table of the instance the last area announcement read: GameHelper makes a new one each load.</summary>

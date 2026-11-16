@@ -167,6 +167,20 @@ namespace Poe2Accessibility.Services
         /// <summary>A dead end a look shows whole.</summary>
         public static bool SeenWhole(DeadEnd end) => end.ExtentCells <= SeenWholeExtentCells && end.AreaCells <= SeenWholeAreaCells;
 
+        /// <summary>
+        ///     A way out of a place is explored once the next place along it and the first stretch of each of its ways were seen:
+        ///     a look from the place already reveals 60 cells of every way, so the way's own first cell tells nothing.
+        /// </summary>
+        public bool WayExplored(MapTopology shape, int from, Way way)
+        {
+            if (!this.WasSeen(way.Ahead) || !this.WasSeen(shape.Nodes[way.To].Centre))
+            {
+                return false;
+            }
+
+            return shape.Ways(way.To).Where(next => next.To != from && !next.Nook).All(next => this.WasSeen(next.Ahead));
+        }
+
         /// <summary>Whether a grid cell was seen (the explored ground).</summary>
         public bool WasSeen(Vector2 cell) => this.explored.IsSeen(cell);
 
