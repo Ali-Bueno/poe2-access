@@ -65,7 +65,8 @@ namespace Poe2Accessibility.Services
             var found = new List<(NamedRoom Room, int Score)>();
             foreach (var room in catalog.Rooms)
             {
-                if ((room.Families.Count > 0 && !room.Families.Any(family => present[family])) || room.Cells.Count * WholeAreaShare >= live.Count)
+                // A room without cells is told by its objects alone (RoomObjectMatcher).
+                if (room.Cells.Count == 0 || (room.Families.Count > 0 && !room.Families.Any(family => present[family])) || room.Cells.Count * WholeAreaShare >= live.Count)
                 {
                     continue;
                 }
@@ -146,7 +147,7 @@ namespace Poe2Accessibility.Services
             there == cls || (there >= 0 && catalog.Soft[cls] && catalog.SoftAccepts[there]);
 
         /// <summary>A cell turned and mirrored: bit 2 swaps the axes, bit 0 mirrors across, bit 1 mirrors down (within the turned size).</summary>
-        private static (int X, int Y, int Class) Turned((int X, int Y, int Class) cell, int turn, int width, int height)
+        internal static (int X, int Y, int Class) Turned((int X, int Y, int Class) cell, int turn, int width, int height)
         {
             var (x, y) = (turn & 4) != 0 ? (cell.Y, cell.X) : (cell.X, cell.Y);
             var (w, h) = (turn & 4) != 0 ? (height, width) : (width, height);
@@ -154,7 +155,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Two boxes share more than half of the smaller one.</summary>
-        private static bool Overlaps(NamedRoom a, NamedRoom b)
+        internal static bool Overlaps(NamedRoom a, NamedRoom b)
         {
             var width = Math.Min(a.X + a.Width, b.X + b.Width) - Math.Max(a.X, b.X);
             var height = Math.Min(a.Y + a.Height, b.Y + b.Height) - Math.Max(a.Y, b.Y);

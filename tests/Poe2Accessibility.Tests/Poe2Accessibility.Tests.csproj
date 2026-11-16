@@ -344,6 +344,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomLabels.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomMatcher.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomObjectMatcher.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Rooms.cs" Link="Plugin\Announcements.Rooms.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TerrainBiome.cs" />

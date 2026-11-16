@@ -125,6 +125,12 @@ namespace Poe2Accessibility.Services
         public IReadOnlyCollection<int> UnknownRotations => this.unknownRotations;
 
         /// <summary>The named rooms found on the tiles (<see cref="RoomMatcher"/>), set by the build that made the map.</summary>
+        public IReadOnlyList<NamedRoom> TileRooms { get; set; } = Array.Empty<NamedRoom>();
+
+        /// <summary>The rooms the area's entities may place (<see cref="RoomObjectMatcher.Candidates"/>), set by the build.</summary>
+        public IReadOnlyList<RoomShape> ObjectRooms { get; set; } = Array.Empty<RoomShape>();
+
+        /// <summary>The named rooms found so far: on the tiles, then by the entities met.</summary>
         public IReadOnlyList<NamedRoom> NamedRooms { get; set; } = Array.Empty<NamedRoom>();
 
         /// <summary>Builds the map from the area's tile grid (one placement per sub-tile).</summary>
