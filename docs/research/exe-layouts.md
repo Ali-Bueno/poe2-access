@@ -597,3 +597,5 @@ not stand in for +0x69. The plugin reads +0x69, +0x6E and, since this pass, +0x6
 What changed for #7: a creature with the NPC component that cannot be attacked is a character whatever side its reaction byte
 reads (town NPCs read "hostile" in every dump), and the `hidden_monster` buff no longer takes a character out of play. Not seen
 in play: the log line `Character not listed: <path> (<reason>)`, once per file, says why any character is left out.
+Later the same day: the Dreadnought's Asala has no NPC component at all (`MarakethMatriarchDreadnought_.ot`: InteractionAction,
+Targetable, MinimapIcon, Actor, Stats), so "character" now also means a monster with the InteractionAction component.

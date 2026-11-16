@@ -240,6 +240,11 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return this.componentAddresses;
         }
 
+        /// <summary>Whether the entity has a component the reader has no class for ("InteractionAction"), by the game's name.</summary>
+        /// <param name="name">The component's name in the game's component map.</param>
+        /// <returns>true if the component is in the map with an address.</returns>
+        public bool HasComponent(string name) => this.componentAddresses.TryGetValue(name, out var address) && address != IntPtr.Zero;
+
         /// <summary>Reads the component map again at the next update, as for a new entity: a search moved its layout.</summary>
         internal void ReadComponentsAgain() => Interlocked.Exchange(ref this.componentsStale, 1);
 

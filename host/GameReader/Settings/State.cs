@@ -53,11 +53,12 @@ namespace GameReader.Settings
         /// <summary>
         ///     Gets or sets a list of monsters path to ignore.
         ///     The condition used is StartsWith so just provide enough to make the path unique.
+        ///     Never a boss's add: an ignored monster is never typed, so the scanner took Jamanra's King's Attendants
+        ///     (PerennialKingCorpseFriend, GameHelper2's list) for objects to use, not zombies to kill (issue #7).
         /// </summary>
         public List<string> MonstersPathsToIgnore = new()
         {
             "Metadata/Monsters/LeagueIncursionNew/Garrison/VaalTrainingDummy",
-            "Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend",
             "Metadata/Monsters/MarakethSamdDjinn/SandDjinn",
             "Metadata/Monsters/MarakethWaterDjinn/WaterDjinn",
             "Metadata/Monsters/MarakethTimeDjinn/FireDjinn",

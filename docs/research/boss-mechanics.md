@@ -326,7 +326,9 @@ Thresholds and triggers are in the AI scripts, not shipped; skill-to-animation p
   object `Monsters/PerennialKingStage2/Objects/MatriarchSandstormDefence` and the marker
   `Terrain/Gallows/Act2/2_12_2/Objects/PerennialKingArena1SandstormDefenceMarker`. The boss enters stance 5 with
   `CTS5PerennialKingSandstorm` and leaves with `CTS1PerennialKingEndSandstorm`. LIKELY: the player's buff `asala_sand_shield`
-  means "sheltered". Zombies `PerennialKingCorpseFriend1-13`.
+  means "sheltered". Zombies `PerennialKingCorpseFriend1-13` ("King's Attendant", hostile adds; GameHelper2 ignored them, so
+  the reader left them untyped and the scanner called them objects until 2026-11-16, issue #7). Asala here has no NPC component
+  (InteractionAction, `attackable=false`): she is listed as a character by that.
 - **Azarian** (`Monsters/ForsakenSon/ForsakenSon`). PROVEN: `BossArenaObjects/ForsakenSonCenser` goes out after three hits
   (`hits`=3 removes its collision and light); fire is `BossArenaObjects/ForsakenSonFlameWall` (state `die`) and the ground
   `CGEForsakenSonBurningGround`. UNSURE: what a censer out does for the player, and any shrinking signal.

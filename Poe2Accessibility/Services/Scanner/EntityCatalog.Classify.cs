@@ -184,10 +184,11 @@ namespace Poe2Accessibility.Services
             {
                 // A "monster" outside the creatures that the minimap marks is a device: it goes on as a plain object below.
                 // A friendly monster with the NPC component is a character (Mortimer by the Miller); minions have none. So is one
-                // the player cannot attack, whatever side it reads: Sekhema Asala in the Dreadnought (issue #7).
-                var character = entity.TryGetComponent<NPC>(out _);
-                category = character && !this.Attackable(entity) ? ScanCategory.Npcs
-                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : character ? ScanCategory.Npcs : null;
+                // to talk to that the player cannot attack, whatever side it reads: Sekhema Asala in the Dreadnought has no NPC
+                // component, only InteractionAction (MarakethMatriarchDreadnought_.ot, issue #7).
+                var npc = entity.TryGetComponent<NPC>(out _);
+                category = IsCharacter(entity) && !this.Attackable(entity) ? ScanCategory.Npcs
+                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : npc ? ScanCategory.Npcs : null;
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
                 {
                     name = Announcements.EnemyWithRarity(name, magic.Rarity);
@@ -576,10 +577,20 @@ namespace Poe2Accessibility.Services
             !EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
             !this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.AttackableOffset, out var flag) || flag != 0;
 
+        /// <summary>
+        ///     Someone to talk to: the NPC component, or a creature the game lets the player use (InteractionAction), as Sekhema
+        ///     Asala in the Dreadnought, who has no NPC component (issue #7).
+        /// </summary>
+        public static bool IsCharacter(Entity entity) =>
+            entity.TryGetComponent<NPC>(out _) || (entity.EntityType == EntityTypes.Monster && entity.HasComponent(InteractionActionComponent));
+
+        /// <summary>The game's component that makes an entity usable; the reader has no class for it.</summary>
+        private const string InteractionActionComponent = "InteractionAction";
+
         /// <summary>A character the scanner leaves out, logged once per file with the reason, so a missing one is found from the log.</summary>
         private void LogLeftOutCharacter(Entity entity, string path, string reason)
         {
-            if (entity.TryGetComponent<NPC>(out _) && this.silentCharacters.Add(path))
+            if (IsCharacter(entity) && this.silentCharacters.Add(path))
             {
                 this.log.Info($"Character not listed: {path} ({reason})");
             }
@@ -616,7 +627,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
             // The game's own interact test reads no buff (exe 0.5.5f, 0x1A7AE0): a set-aside mark does not hide a character.
-            (!IsHidden(entity) || entity.TryGetComponent<NPC>(out _)) &&
+            (!IsHidden(entity) || IsCharacter(entity)) &&
             (!EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
              (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0 &&
               (!EntityFields.QuestStateTrusted ||

@@ -239,6 +239,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPhaseTracker.cs" Link="Plugin\BossPhaseTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossLifeSteps.cs" Link="Plugin\BossLifeSteps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossMechanicsCatalog.cs" Link="Plugin\BossMechanicsCatalog.cs" />
+    <Compile Include="..\..\host\GameReader\Settings\State.cs" Link="Host\State.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WallRing.cs" Link="Plugin\WallRing.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossMechanicsCatalog.Census.cs" Link="Plugin\BossMechanicsCatalog.Census.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossTexts.cs" Link="Plugin\BossTexts.cs" />

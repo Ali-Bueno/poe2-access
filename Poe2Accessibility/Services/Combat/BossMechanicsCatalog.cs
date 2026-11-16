@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -145,6 +146,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A monster the boss brings into its fight (its script preloads it, no boss bar).</summary>
         public bool IsAdd(string boss, string monster) => this.adds.Contains($"{boss}|{monster}");
+
+        /// <summary>Every boss's adds, by file.</summary>
+        public IEnumerable<string> AddPaths => this.adds.Select(key => key[(key.IndexOf('|') + 1)..]).Distinct(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>An add of the boss that only stands in the way: a wall of the cage it shuts the player in (Kabala's Bone Wall).</summary>
         public bool IsWall(string boss, string monster) => this.walls.Contains($"{boss}|{monster}");

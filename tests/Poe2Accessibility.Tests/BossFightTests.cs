@@ -337,6 +337,12 @@ namespace Poe2Accessibility.Tests
             Equal(false, catalog.BuffText("guard_boss_utility_buff", "es")!.Value.Description.Contains('['), "without the game's links");
             Equal(true, catalog.IsWall("Metadata/Monsters/WifeMonster/WifeMonster", "Metadata/Monsters/WifeMonster/WifeMonsterBoneWall"), "Asinia's walls");
             Equal(true, catalog.Places > 200 && catalog.Daemons > 40, "every fight's places and helpers");
+
+            // A monster the reader ignores is never typed: Jamanra's King's Attendants were listed as objects to use (issue #7).
+            var ignored = new GameReader.Settings.State().MonstersPathsToIgnore;
+            Equal(true, catalog.IsAdd(King, "Metadata/Monsters/PerennialKingStage2/PerennialKingCorpseFriend1"), "the King's Attendants are Jamanra's adds");
+            Equal(string.Empty, string.Join(", ", catalog.AddPaths.Where(add => ignored.Any(prefix => add.StartsWith(prefix, StringComparison.Ordinal)))),
+                "no boss's add is a monster the reader ignores");
         }
 
         private static void PlaceLinesNameThePlaceAndTheWay()
