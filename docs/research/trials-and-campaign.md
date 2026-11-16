@@ -319,6 +319,17 @@ Flask"). Now an interactive control with no caption within two levels is said by
 (`WithUnitPicture`, `WaterLabel`): "Ventaja: Vial sanguino, Los monstruos tienen un 30% menos de vida máxima, 220 de Agua
 sagrada, botón, 3 de 6" (heard in the owner's run, 2026-11-16). Source: `dump visible` and `focusinfo` on the open panel.
 
+The panel's own counter (`269` behind the same icon, at the top) is the water left: the HUD that says the water is hidden
+under the panel, and the HUD's watch says gains only, so a purchase was said by nothing but Balbala's line and the list
+shrinking ("1 de 5"). Now the first water number of a window over the game (`TrialWindowWater`,
+`ScreenNarrator.CheckTrialWindowWater`, once the HUD showed the honour in the area) is said 700 ms after a window that
+shows the water alone opens ("Agua sagrada 269") and whenever it changes ("Agua sagrada 49, menos 220"); the map, which
+shows the keys beside it, says only a change. F8 in the merchant says the water too. Unit-tested, **not heard yet**.
+
+**Left for the next merchant:** the buy button ("comprar" and a 72×72 picture beside it, `[…,0,0,2]`) is said "Comprar"
+without its pad button: the picture's art was not read before the panel closed; and the keyword links in the descriptions
+(`[Afflictions|desventaja]`, `[Hit|impactes]`, `[SacredWater|agua sagrada]`) through inspect mode were not tried there.
+
 ## 2. Trial of Chaos (Ultimatum)
 
 ### 2.1 Mechanics

@@ -115,10 +115,11 @@ namespace Poe2Accessibility.Services
         private string WithUnitPicture(in UiElementReader.ElementInfo holder, string text)
         {
             var pictures = this.elements.ReadChildren(holder);
-            if (pictures.Length == 0 && this.elements.TryReadElement(holder.Raw.ParentPtr, out var pair) && this.elements.ReadChildren(pair) is { Length: 2 } both)
+            if (pictures.Length == 0 && this.InGame && BareNumber.IsMatch(text) && this.TrialCounterKind(holder.Address) == 0 &&
+                this.WaterLabel?.Invoke() is { Length: > 0 } water)
             {
-                // The picture drawn beside the number, its sibling: the Sekhemas merchant's price, the water icon then "200".
-                pictures = both;
+                // The water icon drawn before the number, its sibling: the Sekhemas merchant's price ("200 de Agua sagrada").
+                return Announcements.AmountOf(text.Trim(), water);
             }
 
             if (pictures.Length is 0 or > 2)
@@ -128,20 +129,10 @@ namespace Poe2Accessibility.Services
 
             foreach (var address in pictures)
             {
-                if (address == holder.Address || !this.elements.TryReadElement(address, out var picture) || !picture.IsVisibleFlag || this.elements.ReadTextureKey(picture) is not { } art)
-                {
-                    continue;
-                }
-
-                if (InlineIcons.WithPicture(text, art) is var said && said != text)
+                if (this.elements.TryReadElement(address, out var picture) && picture.IsVisibleFlag && this.elements.ReadTextureKey(picture) is { } art &&
+                    InlineIcons.WithPicture(text, art) is var said && said != text)
                 {
                     return said;
-                }
-
-                if (this.InGame && BareNumber.IsMatch(text) && art.Contains(TrialArt.CounterMarkers[0], StringComparison.OrdinalIgnoreCase) &&
-                    this.WaterLabel?.Invoke() is { Length: > 0 } water)
-                {
-                    return Announcements.AmountOf(text.Trim(), water); // "200 de Agua sagrada"
                 }
             }
 

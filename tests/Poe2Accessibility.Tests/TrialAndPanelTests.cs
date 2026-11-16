@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Tests
             (nameof(CameraViewIsASixteenByNineScreenAroundThePlayer), CameraViewIsASixteenByNineScreenAroundThePlayer),
             (nameof(CameraViewDrawsFromTheMatrixWhateverTheWindow), CameraViewDrawsFromTheMatrixWhateverTheWindow),
             (nameof(TrialHudCountsWaterAndKeys), TrialHudCountsWaterAndKeys),
+            (nameof(TrialWindowSaysItsWaterAndWhatAPurchaseCost), TrialWindowSaysItsWaterAndWhatAPurchaseCost),
             (nameof(TrialTrapsAreToldByTheirFiles), TrialTrapsAreToldByTheirFiles),
             (nameof(SheetWidgetsAreToldByTheirTooltipsKeys), SheetWidgetsAreToldByTheirTooltipsKeys),
             (nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss),
@@ -88,6 +89,25 @@ namespace Poe2Accessibility.Tests
             Equal(false, CameraView.Draw(System.Numerics.Matrix4x4.Identity, point).HasValue, "GameHelper's placeholder before the first frame draws nothing");
             Equal(true, wide is { } w2 && CameraView.InView(w2), "a place near the player is in view");
             Equal(false, CameraView.Draw(Camera(16f / 9f), target + new System.Numerics.Vector3(4000, -4000, 0)) is { } far && CameraView.InView(far), "far off: out of view");
+        }
+
+        private static void TrialWindowSaysItsWaterAndWhatAPurchaseCost()
+        {
+            var merchant = (IntPtr)0x1000;
+            var water = new TrialWindowWater();
+            Equal(null, water.Heard(merchant, 269, true, 0), "the opening waits for the first focus");
+            Equal(null, water.Heard(merchant, 269, true, 300), "still waiting");
+            Equal((269, 0), water.Heard(merchant, 269, true, TrialWindowWater.OpeningDelayMs), "then the merchant's water");
+            Equal(null, water.Heard(merchant, 269, true, 2000), "said once");
+            Equal((49, -220), water.Heard(merchant, 49, true, 3000), "a purchase: what is left and what it cost");
+
+            water.Reset();
+            var map = (IntPtr)0x2000;
+            Equal(null, water.Heard(map, 49, false, 0), "the map beside the keys");
+            Equal(null, water.Heard(map, 49, false, 5000), "is not said on opening");
+            Equal(null, water.Heard(merchant, 49, true, 6000), "another window is a new opening");
+            Equal((49, 0), water.Heard(merchant, 49, true, 6000 + TrialWindowWater.OpeningDelayMs), "said again there");
+            Equal("Sacred Water 49, minus 220", Announcements.WaterInWindow("Sacred Water", 49, -220), "the purchase as said");
         }
 
         private static void TrialHudCountsWaterAndKeys()

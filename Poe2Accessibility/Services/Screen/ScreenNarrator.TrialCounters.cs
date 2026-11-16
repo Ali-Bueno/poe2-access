@@ -44,7 +44,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Says the sacred water and the keys a run gains, none of it urgent.</summary>
         public void CheckTrialCounters(ScreenSnapshot snapshot)
         {
-            if (this.HonourLine(snapshot) is not { } line || TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>()) is not { } counters)
+            if (this.HonourLine(snapshot) is not { } line)
+            {
+                return;
+            }
+
+            this.inTrialArea = true;
+            if (TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>()) is not { } counters)
             {
                 return;
             }
@@ -107,6 +113,52 @@ namespace Poe2Accessibility.Services
         /// <summary>Which of the Trial's counters a number's element is (<see cref="UiSemantics.TrialCounterKind"/>), negative for none.</summary>
         public Func<IntPtr, int>? TrialCounterKind { get; set; }
 
+        private readonly TrialWindowWater trialWindowWater = new();
+
+        /// <summary>The HUD showed the Trial's honour in this area: only then are the windows over the game looked through for water.</summary>
+        private bool inTrialArea;
+
+        /// <summary>
+        ///     The sacred water a Trial window shows: the merchant's on opening ("Agua sagrada 269"), and any window's as it
+        ///     changes ("Agua sagrada 49, menos 220" after a purchase), where the HUD that says it is hidden.
+        /// </summary>
+        public void CheckTrialWindowWater(ScreenSnapshot snapshot)
+        {
+            if (!this.inGame || !this.inTrialArea || this.TrialCounterKind is not { } kindOf || snapshot.TopInteractive is not { } layer || layer.Address == this.HudLayer ||
+                this.WaterLabel?.Invoke() is not { Length: > 0 } label)
+            {
+                this.trialWindowWater.Reset();
+                return;
+            }
+
+            int? water = null;
+            var keys = false;
+            // The first water number is the window's counter: the merchant draws each price with the same icon after it.
+            foreach (var text in layer.Texts.Where(text => IsNumber(text.Text)))
+            {
+                var kind = kindOf(text.Address);
+                if (kind == 0 && water == null && int.TryParse(text.Text.Replace(".", string.Empty).Replace(",", string.Empty), out var amount))
+                {
+                    water = amount;
+                }
+                else if (kind > 0)
+                {
+                    keys = true;
+                }
+            }
+
+            if (water is not { } now)
+            {
+                this.trialWindowWater.Reset();
+                return;
+            }
+
+            if (this.trialWindowWater.Heard(layer.Address, now, !keys, Environment.TickCount64) is { } news)
+            {
+                this.Speak("trial window water", Announcements.WaterInWindow(label, news.Now, news.Change), false);
+            }
+        }
+
         /// <summary>
         ///     The water and the keys from the window over the game, empty when it shows none: the Trial's map hides the HUD and
         ///     its own counters are bare numbers behind icons ("78, 0, 1, 0", user's map 2026-11-12).
@@ -122,11 +174,16 @@ namespace Poe2Accessibility.Services
             var beside = IntPtr.Zero;
             foreach (var text in layer.Texts.Where(text => IsNumber(text.Text)))
             {
-                if (kindOf(text.Address) is >= 0 and var kind && kind < counts.Length)
+                if (kindOf(text.Address) is >= 0 and var kind && kind < counts.Length && counts[kind] == null)
                 {
                     counts[kind] = text.Text;
                     beside = text.Address;
                 }
+            }
+
+            if (counts.Skip(1).All(count => count == null) && counts[0] is { } alone && this.WaterLabel?.Invoke() is { Length: > 0 } water)
+            {
+                return Announcements.SacredWater(water, int.TryParse(alone, out var amount) ? amount : 0, 0); // the merchant shows the water alone
             }
 
             return counts.All(count => count != null)

@@ -803,6 +803,7 @@ namespace Poe2Accessibility
             {
                 this.Isolated("trial counters", snapshot, static (core, snapshot) => core.narrator?.CheckTrialCounters(snapshot));
                 this.Isolated("trial effects", snapshot, static (core, snapshot) => core.narrator?.CheckTrialEffects(snapshot));
+                this.Isolated("trial window water", snapshot, static (core, snapshot) => core.narrator?.CheckTrialWindowWater(snapshot));
             }
 
             if (this.Settings.AnnounceTrialProgress)

@@ -173,6 +173,14 @@ namespace Poe2Accessibility
         /// <summary>A price drawn as a number beside the currency's picture: "200 de Agua sagrada".</summary>
         public static string AmountOf(string amount, string currency) => T($"{amount} {currency}", $"{amount} de {currency}");
 
+        /// <summary>The water a Trial window shows: "Agua sagrada 269" on opening, "Agua sagrada 49, menos 220" after a purchase.</summary>
+        public static string WaterInWindow(string label, int now, int change) => change switch
+        {
+            < 0 => T($"{label} {now}, minus {-change}", $"{label} {now}, menos {-change}"),
+            > 0 => T($"{label} {now}, plus {change}", $"{label} {now}, más {change}"),
+            _ => SacredWater(label, now, 0),
+        };
+
         /// <summary>"Llaves: bronce 1, plata 0, oro 0".</summary>
         public static string TrialKeys(int bronze, int silver, int gold) =>
             T($"Keys: bronze {bronze}, silver {silver}, gold {gold}", $"Llaves: bronce {bronze}, plata {silver}, oro {gold}");
