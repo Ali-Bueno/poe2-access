@@ -656,6 +656,7 @@ namespace Poe2Accessibility
             // elsewhere). Without a game there is no window to gate on, and the user still needs feedback.
             if (this.gameState.IsAttached && !Core.Process.Foreground)
             {
+                this.hotkeys.Forget(); // a key let go in another window must count again when pressed back in the game
                 return;
             }
 

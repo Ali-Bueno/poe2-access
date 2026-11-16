@@ -42,6 +42,9 @@ namespace Poe2Accessibility.Services
             return this.held.Add(key);
         }
 
+        /// <summary>Forgets the held keys, for while the game is not in front and their release goes unseen.</summary>
+        public void Forget() => this.held.Clear();
+
         public bool Enter() => this.Pressed((VK)EnterKey);
 
         /// <summary>A key that types a character went down, not as part of a shortcut.</summary>
