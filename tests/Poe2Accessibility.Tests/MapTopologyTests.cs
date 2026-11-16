@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Tests
 
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
+            (nameof(TheRaysTurnDiagonalOnlyWhereNearlyAllWaysDo), TheRaysTurnDiagonalOnlyWhereNearlyAllWaysDo),
             (nameof(ATJunctionIsOneForkWithThreeWays), ATJunctionIsOneForkWithThreeWays),
             (nameof(AnAlcoveIsANookOffTheCorridor), AnAlcoveIsANookOffTheCorridor),
             (nameof(ASmallPillarMakesNoForks), ASmallPillarMakesNoForks),
@@ -364,6 +365,14 @@ namespace Poe2Accessibility.Tests
                 var shift = (x & 1) * 4;
                 this.Bytes[i] = (byte)((this.Bytes[i] & ~(15 << shift)) | ((open ? Walkable : 0) << shift));
             }
+        }
+
+        private static void TheRaysTurnDiagonalOnlyWhereNearlyAllWaysDo()
+        {
+            Equal(true, MapTopology.RunDiagonal(8, 0), "a grid-built corridor: every way diagonal");
+            Equal(null, MapTopology.RunDiagonal(7, 2), "an opening beside it walked toward does not turn the rays back");
+            Equal(false, MapTopology.RunDiagonal(4, 4), "half straight: straight");
+            Equal(null, MapTopology.RunDiagonal(2, 0), "two ways tell nothing");
         }
     }
 }

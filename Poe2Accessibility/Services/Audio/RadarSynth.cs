@@ -109,36 +109,52 @@ namespace Poe2Accessibility.Services
             Second,
         }
 
-        /// <summary>Which way a ray points on screen.</summary>
+        /// <summary>Which way a ray points on screen: the four straight ways, or the four diagonals a grid-built map runs along.</summary>
         public enum Direction
         {
             Up,
             Left,
             Right,
             Down,
+            UpLeft,
+            UpRight,
+            DownLeft,
+            DownRight,
         }
+
+        /// <summary>The rays along the screen's own axes.</summary>
+        public static readonly Direction[] Straight = { Direction.Up, Direction.Left, Direction.Right, Direction.Down };
+
+        /// <summary>The rays along the screen's diagonals: the corridors of a map built on the grid (Ogham Manor, 2026-11-16).</summary>
+        public static readonly Direction[] Diagonal = { Direction.UpLeft, Direction.UpRight, Direction.DownLeft, Direction.DownRight };
+
+        /// <summary>A diagonal ray's stereo position, between the centre and its side.</summary>
+        private const float DiagonalPan = 0.7f;
+
+        /// <summary>Below the player on screen: the struck tones a little lower, the breath falling.</summary>
+        public static bool Behind(Direction direction) => direction is Direction.Down or Direction.DownLeft or Direction.DownRight;
+
+        /// <summary>Above the player on screen: the breath rising.</summary>
+        public static bool Ahead(Direction direction) => direction is Direction.Up or Direction.UpLeft or Direction.UpRight;
 
         /// <summary>The wall cue when what stops the way is a small obstacle the player can step round.</summary>
         public static float[] Obstacle(Direction direction, int sampleRate, Voice voice = Voice.First)
         {
-            var pitch = direction == Direction.Down ? DownPitch : 1f;
+            var pitch = Behind(direction) ? DownPitch : 1f;
             var struck = Struck(ObstacleHz * pitch, ObstacleHarmonic, ObstacleDecaySeconds, sampleRate);
             return voice == Voice.First ? struck : LoudAs(Plucked(PluckedObstacleHz * pitch, PluckedObstacleDecaySeconds, sampleRate), struck);
         }
 
         public static float[] Cue(RadarReading reading, Direction direction, int sampleRate, Voice voice = Voice.First)
         {
-            var pitch = direction == Direction.Down ? DownPitch : 1f;
+            var pitch = Behind(direction) ? DownPitch : 1f;
             var first = reading switch
             {
                 RadarReading.Exit => Struck(ExitHz * pitch, ExitHarmonic, ExitDecaySeconds, sampleRate),
                 RadarReading.Wall => Struck(WallHz * pitch, WallHarmonic, WallDecaySeconds, sampleRate),
-                RadarReading.Open => direction switch
-                {
-                    Direction.Up => Breath(AheadStartHz, AheadEndHz, sampleRate),
-                    Direction.Down => Breath(BehindStartHz, BehindEndHz, sampleRate),
-                    _ => Breath(SideHz, SideHz, sampleRate),
-                },
+                RadarReading.Open => Ahead(direction) ? Breath(AheadStartHz, AheadEndHz, sampleRate)
+                    : Behind(direction) ? Breath(BehindStartHz, BehindEndHz, sampleRate)
+                    : Breath(SideHz, SideHz, sampleRate),
                 _ => Array.Empty<float>(),
             };
             if (voice == Voice.First || first.Length == 0)
@@ -151,12 +167,9 @@ namespace Poe2Accessibility.Services
                 {
                     RadarReading.Exit => Plucked(PluckedExitHz * pitch, PluckedExitDecaySeconds, sampleRate),
                     RadarReading.Wall => Plucked(PluckedWallHz * pitch, PluckedWallDecaySeconds, sampleRate),
-                    _ => direction switch
-                    {
-                        Direction.Up => Whistle(WhistleAheadStartHz, WhistleAheadEndHz, sampleRate),
-                        Direction.Down => Whistle(WhistleBehindStartHz, WhistleBehindEndHz, sampleRate),
-                        _ => Whistle(WhistleSideHz, WhistleSideHz, sampleRate),
-                    },
+                    _ => Ahead(direction) ? Whistle(WhistleAheadStartHz, WhistleAheadEndHz, sampleRate)
+                        : Behind(direction) ? Whistle(WhistleBehindStartHz, WhistleBehindEndHz, sampleRate)
+                        : Whistle(WhistleSideHz, WhistleSideHz, sampleRate),
                 },
                 first);
         }
@@ -182,11 +195,13 @@ namespace Poe2Accessibility.Services
             return samples;
         }
 
-        /// <summary>Stereo position: left and right rays pan to their side, up and down stay centred.</summary>
+        /// <summary>Stereo position: left and right rays pan to their side, up and down stay centred, diagonals between.</summary>
         public static float Pan(Direction direction) => direction switch
         {
             Direction.Left => -1f,
             Direction.Right => 1f,
+            Direction.UpLeft or Direction.DownLeft => -DiagonalPan,
+            Direction.UpRight or Direction.DownRight => DiagonalPan,
             _ => 0f,
         };
 
@@ -280,7 +295,7 @@ namespace Poe2Accessibility.Services
         /// <param name="pips">Two for ground that goes on; one for ground that soon ends (the mod's own, 2026-11-12).</param>
         public static float[] WithUnexploredTail(float[] cue, Direction direction, int sampleRate, int pips = 2)
         {
-            var pitch = direction == Direction.Down ? DownPitch : 1f;
+            var pitch = Behind(direction) ? DownPitch : 1f;
             var pip = Struck(UnexploredMarkHz * pitch, UnexploredMarkHarmonic, UnexploredMarkDecaySeconds, sampleRate, UnexploredPipSeconds);
             var markGap = (int)(UnexploredMarkGapSeconds * sampleRate);
             var pipGap = (int)(UnexploredPipGapSeconds * sampleRate);
@@ -358,7 +373,7 @@ namespace Poe2Accessibility.Services
                 energy += value.Real * value.Real;
             }
 
-            var level = WallToneRms * (direction == Direction.Down ? MathF.Pow(10f, BehindTrimDb / 20f) : 1f);
+            var level = WallToneRms * (Behind(direction) ? MathF.Pow(10f, BehindTrimDb / 20f) : 1f);
             var scale = energy > 0 ? level / Math.Sqrt(energy / n) : 0;
             var loop = new float[n];
             for (var i = 0; i < n; i++)

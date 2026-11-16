@@ -18,7 +18,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Half the width scanned either side of a ray, in cells: the body and a lane each side.</summary>
         private const float LaneCells = 1.5f;
 
-        private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
+        private static readonly RadarSynth.Direction[] Directions = RadarSynth.Straight;
 
         private readonly Dictionary<RadarSynth.Direction, AudioCueService.Bed> beds = new();
         private long lastPoll;

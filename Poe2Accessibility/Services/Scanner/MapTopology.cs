@@ -23,6 +23,27 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const float NarrowWidthCells = 8f;
 
+        /// <summary>Fewer ways than this tell nothing of the layout.</summary>
+        private const int MinLayoutWays = 3;
+
+        /// <summary>Diagonal once this share of the ways near runs diagonal on screen; straight again at or under <see cref="StraightShare"/>.</summary>
+        private const float DiagonalShare = 0.85f;
+
+        private const float StraightShare = 0.6f;
+
+        /// <summary>
+        ///     Which way the ways around the player run on screen, from how many run diagonal and how many straight: true
+        ///     nearly all diagonal, false a fair share straight, null unclear (the rays stay as they are).
+        /// </summary>
+        public static bool? RunDiagonal(int diagonal, int straight)
+        {
+            var ways = diagonal + straight;
+            return ways < MinLayoutWays ? null
+                : diagonal >= DiagonalShare * ways ? true
+                : diagonal <= StraightShare * ways ? false
+                : null;
+        }
+
         /// <summary>Pieces of ground under half a look (the explorer's pocket) have no ways to tell apart: left out.</summary>
         private const int MinPieceCells = RevealDiscCells / 2;
 

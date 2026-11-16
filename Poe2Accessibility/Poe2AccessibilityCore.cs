@@ -415,6 +415,12 @@ namespace Poe2Accessibility
                                                     () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark ? this.entities.UnseenToward(from, axis) : null;
                 this.radar.LeadsToDeadEnd = (from, axis) => this.Settings.UnexploredMark && this.entities.DeadEndToward(from, axis);
+                Func<System.Numerics.Vector2, bool?> layout = cell => this.Settings.RadarFollowsMap ? this.entities.WaysRunDiagonal(cell) : false;
+                this.radar.WaysRunDiagonal = layout;
+                if (this.partnerRadar != null)
+                {
+                    this.partnerRadar.WaysRunDiagonal = layout;
+                }
                 this.forks = new ForkNarrator(this.entities, this.output);
                 if (this.places != null)
                 {

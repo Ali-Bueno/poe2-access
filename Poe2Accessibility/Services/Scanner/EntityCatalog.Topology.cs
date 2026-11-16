@@ -36,6 +36,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A narrow passage is underfoot this near its narrowest cell, past its half width (cells; a step and a half).</summary>
         private const float NarrowReachCells = 6f;
 
+        /// <summary>The ways of the forks this near (cells, a look) tell which way the map runs around the player.</summary>
+        private const float LayoutReachCells = ExplorationMap.SeenRadiusCells;
+
         private MapTopology? topology;
         private string topologyFor = string.Empty;
         private Task<MapTopology?>? topologyBuild;
@@ -121,6 +124,44 @@ namespace Poe2Accessibility.Services
             }
 
             return probe is { } to && shape.DeadEndToward(from, to) is { } end && SeenWhole(end);
+        }
+
+        /// <summary>
+        ///     Whether the ways near a cell run along the screen's diagonals: true when nearly all of them do (a corridor of a
+        ///     grid-built map, Ogham Manor), false when a fair share runs straight, null when unclear or no fork is near.
+        ///     An opening beside a corridor walked toward is one straight way among diagonal ones, so it does not turn the rays
+        ///     (the owner, 2026-11-16).
+        /// </summary>
+        public bool? WaysRunDiagonal(Vector2 cell)
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (this.Topology() is not { } shape || toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return null;
+            }
+
+            var (diagonal, straight) = (0, 0);
+            foreach (var node in shape.Nodes)
+            {
+                if (Vector2.Distance(node.Centre, cell) > LayoutReachCells)
+                {
+                    continue;
+                }
+
+                foreach (var way in shape.Ways(node.Id))
+                {
+                    if (ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld) % 2 == 1)
+                    {
+                        diagonal++;
+                    }
+                    else
+                    {
+                        straight++;
+                    }
+                }
+            }
+
+            return MapTopology.RunDiagonal(diagonal, straight);
         }
 
         /// <summary>A dead end a look shows whole.</summary>

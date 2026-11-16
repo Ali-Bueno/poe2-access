@@ -62,6 +62,16 @@ namespace Poe2Accessibility.Services
 
         private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
 
+        /// <summary>How often the map is asked which way its ways run around the player.</summary>
+        private const int LayoutPollMs = 1000;
+
+        /// <summary>The rays sounding now: the screen's axes, or its diagonals where the map's ways run along them.</summary>
+        private RadarSynth.Direction[] active = RadarSynth.Straight;
+
+        /// <summary>What the map said last of its ways (true diagonal); a change is taken once said twice running.</summary>
+        private bool? layoutSeen;
+        private long lastLayoutPoll = long.MinValue / 2;
+
         private readonly AudioCueService audio;
         private readonly Func<Entity?> subject;
         private readonly Turn turn;
@@ -141,6 +151,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<Vector2, Vector2, bool>? LeadsToDeadEnd { get; set; }
 
+        /// <summary>
+        ///     Whether the map's ways around a cell run along the screen's diagonals (true), its axes (false), or neither
+        ///     clearly (null: the rays stay as they are). Null property: the rays never turn.
+        /// </summary>
+        public Func<Vector2, bool?>? WaysRunDiagonal { get; set; }
+
         /// <summary>A wall that is a rock, tree or pillar standing alone knocks hollow instead (D2R small obstacles).</summary>
         public bool SmallObstacles { get; set; } = true;
 
@@ -203,9 +219,10 @@ namespace Poe2Accessibility.Services
                 this.lastExitRefresh = now;
             }
 
+            this.FollowLayout(now, position);
             var (alongX, alongY) = ScreenProjection.Axes(origin);
             var open = OpenWorld / cellSize;
-            foreach (var direction in Directions)
+            foreach (var direction in this.active)
             {
                 if (GridAxis(direction, alongX, alongY) is not { } axis)
                 {
@@ -269,7 +286,7 @@ namespace Poe2Accessibility.Services
             }
 
             var urgency = this.pending.Values.Max();
-            var due = Directions.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
+            var due = this.active.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
             var direction = due[this.rotation++ % due.Count];
             this.pending.Remove(direction);
             // D2R: a way that leads onto ground never seen ends in two pips (docs/radar.md); in one when it is a dead end a look
@@ -309,6 +326,42 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     The rays turn to the screen's diagonals where the map's ways run only along them, and back where ways run
+        ///     straight (the owner, 2026-11-16: "si tiene más salidas en diagonales, que suene en diagonal"; and an opening
+        ///     beside a corridor walked toward must not turn them). A turn starts the readings afresh, as a jump does.
+        /// </summary>
+        private void FollowLayout(long now, Vector2 position)
+        {
+            if (this.WaysRunDiagonal == null)
+            {
+                if (this.active != RadarSynth.Straight)
+                {
+                    this.active = RadarSynth.Straight;
+                    this.Rebase();
+                }
+
+                return;
+            }
+
+            if (now - this.lastLayoutPoll < LayoutPollMs)
+            {
+                return;
+            }
+
+            this.lastLayoutPoll = now;
+            var said = this.WaysRunDiagonal(position);
+            var held = said != null && said == this.layoutSeen;
+            this.layoutSeen = said;
+            var wanted = said == true ? RadarSynth.Diagonal : RadarSynth.Straight;
+            if (held && wanted != this.active)
+            {
+                this.active = wanted;
+                this.Rebase();
+                this.log.Info($"{this.label}: rays turned {(said == true ? "diagonal" : "straight")} at {position.X:0},{position.Y:0}");
+            }
+        }
+
         /// <summary>The grid direction that the camera draws as this screen direction.</summary>
         internal static Vector2? GridAxis(RadarSynth.Direction direction, Vector2 alongX, Vector2 alongY) =>
             StickDirection.WorldDirection(
@@ -317,6 +370,10 @@ namespace Poe2Accessibility.Services
                     RadarSynth.Direction.Up => new Vector2(0, -1),
                     RadarSynth.Direction.Left => new Vector2(-1, 0),
                     RadarSynth.Direction.Right => new Vector2(1, 0),
+                    RadarSynth.Direction.UpLeft => new Vector2(-1, -1),
+                    RadarSynth.Direction.UpRight => new Vector2(1, -1),
+                    RadarSynth.Direction.DownLeft => new Vector2(-1, 1),
+                    RadarSynth.Direction.DownRight => new Vector2(1, 1),
                     _ => new Vector2(0, 1),
                 },
                 alongX,
