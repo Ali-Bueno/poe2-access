@@ -57,6 +57,7 @@ namespace Poe2Accessibility.Tests
             {
                 ScreenAndInputTests.All(),
                 CueAndRadarSoundTests.All(),
+                ExitSoundDspTests.All(),
                 RouteAndFightTests.All(),
                 GameStateFindingTests.All(),
                 EnemyStateTests.All(),

@@ -165,8 +165,8 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   (`ExitMaterial.EventGapMs`), never the same twice running, pitch ±4%, level ±3 dB (round robin: "más natural y no tan
   repetitivo"). Explored: the muffled copy (1.5 kHz low-pass) at 0.45; a dead end a look shows whole: silent; a fight: 0.35;
   menus and the option off: stopped. Sounds from `sounds/exits/<material>/bed_*.wav, event_*.wav` (the game's own
-  recordings; 2026-11-16 the owner's play copy has the 22 audition sets, A and B together, by hand: **not yet in the
-  extractor**, so a fresh install has none and the exits stay silent). Candidates and their sources: the
+  recordings, made on each install by the launcher's `sounds` step from the committed recipes `catalog/exit-sounds.json`: the 22
+  audition sets, A and B of each of 11 materials, used together; [game audio](research/game-audio.md#exits-ambient-emitters-2026-11-16)). Candidates and their sources: the
   [audition page](https://claude.ai/artifact/EKpLcz26HBuxcLB5op3N7p).
 - **Narrow passages:** "paso estrecho" when walked into, as a map piece (`PlaceNarrator.MoreKindAt`).
 - **Pieces ahead** (`LandmarkAhead`, setting `AnnouncePlacesAhead`, **off**): stairs, doors, bridges, narrow passages… named

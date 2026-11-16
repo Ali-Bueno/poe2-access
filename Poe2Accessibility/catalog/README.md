@@ -25,6 +25,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `dat-columns.json` | the dat columns the plugin reads (all of them, or the step fails and the old file stays) and each table's row size, by which a compiled offset is judged | `dat-columns`, start | `DatColumns` |
 | `dodge-timings.txt` | dodge timings measured in development | by hand, from `BossWatch` "Dodge timing" log lines | `DodgeTimings` (seed) |
 | `endgame.json` | map objectives, contents, the Atlas's graphs | `endgame`, start | `EndgameCatalog` |
+| `exit-sounds.json` | the recipes of the exits' ambient sounds (bank, sample, cut, filter; not game audio) | by hand ([game audio](../../docs/research/game-audio.md)) | the `sounds` step (`ExitSoundRecipes`) |
 | `experience.json` | the total experience each level starts at | `experience`, start | `ExperienceTable` |
 | `game-ids.txt` | the game's numbers for animations and stats | `game-ids`, start | `GameIds` |
 | `game-keys.txt` | the Ids of the tables a player meets, to tell what a patch added | `game-keys`, start | `GameNews` |

@@ -308,3 +308,46 @@ object to. The candidates not wired, by bank and sample: Breach B
 `…Wisp_Effect_Death_Rise_01`; Vaal Beacon B `Four_Incursion` `Vaal_Generator_Machine_Start_C_01`, C `UI_IncursionBanner_01`;
 strongbox A `Strongboxes` `Gameplay_Endgame_Strongboxes_Stinger_Activate_01`, B `StrongBoxChest` `Strongbox_Chest_01`. Heard in
 no game yet.
+
+## Exits' ambient emitters (2026-11-16)
+Every exit is an ambient emitter (`ExitBeacons`, [radar](../radar.md)): per material a few soft bed loops and a pool of short
+events played over a bed at uneven gaps. The owner chose, by ear on the audition page ("está bien los sonidos así"), the
+22 audition sets, **A and B of each of 11 materials used together**. 219 files, mono 44.1 kHz, every file at RMS 0.05
+(peak held under 0.89), written by the `sounds` step (`SoundExtractor`, `ExitSoundExtractor.cs`) into
+`sounds/exits/<material>/bed_<Set><n>.wav` (3 s loops, seam baked in) and `event_<Set><n>.wav`. Game audio is never shipped:
+each user's install makes them; the launcher's sounds step is at version 14 so it reruns once on every machine.
+
+**Recipes** are data, not game audio, so they are committed: `Poe2Accessibility/catalog/exit-sounds.json` (one line per bed,
+event and drop: bank, sample, `start`, `length`, ffmpeg-syntax `filter`; globals for the loop, crossfade, fades, level and peak).
+`start` is seconds inside the sample **as the extractor decodes it**: mono, leading silence trimmed (below 0.003, 5 ms
+lead-in kept) and capped at 4 s, exactly what `bank-samples` wrote for the audition, with each channel clipped to 16 bits
+as that WAV was (a footstep decoded past full scale levels differently otherwise). A `best` event's start was chosen by
+loudest window; the file holds the result.
+
+| material | beds (banks) | events |
+|---|---|---|
+| bridge | A: `MapGothicCity` wind, `MapWoodland` ForestEdge, `P3_4_Ambience` Gust1.1_03, all low-passed (0.9 to 1.2 kHz); B: two rowboat wood creaks (`Debris_G4_11_2`, `Gangplank`) low-passed 2.5 kHz | A: eight `KalguuranShip_Foley` ship creaks; B: `PlayerFootsteps` hollow wood steps and wood creaks |
+| stairs | `HO_Manor` ManorHideout, `Subarea_Cavern` BaseLoop_Cave and Cave_Layer_01 | 16 `PlayerFootsteps` stone and tile steps, low-passed 1.8 kHz with an echo (120/240 ms) |
+| door | ManorHideout, wind (low-passed 1.2 kHz) | A: `G1_15_Doors` vampiric-manor creaks; B: `BackAlleyHideout` door creaks |
+| gate | same two | A: `Gangplank` cell-door bars and `G1_15_Doors` metal rattle; B: `G2_Town` dreadnought metal creaks |
+| narrow | wind band-passed 500 to 1400 Hz, `P3_4_Ambience` Gust2.1_02 band-passed at 900 Hz (Q 2) | A: `5_ProcessionBanner` cloth; B: `AkoyaTavakaiBoss` cloth and `GoblinRockPile` rubble scrapes |
+| desert | `HO_Desert` VastiriOutskirts_MAIN with `MapDeserted` Base_01 (A) or `Hideout_PlainDesert` (B) | A: nine `MapDeserted` sand scatters; B: nine `P3_4_Ambience` gusts (one, Gust1.1_04, decodes to 5 ms of silence: **left out**, 8 files) |
+| forest | `MapWoodland` OldForest, ForestEdge, GrimTangle | leaf rustles, foliage rustles, tree creaks |
+| cave | `HO_Limestone` MudBurrow_MAIN, BaseLoop_Cave, Cave_Layer_01 | A: **eight synthesised water drops** (the game has no dripping); B: seven `P3_4_Ambience` rock debris with a 150/320 ms echo, low-passed 2.5 kHz |
+| interior | ManorHideout with `MapGothicCity` G1-14_Base (low-passed 1.5 kHz) or wind (600 Hz) | carpet steps and light creaks, low-passed with a 80/160 ms echo |
+| water | `MapSandspit` waves and `MapStoneCitadel` PoolLapping_01 | `G4_OceanWaves` small waves; `RopeLadder` splashes and shallow-water steps |
+| city | `MapGothicCity` G1-14_Base and wind | `MapStoneCitadel` crumbles (low-passed 1.5 kHz) and wind squalls |
+
+**DSP** (`ExitSoundDsp`, pure, unit-tested; the audition was made with ffmpeg, so each piece follows ffmpeg's definition,
+checked against ffmpeg 8.1 itself): RBJ biquad low-pass, high-pass and band-pass (Q 0.707 unless `w` is given; band-pass
+peak gain alpha), run from silence over the cut; `aecho in:out:delays:decays` as a feed-forward multi-tap of the *input*
+(dry = in x out gain, each tap = input x decay x out gain; the output rings out past the input by the longest delay, and an
+echo's event gets a 0.6 s silent pad first); a bed is a 3.25 s cut with its first 0.25 s equal-power crossfaded with the
+samples after the 3 s loop; an event is faded in 10 ms and out 120 ms, levelled by the RMS of its unfaded cut (the first
+`length` seconds), a bed by its whole loop; a final peak limit 0.89. A **drop** is a sine gliding from `startHz` to `endHz`
+with time constant `glideS`, decaying with `decayS`, a 2 ms click of noise, echoes at `echo1S` and `echo2S` (gains 0.45 and 0.2);
+its eight parameter sets are in the recipe, the click's noise is seeded by the drop's index.
+
+**Check against the owner's hand-installed play copy** (2026-11-16, 219 of 220 files compared): duration equal to 0.05%,
+RMS within 0.02 dB, correlation 0.9993 or better for all but one file (cave drop 4, 0.993, whose click noise differs: Python's
+generator is not reproduced). The one not reproduced: the silent desert `event_B4`, dropped on purpose.

@@ -8,7 +8,7 @@ using System.Text;
 /// The Vorbis setup headers are referenced by CRC from a library compiled into fmod.dll, so the
 /// samples are decoded with the game's own fmod.dll (read-only P/Invoke) and rewritten as 16-bit WAV.
 /// </summary>
-internal static class SoundExtractor
+internal static partial class SoundExtractor
 {
     // name -> (bank file, sample name inside the FSB, max seconds). Sample names come from the FSB5 name table.
     // A loop is kept whole (the game's own idle beds) and its seam crossfaded, so it repeats without a click. A frozen
@@ -201,6 +201,9 @@ internal static class SoundExtractor
                 }
                 FMOD_Sound_Release(snd);
             }
+
+            // Apart: the exits' ambient sounds are an extra, their gaps are logged and never fail the step.
+            WriteExitSounds(sys, gameDir, outDir, Path.Combine(Path.GetDirectoryName(itemCatalog) ?? string.Empty, ExitSoundRecipes.FileName), tmp);
         }
         finally
         {
