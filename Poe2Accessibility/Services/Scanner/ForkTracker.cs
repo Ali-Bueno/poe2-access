@@ -94,6 +94,28 @@ namespace Poe2Accessibility.Services
             return (entered, named, false);
         }
 
+        /// <summary>Kinds of map piece that are a room by themselves: a place holding one is named after it whatever else stands there.</summary>
+        private static readonly string[] RoomPieces = { "ballroom", "church", "temple", "library", "courtyard", "arena", "forge", "market", "graveyard" };
+
+        /// <summary>Pieces that may name a place, in the order that breaks a tie.</summary>
+        private static readonly string[] Telling =
+        {
+            "stairs_down", "stairs_up", "stairs", "ramp", "bridge", "hole", "chasm", "waterfall", "gate", "door", "walkway", "platform",
+            "fireplace", "organ", "statue", "well", "window", "pillar", "cell", "oven", "tomb", "ruins", "tower", "hut", "boat", "dock", "garden", "lake",
+        };
+
+        /// <summary>
+        ///     The piece to name a place after: a room-piece if one stands there, else the rarest in the area of those that do
+        ///     (the Manor has 37 stair pieces and 4 organ ones: "Cruce con escaleras 3" told less than "Cruce con órgano"; the
+        ///     owner's run, 2026-11-16), ties by <see cref="Telling"/>; null when none stands there.
+        /// </summary>
+        public static string? MostTelling(IEnumerable<string> here, IReadOnlyDictionary<string, int> inArea)
+        {
+            var kinds = here.ToHashSet();
+            return RoomPieces.FirstOrDefault(kinds.Contains) ??
+                   Telling.Where(kinds.Contains).OrderBy(kind => inArea.GetValueOrDefault(kind)).ThenBy(kind => System.Array.IndexOf(Telling, kind)).FirstOrDefault();
+        }
+
         /// <summary>The index of the way the player came by (the one nearest <paramref name="cameFrom"/>), or null when none is near it.</summary>
         public static int? WayBack(IReadOnlyList<Vector2> directions, Vector2 cameFrom)
         {

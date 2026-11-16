@@ -343,6 +343,11 @@ namespace Poe2Accessibility.Tests
             Equal(("Room with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
             Equal(("Ballroom", false), Announcements.ForkName(true, "ballroom"), "a ballroom is a room by itself");
             Equal(("Fork", true), Announcements.ForkName(false, null), "nothing in it: numbered");
+            var manor = new Dictionary<string, int> { ["stairs"] = 37, ["organ"] = 1, ["fireplace"] = 13, ["window"] = 25 };
+            Equal("organ", ForkTracker.MostTelling(new[] { "stairs", "organ", "window" }, manor), "the rarest piece in the area names the place");
+            Equal("ballroom", ForkTracker.MostTelling(new[] { "stairs", "ballroom" }, manor), "a room-piece before any");
+            Equal("stairs", ForkTracker.MostTelling(new[] { "stairs" }, manor), "stairs when they are all there is");
+            Equal(null, ForkTracker.MostTelling(new[] { "unknown" }, manor), "nothing telling: none");
         }
 
         private static void TilesTellTheirSetting()

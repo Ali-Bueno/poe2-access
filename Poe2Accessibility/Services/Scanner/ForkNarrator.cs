@@ -26,14 +26,6 @@ namespace Poe2Accessibility.Services
         /// <summary>A map piece this much past a place's radius (cells, about a step) still stands in it.</summary>
         private const float FeatureSlackCells = 10f;
 
-        /// <summary>Which piece names a place, the most telling first: rooms by themselves, then what changes the way, then furniture.</summary>
-        private static readonly string[] FeatureOrder =
-        {
-            "ballroom", "church", "temple", "library", "courtyard", "arena", "forge", "market", "graveyard",
-            "stairs_down", "stairs_up", "stairs", "ramp", "bridge", "hole", "chasm", "waterfall", "gate", "door", "walkway", "platform",
-            "fireplace", "organ", "statue", "well", "window", "pillar", "cell", "oven", "tomb", "ruins", "tower", "hut", "boat", "dock", "garden", "lake",
-        };
-
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
         private readonly ForkTracker tracker = new();
@@ -156,10 +148,9 @@ namespace Poe2Accessibility.Services
         private string? Feature(TopologyNode place)
         {
             var reach = place.Radius + FeatureSlackCells;
-            var kinds = (this.Pieces?.Invoke() ?? Array.Empty<(Vector2 Grid, string Kind)>())
-                .Where(piece => Vector2.Distance(piece.Grid, place.Centre) <= reach)
-                .Select(piece => piece.Kind).ToHashSet();
-            return FeatureOrder.FirstOrDefault(kinds.Contains);
+            var pieces = this.Pieces?.Invoke() ?? Array.Empty<(Vector2 Grid, string Kind)>();
+            var here = pieces.Where(piece => Vector2.Distance(piece.Grid, place.Centre) <= reach).Select(piece => piece.Kind);
+            return ForkTracker.MostTelling(here, pieces.GroupBy(piece => piece.Kind).ToDictionary(group => group.Key, group => group.Count()));
         }
     }
 }
