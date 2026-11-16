@@ -302,6 +302,9 @@ internal static partial class PlaceExtractor
         return props;
     }
 
+    /// <summary>The kinds of the props of a .arm's text, one per prop.</summary>
+    internal static List<string> PropKindsOf(string text) => Props(text, out _).Select(prop => (string)prop[2]).ToList();
+
     internal static string? PropKind(string model) =>
         Words().Matches(model).Any(match => NotAProp.IsMatch(match.Value.ToLowerInvariant())) ? null : Kind(PropKinds, model);
 

@@ -344,6 +344,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkAhead.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ForkTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomLabels.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomNaming.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomMatcher.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomObjectMatcher.cs" />

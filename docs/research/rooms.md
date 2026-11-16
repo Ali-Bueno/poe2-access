@@ -107,6 +107,38 @@ G1_3, G1_4, G1_7 and G1_15 dumps. The Hunting Grounds dumps (`entities-145341…
 tiles (897, 276) in those dumps; its objects (CampsiteChest, CampsiteController, ClearfellPosting3) were never awake in a
 dump, so the objects did not have to find it. Tests: `RoomObjectTests` (a made-up catalog; both Clearfell dumps).
 
+## Generic labels: named by file name or props (2026-11-16)
+
+Most room files have no readable label (11,959 of 15,531 are empty; "landmark", "feature", "encounter", "mission", "tile_overlay",
+"entrance", "rare" say a role, not a place). `RoomNaming.Key` (pure, built into the extractor; the catalog's `label` is the key
+the plugin maps with `Announcements.RoomName`) gives each room, in this order:
+
+1. its **label** when spoken (as before);
+2. none for a **layout piece**: a file name with a piece word (corner, cnr/cc/cv/st codes, fill, overlay, border, ledge, cliff,
+   open, end, straight, quad, injector…) is the map's fabric, not a place;
+3. a **whitelist of whole words** in the file name or label (Spanish phrases in `Announcements.Rooms.cs`): tree of souls, shrine,
+   gallows, witch hut, huts, crypt, tomb, gravestones/graves, tower, altar, idols, statue, well, fountain, caravan, carts, shipwreck,
+   ship, pier, workshop, offices, storage, basement, greenhouse, bedroom, hideout, pools, village, tent, treasure, smithy
+   (blacksmith), bonfire, pile of logs; and single words that are spoken labels (arena, bridge, courtyard, clearing…, terrain words
+   such as river or lake left out: those files are map pieces);
+4. "miniboss" only when the room holds a boss marker (`CheckpointBoss`, `BossRoomMinimapIcon`, `*BossController`): the label alone
+   promises nothing, so only 2 of the ~19 such files are named;
+5. only for files whose words are all generic (landmark, feature, encounter, lore, unique, quest, special): a shrine object
+   ("Santuario"), else the most frequent **telling prop** of the places kinds ("Lugar con estatua": statue, altar, fountain, well,
+   campfire, gallows, cart, tent, stall, anvil, totem, tower, tomb, throne, cannon, bell, water wheel, notice board, forge). Role
+   files (entrance, start, exit, no_boss, mission) with a prop in them are left silent: the prop does not name the room, and furniture
+   (table, chair, bench) names nothing;
+6. else silent. Raw ids are never spoken; "cow" files (no objects, unknown abbreviation) and "road" pieces were left out on purpose.
+
+Uniqueness of an object class (one object places a room) is now counted per spoken name, so a class only the carts use places
+"Carretas" and nothing else. The character selection's scenery and the world map's rooms are never named.
+
+**Coverage** (`Poe2UiExtract rooms`, 15,531 readable room files): matchable rooms (by tiles or entity objects) with a spoken name
+954 before, **1,500** after (347 by the new rules: carts 90, hideout 104 (whole-area rooms the matcher drops), treasure 68,
+courtyard/clearing/forge/foyer/basement/crypt/offices/idols…); matchable and still silent 11,095 → **10,549**, of them with entity
+objects 1,750 (almost all `SmashableProps`, light controllers, spawners and checkpoints). The dumps (G1_1, G1_2 Clearfell, G1_15
+Manor, G1_3): no change, 36 named rooms before and after; the new names are Act 2 and later (carts, idols, offices, crypts).
+
 ## Speech
 
 `RoomLabels.Key`: lower case, CamelCase and underscores split, variant and level words dropped (numbers, `v2`, `lvl3`,
@@ -122,8 +154,8 @@ in one line; a fork there with nothing new, the room already named on the way in
 - **Outdoor rooms by objects: not seen live.** Only three finds on the dumps (few entities were awake in them); the first
   log lines to read are "Rooms by objects:" and the build's "… more its entities may place".
 - Rooms whose objects fit them mirrored (the Hunting Grounds' waypoint and checkpoint) stay unplaced until a third object
-  wakes; rooms with labels not in `RoomLabels.Spoken` (landmark, feature, encounter, lore, miniboss…: about 1,100 more rooms with
-  objects) are not said; monsters and bosses do not place rooms.
+  wakes; rooms whose label and file name say nothing a player could use (landmark, feature, encounter, lore…: about 1,750 with objects) stay
+  silent, see "Generic labels"; monsters and bosses do not place rooms.
 - Not walked live yet; the tile boxes are the room's comparable cells, so a doorway cell may fall just outside.
 
 ## Tools

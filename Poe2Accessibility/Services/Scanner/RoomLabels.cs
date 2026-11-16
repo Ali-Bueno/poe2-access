@@ -35,13 +35,16 @@ namespace Poe2Accessibility.Services
             "mud", "ritual", "stone", "settlement", "landmark well", "tree root", "runestones", "mausoleum wall", "sinkhole", "oasis", "bossman",
         };
 
-        private static readonly Regex Words = new(@"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+", RegexOptions.Compiled);
+        private static readonly Regex WordPattern = new(@"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+", RegexOptions.Compiled);
+
+        /// <summary>The lower-case words of a label or file name (camel case and separators split), numbers included.</summary>
+        public static IEnumerable<string> Words(string text) => WordPattern.Matches(text).Select(word => word.Value.ToLowerInvariant());
 
         /// <summary>Variant and level words: numbers, "v2", "lvl3", single letters ("libraryH", "Oasis_E").</summary>
         private static readonly Regex VariantWord = new(@"^(?:\d+|v\d+|lvl\d*|[a-z])$", RegexOptions.Compiled);
 
         /// <summary>"WineCellar_2" → "wine cellar", "boss_entry" → "boss entry", "armoury_lvl2" → "armoury"; empty when nothing is left.</summary>
         public static string Key(string label) =>
-            string.Join(" ", Words.Matches(label).Select(word => word.Value.ToLowerInvariant()).Where(word => !VariantWord.IsMatch(word) && !RoleWords.Contains(word)));
+            string.Join(" ", Words(label).Where(word => !VariantWord.IsMatch(word) && !RoleWords.Contains(word)));
     }
 }

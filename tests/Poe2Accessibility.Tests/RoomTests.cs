@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(RoomLabelsBecomeKeys), RoomLabelsBecomeKeys),
+            (nameof(GenericRoomsAreNamedByTheirFileOrTheirPropsOrStaySilent), GenericRoomsAreNamedByTheirFileOrTheirPropsOrStaySilent),
             (nameof(ARoomIsFoundTurnedAndWithItsDecorLeftOut), ARoomIsFoundTurnedAndWithItsDecorLeftOut),
             (nameof(TheStudyIsFoundInACutOfTheManor), TheStudyIsFoundInACutOfTheManor),
             (nameof(TheManorsRoomsAreFound), TheManorsRoomsAreFound),
@@ -37,6 +38,37 @@ namespace Poe2Accessibility.Tests
             Equal(false, RoomLabels.Spoken.Contains(RoomLabels.Key("StairsDown1")), "stairs are the tiles' to name");
             Equal("", string.Join(", ", RoomLabels.Spoken.Where(key => Announcements.RoomName(key) == null)), "every spoken key has a name");
             Equal("Wine cellar", Announcements.RoomName("wine cellar"), "named");
+        }
+
+        private static void GenericRoomsAreNamedByTheirFileOrTheirPropsOrStaySilent()
+        {
+            const string Rooms = "metadata/terrain/gallows/act1/1_1/rooms/";
+            var none = Array.Empty<string>();
+            string? Name(string file, string label = "", string[]? props = null, string[]? classes = null) => RoomNaming.Key(Rooms + file, label, props ?? none, classes ?? none);
+
+            Equal("boss", Name("boss_01.arm", "Boss"), "a spoken label stays as it is");
+            Equal("cart", Name("carts_01.arm", "landmark"), "a generic label, a file name that says what it is");
+            Equal("cart", Name("smallcarts2x2.arm"), "a compound word of the vocabulary");
+            Equal("huts", Name("clearing_huts_01_01.arm", "clearing huts"), "the file name before a label that is not spoken");
+            Equal("tree of souls", Name("tree_of_souls.arm", "soultree"), "several words in a row");
+            Equal("smithy", Name("blacksmith.arm", "blacksmith"), "a trade is its place");
+            Equal("with campfire", Name("bonfire_fence.arm"), "a bonfire is a campfire");
+            Equal(null, Name("cnr_04.arm"), "a corner piece says nothing");
+            Equal(null, Name("fill_dwelling_01.arm"), "a fill is the map's fabric, however it is called");
+            Equal(null, Name("tomb_end_1.arm"), "so is the end of a tile run");
+            Equal(null, Name("2open_cr_3.arm", props: new[] { "statue" }), "a piece with a statue is still a piece");
+            Equal(null, Name("entrance_01.arm", "entrance", new[] { "cart", "cart" }), "a role file with a prop in it is not named by the prop");
+            Equal(null, Name("mission_02.arm", "mission", classes: new[] { "Metadata/Terrain/Foo/Objects/SmashableProps" }), "nothing to say: silent");
+            Equal(null, Name("concave_1.arm"), "'cave' inside a word is no cave");
+            Equal(null, Name("shallowcorner_01.arm"), "'hall' inside a word is no hall");
+            Equal("with statue", Name("landmark_01.arm", "landmark", new[] { "statue", "statue", "bell" }), "a landmark is what it holds most of");
+            Equal("with altar", Name("landmark_02.arm", "landmark", new[] { "bell", "altar" }), "a tie goes to the weightier kind");
+            Equal(null, Name("landmark_03.arm", "landmark", new[] { "table", "chair", "bench" }), "furniture names nothing");
+            Equal("shrine", Name("feature_01.arm", "feature", classes: new[] { "Metadata/Terrain/Foo/Objects/GoblinShrineCosmetic" }), "a shrine object in a generic feature");
+            Equal(null, Name("mini_boss.arm", "mini boss", classes: new[] { "Metadata/Terrain/Foo/Objects/Checkpoint" }), "a minor boss label alone promises nothing");
+            Equal("miniboss", Name("miniboss_01.arm", "miniboss", classes: new[] { "Metadata/MiscellaneousObjects/CheckpointBoss" }), "a boss's own marker makes it true");
+            Equal(null, RoomNaming.Key("metadata/terrain/characterselection/gallowsareas/rooms/login_gallows.arm", "", none, none), "the character selection's scenery is no place");
+            Equal("", string.Join(", ", RoomNaming.Keys.Where(key => Announcements.RoomName(key) == null)), "every key has a phrase");
         }
 
         private static void ARoomIsFoundTurnedAndWithItsDecorLeftOut()

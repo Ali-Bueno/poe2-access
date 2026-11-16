@@ -43,6 +43,9 @@ internal static partial class RoomObjects
         return spots.OrderBy(spot => spot.Y).ThenBy(spot => spot.X).ThenBy(spot => spot.Class, StringComparer.Ordinal).ToList();
     }
 
+    /// <summary>The classes of every object of a room file's text, entity or not (a boss marker names a room).</summary>
+    public static List<string> Classes(string text) => ObjectLine().Matches(text).Select(line => line.Groups["cls"].Value).Distinct().ToList();
+
     /// <summary>The classes only rooms of one label use, across every room file: one of them alone tells its room.</summary>
     public static HashSet<string> Unique(IEnumerable<(string Label, IReadOnlyList<Spot> Spots)> rooms)
     {
