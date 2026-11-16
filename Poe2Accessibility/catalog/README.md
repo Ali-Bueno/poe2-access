@@ -44,6 +44,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `monster-names.json` | the radar's boss names as the game names them | `monster-names` | `LandmarkTable` |
 | `passive-tree.json` | the main passive tree by graph id: PassiveSkills Id and kind (flags `k n j i`, `a` of an ascendancy, `s` its start), links, class starts, each ascendancy node's ascendancy, the nodes that offer a choice; node and class names per language | `passive-tree`, start | `PassiveTreeCatalog` |
 | `places.json` | named map pieces and props from the terrain files | `places`, start | `PlaceCatalog` |
+| `rooms.json` | the named rooms of the room files as tile-class patterns, and the class of each tile they can meet ([rooms](../../docs/research/rooms.md)) | `rooms`, start | `RoomCatalog` (`RoomMatcher`: the rooms on the live tiles) |
 | `quest-goals.json` | the areas each quest tracker line ends on entering, per language, and every area's connections | `quest-goals`, start | `QuestGoalCatalog` |
 | `shrines.json` | every row of the Shrines table: Id, lesser flag, the player's buff, seconds, names and texts per language | `shrines`, start | `ShrineCatalog` |
 | `semantic-fields.txt` | the code reader's semantic rules, read with `code-fields.txt` | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | code-field check, tests |

@@ -292,7 +292,8 @@ namespace Poe2Accessibility
                 this.partnerRadar = new Radar(this.audio, () => Seats.Partner, RadarSynth.Voice.Second, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.semantics.UsedObject = () => this.nearby?.UsedObject ?? string.Empty;
-                this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log)
+                this.places = new PlaceNarrator(
+                    PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), RoomCatalog.Load(Path.Join(this.DllDirectory, "catalog", "rooms.json"), this.log), memory, this.output, this.log)
                 {
                     Report = this.compatibility,
                 };
@@ -422,7 +423,7 @@ namespace Poe2Accessibility
                 {
                     this.partnerRadar.WaysRunDiagonal = layout;
                 }
-                this.forks = new ForkNarrator(this.entities, this.output) { Pieces = this.places != null ? this.places.Pieces : null };
+                this.forks = new ForkNarrator(this.entities, this.output) { Pieces = this.places != null ? this.places.Pieces : null, RoomAt = this.places != null ? this.places.RoomAt : null };
                 this.exitBeacons = new ExitBeacons(this.entities, this.audio)
                 {
                     KindAt = this.places != null ? this.places.KindAt : null,

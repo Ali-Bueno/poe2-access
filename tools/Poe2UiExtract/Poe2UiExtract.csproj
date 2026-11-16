@@ -34,6 +34,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialWater.cs" Link="TrialWater.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialArt.cs" Link="TrialArt.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" Link="MinimapIconIds.cs" />
+    <!-- The room labels the plugin speaks, so the rooms catalog keeps only those. -->
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomLabels.cs" Link="RoomLabels.cs" />
   </ItemGroup>
 
   <ItemGroup>

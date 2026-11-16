@@ -10,7 +10,8 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Says a fork of the map's shape as the player walks into it, once an area: which ways go on, which are dead ends a look
     ///     shows whole, which are explored; never the way the player came by, and nothing when no way is new (the owner,
-    ///     2026-11-16; <see cref="ForkTracker"/>, docs/radar.md "Forks").
+    ///     2026-11-16; <see cref="ForkTracker"/>, docs/radar.md "Forks"). Also the named rooms walked into, in the same line
+    ///     as a fork in them ("Capilla: sigue…", <see cref="RoomTracker"/>, docs/research/rooms.md).
     /// </summary>
     public sealed class ForkNarrator
     {
@@ -36,6 +37,7 @@ namespace Poe2Accessibility.Services
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
         private readonly ForkTracker tracker = new();
+        private readonly RoomTracker roomTracker = new();
         private MapTopology? shape;
         private Vector2 trailPoint;
         private Vector2 cameFrom;
@@ -50,17 +52,24 @@ namespace Poe2Accessibility.Services
         /// <summary>The map pieces the tiles name, in grid cells (<see cref="PlaceNarrator.Pieces"/>).</summary>
         public Func<IReadOnlyList<(Vector2 Grid, string Kind)>>? Pieces { get; set; }
 
-        /// <summary>A new area: every fork is news again.</summary>
+        /// <summary>The named room at a grid cell (<see cref="PlaceNarrator.RoomAt"/>).</summary>
+        public Func<Vector2, NamedRoom?>? RoomAt { get; set; }
+
+        /// <summary>A new area: every fork and room is news again.</summary>
         public void Reset()
         {
             this.tracker.Reset();
+            this.roomTracker.Reset();
             this.shape = null;
             this.trailPoint = default;
             this.cameFrom = default;
         }
 
-        /// <summary>Per frame; <paramref name="quiet"/> (a fight) holds a fork back until it is over, if the player is still in it.</summary>
-        public void Tick(bool playing, bool speak, bool quiet)
+        /// <summary>
+        ///     Per frame: says the forks (<paramref name="forks"/>) and the named rooms (<paramref name="rooms"/>) walked into;
+        ///     <paramref name="quiet"/> (a fight) holds them back until it is over, if the player is still in them.
+        /// </summary>
+        public void Tick(bool playing, bool forks, bool rooms, bool quiet)
         {
             var now = Environment.TickCount64;
             if (now - this.lastPoll < PollMs)
@@ -81,39 +90,46 @@ namespace Poe2Accessibility.Services
                 this.trailPoint = here;
             }
 
-            if (this.catalog.Topology() is not { } topology)
-            {
-                return;
-            }
-
-            if (!ReferenceEquals(topology, this.shape))
+            var topology = forks ? this.catalog.Topology() : null;
+            if (topology != null && !ReferenceEquals(topology, this.shape))
             {
                 this.tracker.Reset(); // node ids belong to one build
                 this.shape = topology;
             }
 
-            if (!speak || quiet)
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (quiet || toWorld <= 0)
             {
                 return;
             }
 
+            var named = rooms ? this.RoomAt?.Invoke(here) : null;
+            var roomName = named is { } inRoom ? Announcements.RoomName(inRoom.Label) : null;
+            var roomNews = this.roomTracker.Enter(roomName != null ? named : null, here);
+            var empty = Array.Empty<(ForkWay State, IReadOnlyList<string> Sides)>();
+            var said = topology != null && this.Fork(topology, here, player, toWorld, roomName) is { } fork
+                ? RoomTracker.Line(roomName, roomNews, (fork.Name, fork.Again), fork.Ways)
+                : RoomTracker.Line(roomName, roomNews, null, empty);
+            if (said is { } line)
+            {
+                this.output.Say(SpeechKind.Places, Announcements.Fork(line.Name, line.Again, line.Ways));
+            }
+        }
+
+        /// <summary>The fork or room of the map's shape just walked into, when it is news, with the ways to tell; null otherwise.</summary>
+        private (string Name, bool Again, IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> Ways)? Fork(MapTopology topology, Vector2 here, Render player, float toWorld, string? roomName)
+        {
             var near = topology.NodeNear(here, EnterSlackCells);
             var node = near is { } id && topology.Nodes[id].Kind != TopologyNodeKind.End ? near : null;
-            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
-            if (toWorld <= 0)
-            {
-                return;
-            }
-
             var ways = node is { } at ? topology.Ways(at).Where(way => !way.Nook).ToList() : new List<Way>();
             var room = node is { } placed && topology.Nodes[placed].Kind == TopologyNodeKind.Room;
 
             // A bend or a corridor through a junction is no place; a room is one whatever its ways.
             var place = room || ways.Count >= 3 ? node : null;
             var centre = place is { } p ? topology.Nodes[p].Centre : here;
-            if (this.tracker.Enter(place, centre, here, () => Announcements.ForkName(room, this.Feature(topology.Nodes[place!.Value]))) is not { } entered)
+            if (this.tracker.Enter(place, centre, here, () => Announcements.ForkName(room, this.Feature(topology.Nodes[place!.Value])), roomName) is not { } entered)
             {
-                return;
+                return null;
             }
 
             var back = ForkTracker.WayBack(ways.Select(way => way.Direction).ToList(), this.cameFrom + (here - centre));
@@ -133,7 +149,7 @@ namespace Poe2Accessibility.Services
             }
 
             IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> line = ways.Count >= 3 ? ForkTracker.Tell(told) : Array.Empty<(ForkWay, IReadOnlyList<string>)>();
-            this.output.Say(SpeechKind.Places, Announcements.Fork(entered.Name, entered.Again, line));
+            return (entered.Name, entered.Again, line);
         }
 
         /// <summary>The most telling map piece standing in a place, to name it by; null for none.</summary>
