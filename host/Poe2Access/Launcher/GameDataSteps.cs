@@ -43,7 +43,7 @@ internal static class GameDataSteps
         new Step("game ids", 5, "game-ids.txt", "game-ids", true), // 5: the rows of Rulesets, for the client's rulesets
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
         new Step("game names", 3, "game-names.txt", "game-names", true), // 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
-        new Step("places", 1, "places.json", "places", true),
+        new Step("places", 2, "places.json", "places", true), // 2: the props vocabulary, every rotation, each tile's own .tmd (2026-11-16)
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 2, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings
