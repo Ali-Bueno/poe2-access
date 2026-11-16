@@ -22,9 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Room anchors are looked for this often: the game wakes entities as the player nears them.</summary>
         private const int AnchorPollMs = 2000;
 
-        /// <summary>A prop this near (grid cells, about two and a half steps) is named; again after going six steps away.</summary>
-        private const float ReachCells = 25f;
-        private const float ForgetCells = 60f;
+        /// <summary>A prop this near (grid cells, about a step and a half: right beside or over it) is named; again after going four and a half steps away.</summary>
+        private const float ReachCells = 14f;
+        private const float ForgetCells = 45f;
 
         /// <summary>A piece first met this near (half a sub-tile) is underfoot: the step's own line names it.</summary>
         private const float AheadUnderfootCells = 12f;

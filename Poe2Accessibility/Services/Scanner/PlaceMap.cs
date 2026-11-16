@@ -121,7 +121,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Each run of touching sub-tiles of one kind, by its centre (grid cells).</summary>
         public IReadOnlyList<(Vector2 Grid, string Kind)> Pieces => this.pieces;
 
-        /// <summary>Rotation selectors of tiles with props whose turn is not known, so their props were left out.</summary>
+        /// <summary>Rotation selectors above 7, whose turn is not known, so their props were left out.</summary>
         public IReadOnlyCollection<int> UnknownRotations => this.unknownRotations;
 
         /// <summary>Builds the map from the area's tile grid (one placement per sub-tile).</summary>
@@ -200,17 +200,26 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     A tile file's cell in its placement: the sub-tile ids count in the placed tile (0,0 its top-left), the file's
-        ///     cells turn with the selector. Selector 3 measured in the Act 1 town (2026-10-25): the encampment's campfire at
-        ///     file (178, 286) is the room's fireplace at (353, 307) from the tile's corner (68, 138), its exit block at file
-        ///     (299, 256) the exit at (324, 189): x' = y, y' = height - x.
+        ///     A tile file's cell in its placement for the eight rotation selectors (docs/research/places.md): the footprint is
+        ///     the placed tile's size in cells; odd selectors swap the file's width and height. Null for a selector above 7.
         /// </summary>
-        internal static Vector2? Turn(int rotation, Vector2 file, Vector2 footprint) => rotation switch
+        internal static Vector2? Turn(int rotation, Vector2 file, Vector2 footprint)
         {
-            0 => file,
-            3 => new Vector2(file.Y, footprint.Y - file.X),
-            _ => null,
-        };
+            var (x, y) = (file.X, file.Y);
+            var (w, h) = (footprint.X, footprint.Y);
+            return rotation switch
+            {
+                0 => new Vector2(x, y),
+                1 => new Vector2(w - 1 - y, x),
+                2 => new Vector2(w - 1 - x, h - 1 - y),
+                3 => new Vector2(y, h - 1 - x),
+                4 => new Vector2(w - 1 - x, y),
+                5 => new Vector2(w - 1 - y, h - 1 - x),
+                6 => new Vector2(x, h - 1 - y),
+                7 => new Vector2(y, x),
+                _ => null,
+            };
+        }
 
         private (int, int) CellOf(Vector2 grid) => ((int)MathF.Floor(grid.X / this.subTileCells), (int)MathF.Floor(grid.Y / this.subTileCells));
 

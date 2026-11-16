@@ -24,8 +24,20 @@ tile prop lists (plus `.ao` models, `.gt`/`.et` ground and edge types). The runt
   useful tags repeat the name. 2,663 tiles named on 0.5.5e (stairs 445 of which 19 down and 15 up, door 289, walkway 230, entrance 181, bridge 180,
   ruins 154, hut 154, tomb 150, …); in Act 1 only bridges, the encampment and arenas.
 - **`.tmd`** (UTF-16 text, `version 8`): one object per line, `x y … "model.ao" … "class"`, x/y in grid cells from the
-  tile's corner in the file's orientation. 132 tiles have named props (`PlaceExtractor.PropKinds`: cart/wagon, well,
-  campfire, anvil, notice board, mill wheel, tent, stall, statue, altar, fountain, boat, throne).
+  tile's corner in the file's orientation. The tile's props are in the `.tmd` its `.tdt` names in its UTF-16 strings
+  (`TmdReference`), the same-name file when it names none: 902 tiles name another file than their own. 1,255 tiles have
+  named props, 4,106 props (0.5.5e).
+  **Prop kinds** (`PlaceExtractor.PropKinds`) are whole camel-split words of the model's file name, first match wins:
+  the first 13 kept their keys (cart, well, campfire, anvil, noticeboard, waterwheel, tent, stall, statue, altar,
+  fountain, boat, throne) and 28 were added (barrel, crate, table, pillar, urn, corpse, banner, cage, bench, gallows,
+  skeleton, ladder, bridge, deadtree, chair, bell, hut, weaponrack, fence, machine, tomb, totem, gate, forge, haystack,
+  bed, stump, bookshelf, tower, cannon; counts in the census: crate 693, urn 564, corpse 324, pillar 298, table 268,
+  barrel 218, banner 174, skeleton 171, bench 135, cart 133). Left out: objects of class Chest, Shrine, Door,
+  HealingWell, Waypoint, Stash, Checkpoint, `/NPC/`, AreaTransition*, *Spawner, *Emitter, FlowBlocking* and the
+  Distant backdrops (named as entities or out of reach); models with a word of `NotAProp` (cactus, tracks, overlay,
+  roof, trigger, connector, marker, glow, eyes, plane, decal: "BarrelCactus" was 866 false barrels, "KaruiTotemEyes_glow"
+  all the totems). Dropped words: `petrified` (239 "PetrifiedTerror" statues of people, not dead trees), `seat`
+  (cushions), `market`, `library` and every vocabulary word of a plant or rubble (not a place to name).
 - **`.arm`** (UTF-16 text, `version 36`): an area or room layout; objects as in `.tmd`, x/y from the room's corner.
   Rooms with props and anchors (objects of class Waypoint, Stash, HealingWell, Checkpoint) are kept: 270.
 
@@ -35,24 +47,25 @@ tile prop lists (plus `.ao` models, `.gt`/`.et` ground and edge types). The runt
   (`TotalTiles.X` per row, 23 grid cells per sub-tile): tile file (`TgtFilePtr` → path), `tileIdX/Y` = which sub-tile
   of the **placed** tile (0,0 is always its top-left), `RotationSelector`. GameHelper swaps the ids in its key for odd
   selectors; the ids themselves already count in placed space.
-- **Tile props turn with the selector.** Measured in the Act 1 town (`G1_town`): `Encampment_01.tdt` placed with
-  corner (68, 138), 18 × 15 sub-tiles; its campfire at file (178, 286) is the room's fireplace at (353, 307) and its exit
-  block at file (299, 256) the exit entity at (324, 189): x' = y, y' = height − x, with `RotationSelector` 3. Selector 0
-  is taken as the file's own orientation; others are left out and logged ("tile props left out for rotations …")
-  until measured.
+- **Tile props turn with the selector** (all 8). (x, y) is the prop in the tile file's frame, Wp × Hp the placed
+  footprint in cells (sub-tiles × 23; odd selectors swap the file's width and height), added to the placed tile's
+  corner: 0 (x, y); 1 (Wp−1−y, x); 2 (Wp−1−x, Hp−1−y); 3 (y, Hp−1−x); 4 (Wp−1−x, y); 5 (Wp−1−y, Hp−1−x);
+  6 (x, Hp−1−y); 7 (y, x). Evidence: pairs of the tile's walkable pattern against the live grid over 5 sessions gave
+  25-46 unique-correct pairs per selector; selector 3 also matches the Act 1 town measurement (`Encampment_01.tdt`,
+  corner (68, 138): campfire at file (178, 286) is the fireplace at (353, 307)) within one cell (that one wrote
+  x' = y, y' = height − x, one cell more than the cell-index form above). Selectors above 7 are left out and logged.
 - **Rooms** are placed at the grid origin when two of their anchors stand where live entities of their kind do (one
   is any checkpoint near a room's corner by chance: 189 rooms have a single checkpoint): in the town `town_1.arm`'s waypoint (282, 252) and well (349, 237) are exactly the live entities'
   grid cells. Generated areas place rooms elsewhere; those are not matched yet.
 - A kind covering more than a quarter of the area's ground (sub-tiles that are not `*blank*` filler) is the area
   itself (the town is one "lumbermill" tile over 270 of 927) and is dropped. Touching sub-tiles of one kind are one piece for the scanner (category "Lugares").
 - Speech: a piece's kind is said once seen on two polls running (250 ms) and held over plain ground within one
-  sub-tile of the last piece, so a bridge of several pieces is one; then the nearest prop within 25 cells not said
-  yet, said again after going 60 cells away. Delivered as `SpeechKind.Places`, after what is being said; only while
+  sub-tile of the last piece, so a bridge of several pieces is one; then the nearest prop within 14 cells (right beside or over it) not said
+  yet, said again after going 45 cells away; one kind remembered nearby is not repeated (a row of barrels is one "barril"). Delivered as `SpeechKind.Places`, after what is being said; only while
   playing (no menu). Setting `AnnouncePlaces`.
 
 ## Open
 
-- Other rotation selectors (2, 3, mirrored) for tile props: measure on a tile whose props include an entity.
 - Rooms of generated areas (checkpoint rooms, camps): need the room's offset, e.g. from its tiles' pattern.
 - Many props are client-only doodads; interactive things (waypoint, stash, NPCs, chests) are entities and the
   proximity narrator already names them.

@@ -243,6 +243,7 @@ namespace Poe2Accessibility.Tests
                 new("metadata/terrain/a/bridge_01.tdt", 0, 0, 3, new(5 * sub, 2 * sub)),
                 new("metadata/terrain/a/bridge_01.tdt", 1, 0, 3, new(6 * sub, 2 * sub)),
                 new("metadata/terrain/a/bridge_01.tdt", 0, 0, 2, new(9 * sub, 2 * sub)),
+                new("metadata/terrain/a/bridge_01.tdt", 0, 0, 9, new(12 * sub, 2 * sub)),
             };
             placements.AddRange(Enumerable.Range(0, 10).Select(i => new TilePlacement("metadata/terrain/a/town.tdt", i, 0, 0, new(i * sub, 10 * sub))));
             placements.AddRange(Enumerable.Range(0, 20).Select(i => new TilePlacement("metadata/terrain/a/grass.tdt", 0, 0, 0, new(i * sub, 20 * sub))));
@@ -250,18 +251,19 @@ namespace Poe2Accessibility.Tests
             var map = PlaceMap.Build(catalog, placements, sub);
             Equal("bridge", map.KindAt(new Vector2(30, 10)), "a named tile's sub-tiles");
             Equal(null, map.KindAt(new Vector2(30, 10 * sub + 5)), "a kind covering most of the area is the area itself");
-            Equal(3, map.Pieces.Count(piece => piece.Kind == "bridge"), "separate bridges");
-            Equal($"30,5 {5 * sub + 5},{2 * sub + sub - 30}", string.Join(" ", map.Props.Select(prop => $"{prop.Grid.X},{prop.Grid.Y}")), "props turned with their tile; an unknown turn leaves them out");
-            Equal("2", string.Join(",", map.UnknownRotations), "and says which turn it was");
+            Equal(4, map.Pieces.Count(piece => piece.Kind == "bridge"), "separate bridges");
+            Equal($"30,5 {5 * sub + 5},{2 * sub + sub - 1 - 30} {9 * sub + sub - 1 - 30},{2 * sub + sub - 1 - 5}", string.Join(" ", map.Props.Select(prop => $"{prop.Grid.X},{prop.Grid.Y}")), "props turned with their tile, selectors 0, 3 and 2; an unknown turn leaves them out");
+            Equal("9", string.Join(",", map.UnknownRotations), "and says which turn it was");
+            Equal("5,5 1,6 1,2 5,1", string.Join(" ", Enumerable.Range(4, 4).Select(rotation => PlaceMap.Turn(rotation, new Vector2(1, 5), new Vector2(7, 8)) is { } at ? $"{at.X},{at.Y}" : "?")), "every selector turns the file's cell inside the placed footprint");
             Equal(false, map.MatchRooms(new[] { ("waypoint", new Vector2(282, 252)) }), "one anchor of two does not place a room");
             Equal(true, map.MatchRooms(new[] { ("waypoint", new Vector2(283, 252)), ("well", new Vector2(349, 236)) }), "both anchors place it");
-            Equal(3, map.Props.Count, "the room's cart joins the tiles'");
+            Equal(4, map.Props.Count, "the room's cart joins the tiles'");
             Equal("stairs down, stairs up, ballroom, columns", string.Join(", ", new[] { "stairs_down", "stairs_up", "ballroom", "pillar" }.Select(Announcements.PlaceName)), "the named kinds have their words");
         }
 
         private static void PlacesAreSaidOnceAsTheyChange()
         {
-            var tracker = new PlaceTracker(23, 25, 60);
+            var tracker = new PlaceTracker(23, 14, 45);
             var props = new List<(Vector2 Grid, string Kind)> { (new Vector2(100, 0), "cart") };
             string Walk(string? kind, float x) => string.Join("+", tracker.Update(kind, new Vector2(x, 0), props));
             Equal("", Walk("bridge", 0), "a piece waits one update");
@@ -269,8 +271,8 @@ namespace Poe2Accessibility.Tests
             Equal("", Walk("bridge", 4), "once");
             Equal("", Walk(null, 20), "plain ground near it keeps the name");
             Equal("", Walk("bridge", 24), "so the bridge's next piece is not news");
-            Equal("cart", Walk(null, 80), "a prop in reach");
-            Equal("", Walk(null, 90), "said once");
+            Equal("cart", Walk(null, 90), "a prop in reach");
+            Equal("", Walk(null, 95), "said once");
             Equal("", Walk(null, 200), "far away: forgotten");
             Equal("cart", Walk(null, 110), "and said again on the way back");
             Equal("", Walk("stairs", 300), "a new kind waits");
@@ -280,7 +282,7 @@ namespace Poe2Accessibility.Tests
             Equal("stairs", Walk("stairs", 522), "and is said again");
 
             // A row of graves 30 cells apart was "tumba" 108 times in a day, 71 of them within 10 s of the last (play log 2026-11-13).
-            var graveyard = new PlaceTracker(23, 25, 60);
+            var graveyard = new PlaceTracker(23, 14, 45);
             var graves = new List<(Vector2 Grid, string Kind)> { (new Vector2(0, 0), "tomb"), (new Vector2(30, 0), "tomb"), (new Vector2(60, 0), "tomb"), (new Vector2(70, 0), "cart"), (new Vector2(400, 0), "tomb") };
             string Stroll(float x) => string.Join("+", graveyard.Update(null, new Vector2(x, 0), graves));
             Equal("tomb", Stroll(0), "the first grave");
