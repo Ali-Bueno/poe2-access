@@ -26,6 +26,12 @@ namespace Poe2Accessibility.Services
         private const float ReachCells = 25f;
         private const float ForgetCells = 60f;
 
+        /// <summary>A piece first met this near (half a sub-tile) is underfoot: the step's own line names it.</summary>
+        private const float AheadUnderfootCells = 12f;
+
+        /// <summary>World units in a spoken step, as the scanner counts them.</summary>
+        private const float StepWorldUnits = 100f;
+
         /// <summary>Scanner ids of places, between the tile landmarks and the death place (<see cref="EntityCatalog"/>).</summary>
         private const uint PlaceIdBase = 0xA0000000;
 
@@ -49,6 +55,9 @@ namespace Poe2Accessibility.Services
         private Task<(PlaceMap Map, int Count, int Generation)?>? building;
         private int generation;
         private PlaceTracker tracker = NewTracker();
+
+        /// <summary>Pieces said as they come in sight, before they are reached (docs/research/map-topology.md).</summary>
+        private readonly LandmarkAhead ahead = new(ExplorationMap.SeenRadiusCells, AheadUnderfootCells, 2 * ExplorationMap.SeenRadiusCells);
         private PlaceMap? map;
         private (int Count, IntPtr First, IntPtr Last) builtFor;
         private long lastPoll = long.MinValue / 2;
@@ -74,6 +83,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A new area: its map is built again from its tiles.</summary>
         public void Reset()
         {
+            this.ahead.Reset();
             this.map = null;
             this.builtFor = default;
             this.generation++; // a build still running belongs to the area left
@@ -81,8 +91,14 @@ namespace Poe2Accessibility.Services
             this.lastAnchorPoll = long.MinValue / 2;
         }
 
-        /// <summary>Per frame: keeps the area's map current and, while playing with the option on, names new places.</summary>
-        public void Tick(bool playing, bool speak)
+        /// <summary>More places to say ahead than the tiles name, in grid cells: the narrow passages of the map's shape.</summary>
+        public Func<IEnumerable<(Vector2 Grid, string Kind)>>? MorePlaces { get; set; }
+
+        /// <summary>
+        ///     Per frame: keeps the area's map current and, while playing with the option on, names new places; with
+        ///     <paramref name="sayAhead"/>, also the pieces that come in sight, with their side and distance.
+        /// </summary>
+        public void Tick(bool playing, bool speak, bool sayAhead)
         {
             var now = Environment.TickCount64;
             if (now - this.lastPoll < PollMs)
@@ -104,9 +120,21 @@ namespace Poe2Accessibility.Services
 
             var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
             var said = this.tracker.Update(places.KindAt(here), here, places.Props);
-            if (said.Count > 0)
+            var lines = said.Select(Announcements.PlaceName).ToList();
+            if (sayAhead && area.WorldToGridConvertor is > 0 and var toWorld)
             {
-                this.output.Say(SpeechKind.Places, Announcements.Sentences(said.Select(Announcements.PlaceName)));
+                var more = this.MorePlaces?.Invoke() ?? Enumerable.Empty<(Vector2 Grid, string Kind)>();
+                foreach (var (grid, kind) in this.ahead.Update(here, places.Pieces.Concat(more)))
+                {
+                    var offset = (grid - here) * toWorld;
+                    var side = Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, offset)];
+                    lines.Add(Announcements.PlaceAhead(kind, side, Math.Max(1, (int)MathF.Round(offset.Length() / StepWorldUnits))));
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                this.output.Say(SpeechKind.Places, Announcements.Sentences(lines));
             }
         }
 

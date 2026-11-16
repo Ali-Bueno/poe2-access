@@ -198,10 +198,14 @@ namespace Poe2Accessibility
         public static string Unmet(string requirements) => T($"Cannot use: {requirements}", $"No puedes usarlo: {requirements}");
 
         /// <summary>A named map piece or prop of the terrain files (catalog/places.json kinds).</summary>
+        /// <summary>A piece come in sight: "Escaleras de bajada, arriba a la izquierda, a 20 pasos".</summary>
+        public static string PlaceAhead(string kind, string side, int steps) => $"{PlaceName(kind)}, {side}, {StepsAway(steps)}";
+
         public static string PlaceName(string kind) => kind switch
         {
             "bridge" => T("bridge", "puente"),
             "stairs" => T("stairs", "escaleras"),
+            "narrow" => T("narrow passage", "paso estrecho"),
             "stairs_down" => T("stairs down", "escaleras de bajada"),
             "stairs_up" => T("stairs up", "escaleras de subida"),
             "door" => T("door", "puerta"),

@@ -333,6 +333,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkAhead.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\LocalPlayerList.cs" />

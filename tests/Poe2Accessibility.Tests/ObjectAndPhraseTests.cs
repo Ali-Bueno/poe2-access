@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(QuestRewardIconsAreNamed), QuestRewardIconsAreNamed),
             (nameof(MapPiecesAndPropsArePlaced), MapPiecesAndPropsArePlaced),
             (nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange),
+            (nameof(PiecesAheadAreSaidAsTheyComeInSight), PiecesAheadAreSaidAsTheyComeInSight),
             (nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid),
             (nameof(OnlyASwappedLineCutsIn), OnlyASwappedLineCutsIn),
             (nameof(AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice), AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice),
@@ -280,6 +281,27 @@ namespace Poe2Accessibility.Tests
             Equal("", Stroll(30), "the next one of the row is the same sight");
             Equal("cart", Stroll(62) + Stroll(66), "another kind among them is said");
             Equal("tomb", Stroll(400), "graves met again after leaving the row are news");
+        }
+
+        private static void PiecesAheadAreSaidAsTheyComeInSight()
+        {
+            var ahead = new LandmarkAhead(60, 12, 120);
+            var places = new List<(Vector2 Grid, string Kind)>
+            {
+                (new Vector2(100, 0), "stairs_down"), (new Vector2(105, 10), "stairs_down"), (new Vector2(100, 20), "window"),
+                (new Vector2(0, 0), "bridge"), (new Vector2(110, 0), "door"),
+            };
+            string Walk(float x) => string.Join("+", ahead.Update(new Vector2(x, 0), places).Select(place => $"{place.Kind}@{place.Grid.X}"));
+            Equal("", Walk(0), "a piece underfoot on arrival is the step's line, not news ahead");
+            Equal("", Walk(30), "nothing else in sight yet");
+            Equal("stairs_down@100", Walk(45), "the stairs come in sight: the nearest piece, once for its kind");
+            Equal("door@110", Walk(52), "another kind waits for the next update");
+            Equal("", Walk(60), "furniture is not said ahead, and nothing twice");
+            Equal("", Walk(100), "standing on them says nothing more here");
+            Equal("", Walk(300), "far away: forgotten");
+            Equal("door@110", Walk(160), "seen again on the way back, nearest first");
+            Equal("stairs_down@105", Walk(161), "then the stairs, once for both pieces");
+            Equal("bridge@0", Walk(55), "the bridge left behind unsaid is news when it comes in sight");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()

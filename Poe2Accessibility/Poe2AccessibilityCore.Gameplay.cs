@@ -51,7 +51,7 @@ namespace Poe2Accessibility
             this.Isolated("wall tones", playing, static (core, playing) => core.wallTones?.Tick(playing && core.Settings.WallTones));
             this.Isolated("fights", playing, static (core, playing) => core.fights?.Tick(playing));
             this.Isolated("nearby", playing, static (core, playing) => core.nearby?.Tick(playing, core.Settings.AnnounceNearby, core.Settings.AnnounceInteractTarget));
-            this.Isolated("places", playing, static (core, playing) => core.places?.Tick(playing, core.Settings.AnnouncePlaces));
+            this.Isolated("places", playing, static (core, playing) => core.places?.Tick(playing, core.Settings.AnnouncePlaces, core.Settings.AnnouncePlacesAhead));
             this.Isolated("exploration", playing, static (core, playing) =>
             {
                 if (playing)
