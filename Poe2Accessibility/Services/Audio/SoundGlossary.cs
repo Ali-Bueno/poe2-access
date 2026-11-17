@@ -76,11 +76,7 @@ namespace Poe2Accessibility.Services
             this.Add("crosshair", CueSynth.Crosshair(rate));
 
             this.Add("weak_point", CueSynth.Heartbeat(rate));
-            if (gameSounds.GetLoop(BossRefugeSounds.Lead) is { } refuge)
-            {
-                this.Add(BossRefugeSounds.Lead, Excerpt(refuge, rate));
-            }
-
+            this.Add(BossRefugeSounds.Lead, CueSynth.Refuge(rate));
             this.AddGame(gameSounds, rate, BossRefugeSounds.Over);
             foreach (var state in Enum.GetValues<EnemyState>())
             {
@@ -179,7 +175,7 @@ namespace Poe2Accessibility.Services
         {
             "beacon" => nameof(AccessibilitySettings.BeaconVolume),
             "dodge" or "parry" or "unblockable" => nameof(AccessibilitySettings.DodgeVolume),
-            "hazard" or "cull" or "crosshair" or "weak_point" or "reach" or "enemy" or "elite" or "boss" or "friend" or "player" or "player_down" =>
+            "hazard" or "cull" or "crosshair" or "weak_point" or BossRefugeSounds.Lead or "reach" or "enemy" or "elite" or "boss" or "friend" or "player" or "player_down" =>
                 nameof(AccessibilitySettings.EnemyVolume),
             _ when key.StartsWith("state_", StringComparison.Ordinal) => nameof(AccessibilitySettings.EnemyVolume),
             "bump" or "wall_tone" => nameof(AccessibilitySettings.RadarVolume),

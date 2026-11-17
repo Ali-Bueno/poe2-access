@@ -107,9 +107,6 @@ internal static partial class SoundExtractor
         new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
         new("loops/waypoint",   "Waypoint4.0",        "WaypointActive_01", LoopMaxSeconds, true),
         new("loops/checkpoint", "BossCheckpoints",    "BossCheckpoints_Loop_01", LoopMaxSeconds, true),
-        // A boss fight's shelter (Asala's barrier against Jamanra's sandstorm): a Twilight Order boss's holy "Descry" loop, the
-        // user's pick after six rounds on the audition page (2026-11-17); its bank holds only take 02.
-        new("loops/boss_refuge", "HoodedMentor_Forge", "TwilightOrder_GuardBoss_Effects_Descry_LOOP_02", LoopMaxSeconds, true),
     };
 
     private const string Lib = "fmod";

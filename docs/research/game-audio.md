@@ -63,7 +63,7 @@ checked for a steady level (RMS of 100 ms windows) and distinct spectra.
 | portal | PortalScrollPortal | PortalScroll_Effects_Po_IdleActive_01 | 4 s, mid (centroid ~2.2 kHz) |
 | waypoint | Waypoint4.0 | WaypointActive_01 | 19 s, low hum, very steady |
 | checkpoint | BossCheckpoints | BossCheckpoints_Loop_01 | 19 s, bright (~3.9 kHz), steady |
-| boss_refuge | HoodedMentor_Forge | TwilightOrder_GuardBoss_Effects_Descry_LOOP_02 | 4.6 s, a holy shimmer; the boss shelter's lead ([below](#a-boss-fights-shelter-2026-11-17)) |
+| ~~boss_refuge~~ | HoodedMentor_Forge | TwilightOrder_GuardBoss_Effects_Descry_LOOP_02 | 4.6 s, a holy shimmer; the boss shelter's lead in v2026.11.17, dropped the same day for the chord ([below](#a-boss-fights-shelter-2026-11-17)) |
 | ~~exit~~ | UI_General | WorldAreaTransition_02, frozen | 6 s of 120 ms grains from its 0.05–0.5 s (granular freeze); dropped 2026-11-02 |
 
 Area transitions have no idle sound of their own, and the crossing sounds (`WorldAreaTransition_02`, `Travel_1..3`)
@@ -362,9 +362,9 @@ generator is not reproduced). The one not reproduced: the silent desert `event_B
 
 Jamanra, the Abomination's sandstorm puts `perennial_king_sand_storm` on the player inside Asala's barrier too, so the
 ground alarm kept sounding there; the user, not told to stay, walked out twice and died. Now, while a fight's shelter is up
-(`BossPlacesWatch.RefugeUp`), the ground alarm is quiet (`HazardWatch.Quiet`). The way to the shelter is a loop played from
-its side, louder as it nears (`ProximityFade`, far gain 0.3) and silent once the shelter's buff is on the player
-(`WeakPointGuide.RefugeLoop`; the heartbeat when the loop is missing). "A cubierto, quédate hasta el aviso" is said on
+(`BossPlacesWatch.RefugeUp`), the ground alarm is quiet (`HazardWatch.Quiet`). The way to the shelter is a pulse from its side, a
+struck C major chord (`CueSynth.Refuge`, 0.3 s, peak 0.85), repeated faster as it nears (`BeaconMath.IntervalMs`, never closer
+than 400 ms) and silent once the shelter's buff is on the player (`WeakPointGuide`). "A cubierto, quédate hasta el aviso" is said on
 arrival; when the shelter has been down for 600 ms (`RefugeEnd`), `boss_refuge_over` plays (read whole up to 2 s,
 `GameSounds.LoadOne`) with "Peligro pasado, puedes moverte".
 
@@ -373,5 +373,8 @@ rejected: one-shot pulses from Asala's and Jamanra's banks; four of the mod's ow
 (holy wall, shrines, Karui whispers); loops judged too high (wisps, crystals); and sacred loops (divinity throne, temple
 sun, purity aura). Round five came from a name search of all 197,558 samples (`names.py`-style read of each bank's FSB5
 name table, 3 s). The Twilight Order's holy book and beam came close, and their sibling `Descry_LOOP` won. For the end,
-the Karui barrier's release won over a shrine stinger, a shrine activation, sand magic and a twilight shrine.
+the Karui barrier's release won over a shrine stinger, a shrine activation, sand magic and a twilight shrine. The loop went
+out in v2026.11.17. Back in the fight, the user found a loop hard to hear under the fight's noise and asked for a synthesized,
+intermittent, noticeable sound. Round seven offered five struck synth pulses, tried alone, in series and over Jamanra's
+sandstorm loop: a temple bell, a double glass chime, a struck bowl, a bell over a low thump, and the chord, which won.
 

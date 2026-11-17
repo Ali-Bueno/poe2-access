@@ -282,6 +282,9 @@ namespace Poe2Accessibility.Tests
             Equal(false, end.Update(false, 9000), "a reset (the fight over) says nothing");
             Equal("Danger over, move freely", Announcements.BossRefugeOver(), "its line");
             Equal("Sheltered, stay until the all-clear", Announcements.BossSheltered(true), "in the shelter, told to stay");
+            var chord = CueSynth.Refuge(44100);
+            Equal((int)(0.3f * 44100), chord.Length, "the shelter's chord lasts 0.3 s, short enough to repeat");
+            Equal(true, Math.Abs(chord.Max(v => Math.Abs(v)) - 0.85f) < 0.001f, "and loud enough to cut through a fight");
         }
 
         private static void AThingToUseIsToldOfOnceAndNeverLedTo()

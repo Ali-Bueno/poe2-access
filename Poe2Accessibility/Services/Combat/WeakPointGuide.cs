@@ -22,10 +22,8 @@ namespace Poe2Accessibility.Services
         /// <summary>At the head the beat drops to this share of its gain, so the fight's own sounds come through.</summary>
         private const float AtPartGain = 0.6f;
 
-        /// <summary>The shelter's loop at the far end of a fight (<see cref="BeaconMath.FarWorld"/>): this share of its full gain.</summary>
-        private const float RefugeFarGain = 0.3f;
-
-        private AudioCueService.Bed? refugeBed;
+        /// <summary>The shelter's chord lasts 0.3 s: its pulses are never closer than this (ms).</summary>
+        private const int RefugeMinIntervalMs = 400;
 
         private readonly AudioCueService audio;
         private readonly IAccessibilityOutputService output;
@@ -33,6 +31,7 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly PluginLog log;
         private readonly float[] beat = CueSynth.Heartbeat(AudioCueService.SampleRate);
+        private readonly float[] refugeBeat = CueSynth.Refuge(AudioCueService.SampleRate);
         private readonly Dictionary<uint, string> names = new();
         private readonly HashSet<string> introduced = new();
         private readonly List<(BossPart Part, IntPtr Render)> near = new();
@@ -57,17 +56,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a boss hides until the player finds it (<see cref="BossMechanicsWatch.Hiding"/>): the beat leads there first.</summary>
         public Func<(Vector2 At, float Radius)?> Hiding { get; set; } = () => null;
 
-        /// <summary>Whether <see cref="Hiding"/> leads to a boss fight's shelter, which beats with <see cref="RefugeBeat"/>.</summary>
+        /// <summary>Whether <see cref="Hiding"/> leads to a boss fight's shelter, which pulses with its own chord (<see cref="CueSynth.Refuge"/>).</summary>
         public Func<bool> LeadsToRefuge { get; set; } = () => false;
 
-        /// <summary>
-        ///     The shelter's own loop from the game's banks, played without a break from the shelter's side, louder as the player
-        ///     nears it and silent once inside; without it the heartbeat leads there.
-        /// </summary>
-        public float[]? RefugeLoop
-        {
-            set => this.refugeBed = value == null ? null : this.audio.AddBed(value, BossRefugeSounds.Lead);
-        }
 
         /// <summary>A new area: no boss is known.</summary>
         public void Reset()
@@ -82,26 +73,14 @@ namespace Poe2Accessibility.Services
         {
             if (!playing || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                this.refugeBed?.Set(0f, 0f);
                 return;
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            var hidden = this.Hiding();
-            if (hidden is { } shelter && this.LeadsToRefuge() && this.refugeBed != null)
+            if (this.Hiding() is { } hidden)
             {
                 this.Lose();
-                var gap = Math.Max(0f, Vector2.Distance(shelter.At, here) - shelter.Radius - player.ModelBounds.X);
-                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, shelter.At - here));
-                this.refugeBed.Set(pan, this.Gain * ProximityFade.Gain(gap, BeaconMath.FarWorld, RefugeFarGain), pitch);
-                return;
-            }
-
-            this.refugeBed?.Set(0f, 0f);
-            if (hidden is { } place)
-            {
-                this.Lose();
-                this.Beat(player, place.At - here, Vector2.Distance(place.At, here) - place.Radius - player.ModelBounds.X);
+                this.Beat(player, hidden.At - here, Vector2.Distance(hidden.At, here) - hidden.Radius - player.ModelBounds.X, this.LeadsToRefuge());
                 return;
             }
 
@@ -128,21 +107,23 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            this.Beat(player, head.Position - here, Vector2.Distance(head.Position, here) - head.Radius - player.ModelBounds.X);
+            this.Beat(player, head.Position - here, Vector2.Distance(head.Position, here) - head.Radius - player.ModelBounds.X, false);
         }
 
         /// <summary>One beat from the side of a place <paramref name="gap"/> away, when the last is far enough behind.</summary>
-        private void Beat(Render player, Vector2 offset, float gap)
+        private void Beat(Render player, Vector2 offset, float gap, bool refuge)
         {
             var now = Environment.TickCount64;
-            if (now - this.lastBeat < WeakPoints.IntervalMs(gap, this.ReachWorld))
+            var interval = WeakPoints.IntervalMs(gap, this.ReachWorld);
+            if (now - this.lastBeat < (refuge ? Math.Max(interval, RefugeMinIntervalMs) : interval))
             {
                 return;
             }
 
             this.lastBeat = now;
             var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset));
-            this.audio.Play(this.beat, pan, pitch, this.Gain * (gap <= this.ReachWorld ? AtPartGain : 1f), "weak_point");
+            var gain = this.Gain * (refuge || gap > this.ReachWorld ? 1f : AtPartGain);
+            this.audio.Play(refuge ? this.refugeBeat : this.beat, pan, pitch, gain, refuge ? BossRefugeSounds.Lead : "weak_point");
         }
 
         /// <summary>The living monsters within the arena; false (no names read) when none of them is a tail.</summary>

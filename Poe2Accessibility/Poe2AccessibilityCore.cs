@@ -408,7 +408,6 @@ namespace Poe2Accessibility
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.deployed.GameSound = gameSounds.Get;
-                this.weakPoint.RefugeLoop = gameSounds.GetLoop(BossRefugeSounds.Lead);
                 if (GameSounds.LoadOne(Path.Join(this.DllDirectory, "sounds", BossRefugeSounds.Over + ".wav"), RefugeOverSeconds) is { } refugeOver &&
                     this.bosses.Mechanics is { } bossMechanics)
                 {
