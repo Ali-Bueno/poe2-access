@@ -7,7 +7,8 @@ namespace Poe2Accessibility.Services
     ///     The ways that opened on their own (<see cref="BarrierWatch"/>) and have not been walked to yet. One opens in the
     ///     middle of a fight, its line goes by among the rest, and afterwards nothing told where it was (user 2026-11-12):
     ///     it stays in the scanner and sounds until the player has stood at it and walked on, it closes again, or the area
-    ///     is left. Any thread.
+    ///     is left. Any thread. Only the latest opening sounds: an Abyss pit that closes opens its ground, the next one along the
+    ///     fissure after it, and the old one still ringing told the wrong way on (user 2026-11-17).
     /// </summary>
     public sealed class OpenedWays
     {
@@ -18,14 +19,35 @@ namespace Poe2Accessibility.Services
         public const float ReachWorld = 200f;
         public const float LeftWorld = 300f;
 
+        /// <summary>Ways opened this close together are one opening (a boss door's two halves, 13 ms apart in the 2026-11-17 log).</summary>
+        public const long SameOpeningMs = 2000;
+
         private readonly object gate = new();
         private readonly Dictionary<uint, (ScanEntry Entry, bool Reached)> ways = new();
+        private readonly Dictionary<uint, long> openedAt = new();
 
-        public void Add(ScanEntry entry)
+        /// <summary>A way opened at <paramref name="now"/> (ms); the ways of an earlier opening are forgotten.</summary>
+        public void Add(ScanEntry entry, long now)
         {
             lock (this.gate)
             {
+                List<uint>? older = null;
+                foreach (var (id, at) in this.openedAt)
+                {
+                    if (id != entry.Id && now - at > SameOpeningMs)
+                    {
+                        (older ??= new List<uint>()).Add(id);
+                    }
+                }
+
+                foreach (var id in older ?? (IEnumerable<uint>)Array.Empty<uint>())
+                {
+                    this.ways.Remove(id);
+                    this.openedAt.Remove(id);
+                }
+
                 this.ways[entry.Id] = (entry, false);
+                this.openedAt[entry.Id] = now;
             }
         }
 
@@ -35,6 +57,7 @@ namespace Poe2Accessibility.Services
             lock (this.gate)
             {
                 this.ways.Remove(id);
+                this.openedAt.Remove(id);
             }
         }
 
@@ -44,6 +67,7 @@ namespace Poe2Accessibility.Services
             lock (this.gate)
             {
                 this.ways.Clear();
+                this.openedAt.Clear();
             }
         }
 
@@ -81,6 +105,7 @@ namespace Poe2Accessibility.Services
                     if (this.ways[id].Reached)
                     {
                         this.ways.Remove(id);
+                        this.openedAt.Remove(id);
                     }
                     else
                     {

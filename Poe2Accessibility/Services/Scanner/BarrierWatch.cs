@@ -72,7 +72,7 @@ namespace Poe2Accessibility.Services
                     this.catalog.BarrierOpened();
                     var at = render.WorldPosition;
                     var way = new ScanEntry(entity.Id, ScanCategory.Objects, Announcements.OpenedWay, at.X, at.Y, at.Z, OpenedWays.Kind);
-                    this.Ways.Add(way);
+                    this.Ways.Add(way, now);
                     this.Opened?.Invoke(way);
                     if (enabled)
                     {
