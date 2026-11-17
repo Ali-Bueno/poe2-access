@@ -79,7 +79,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var monsters = new List<(uint Id, Vector2 Place)>();
+            var monsters = new List<(uint Id, Vector2 Place, bool Pack)>();
             foreach (var entity in entities)
             {
                 if (!entity.IsValid || entity.EntityType != EntityTypes.Monster || this.freed.Contains(entity.Id) || !entity.TryGetComponent<Render>(out var render))
@@ -88,13 +88,14 @@ namespace Poe2Accessibility.Services
                 }
 
                 // Freed once, free for good: the game's own mark of it outlives any doubt about the crystal's state.
-                if (entity.TryGetComponent<Buffs>(out var marks) && IsFreed(marks))
+                var hasMarks = entity.TryGetComponent<Buffs>(out var marks);
+                if (hasMarks && IsFreed(marks!))
                 {
                     this.freed.Add(entity.Id);
                     continue;
                 }
 
-                monsters.Add((entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)));
+                monsters.Add((entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y), hasMarks && Has(marks!, EssencePrison.PackBuff)));
             }
 
             var held = EssencePrison.Held(this.whole, monsters);
@@ -114,11 +115,13 @@ namespace Poe2Accessibility.Services
         /// <summary>The stat the game's tables name for a monster in a crystal (Stats 4785); logged, not yet relied on.</summary>
         private const string HeldStat = "monster_inside_monolith";
 
-        private static bool IsFreed(Buffs buffs)
+        private static bool IsFreed(Buffs buffs) => Has(buffs, EssencePrison.FreedBuff);
+
+        private static bool Has(Buffs buffs, string id)
         {
             foreach (var key in buffs.StatusEffects.Keys)
             {
-                if (key == EssencePrison.FreedBuff || BuffIds.Base(key) == EssencePrison.FreedBuff)
+                if (key == id || BuffIds.Base(key) == id)
                 {
                     return true;
                 }

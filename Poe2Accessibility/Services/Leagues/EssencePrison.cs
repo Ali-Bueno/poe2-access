@@ -26,6 +26,17 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static readonly string[] Crystals = { Objects + "Monolith", Objects + "SuperMonolith" };
 
+        /// <summary>
+        ///     The buff the game gives the pack of a held monster (its minions, standing around the crystal, alive, hostile and
+        ///     targetable; entity dump 2026-11-17, six SkeletonTitanGrottoUnarmed 20 to 35 cells from the crystal). They rang and were
+        ///     attacked in vain (user 2026-11-17), and kept the crystal's own sound quiet as a fight: held while a whole crystal
+        ///     stands within <see cref="PackReachWorld"/>; freed with it, whatever the buff does after.
+        /// </summary>
+        public const string PackBuff = "hidden_monster_disable_minions";
+
+        /// <summary>How far from its crystal the held monster's pack may stand, in world units (about 55 cells; measured 35).</summary>
+        public const float PackReachWorld = 600f;
+
         /// <summary>The hidden buff the game gives a monster as its crystal frees it (BuffDefinitions 694): never held again.</summary>
         public const string FreedBuff = "monolith_monster_freedom";
 
@@ -67,15 +78,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a crystal's transition says it has shattered; false when it does not read.</summary>
         public static bool IsShattered((int State, int Count)? transition) => transition is { } read && read.State >= read.Count;
 
-        /// <summary>The monsters standing in a crystal that still holds. Pure.</summary>
-        public static HashSet<uint> Held(IReadOnlyList<Vector2> wholeCrystals, IEnumerable<(uint Id, Vector2 Place)> monsters)
+        /// <summary>The monsters standing in a crystal that still holds, and the held one's pack around it (<see cref="PackBuff"/>). Pure.</summary>
+        public static HashSet<uint> Held(IReadOnlyList<Vector2> wholeCrystals, IEnumerable<(uint Id, Vector2 Place, bool Pack)> monsters)
         {
             var found = new HashSet<uint>();
-            foreach (var (id, place) in monsters)
+            foreach (var (id, place, pack) in monsters)
             {
                 foreach (var crystal in wholeCrystals)
                 {
-                    if (Vector2.Distance(place, crystal) < ReachWorld)
+                    if (Vector2.Distance(place, crystal) < (pack ? PackReachWorld : ReachWorld))
                     {
                         found.Add(id);
                         break;

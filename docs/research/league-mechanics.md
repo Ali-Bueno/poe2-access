@@ -548,6 +548,12 @@ file. `GameConstants` (121 rows) holds nothing of the leagues.
   have no target and no icon to check a transition against and were never measured. A monster carrying the game's hidden buff
   `monolith_monster_freedom` is never held again in the area, whatever a crystal reads. Looked at every 200 ms, whatever the league
   announcements' setting. A targeted held monster is still said as the essence ("Esencia: Cretino de sangre, A").
+  **The held monster's pack (2026-11-17, entity dump in the Gruta del titán, the user standing at a crystal):** its minions stand
+  20 to 35 cells around the crystal, alive, hostile, targetable and `Idle`, each with the buff `hidden_monster_disable_minions` (the held
+  rare carries it too); no `MiniMonolith` entity was awake there. They rang as enemies ("siguen sonando los enemigos") and, counted as
+  a fight, kept the crystal's own sound quiet. A monster with that buff within 600 world units of a whole crystal is now held with it
+  (`EssencePrison.PackBuff`, `PackReachWorld`) and freed when the crystal shatters. Live: the six minions and the rare out of play,
+  "Fight: any False", `league_essence` heard again.
 - **Said:** "Esencia agrietada" (transition 2), "Esencia más agrietada" (3), "Esencia liberada: el monstruo ataca" (4); "El foso del
   abismo se abre: monstruos" (pit 2); a pit's end once, by its transition or its icon, whichever reads first.
 - **Listed:** an Abyss fissure while fully open ("Grieta del abismo"), ringing as the Abyss so the nearest leads along the fissure; a
