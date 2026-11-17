@@ -100,6 +100,8 @@ namespace Poe2Accessibility.Tests
             Expect(true, NumberChanges.Said("Reroll: 250", "Reroll: 300", 400, 800) == null, "too soon after the last line");
             Expect(true, NumberChanges.Said("250", "300", 400, 5000) == null, "a bare number");
             Expect(true, NumberChanges.Said("Reroll: 250", "Reroll again", 400, 5000) == null, "more than digits changed");
+            Expect("Nivel de Gema: 13 o menos", NumberChanges.Said("Nivel de Gema: 12 o menos", "Nivel de Gema: 13 o menos", 200, 300, stepped: true) ?? string.Empty, "a range stepped press by press");
+            Expect(true, NumberChanges.Said("Nivel de Gema: 12 o menos", "Nivel de Gema: 13 o menos", 200, 300) == null, "the same, not stepped, waits its gap");
         }
 
         private static void ATickBecomesANumbersChange()

@@ -235,6 +235,7 @@ namespace Poe2Accessibility
                 this.narrator.FocusPending = () => this.focus?.ItemPending == true;
                 this.narrator.PanelOverGame = () => this.PanelOverGame() != null;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
+                this.narrator.SincePress = () => Environment.TickCount64 - this.lastPressAt;
                 this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
                 this.narrator.FocusBehindAnswer = this.FocusOfFinderPress;
                 this.focus.HoverOverFocus = (focused, hovered) =>
@@ -477,6 +478,7 @@ namespace Poe2Accessibility
                 this.narrator.TrialCounterKind = this.semantics.TrialCounterKind;
                 this.narrator.TrialEffectsBeside = this.semantics.TrialEffects;
                 this.semantics.TrialFloorNote = note => this.log?.Info(note);
+                this.semantics.AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty;
                 this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.ascendancy = new AscendancyChoiceWatch(elements, () => this.semantics?.Trials ?? TrialCatalog.Empty, this.output, this.log);
                 this.commands.TreeAnchor = this.PreviewAnchor;

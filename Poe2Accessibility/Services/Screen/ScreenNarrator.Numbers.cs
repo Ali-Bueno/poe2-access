@@ -17,6 +17,11 @@ namespace Poe2Accessibility.Services
 
             var now = Environment.TickCount64;
             var sinceInput = this.SinceConfirm?.Invoke() ?? long.MaxValue;
+            // A field's value stepped by the d-pad and the triggers (the trade market's range: "+1 [cruceta derecha]"): any
+            // press is what changed it, and each step is said over the last.
+            var sincePress = this.SincePress?.Invoke() ?? long.MaxValue;
+            var stepped = focus?.Role == UiRole.TextField && sincePress <= NumberChanges.RecentInputMs;
+            sinceInput = stepped ? Math.Min(sinceInput, sincePress) : sinceInput;
             for (var i = 0; i < change.Texts.Count && i < change.Before.Count; i++)
             {
                 var text = change.Texts[i].Text;
@@ -25,10 +30,10 @@ namespace Poe2Accessibility.Services
                     continue; // the focused control's own value is the focus tracker's to say
                 }
 
-                if (NumberChanges.Said(change.Before[i], text, sinceInput, now - this.numberSaidAt) is { } line)
+                if (NumberChanges.Said(change.Before[i], text, sinceInput, now - this.numberSaidAt, stepped) is { } line)
                 {
                     this.numberSaidAt = now;
-                    this.Speak("number changed after a press", line, false);
+                    this.Speak(stepped ? "value stepped" : "number changed after a press", line, stepped);
                     return;
                 }
             }

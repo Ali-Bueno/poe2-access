@@ -24,6 +24,11 @@ namespace Poe2Accessibility
 
         private bool confirmDown;
 
+        /// <summary>When any pad button last went down (d-pad and triggers included), and the buttons held last frame.</summary>
+        private long lastPressAt = long.MinValue / 2;
+
+        private uint buttonsHeld;
+
         private readonly BlockedMove blockedMove = new();
 
         private uint lastDPad;
@@ -88,6 +93,12 @@ namespace Poe2Accessibility
             }
 
             this.confirmDown = confirm;
+            if ((state.Buttons & ~this.buttonsHeld) != 0)
+            {
+                this.lastPressAt = Environment.TickCount64;
+            }
+
+            this.buttonsHeld = state.Buttons;
             if (!this.Settings.ControllerCommands || this.commands == null)
             {
                 return;

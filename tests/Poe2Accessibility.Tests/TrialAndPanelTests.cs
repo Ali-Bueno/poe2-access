@@ -166,6 +166,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, TrialMap.IsMap(new[] { 1, 3, 4, 3, 5, 3, 6, 1 }), "the floor seen on 2026-11-07");
             Equal(false, TrialMap.IsMap(new[] { 3, 3, 3, 3 }), "a grid of buttons has no entrance");
             Equal(false, TrialMap.IsMap(new[] { 1, 2, 1 }), "too few columns");
+            Equal(true, TrialMap.IsMap(new[] { 1, 3, 4, 6, 1, 1 }), "the trade market's range editor has the shape too: the area tells them apart");
+            Equal(true, TrialHud.IsRunArea("Sanctum_1_Foyer_1"), "a run's floor");
+            Equal(false, TrialHud.IsRunArea("G2_town"), "the caravan, where the trade market was opened");
             Equal(false, TrialMap.IsMap(new[] { 1, 0, 3, 1 }), "and every column holds rooms");
             Equal(false, TrialMap.IsMap(Enumerable.Repeat(1, 31).ToArray()), "no choice of rooms: the Cosmetics panel's 31 slots (2026-11-10)");
             // The user's floor of 2026-11-12 as the game drew it: columns of 1, 3, 3, 4, 5, 4, 6 and 1 rooms.

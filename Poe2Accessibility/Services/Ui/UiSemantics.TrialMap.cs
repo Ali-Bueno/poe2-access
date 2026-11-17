@@ -51,6 +51,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private string TrialRoomPlace(in UiElementReader.ElementInfo room)
         {
+            // Only a run's floor has the map: the columns' shape alone is not enough, the trade market's range editor has six
+            // of 1, 3, 4, 6, 1 and 1 children, and its Confirm button was read as a room and the map's ways reported missing
+            // (user 2026-11-17, in the caravan).
+            if (!TrialHud.IsRunArea(this.AreaId?.Invoke() ?? string.Empty))
+            {
+                return string.Empty;
+            }
+
             var ancestors = this.elements.ReadAncestors(room, 2);
             if (ancestors.Count < 2)
             {
@@ -262,6 +270,9 @@ namespace Poe2Accessibility.Services
                                 $"taken {Convert.ToHexString(taken)}, walk {(walk.Count > 0 ? string.Join(",", walk) : "none: the player's room is the one the map marks")}");
             return (links, walk);
         }
+
+        /// <summary>The WorldAreas id of the area the player is in; the Trial's map is read only on a run's floor.</summary>
+        public Func<string>? AreaId { get; set; }
 
         /// <summary>Told what the floor read as, once a reading: the plugin's log, to check the links against the map heard.</summary>
         public Action<string>? TrialFloorNote { get; set; }

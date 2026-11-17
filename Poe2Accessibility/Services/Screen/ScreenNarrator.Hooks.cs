@@ -45,6 +45,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Milliseconds since the confirm button (A) was last pressed.</summary>
         public Func<long>? SinceConfirm { get; set; }
 
+        /// <summary>Milliseconds since any pad button last went down (the d-pad and the triggers included).</summary>
+        public Func<long>? SincePress { get; set; }
+
         /// <summary>Milliseconds since a direction (d-pad or a stick) was last held.</summary>
         public Func<long>? SinceDirection { get; set; }
 
