@@ -235,7 +235,6 @@ namespace Poe2Accessibility
                 this.narrator.FocusPending = () => this.focus?.ItemPending == true;
                 this.narrator.PanelOverGame = () => this.PanelOverGame() != null;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
-                this.narrator.SincePress = () => Environment.TickCount64 - this.lastPressAt;
                 this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
                 this.narrator.FocusBehindAnswer = this.FocusOfFinderPress;
                 this.focus.HoverOverFocus = (focused, hovered) =>
