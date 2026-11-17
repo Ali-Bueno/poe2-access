@@ -1383,6 +1383,7 @@
  "{0} {1} Speech backend {2}.": "{0} {1} Sprachausgabe {2}.",
  "{0} {1} of {2}": "{0} {1} von {2}",
  "{0} {1} percent": "{0} {1} Prozent",
+ "{0} {1}, minus {2}": "{0} {1}, minus {2}",
  "{0} {1}, not enough": "{0} {1}, nicht genug",
  "{0} {1}, plus {2}": "{0} {1}, plus {2}",
  "{0} {1}, then {2}": "{0} {1}, dann {2}",
