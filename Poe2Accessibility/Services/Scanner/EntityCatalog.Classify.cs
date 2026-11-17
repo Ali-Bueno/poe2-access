@@ -113,7 +113,8 @@ namespace Poe2Accessibility.Services
                 // a body searched for loot sounded like a chest (2026-10-28).
                 kind = Switches.IsSwitch(path) ? "switch" : Breakables.IsCorpse(path) ? "corpse"
                     : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
-                sound = kind == "breakable" ? Breakables.Material(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound : string.Empty;
+                sound = kind == "breakable" ? Breakables.Material(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound
+                    : kind == "chest" && LeaguePieces.IsAbyssChest(path) ? LeaguePieces.AbyssChestSound : string.Empty;
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {

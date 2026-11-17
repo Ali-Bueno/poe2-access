@@ -335,6 +335,7 @@ namespace Poe2Accessibility.Services
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),
             // A league's own recording; a strongbox is a chest until the sounds are extracted again.
             LeaguePieces.StrongboxSound => this.sounds.Get(LeaguePieces.StrongboxSound) ?? this.sounds.Get("chest"),
+            LeaguePieces.AbyssChestSound => this.sounds.Get(LeaguePieces.AbyssChestSound) ?? this.sounds.Get("chest"),
             var league when league.StartsWith(LeaguePieces.SoundPrefix, StringComparison.Ordinal) => this.sounds.Get(league),
             "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),

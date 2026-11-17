@@ -324,8 +324,20 @@ namespace Poe2Accessibility.Services
         public const string VaalSound = SoundPrefix + "vaal";
         public const string StrongboxSound = SoundPrefix + "strongbox";
 
+        /// <summary>
+        ///     An Abyss pit's chest (Arsenal, Armería, Tesoro, Cofre, Alijo abisal, their large and final kinds; Chests.dat rows
+        ///     84-123): it sounded like any chest and was walked past (user 2026-11-17). Not a strongbox, not the Abyssal Depths'
+        ///     plain chests.
+        /// </summary>
+        public const string AbyssChestSound = SoundPrefix + "abyss_chest";
+
+        /// <summary>Whether a chest's file is an Abyss pit's chest: <c>Metadata/Chests/Abyss/AbyssChest…</c>, <c>…/AbyssLargeChest…</c>, <c>Metadata/Chests/AbyssChest01</c>.</summary>
+        public static bool IsAbyssChest(string path) =>
+            path.StartsWith("Metadata/Chests/", StringComparison.Ordinal) &&
+            (path.Contains("/AbyssChest", StringComparison.Ordinal) || path.Contains("/AbyssLargeChest", StringComparison.Ordinal));
+
         /// <summary>Every league sound, for the extractor's cues and the glossary.</summary>
-        public static readonly string[] Sounds = { BreachSound, DeliriumSound, EssenceSound, ExpeditionSound, AbyssSound, SpiritSound, VaalSound, StrongboxSound };
+        public static readonly string[] Sounds = { BreachSound, DeliriumSound, EssenceSound, ExpeditionSound, AbyssSound, SpiritSound, VaalSound, StrongboxSound, AbyssChestSound };
 
         /// <summary>
         ///     The sound a league's object rings with, by its piece or, for one the table does not hold, by its folder; empty for

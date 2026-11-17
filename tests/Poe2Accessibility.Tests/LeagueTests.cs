@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(WhatAChargeWouldBlowIsSaidOnChangeAndNotTooOften), WhatAChargeWouldBlowIsSaidOnChangeAndNotTooOften),
             (nameof(LeagueLinesReadAsTheGameWritesThem), LeagueLinesReadAsTheGameWritesThem),
             (nameof(AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters), AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters),
+            (nameof(AnAbyssPitsChestRingsAsItself), AnAbyssPitsChestRingsAsItself),
             (nameof(ATransitionIsReadOnlyWhenItCanBeOne), ATransitionIsReadOnlyWhenItCanBeOne),
             (nameof(AnEssenceCracksAndAnAbyssOpensByTheirTransitions), AnEssenceCracksAndAnAbyssOpensByTheirTransitions),
             (nameof(TheFindsNoChargeReachesAreCountedOnceTheStateReads), TheFindsNoChargeReachesAreCountedOnceTheStateReads),
@@ -295,6 +296,17 @@ namespace Poe2Accessibility.Tests
             Equal("Shrine of something", Announcements.LesserShrine("Shrine of something", "shrine_new"), "a buff of none of the six: the name alone");
         }
 
+        private static void AnAbyssPitsChestRingsAsItself()
+        {
+            Equal(true, LeaguePieces.IsAbyssChest("Metadata/Chests/Abyss/AbyssChestWeapons"), "the Abyssal Arsenal (Chests.dat 87)");
+            Equal(true, LeaguePieces.IsAbyssChest("Metadata/Chests/Abyss/AbyssChestRareFinalArmour"), "the Abyssal Armoury, rare, the last pit's");
+            Equal(true, LeaguePieces.IsAbyssChest("Metadata/Chests/Abyss/AbyssLargeChestGeneric"), "a large Abyssal Trove");
+            Equal(true, LeaguePieces.IsAbyssChest("Metadata/Chests/AbyssChest01"), "the Hoard");
+            Equal(false, LeaguePieces.IsAbyssChest("Metadata/Chests/Abyss/AbyssStrongboxWeapons"), "a strongbox rings as a strongbox");
+            Equal(false, LeaguePieces.IsAbyssChest("Metadata/Chests/Abyss/AbyssDepthsChest"), "the Depths' plain chest is a chest");
+            Equal(false, LeaguePieces.IsAbyssChest("Metadata/MiscellaneousObjects/Abyss/AbyssChestSpawner"), "not a chest's file");
+        }
+
         private static void AMonsterInAnEssenceCrystalIsOutOfTheFightUntilItShatters()
         {
             Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/Monolith@24"), "an essence's crystal, whatever its instance tail");
@@ -315,9 +327,16 @@ namespace Poe2Accessibility.Tests
             Equal(false, EssencePrison.IsShattered(null), "unread is not shattered: the crystal stays listed");
 
             var crystals = new[] { new Vector2(1000f, 1000f) };
-            var held = EssencePrison.Held(crystals, new[] { (7u, new Vector2(1004f, 998f)), (8u, new Vector2(1200f, 1000f)) });
+            var held = EssencePrison.Held(crystals, new[] { (7u, new Vector2(1004f, 998f), false), (8u, new Vector2(1200f, 1000f), false) });
             Equal("7", string.Join(" ", held), "the monster standing in the crystal is held, one a few steps off is not");
-            Equal(0, EssencePrison.Held(Array.Empty<Vector2>(), new[] { (7u, new Vector2(1004f, 998f)) }).Count, "no whole crystal: nobody is held");
+            Equal(0, EssencePrison.Held(Array.Empty<Vector2>(), new[] { (7u, new Vector2(1004f, 998f), false) }).Count, "no whole crystal: nobody is held");
+            var pack = EssencePrison.Held(crystals, new[]
+            {
+                (9u, new Vector2(1380f, 1000f), true),
+                (10u, new Vector2(1000f + EssencePrison.PackReachWorld + 1, 1000f), true),
+            });
+            Equal("9", string.Join(" ", pack), "the held monster's pack around the crystal is held too (user 2026-11-17), not beyond its reach");
+            Equal(0, EssencePrison.Held(Array.Empty<Vector2>(), new[] { (9u, new Vector2(1380f, 1000f), true) }).Count, "the crystal shattered: its pack is freed with it");
 
             EssencePrison.Publish(held);
             Equal(true, EssencePrison.Holds(7), "told to every reader that asks whether a monster is in the fight");

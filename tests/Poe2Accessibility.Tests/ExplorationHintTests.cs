@@ -31,7 +31,7 @@ namespace Poe2Accessibility.Tests
             Equal(LeaguePieces.AbyssSound, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Abyss/SomethingNew"), "an object the table does not hold, by its league's folder");
             Equal(string.Empty, LeaguePieces.SoundOf("Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable"), "the Ritual altar keeps its own");
             Equal(string.Empty, LeaguePieces.SoundOf("Metadata/MiscellaneousObjects/Stash"), "anything else has none");
-            Equal(LeaguePieces.Sounds.Length, new HashSet<string>(LeaguePieces.Sounds).Count, "eight sounds, each its own key");
+            Equal(LeaguePieces.Sounds.Length, new HashSet<string>(LeaguePieces.Sounds).Count, "each league sound its own key");
         }
 
         private static void AChaosRoundIsToldByItsPieces()
