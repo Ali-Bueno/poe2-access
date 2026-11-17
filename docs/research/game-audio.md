@@ -41,12 +41,14 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | closed_door | PrecursorDoor | PrecursorDoor_Mechanic_01 (a door's mechanism clicking, 0.26 s; the user's pick, see [a door to open](#a-door-to-open-2026-11-14)) |
 | league_breach | BreachEncounterPortal | Environment_Breach_Portal_Open_01 (see [league encounters](#league-encounters-2026-11-14)) |
 | league_delirium | Four_Delirium | Delirium_UI_SpecialReveal_01 (the user's pick, C) |
-| league_essence | EssenceMonoliths | Environment_Endgame_EssenceMonoliths_Break_Foley_01 (the user's pick, C) |
+| league_essence | EssenceMonoliths | Environment_Endgame_EssenceMonoliths_Break_Foley_01 (the user's pick, C; RMS 0.13 since 2026-11-17, a little louder at the user's word) |
 | league_expedition | ExplosivesMechanic_Expedition | ActivatePlunger_01 (the detonator's plunger) |
 | league_abyss | Abyss_General | Abyss_QuestStart |
 | league_spirit | Four_TormentedSpirits | TormentedSpirit_Possession_Effect_Activate_02 (the user's pick, C) |
 | league_vaal | Four_Incursion | StartEncounter_01 |
-| league_strongbox | Strongboxes | Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01 (the user's pick, C) |
+| league_strongbox | Strongboxes | Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01 (the user's pick, C; RMS 0.16 since 2026-11-17, heard too quiet at 0.10, peaks 0.62) |
+| league_abyss_chest | AbyssChests | Abyss_Chest02_Effects_Open_01 (an Abyss pit's chest, told from a plain chest; candidate A of four on [its page](https://claude.ai/artifact/L1FD3Pt7LByCJGXGEzHKdR), not yet picked by ear) |
+| boss_refuge_over | Endgame_Shrines | Environment_KaruiBarrier_Release_01 (2 s, RMS 0.16: a boss fight's shelter is over; the user's pick, C, see [a boss fight's shelter](#a-boss-fights-shelter-2026-11-17)) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
@@ -61,6 +63,7 @@ checked for a steady level (RMS of 100 ms windows) and distinct spectra.
 | portal | PortalScrollPortal | PortalScroll_Effects_Po_IdleActive_01 | 4 s, mid (centroid ~2.2 kHz) |
 | waypoint | Waypoint4.0 | WaypointActive_01 | 19 s, low hum, very steady |
 | checkpoint | BossCheckpoints | BossCheckpoints_Loop_01 | 19 s, bright (~3.9 kHz), steady |
+| boss_refuge | HoodedMentor_Forge | TwilightOrder_GuardBoss_Effects_Descry_LOOP_02 | 4.6 s, a holy shimmer; the boss shelter's lead ([below](#a-boss-fights-shelter-2026-11-17)) |
 | ~~exit~~ | UI_General | WorldAreaTransition_02, frozen | 6 s of 120 ms grains from its 0.05–0.5 s (granular freeze); dropped 2026-11-02 |
 
 Area transitions have no idle sound of their own, and the crossing sounds (`WorldAreaTransition_02`, `Travel_1..3`)
@@ -218,6 +221,9 @@ Now: its own sound once as it opens, in full from wherever it stands (`ObjectSou
 the scanner's objects, sounding like any other object within 2600 world units (twice the usual range, not measured against a
 room), until the player has stood within 200 of it and walked 300 away, it shuts again, or the area is left or loaded again
 (`OpenedWays`, unit-tested). Its volume and its line in the glossary are "Paso abierto", under Objects and places.
+Only the latest opening sounds (2026-11-17): the user followed an Abyss fissure from pit to pit, each closed pit opening its
+ground (`AbyssFinalNodeBase`), and the earlier ones still rang, "me confunde hacia donde tengo que ir". A way that opens now drops
+the ways of an earlier opening; ways opened within 2 s are one opening (a boss door's two halves, 13 ms apart).
 
 The sound is the user's pick, **E** (2026-11-12, "me gustó el sonido e"): eight recordings of the game were put on an
 [audition page](https://claude.ai/artifact/YXXaB4zZL4G9fGHfTX7CtB) beside the exit, the lever, the quest item, the checkpoint, the
@@ -351,3 +357,21 @@ its eight parameter sets are in the recipe, the click's noise is seeded by the d
 **Check against the owner's hand-installed play copy** (2026-11-16, 219 of 220 files compared): duration equal to 0.05%,
 RMS within 0.02 dB, correlation 0.9993 or better for all but one file (cave drop 4, 0.993, whose click noise differs: Python's
 generator is not reproduced). The one not reproduced: the silent desert `event_B4`, dropped on purpose.
+
+## A boss fight's shelter (2026-11-17)
+
+Jamanra, the Abomination's sandstorm puts `perennial_king_sand_storm` on the player inside Asala's barrier too, so the
+ground alarm kept sounding there; the user, not told to stay, walked out twice and died. Now, while a fight's shelter is up
+(`BossPlacesWatch.RefugeUp`), the ground alarm is quiet (`HazardWatch.Quiet`). The way to the shelter is a loop played from
+its side, louder as it nears (`ProximityFade`, far gain 0.3) and silent once the shelter's buff is on the player
+(`WeakPointGuide.RefugeLoop`; the heartbeat when the loop is missing). "A cubierto, quédate hasta el aviso" is said on
+arrival; when the shelter has been down for 600 ms (`RefugeEnd`), `boss_refuge_over` plays (read whole up to 2 s,
+`GameSounds.LoadOne`) with "Peligro pasado, puedes moverte".
+
+Chosen by ear on [the audition page](https://claude.ai/artifact/J3j1ZeoyZzvNx3dCNhCB5T) over six rounds. These were
+rejected: one-shot pulses from Asala's and Jamanra's banks; four of the mod's own synth chimes; loops judged too dark
+(holy wall, shrines, Karui whispers); loops judged too high (wisps, crystals); and sacred loops (divinity throne, temple
+sun, purity aura). Round five came from a name search of all 197,558 samples (`names.py`-style read of each bank's FSB5
+name table, 3 s). The Twilight Order's holy book and beam came close, and their sibling `Descry_LOOP` won. For the end,
+the Karui barrier's release won over a shrine stinger, a shrine activation, sand magic and a twilight shrine.
+

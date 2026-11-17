@@ -53,6 +53,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Where the heartbeat leads in a boss fight: a hiding boss, the way out of its walls, a place of its arena; null when nowhere.</summary>
         public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? (this.WayOut is { } wayOut ? (wayOut, 0f) : this.places?.Lead);
 
+        /// <summary>The heartbeat leads to the fight's shelter (Asala's barrier): it takes the shelter's own sound.</summary>
+        public bool LeadsToRefuge => this.Hiding == null && this.WayOut == null && this.places?.LeadKind == BossPlaceKind.Refuge;
+
+        /// <summary>A shelter of the fight is up: the ground alarm is silent, since the shelter is the way out of the boss's storm.</summary>
+        public bool RefugeUp => this.places?.RefugeUp ?? false;
+
+        /// <summary>Plays the cue that the shelter is no longer needed.</summary>
+        public Action? RefugeOverCue { get; set; }
+
         /// <summary>
         ///     Whether an entity's attacks are a fought boss's own even while the game hides it: the boss itself, out of play, or
         ///     an invisible helper that strikes for it (<see cref="BossMechanicsCatalog.IsDaemon(string, string)"/>).
@@ -172,6 +181,12 @@ namespace Poe2Accessibility.Services
             }
 
             said.AddRange(this.places.Poll(this.Catalog, fighting.Select(boss => (boss.Monster, boss.At)).ToList(), this.playerBuffs.Sheltered, this.Heartbeat(), now));
+            if (this.places.RefugeOver)
+            {
+                this.log.Info("Boss fight: the shelter is over, the player can move freely");
+                this.RefugeOverCue?.Invoke();
+                said.Add(Announcements.BossRefugeOver());
+            }
             this.calm.AddRange(this.places.Told);
             foreach (var (at, area) in this.places.HelperNews)
             {

@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ACountIsSaidOnceItHoldsStill), ACountIsSaidOnceItHoldsStill),
             (nameof(ACoverIsStoodBehindAsSeenFromTheBoss), ACoverIsStoodBehindAsSeenFromTheBoss),
             (nameof(TheMostPressingPlaceLeads), TheMostPressingPlaceLeads),
+            (nameof(TheShelterEndsOnceItStaysDown), TheShelterEndsOnceItStaysDown),
             (nameof(AThingToUseIsToldOfOnceAndNeverLedTo), AThingToUseIsToldOfOnceAndNeverLedTo),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
             (nameof(TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes), TheCellOfAnUndrawnEntityIsFoundFromDrawnOnes),
@@ -257,11 +258,30 @@ namespace Poe2Accessibility.Tests
             Equal("Refuge,Clone,Use", string.Join(",", news.Select(line => line.Kind)), "each said, the most pressing first; a refuge that is not up is none");
             Equal("True,True,False", string.Join(",", news.Select(line => line.Pressing)), "the shelter and the clone press, the lever does not");
             Equal(new Vector2(0, 900), places.Lead!.Value.At, "the shelter first");
+            Equal(BossPlaceKind.Refuge, places.LeadKind, "with the shelter's own sound");
             places.Update(sights, player, 10f, true);
             Equal(new Vector2(800, 0), places.Lead!.Value.At, "sheltered: the next kind");
+            Equal(BossPlaceKind.Clone, places.LeadKind, "and the heartbeat again");
             Equal(0, places.Update(sights, player, 10f, false).Count, "nothing is said twice");
             places.Update(sights.Take(2).ToList(), player, 10f, false);
             Equal(1, places.Update(sights, player, 10f, false).Count, "a shelter that comes up again is said again");
+        }
+
+        private static void TheShelterEndsOnceItStaysDown()
+        {
+            var end = new RefugeEnd();
+            Equal(false, end.Update(false, 0), "never up: nothing ends");
+            Equal(false, end.Update(true, 1000), "up");
+            Equal(false, end.Update(false, 1300), "one read down is not the end");
+            Equal(false, end.Update(true, 1500), "up again");
+            Equal(false, end.Update(false, 1800), "down a moment");
+            Equal(true, end.Update(false, 1500 + RefugeEnd.GoneMs), "down long enough: the player can move");
+            Equal(false, end.Update(false, 5000), "said once");
+            end.Update(true, 6000);
+            end.Reset();
+            Equal(false, end.Update(false, 9000), "a reset (the fight over) says nothing");
+            Equal("Danger over, move freely", Announcements.BossRefugeOver(), "its line");
+            Equal("Sheltered, stay until the all-clear", Announcements.BossSheltered(true), "in the shelter, told to stay");
         }
 
         private static void AThingToUseIsToldOfOnceAndNeverLedTo()

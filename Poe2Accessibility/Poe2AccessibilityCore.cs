@@ -132,6 +132,9 @@ namespace Poe2Accessibility
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
 
+        /// <summary>The cue that a boss fight's shelter is over is meant to be heard through a fight: longer than the others.</summary>
+        private const float RefugeOverSeconds = 2f;
+
         /// <summary>No area goes past this level (endgame maps reach the 80s); a larger number is a broken read.</summary>
         private const int MaxAreaLevel = 100;
 
@@ -348,7 +351,11 @@ namespace Poe2Accessibility
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
                 this.bosses.Defeated = name => this.entities?.BossDefeated(name);
-                this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log) { Hiding = () => this.bosses?.Mechanics?.LeadTo };
+                this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log)
+                {
+                    Hiding = () => this.bosses?.Mechanics?.LeadTo,
+                    LeadsToRefuge = () => this.bosses?.Mechanics?.LeadsToRefuge ?? false,
+                };
                 this.arenaLog = new BossArenaLog(this.log) { Fighting = () => this.bosses?.Mechanics?.Fighting };
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
@@ -357,7 +364,7 @@ namespace Poe2Accessibility
                 this.bosses.CanParry = () => skills.Has(PlayerSkills.Parry);
                 var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
-                this.hazards = new HazardWatch(this.audio, hazardGround, this.log);
+                this.hazards = new HazardWatch(this.audio, hazardGround, this.log) { Quiet = () => this.bosses?.Mechanics?.RefugeUp ?? false };
                 var harmfulBuffs = HarmfulBuffs.Load(Path.Join(this.DllDirectory, "catalog", "buff-names.json"));
                 this.log.Info($"Harmful buffs: {harmfulBuffs.Count} named by the game files");
                 this.alerts.Statuses.Harmful = harmfulBuffs;
@@ -401,6 +408,12 @@ namespace Poe2Accessibility
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.deployed.GameSound = gameSounds.Get;
+                this.weakPoint.RefugeLoop = gameSounds.GetLoop(BossRefugeSounds.Lead);
+                if (GameSounds.LoadOne(Path.Join(this.DllDirectory, "sounds", BossRefugeSounds.Over + ".wav"), RefugeOverSeconds) is { } refugeOver &&
+                    this.bosses.Mechanics is { } bossMechanics)
+                {
+                    bossMechanics.RefugeOverCue = () => this.audio.Play(refugeOver, 0f, 1f, this.weakPoint?.Gain ?? 1f, BossRefugeSounds.Over);
+                }
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
                 var diabloSounds = GameSounds.LoadLoops(Path.Join(this.DllDirectory, "assets", ItemSoundSet.Folder), this.log);

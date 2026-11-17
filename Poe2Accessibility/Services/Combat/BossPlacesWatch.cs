@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Services
         private readonly EntityPlaces positions;
         private readonly PluginLog log;
         private readonly BossPlaces places = new();
+        private readonly RefugeEnd refugeEnd = new();
         private readonly BossHelperWarnings helperWarnings = new();
         private readonly Dictionary<uint, string> names = new();
         private readonly Dictionary<uint, (IReadOnlyList<BossPlaceRule> Rules, string? Helper)> kinds = new();
@@ -49,8 +50,14 @@ namespace Poe2Accessibility.Services
         /// <summary>Where the heartbeat leads (world) and how wide the place is; null when nowhere.</summary>
         public (Vector2 At, float Radius)? Lead => this.places.Lead;
 
+        /// <summary>The kind of place the heartbeat leads to; null when nowhere.</summary>
+        public BossPlaceKind? LeadKind => this.places.LeadKind;
+
         /// <summary>A shelter of the fight is up.</summary>
         public bool RefugeUp { get; private set; }
+
+        /// <summary>The fight's shelter ended at the last poll while the player lives: they can move freely again.</summary>
+        public bool RefugeOver { get; private set; }
 
         /// <summary>The helpers whose danger reached the player at the last poll: where each stands and the area that holds the player, when the files draw one.</summary>
         public IReadOnlyList<(Vector2 At, AttackArea? Area)> HelperNews { get; private set; } = Array.Empty<(Vector2, AttackArea?)>();
@@ -58,6 +65,7 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.places.Reset();
+            this.refugeEnd.Reset();
             this.helperWarnings.Reset();
             this.names.Clear();
             this.kinds.Clear();
@@ -75,6 +83,7 @@ namespace Poe2Accessibility.Services
         {
             this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
             this.Told = Array.Empty<string>();
+            this.RefugeOver = false;
             if (fighting.Count == 0)
             {
                 if (this.kinds.Count > 0)
@@ -105,6 +114,7 @@ namespace Poe2Accessibility.Services
             var reached = this.helperWarnings.Update(this.helpers.Select(helper => (helper.Id, helper.Area != null)).ToList(), now);
             this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
             this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
+            this.RefugeOver = this.refugeEnd.Update(this.RefugeUp, now) && Seats.Followed.TryGetComponent<Life>(out var life) && life.IsAlive;
             var (lines, told) = (new List<string>(), new List<string>());
             foreach (var news in this.places.Update(this.sights, here, player.ModelBounds.X, sheltered))
             {

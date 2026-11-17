@@ -409,7 +409,11 @@ mechanic, the run-time signal: a state, a buff id, an entity path, the skill's a
   0.15 )`: the buff on the player means sheltered, refreshed every 0.15 s. Asala's state `sandstorm_defence`=1 plays her line
   `AsalaWildGatesTen` ("Quickly! He conjures the very sands against us!") and her barrier (`shields_up` at 1.43 s). The room
   (`2_12_2/…/boss_cart.arm`) has 8 defence markers in two rows ~315 world units either side of the middle. **At run time:**
-  lead to Asala while `sandstorm_defence`=1; say the shelter reached when the buff appears.
+  lead to Asala while `sandstorm_defence`=1; say the shelter reached when the buff appears. **Live 2026-11-17:** the
+  buff `asala_sand_shield_79` comes from `Objects/MatriarchSandstormDefence` (two appear as the barrier rises), and the
+  storm's `perennial_king_sand_storm_79` stays on the player inside it, pulsed. The end of the storm is taken as Asala's
+  `sandstorm_defence` back to 0 (the shelter down 600 ms); not yet seen live, since the player died inside both storms
+  ([shelter sounds](game-audio.md#a-boss-fights-shelter-2026-11-17)).
 - **Zalmarath.** The sword is `SOTitanBossStalagmite` → `Metadata/Monsters/TitanBoss/BrainStalagmite` (a blockage). The
   blast is `GSTitanBossMegaBlast`, a 90° cone of length 150 on `sword_blast_0x` (`plant_sword` at 1.29 s, `nuke` at 5.77 s,
   then a hit every 0.1-0.2 s); the eye beam's hits (`GSTitanBossLaserImpact`) "can be blocked from all directions".

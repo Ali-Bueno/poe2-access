@@ -75,6 +75,9 @@ namespace Poe2Accessibility.Services
         public int Count => this.sounds.Count;
 
         /// <summary>Loads every <c>name.wav</c> of <paramref name="directory"/>; a missing folder gives an empty set.</summary>
+        /// <summary>One sound read up to <paramref name="maxSeconds"/>, for a cue longer than its folder's cap; null when it is not there.</summary>
+        public static float[]? LoadOne(string path, float maxSeconds) => File.Exists(path) ? ReadWav(File.ReadAllBytes(path), maxSeconds, true) : null;
+
         public static GameSounds Load(string directory, float maxSeconds, PluginLog log)
         {
             var set = new GameSounds(directory, maxSeconds);

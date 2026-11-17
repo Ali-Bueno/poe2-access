@@ -30,6 +30,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Alarm gain under the master volume.</summary>
         public float Gain { get; set; } = 1f;
 
+        /// <summary>
+        ///     The alarm keeps quiet: a boss fight's shelter is up, so the ground is the boss's storm, which fills the arena and
+        ///     touches the player inside the shelter too (Jamanra's sandstorm under Asala's barrier); the barrier's own beat leads.
+        /// </summary>
+        public Func<bool> Quiet { get; set; } = () => false;
+
         /// <summary>Per frame; off, dead or in a menu it falls silent.</summary>
         public void Tick(bool playing)
         {
@@ -38,7 +44,7 @@ namespace Poe2Accessibility.Services
             {
                 this.lastPoll = now;
                 var hazard = Seats.Followed.TryGetComponent<Buffs>(out var buffs) ? buffs.StatusEffects.Keys.FirstOrDefault(this.hazards.IsHazard) : null;
-                this.inHazard = hazard != null;
+                this.inHazard = hazard != null && !this.Quiet();
                 if (hazard != null && hazard != this.logged)
                 {
                     this.log.Info($"Hazard ground: {hazard}");

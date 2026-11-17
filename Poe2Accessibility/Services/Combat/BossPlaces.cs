@@ -35,6 +35,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Where the beat leads now (world) and how wide the place is; null when nowhere.</summary>
         public (Vector2 At, float Radius)? Lead { get; private set; }
 
+        /// <summary>The kind of place the beat leads to; null when nowhere.</summary>
+        public BossPlaceKind? LeadKind { get; private set; }
+
         /// <summary>Whether the player is led to a place of this kind.</summary>
         public static bool Leads(BossPlaceKind kind) => kind is BossPlaceKind.Refuge or BossPlaceKind.Clone or BossPlaceKind.Cover;
 
@@ -44,6 +47,7 @@ namespace Poe2Accessibility.Services
             this.toldOf.Clear();
             this.reached.Clear();
             this.Lead = null;
+            this.LeadKind = null;
         }
 
         public IReadOnlyList<BossPlaceNews> Update(IReadOnlyList<BossPlaceSight> sights, Vector2 player, float playerRadius, bool sheltered)
@@ -53,6 +57,7 @@ namespace Poe2Accessibility.Services
             this.saidIds.RemoveWhere(id => active.All(sight => sight.Id != id)); // one that comes back is said again
             this.reached.RemoveWhere(id => active.All(sight => sight.Id != id));
             (Vector2 At, float Radius)? lead = null;
+            BossPlaceKind? leadKind = null;
             foreach (var sight in active)
             {
                 var to = Target(sight, playerRadius);
@@ -87,10 +92,12 @@ namespace Poe2Accessibility.Services
                 if (leads && lead == null)
                 {
                     lead = (to, radius);
+                    leadKind = sight.Kind;
                 }
             }
 
             this.Lead = lead;
+            this.LeadKind = leadKind;
             return news;
         }
 

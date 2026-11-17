@@ -22,6 +22,11 @@ namespace Poe2Accessibility.Services
         /// <summary>At the head the beat drops to this share of its gain, so the fight's own sounds come through.</summary>
         private const float AtPartGain = 0.6f;
 
+        /// <summary>The shelter's loop at the far end of a fight (<see cref="BeaconMath.FarWorld"/>): this share of its full gain.</summary>
+        private const float RefugeFarGain = 0.3f;
+
+        private AudioCueService.Bed? refugeBed;
+
         private readonly AudioCueService audio;
         private readonly IAccessibilityOutputService output;
         private readonly UiElementReader elements;
@@ -52,6 +57,18 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a boss hides until the player finds it (<see cref="BossMechanicsWatch.Hiding"/>): the beat leads there first.</summary>
         public Func<(Vector2 At, float Radius)?> Hiding { get; set; } = () => null;
 
+        /// <summary>Whether <see cref="Hiding"/> leads to a boss fight's shelter, which beats with <see cref="RefugeBeat"/>.</summary>
+        public Func<bool> LeadsToRefuge { get; set; } = () => false;
+
+        /// <summary>
+        ///     The shelter's own loop from the game's banks, played without a break from the shelter's side, louder as the player
+        ///     nears it and silent once inside; without it the heartbeat leads there.
+        /// </summary>
+        public float[]? RefugeLoop
+        {
+            set => this.refugeBed = value == null ? null : this.audio.AddBed(value, BossRefugeSounds.Lead);
+        }
+
         /// <summary>A new area: no boss is known.</summary>
         public void Reset()
         {
@@ -65,14 +82,26 @@ namespace Poe2Accessibility.Services
         {
             if (!playing || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
+                this.refugeBed?.Set(0f, 0f);
                 return;
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            if (this.Hiding() is { } hidden)
+            var hidden = this.Hiding();
+            if (hidden is { } shelter && this.LeadsToRefuge() && this.refugeBed != null)
             {
                 this.Lose();
-                this.Beat(player, hidden.At - here, Vector2.Distance(hidden.At, here) - hidden.Radius - player.ModelBounds.X);
+                var gap = Math.Max(0f, Vector2.Distance(shelter.At, here) - shelter.Radius - player.ModelBounds.X);
+                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, shelter.At - here));
+                this.refugeBed.Set(pan, this.Gain * ProximityFade.Gain(gap, BeaconMath.FarWorld, RefugeFarGain), pitch);
+                return;
+            }
+
+            this.refugeBed?.Set(0f, 0f);
+            if (hidden is { } place)
+            {
+                this.Lose();
+                this.Beat(player, place.At - here, Vector2.Distance(place.At, here) - place.Radius - player.ModelBounds.X);
                 return;
             }
 

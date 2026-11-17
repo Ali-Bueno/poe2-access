@@ -98,7 +98,10 @@ namespace Poe2Accessibility
         public static string BossFed() => T("Its adds empower it", "Sus esbirros lo fortalecen");
 
         /// <summary>The player inside a boss fight's shelter, or out of it while it is still needed.</summary>
-        public static string BossSheltered(bool inside) => inside ? T("Sheltered", "A cubierto") : T("Out of the shelter", "Fuera del refugio");
+        public static string BossSheltered(bool inside) => inside ? T("Sheltered, stay until the all-clear", "A cubierto, quédate hasta el aviso") : T("Out of the shelter", "Fuera del refugio");
+
+        /// <summary>The boss fight's shelter is no longer needed (the storm it kept off is over).</summary>
+        public static string BossRefugeOver() => T("Danger over, move freely", "Peligro pasado, puedes moverte");
 
         /// <summary>The boss starts an attack that seizes the player.</summary>
         public static string BossGrab() => T("Grab!", "¡Agarre!");

@@ -76,6 +76,12 @@ namespace Poe2Accessibility.Services
             this.Add("crosshair", CueSynth.Crosshair(rate));
 
             this.Add("weak_point", CueSynth.Heartbeat(rate));
+            if (gameSounds.GetLoop(BossRefugeSounds.Lead) is { } refuge)
+            {
+                this.Add(BossRefugeSounds.Lead, Excerpt(refuge, rate));
+            }
+
+            this.AddGame(gameSounds, rate, BossRefugeSounds.Over);
             foreach (var state in Enum.GetValues<EnemyState>())
             {
                 this.Add($"state_{state}", CueSynth.StateCue(state, rate));
@@ -116,7 +122,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
 
             this.AddGame(gameSounds, rate, "exit", "portal", "waypoint", "checkpoint", MinimapMarks.StashKind, MinimapMarks.WellKind, MinimapMarks.SignKind, OpenedWays.Kind, ClosedDoors.Kind, LeaguePieces.BreachSound, LeaguePieces.DeliriumSound, LeaguePieces.EssenceSound, LeaguePieces.ExpeditionSound,
-                LeaguePieces.AbyssSound, LeaguePieces.SpiritSound, LeaguePieces.VaalSound, LeaguePieces.StrongboxSound, "chest", "corpse", "breakable", "switch", "shrine", "ritual");
+                LeaguePieces.AbyssSound, LeaguePieces.SpiritSound, LeaguePieces.VaalSound, LeaguePieces.StrongboxSound, LeaguePieces.AbyssChestSound, "chest", "corpse", "breakable", "switch", "shrine", "ritual");
             this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
             this.Add("npc_quest", CueSynth.Ring(rate));
             this.Add("player", CueSynth.Enemy(CueSynth.Layer.Player, rate));

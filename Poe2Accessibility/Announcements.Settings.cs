@@ -143,6 +143,8 @@ namespace Poe2Accessibility
             "hazard" => T("Harmful ground", "Suelo peligroso"),
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
+            Services.BossRefugeSounds.Lead => T("Boss fight shelter", "Refugio en un combate de jefe"),
+            Services.BossRefugeSounds.Over => T("Shelter no longer needed", "Ya no hace falta el refugio"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
             Services.PerfectTimingWatch.SoundKey => T("Perfect Timing", "Momento perfecto"),
             "cull" => T("Culling Strike", "Golpe de gracia"),
@@ -210,6 +212,7 @@ namespace Poe2Accessibility
             Services.LeaguePieces.SpiritSound => T("Azmeri spirit", "Espíritu azmeri"),
             Services.LeaguePieces.VaalSound => T("Vaal Beacon", "Foco vaal"),
             Services.LeaguePieces.StrongboxSound => T("Strongbox", "Caja fuerte"),
+            Services.LeaguePieces.AbyssChestSound => T("Abyssal chest", "Cofre abisal"),
             "npc_quest" => T("Character with a quest", "Personaje con misión"),
             Services.DiscoveryNarrator.SoundKey => T("Discovery", "Descubrimiento"),
             _ => key,
@@ -258,6 +261,12 @@ namespace Poe2Accessibility
             _ when StateOfSound(key) is not null => T(
                 "an enemy on that side has just been put in this state; a rare or unique one is named too",
                 "un enemigo de ese lado acaba de quedar en este estado; si es raro o único, también se nombra"),
+            Services.BossRefugeSounds.Lead => T(
+                "from the side of the shelter a boss's attack leaves (Asala's barrier against Jamanra's sandstorm); faster as you near it, silent once you are inside",
+                "del lado del refugio ante un ataque del jefe (la barrera de Asala ante la tormenta de Jamanra); más rápido al acercarte, callado al estar dentro"),
+            Services.BossRefugeSounds.Over => T(
+                "once, as the attack the shelter kept off is over: you can move freely again",
+                "una vez, al terminar el ataque del que protegía el refugio: ya puedes moverte libremente"),
             "weak_point" => T(
                 "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried",
                 "del lado de la cabeza del jefe, no de la cola; más rápido al acercarte, lento y suave junto a la cabeza, callado mientras está enterrada"),

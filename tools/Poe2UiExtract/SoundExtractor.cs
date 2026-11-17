@@ -84,12 +84,19 @@ internal static partial class SoundExtractor
         // page; docs/research/game-audio.md).
         new("league_breach",     "BreachEncounterPortal",        "Environment_Breach_Portal_Open_01", Rms: 0.10),
         new("league_delirium",   "Four_Delirium",                "Delirium_UI_SpecialReveal_01", Rms: 0.10),
-        new("league_essence",    "EssenceMonoliths",             "Environment_Endgame_EssenceMonoliths_Break_Foley_01", Rms: 0.10),
+        // A little louder at the user's word (2026-11-17): 0.13, peaks 0.87, near the cap.
+        new("league_essence",    "EssenceMonoliths",             "Environment_Endgame_EssenceMonoliths_Break_Foley_01", Rms: 0.13),
         new("league_expedition", "ExplosivesMechanic_Expedition", "ActivatePlunger_01", Rms: 0.10),
         new("league_abyss",      "Abyss_General",                "Abyss_QuestStart", Rms: 0.10),
         new("league_spirit",     "Four_TormentedSpirits",        "TormentedSpirit_Possession_Effect_Activate_02", Rms: 0.10),
         new("league_vaal",       "Four_Incursion",               "StartEncounter_01", Rms: 0.10),
-        new("league_strongbox",  "Strongboxes",                  "Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01", Rms: 0.10),
+        // The strongbox's mechanism was heard too quiet at 0.10 (user 2026-11-17): 0.16, peaks 0.62.
+        new("league_strongbox",  "Strongboxes",                  "Gameplay_Endgame_Strongboxes_StrongboxBasic_Mech_01", Rms: 0.16),
+        // An Abyss pit's chest (Arsenal, Armería abisal…), told from a plain chest (user 2026-11-17); the user's pick on the audition page.
+        new("league_abyss_chest", "AbyssChests",                 "Abyss_Chest02_Effects_Open_01", Rms: 0.10),
+        // A boss fight's shelter is over (Jamanra's sandstorm ends, Asala's barrier drops): a Karui barrier releasing, longer
+        // and louder than the rest so it carries through a fight (the user's pick, 2026-11-17).
+        new("boss_refuge_over", "Endgame_Shrines",               "Environment_KaruiBarrier_Release_01", 2.0, Rms: 0.16),
         new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.
@@ -100,6 +107,9 @@ internal static partial class SoundExtractor
         new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
         new("loops/waypoint",   "Waypoint4.0",        "WaypointActive_01", LoopMaxSeconds, true),
         new("loops/checkpoint", "BossCheckpoints",    "BossCheckpoints_Loop_01", LoopMaxSeconds, true),
+        // A boss fight's shelter (Asala's barrier against Jamanra's sandstorm): a Twilight Order boss's holy "Descry" loop, the
+        // user's pick after six rounds on the audition page (2026-11-17); its bank holds only take 02.
+        new("loops/boss_refuge", "HoodedMentor_Forge", "TwilightOrder_GuardBoss_Effects_Descry_LOOP_02", LoopMaxSeconds, true),
     };
 
     private const string Lib = "fmod";
