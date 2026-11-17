@@ -188,6 +188,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, TextEdit.BothNumbers("1", "-9"), "below zero");
             Equal(false, TextEdit.BothNumbers("Sin configurar", "0"), "the first step from an empty box");
             Equal(false, TextEdit.BothNumbers("Yark", "Yarki"), "a name typed");
+            Equal(false, TextEdit.IsNumber(string.Empty), "a chat line cleared as it is sent is no step");
             Equal<TextEdit?>(null, TextEdit.Between("abc", "abd"), "replaced");
         }
 

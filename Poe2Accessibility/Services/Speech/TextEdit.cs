@@ -20,8 +20,10 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Whether both reads are whole numbers: a value stepped (the trade market's range), said whole rather than echoed.</summary>
-        public static bool BothNumbers(string before, string after) =>
-            long.TryParse(before, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out _) &&
-            long.TryParse(after, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out _);
+        public static bool BothNumbers(string before, string after) => IsNumber(before) && IsNumber(after);
+
+        /// <summary>Whether a field's text is a whole number ("13", "-9").</summary>
+        public static bool IsNumber(string text) =>
+            long.TryParse(text, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out _);
     }
 }

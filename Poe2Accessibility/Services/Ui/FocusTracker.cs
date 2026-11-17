@@ -199,6 +199,7 @@ namespace Poe2Accessibility.Services
             if (!changed && !recheck)
             {
                 this.PollValue();
+                this.PollSteppedField(focused);
                 return;
             }
 
@@ -207,6 +208,7 @@ namespace Poe2Accessibility.Services
             this.emptyOnArrival = changed ? IntPtr.Zero : this.emptyOnArrival;
             if (focused == IntPtr.Zero)
             {
+                this.steppedField = this.Current is { Role: UiRole.TextField } field ? field : null;
                 this.Current = null;
                 this.CurrentLayer = IntPtr.Zero;
                 return;
@@ -261,6 +263,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.emptyOnArrival = IntPtr.Zero;
+            this.steppedField = null;
             this.Current = node;
             this.CurrentSince = Environment.TickCount64;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);

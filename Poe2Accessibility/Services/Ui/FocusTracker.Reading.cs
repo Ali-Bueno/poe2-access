@@ -3,10 +3,47 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Linq;
     using GameReader.RemoteEnums;
+    using Poe2Accessibility.Models;
 
     /// <summary>The value poll and focused-pointer reading of <see cref="FocusTracker"/>: what changed in the focused element and which element holds the focus.</summary>
     public sealed partial class FocusTracker
     {
+        /// <summary>
+        ///     The text field the focus left for none: the trade market's range takes the focus away while the d-pad and the
+        ///     triggers step its number ("+1 [cruceta derecha]"), and gives it back to the field on A (user 2026-11-17: only
+        ///     the number left was said, on coming back).
+        /// </summary>
+        private AccessibleUiNode? steppedField;
+
+        private readonly System.Diagnostics.Stopwatch sinceSteppedPoll = System.Diagnostics.Stopwatch.StartNew();
+
+        /// <summary>While nothing holds the focus, a number stepped in the field it left is that field's value change.</summary>
+        private void PollSteppedField(IntPtr focused)
+        {
+            if (focused != IntPtr.Zero || this.steppedField is not { } field || this.sinceSteppedPoll.ElapsedMilliseconds < ValuePollMs)
+            {
+                return;
+            }
+
+            this.sinceSteppedPoll.Restart();
+            var fresh = this.semantics.Describe(field.Address, false);
+            if (fresh is not { IsVisible: true, Role: UiRole.TextField })
+            {
+                this.steppedField = null; // the field went with its window
+                return;
+            }
+
+            // Only a number: a chat line cleared as it is sent is no step.
+            if (fresh.Value == field.Value || !TextEdit.IsNumber(fresh.Value))
+            {
+                return;
+            }
+
+            this.steppedField = fresh;
+            this.log.Info($"Value stepped -> 0x{fresh.Address.ToInt64():X} \"{fresh.Text}\" = \"{fresh.Value}\"");
+            this.ValueChanged?.Invoke(fresh);
+        }
+
         private void PollValue()
         {
             if (this.Current == null || (!this.Current.TooltipPending && this.sinceValuePoll.ElapsedMilliseconds < ValuePollMs))
