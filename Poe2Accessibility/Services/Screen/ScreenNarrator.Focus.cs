@@ -472,7 +472,8 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var edit = node.Role == UiRole.TextField ? TextEdit.Between(before, node.Value) : null;
+            // A number stepped by the d-pad (1 to 11 is +10, not a typed "1") is said whole.
+            var edit = node.Role == UiRole.TextField && !TextEdit.BothNumbers(before, node.Value) ? TextEdit.Between(before, node.Value) : null;
             this.valueChangedAt = DateTime.UtcNow;
             this.output.Speak(edit is { } typed ? Announcements.Typed(typed.Added, typed.Removed) : Announcements.ValueAt(Announcements.ValueOrEmpty(node.Value), node.ValuePosition), true);
         }

@@ -209,6 +209,20 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
+        /// <summary>The text of a child of the frame other than its input ("Min." over the range's box); empty for none.</summary>
+        private string CaptionBesideInput(in UiElementReader.ElementInfo frame, IntPtr input)
+        {
+            foreach (var childAddress in this.elements.ReadChildren(frame))
+            {
+                if (childAddress != input && this.elements.TryReadSpokenText(childAddress, out var text) && text.Any(char.IsLetter))
+                {
+                    return text;
+                }
+            }
+
+            return string.Empty;
+        }
+
         /// <summary>
         ///     The two bare numbers a stack's splitter shows around its input: left what stays in the stack, right what is
         ///     taken (live 2026-11-10: of 6, "5 | 1" became "4 | 2" and the hand took 2); null for any other field.

@@ -184,6 +184,10 @@ namespace Poe2Accessibility.Tests
             Equal(new TextEdit("i", string.Empty), TextEdit.Between("Yark", "Yarki"), "typed one");
             Equal(new TextEdit(string.Empty, "s"), TextEdit.Between("Yarkidius", "Yarkidiu"), "deleted one");
             Equal(new TextEdit("Yarkidius", string.Empty), TextEdit.Between(string.Empty, "Yarkidius"), "pasted into empty");
+            Equal(true, TextEdit.BothNumbers("1", "11"), "a range stepped by +10 is said whole, not as a typed 1");
+            Equal(true, TextEdit.BothNumbers("1", "-9"), "below zero");
+            Equal(false, TextEdit.BothNumbers("Sin configurar", "0"), "the first step from an empty box");
+            Equal(false, TextEdit.BothNumbers("Yark", "Yarki"), "a name typed");
             Equal<TextEdit?>(null, TextEdit.Between("abc", "abd"), "replaced");
         }
 

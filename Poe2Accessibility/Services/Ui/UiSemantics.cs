@@ -148,13 +148,19 @@ namespace Poe2Accessibility.Services
                     label = Humanise(info.Name);
                     break;
                 case UiRole.TextField:
-                    value = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null);
+                    // A frame holding a caption beside its input (the trade market's range: "Min." and the box with "1",
+                    // "Sin configurar" its placeholder when empty; dump 2026-11-17): the box's text is the value, the
+                    // caption names it. The first text below the frame was the caption, so the number was never read.
+                    var caption = input != IntPtr.Zero ? this.CaptionBesideInput(info, input) : string.Empty;
+                    value = ownText.Length > 0 ? ownText
+                        : caption.Length > 0 ? (this.elements.TryReadSpokenText(input, out var typed) && typed.Length > 0 ? typed : this.Placeholder(input))
+                        : this.FindDescendantText(info, CaptionSearchDepth, null);
                     if (this.catalog.TryGet(info.Name, out var field) && field.IsPassword)
                     {
                         value = Announcements.PasswordLength(value.Length); // never the contents
                     }
 
-                    label = this.FindRowLabel(info);
+                    label = caption.Length > 0 ? caption : this.FindRowLabel(info);
                     if (label.Length == 0)
                     {
                         // A list right before the field picks where it goes (the chat's channel: "Global", then "#hello").

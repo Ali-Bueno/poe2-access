@@ -22,12 +22,8 @@ namespace Poe2Accessibility.Services
         private static readonly Regex Running = new(@"\d:\d{2}|\d\s?(?:s|sec|secs|seconds?|segundos?)\b|%", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         /// <summary>The text to say for a text whose digits alone changed; null when it is not news.</summary>
-        /// <param name="stepped">
-        ///     The player steps the focused field's value press by press (the trade market's range: +1 on the d-pad, +100 on RT):
-        ///     each step is said, however soon after the last (user 2026-11-17: "no lee los números").
-        /// </param>
-        public static string? Said(string before, string after, long sinceInputMs, long sinceSaidMs, bool stepped = false) =>
-            before != after && ScreenDiffer.IsTick(before, after) && sinceInputMs <= RecentInputMs && (stepped || sinceSaidMs >= MinGapMs) &&
+        public static string? Said(string before, string after, long sinceInputMs, long sinceSaidMs) =>
+            before != after && ScreenDiffer.IsTick(before, after) && sinceInputMs <= RecentInputMs && sinceSaidMs >= MinGapMs &&
             after.Count(char.IsLetter) >= MinLabelLetters && after.Any(char.IsDigit) && !Running.IsMatch(before) && !Running.IsMatch(after)
                 ? after
                 : null;

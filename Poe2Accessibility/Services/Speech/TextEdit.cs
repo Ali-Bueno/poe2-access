@@ -18,5 +18,10 @@ namespace Poe2Accessibility.Services
 
             return null;
         }
+
+        /// <summary>Whether both reads are whole numbers: a value stepped (the trade market's range), said whole rather than echoed.</summary>
+        public static bool BothNumbers(string before, string after) =>
+            long.TryParse(before, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out _) &&
+            long.TryParse(after, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out _);
     }
 }
