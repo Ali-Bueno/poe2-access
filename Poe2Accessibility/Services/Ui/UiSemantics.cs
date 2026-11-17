@@ -429,7 +429,7 @@ namespace Poe2Accessibility.Services
                 return combo.Selected;
             }
 
-            return combo.Count > 0 ? Announcements.ComboPosition(combo.SelectedIndex + 1, combo.Count) : string.Empty;
+            return combo.Count > 0 && combo.SelectedIndex >= 0 ? Announcements.ComboPosition(combo.SelectedIndex + 1, combo.Count) : string.Empty;
         }
 
         /// <summary>

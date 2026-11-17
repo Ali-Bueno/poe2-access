@@ -63,14 +63,15 @@ namespace Poe2Accessibility.Services
                 return new ComboValue(string.Empty, string.Empty, -1, -1, 0);
             }
 
+            // The selected index is -1 before a first choice (the trade market's searchable dropdowns): the highlight is read.
             var (index, highlight, entries, parallel) = state.Value;
-            var strategy = this.layout.Agreed ?? this.Resolve(comboBox, entries, parallel, index);
+            var strategy = this.layout.Agreed ?? this.Resolve(comboBox, entries, parallel, index >= 0 ? index : highlight);
             if (strategy == null)
             {
                 return new ComboValue(string.Empty, string.Empty, index, highlight, entries.Length);
             }
 
-            var selected = this.Decode(strategy.Value, entries, parallel, index) ?? string.Empty;
+            var selected = index >= 0 ? this.Decode(strategy.Value, entries, parallel, index) ?? string.Empty : string.Empty;
             var highlighted = highlight == index ? selected : this.Decode(strategy.Value, entries, parallel, highlight) ?? string.Empty;
             return new ComboValue(selected, highlighted, index, highlight, entries.Length);
         }
@@ -112,7 +113,7 @@ namespace Poe2Accessibility.Services
         private string? Decode(Strategy strategy, byte[][] entries, byte[][] parallel, int index)
         {
             var source = strategy >= Strategy.ParallelToWString ? parallel : entries;
-            if (index >= source.Length)
+            if (index < 0 || index >= source.Length)
             {
                 return null;
             }

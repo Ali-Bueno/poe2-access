@@ -192,7 +192,14 @@ namespace Poe2Accessibility.Services
         /// <summary>A panel title read with the field moved by a shift: a short name with letters, no path, no layout id, no font.</summary>
         private string TitleAt(IntPtr element, int shift) =>
             this.elements.ReadWStringStructAt(element + GameLayout.Element.PanelTitleOffset + shift)?.Trim() is { Length: > 0 and <= MaxPanelTitleLength } title &&
-            !title.Contains('/') && !title.Contains('_') && title.Any(char.IsLetter) &&
+            !title.Contains('/') && !title.Contains('_') && title.Any(char.IsLetter) && !IsControlId(title) &&
             !FontFaces.Contains(title, StringComparer.OrdinalIgnoreCase) ? title : string.Empty; // "bar_area": a layout id, not a title
+
+        /// <summary>
+        ///     A lower-case ASCII word is a control's id, never a shown title: the trade market's filter rows hold their next
+        ///     sibling's name ("button", "scrollbar") where a search for the title's field looked, and every row was read
+        ///     "button. Filtros de tipo…" (user 2026-11-17).
+        /// </summary>
+        private static bool IsControlId(string title) => title.All(letter => letter is >= 'a' and <= 'z');
     }
 }

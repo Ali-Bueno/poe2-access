@@ -157,6 +157,14 @@ namespace Poe2Accessibility.Services
                 return known;
             }
 
+            var current = this.Controls?.Current(ControlGroup.ComboBox) ?? 0;
+            if (!this.ComboBoxFits(address, current) && this.ComboBoxFits(address, current, choiceNeeded: false))
+            {
+                // No choice made yet: read by its highlight where the fields stand, neither searched for nor kept (a search
+                // found nothing and the report called the combo boxes missing, user 2026-11-17).
+                return current;
+            }
+
             var shift = this.Controls?.Shift(ControlGroup.ComboBox, address, at => this.ComboBoxFits(address, at)) ?? 0;
             var fitting = this.ComboBoxFits(address, shift)
                 ? shift
@@ -183,35 +191,50 @@ namespace Poe2Accessibility.Services
             return (value, min, max);
         }
 
+        /// <summary>
+        ///     The indices and entries at a shift; the selected index is -1 when it is no entry's. The trade market's searchable
+        ///     dropdowns ("Categoría de objeto", "Rareza de objeto") hold no index there until a choice was first made or the
+        ///     list first closed (0x559B0000000092F8 measured 2026-11-17, 0 after), while the highlight already steps 0, 1, 2…
+        ///     as the list is walked; a missing choice threw the whole dropdown away, and its first opening read nothing.
+        /// </summary>
         private (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ComboBoxAt(IntPtr address, int shift)
         {
-            if (!this.reader.TryRead<long>(address + GameLayout.ComboBox.SelectedIndexOffset + shift, out var index) || index < 0 || index > int.MaxValue)
+            if (!this.reader.TryRead<long>(address + GameLayout.ComboBox.SelectedIndexOffset + shift, out var index))
             {
                 return null;
             }
 
             var entries = this.ReadEntries(address + GameLayout.ComboBox.ItemsVectorOffset + shift);
-            if (entries.Length == 0 || index >= entries.Length)
+            if (entries.Length == 0)
             {
                 return null;
             }
 
+            var selected = index >= 0 && index < entries.Length ? (int)index : -1;
             var highlight = this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset + shift, out var h) && h >= 0 && h < entries.Length
                 ? (int)h
-                : (int)index;
+                : selected;
+            if (highlight < 0)
+            {
+                return null;
+            }
+
             var parallel = this.ReadEntries(address + GameLayout.ComboBox.ParallelVectorOffset + shift);
-            return ((int)index, highlight, entries, parallel);
+            return (selected, highlight, entries, parallel);
         }
 
         /// <summary>
         ///     A combo box reads sensibly with its fields moved by the shift: the selected entry reads as text and, while it
         ///     is closed, the highlight rests on it. The entries vector has a copy right after it, so the indices are what
-        ///     tell the true layout from one moved by a vector.
+        ///     tell the true layout from one moved by a vector. With <paramref name="choiceNeeded"/> false, a dropdown with no
+        ///     choice yet fits by its highlighted entry: read, but never what proves a class's shift.
         /// </summary>
-        private bool ComboBoxFits(IntPtr address, int shift) =>
-            this.ComboBoxAt(address, shift) is { } state && this.EntryReads(state.Entries[state.SelectedIndex]) &&
+        private bool ComboBoxFits(IntPtr address, int shift, bool choiceNeeded = true) =>
+            this.ComboBoxAt(address, shift) is { } state && (state.SelectedIndex >= 0 || !choiceNeeded) &&
+            this.EntryReads(state.Entries[state.SelectedIndex >= 0 ? state.SelectedIndex : state.HighlightIndex]) &&
             this.reader.TryRead<byte>(address + GameLayout.ComboBox.OpenFlagOffset + shift, out var open) && open <= 1 &&
-            (open == 1 || (this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset + shift, out var highlight) && highlight == state.SelectedIndex));
+            (open == 1 || state.SelectedIndex < 0 ||
+             (this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset + shift, out var highlight) && highlight == state.SelectedIndex));
 
         /// <summary>One of the entry's two qwords points to a text: a std::wstring or a label (the shapes ComboBoxReader decodes).</summary>
         private bool EntryReads(byte[] entry)
