@@ -107,3 +107,18 @@ Faridun Impaler's summoned form (`...EliteSpectre_`) reads 150, which would give
   said, then what the gem reserves once bound).
 - ND7's other half (a cue when usable corpses come near, for Offering and kin) is not built: it wants a new sound,
   which wants the user's ear first (repo rule 23), and a corpse count the category now makes possible.
+## 6. First live session (2026-11-18, the owner in Utzaal on the dev build)
+
+The category, the guide's lock and its arrival all worked first try ("Corpses. Chaotic Zealot corpse, 4 steps…",
+"Beacon locked on Vaal Guard corpse (Corpses)", "Arrived at Vaal Guard corpse"), and a spectre was bound from a corpse
+the guide led to. Two findings:
+
+- **No cost was said**: an entity's path carries its level after an '@' ("…/VaalGuardBowLiving@40"), which the
+  table's Id has not, so every `SpiritOf` missed while the catalog held 2,794 rows. Stripped in `SpiritOf` now (the
+  same cut `BossMechanicsCatalog.MonsterId` makes), and a corpse still without a cost is logged once a file
+  ("Corpse without a spirit cost: …"). Not yet heard with the fix: needs a rebuild and restart.
+- The bound gem reads **Spirit Reservation 47** — neither 50 (grenade, multiplier 100) nor 60 (bow/spear, 110), so
+  the owner's reservation efficiency stands between the base cost and what the gem shows ([INFERENCE]: 50 at ~6%
+  efficiency or 60 at ~28%). Which of the three Vaal Guards was bound the log cannot say: all read "Vaal Guard", and
+  bow and spear share name *and* cost — the game's own tooltip tells those two no further apart either; only the
+  corpse's look does, which speech has not got. Grenade (50) against bow/spear (60) the cost does tell apart, once said.
