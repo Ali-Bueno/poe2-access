@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheNarrationFollowsTheVideo), TheNarrationFollowsTheVideo),
             (nameof(LinesPassedBeforeTheVideoWasToldAreStillSaid), LinesPassedBeforeTheVideoWasToldAreStillSaid),
             (nameof(AVideoWithNoNarrationSaysItsPrompt), AVideoWithNoNarrationSaysItsPrompt),
+            (nameof(ATravelsVideoIsToldByItsLoadWithoutThePrompt), ATravelsVideoIsToldByItsLoadWithoutThePrompt),
             (nameof(APlainLoadSaysNothing), APlainLoadSaysNothing),
             (nameof(EnglishHearsTheVoice), EnglishHearsTheVoice),
             (nameof(EveryTravelWithAVideoHasItsLinesInOrder), EveryTravelWithAVideoHasItsLinesInOrder),
@@ -69,11 +70,25 @@ namespace Poe2Accessibility.Tests
             Equal(1, tracker.Tick(Prompt, "G1_4", 43000).Count, "a load to an area with no video of its own");
         });
 
+        private static void ATravelsVideoIsToldByItsLoadWithoutThePrompt() => InSpanish(() =>
+        {
+            // 2026-11-17, the Matriarchs' travel from G2_town: the prompt showed 39.3 s into a 40.9 s load.
+            var tracker = new CinematicTracker();
+            tracker.StateChanged(true, 0, "G2_town");
+            Equal(0, tracker.Tick(null, "G3_1", 3900).Count, "a plain load may still end");
+            Equal("Cinemática. | La bestia se ha vuelto demasiado poderosa. | Ya no podemos contenerla por medios mortales.", string.Join(" | ", tracker.Tick(null, "G3_1", 4000)), "the video, and the lines begun by then");
+            Equal(true, tracker.Playing, "playing");
+            Equal(0, tracker.Tick(Prompt, "G3_1", 4100).Count, "a prompt after that is not news");
+            Equal(5, tracker.Tick(null, "G3_1", 39300).Count, "the rest as the narrator reaches them");
+        });
+
         private static void APlainLoadSaysNothing() => InSpanish(() =>
         {
             var tracker = new CinematicTracker();
-            tracker.StateChanged(true, 0);
-            Equal(0, tracker.Tick(null, "G2_1", 30000).Count, "by waypoint, no video");
+            tracker.StateChanged(true, 0, "G1_town");
+            Equal(0, tracker.Tick(null, "G2_1", 2500).Count, "by waypoint from the town, a plain load ends first");
+            tracker.StateChanged(true, 3000, "G1_12");
+            Equal(0, tracker.Tick(null, "G2_1", 30000).Count, "a slow load from outside a town");
             Equal(false, tracker.Playing, "not playing");
         });
 

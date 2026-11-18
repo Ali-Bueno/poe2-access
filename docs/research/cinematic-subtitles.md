@@ -88,11 +88,22 @@ every 0.8 s, were looked at and not kept.
 - MEASURED: the area row the mod tracks named `G2_1` when the state ended. OPEN: whether the loading state already holds the
   destination while the video plays (the mod reads that row only in game).
 
+**2026-11-17, Act 2 to Act 3** (the Matriarchs in `G2_town`, "Entrando a Ciénaga de arena..."). Evidence: the play copy's
+`accessibility.log.old`, 18:11:51 to 18:12:32.
+- MEASURED: the load lasted 40.9 s (the longest plain load in three days of logs: 13.7 s; from a town: 1.5 to 9.3 s, most
+  under 4 s). "Loading: G3_1 known 0 ms in (leaving G2_town)".
+- MEASURED: the skip prompt showed only 39.3 s in (layer 5, "Presiona A para saltar"), at the video's end: the mod, waiting for
+  it, said "Cinemática." and all seven lines at once, under the area's announcement. Nothing was heard as the narrator spoke.
+  The loading tips (layer 2, at 10, 20 and 30 s) were said over him. OPEN: why the prompt showed at 2.5 s in Act 1 and at
+  39.3 s here (a button pressed in Act 1 is the likeliest).
+- So (2026-11-18) a load from a town to a travel's video area is its video once it has lasted 4 s, prompt or not.
+
 ## What the mod does (2026-11-15)
 
 The owner's word: the lines one by one as the narrator says them, and nothing in English, whose voice is understood.
 
-1. **A cinematic is on** while a visible element named `Skip_Cutscene` is in the tree: the screen watcher marks the layer that
+1. **A cinematic is on** once a load from a town (`*_town`) to an area below has lasted 4 s
+   (`CinematicTracker.TravelVideoAfterMs`; only "Cinemática." is said then), or while a visible element named `Skip_Cutscene` is in the tree: the screen watcher marks the layer that
    holds it (`ScreenLayer.SkipsCinematic`, whatever its depth), and it lasts until the state ends. Said once: "Cinemática." and the
    prompt's own text. The narrator leaves that layer and, in a load, the loading screen's lines unsaid meanwhile.
 2. **Which one:** by the area being loaded, from the `NPCTalk` rows above (`Cinematics.VideoTo`). MEASURED live on two plain loads:

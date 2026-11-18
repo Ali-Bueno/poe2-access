@@ -36,7 +36,7 @@ namespace Poe2Accessibility.Services
         {
             var now = Environment.TickCount64;
             (this.loadingSince, this.lastAreaPoll, this.leaving, this.destination) = (loading ? now : 0, 0, this.AreaId(), string.Empty);
-            this.tracker.StateChanged(loading, now);
+            this.tracker.StateChanged(loading, now, this.leaving);
         }
 
         /// <summary>Per frame.</summary>
@@ -55,7 +55,9 @@ namespace Poe2Accessibility.Services
             var lines = this.tracker.Tick(prompt == null ? null : string.Join(" ", prompt.Texts.Select(text => text.Text)), this.destination, now);
             if (!wasPlaying && this.tracker.Playing)
             {
-                this.log.Info($"Cinematic: skip prompt on layer {prompt!.Index} ({prompt.Name}), leaving {this.leaving}");
+                this.log.Info(prompt == null
+                    ? $"Cinematic: a {now - this.loadingSince} ms load from {this.leaving} to {this.destination}, no skip prompt yet"
+                    : $"Cinematic: skip prompt on layer {prompt.Index} ({prompt.Name}), leaving {this.leaving}");
             }
 
             if (known == null && this.tracker.Video is { } video)

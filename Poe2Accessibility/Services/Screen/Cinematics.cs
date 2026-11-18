@@ -19,14 +19,22 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>
-    ///     A pre-rendered video, told by its skip prompt: what to say as it starts and, for a narrated one played
-    ///     over an area's load, each line as the narrator reaches it.
+    ///     A pre-rendered video, told by its skip prompt or, for a travel's, by its load: what to say as it starts
+    ///     and, for a narrated one played over an area's load, each line as the narrator reaches it.
     /// </summary>
     public sealed class CinematicTracker
     {
+        /// <summary>
+        ///     A load from a town to a travel's video area lasting this long is its video: plain loads from a town took
+        ///     1.5 to 3.8 s in the logs of 2026-11-15/18, the Act 2 video's 40.9 s, and its skip prompt showed only at
+        ///     39.3 s (2026-11-17), so the prompt cannot be waited for.
+        /// </summary>
+        public const int TravelVideoAfterMs = 4000;
+
         private IReadOnlyList<(double Seconds, string Text)> lines = Array.Empty<(double, string)>();
         private int next;
         private bool loading;
+        private bool fromTown;
         private long loadingSince;
 
         /// <summary>A video is on screen, until the state it plays in ends.</summary>
@@ -35,10 +43,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The narrated video recognised, for the log.</summary>
         public string? Video { get; private set; }
 
-        /// <summary>The video of a travel starts with the load, so its lines are timed from there.</summary>
-        public void StateChanged(bool loading, long now)
+        /// <summary>
+        ///     The video of a travel starts with the load, so its lines are timed from there. <paramref name="leaving"/>
+        ///     is the area the load leaves: every travel with a video is offered by an NPC in a town.
+        /// </summary>
+        public void StateChanged(bool loading, long now, string leaving = "")
         {
             (this.loading, this.loadingSince, this.Playing, this.Video, this.next) = (loading, now, false, null, 0);
+            this.fromTown = leaving.EndsWith("_town", StringComparison.OrdinalIgnoreCase);
             this.lines = Array.Empty<(double, string)>();
         }
 
@@ -48,7 +60,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public IReadOnlyList<string> Tick(string? skipPrompt, string destination, long now)
         {
-            if (!this.Playing && skipPrompt == null)
+            var travelVideo = this.loading && this.fromTown && now - this.loadingSince >= TravelVideoAfterMs && Cinematics.VideoTo(destination) != null;
+            if (!this.Playing && skipPrompt == null && !travelVideo)
             {
                 return Array.Empty<string>();
             }
@@ -57,10 +70,10 @@ namespace Poe2Accessibility.Services
             if (!this.Playing)
             {
                 this.Playing = true;
-                (say ??= new List<string>()).Add(Announcements.CinematicStarted(skipPrompt!));
+                (say ??= new List<string>()).Add(Announcements.CinematicStarted(skipPrompt ?? string.Empty));
             }
 
-            if (this.Video == null && this.loading &&Cinematics.VideoTo(destination) is { } video)
+            if (this.Video == null && this.loading && Cinematics.VideoTo(destination) is { } video)
             {
                 this.Video = video;
                 this.lines = Announcements.Narration(video);
