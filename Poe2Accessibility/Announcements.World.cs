@@ -139,6 +139,8 @@ namespace Poe2Accessibility
             "Two Hand Axe" => T("two-hand axe", "hacha a dos manos"),
             "One Hand Mace" => T("one-hand mace", "maza a una mano"),
             "Two Hand Mace" => T("two-hand mace", "maza a dos manos"),
+            "Unarmed" => T("unarmed", "desarmado"),
+            "Talisman" => T("talisman", "talismán"),
             _ => string.Empty,
         };
 

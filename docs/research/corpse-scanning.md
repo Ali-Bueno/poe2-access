@@ -74,18 +74,22 @@ of seven known rows). What holds on every published cost is **half the multiplie
 | Faridun Impaler (`MutewindWomanSpearCorrodedElite`) | 230 | 120 | 120 (IGN) |
 
 "Nearest ten" against "rounded up to ten" cannot be told apart on those twelve (their halves end in 0 or 5). Where
-the two differ (multipliers 5 mod 20), Game8's spectre list (fetched 2026-11-17, itself partly stale: 43 of 294
-checked rows match neither, against multipliers that may have been retuned since) sides with nearest 30 to 5, and the
-251 rows where the two agree all hold. The cost is of the corpse's own file, not of its `SpectreOverrides` form:
+the two differ (multipliers 5 mod 20), Game8's spectre list (fetched 2026-11-17, itself partly stale) sides with
+nearest 30 to 5; of its 294 checked rows, 216 are where the two rules agree and hold, 30 hold on nearest alone, 5
+on rounding up alone, and 43 match neither (against multipliers that may have been retuned since) — 251 rows
+matching at least one rule. The cost is of the corpse's own file, not of its `SpectreOverrides` form:
 Faridun Impaler's summoned form (`...EliteSpectre_`) reads 150, which would give 80, not the published 120.
 `SpectreCatalog.SpiritFor` is the one place the rule lives; a live tooltip that disagrees fixes it there.
 
 ## 4. What was built
 
 - `tools/Poe2UiExtract/SpectreExtractor.cs`, batch command `spectres`, launcher step "spectres" (`spectres.json`,
-  optional): the multiplier of every `MonsterVarieties` row by monster file, the column found by the five known rows
-  above and the step failing without writing when they do not hold. `Poe2Accessibility/catalog/spectres.json` as
-  shipped was made by that step from the installed game on 2026-11-17 (2,794 rows).
+  optional): every monster row of `MonsterVarieties` by monster file — its experience multiplier, and (§7) its
+  main hand's item class and melee/ranged tag on the flagged rows. The four columns (§7's table) are each found
+  again by what they hold, judged on the five known rows above and the three Vaal Guards, and the step fails
+  without writing when they do not hold. `Poe2Accessibility/catalog/spectres.json` as shipped was made by that
+  step from the installed game on 2026-11-17/18 (2,767 monster rows; the table's escort summons and its `Any`
+  row, no corpses to bind, were dropped from it and from the step at the 2026-11-18 review).
 - `SpectreCatalog` (plugin): the file read at start, `SpiritOf(path)` the cost or nothing.
 - `ScanCategory.Corpses`, after `Players` so the values the area memory writes to disk keep their numbers; a corpse
   `CanVanish`es, so a guide locked on one that is used up under the player reads as reached. `EntityCatalog.Classify`
@@ -126,22 +130,45 @@ the guide led to. Two findings:
 ## 7. Which variety it is (2026-11-18, at the owner's word: say it, do not make him earhole it)
 
 Monsters of one name differ in what a corpse of them gives, and the game's tooltip tells bow from spear no further
-than its name and cost — only the corpse's look does. The data does, though (all measured on the installed table
-2026-11-18): the variety's main-hand ItemClasses row (`MainHand_ItemClass` +0x154: grenade none, bow "Bow", spear
-"Warstaff" — its spear *is* a warstaff in the data) and its melee/ranged tag (`Tags` +0x98: grenade and bow ranged,
-spear melee, a leaper). The `spectres` step now writes the weapon and the reach beside the multiplier, with a flag on
-every row of a name whose varieties differ in cost, weapon or reach (1,024 of 2,794 — the English name groups them;
-another language's names may group a pair otherwise). A flagged corpse is named with both, each word its own:
-"Vaal Guard corpse, bow, ranged, 60 Spirit", "Vaal Guard corpse, quarterstaff, melee, 60 Spirit",
-"Vaal Guard corpse, ranged, 50 Spirit" (the grenade one: no weapon, and the cheaper cost). Weapon words are the
-mod's for the weapon classes (the game's class names are plurals: "Quarterstaves", in Spanish "Bastones"); a held
-class that is no weapon (a shield apart) says nothing.
+than its name and cost — only the corpse's look does. The data does, though. The four `MonsterVarieties` fields
+this work reads, all in the table's 0x406-byte rows:
+
+| Field (dat-schema name) | Offset | Holds | Provenance | Judged on |
+|---|---|---|---|---|
+| `ExperienceMultiplier` | +0xA8 | i32, the multiplier of §3 | the schema's column order; measured 2026-11-17 (`dat-kinds`/`dat-rows`) | the five known rows of §3; `SerpentClanCasterBoss` (experience 200, life 266 at +0x11C) tells it from the life multiplier |
+| `Tags` | +0x98 | key-list into `Tags` (its `ranged`/`melee` rows) | the schema's column order; measured 2026-11-18 | the three Vaal Guards: grenade and bow ranged, spear melee (a leaper); a row carrying both tags is left with its reach unsaid, not guessed — the step counts such rows in its output from the 2026-11-18 review on, so how often that occurs is recorded at the next making |
+| `Name` | +0x110 | text, the name monsters are grouped by | the schema's column order; measured 2026-11-18 | the three Vaal Guards all reading "Vaal Guard" |
+| `MainHand_ItemClass` | +0x154 | foreign key into `ItemClasses` | the schema's column order; measured 2026-11-18 | the three Vaal Guards: grenade none, bow "Bow", spear "Warstaff" — its spear *is* a warstaff in the data |
+
+No offset is trusted as written: the `spectres` step finds each column again by what it holds, nearest the
+measured offset, and fails without writing when a judged row does not hold (§4). The step writes the weapon and
+the reach only on flagged rows, beside the multiplier every row carries: the flag is on every row of a name
+whose varieties differ in cost, weapon or reach (1,024 of the rows as first shipped, when the step compared the
+raw multiplier; since the 2026-11-18 review it compares the derived cost, so varieties within one cost band no
+longer flag each other and the count falls at the next making — the English name groups them either way;
+another language's names may group a pair otherwise). A flagged corpse is named with both words it has, each
+its own: "Vaal Guard corpse, bow, ranged, 60 Spirit", "Vaal Guard corpse, quarterstaff, melee, 60 Spirit",
+"Vaal Guard corpse, ranged, 50 Spirit" (the grenade one: no weapon, and the cheaper cost); a flagged corpse
+with neither word is told from its namesakes by its cost alone. Weapon words are the mod's for the weapon
+classes (the game's class names are plurals: "Quarterstaves", in Spanish "Bastones"); unarmed is said (the
+Baron's wolf form, told from its sword form by it), a held class with no word of the mod's says nothing.
 
 Heard live the same night (the owner again in Utzaal): "Vaal Guard corpse, bow, ranged, 60 Spirit",
 "Vaal Guard corpse, quarterstaff, melee, 60 Spirit", "Vaal Guard corpse, ranged, 50 Spirit",
 "Chaotic Zealot corpse, spear, melee, 60 Spirit" (a real Spear in hand there). The owner disenchanted the §6 spectre,
 engraved a fresh Bind Spectre and bound from the field: the gem reads "Reservation: 50 Spirit" and costs him 45 —
-the scanner's 50 for the grenade guard, his efficiency on top of it: the cost rule of §3 confirmed in play. One
+the scanner's 50 for the grenade guard, his efficiency on top of it: one live case (100 → 50) matches §3
+end to end; it is a case the published twelve already held and where nearest-ten and rounding up agree, so
+§3's formula stays LIKELY and §5's 5-mod-20 tooltip test remains open. One
 flaw the log showed: a corpse was also copied into the Quest category ("Quest. Chaotic Zealot corpse"), its name
 matching the tracker's words; corpses are now left out of quest matching — an objective never asks for one.
 Built and committed; deployed when the game next stops.
+
+## 8. Evidence kept, and not kept
+
+Kept: this document's tables and the derived `catalog/spectres.json`; the step revalidates its columns against
+the installed game at every making. Not kept (2026-11-18 review): no snapshot of the dat-schema (fetched at its
+floating `latest` release), no dump of the `dat-rows`/`dat-kinds` scans behind §3 and §7, no copy of Game8's
+list behind §3's counts, and the live sessions' `accessibility.log` stayed on the owner's machine — §§6-7 quote
+it, but nothing of it is under `Poe2Accessibility/debug/` or `logs/`. What is re-derivable is re-derived by the
+step; what is not (the Game8 counts, the schema as it read that day) rests on the numbers recorded here.

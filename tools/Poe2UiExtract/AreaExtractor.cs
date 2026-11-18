@@ -20,13 +20,17 @@ internal static class AreaExtractor
     internal static IEnumerable<(string Code, string? Folder)> Languages =>
         LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
 
-    /// <summary>Writes a per-language catalog as indented JSON, its text unescaped.</summary>
+    /// <summary>
+    ///     Writes a per-language catalog as indented JSON, its text unescaped. The newline is pinned: the shipped
+    ///     catalogs are LF, and an OS-default newline rewrites every line of a regenerated one as churn.
+    /// </summary>
     internal static void WriteJson<T>(string outFile, T catalog)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllText(outFile, JsonSerializer.Serialize(catalog, new JsonSerializerOptions
         {
             WriteIndented = true,
+            NewLine = "\n",
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
     }

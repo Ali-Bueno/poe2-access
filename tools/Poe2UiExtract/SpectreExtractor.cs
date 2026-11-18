@@ -48,7 +48,10 @@ internal static class SpectreExtractor
         ("Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss", 200), // life multiplier 266: tells the columns apart
     };
 
-    /// <summary>No monster's experience multiplier reads outside this on the measured table (largest seen 2026-11-17: 250).</summary>
+    /// <summary>
+    ///     No monster's experience multiplier reads outside this on the measured table (largest seen 2026-11-17: 1000;
+    ///     the bound keeps ten times that of headroom for a retune and still rejects a pointer-like column).
+    /// </summary>
     private const int MaxExperience = 10000;
 
     private sealed record Columns(int Experience, int Name, int MainHand, int Tags);
@@ -72,9 +75,9 @@ internal static class SpectreExtractor
 
         var knownRows = Known.Select(known => (known.Id, known.Experience, Row: DatColumnSearch.RowOf(monsters, known.Id))).ToList();
         var guards = new[] { MortarGuard, BowGuard, SpearGuard }.Select(id => (Id: id, Row: DatColumnSearch.RowOf(monsters, id))).ToList();
-        if (knownRows.Concat(guards.Select(guard => (guard.Id, Experience: 0, guard.Row))).Any(known => known.Row < 0))
+        var gone = knownRows.Select(known => (known.Id, known.Row)).Concat(guards).Where(known => known.Row < 0).Select(known => known.Id).Distinct().ToList();
+        if (gone.Count > 0)
         {
-            var gone = knownRows.Select(known => (known.Id, known.Row)).Concat(guards).Where(known => known.Row < 0).Select(known => known.Id);
             Say.Out.WriteLine($"A known MonsterVarieties row is gone ({string.Join(", ", gone)}): {Step} keeps its previous catalog");
             return 1;
         }
@@ -92,28 +95,38 @@ internal static class SpectreExtractor
             return 1;
         }
 
+        var rangedTag = DatColumnSearch.RowOf(tags, "ranged");
+        var meleeTag = DatColumnSearch.RowOf(tags, "melee");
+        var bothTags = 0;
+        var neitherTag = 0;
         var rows = new List<Monster>();
         for (var row = 0; row < monsters.RowCount; row++)
         {
             var id = monsters.String(row, DatColumnSearch.IdColumn);
             var experience = monsters.Int32(row, columns.Experience);
-            if (id.Length == 0 || experience <= 0)
+            if (id.Length == 0 || experience <= 0 || !id.StartsWith("Metadata/Monsters/", StringComparison.Ordinal))
             {
-                continue;
+                continue; // no corpse to bind: the table's escort summons and its Any row are no monsters
             }
 
-            var tagIds = monsters.KeyList(row, columns.Tags).Select(key => DatAnchors.IdOf(tags, key)).ToList();
+            var tagKeys = monsters.KeyList(row, columns.Tags);
+            var ranged = rangedTag >= 0 && tagKeys.Contains(rangedTag);
+            var melee = meleeTag >= 0 && tagKeys.Contains(meleeTag);
+            bothTags += ranged && melee ? 1 : 0;
+            neitherTag += !ranged && !melee ? 1 : 0;
             rows.Add(new Monster(
                 id,
                 experience,
                 monsters.String(row, columns.Name),
                 DatAnchors.IdOf(itemClasses, monsters.Key(row, columns.MainHand)) ?? string.Empty,
-                tagIds.Contains("ranged") ? "ranged" : tagIds.Contains("melee") ? "melee" : string.Empty));
+                ranged && !melee ? "ranged" : melee && !ranged ? "melee" : string.Empty)); // both tags: its reach is not known, and is not guessed
         }
 
-        // A variety is told when monsters of one name differ in what a corpse of them asks or does.
+        // A variety is told when monsters of one name differ in what a corpse of them asks or does. The asking is the
+        // Spirit cost (half the multiplier, to the nearest ten, as SpectreCatalog.SpiritFor has it), not the raw
+        // multiplier: varieties within one cost band are spoken alike, and telling them apart says nothing.
         var told = rows.Where(monster => monster.Name.Length > 0).GroupBy(monster => monster.Name, StringComparer.Ordinal)
-            .Where(group => group.Select(monster => (monster.Experience, monster.Weapon, monster.Attack)).Distinct().Count() > 1)
+            .Where(group => group.Select(monster => (Cost: (monster.Experience + 10) / 20 * 10, monster.Weapon, monster.Attack)).Distinct().Count() > 1)
             .SelectMany(group => group.Select(monster => monster.Id)).ToHashSet(StringComparer.Ordinal);
 
         var spectres = new SortedDictionary<string, SortedDictionary<string, object>>(StringComparer.Ordinal);
@@ -143,7 +156,7 @@ internal static class SpectreExtractor
         }
 
         AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["spectres"] = spectres });
-        Say.Out.WriteLine($"Wrote {outFile}: {spectres.Count} monsters with an experience multiplier of {monsters.RowCount} rows, {told.Count} of a name shared with another variety");
+        Say.Out.WriteLine($"Wrote {outFile}: {spectres.Count} monsters with an experience multiplier of {monsters.RowCount} rows, {told.Count} of a name shared with another variety; {bothTags} rows carry both the ranged and melee tags and {neitherTag} neither, their reach left unsaid");
         return 0;
     }
 

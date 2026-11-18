@@ -198,13 +198,13 @@ namespace Poe2Accessibility.Services
                 if (category == ScanCategory.Corpses)
                 {
                     kind = CorpseKind;
-                    var spirit = SpectreCatalog.Shared.SpiritOf(path);
-                    if (spirit == null && name.Length > 0 && this.spiritlessCorpses.Add(path))
+                    questMarked = false; // a corpse is never what a quest asks for, whatever icon it died under
+                    var (spirit, variety) = SpectreCatalog.Shared.Lookup(path);
+                    if (spirit == null && name.Length > 0 && this.spiritlessCorpses.Add(BossMechanicsCatalog.MonsterId(path)))
                     {
                         this.log.Info($"Corpse without a spirit cost: {path}");
                     }
 
-                    var variety = SpectreCatalog.Shared.VarietyOf(path);
                     name = name.Length > 0 ? Announcements.CorpseOf(name, spirit, variety?.Weapon ?? string.Empty, variety?.Attack ?? string.Empty) : name;
                 }
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
@@ -599,10 +599,10 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool IsCorpse(Entity entity) =>
             entity.EntityType == EntityTypes.Monster && entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) &&
+            (IsFrozenDead(entity) || (entity.TryGetComponent<Life>(out var life) && !life.IsAlive)) &&
             !IsCharacter(entity) && !IsHidden(entity) &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly) &&
-            !(entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity == Rarity.Unique) &&
-            (IsFrozenDead(entity) || (entity.TryGetComponent<Life>(out var life) && !life.IsAlive));
+            !(entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity == Rarity.Unique);
 
         private bool InPlay(Entity entity) => IsInPlay(this.memory, entity);
 

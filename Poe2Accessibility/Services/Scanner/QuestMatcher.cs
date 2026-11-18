@@ -41,8 +41,9 @@ namespace Poe2Accessibility.Services
             var objective = memo?.For(questTexts, currentArea) ?? new Objective(questTexts, currentArea);
             var texts = objective.Texts;
             var steps = leadsTo is { Count: > 0 } ? leadsTo.Select(Fold).ToHashSet() : null;
-            // What the minimap marks with the quest's own icon is the objective, whatever the tracker says.
-            var targets = entries.Where(entry => entry.QuestMarked).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
+            // What the minimap marks with the quest's own icon is the objective, whatever the tracker says — never a
+            // corpse, though: a quest-icon monster that died is not asked for any more (live 2026-11-18).
+            var targets = entries.Where(entry => entry.QuestMarked && entry.Category != ScanCategory.Corpses).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
             if (texts.Count == 0)
             {
                 return targets;

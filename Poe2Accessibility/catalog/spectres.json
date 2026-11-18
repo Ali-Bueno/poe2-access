@@ -1,8 +1,5 @@
 {
   "spectres": {
-    "Any": {
-      "x": 100
-    },
     "Metadata/Monsters/Act2/ForsakenSon": {
       "x": 250
     },
@@ -10119,87 +10116,6 @@
     "Metadata/Monsters/Zombies/UpperPrison/PrisonZombieUnarmed_Dead": {
       "a": "melee",
       "t": true,
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act1/UnaGrimTangleSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act1/UnaTreeSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act3/AlvaMachinarium1Summon_": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act3/AlvaMachinarium2Summon__": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act3/AlvaWaterwaysSummon__": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act3/OswaldTreasureVaultSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act3/ServiCarverBogSummon_": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act3/ServiWaterwaysSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/AngeShoreline": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/DoryaniShrikeIslandSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/DoryaniSingingCavernsSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/DoryaniSolitaryConfinementSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/DoryaniVolcanicWarrensSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/Expedition/DannigTreasureIslandSummon": {
-      "a": "melee",
-      "t": true,
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/HoodedMentorShrikeIslandSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/HoodedMentorSingingCavernsSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/HoodedMentorSolitaryConfinementSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/HoodedMentorVolcanicWarrensSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Act4/TujenJourneysEndSummon": {
-      "t": true,
-      "x": 100
-    },
-    "Metadata/NPC/Four_Interlude/Part1/UnaStoneCircleSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/Four_Interlude/Part3/DoryaniCauchicVaultSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/League/Incursion/AlvaIncursionAccessSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/League/Incursion/AlvaIncursionHubSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/League/Incursion/AlvaIncursionTempleSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/League/Incursion/DoryaniIncursionAccessSummon": {
-      "x": 100
-    },
-    "Metadata/NPC/League/Incursion/DoryaniIncursionHubSummon": {
       "x": 100
     }
   }

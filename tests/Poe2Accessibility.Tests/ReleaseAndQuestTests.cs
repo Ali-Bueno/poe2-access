@@ -321,6 +321,14 @@ namespace Poe2Accessibility.Tests
             };
             Equal("Altar de ritual", string.Join(" | ", QuestMatcher.Targets(altars, new[] { "Altares siniestros", "Busca los altares de ritual y purifícalos" }).Select(entry => entry.Name)),
                   "the objective's plural names the altars still to do, not the boss's nor a done one (Freythorn, 2026-10-29)");
+            var corpse = new ScanEntry(16, ScanCategory.Corpses, "El molinero hinchado corpse, 50 Spirit", 0, 0, 0, "monster_corpse");
+            Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(new[] { corpse }, new[] { "Busca al Molinero y encuentra refugio en Sierraclara" }).Select(entry => entry.Name)),
+                  "a corpse whose name the objective matches is never the target (Utzaal, 2026-11-18)");
+            Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(new[] { corpse with { QuestMarked = true } }, Array.Empty<string>()).Select(entry => entry.Name)),
+                  "nor is a corpse under the quest's own icon, which it died under");
+            Equal("El molinero hinchado, único", string.Join(" | ", QuestMatcher.Targets(new[] { corpse with { Category = ScanCategory.Enemies, Name = "El molinero hinchado, único", Kind = string.Empty } },
+                                                                                         new[] { "Busca al Molinero y encuentra refugio en Sierraclara" }).Select(entry => entry.Name)),
+                  "the same monster alive, with its rarity, still is");
         }
 
         private static void QuestTrackerPageIsSaidWhenItChanges()

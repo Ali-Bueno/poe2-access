@@ -26,9 +26,13 @@ namespace Poe2Accessibility.Services
         public sealed record Entry(int Experience, string Weapon, string Attack, bool Told);
 
         private readonly Dictionary<string, Entry> entries;
+        private readonly Dictionary<string, Entry>.AlternateLookup<ReadOnlySpan<char>> byId;
 
-        public SpectreCatalog(IReadOnlyDictionary<string, Entry> entries) =>
+        public SpectreCatalog(IReadOnlyDictionary<string, Entry> entries)
+        {
             this.entries = new Dictionary<string, Entry>(entries, StringComparer.Ordinal);
+            this.byId = this.entries.GetAlternateLookup<ReadOnlySpan<char>>();
+        }
 
         public static SpectreCatalog Empty { get; } = new(new Dictionary<string, Entry>());
 
@@ -53,7 +57,7 @@ namespace Poe2Accessibility.Services
                     catalog = Parse(File.ReadAllText(file));
                     log.Info($"Spectres: {catalog.Count} monsters");
                 }
-                catch (Exception ex) when (ex is IOException or JsonException)
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
                 {
                     log.Warn($"Spectres not read from {file}: {ex.Message}");
                 }
@@ -72,7 +76,16 @@ namespace Poe2Accessibility.Services
                 throw new JsonSerializationException("no spectres");
             }
 
-            return new SpectreCatalog(file.Spectres.ToDictionary(pair => pair.Key, pair => Read(pair.Value), StringComparer.Ordinal));
+            try
+            {
+                return new SpectreCatalog(file.Spectres.ToDictionary(pair => pair.Key, pair => Read(pair.Value), StringComparer.Ordinal));
+            }
+            catch (Exception ex) when (ex is not JsonException)
+            {
+                // A row of the wrong shape ("x": "abc", a row that is an array) fails in Read's conversions with
+                // Format/InvalidOperation/Overflow, not a JsonException: it is a bad catalog all the same.
+                throw new JsonSerializationException(ex.Message, ex);
+            }
         }
 
         /// <summary>One row as written now (an object), or as the first making of the catalog wrote it (the multiplier alone).</summary>
@@ -85,6 +98,15 @@ namespace Poe2Accessibility.Services
         public int? SpiritOf(string path) => this.RowOf(path) is { } entry ? SpiritFor(entry.Experience) : null;
 
         /// <summary>
+        ///     Both of <see cref="SpiritOf"/> and <see cref="VarietyOf"/> in one lookup, for the listing that names every
+        ///     corpse ten times a second.
+        /// </summary>
+        public (int? Spirit, (string Weapon, string Attack)? Variety) Lookup(string path) =>
+            this.RowOf(path) is { } entry
+                ? (SpiritFor(entry.Experience), entry.Told ? (entry.Weapon, entry.Attack) : null)
+                : (null, null);
+
+        /// <summary>
         ///     What tells the monster at <paramref name="path"/> from the others of its name — its weapon's ItemClasses Id
         ///     and whether it fights ranged or melee — or null when its name needs no telling or the catalog lacks it.
         /// </summary>
@@ -93,10 +115,18 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The reservation of a monster with this experience multiplier: half of it, to the nearest ten (100 gives 50,
-        ///     110 gives 60, 70 gives 40, 200 gives 100). Null for a multiplier worth nothing, which no bindable monster has.
+        ///     110 gives 60, 70 gives 40, 200 gives 100). Null when that rounds to nothing, which no bindable monster's does.
         /// </summary>
-        public static int? SpiritFor(int experience) =>
-            experience <= 0 ? null : (int)Math.Floor(experience / 20.0 + 0.5) * 10;
+        public static int? SpiritFor(int experience)
+        {
+            if (experience <= 0)
+            {
+                return null;
+            }
+
+            var spirit = (int)Math.Floor(experience / 20.0 + 0.5) * 10;
+            return spirit > 0 ? spirit : null;
+        }
 
         /// <summary>
         ///     The row of an entity's path. The path carries its level after an '@' ("…/VaalGuardBowLiving@40"), which
@@ -104,9 +134,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private Entry? RowOf(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                return null;
+            }
+
             var at = path.IndexOf('@');
-            var id = at > 0 ? path[..at] : path;
-            return id.Length > 0 && this.entries.TryGetValue(id, out var entry) ? entry : null;
+            var id = at > 0 ? path.AsSpan(0, at) : path.AsSpan();
+            return id.Length > 0 && this.byId.TryGetValue(id, out var entry) ? entry : null;
         }
 
         private sealed class SpectreFile
