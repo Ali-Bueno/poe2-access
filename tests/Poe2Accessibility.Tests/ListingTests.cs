@@ -175,14 +175,13 @@ namespace Poe2Accessibility.Tests
                     : entry.Kind == "npc_quest" && entry.Name.LastIndexOf(", ", StringComparison.Ordinal) is > 0 and var marker ? entry.Name[..marker]
                     : entry.Kind == MinimapMarks.BossRoomKind ? entry.Subject
                     : entry.Name);
-                if (name.Length < 4)
-                {
-                    continue;
-                }
-
-                var named = texts.Any(text => text != name && ContainsWord(text, name)) ||
-                            (entry.Kind is not (QuestMatcher.TileNote or MinimapMarks.BossRoomKind) &&
-                             name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';'))));
+                bool Named(string folded) => folded.Length >= 4 &&
+                    (texts.Any(text => text != folded && ContainsWord(text, folded)) ||
+                     (entry.Kind is not (QuestMatcher.TileNote or MinimapMarks.BossRoomKind) &&
+                      folded.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';')))));
+                // A plain entry is also named by its other title (a Vaal Beacon as Act 3's "foco antiguo").
+                var plain = entry.Category != ScanCategory.Enemies && entry.Kind is not ("npc_quest" or MinimapMarks.BossRoomKind);
+                var named = Named(name) || (plain && Named(Fold(entry.Subject)));
                 if (named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });

@@ -331,7 +331,12 @@ namespace Poe2Accessibility.Services
             var position = render.WorldPosition;
             name = ControllerGlyphs.InName(name);
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, MinimapMarks.KindUnder(icon, kind), baseId, loot, sound,
-                questMarked, subject, timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
+                questMarked, subject.Length > 0 || category != ScanCategory.Encounters || LeaguePieces.RuleOf(path)?.Piece != LeaguePiece.VaalBeacon
+                    ? subject
+                    // "Activa cinco focos antiguos adicionales": Act 3's quest names the beacons by their other title, not
+                    // "Foco vaal", and they sounded as an encounter it does not ask for (owner, 2026-11-18).
+                    : this.landmarks.WorldTitle(LeaguePieces.AncientBeaconTitle),
+                timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
                 category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0);
         }
 

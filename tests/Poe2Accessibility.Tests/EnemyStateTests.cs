@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(CullingThresholdsByRarity), CullingThresholdsByRarity),
             (nameof(CullingSkillsComeFromTheCatalog), CullingSkillsComeFromTheCatalog),
             (nameof(CrossingAnAreaLeadsToTheWayOn), CrossingAnAreaLeadsToTheWayOn),
+            (nameof(AnAncientBeaconIsTheQuestsByItsOtherTitle), AnAncientBeaconIsTheQuestsByItsOtherTitle),
             (nameof(ExploredGroundIsKeptAsBytes), ExploredGroundIsKeptAsBytes),
             (nameof(PlacedObjectsSoundByDistance), PlacedObjectsSoundByDistance),
             (nameof(SkillsAreReadyOnceTheirCooldownEnds), SkillsAreReadyOnceTheirCooldownEnds),
@@ -118,6 +119,18 @@ namespace Poe2Accessibility.Tests
             Equal(true, gong.Length == (int)(0.75f * 44100) && MathF.Abs(gong.Max(MathF.Abs) - 0.94f) < 0.001f, "the gong: 0.75 s at its level, 7 dB over the sample");
             Equal(true, MathF.Abs(gong[^1]) < 0.01f, "it fades out without a click");
             Equal(true, gong.Length > CueSynth.StateCue(EnemyState.HeavyStunned, 44100).Length, "longer than the heavy-stun gong");
+        }
+
+        private static void AnAncientBeaconIsTheQuestsByItsOtherTitle()
+        {
+            // Las criptas venenosas, 2026-11-18: the scanner said "Encuentros. Foco vaal" under "Activa cinco focos antiguos adicionales".
+            var beacon = new ScanEntry(1, ScanCategory.Encounters, "Foco vaal", 0, 0, 0, "encounter", Sound: "league_vaal", Subject: "Foco antiguo");
+            var altar = new ScanEntry(2, ScanCategory.Encounters, "Altar de ritual", 0, 0, 0, "ritual", Sound: "league_ritual");
+            string Names(params string[] texts) =>
+                string.Join(" | ", QuestMatcher.Targets(new[] { beacon, altar }, texts, "Las criptas venenosas").Select(entry => $"{entry.Category} {entry.Name}"));
+            Equal("Quest Foco vaal", Names("Focos antiguos", "Activa el foco antiguo"), "the first");
+            Equal("Quest Foco vaal", Names("Focos antiguos", "Activa cinco focos antiguos adicionales"), "the five more, in the plural");
+            Equal(string.Empty, Names("Legado de los vaal", "Viaja a Yermo infestado"), "a quest that does not ask for it");
         }
 
         private static void CrossingAnAreaLeadsToTheWayOn()

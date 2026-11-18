@@ -72,7 +72,8 @@ namespace Poe2Accessibility.Services
                 var named = entry.Category == ScanCategory.Enemies ? objective.Names(entry.Name, NamePart.BeforeFirstComma, byWord)
                     : entry.Kind == "npc_quest" ? objective.Names(entry.Name, NamePart.BeforeLastComma, byWord)
                     : entry.Kind == MinimapMarks.BossRoomKind ? objective.Names(entry.Subject, NamePart.Whole, byWord)
-                    : objective.Names(entry.Name, NamePart.Whole, byWord);
+                    : objective.Names(entry.Name, NamePart.Whole, byWord) ||
+                      (entry.Subject.Length > 0 && objective.Names(entry.Subject, NamePart.Whole, byWord)); // a Vaal Beacon as Act 3's "foco antiguo"
                 if (named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });

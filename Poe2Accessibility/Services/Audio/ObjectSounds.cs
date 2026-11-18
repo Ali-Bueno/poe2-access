@@ -294,10 +294,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     An object the quest tracker names sounds as a quest object while it does: the Relic Altar has no quest icon, only
-        ///     "Coloca tu barya en el Altar de reliquias" (user 2026-11-07). Characters and enemies have their own cues.
+        ///     "Coloca tu barya en el Altar de reliquias" (user 2026-11-07). Characters and enemies have their own cues. An
+        ///     encounter named by its other title (<see cref="ScanEntry.Subject"/>) drops its league voice for it: Act 3's
+        ///     Ancient Beacons, Vaal Beacons by their own (owner, 2026-11-18).
         /// </summary>
         private static ScanEntry WhileWanted(ScanEntry entry, HashSet<uint> wanted) =>
-            entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) && entry.Sound.Length == 0 &&
+            entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) &&
+            (entry.Sound.Length == 0 || (entry.Category == ScanCategory.Encounters && entry.Subject.Length > 0)) &&
             entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual" and not MinimapMarks.StashKind and not MinimapMarks.WellKind
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;

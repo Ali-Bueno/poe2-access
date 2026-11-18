@@ -315,6 +315,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The start of every league sound's key: each mechanic rings with its own recording of the game (docs/research/game-audio.md).</summary>
         public const string SoundPrefix = "league_";
 
+        /// <summary>
+        ///     The object whose world title is the Vaal Beacon's before the Vaal are known, "Ancient Beacon" / "Foco antiguo"
+        ///     (docs/research/league-mechanics.md §9): the name Act 3's quest gives the beacons it asks for.
+        /// </summary>
+        public const string AncientBeaconTitle = "Metadata/MiscellaneousObjects/LeagueIncursionNew/AtziriShrineEncounter";
+
         public const string BreachSound = SoundPrefix + "breach";
         public const string DeliriumSound = SoundPrefix + "delirium";
         public const string EssenceSound = SoundPrefix + "essence";

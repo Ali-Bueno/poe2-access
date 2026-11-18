@@ -374,6 +374,10 @@ on a spirit's death), Rites of the Rogues. `EntityInfoRogueExileUniqueItem` "Has
   "Atziri's Chamber is not connected to the rest of the temple."
 - Dangers: ground buffs `architect_ground_blood*` "Boiling Blood" / "Sangre hirviente" (in `hazards.txt`), `vaal_cloud` "Corrupting Smoke" / "Humo
   corrupto"; wall turrets `Monsters/LeagueIncursion/WallTurrets/WallTurret*`. Bosses (Xipocado, Atziri): [boss-mechanics.md](boss-mechanics.md).
+- **Act 3's Ancient Beacons are this object** (MEASURED 2026-11-18, Las criptas venenosas: "Misión: Focos antiguos. Activa el foco
+  antiguo", then "Activa cinco focos antiguos adicionales" once `IncursionPedestalEncounter` reached `activated` 3). The tracker names them
+  by `AtziriShrineEncounter`'s first title, so the beacon carries that title as its `Subject` and the quest matcher reads it: listed under
+  Quest and sounded as a quest object while the tracker asks for them; elsewhere an encounter with its Vaal voice.
 - Not in the files: the grid's layout and connections (window data), what the beacon waves are and how long.
 
 ## 10. Essence
