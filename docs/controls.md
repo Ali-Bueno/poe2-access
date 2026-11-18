@@ -96,7 +96,10 @@ first; both wrap and empty categories are skipped. The category is named only wh
   barrier: "Closed barrier", one that opened on its own and you have not walked to yet: "Opened way", readable signs and
   plaques: "Sign: Ogham Village"), chests
   and shrines (rocks, eggs, urns and other breakables have their own breaking sound, bodies to search their own
-  rummage), items on the ground, other players. Chests and items stay listed once seen until opened or
+  rummage), items on the ground, other players, **corpses** (the monsters you killed whose body is still there to
+  use, named with the Spirit a spectre of them would reserve: "Vaal Guard corpse, 50 Spirit" — what Bind Spectre's
+  tooltip over the corpse says; lock the guide on one, stand on it and bind. Not uniques, and not the bodies to
+  search, which stay among the chests). Chests and items stay listed once seen until opened or
   picked up.
 - Only what a sighted player knows of (the minimap shows no more): enemies while they are on screen; everything
   else once it has been on screen or on ground you explored; the area's named places once you explored their

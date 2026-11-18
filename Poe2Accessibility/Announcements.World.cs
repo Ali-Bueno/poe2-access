@@ -32,6 +32,7 @@ namespace Poe2Accessibility
             Services.ScanCategory.Chests => T("Chests and shrines", "Cofres y santuarios"),
             Services.ScanCategory.Items => T("Items", "Objetos"),
             Services.ScanCategory.Players => T("Players", "Jugadores"),
+            Services.ScanCategory.Corpses => T("Corpses", "Cadáveres"),
             _ => category.ToString(),
         };
 
@@ -97,6 +98,11 @@ namespace Poe2Accessibility
         public static string Minions(System.Collections.Generic.IEnumerable<string> groups) => T("Minions: ", "Esbirros: ") + string.Join("; ", groups);
 
         public static string EnemyWithRarity(string name, GameReader.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
+
+        /// <summary>A dead monster's corpse, with the Spirit a spectre of it reserves when the catalog knows it: "Vaal Guard corpse, 50 Spirit", without a cost when it does not.</summary>
+        public static string CorpseOf(string name, int? spirit) => spirit is { } cost
+            ? T($"{name} corpse, {cost} Spirit", $"Cadáver de {name}, {cost} de espíritu")
+            : T($"{name} corpse", $"Cadáver de {name}");
 
         internal static string RarityName(GameReader.RemoteEnums.Rarity rarity) => rarity switch
         {

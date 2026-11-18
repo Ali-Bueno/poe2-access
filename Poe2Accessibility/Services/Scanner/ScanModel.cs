@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
         Chests,
         Items,
         Players,
+
+        /// <summary>Dead monsters whose corpse is still there to use (Bind Spectre, corpse skills): named with the Spirit a spectre of them reserves. Last so the values before it, which the area memory writes to disk, keep their numbers.</summary>
+        Corpses,
     }
 
     /// <summary>One thing the scanner can name; positions in world units; <c>Kind</c> picks its sound ("gold", "chest", "checkpoint").</summary>
@@ -46,8 +49,8 @@ namespace Poe2Accessibility.Services
     {
         public const string PortalKind = "portal";
 
-        /// <summary>It may be gone by the time the player is back: opened, picked up, a portal that closed or a quest's object once used.</summary>
-        public bool CanVanish => this.Category is ScanCategory.Chests or ScanCategory.Items || this.Kind == PortalKind || this.QuestMarked;
+        /// <summary>It may be gone by the time the player is back: opened, picked up, a portal that closed, a quest's object once used or a corpse used up.</summary>
+        public bool CanVanish => this.Category is ScanCategory.Chests or ScanCategory.Items or ScanCategory.Corpses || this.Kind == PortalKind || this.QuestMarked;
     }
 
     /// <summary>
