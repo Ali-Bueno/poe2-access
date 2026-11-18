@@ -100,5 +100,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The key of a stat, by its name in the game; <paramref name="compiled"/> when the catalog does not list it.</summary>
         public int Stat(string name, int compiled) => this.stats.GetValueOrDefault(name, compiled);
+
+        /// <summary>The name of a stat by its key; null when the catalog does not list it.</summary>
+        public string? StatName(int key) => this.stats.FirstOrDefault(pair => pair.Value == key).Key;
     }
 }

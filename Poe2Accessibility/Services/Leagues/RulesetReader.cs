@@ -238,29 +238,44 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Research: the area's stats as upstream's layout places them (<see cref="GameLayout.AreaStats"/>), by the host's names
-        ///     of the stats; "unread" when the two pointers are not a vector of pairs. For the log, once per area.
+        ///     The area's stats as upstream's layout places them (<see cref="GameLayout.AreaStats"/>), named by the game's keys where
+        ///     the catalog lists them; "unread" when the two pointers are not a vector of pairs. For the log, once per area.
         /// </summary>
         public string AreaStats()
+        {
+            if (this.AreaStatPairs() is not { } pairs)
+            {
+                return "Area stats: unread";
+            }
+
+            // By the game's own key where the catalog lists the stat (game-ids.txt), else by the host's old enum, which drifts.
+            var named = pairs.Select(pair => $"{GameIds.Current.StatName(pair.Stat) ?? ((GameReader.RemoteEnums.GameStats)pair.Stat).ToString()} ({pair.Stat}) = {pair.Value}");
+            return $"Area stats: {pairs.Count} pairs{(pairs.Count > 0 ? ": " + string.Join(", ", named) : string.Empty)}";
+        }
+
+        /// <summary>The value of one of the area's stats by its key; 0 when the area lacks it, null when the stats do not read.</summary>
+        public int? AreaStat(int key) => this.AreaStatPairs() is { } pairs ? pairs.FirstOrDefault(pair => pair.Stat == key).Value : null;
+
+        private List<(int Stat, int Value)>? AreaStatPairs()
         {
             var areaNow = Core.States.InGameStateObject.CurrentAreaInstance.Address;
             if (areaNow == IntPtr.Zero || this.VectorCount(areaNow + GameLayout.AreaStats.VectorOffset, GameLayout.AreaStats.PairBytes) is not { } count ||
                 !this.memory.TryRead<IntPtr>(areaNow + GameLayout.AreaStats.VectorOffset, out var first))
             {
-                return "Area stats: unread";
+                return null;
             }
 
-            var pairs = new List<string>();
+            var pairs = new List<(int Stat, int Value)>();
             for (var index = 0; index < Math.Min(count, MaxRecords); index++)
             {
                 if (this.memory.TryRead<int>(first + (index * GameLayout.AreaStats.PairBytes), out var stat) &&
                     this.memory.TryRead<int>(first + (index * GameLayout.AreaStats.PairBytes) + sizeof(int), out var value))
                 {
-                    pairs.Add($"{(GameReader.RemoteEnums.GameStats)stat} ({stat}) = {value}");
+                    pairs.Add((stat, value));
                 }
             }
 
-            return $"Area stats: {count} pairs{(pairs.Count > 0 ? ": " + string.Join(", ", pairs) : string.Empty)}";
+            return pairs;
         }
 
         private static bool IsGridCell(int x, int y) => x is >= 0 and < GameLayout.Rulesets.MostGridCells && y is >= 0 and < GameLayout.Rulesets.MostGridCells;

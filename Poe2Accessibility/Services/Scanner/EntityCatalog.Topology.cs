@@ -184,6 +184,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a grid cell was seen (the explored ground).</summary>
         public bool WasSeen(Vector2 cell) => this.explored.IsSeen(cell);
 
+        /// <summary>Whether the map shows a grid cell's layout: seen, or the whole of it under a revealed minimap (<see cref="LayoutRevealed"/>).</summary>
+        public bool LayoutShown(Vector2 cell) => this.LayoutRevealed() || this.explored.IsSeen(cell);
+
         /// <summary>"narrow" where the player stands in a narrow passage between two parts of the map; null elsewhere.</summary>
         public string? NarrowAt(Vector2 cell) =>
             this.topology?.Narrows.Any(narrow => Vector2.Distance(narrow.Cell, cell) <= (narrow.WidthCells / 2) + NarrowReachCells) == true ? LandmarkAhead.Narrow : null;

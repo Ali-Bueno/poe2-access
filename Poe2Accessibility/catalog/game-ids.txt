@@ -1107,6 +1107,8 @@ stat uncapped_chaos_damage_resistance_% 2035
 stat is_dead 2423
 stat is_in_affliction_fog 10259
 stat monster_inside_monolith 4786
+stat map_minimap_revealed 1319
+stat map_area_level_override 11337
 ruleset StandardRules 0
 ruleset ArenaPVPRules 1
 ruleset MapRoomRules 2

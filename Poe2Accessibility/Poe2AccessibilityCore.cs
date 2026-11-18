@@ -455,7 +455,7 @@ namespace Poe2Accessibility
                 if (this.places != null)
                 {
                     this.places.MoreKindAt = this.entities.NarrowAt;
-                    this.places.Seen = this.entities.WasSeen;
+                    this.places.Seen = this.entities.LayoutShown;
                     this.places.MorePlaces = this.entities.NarrowPlaces;
                 }
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
@@ -494,6 +494,8 @@ namespace Poe2Accessibility
                 this.semantics.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
+                this.entities.InTown = this.InTownOrHideout;
+                this.entities.LayoutRevealed = () => this.rulesets?.MinimapRevealed == true;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
                 this.commands.Settings = () => this.Settings;

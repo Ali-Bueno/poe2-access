@@ -655,7 +655,12 @@ sacrifice is a float of the altar's Render component; a charge's placement limit
   bytes), and names a float on the Render component "sacrifice percent" at +0x4BC of an older build: the same field the exe study found
   at +0x46C in 0.5.5f.
 - Upstream (`Gordin/GameHelper2`, `AreaInstanceOffsets`) places the area's stats, int32 pairs, at +0x158 (`MapMods`), read by nothing of
-  theirs but an offset viewer. Unvalidated here: the plugin logs them once per area ("Area stats: …") and uses nothing of them.
+  theirs but an offset viewer. Logged once per area ("Area stats: …"). The names in the logs up to 2026-11-17 were the host's old enum,
+  off by thousands of rows: by the game's Stats table (key = row + 1) the pairs are `map_area_level_override` (11337), whose value was the
+  area level each time (23, 24, 25 in the Act 2 log of 2026-11-17, beside "Area level 25"), `area_culture_hash` (24795),
+  `map_restrict_leagues` (15945), `map_ritual_tower_augment_quantity_+%` (20079), `map_ritual_area_groups_enabled` (27211). So the vector
+  is the area's stats; the plugin reads one, `map_minimap_revealed` (1319), the map modifier "El minimapa está revelado"
+  (`RulesetWatch.MinimapRevealed`, docs/research/minimap.md). Not yet read on a map that has it.
 - UI elements carry a name (`GTAteemo/PoE2GameHelper`: string id pointer at +0x0F8, examples "LeftPanel", "UltimatumTitle"); the exe holds
   "UltimatumTitle", "UltimatumLabel", "UltimatumProgressBarLabel", "UltimatumTimerLabel", "UltimatumReturnToRingLabel",
   "UltimatumPopupLabel", "UltimatumVoteCountLabel", and for the Delirium bar only art names (`DeliriumProgressBarFill`, `…Player`,

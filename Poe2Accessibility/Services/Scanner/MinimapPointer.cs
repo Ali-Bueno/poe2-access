@@ -20,6 +20,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The scanner kinds the arrow points to: boss rooms, the quest's objects and the campaign's landmarks.</summary>
         public static bool Points(string kind) => kind is MinimapMarks.BossRoomKind or MinimapMarks.QuestObjectKind or MinimapMarks.LandmarkKind;
 
+        /// <summary>
+        ///     Whether the minimap draws an icon <paramref name="cells"/> off: everywhere in a town or hideout and for anything but a
+        ///     character; a character elsewhere only within its icon's pointer reach (<see cref="Mark.ReachCells"/>).
+        /// </summary>
+        public static bool Drawn(bool town, bool character, float cells, float reachCells) => town || !character || cells <= reachCells;
+
         /// <summary>The mark the arrow points to from <paramref name="here"/> (grid cells); null for none.</summary>
         public static Mark? Pick(IEnumerable<Mark> marks, Vector2 here) =>
             marks.Where(mark => !mark.InView && mark.ReachCells > 0 && Vector2.Distance(here, mark.Cell) <= mark.ReachCells)

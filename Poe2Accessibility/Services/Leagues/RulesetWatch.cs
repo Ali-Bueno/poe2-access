@@ -63,6 +63,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the charges of the Expedition site nearest the player as last read: placed, and how many there are.</summary>
         public (int Placed, int Total)? Charges { get; private set; }
 
+        /// <summary>
+        ///     The area's modifier "Minimap is Revealed" (stat <c>map_minimap_revealed</c>, a map's or a fixed seed's): a sighted player
+        ///     sees the whole layout from the start (<see cref="EntityCatalog.LayoutRevealed"/>). Read once per area.
+        /// </summary>
+        public bool MinimapRevealed { get; private set; }
+
         /// <summary>Research (dev command "rulesets"): where a session could be, to the log.</summary>
         public void Probe()
         {
@@ -84,6 +90,7 @@ namespace Poe2Accessibility.Services
             this.trialHudNews.Reset();
             this.trialHud.Reset();
             this.areaStatsLogged = false;
+            this.MinimapRevealed = false;
             this.trialHudFound = long.MinValue / 2;
             (this.Charges, this.lastLogged) = (null, string.Empty);
         }
@@ -107,6 +114,12 @@ namespace Poe2Accessibility.Services
             {
                 this.areaStatsLogged = true;
                 this.log.Info(this.reader.AreaStats());
+                var revealed = GameIds.Current.Stat(nameof(GameReader.RemoteEnums.GameStats.map_minimap_revealed), (int)GameReader.RemoteEnums.GameStats.map_minimap_revealed);
+                this.MinimapRevealed = this.reader.AreaStat(revealed) > 0;
+                if (this.MinimapRevealed)
+                {
+                    this.log.Info("Minimap revealed by the area's modifier: its layout counts as seen");
+                }
             }
 
             this.Fog(render, now, leagues);

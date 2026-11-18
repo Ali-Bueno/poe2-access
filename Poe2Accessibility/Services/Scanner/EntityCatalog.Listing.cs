@@ -119,6 +119,7 @@ namespace Poe2Accessibility.Services
             var renders = scratch.Renders;
             var pointing = new List<(ScanEntry Entry, float ReachCells)>();
             var sampling = this.Fields?.StartPass() ?? false;
+            var town = this.InTown();
             foreach (var (_, entity) in area.AwakeEntities)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
@@ -144,7 +145,7 @@ namespace Poe2Accessibility.Services
                     pointing.Add((entry, MinimapIconLabel.PointerCells(this.memory, icon)));
                 }
 
-                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, OnMinimap(entity)))
+                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, this.DrawnOnMinimap(entity, entry, render, player, town)))
                 {
                     unseen.Add(entry);
                     continue;
@@ -219,7 +220,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var place = new StdTuple3D<float> { X = landmark.WorldX, Y = landmark.WorldY, Z = landmark.WorldZ };
-                if (this.Pointed(landmark, player, area.WorldToGridConvertor) || this.Sighted(landmark, place, area.WorldToGridConvertor, false))
+                if (this.Pointed(landmark, player, area.WorldToGridConvertor) || this.Sighted(landmark, place, area.WorldToGridConvertor, this.LayoutRevealed()))
                 {
                     found.TryAdd(landmark.Id, landmark);
                 }
@@ -406,9 +407,26 @@ namespace Poe2Accessibility.Services
         /// <summary>The arrow's reach to a boss room known from the area's tiles, which has no icon row to read it from.</summary>
         private static float TileRoomReach(ScanEntry entry) => entry.Id >= ArenaIdBase ? MinimapMarks.MapBossPointerCells : MinimapMarks.CampaignBossPointerCells;
 
-        /// <summary>The entity carries a MinimapIcons.dat icon (GameHelper's MinimapIcon component): the minimap draws it.</summary>
-        private static bool OnMinimap(Entity entity) =>
-            entity.TryGetComponent<MinimapIcon>(out var icon) && !string.IsNullOrEmpty(icon.IconName);
+        /// <summary>
+        ///     The entity carries a MinimapIcons.dat icon (GameHelper's MinimapIcon component) and the minimap draws it. A character
+        ///     out of town only within its icon's pointer reach (MinimapIcons +0x12, 250 cells for "NPC"): the client knows some quest
+        ///     characters map-wide from the arrival, the Water Goddess 2,000 cells off in the boss room of Santuarios enterrados, listed
+        ///     the moment the owner came in (2026-11-18, "haz eso solo para las ciudades… a menos que ahí el juego lo muestre").
+        /// </summary>
+        private bool DrawnOnMinimap(Entity entity, ScanEntry entry, Render render, Render player, bool town)
+        {
+            if (!entity.TryGetComponent<MinimapIcon>(out var icon) || string.IsNullOrEmpty(icon.IconName))
+            {
+                return false;
+            }
+
+            var character = entry.Category == ScanCategory.Npcs;
+            return MinimapPointer.Drawn(
+                town,
+                character,
+                Vector2.Distance(new Vector2(player.GridPosition.X, player.GridPosition.Y), new Vector2(render.GridPosition.X, render.GridPosition.Y)),
+                town || !character ? 0 : MinimapIconLabel.PointerCells(this.memory, icon));
+        }
 
         private static float Distance(StdTuple3D<float> origin, ScanEntry entry) =>
             new Vector2(entry.WorldX - origin.X, entry.WorldY - origin.Y).Length();

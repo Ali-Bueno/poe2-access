@@ -27,6 +27,8 @@ internal static class GameIdExtractor
         "is_dead", // the host's dormant-monster check
         "is_in_affliction_fog", // the Delirium fog alarm (LeaguePieces.FogStat)
         "monster_inside_monolith", // a monster an Essence's crystal holds (EssenceWatch logs it beside the rule by place)
+        "map_minimap_revealed", // the map modifier that shows the whole layout (RulesetWatch.MinimapRevealed)
+        "map_area_level_override", // the area level, which every area's stats hold: names the log's first pair
     };
 
     /// <summary>Row 0 of Rulesets, known: a table that reads otherwise has moved its Id.</summary>

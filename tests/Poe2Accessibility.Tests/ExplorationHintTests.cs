@@ -22,7 +22,16 @@ namespace Poe2Accessibility.Tests
             (nameof(TheMinimapArrowPointsToTheQuestFirstWithinItsReach), TheMinimapArrowPointsToTheQuestFirstWithinItsReach),
             (nameof(TheArrowsHaloLoopsWithoutASeam), TheArrowsHaloLoopsWithoutASeam),
             (nameof(GoingRoundInCirclesCountsSinceTheLastNewGround), GoingRoundInCirclesCountsSinceTheLastNewGround),
+            (nameof(AFarCharacterIsDrawnOnlyInTown), AFarCharacterIsDrawnOnlyInTown),
         };
+
+        private static void AFarCharacterIsDrawnOnlyInTown()
+        {
+            Equal(false, MinimapPointer.Drawn(false, true, 2000, 250), "the Water Goddess 2,000 cells off in a boss room: not drawn");
+            Equal(true, MinimapPointer.Drawn(false, true, 200, 250), "within the NPC icon's reach the minimap shows her");
+            Equal(true, MinimapPointer.Drawn(true, true, 2000, 0), "in a town every character the game knows of");
+            Equal(true, MinimapPointer.Drawn(false, false, 2000, 0), "an exit or a waypoint keeps its icon wherever the game has it");
+        }
 
         private static void TheMinimapArrowPointsToTheQuestFirstWithinItsReach()
         {

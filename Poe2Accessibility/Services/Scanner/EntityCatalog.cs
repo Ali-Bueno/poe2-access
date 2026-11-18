@@ -109,6 +109,16 @@ namespace Poe2Accessibility.Services
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
 
+        /// <summary>Whether the area is a town or a hideout, where every character the game knows of is listed (<see cref="DrawnOnMinimap"/>).</summary>
+        public Func<bool> InTown { get; set; } = () => true;
+
+        /// <summary>
+        ///     Whether the area's modifier reveals the minimap (<see cref="RulesetWatch.MinimapRevealed"/>): the layout a sighted player
+        ///     sees whole, its named tiles and rooms, counts as seen (<see cref="LayoutShown"/>); what stands on it does not, and the
+        ///     ground still to walk stays unexplored, as the fog was never what told a sighted player where they had been.
+        /// </summary>
+        public Func<bool> LayoutRevealed { get; set; } = () => false;
+
         /// <summary>How much ground has been seen in this area: it grows while the player finds new ground.</summary>
         public int SeenBlocks => this.explored.SeenBlocks;
 

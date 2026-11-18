@@ -42,6 +42,15 @@ bubble, and the unit of the pointer distance.
 - Enemies: while on screen (the minimap draws no campaign monsters).
 - Things with a minimap icon (exits, waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the
   client has them; the game draws their icon or the edge pointer.
+- Characters (NPCs) out of a town or hideout: only within their icon's pointer reach (+0x12; "NPC" 250 cells), on screen or
+  on explored ground (`MinimapPointer.Drawn`). The client knows some quest characters map-wide from the arrival: in
+  Santuarios enterrados (Act 2, 2026-11-17) the Water Goddess (`Metadata/NPC/Four_Act2/WaterGoddessUnnamed`) was listed the
+  moment the owner came in, 234 steps (about 2,000 cells) off in the boss room; no minimap draws an icon that far (the owner,
+  2026-11-18: "haz eso solo para las ciudades… a menos que ahí el juego lo muestre sin más"). A character whose icon reaches
+  map-wide keeps being listed.
+- A map with the modifier "El minimapa está revelado" (area stat `map_minimap_revealed`): the layout counts as seen, so the
+  area's named tiles (boss rooms, exits of the tiles) and named rooms are listed from the start; things on it still once seen,
+  and the ground not walked stays unexplored for the radar, the lost hint and the map's glance.
 - Everything else, named tiles included: once on screen or on explored ground.
 - Quest category: what the objective names, once seen or marked with the quest's icon (user, 2026-11-05, over the
   quest marker of 2026-10-24). It is still found wherever the game knows it, for the lost hint ([radar](../radar.md)).
