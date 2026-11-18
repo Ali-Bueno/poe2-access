@@ -141,11 +141,11 @@ namespace Poe2Accessibility.Services
             string Near(ScanEntry entry) => entry.Kind == "checkpoint"
                 ? MapPlaces.NamedNear(new Vector2(entry.WorldX, entry.WorldY), entries, CheckpointPlaces.NearPlaceWorld)?.Name ?? string.Empty
                 : string.Empty;
-            // Where each lies on the screen, in words and in the chime's side and height (user 2026-11-11); none beside the player.
+            // Where each lies, in the scanner's own words (steps, the leg to walk, where it turns) and in the chime's side and
+            // height (user 2026-11-11). The straight line alone said "abajo" for the Dreadnought's far boss room, the scanner
+            // "izquierda 3, luego arriba a la izquierda" for the near one, both "Sala del jefe" (owner, 2026-11-18).
             Vector2 Offset(ScanEntry entry) => new Vector2(entry.WorldX, entry.WorldY) - here;
-            string Found(ScanEntry entry) => Offset(entry).Length() < CentreWorld
-                ? Announcements.Discovered(entry, Near(entry))
-                : Announcements.Toward(Announcements.Discovered(entry, Near(entry)), ScreenProjection.Octant(player.WorldPosition, Offset(entry)));
+            string Found(ScanEntry entry) => this.catalog.Describe(entry with { Name = Announcements.Discovered(entry, Near(entry)) });
             // Said once, ever: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in and it was never heard (2026-11-05).
             this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(Found)), urgent: true);
             if (this.sound != null)
