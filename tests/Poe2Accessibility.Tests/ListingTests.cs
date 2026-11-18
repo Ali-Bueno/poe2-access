@@ -161,7 +161,7 @@ namespace Poe2Accessibility.Tests
 
             foreach (var entry in entries)
             {
-                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places or ScanCategory.Corpses ||
                     entry.Kind == MinimapMarks.SignKind ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
                 {

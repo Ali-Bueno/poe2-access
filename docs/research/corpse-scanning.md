@@ -135,5 +135,13 @@ another language's names may group a pair otherwise). A flagged corpse is named 
 "Vaal Guard corpse, bow, ranged, 60 Spirit", "Vaal Guard corpse, quarterstaff, melee, 60 Spirit",
 "Vaal Guard corpse, ranged, 50 Spirit" (the grenade one: no weapon, and the cheaper cost). Weapon words are the
 mod's for the weapon classes (the game's class names are plurals: "Quarterstaves", in Spanish "Bastones"); a held
-class that is no weapon (a shield apart) says nothing. Not yet heard live: built, tested and deployed to the dev
-build the same night, after the session of §6.
+class that is no weapon (a shield apart) says nothing.
+
+Heard live the same night (the owner again in Utzaal): "Vaal Guard corpse, bow, ranged, 60 Spirit",
+"Vaal Guard corpse, quarterstaff, melee, 60 Spirit", "Vaal Guard corpse, ranged, 50 Spirit",
+"Chaotic Zealot corpse, spear, melee, 60 Spirit" (a real Spear in hand there). The owner disenchanted the §6 spectre,
+engraved a fresh Bind Spectre and bound from the field: the gem reads "Reservation: 50 Spirit" and costs him 45 —
+the scanner's 50 for the grenade guard, his efficiency on top of it: the cost rule of §3 confirmed in play. One
+flaw the log showed: a corpse was also copied into the Quest category ("Quest. Chaotic Zealot corpse"), its name
+matching the tracker's words; corpses are now left out of quest matching — an objective never asks for one.
+Built and committed; deployed when the game next stops.

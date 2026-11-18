@@ -54,7 +54,9 @@ namespace Poe2Accessibility.Services
                 // for tiles and props, common nouns the game never marks: "Find the entrance to the Red Vale" led to an
                 // "entrance" tile and "Search for Asinia in the Consort's Tomb" to a "tomb" prop (user 2026-10-28).
                 // A sign names the place it points to ("Pueblo de Ogham" by the road), it is not that place (user 2026-10-28).
-                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
+                // A dead monster's corpse is never what an objective asks for, however its name matches (live 2026-11-18:
+                // "Quest. Chaotic Zealot corpse" in Utzaal, where the fight was already over).
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places or ScanCategory.Corpses ||
                     entry.Kind == MinimapMarks.SignKind ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)) ||
                     (steps != null && IsAreaExit(entry)))
