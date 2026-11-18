@@ -105,14 +105,16 @@ Game8 counts stay above as the record of why it was chosen.
 
 ## 5. Still to learn live
 
-- Whether a corpse reached and bound leaves the list at once (the targeting half is answered: standing on the
-  Axeman's corpse in Bind Spectre mode read "Vaal Embalmed Axeman corpse, 60 Spirit, A", 2026-11-18 04:11 —
-  the game flags it as the target, unchanged). A corpse the Axeman's *namesake* left was still guided to after
-  the binding; whether it was the bound one itself the log cannot tell (two Axemen were in that fight).
+- Whether a corpse bound leaves the list the moment of binding or only on leaving the area: after the Priest
+  of the Sun was captured in Kopec (2026-11-18 05:49; no Unearth, no combat after) it was no longer listed on
+  return to the same instance — where an uncaptured corpse in the Molten Vault had survived the same town round
+  trip and relisted. Capture takes the corpse, then; the two moments were not separated by a scan. (The
+  targeting half is answered: standing on the Axeman's corpse in Bind Spectre mode read "Vaal Embalmed Axeman
+  corpse, 60 Spirit, A", 04:11 — the game flags it as the target, unchanged.)
 - Whether a raised-again monster (one that was `Useless` and wakes) is ever bindable while it lies there; listed
   until it rises, either way.
-- One bound gem against §9's curve at a high multiplier (200 reads 84 on the curve, 100 in the pre-0.3.0
-  tables) — when a gem can be spared; at 100 and 110 the curve is heard (§9).
+- A bound gem above a multiplier of 200 on §9's curve (230 reads 93 there, 120 in the pre-0.3.0 tables); at
+  100, 110, 160 and 200 the curve is heard (§9).
 - ND7's other half (a cue when usable corpses come near, for Offering and kin) is not built: it wants a new sound,
   which wants the user's ear first (repo rule 23), and a corpse count the category now makes possible.
 ## 6. First live session (2026-11-18, the owner in Utzaal on the dev build)
@@ -193,6 +195,41 @@ nearest-ten fitted them because it fitted the *old* game. §6's unexplained 47 a
 or spear guard (base 53 on the curve) at the owner's ~0.89 actual reserve.
 
 `SpectreCatalog.SpiritFor` now follows the curve (the `spectres` step's told-variety comparison with it), and
-the tests anchor on the two live gems. Unheard yet: a high multiplier on the curve (200 → 84, where the old
-tables say 100) — §5. The costs spoken in §§6-7's session were on the old rule and read high from a multiplier
-of 110 up (at 230, 120 said against the curve's 93).
+the tests anchor on the live gems. The next session (2026-11-18, on the fixed build) added two more anchors by
+the owner's own captures: a Viper Legionnaire (multiplier 160) whose gem reads 71, and a Priest of the Sun in
+the Temple of Kopec (200) whose reads 84 — the scanner had said 71 and 84. Heard on bound gems, then: 100 → 50,
+110 → 53, 160 → 71, 200 → 84, every one the curve's. The costs spoken in §§6-7's session were on the old rule
+and read high from a multiplier of 110 up (at 230, 120 said against the curve's 93).
+
+## 10. Live verification of the whole branch (2026-11-18, 04:01-06:24)
+
+Two sessions on the review-fix build (the second, from 05:05, with §9's curve), the owner in Utzaal, the Molten
+Vault, the Drowned City, the Temple of Kopec and, for a corpse census, the Faridun areas of Act 2. Tally of the
+log: 225 corpse readings across both sessions; in the curve session alone 146 readings of 31 monster names, and
+every (name, weapon, reach) variety carried one cost throughout — the only names with two costs are the Gelid
+and Chaotic Zealots, split by weapon as they should be (dagger 50, spear 55). Neither session logs an error, a
+"Corpse without a spirit cost", or a corpse in the Quest category. Verified by ear, with the log's word for each:
+
+- **The quest leak is closed.** The pre-fix session promoted five corpses to Quest ("Quest. Warrior Transcendent
+  corpse" and kin, one even locked onto); across both verification sessions, none. First clean reading 04:07.
+- **The guide and the targeting.** 14 corpse locks, 11 arrivals. A corpse consumed under the lock by Unearth
+  reads as reached, not lost (04:21, 04:24) — said while the owner stood still casting, which reads as arriving
+  without walking and is the vanish rule working, not movement. Standing on a corpse names it with its prompt:
+  "…, A" (Axeman 04:11, Sentinel "here" 06:21).
+- **Persistence.** An uncaptured corpse survived a town-portal round trip in its instance and relisted on the
+  way back (Shambler, Molten Vault instance `20CA7F66` on both sides; back in the scan 04:33, 13 steps). The
+  beacon itself does not survive: it is released on the area change to town (04:29), for corpses as for exits.
+- **Capture takes the corpse** (§5). **A unique leaves none:** Mektul, the Forgemaster killed 04:58, no corpse
+  in two full category rotations behind him (the Corpses category was skipped as empty). **One's own minions
+  leave none either:** of tonight's readings the only "Skeletal" corpse is the enemy Vaal Skeletal Warrior,
+  through hours of the owner's skeletons dying around him. **Silence holds:** no corpse line in either log came
+  except from a scan, a guide or an interact prompt.
+- **Costs.** The four bound gems of §9 (50 / 53 / 71 / 84) and a price read but not paid: the Gold-Melted
+  Sentinel (multiplier 250) at 99, 06:19, uncaptured for want of free Spirit — two Bind Spectre entries on it
+  with no capture following, the game's refusal to start a reservation it cannot cover. Its price under the old
+  rule was heard as 130 in the earlier session (01:07, 04:46).
+
+Still open after it (§5): a risen-again monster, a strongbox-spawned corpse refused, a bound gem above a
+multiplier of 200, and — from the step side — a `spectres` regeneration observed working: at every start of
+either session the bundle index failed (`oo2core` missing under Wine, all 33 steps "previous kept"), so step v3
+has only ever run in unit tests while the plugin read the shipped catalog.
