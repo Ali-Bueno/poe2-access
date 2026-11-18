@@ -378,9 +378,11 @@ out in v2026.11.17. Back in the fight, the user found a loop hard to hear under 
 intermittent, noticeable sound. Round seven offered five struck synth pulses, tried alone, in series and over Jamanra's
 sandstorm loop: a temple bell, a double glass chime, a struck bowl, a bell over a low thump, and the chord, which won.
 
-## The minimap's arrow (2026-11-18)
+## The minimap's arrow (2026-11-18, removed the same day)
 
-A loop from the mark the minimap's arrow points to ([radar](../radar.md#the-minimaps-arrow)). Chosen by the owner on the
+Removed at the owner's word ([radar](../radar.md#the-minimaps-arrow-tried-and-removed-2026-11-18)); the audition below is kept as the record.
+
+A loop from the mark the minimap's arrow points to ([radar](../radar.md#the-minimaps-arrow-tried-and-removed-2026-11-18)). Chosen by the owner on the
 [audition page](https://claude.ai/artifact/G6snzirpgCerhQZMP67xQs) over three rounds: struck chimes (a loop was wanted, "un
 brillibrilli"), then high shimmer loops (glitter, chimes, trill, beating tones, fairy dust: "demasiado agudo y brillante… algo
 medio, parecido al sonido de los objetos de misión"), then five loops in the register of `Item_Quest` (strongest at 830 and

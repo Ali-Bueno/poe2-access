@@ -117,7 +117,6 @@ namespace Poe2Accessibility.Services
             // Known to the game but not yet to the player: only the quest marker may point at them.
             var unseen = scratch.Unseen;
             var renders = scratch.Renders;
-            var pointing = new List<(ScanEntry Entry, float ReachCells)>();
             var sampling = this.Fields?.StartPass() ?? false;
             var town = this.InTown();
             foreach (var (_, entity) in area.AwakeEntities)
@@ -138,11 +137,6 @@ namespace Poe2Accessibility.Services
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
                     this.doors.Forget(entity.Id); // opened: the game takes its target away
                     continue;
-                }
-
-                if (MinimapPointer.Points(entry.Kind) && entity.TryGetComponent<MinimapIcon>(out var icon) && icon.IconName is { Length: > 0 } iconName && !MinimapMarks.IsSpent(iconName))
-                {
-                    pointing.Add((entry, MinimapIconLabel.PointerCells(this.memory, icon)));
                 }
 
                 if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, this.DrawnOnMinimap(entity, entry, render, player, town)))
@@ -208,10 +202,6 @@ namespace Poe2Accessibility.Services
                 {
                     // The table's label and its reward note are of a boss still to fight: said as slain, the note left out.
                     landmark = landmark with { Name = Announcements.BossRoomDefeated(landmark.Subject) };
-                }
-                else if (landmark.Kind == MinimapMarks.BossRoomKind)
-                {
-                    pointing.Add((landmark, TileRoomReach(landmark)));
                 }
 
                 if (landmark.Category == ScanCategory.Exits && ListsExit(found.Values, landmark, toCells))
@@ -283,7 +273,6 @@ namespace Poe2Accessibility.Services
             var questTexts = this.QuestTexts();
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
-            this.pointing = pointing;
             this.listed = (now, area.Address, this.instance, sorted);
             return sorted;
         }

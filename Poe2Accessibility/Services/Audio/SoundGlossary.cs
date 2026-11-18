@@ -104,7 +104,6 @@ namespace Poe2Accessibility.Services
                 this.Add(LostHint.LoopName, Excerpt(hint, rate));
             }
 
-            this.Add(MinimapPointerCue.SoundKey, Excerpt(CueSynth.Halo(rate), rate));
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("beacon", CueSynth.Ping(rate));

@@ -225,20 +225,16 @@ three unexplored stretches with their way. Standing still was considered as the 
 
 Whether the steps could tell road from plain ground was looked into and left: [ground types](research/ground-types.md).
 
-## The minimap's arrow
+## The minimap's arrow (tried and removed, 2026-11-18)
 
 A sighted player sees an arrow at the minimap's edge toward a boss room or a quest mark while within its icon's pointer
-reach (MinimapIcons +0x12, `GameLayout.MinimapIconRow.PointerDistanceOffset`, read per icon by `MinimapIconLabel.PointerCells`;
-a boss room known only from the tiles takes 400 cells for a campaign boss, 250 for a map boss's house). Asked by the owner on
-2026-11-18 (finding the objectives and the boss room faster in large maps, no keys, no cheat): `MinimapPointerCue` plays
-`CueSynth.Halo` as a loop from the mark the arrow points to (pure `MinimapPointer.Pick`: within reach, off screen, the quest's
-first, then the nearest), **in a straight line** as the arrow points, never along the route; left/right by pan, up higher and
-down lower (`ScreenProjection.Voice`). Only while walking (1.5 s after the last step); quiet in fights, menus, dialogue, towns,
-while the guide leads and while the lost hint sounds. A boss room slain or an icon spent drops out; on screen the thing's own
-sound takes over. Setting `MinimapArrow`, at the object volume; glossary key `pointer`. The kinds it points to: boss rooms,
-quest objects and the campaign's landmarks (`MinimapPointer.Points`); exits and NPCs carry pointer reaches too, but whether the
-game draws an arrow for them is not known, so they have none. The client streams entities only a screen or two around the
-player, so an entity's mark is pointed to from that far at most; tile boss rooms from their whole reach.
+reach (MinimapIcons +0x12, read per icon by `MinimapIconLabel.PointerCells`; a boss room known only from the tiles takes 400
+cells for a campaign boss, 250 for a map boss's house). On 2026-11-18 a loop (`CueSynth.Halo`) played from that mark in a straight
+line while walking, and was released in v2026.11.18. The owner took it out the same day: "el escáner ya lo anuncia y se puede
+trazar una ruta hacia el punto de interés… suena mal, no me guía hacia la dirección a la cual tengo que ir". A straight line
+through walls is no way to walk; the scanner's entry and the guide's route already cover it. Do not offer it again. What is
+left of it: the pointer reach read per icon, which now bounds where a character is listed out of town
+([minimap](research/minimap.md#scanner-rule)).
 
 ## Not ported yet
 
