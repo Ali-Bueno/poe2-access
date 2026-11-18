@@ -98,11 +98,17 @@ every 0.8 s, were looked at and not kept.
   39.3 s here (a button pressed in Act 1 is the likeliest).
 - So (2026-11-18) a load from a town to a travel's video area is its video once it has lasted 4 s, prompt or not.
 
+**2026-11-18, Act 2 to Act 3 again** (another character, the same Matriarchs). MEASURED: "Cinematic: a 4000 ms load from G2_town
+to G3_1", and the owner heard the narration ("funcionó"), the first line 4 s late. The dialogue closed and the load began 0.7 s
+later ("Viajar a la Ciénaga de arena", then her farewell, then `AreaLoadingState`). So a load begun within 1.5 s of standing
+within 2.5 steps of the NPC whose `NPCTalk` row plays the video (`Cinematics.IsTravelNpc`, polled twice a second in towns) is
+its video from the first instant; one that still ends before 4 s (a waypoint beside that NPC) cuts what was said. Not heard yet.
+
 ## What the mod does (2026-11-15)
 
 The owner's word: the lines one by one as the narrator says them, and nothing in English, whose voice is understood.
 
-1. **A cinematic is on** once a load from a town (`*_town`) to an area below has lasted 4 s
+1. **A cinematic is on** at once when a load from a town (`*_town`) to an area below begins beside its travel NPC, or once it has lasted 4 s
    (`CinematicTracker.TravelVideoAfterMs`; only "Cinemática." is said then), or while a visible element named `Skip_Cutscene` is in the tree: the screen watcher marks the layer that
    holds it (`ScreenLayer.SkipsCinematic`, whatever its depth), and it lasts until the state ends. Said once: "Cinemática." and the
    prompt's own text. The narrator leaves that layer and, in a load, the loading screen's lines unsaid meanwhile.

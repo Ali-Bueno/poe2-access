@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Tests
             (nameof(LinesPassedBeforeTheVideoWasToldAreStillSaid), LinesPassedBeforeTheVideoWasToldAreStillSaid),
             (nameof(AVideoWithNoNarrationSaysItsPrompt), AVideoWithNoNarrationSaysItsPrompt),
             (nameof(ATravelsVideoIsToldByItsLoadWithoutThePrompt), ATravelsVideoIsToldByItsLoadWithoutThePrompt),
+            (nameof(BesideTheTravelNpcTheNarrationStartsAtOnce), BesideTheTravelNpcTheNarrationStartsAtOnce),
             (nameof(APlainLoadSaysNothing), APlainLoadSaysNothing),
             (nameof(EnglishHearsTheVoice), EnglishHearsTheVoice),
             (nameof(EveryTravelWithAVideoHasItsLinesInOrder), EveryTravelWithAVideoHasItsLinesInOrder),
@@ -80,6 +81,16 @@ namespace Poe2Accessibility.Tests
             Equal(true, tracker.Playing, "playing");
             Equal(0, tracker.Tick(Prompt, "G3_1", 4100).Count, "a prompt after that is not news");
             Equal(5, tracker.Tick(null, "G3_1", 39300).Count, "the rest as the narrator reaches them");
+        });
+
+        private static void BesideTheTravelNpcTheNarrationStartsAtOnce() => InSpanish(() =>
+        {
+            var tracker = new CinematicTracker();
+            tracker.StateChanged(true, 0, "G2_town", byTravelNpc: true);
+            Equal(0, tracker.Tick(null, string.Empty, 30).Count, "the area ahead not known yet");
+            Equal("Cinemática. | La bestia se ha vuelto demasiado poderosa.", string.Join(" | ", tracker.Tick(null, "G3_1", 63)), "from the first instant");
+            tracker.StateChanged(true, 0, "G2_town", byTravelNpc: true);
+            Equal(0, tracker.Tick(null, "G2_6", 100).Count, "beside the NPC, to an area with no video");
         });
 
         private static void APlainLoadSaysNothing() => InSpanish(() =>

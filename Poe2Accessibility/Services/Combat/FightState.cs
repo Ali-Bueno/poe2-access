@@ -31,10 +31,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What keeps quiet in a fight (setting QuietItemsInFights): items on the ground, chests, bodies, breakables and
-        ///     league altars (user 2026-10-31); exits, waypoints, shrines and characters still guide.
+        ///     league altars (user 2026-10-31), and the corpses a spectre is bound from (PR #8); exits, waypoints, shrines and
+        ///     characters still guide.
         /// </summary>
         public static bool QuietsInFight(ScanCategory category, string kind) =>
-            category is ScanCategory.Items or ScanCategory.Encounters || kind is "chest" or "corpse" or "breakable";
+            category is ScanCategory.Items or ScanCategory.Encounters or ScanCategory.Corpses || kind is "chest" or "corpse" or "breakable";
     }
 
     /// <summary>
