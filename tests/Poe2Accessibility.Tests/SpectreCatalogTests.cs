@@ -122,7 +122,7 @@ namespace Poe2Accessibility.Tests
             Equal(53, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "Vaal Guard (spear)");
             Equal(84, catalog.SpiritOf("Metadata/Monsters/BloodBathers/VaalApparition/SunVaalApparition"), "Priest of the Sun");
             Equal(("Bow", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving"), "the bow guard, told from its namesakes");
-            Equal(("Warstaff", "melee"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "the spear guard (its spear is a Warstaff in the data)");
+            Equal(("Spear", "melee"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "the spear guard: a Warstaff in the data, a spear by its id");
             Equal(("", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "the grenade guard");
             Equal(38, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "Venomous Crab");
             Equal(84, catalog.SpiritOf("Metadata/Monsters/Gargoyle/GargoyleGolemRed"), "Gargoyle Demon");

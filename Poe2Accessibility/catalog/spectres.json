@@ -295,13 +295,11 @@
       "x": 110
     },
     "Metadata/Monsters/BloodBathers/BloodBatherFlail/BloodBatherFlail": {
-      "a": "ranged",
       "t": true,
       "w": "One Hand Mace",
       "x": 110
     },
     "Metadata/Monsters/BloodBathers/BloodBatherFlail/BloodBatherFlailPraying__": {
-      "a": "ranged",
       "t": true,
       "w": "One Hand Mace",
       "x": 110
@@ -2252,25 +2250,15 @@
       "x": 100
     },
     "Metadata/Monsters/Goblins/GoblinSpearman/GoblinSpearman": {
-      "a": "ranged",
-      "t": true,
-      "w": "Spear",
       "x": 75
     },
     "Metadata/Monsters/Goblins/GoblinSpearman/GoblinSpearmanDistracted": {
-      "t": true,
-      "w": "Spear",
       "x": 75
     },
     "Metadata/Monsters/Goblins/GoblinSpearman/GoblinSpearmanNoSkull_": {
-      "a": "ranged",
-      "t": true,
-      "w": "Spear",
       "x": 75
     },
     "Metadata/Monsters/Goblins/GoblinSpearman/GoblinSpearmanWalkEmerge": {
-      "t": true,
-      "w": "Spear",
       "x": 75
     },
     "Metadata/Monsters/Goblins/GoblinStabber": {
@@ -2455,37 +2443,30 @@
       "x": 100
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvae": {
-      "a": "ranged",
       "t": true,
       "x": 60
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeEmerge1": {
-      "a": "ranged",
       "t": true,
       "x": 60
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeEmergeSummoned1_": {
-      "a": "ranged",
       "t": true,
       "x": 60
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeNoSummon": {
-      "a": "ranged",
       "t": true,
       "x": 60
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeRanged1": {
-      "a": "ranged",
       "t": true,
       "x": 100
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeRanged1NoSummon": {
-      "a": "ranged",
       "t": true,
       "x": 100
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeRanged1Spectre": {
-      "a": "ranged",
       "t": true,
       "x": 100
     },
@@ -2493,7 +2474,6 @@
       "x": 100
     },
     "Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeSpectre": {
-      "a": "ranged",
       "t": true,
       "x": 60
     },
@@ -3562,9 +3542,6 @@
       "x": 100
     },
     "Metadata/Monsters/LeagueExpedition/NPC/ExpeditionDannig": {
-      "a": "melee",
-      "t": true,
-      "w": "Dagger",
       "x": 100
     },
     "Metadata/Monsters/LeagueExpedition/NPC/ExpeditionGwennen_": {
@@ -3577,9 +3554,6 @@
       "x": 100
     },
     "Metadata/Monsters/LeagueExpedition/NPC/ExpeditionTujen": {
-      "a": "melee",
-      "t": true,
-      "w": "One Hand Mace",
       "x": 100
     },
     "Metadata/Monsters/LeagueExpedition/ReaperBoss/Objects/DarknessDaemon": {
@@ -4028,7 +4002,7 @@
     "Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardSpearIncursion": {
       "a": "melee",
       "t": true,
-      "w": "Warstaff",
+      "w": "Spear",
       "x": 110
     },
     "Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingClawsIncursion": {
@@ -4045,7 +4019,7 @@
     "Metadata/Monsters/LeagueIncursionNew/CommanderNew/VaalGuardTrainingSpearIncursion": {
       "a": "melee",
       "t": true,
-      "w": "Warstaff",
+      "w": "Spear",
       "x": 110
     },
     "Metadata/Monsters/LeagueIncursionNew/CommanderOld/BlackjawIncursionPresent": {
@@ -4129,7 +4103,6 @@
       "x": 110
     },
     "Metadata/Monsters/LeagueIncursionNew/Corruption/BloodBatherFlailIncursion": {
-      "a": "ranged",
       "t": true,
       "w": "One Hand Mace",
       "x": 110
@@ -4201,7 +4174,7 @@
     "Metadata/Monsters/LeagueIncursionNew/Garrison/VaalGuardSpearPatrolIncursion": {
       "a": "melee",
       "t": true,
-      "w": "Warstaff",
+      "w": "Spear",
       "x": 110
     },
     "Metadata/Monsters/LeagueIncursionNew/Garrison/VaalOverseerLivingIncursion": {
@@ -4517,7 +4490,7 @@
     "Metadata/Monsters/LeagueIncursionNew/Thaumaturge/VaalThaumaturgeSpear": {
       "a": "melee",
       "t": true,
-      "w": "Warstaff",
+      "w": "Spear",
       "x": 135
     },
     "Metadata/Monsters/LeagueIncursionNew/Transcended/VaalHumanoidBladeHandsIncursion": {
@@ -4571,7 +4544,6 @@
       "x": 160
     },
     "Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireClawIncursion": {
-      "a": "ranged",
       "t": true,
       "w": "Claw",
       "x": 160
@@ -4595,7 +4567,6 @@
       "x": 160
     },
     "Metadata/Monsters/LeagueIncursionNew/ViperLegionnaire/ViperLegionnaireTrainingClawIncursion_": {
-      "a": "ranged",
       "t": true,
       "w": "Claw",
       "x": 160
@@ -5329,12 +5300,10 @@
       "x": 70
     },
     "Metadata/Monsters/Monkeys/MonkeyJungle": {
-      "a": "ranged",
       "t": true,
       "x": 65
     },
     "Metadata/Monsters/Monkeys/MonkeyJunglePale": {
-      "a": "ranged",
       "t": true,
       "x": 65
     },
@@ -6030,12 +5999,20 @@
       "x": 110
     },
     "Metadata/Monsters/Mutewind/MutewindWomanJavelin": {
+      "a": "ranged",
+      "t": true,
+      "w": "Spear",
       "x": 105
     },
     "Metadata/Monsters/Mutewind/MutewindWomanJavelinCorroded": {
+      "t": true,
+      "w": "Spear",
       "x": 105
     },
     "Metadata/Monsters/Mutewind/MutewindWomanJavelinGrim": {
+      "a": "ranged",
+      "t": true,
+      "w": "Spear",
       "x": 105
     },
     "Metadata/Monsters/Mutewind/MutewindWomanSpearCorrodedElite": {
@@ -6485,27 +6462,22 @@
       "x": 70
     },
     "Metadata/Monsters/PorcupineAnt/PorcupineAntLarge": {
-      "a": "ranged",
       "t": true,
       "x": 120
     },
     "Metadata/Monsters/PorcupineAnt/PorcupineAntLargeSanctumTrial": {
-      "a": "ranged",
       "t": true,
       "x": 120
     },
     "Metadata/Monsters/PorcupineAnt/PorcupineAntMedium": {
-      "a": "ranged",
       "t": true,
       "x": 100
     },
     "Metadata/Monsters/PorcupineAnt/PorcupineAntMediumSanctumTrial": {
-      "a": "ranged",
       "t": true,
       "x": 100
     },
     "Metadata/Monsters/PorcupineAnt/PorcupineAntSmall": {
-      "a": "ranged",
       "t": true,
       "x": 80
     },
@@ -8658,7 +8630,6 @@
       "x": 65
     },
     "Metadata/Monsters/Urchins/SlingUrchin1": {
-      "a": "ranged",
       "t": true,
       "x": 65
     },
@@ -8942,13 +8913,13 @@
     "Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving": {
       "a": "melee",
       "t": true,
-      "w": "Warstaff",
+      "w": "Spear",
       "x": 110
     },
     "Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLivingSacrificeGuide": {
       "a": "melee",
       "t": true,
-      "w": "Warstaff",
+      "w": "Spear",
       "x": 110
     },
     "Metadata/Monsters/VaalMonsters/Living/VaalOverseerLivingSacrificeGuard": {
@@ -9027,7 +8998,6 @@
       "x": 160
     },
     "Metadata/Monsters/VaalMonsters/ViperLegionnaire/ViperLegionnaireClaw_": {
-      "a": "ranged",
       "t": true,
       "w": "Claw",
       "x": 160

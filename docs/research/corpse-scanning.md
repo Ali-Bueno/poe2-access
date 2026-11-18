@@ -144,7 +144,7 @@ this work reads, all in the table's 0x406-byte rows:
 | `ExperienceMultiplier` | +0xA8 | i32, the multiplier of §3 | the schema's column order; measured 2026-11-17 (`dat-kinds`/`dat-rows`) | the five known rows of §3; `SerpentClanCasterBoss` (experience 200, life 266 at +0x11C) tells it from the life multiplier |
 | `Tags` | +0x98 | key-list into `Tags` (its `ranged`/`melee` rows) | the schema's column order; measured 2026-11-18 | the three Vaal Guards: grenade and bow ranged, spear melee (a leaper); a row carrying both tags is left with its reach unsaid, not guessed — the step counts such rows in its output from the 2026-11-18 review on, so how often that occurs is recorded at the next making |
 | `Name` | +0x110 | text, the name monsters are grouped by | the schema's column order; measured 2026-11-18 | the three Vaal Guards all reading "Vaal Guard" |
-| `MainHand_ItemClass` | +0x154 | foreign key into `ItemClasses` | the schema's column order; measured 2026-11-18 | the three Vaal Guards: grenade none, bow "Bow", spear "Warstaff" — its spear *is* a warstaff in the data |
+| `MainHand_ItemClass` | +0x154 | foreign key into `ItemClasses` | the schema's column order; measured 2026-11-18 | the three Vaal Guards: grenade none, bow "Bow", spear "Warstaff" — its spear *is* a warstaff in the data; since step v4 (2026-11-18) a Warstaff on a monster whose id names a Spear is written "Spear" (the six told monsters holding a Warstaff all do; the owner: "si es spear debería ser lanza") |
 
 No offset is trusted as written: the `spectres` step finds each column again by what it holds, nearest the
 measured offset, and fails without writing when a judged row does not hold (§4). The step writes the weapon and
@@ -153,7 +153,7 @@ whose varieties differ in cost, weapon or reach (1,024 of the rows as first ship
 raw multiplier; since the 2026-11-18 review it compares the derived cost, so varieties within one cost band no
 longer flag each other and the count falls at the next making — the English name groups them either way;
 another language's names may group a pair otherwise). A flagged corpse is named with both words it has, each
-its own: "Vaal Guard corpse, bow, ranged, 60 Spirit", "Vaal Guard corpse, quarterstaff, melee, 60 Spirit",
+its own: "Vaal Guard corpse, bow, ranged, 60 Spirit", "Vaal Guard corpse, quarterstaff, melee, 60 Spirit" (now "spear"),
 "Vaal Guard corpse, ranged, 50 Spirit" (the grenade one: no weapon, and the cheaper cost); a flagged corpse
 with neither word is told from its namesakes by its cost alone. Weapon words are the mod's for the weapon
 classes (the game's class names are plurals: "Quarterstaves", in Spanish "Bastones"); unarmed is said (the

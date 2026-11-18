@@ -37,7 +37,8 @@ internal static class SpectreExtractor
     private const string SpearGuard = "Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"; // spear, 53 Spirit
     private const string GuardName = "Vaal Guard";
     private const string BowClass = "Bow";
-    private const string SpearClass = "Warstaff"; // the spear guard's spear is a Warstaff in the game's data (row 58, 2026-11-18)
+    private const string WarstaffClass = "Warstaff"; // the spear guard's spear is a Warstaff in the game's data (row 58, 2026-11-18)
+    private const string SpearClass = "Spear";
 
     /// <summary>Rows whose experience multiplier was read on 2026-11-17 and whose spectre costs are published (poe2wiki, Bind Spectre).</summary>
     private static readonly (string Id, int Experience)[] Known =
@@ -119,7 +120,7 @@ internal static class SpectreExtractor
                 id,
                 experience,
                 monsters.String(row, columns.Name),
-                DatAnchors.IdOf(itemClasses, monsters.Key(row, columns.MainHand)) ?? string.Empty,
+                MainHand(id, DatAnchors.IdOf(itemClasses, monsters.Key(row, columns.MainHand)) ?? string.Empty),
                 ranged && !melee ? "ranged" : melee && !ranged ? "melee" : string.Empty)); // both tags: its reach is not known, and is not guessed
         }
 
@@ -165,6 +166,14 @@ internal static class SpectreExtractor
     ///     The experience multiplier: a whole number from 0 to <see cref="MaxExperience"/> on every row, worth something
     ///     on most, and the measured value on each known row.
     /// </summary>
+    /// <summary>
+    ///     The main hand's ItemClasses Id, but a spear for a monster its own id calls one: the Vaal spear guards and
+    ///     the Spear Thaumaturge hold a "Warstaff" in MonsterVarieties (the only told monsters that do, 2026-11-18), and
+    ///     "quarterstaff" was said of a spear (the owner: "si es spear debería ser lanza").
+    /// </summary>
+    private static string MainHand(string id, string itemClass) =>
+        itemClass == WarstaffClass && id[(id.LastIndexOf('/') + 1)..].Contains(SpearClass, StringComparison.Ordinal) ? SpearClass : itemClass;
+
     private static bool IsExperience(DatTable monsters, int offset, List<(string Id, int Experience, int Row)> knownRows)
     {
         using var probe = DatTable.Probe();
