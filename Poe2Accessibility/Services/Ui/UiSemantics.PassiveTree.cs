@@ -213,7 +213,9 @@ namespace Poe2Accessibility.Services
                 // node to take, the build's step and note are left for the details (L3 held). The one to take says so with its name.
                 if (!guide.Here && (guide.Line.Length > 0 || quiet))
                 {
-                    var word = state == PassiveState.Allocated ? stateWords
+                    // Refunding, a node given back says so ("Engarce de joya, disponible"): its name alone was all that told
+                    // a refund from an allocation as the owner toggled a jewel socket (2026-11-18).
+                    var word = state == PassiveState.Allocated || (refunding && state == PassiveState.Reachable) ? stateWords
                         : guide.OnLine ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
                         : string.Empty;
                     text = word.Length > 0 ? $"{node.Name}, {word}" : node.Name;

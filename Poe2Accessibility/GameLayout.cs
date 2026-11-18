@@ -1190,14 +1190,16 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     The server inventories that hold a character's skills, by the id the host's list gives them: 47 the gems
-        ///     engraved (x = the skill's slot), 75 the weapons' own skills (Spear Stab, Spear Throw, Punch). Measured
+        ///     engraved (x = the skill's slot), 75 the weapons' own skills (Spear Stab, Spear Throw, Punch), 76 the
+        ///     ascendancy's skill gem (Hollow Focus, with its supports socketed; 2026-11-18: unread, its Magnified Area II read
+        ///     as missing beside a tier I in the bag). Measured
         ///     2026-11-10 (0.5.5f) with the dev command "inventories"; the host's enum names for those ids are PoE1's. The
         ///     Skills panel's gem views tell them too, and the reader adds what it sees there. A stash tab seen this
         ///     session is an inventory of the same list (145, 146): its gems are no skills.
         /// </summary>
         public static class SkillGemInventories
         {
-            public static readonly int[] Ids = { 47, 75 };
+            public static readonly int[] Ids = { 47, 75, 76 };
         }
 
         /// <summary>Inventory item element (grid child or slot content).</summary>
