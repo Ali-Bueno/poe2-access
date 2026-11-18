@@ -11,12 +11,13 @@ namespace Poe2Accessibility.Tests
     {
         private const string Sample = """
             { "spectres": {
-              "Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving": 100,
-              "Metadata/Monsters/QuillCrab/QuillCrabPoison": 70,
-              "Metadata/Monsters/Worthless": 0
+              "Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving": { "x": 100, "a": "ranged", "t": true },
+              "Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving": { "x": 110, "w": "Bow", "a": "ranged", "t": true },
+              "Metadata/Monsters/QuillCrab/QuillCrabPoison": { "x": 70 },
+              "Metadata/Monsters/OldForm": 200,
+              "Metadata/Monsters/Worthless": { "x": 0 }
             } }
             """;
-
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TheSpiritIsHalfTheExperienceToTheNearestTen), TheSpiritIsHalfTheExperienceToTheNearestTen),
@@ -45,9 +46,14 @@ namespace Poe2Accessibility.Tests
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "a known monster");
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving@40"), "an entity's path, with its level after the '@'");
             Equal(40, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "another");
+            Equal(100, catalog.SpiritOf("Metadata/Monsters/OldForm"), "a row of the catalog's first making (the multiplier alone)");
             Equal(null, catalog.SpiritOf("Metadata/Monsters/Worthless"), "one worth nothing is named without a cost");
             Equal(null, catalog.SpiritOf("Metadata/Monsters/NotThere"), "one the catalog lacks");
             Equal(null, catalog.SpiritOf(string.Empty), "no file at all");
+            Equal(("Bow", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving"), "the bow guard's variety");
+            Equal(("", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "the grenade guard holds no weapon");
+            Equal(null, catalog.VarietyOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "a name of one variety needs no telling");
+            Equal(null, catalog.VarietyOf("Metadata/Monsters/NotThere"), "an unknown monster's variety");
         }
 
         private static void AMissingOrBadFileIsAnEmptyCatalog()
@@ -76,6 +82,9 @@ namespace Poe2Accessibility.Tests
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "Vaal Guard (grenade)");
             Equal(60, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "Vaal Guard (spear)");
             Equal(100, catalog.SpiritOf("Metadata/Monsters/BloodBathers/VaalApparition/SunVaalApparition"), "Priest of the Sun");
+            Equal(("Bow", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving"), "the bow guard, told from its namesakes");
+            Equal(("Warstaff", "melee"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "the spear guard (its spear is a Warstaff in the data)");
+            Equal(("", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "the grenade guard");
             Equal(40, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "Venomous Crab");
             Equal(100, catalog.SpiritOf("Metadata/Monsters/Gargoyle/GargoyleGolemRed"), "Gargoyle Demon");
         }

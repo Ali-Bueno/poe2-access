@@ -122,3 +122,18 @@ the guide led to. Two findings:
   efficiency or 60 at ~28%). Which of the three Vaal Guards was bound the log cannot say: all read "Vaal Guard", and
   bow and spear share name *and* cost — the game's own tooltip tells those two no further apart either; only the
   corpse's look does, which speech has not got. Grenade (50) against bow/spear (60) the cost does tell apart, once said.
+
+## 7. Which variety it is (2026-11-18, at the owner's word: say it, do not make him earhole it)
+
+Monsters of one name differ in what a corpse of them gives, and the game's tooltip tells bow from spear no further
+than its name and cost — only the corpse's look does. The data does, though (all measured on the installed table
+2026-11-18): the variety's main-hand ItemClasses row (`MainHand_ItemClass` +0x154: grenade none, bow "Bow", spear
+"Warstaff" — its spear *is* a warstaff in the data) and its melee/ranged tag (`Tags` +0x98: grenade and bow ranged,
+spear melee, a leaper). The `spectres` step now writes the weapon and the reach beside the multiplier, with a flag on
+every row of a name whose varieties differ in cost, weapon or reach (1,024 of 2,794 — the English name groups them;
+another language's names may group a pair otherwise). A flagged corpse is named with both, each word its own:
+"Vaal Guard corpse, bow, ranged, 60 Spirit", "Vaal Guard corpse, quarterstaff, melee, 60 Spirit",
+"Vaal Guard corpse, ranged, 50 Spirit" (the grenade one: no weapon, and the cheaper cost). Weapon words are the
+mod's for the weapon classes (the game's class names are plurals: "Quarterstaves", in Spanish "Bastones"); a held
+class that is no weapon (a shield apart) says nothing. Not yet heard live: built, tested and deployed to the dev
+build the same night, after the session of §6.

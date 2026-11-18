@@ -204,7 +204,8 @@ namespace Poe2Accessibility.Services
                         this.log.Info($"Corpse without a spirit cost: {path}");
                     }
 
-                    name = name.Length > 0 ? Announcements.CorpseOf(name, spirit) : name;
+                    var variety = SpectreCatalog.Shared.VarietyOf(path);
+                    name = name.Length > 0 ? Announcements.CorpseOf(name, spirit, variety?.Weapon ?? string.Empty, variety?.Attack ?? string.Empty) : name;
                 }
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
                 {

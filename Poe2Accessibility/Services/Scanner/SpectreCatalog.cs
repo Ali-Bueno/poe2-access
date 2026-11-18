@@ -3,29 +3,40 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    ///     What a monster's corpse asks in Spirit when bound with Bind Spectre, by the monster's file
+    ///     What a monster's corpse is and asks in Spirit when bound with Bind Spectre, by the monster's file
     ///     (catalog/spectres.json, `Poe2UiExtract spectres`): the experience multiplier of its MonsterVarieties row,
     ///     halved and rounded to the nearest ten — the cost the game's tooltip over a corpse shows, on every monster
-    ///     whose cost is published (docs/research/corpse-scanning.md). The dat files hold no spirit column; a monster
-    ///     the catalog lacks is named without a cost rather than with a guessed one. Pure apart from <see cref="Load"/>.
+    ///     whose cost is published — and, where monsters of one name differ, the weapon its main hand holds (an
+    ///     ItemClasses Id) and whether it fights ranged or melee, which variety of the name the corpse is
+    ///     (docs/research/corpse-scanning.md). The dat files hold no spirit column; a monster the catalog lacks is
+    ///     named without a cost rather than with a guessed one. Pure apart from <see cref="Load"/>.
     /// </summary>
     public sealed class SpectreCatalog
     {
-        private readonly Dictionary<string, int> experience;
+        /// <summary>One monster's row: its experience multiplier and, when its variety is told, its weapon and reach.</summary>
+        /// <param name="Experience">MonsterVarieties' experience multiplier.</param>
+        /// <param name="Weapon">The ItemClasses Id of its main hand ("Bow", "Warstaff"), empty when it holds none.</param>
+        /// <param name="Attack">"ranged", "melee", or empty when its tags name neither.</param>
+        /// <param name="Told">Monsters of its name differ in cost, weapon or reach: its variety is spoken with its corpse.</param>
+        public sealed record Entry(int Experience, string Weapon, string Attack, bool Told);
 
-        public SpectreCatalog(IReadOnlyDictionary<string, int> experience) =>
-            this.experience = new Dictionary<string, int>(experience, StringComparer.Ordinal);
+        private readonly Dictionary<string, Entry> entries;
 
-        public static SpectreCatalog Empty { get; } = new(new Dictionary<string, int>());
+        public SpectreCatalog(IReadOnlyDictionary<string, Entry> entries) =>
+            this.entries = new Dictionary<string, Entry>(entries, StringComparer.Ordinal);
+
+        public static SpectreCatalog Empty { get; } = new(new Dictionary<string, Entry>());
 
         /// <summary>The catalog <see cref="Load"/> read last; empty until then.</summary>
         public static SpectreCatalog Shared { get; private set; } = Empty;
 
         /// <summary>How many monsters the catalog holds.</summary>
-        public int Count => this.experience.Count;
+        public int Count => this.entries.Count;
 
         /// <summary>A missing or unreadable file gives an empty catalog and one log line; the result is also <see cref="Shared"/>.</summary>
         public static SpectreCatalog Load(PluginLog log, string file)
@@ -53,20 +64,32 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The catalog of a spectres.json text; throws <see cref="JsonException"/> when it is not one.</summary>
-        public static SpectreCatalog Parse(string json) =>
-            new(JsonConvert.DeserializeObject<SpectreFile>(json)?.Spectres ?? throw new JsonSerializationException("no spectres"));
+        public static SpectreCatalog Parse(string json)
+        {
+            var file = JsonConvert.DeserializeObject<SpectreFile>(json) ?? throw new JsonSerializationException("no spectres");
+            if (file.Spectres == null)
+            {
+                throw new JsonSerializationException("no spectres");
+            }
+
+            return new SpectreCatalog(file.Spectres.ToDictionary(pair => pair.Key, pair => Read(pair.Value), StringComparer.Ordinal));
+        }
+
+        /// <summary>One row as written now (an object), or as the first making of the catalog wrote it (the multiplier alone).</summary>
+        private static Entry Read(JToken token) =>
+            token is JObject row
+                ? new Entry(row.Value<int?>("x") ?? 0, row.Value<string>("w") ?? string.Empty, row.Value<string>("a") ?? string.Empty, row.Value<bool?>("t") ?? false)
+                : new Entry(token.Value<int>(), string.Empty, string.Empty, false);
+
+        /// <summary>The Spirit a spectre of the monster at <paramref name="path"/> reserves; null when the catalog lacks it.</summary>
+        public int? SpiritOf(string path) => this.RowOf(path) is { } entry ? SpiritFor(entry.Experience) : null;
 
         /// <summary>
-        ///     The Spirit a spectre of the monster at <paramref name="path"/> reserves; null when the catalog lacks it.
-        ///     An entity's path carries its level after an '@' ("…/VaalGuardBowLiving@40"), which the table's Id has not:
-        ///     stripped here, as `BossMechanicsCatalog.MonsterId` strips it for its own tables.
+        ///     What tells the monster at <paramref name="path"/> from the others of its name — its weapon's ItemClasses Id
+        ///     and whether it fights ranged or melee — or null when its name needs no telling or the catalog lacks it.
         /// </summary>
-        public int? SpiritOf(string path)
-        {
-            var at = path.IndexOf('@');
-            var id = at > 0 ? path[..at] : path;
-            return id.Length > 0 && this.experience.TryGetValue(id, out var value) ? SpiritFor(value) : null;
-        }
+        public (string Weapon, string Attack)? VarietyOf(string path) =>
+            this.RowOf(path) is { Told: true } entry ? (entry.Weapon, entry.Attack) : null;
 
         /// <summary>
         ///     The reservation of a monster with this experience multiplier: half of it, to the nearest ten (100 gives 50,
@@ -75,10 +98,21 @@ namespace Poe2Accessibility.Services
         public static int? SpiritFor(int experience) =>
             experience <= 0 ? null : (int)Math.Floor(experience / 20.0 + 0.5) * 10;
 
+        /// <summary>
+        ///     The row of an entity's path. The path carries its level after an '@' ("…/VaalGuardBowLiving@40"), which
+        ///     the table's Id has not: stripped here, as `BossMechanicsCatalog.MonsterId` strips it for its own tables.
+        /// </summary>
+        private Entry? RowOf(string path)
+        {
+            var at = path.IndexOf('@');
+            var id = at > 0 ? path[..at] : path;
+            return id.Length > 0 && this.entries.TryGetValue(id, out var entry) ? entry : null;
+        }
+
         private sealed class SpectreFile
         {
             [JsonProperty("spectres")]
-            public Dictionary<string, int>? Spectres { get; set; }
+            public Dictionary<string, JToken>? Spectres { get; set; }
         }
     }
 }

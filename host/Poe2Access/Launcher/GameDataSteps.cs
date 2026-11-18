@@ -50,7 +50,7 @@ internal static class GameDataSteps
         new Step("trial data", 2, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings
         new Step("quest goals", 1, "quest-goals.json", "quest-goals", true),
         new Step("shrines", 1, "shrines.json", "shrines", true),
-        new Step("spectres", 1, "spectres.json", "spectres", true),
+        new Step("spectres", 2, "spectres.json", "spectres", true), // 2: each monster's weapon and reach, and whether its variety is told
         new Step("gems", 1, "gems.json", "gems", true),
         new Step("passive tree", 2, "passive-tree.json", "passive-tree", true), // 2: the rows a node with a choice can be made (an attribute node's three)
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
