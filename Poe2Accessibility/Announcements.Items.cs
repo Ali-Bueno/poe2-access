@@ -115,10 +115,15 @@ namespace Poe2Accessibility
 
         public static string SearchCleared => T("Search cleared", "Búsqueda borrada");
 
-        /// <summary>Base name, stack size when more than one, rarity unless normal.</summary>
-        public static string Item(string name, GameReader.RemoteEnums.Rarity rarity, int count)
+        /// <summary>Name, then <paramref name="baseName"/> when given and not in the name, stack size when more than one, rarity unless normal.</summary>
+        public static string Item(string name, GameReader.RemoteEnums.Rarity rarity, int count, string baseName = "")
         {
             var parts = new System.Collections.Generic.List<string> { name.Length > 0 ? name : UnknownItem };
+            if (baseName.Length > 0 && !name.Contains(baseName, System.StringComparison.Ordinal))
+            {
+                parts.Add(baseName);
+            }
+
             if (count > 1)
             {
                 parts.Add(count.ToString(System.Globalization.CultureInfo.InvariantCulture));

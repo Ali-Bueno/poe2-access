@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber),
             (nameof(ReleaseManifestPinsThePackageToItsTag), ReleaseManifestPinsThePackageToItsTag),
             (nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds),
+            (nameof(AJewelMovedIntoTheTreeIsSocketedNotStashed), AJewelMovedIntoTheTreeIsSocketedNotStashed),
             (nameof(SalvageSaysWhatWentAndWhatCame), SalvageSaysWhatWentAndWhatCame),
             (nameof(QuestNamesItsTargets), QuestNamesItsTargets),
             (nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges),
@@ -209,6 +210,21 @@ namespace Poe2Accessibility.Tests
             Equal("refused", Refused("{\"tag\": \"v2026.10.30\", \"sha256\": \"abc\"}"), "a short checksum");
             Equal("refused", Refused($"{{\"tag\": \"v2026.10.30\", \"sha256\": \"{new string('g', 64)}\"}}"), "a checksum that is not hex");
             Equal("refused", Refused($"{{\"tag\": \"latest\", \"sha256\": \"{sha256}\"}}"), "a tag that is not a date");
+        }
+
+        private static void AJewelMovedIntoTheTreeIsSocketedNotStashed()
+        {
+            string Said(List<ItemMove> moves) => string.Join(" | ", moves.Select(move => $"{move.Kind} {move.Name} {move.Where}".Trim()));
+            var (main, jewels) = (InventoryName.MainInventory1, InventoryName.PassiveJewels1);
+            Equal("Socketed Solaz de perdición, raro", Said(ItemMoves.Read(new List<(InventoryName, string)> { (jewels, "Esmeralda, raro") }, new List<(InventoryName, string)> { (main, "Solaz de perdición, raro") },
+                                                                           Announcements.SlotName, true, 0, "Alijo")),
+                  "into PassiveJewels1 from the bag: socketed, named as it was read in the bag, never the stash beside");
+            Equal("Unsocketed Solaz de perdición, raro", Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Esmeralda, raro") }, new List<(InventoryName, string)> { (jewels, "Solaz de perdición, raro") },
+                                                                             Announcements.SlotName, true, 0, "Alijo")),
+                  "out of PassiveJewels1 into the bag: taken from its socket, by the name it had there");
+            Equal("Socketed Rubí | Unsocketed Zafiro", Said(ItemMoves.Read(new List<(InventoryName, string)> { (jewels, "Rubí"), (main, "Zafiro") },
+                                                                           new List<(InventoryName, string)> { (main, "Rubí"), (jewels, "Zafiro") }, Announcements.SlotName, true, 0, "")),
+                  "a jewel swapped for another: one socketed, the other taken out");
         }
 
         private static void ItemMovesAreSaidAsDeeds()

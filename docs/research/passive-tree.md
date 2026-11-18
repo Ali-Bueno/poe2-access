@@ -500,6 +500,32 @@ the planner's list named last, else the one the game's settings name for the cha
   tree's marks: 27 of 27 marked, 0 besides)`, `(the planner's list)`, `(the game's settings)`.
 - The mod remembers a character's file, not its contents: a file written again is read again within five seconds.
 
+## Socketed jewels
+
+MEASURED live 2026-11-18 (0.5.5f, dev command `inventories` and memory reads), "Solaz de perdición" (rare Emerald,
+`Metadata/Items/Jewels/JewelDex`):
+
+- A jewel socketed in the tree lies in the server inventory **24** (`InventoryName.PassiveJewels1`). An empty socket has no
+  item there; the socketed Emerald read `Inventory 24 PassiveJewels1: 5,0`.
+- Its x is a row of the table **`PassiveJewelSlots`** (`.datc64`, 31 rows of 0x51 bytes); that row's key at **+0x0** is
+  its socket's PassiveSkills row: row 5 → PassiveSkills row 6705 `jewel_slot1961`, graph id 61834 (0xF18A), the focused
+  node's own record. Rows 0-23 are `jewel_slot1956…1982`, 24 `AscendancyWitch3Notable1`, 25-29 `voices_jewel_slot1-5`, 30
+  `DeliriumAnoint_ZarokhsGift_`.
+- INFERRED: every socket's jewel lies at its own row's x. Only x 5 was measured. `passive-tree` writes the mapping as
+  "jewelSlots" { graph id: row } (`tools/Poe2UiExtract/PassiveJewelSlots.cs`): the key column is found by row 5 naming
+  `jewel_slot1961` and each row is checked. 0.5.5f: 19 of the 31 rows name a node of the tree, all 19 flagged
+  IsJewelSocket, and all 19 sockets of the tree have a row. The 12 left out (`jewel_slot1957-1959`, `1963-1964`,
+  `1966-1968`, `1978`, `1980-1982`) are on no node of the graph.
+- UI: an empty socket's tooltip is "Engarce de joya" with "Gestionar engarce de joya [A]". A filled socket shows the
+  jewel's item tooltip beside the node's ("Engarce de joya", the jewel's stats, A manage, X "Quitar joya"), and the game's
+  focus moves to an item element two levels under the node (the jewel's entity at element +0x4E0). The mod walks up from
+  that item element to the node and reads the node (`UiSemantics.SocketOfItem`). The node says what the socket holds:
+  "Engarce de joya, asignado: Solaz de perdición, Esmeralda, raro", or "…, vacío".
+- Socketing used to read "Movido a Alijo: …" and X "Sacado de Alijo: Esmeralda, raro", because inventory 24 was not
+  tracked. It is tracked now: "Engarzado en el árbol: …" and "Retirado del engarce: …" (`ItemMoves`). The base name
+  ("Esmeralda") came from the arrival's new entity, which had no title kept and, read just after the move, apparently no
+  name words yet. Now the move uses the name the jewel was read by while it sat in its socket.
+
 ## Ready for a rebuilt tree (2026-11-14)
 
 Version 1.0 (2026-12-11) rebuilds the tree (jewel sockets move inside the skill groups), adds the Shadow and Duelist
@@ -514,6 +540,7 @@ lacks the field):
 | A node of an ascendancy (flag `a`, `ascendancies`: its Id) | PassiveSkills `+0x66` key into Ascendancy (684 rows, 669 in the graph; found as the key that reaches nearly all the table), not the Id's "Ascendancy" prefix; `+0x167` of the 0.5.5e notes is no such key | `PassiveTreeCatalog.IsAscendancy`, `BuildPlan.IsAscendancyNode` |
 | An ascendancy's start (flag `s`) | PassiveSkills `+0x76`, a flag set on 36 rows, all of them the starts (found as the flag set on rows whose Id says "start", 90% of its rows) | `IsAscendancyStart` |
 | An attribute node (`offers`: the choice's type) | PassiveSkills `+0x1B3` key into PassiveSkillVariantTypes: 293 nodes offer "GenericAttribute"; the Id rule matched 34 that offer none and missed `attributes20-` | `IsAttributeNode`, `BuildNotes.IsAttributeNode` |
+| Where a socket's jewel lies (`jewelSlots`) | PassiveJewelSlots `+0x0` key into PassiveSkills; the row is the jewel's x in PassiveJewels1 ([socketed jewels](#socketed-jewels)); without it a socket says nothing of its jewel | `Node.JewelSlot`, `UiSemantics.SocketJewel` |
 | A socket beside a kind | the flag stays a property of the node: "notable, jewel socket" is said and the finder's Jewel sockets list holds it (one node today, an ascendancy's) | `Node.JewelSocket`, `PassiveKind(kind, socket)` |
 | The graph file | `Metadata/PassiveSkillGraph` by prefix in memory; the extractor takes the only `.psg` under it when the exact name is gone | `PassiveTreeFields.NamesGraph`, `GraphFileOf` |
 

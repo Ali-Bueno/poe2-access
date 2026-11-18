@@ -5,8 +5,8 @@ using Index = LibBundle3.Index;
 ///     classes' starts need no row offset in memory (docs/research/file-catalogs.md): { "nodes": { graph id: "PassiveSkills
 ///     Id|flags" }, "links": { graph id: [graph ids] }, "starts": { graph id: [Characters Ids] }, "classes": { language:
 ///     { Characters Id: name } }, "names": { language: { PassiveSkills Id: name } } }, and, when their columns are found,
-///     "ascendancies": { graph id: Ascendancy Id } and "offers": { graph id: PassiveSkillVariantTypes Id } (a node that
-///     offers a choice). Flags: k keystone, n notable, j jewel socket, i icon only (left out when no such column is found),
+///     "ascendancies": { graph id: Ascendancy Id }, "offers": { graph id: PassiveSkillVariantTypes Id } (a node that
+///     offers a choice) and "jewelSlots": { graph id: PassiveJewelSlots row } (<see cref="PassiveJewelSlots"/>). Flags: k keystone, n notable, j jewel socket, i icon only (left out when no such column is found),
 ///     a node of an ascendancy, s an ascendancy's start. The graph is <see cref="MainGraph"/> (<see cref="SkillGraphFile"/>);
 ///     the rows and their columns are PassiveSkills' and Characters', found as `dat-columns` finds them. Read-only on the game.
 /// </summary>
@@ -203,8 +203,14 @@ internal static class PassiveTreeExtractor
             catalog["offers"] = offers;
         }
 
+        var jewelSlots = PassiveJewelSlots.Read(index, passives, columns["PassiveSkills.GraphId"], nodes);
+        if (jewelSlots.Count > 0)
+        {
+            catalog["jewelSlots"] = jewelSlots;
+        }
+
         AreaExtractor.WriteJson(outFile, catalog);
-        Say.Out.WriteLine($"Wrote {outFile}: {nodes.Count} nodes of {graph.Nodes.Count} in the graph, {starts.Count} class starts, {variants.Count} variants, {ascendancies.Count} ascendancy nodes, {offers.Count} nodes that offer a choice, {names.Count} languages");
+        Say.Out.WriteLine($"Wrote {outFile}: {nodes.Count} nodes of {graph.Nodes.Count} in the graph, {starts.Count} class starts, {variants.Count} variants, {ascendancies.Count} ascendancy nodes, {offers.Count} nodes that offer a choice, {jewelSlots.Count} jewel slots, {names.Count} languages");
         return 0;
     }
 

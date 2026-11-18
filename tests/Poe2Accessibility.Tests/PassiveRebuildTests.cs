@@ -14,7 +14,8 @@ namespace Poe2Accessibility.Tests
         private const string Tree =
             "{\"nodes\":{\"20\":\"warden_gate|as\",\"21\":\"rune_pact|na\",\"22\":\"eye_socket|nj\",\"23\":\"any_stat|\",\"24\":\"strength9|\",\"25\":\"AscendancyOld1Start|\"}," +
             "\"ascendancies\":{\"20\":\"Warden1\",\"21\":\"Warden1\"}," +
-            "\"offers\":{\"23\":\"GenericAttribute\"}}";
+            "\"offers\":{\"23\":\"GenericAttribute\"}," +
+            "\"jewelSlots\":{\"22\":5,\"99\":7}}";
 
         private const string OldTree = "{\"nodes\":{\"20\":\"AscendancyWarden1Start|\",\"21\":\"rune_pact|n\",\"22\":\"strength9|\"}}";
 
@@ -30,7 +31,28 @@ namespace Poe2Accessibility.Tests
             (nameof(OneOddRowDoesNotCostTheGraphIdColumn), OneOddRowDoesNotCostTheGraphIdColumn),
             (nameof(AClassListNeedsHalfTheClassesNamedOnceEach), AClassListNeedsHalfTheClassesNamedOnceEach),
             (nameof(ANewKindOfFlagIsFoundBesideTheKnownOnes), ANewKindOfFlagIsFoundBesideTheKnownOnes),
+            (nameof(ASocketKnowsTheSlotItsJewelLiesAt), ASocketKnowsTheSlotItsJewelLiesAt),
+            (nameof(ASocketSaysWhatItHolds), ASocketSaysWhatItHolds),
         };
+
+        private static void ASocketKnowsTheSlotItsJewelLiesAt()
+        {
+            var tree = PassiveTreeCatalog.Parse(Tree);
+            Equal(5, tree.ByGraphId(22)!.JewelSlot, "the socket's PassiveJewelSlots row, the x of its jewel in PassiveJewels1");
+            Equal(null, tree.ByGraphId(21)!.JewelSlot, "a node that is no socket has none");
+            Equal(null, tree.ByGraphId(99), "a slot of a node the tree lacks names nothing");
+            Equal(null, PassiveTreeCatalog.Parse(OldTree).ByGraphId(21)!.JewelSlot, "a catalog written before the slots: none, and it still reads");
+        }
+
+        private static void ASocketSaysWhatItHolds()
+        {
+            Equal("Jewel socket, allocated: Solaz de perdición, Emerald, rare",
+                  Announcements.SocketHolding("Jewel socket, allocated", Announcements.Item("Solaz de perdición", GameReader.RemoteEnums.Rarity.Rare, 0, "Emerald")),
+                  "a filled socket: the jewel's name, its base, its rarity");
+            Equal($"Jewel socket, allocated, {Announcements.EmptyCell}", Announcements.SocketHolding("Jewel socket, allocated", string.Empty), "an empty socket says so");
+            Equal("Jewel socket", Announcements.SocketHolding("Jewel socket", null), "unread, or no socket: the node alone");
+            Equal("Emerald", Announcements.Item("Emerald", GameReader.RemoteEnums.Rarity.Normal, 0, "Emerald"), "a normal jewel's name is its base: said once");
+        }
 
         private static void AnAscendancyNodeIsWhatTheFilesFlag()
         {

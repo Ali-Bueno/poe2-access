@@ -52,7 +52,7 @@ internal static class GameDataSteps
         new Step("shrines", 1, "shrines.json", "shrines", true),
         new Step("spectres", 4, "spectres.json", "spectres", true), // 4: a spear its monster's id names is a spear, not the data's Warstaff; 3: a variety told by its Spirit cost, not the raw multiplier; monsters only; a row of both tags' reach unsaid. Never 1: a legacy stamp vouches for every step at 1; 2: each monster's weapon and reach, and whether its variety is told
         new Step("gems", 1, "gems.json", "gems", true),
-        new Step("passive tree", 2, "passive-tree.json", "passive-tree", true), // 2: the rows a node with a choice can be made (an attribute node's three)
+        new Step("passive tree", 3, "passive-tree.json", "passive-tree", true), // 3: each jewel socket's PassiveJewelSlots row (where its jewel lies); 2: the rows a node with a choice can be made (an attribute node's three)
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
         new Step("mod stats", 3, "mod-stats.json", "mod-stats", true), // 3: what runes and soul cores give socketed; 2: a modifier keying its own buff is told apart

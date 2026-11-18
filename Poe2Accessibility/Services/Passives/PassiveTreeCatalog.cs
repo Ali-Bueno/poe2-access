@@ -63,12 +63,14 @@ namespace Poe2Accessibility.Services
                 var ascendancy = flags.Contains(AscendancyFlag);
                 var offers = data.Offers != null && data.Offers.TryGetValue(key, out var offered) ? offered : null;
                 var ascendancyId = ascendancy && data.Ascendancies != null && data.Ascendancies.TryGetValue(key, out var named) ? named : null;
+                var jewelSlot = data.JewelSlots != null && data.JewelSlots.TryGetValue(key, out var slot) ? slot : (int?)null;
                 var node = new Node(graphId, value[..separator], flags.Contains(KeystoneFlag), flags.Contains(NotableFlag), flags.Contains(JewelSocketFlag), flags.Contains(IconOnlyFlag), links, starts)
                 {
                     Ascendancy = ascendancy,
                     AscendancyStart = flags.Contains(AscendancyStartFlag),
                     AscendancyId = ascendancyId,
                     Offers = offers,
+                    JewelSlot = jewelSlot,
                 };
                 this.hasAscendancyFlags |= node.Ascendancy;
                 this.hasStartFlags |= node.AscendancyStart;
@@ -240,6 +242,9 @@ namespace Poe2Accessibility.Services
             /// <summary>Gets the Id of the choice the node offers ("GenericAttribute"); null for a node with none.</summary>
             public string? Offers { get; init; }
 
+            /// <summary>Gets a jewel socket's PassiveJewelSlots row, the x its jewel lies at in PassiveJewels1; null for any other node or an older catalog.</summary>
+            public int? JewelSlot { get; init; }
+
             /// <summary>Gets a value indicating whether a class starts here (the portrait at the tree's centre).</summary>
             public bool IsStart => this.StartClasses.Count > 0;
 
@@ -261,6 +266,8 @@ namespace Poe2Accessibility.Services
             public Dictionary<string, string>? Ascendancies { get; set; }
 
             public Dictionary<string, string>? Offers { get; set; }
+
+            public Dictionary<string, int>? JewelSlots { get; set; }
 
             public Dictionary<string, Dictionary<string, string>>? Classes { get; set; }
 

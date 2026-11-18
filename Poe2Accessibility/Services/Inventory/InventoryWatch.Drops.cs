@@ -50,12 +50,12 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>Main inventory, cursor and the equipment slots: where an item can be moved by the player.</summary>
+        /// <summary>Main inventory, cursor, the equipment slots and the passive tree's jewels: where an item can be moved by the player.</summary>
         private static readonly InventoryName[] Tracked =
         {
             InventoryName.MainInventory1, InventoryName.Cursor1, InventoryName.BodyArmour1, InventoryName.Weapon1, InventoryName.Offhand1,
             InventoryName.Weapon2, InventoryName.Offhand2, InventoryName.Helm1, InventoryName.Amulet1, InventoryName.Ring1, InventoryName.Ring2,
-            InventoryName.Gloves1, InventoryName.Boots1, InventoryName.Belt1, InventoryName.Flask1,
+            InventoryName.Gloves1, InventoryName.Boots1, InventoryName.Belt1, InventoryName.Flask1, InventoryName.PassiveJewels1,
         };
 
         /// <summary>A move is read once the inventories have not changed for this long.</summary>

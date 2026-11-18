@@ -25,7 +25,7 @@ namespace Poe2Accessibility.Services
             this.notEndgame.Clear();
         }
 
-        private AccessibleUiNode? DescribeInventory(in UiElementReader.ElementInfo info)
+        private AccessibleUiNode? DescribeInventory(in UiElementReader.ElementInfo info, bool underCursor)
         {
             UiRole role;
             string text;
@@ -80,6 +80,11 @@ namespace Poe2Accessibility.Services
             }
             else if (this.inventory.FindItemElement(info.Address) is var item && item != IntPtr.Zero)
             {
+                if (this.SocketOfItem(item, underCursor) is { } socket)
+                {
+                    return socket; // a jewel in the passive tree: its node, allocated, linked and guided, says what it holds
+                }
+
                 role = UiRole.ItemSlot;
                 position = this.SlotSiblings(info).Position;
                 details = this.ItemTooltip(item);

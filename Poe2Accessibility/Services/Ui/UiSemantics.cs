@@ -70,7 +70,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            if (this.InGame && this.DescribeInventory(info) is { } inventoryNode)
+            if (this.InGame && this.DescribeInventory(info, hovered) is { } inventoryNode)
             {
                 return inventoryNode;
             }

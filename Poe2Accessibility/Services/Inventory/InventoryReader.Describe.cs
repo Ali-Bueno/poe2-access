@@ -25,11 +25,14 @@ namespace Poe2Accessibility.Services
         /// <summary>Same for an item entity (a ground item's WorldItem points to one); null when it is not an item.</summary>
         public string? DescribeItemEntity(IntPtr entity, string tooltipTitle = "") => this.Describe(entity, tooltipTitle, false);
 
+        /// <summary>An item entity with its base after its own name ("Solaz de perdición, Esmeralda, raro"): a jewel in a socket.</summary>
+        public string? DescribeWithBase(IntPtr entity) => this.Describe(entity, string.Empty, false, true);
+
         /// <summary>
         ///     Only a tooltip's title checks where base names are read (<see cref="BaseNames"/>): a ground item's label
         ///     is not known to hold the base name.
         /// </summary>
-        private string? Describe(IntPtr entity, string tooltipTitle, bool fromTooltip)
+        private string? Describe(IntPtr entity, string tooltipTitle, bool fromTooltip, bool withBase = false)
         {
             if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
             {
@@ -48,6 +51,8 @@ namespace Poe2Accessibility.Services
 
                 name = this.BaseName(baseComponent);
             }
+
+            var baseName = withBase ? name : string.Empty;
 
             // A rare or unique item's own name, from the words the item keeps: known with no tooltip.
             var words = mods != null && rarity is Rarity.Rare or Rarity.Unique ? this.NameFromWords(mods.Address) : string.Empty;
@@ -86,7 +91,7 @@ namespace Poe2Accessibility.Services
             }
 
             var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
-            return Announcements.Item(name, rarity, count);
+            return Announcements.Item(name, rarity, count, baseName);
         }
 
         /// <summary>Titles kept for this many items; past it the oldest readings go with the rest.</summary>

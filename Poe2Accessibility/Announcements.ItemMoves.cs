@@ -64,6 +64,11 @@ namespace Poe2Accessibility
 
         public static string Obtained(string name) => T($"Obtained: {name}", $"Obtenido: {name}");
 
+        /// <summary>A jewel put in a socket of the passive tree (server inventory PassiveJewels1), or taken out of one.</summary>
+        public static string Socketed(string name) => T($"Socketed in the tree: {name}", $"Engarzado en el árbol: {name}");
+
+        public static string Unsocketed(string name) => T($"Taken from its socket: {name}", $"Retirado del engarce: {name}");
+
         public static string Dropped(string name) => T($"Dropped: {name}", $"Tirado: {name}");
 
         /// <summary>What a trade took, a disenchanted item among them.</summary>

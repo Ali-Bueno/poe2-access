@@ -220,6 +220,8 @@ namespace Poe2Accessibility.Services
                                 Announcements.SupportEngraved(engraving.Choice, engraving.Category),
                             ItemMoveKind.MovedTo => Announcements.MovedTo(move.Name, move.Where),
                             ItemMoveKind.TakenFrom => Announcements.TakenFrom(move.Name, move.Where),
+                            ItemMoveKind.Socketed => Announcements.Socketed(move.Name),
+                            ItemMoveKind.Unsocketed => Announcements.Unsocketed(move.Name),
                             _ => Announcements.Obtained(move.Name),
                         }));
                         break;

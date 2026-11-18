@@ -122,6 +122,13 @@ namespace Poe2Accessibility
         public static string PassiveNode(string name, string kind, string state) =>
             string.Join(", ", new[] { name, kind, state }.Where(part => part.Length > 0));
 
+        /// <summary>
+        ///     A jewel socket with what it holds: "Engarce de joya, asignado: Solaz de perdición, Esmeralda, raro", "…, vacío"
+        ///     for an empty <paramref name="jewel"/>; the node alone when null (not a socket, or unread).
+        /// </summary>
+        public static string SocketHolding(string node, string? jewel) =>
+            jewel == null ? node : jewel.Length == 0 ? $"{node}, {EmptyCell}" : $"{node}: {jewel}";
+
         public static string PassiveLink(string name, string state) => $"{name}, {state}";
 
         /// <summary>A link to the class's start (the portrait at the tree's centre).</summary>

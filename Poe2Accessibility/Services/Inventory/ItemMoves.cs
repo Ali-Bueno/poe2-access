@@ -16,6 +16,10 @@ namespace Poe2Accessibility.Services
         TakenFrom,
         Obtained,
 
+        /// <summary>Put in a jewel socket of the passive tree (PassiveJewels1), or taken out of one.</summary>
+        Socketed,
+        Unsocketed,
+
         /// <summary>Gone with no panel to take it: dropped if it shows on the ground soon, else used up.</summary>
         DroppedOrUsed,
     }
@@ -26,7 +30,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Reads one settled batch of inventory departures and arrivals (the game makes a new item entity on every
     ///     move) as what the player did, the way a sighted player sees it: equipped, unequipped, sold, bought, put in
-    ///     the stash or taken out, dropped. Not "left the inventory" (user 2026-10-28). Gold that rose with a departure
+    ///     the stash or taken out, socketed in the passive tree or taken from it, dropped. Not "left the inventory" (user 2026-10-28). Gold that rose with a departure
     ///     is a sale (Y on a merchant sells at once), gold that fell with an arrival a purchase; otherwise the panel open
     ///     beside the inventory names where it went or came from (the stash, the skills: the game's own title), the hand's
     ///     item counting from the panel it was picked up in, unless that panel cannot hold it (the skills hold only gems:
@@ -65,9 +69,19 @@ namespace Poe2Accessibility.Services
                     moves.Add(new ItemMove(ItemMoveKind.Equipped, name, slot));
                     Take(source => source != InventoryName.Cursor1 && !IsEquipment(source));
                 }
+                else if (to == InventoryName.PassiveJewels1)
+                {
+                    // Not the stash beside: a jewel put in the tree from the bag or the hand, named as it was read there.
+                    var socketed = Take(source => source is InventoryName.MainInventory1 or InventoryName.Cursor1);
+                    moves.Add(new ItemMove(ItemMoveKind.Socketed, socketed is null || socketed == Announcements.UnknownItem ? name : socketed));
+                }
                 else if (to == InventoryName.MainInventory1)
                 {
-                    if (Take(IsEquipment) is { } unequipped)
+                    if (Take(source => source == InventoryName.PassiveJewels1) is { } unsocketed)
+                    {
+                        moves.Add(new ItemMove(ItemMoveKind.Unsocketed, unsocketed == Announcements.UnknownItem ? name : unsocketed));
+                    }
+                    else if (Take(IsEquipment) is { } unequipped)
                     {
                         // The arrival is the same item in a new entity, readable when the departed one never was.
                         moves.Add(new ItemMove(ItemMoveKind.Unequipped, unequipped == Announcements.UnknownItem ? name : unequipped));

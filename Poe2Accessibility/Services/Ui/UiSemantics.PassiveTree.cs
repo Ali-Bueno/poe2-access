@@ -166,7 +166,12 @@ namespace Poe2Accessibility.Services
             var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated)
                 : state == PassiveState.Allocated && refunding ? this.RefundState(graph, record, allocated)
                 : StateWord(state);
-            var text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
+            var plain = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
+            // A jewel socket says what it holds; a jewel's name follows a leading guide's words, an empty socket says so at once.
+            var jewel = this.SocketJewel(node);
+            var jewelLine = jewel is { Length: > 0 } ? jewel : null;
+            string Holding(string head, bool guideFirst) => Announcements.SocketHolding(head, guideFirst && jewelLine != null ? null : jewel);
+            var text = Holding(plain, false);
 
             // One guide at a time: the finder's target takes the place of the build's next node.
             this.NoteTreePlace(graph, record, allocated, next);
@@ -218,8 +223,9 @@ namespace Poe2Accessibility.Services
                     var word = state == PassiveState.Allocated || (refunding && state == PassiveState.Reachable) ? stateWords
                         : guide.OnLine ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
                         : string.Empty;
-                    text = word.Length > 0 ? $"{node.Name}, {word}" : node.Name;
-                    said = guide.Line.Length > 0 ? stats.Prepend(guide.Line).ToList() : stats;
+                    text = Holding(word.Length > 0 ? $"{node.Name}, {word}" : node.Name, true);
+                    var held = jewelLine != null ? stats.Prepend(jewelLine).ToList() : stats;
+                    said = guide.Line.Length > 0 ? held.Prepend(guide.Line).ToList() : held;
                     tooltipPending = tooltipPending && guide.Line.Length == 0;
                 }
                 else if (record == this.finder.Target)
@@ -228,8 +234,13 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
-                    text = guide.Line.Length > 0 ? $"{text}, {guide.Line}" : text;
-                    said = tooltip;
+                    text = guide.Line.Length > 0 ? $"{Holding(plain, true)}, {guide.Line}" : text;
+                    said = guide.Line.Length > 0 && jewelLine != null ? tooltip.Prepend(jewelLine).ToList() : tooltip;
+                }
+
+                if (jewelLine != null)
+                {
+                    whole.Insert(0, jewelLine); // the details, read apart from the node's line, name the jewel too
                 }
             }
 
