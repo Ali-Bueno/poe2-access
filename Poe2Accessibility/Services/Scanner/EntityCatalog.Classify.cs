@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
+        private readonly HashSet<string> spiritlessCorpses = new(StringComparer.Ordinal);
         private readonly HashSet<string> silentCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
@@ -43,11 +44,14 @@ namespace Poe2Accessibility.Services
             }
 
             // A league's altar stays listed out of play; what a quest icon marks does not: a Trial's reward is spent once used.
+            // A dead monster's corpse is out of play too (nothing targets it), and is listed all the same: it is what
+            // Bind Spectre and the corpse skills use, and the fight left it there to be found.
             var trap = TrialTraps.KindOf(path);
             var chaos = ChaosTrial.PieceOf(path);
             var foughtBeside = chaos is { } fought && ChaosTrial.IsFoughtBeside(fought);
+            var corpse = IsCorpse(entity);
             if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !foughtBeside && league is not { WithoutTarget: true } &&
-                !this.InPlay(entity) && !(IsCharacter(entity) && this.walking.Walks(entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y))))
+                !corpse && !this.InPlay(entity) && !(IsCharacter(entity) && this.walking.Walks(entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y))))
             {
                 this.LogLeftOutCharacter(entity, path, "not in play");
                 return null;
@@ -188,8 +192,21 @@ namespace Poe2Accessibility.Services
                 // to talk to that the player cannot attack, whatever side it reads: Sekhema Asala in the Dreadnought has no NPC
                 // component, only InteractionAction (MarakethMatriarchDreadnought_.ot, issue #7).
                 var npc = entity.TryGetComponent<NPC>(out _);
-                category = IsCharacter(entity) && !this.Attackable(entity) ? ScanCategory.Npcs
+                category = corpse ? ScanCategory.Corpses
+                    : IsCharacter(entity) && !this.Attackable(entity) ? ScanCategory.Npcs
                     : IsAliveEnemy(entity) ? ScanCategory.Enemies : npc ? ScanCategory.Npcs : null;
+                if (category == ScanCategory.Corpses)
+                {
+                    kind = CorpseKind;
+                    questMarked = false; // a corpse is never what a quest asks for, whatever icon it died under
+                    var (spirit, variety) = SpectreCatalog.Shared.Lookup(path);
+                    if (spirit == null && name.Length > 0 && this.spiritlessCorpses.Add(BossMechanicsCatalog.MonsterId(path)))
+                    {
+                        this.log.Info($"Corpse without a spirit cost: {path}");
+                    }
+
+                    name = name.Length > 0 ? Announcements.CorpseOf(name, spirit, variety?.Weapon ?? string.Empty, variety?.Attack ?? string.Empty) : name;
+                }
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
                 {
                     name = Announcements.EnemyWithRarity(name, magic.Rarity);
@@ -570,6 +587,22 @@ namespace Poe2Accessibility.Services
             entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) && !IsFrozenDead(entity) &&
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly);
+
+        /// <summary>The scanner's kind of a dead monster's corpse, told apart from a body searched for loot (kind "corpse", a chest).</summary>
+        public const string CorpseKind = "monster_corpse";
+
+        /// <summary>
+        ///     A dead creature whose corpse is still there to use: read dead by the game's own word (the is_dead stat,
+        ///     which freezes its life where it fell, or a life of nothing), never a unique (Bind Spectre takes none), a
+        ///     character or one of the player's own. A monster that rises again is read alive once it does
+        ///     (<see cref="IsFrozenDead"/>) and leaves the category then.
+        /// </summary>
+        public static bool IsCorpse(Entity entity) =>
+            entity.EntityType == EntityTypes.Monster && entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) &&
+            (IsFrozenDead(entity) || (entity.TryGetComponent<Life>(out var life) && !life.IsAlive)) &&
+            !IsCharacter(entity) && !IsHidden(entity) &&
+            !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly) &&
+            !(entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity == Rarity.Unique);
 
         private bool InPlay(Entity entity) => IsInPlay(this.memory, entity);
 

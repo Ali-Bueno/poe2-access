@@ -32,6 +32,7 @@ namespace Poe2Accessibility
             Services.ScanCategory.Chests => T("Chests and shrines", "Cofres y santuarios"),
             Services.ScanCategory.Items => T("Items", "Objetos"),
             Services.ScanCategory.Players => T("Players", "Jugadores"),
+            Services.ScanCategory.Corpses => T("Corpses", "Cadáveres"),
             _ => category.ToString(),
         };
 
@@ -97,6 +98,51 @@ namespace Poe2Accessibility
         public static string Minions(System.Collections.Generic.IEnumerable<string> groups) => T("Minions: ", "Esbirros: ") + string.Join("; ", groups);
 
         public static string EnemyWithRarity(string name, GameReader.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
+
+        /// <summary>
+        ///     A dead monster's corpse, with the Spirit a spectre of it reserves when the catalog knows it and, where
+        ///     monsters of its name differ, which variety it is (its weapon and whether it fights ranged or melee):
+        ///     "Vaal Guard corpse, bow, ranged, 53 Spirit"; without a cost or a variety when it does not know them.
+        /// </summary>
+        public static string CorpseOf(string name, int? spirit, string weapon = "", string attack = "")
+        {
+            var variety = WeaponWord(weapon) is { Length: > 0 } held ? (AttackWord(attack) is { Length: > 0 } reach ? $"{held}, {reach}" : held) : AttackWord(attack);
+            var said = variety.Length > 0 ? T($"{name} corpse, {variety}", $"Cadáver de {name}, {variety}") : T($"{name} corpse", $"Cadáver de {name}");
+            return spirit is { } cost ? T($"{said}, {cost} Spirit", $"{said}, {cost} de espíritu") : said;
+        }
+
+        /// <summary>Whether a monster fights at reach or up close, by its tags' word; empty for neither.</summary>
+        private static string AttackWord(string attack) => attack switch
+        {
+            "ranged" => T("ranged", "a distancia"),
+            "melee" => T("melee", "cuerpo a cuerpo"),
+            _ => string.Empty,
+        };
+
+        /// <summary>A weapon's word by its ItemClasses Id; empty for a class with no such word (a held thing that is no weapon).</summary>
+        private static string WeaponWord(string itemClass) => itemClass switch
+        {
+            "Bow" => T("bow", "arco"),
+            "Crossbow" => T("crossbow", "ballesta"),
+            "Spear" => T("spear", "lanza"),
+            "Warstaff" => T("quarterstaff", "bastón"),
+            "Staff" => T("staff", "báculo"),
+            "Wand" => T("wand", "varita"),
+            "Sceptre" => T("sceptre", "cetro"),
+            "Claw" => T("claw", "garra"),
+            "Dagger" => T("dagger", "daga"),
+            "Flail" => T("flail", "mangual"),
+            "Shield" => T("shield", "escudo"),
+            "One Hand Sword" => T("one-hand sword", "espada a una mano"),
+            "Two Hand Sword" => T("two-hand sword", "espada a dos manos"),
+            "One Hand Axe" => T("one-hand axe", "hacha a una mano"),
+            "Two Hand Axe" => T("two-hand axe", "hacha a dos manos"),
+            "One Hand Mace" => T("one-hand mace", "maza a una mano"),
+            "Two Hand Mace" => T("two-hand mace", "maza a dos manos"),
+            "Unarmed" => T("unarmed", "desarmado"),
+            "Talisman" => T("talisman", "talismán"),
+            _ => string.Empty,
+        };
 
         internal static string RarityName(GameReader.RemoteEnums.Rarity rarity) => rarity switch
         {

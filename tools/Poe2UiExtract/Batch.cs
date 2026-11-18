@@ -47,6 +47,7 @@ internal static class Batch
         ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
         ["quest-goals"] = (_, index, output) => QuestGoalExtractor.Run(index, output),
         ["shrines"] = (_, index, output) => ShrineExtractor.Run(index, output),
+        ["spectres"] = (_, index, output) => SpectreExtractor.Run(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
         ["boss-mechanics"] = (_, index, output) => BossMechanicsExtractor.Run(index, output),
         ["gems"] = (_, index, output) => GemExtractor.Run(index, output),

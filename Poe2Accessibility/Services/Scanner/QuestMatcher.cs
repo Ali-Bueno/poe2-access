@@ -41,8 +41,9 @@ namespace Poe2Accessibility.Services
             var objective = memo?.For(questTexts, currentArea) ?? new Objective(questTexts, currentArea);
             var texts = objective.Texts;
             var steps = leadsTo is { Count: > 0 } ? leadsTo.Select(Fold).ToHashSet() : null;
-            // What the minimap marks with the quest's own icon is the objective, whatever the tracker says.
-            var targets = entries.Where(entry => entry.QuestMarked).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
+            // What the minimap marks with the quest's own icon is the objective, whatever the tracker says — never a
+            // corpse, though: a quest-icon monster that died is not asked for any more (live 2026-11-18).
+            var targets = entries.Where(entry => entry.QuestMarked && entry.Category != ScanCategory.Corpses).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
             if (texts.Count == 0)
             {
                 return targets;
@@ -54,7 +55,9 @@ namespace Poe2Accessibility.Services
                 // for tiles and props, common nouns the game never marks: "Find the entrance to the Red Vale" led to an
                 // "entrance" tile and "Search for Asinia in the Consort's Tomb" to a "tomb" prop (user 2026-10-28).
                 // A sign names the place it points to ("Pueblo de Ogham" by the road), it is not that place (user 2026-10-28).
-                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
+                // A dead monster's corpse is never what an objective asks for, however its name matches (live 2026-11-18:
+                // "Quest. Chaotic Zealot corpse" in Utzaal, where the fight was already over).
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places or ScanCategory.Corpses ||
                     entry.Kind == MinimapMarks.SignKind ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)) ||
                     (steps != null && IsAreaExit(entry)))

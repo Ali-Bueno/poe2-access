@@ -144,11 +144,14 @@ namespace Poe2Accessibility.Tests
 
         private static string Said(IEnumerable<ScanEntry> targets) => string.Join(" | ", targets);
 
-        /// <summary>QuestMatcher.Targets as it was before its answers were kept (commit 6f2f3e3), word for word.</summary>
+        /// <summary>
+        ///     QuestMatcher.Targets as it was before its answers were kept (commit 6f2f3e3), word for word but for the
+        ///     corpse exclusions of 2026-11-18, which it carries so the comparison still pins today's behaviour.
+        /// </summary>
         private static List<ScanEntry> OldTargets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea, string cameFrom)
         {
             var texts = questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
-            var targets = entries.Where(entry => entry.QuestMarked).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
+            var targets = entries.Where(entry => entry.QuestMarked && entry.Category != ScanCategory.Corpses).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
             if (texts.Count == 0)
             {
                 return targets;
@@ -161,7 +164,7 @@ namespace Poe2Accessibility.Tests
 
             foreach (var entry in entries)
             {
-                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places or ScanCategory.Corpses ||
                     entry.Kind == MinimapMarks.SignKind ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
                 {
