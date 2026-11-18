@@ -99,8 +99,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
   rummage), items on the ground, other players, **corpses** (dead monsters whose body is still there to
   use, named with the Spirit a spectre of them would reserve and, where monsters of that name differ in cost,
   weapon or reach, which one it is — its weapon and/or whether it fights ranged or melee, where known:
-  "Vaal Guard corpse, bow, ranged, 60 Spirit" against
-  "Vaal Guard corpse, quarterstaff, melee, 60 Spirit" and, holding no weapon, "Vaal Guard corpse, ranged,
+  "Vaal Guard corpse, bow, ranged, 53 Spirit" against
+  "Vaal Guard corpse, quarterstaff, melee, 53 Spirit" and, holding no weapon, "Vaal Guard corpse, ranged,
   50 Spirit", the grenade one; some are told apart by their cost alone. Lock the guide on one, stand on it and
   bind; the game refuses a few corpses for spectres (monsters spawned from strongboxes, for one), and the
   skill's own word there is the last one. Not uniques, and not the bodies to

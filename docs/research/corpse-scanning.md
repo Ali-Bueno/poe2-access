@@ -43,20 +43,21 @@ never is. No `corpse cannot be used` flag was found: the stats table holds `corp
 and no component of the reader's carries such a state. Whether the game marks a consumed or shattered corpse before
 deleting it is **UNSURE**: nothing in the repo reads it, and a deleted corpse simply leaves the list.
 
-## 3. The Spirit a spectre reserves (MEASURED inputs, formula LIKELY)
+## 3. The Spirit a spectre reserves (MEASURED inputs; rule as first read — corrected in §9)
 
 The dat files hold no spirit column. The community dat schema (poe-tool-dev/dat-schema, release `latest`, fetched
 2026-11-17) names no such column in `MonsterVarieties` (127 columns), `MonsterTypes`, `ActiveSkills` or
 `GrantedEffects`; `SpectreOverrides` only maps a monster to the variety summoned in its place. Path of Building
 (PoE2)'s export derives its `spectreReservation` from the variety's **experience multiplier**
-(`src/Export/Scripts/minions.lua`: `floor(((ExperienceMultiplier/100) ^ 0.75) * 50)`) — but those numbers are not the
-game's: against the costs poe2wiki lists from play they read 51 where the game asks 50, 84 where it asks 100.
+(`src/Export/Scripts/minions.lua`: `floor(((ExperienceMultiplier/100) ^ 0.75) * 50)`) — dismissed here at first
+against the costs poe2wiki lists from play (51-readings aside, 84 where the wiki asks 100), and taken up again in
+§9, when live bound gems sided with it and the wiki's numbers turned out to predate 0.3.0's cost rebalance.
 
 Measured on the installed game (2026-11-17, `Poe2UiExtract dat-kinds`/`dat-rows` on `data/balance/monstervarieties.datc64`,
 2,794 rows of 0x406 bytes): the experience multiplier is the i32 at **+0xA8** (the schema's column order gives the same
 offset; the life multiplier at +0x11C matches it on most rows but not all — `SerpentClanCasterBoss` reads 200 against
 266, which tells the two apart). No column of the row holds the published costs themselves (checked every even offset
-of seven known rows). What holds on every published cost is **half the multiplier, to the nearest ten**:
+of seven known rows). What held on every cost published *then* was **half the multiplier, to the nearest ten**:
 
 | Monster (file) | Multiplier | Half, nearest ten | Published cost |
 |---|---|---|---|
@@ -80,6 +81,8 @@ on rounding up alone, and 43 match neither (against multipliers that may have be
 matching at least one rule. The cost is of the corpse's own file, not of its `SpectreOverrides` form:
 Faridun Impaler's summoned form (`...EliteSpectre_`) reads 150, which would give 80, not the published 120.
 `SpectreCatalog.SpiritFor` is the one place the rule lives; a live tooltip that disagrees fixes it there.
+That rule fitted only what was published before 0.3.0 changed the costs; §9 is its correction. The table and the
+Game8 counts stay above as the record of why it was chosen.
 
 ## 4. What was built
 
@@ -102,13 +105,14 @@ Faridun Impaler's summoned form (`...EliteSpectre_`) reads 150, which would give
 
 ## 5. Still to learn live
 
-- Whether a corpse reached and bound leaves the list at once, and whether the game's Bind Spectre targeting (its
-  tooltip up) makes `InteractTarget` name the corpse under the player — it would, unchanged, if the game flags the
-  corpse as the target.
+- Whether a corpse reached and bound leaves the list at once (the targeting half is answered: standing on the
+  Axeman's corpse in Bind Spectre mode read "Vaal Embalmed Axeman corpse, 60 Spirit, A", 2026-11-18 04:11 —
+  the game flags it as the target, unchanged). A corpse the Axeman's *namesake* left was still guided to after
+  the binding; whether it was the bound one itself the log cannot tell (two Axemen were in that fight).
 - Whether a raised-again monster (one that was `Useless` and wakes) is ever bindable while it lies there; listed
   until it rises, either way.
-- One tooltip against the rule on a multiplier the twelve do not cover (any 5-mod-20 corpse: say what the scanner
-  said, then what the gem reserves once bound).
+- One bound gem against §9's curve at a high multiplier (200 reads 84 on the curve, 100 in the pre-0.3.0
+  tables) — when a gem can be spared; at 100 and 110 the curve is heard (§9).
 - ND7's other half (a cue when usable corpses come near, for Offering and kin) is not built: it wants a new sound,
   which wants the user's ear first (repo rule 23), and a corpse count the category now makes possible.
 ## 6. First live session (2026-11-18, the owner in Utzaal on the dev build)
@@ -169,6 +173,26 @@ Built and committed; deployed when the game next stops.
 Kept: this document's tables and the derived `catalog/spectres.json`; the step revalidates its columns against
 the installed game at every making. Not kept (2026-11-18 review): no snapshot of the dat-schema (fetched at its
 floating `latest` release), no dump of the `dat-rows`/`dat-kinds` scans behind §3 and §7, no copy of Game8's
-list behind §3's counts, and the live sessions' `accessibility.log` stayed on the owner's machine — §§6-7 quote
-it, but nothing of it is under `Poe2Accessibility/debug/` or `logs/`. What is re-derivable is re-derived by the
-step; what is not (the Game8 counts, the schema as it read that day) rests on the numbers recorded here.
+list behind §3's counts; the live sessions' `accessibility.log` stayed on the owner's machine (§§6-7 quote it;
+the session of 2026-11-18 00:16-03:48 was attached to the pull request by the owner). What is re-derivable is
+re-derived by the step; what is not (the Game8 counts, the schema as it read that day) rests on the numbers
+recorded here.
+
+## 9. The cost rule corrected (2026-11-18, the owner's next session)
+
+The scanner said "Vaal Embalmed Axeman corpse, 60 Spirit"; the owner bound it and the gem read **Reservation:
+53 Spirit** (04:12). Minutes before, in the same session, his bound Vaal Guard read **50** — so the difference
+is not his build's reservation efficiency (that would cut both readings alike, and in any case it lands on what
+he actually reserves: §7's grenade guard read 50 and cost him 45). No rounding to tens can give 53: §3's rule is
+wrong for the game as it stands. What fits both live gems is the curve §3 dismissed, Path of Building's export
+formula `floor(50 * (multiplier/100) ^ 0.75)`: 100 → 50, 110 → 53. The resolution of the conflict with §3's
+table is in poe2wiki's own version history: **0.3.0** — "The Spirit Cost of Spectres has been adjusted such that
+Spectres with high Spirit Costs are generally cheaper, while some of the cheaper Spectres are now more costly."
+The wiki's popular-spectres costs (and Game8's list, and the IGN figure) are readings from before that change;
+nearest-ten fitted them because it fitted the *old* game. §6's unexplained 47 also resolves [INFERENCE]: a bow
+or spear guard (base 53 on the curve) at the owner's ~0.89 actual reserve.
+
+`SpectreCatalog.SpiritFor` now follows the curve (the `spectres` step's told-variety comparison with it), and
+the tests anchor on the two live gems. Unheard yet: a high multiplier on the curve (200 → 84, where the old
+tables say 100) — §5. The costs spoken in §§6-7's session were on the old rule and read high from a multiplier
+of 110 up (at 230, 120 said against the curve's 93).

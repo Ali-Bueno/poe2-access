@@ -21,32 +21,31 @@ namespace Poe2Accessibility.Tests
             """;
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
-            (nameof(TheSpiritIsHalfTheExperienceToTheNearestTen), TheSpiritIsHalfTheExperienceToTheNearestTen),
+            (nameof(TheSpiritFollowsTheGamesCurve), TheSpiritFollowsTheGamesCurve),
             (nameof(AMonsterIsFoundByItsFile), AMonsterIsFoundByItsFile),
             (nameof(AMissingOrBadFileIsAnEmptyCatalog), AMissingOrBadFileIsAnEmptyCatalog),
             (nameof(TheShippedCatalogHoldsTheKnownCosts), TheShippedCatalogHoldsTheKnownCosts),
         };
 
-        /// <summary>The published tooltip costs (poe2wiki, Bind Spectre) of the monsters measured on 2026-11-17.</summary>
-        private static void TheSpiritIsHalfTheExperienceToTheNearestTen()
+        /// <summary>
+        ///     The game's curve since 0.3.0 (Path of Building's minion export), anchored on the bound gems read live on
+        ///     2026-11-18: the Vaal Guard's 50 at a multiplier of 100 and the Vaal Embalmed Axeman's 53 at 110 — which
+        ///     no rounding to tens can give. The round tens published before 0.3.0 (200: 100, 70: 40) no longer hold.
+        /// </summary>
+        private static void TheSpiritFollowsTheGamesCurve()
         {
-            Equal(50, SpectreCatalog.SpiritFor(100), "Vaal Guard (grenade), 100");
-            Equal(60, SpectreCatalog.SpiritFor(110), "Vaal Guard (spear), 110");
-            Equal(100, SpectreCatalog.SpiritFor(200), "Priest of the Sun, 200");
-            Equal(40, SpectreCatalog.SpiritFor(70), "Venomous Crab, 70");
-            Equal(70, SpectreCatalog.SpiritFor(140), "Doryani's Elite, 140");
-            Equal(60, SpectreCatalog.SpiritFor(120), "Vaal Embalmed Bearer, 120");
-            Equal(40, SpectreCatalog.SpiritFor(80), "Ribrattle, 80");
-            Equal(120, SpectreCatalog.SpiritFor(230), "Faridun Impaler, 230");
+            Equal(50, SpectreCatalog.SpiritFor(100), "Vaal Guard (grenade), 100: the curve's anchor, heard on the bound gem");
+            Equal(53, SpectreCatalog.SpiritFor(110), "Vaal Embalmed Axeman, 110: heard on the bound gem (2026-11-18)");
+            Equal(84, SpectreCatalog.SpiritFor(200), "Priest of the Sun, 200 (100 before 0.3.0)");
+            Equal(38, SpectreCatalog.SpiritFor(70), "Venomous Crab, 70 (40 before 0.3.0)");
+            Equal(64, SpectreCatalog.SpiritFor(140), "Doryani's Elite, 140");
+            Equal(57, SpectreCatalog.SpiritFor(120), "Vaal Embalmed Bearer, 120");
+            Equal(42, SpectreCatalog.SpiritFor(80), "Ribrattle, 80");
+            Equal(93, SpectreCatalog.SpiritFor(230), "Faridun Impaler, 230 (120 before 0.3.0)");
+            Equal(48, SpectreCatalog.SpiritFor(95), "95: just under the anchor, not rounded up to it");
+            Equal(46, SpectreCatalog.SpiritFor(90), "90: under half of 100's cost, where a halving rule says 50");
+            Equal(8, SpectreCatalog.SpiritFor(10), "10: the least multiplier the shipped catalog holds, still a cost");
             Equal(null, SpectreCatalog.SpiritFor(0), "a multiplier worth nothing");
-            Equal(50, SpectreCatalog.SpiritFor(90), "90: nearest ten rounds the half up (to even would give 40)");
-            Equal(30, SpectreCatalog.SpiritFor(65), "65: nearest ten rounds down (up to ten would give 40)");
-            Equal(10, SpectreCatalog.SpiritFor(22), "22: nearest ten rounds down (up to ten would give 20)");
-            Equal(50, SpectreCatalog.SpiritFor(95), "95: a multiplier the table holds that is no multiple of ten");
-            Equal(10, SpectreCatalog.SpiritFor(10), "10: the least multiplier the shipped catalog holds");
-            Equal(10, SpectreCatalog.SpiritFor(29), "29: just under the half");
-            Equal(20, SpectreCatalog.SpiritFor(30), "30: the half, rounded up");
-            Equal(null, SpectreCatalog.SpiritFor(5), "5: half of it rounds to nothing, named without a cost");
             Equal(null, SpectreCatalog.SpiritFor(-1), "a multiplier under nothing");
         }
 
@@ -55,8 +54,8 @@ namespace Poe2Accessibility.Tests
             var catalog = SpectreCatalog.Parse(Sample);
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "a known monster");
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving@40"), "an entity's path, with its level after the '@'");
-            Equal(40, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "another");
-            Equal(100, catalog.SpiritOf("Metadata/Monsters/OldForm"), "a row of the catalog's first making (the multiplier alone)");
+            Equal(38, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "another");
+            Equal(84, catalog.SpiritOf("Metadata/Monsters/OldForm"), "a row of the catalog's first making (the multiplier alone)");
             Equal(null, catalog.SpiritOf("Metadata/Monsters/Worthless"), "one worth nothing is named without a cost");
             Equal(null, catalog.SpiritOf("Metadata/Monsters/NotThere"), "one the catalog lacks");
             Equal(null, catalog.SpiritOf(string.Empty), "no file at all");
@@ -69,7 +68,7 @@ namespace Poe2Accessibility.Tests
             Equal(null, catalog.SpiritOf(null!), "no path at all");
             Equal(null, catalog.SpiritOf("@40"), "a level with no file before it");
             var (spirit, variety) = catalog.Lookup("Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving@40");
-            Equal(60, spirit, "one lookup: the bow guard's cost");
+            Equal(53, spirit, "one lookup: the bow guard's cost");
             Equal(("Bow", "ranged"), variety, "one lookup: the bow guard's variety");
         }
 
@@ -120,16 +119,17 @@ namespace Poe2Accessibility.Tests
             var catalog = SpectreCatalog.Parse(File.ReadAllText(Path.Join(directory, "Poe2Accessibility", "catalog", "spectres.json")));
             Equal(2767, catalog.Count, "every monster row of MonsterVarieties with a multiplier (the table's escort summons and its Any row are no corpses)");
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "Vaal Guard (grenade)");
-            Equal(60, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "Vaal Guard (spear)");
-            Equal(100, catalog.SpiritOf("Metadata/Monsters/BloodBathers/VaalApparition/SunVaalApparition"), "Priest of the Sun");
+            Equal(53, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "Vaal Guard (spear)");
+            Equal(84, catalog.SpiritOf("Metadata/Monsters/BloodBathers/VaalApparition/SunVaalApparition"), "Priest of the Sun");
             Equal(("Bow", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving"), "the bow guard, told from its namesakes");
             Equal(("Warstaff", "melee"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"), "the spear guard (its spear is a Warstaff in the data)");
             Equal(("", "ranged"), catalog.VarietyOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "the grenade guard");
-            Equal(40, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "Venomous Crab");
-            Equal(100, catalog.SpiritOf("Metadata/Monsters/Gargoyle/GargoyleGolemRed"), "Gargoyle Demon");
-            Equal(50, catalog.SpiritOf("Metadata/Monsters/Anchorite/AnchoriteFlathead"), "a multiplier of 95, no multiple of ten");
+            Equal(38, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "Venomous Crab");
+            Equal(84, catalog.SpiritOf("Metadata/Monsters/Gargoyle/GargoyleGolemRed"), "Gargoyle Demon");
+            Equal(48, catalog.SpiritOf("Metadata/Monsters/Anchorite/AnchoriteFlathead"), "a multiplier of 95, no multiple of ten");
             Equal(("", ""), catalog.VarietyOf("Metadata/Monsters/Balbala/BalbalaFog"), "a told variety with no weapon or reach to say");
             Equal(("Unarmed", ""), catalog.VarietyOf("Metadata/Monsters/Baron/BaronBossHumanFormWolf"), "an unarmed variety, told from the sword form of its name");
+            Equal(53, catalog.SpiritOf("Metadata/Monsters/Procession/ProcessionAxeShield"), "the Vaal Embalmed Axeman bound live (2026-11-18)");
         }
     }
 }

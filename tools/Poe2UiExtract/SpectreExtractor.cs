@@ -32,8 +32,8 @@ internal static class SpectreExtractor
 
     /// <summary>The three guards of Utzaal, one name ("Vaal Guard") between them: the rows the variety is judged on.</summary>
     private const string MortarGuard = "Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"; // grenade, 50 Spirit
-    private const string BowGuard = "Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving"; // bow, 60 Spirit
-    private const string SpearGuard = "Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"; // spear, 60 Spirit
+    private const string BowGuard = "Metadata/Monsters/VaalMonsters/Living/VaalGuardBowLiving"; // bow, 53 Spirit
+    private const string SpearGuard = "Metadata/Monsters/VaalMonsters/Living/VaalGuardSpearLiving"; // spear, 53 Spirit
     private const string GuardName = "Vaal Guard";
     private const string BowClass = "Bow";
     private const string SpearClass = "Warstaff"; // the spear guard's spear is a Warstaff in the game's data (row 58, 2026-11-18)
@@ -42,9 +42,9 @@ internal static class SpectreExtractor
     private static readonly (string Id, int Experience)[] Known =
     {
         (MortarGuard, 100), // Vaal Guard (grenade), 50 Spirit
-        (SpearGuard, 110), // Vaal Guard (spear), 60 Spirit
-        ("Metadata/Monsters/BloodBathers/VaalApparition/SunVaalApparition", 200), // Priest of the Sun, 100 Spirit
-        ("Metadata/Monsters/QuillCrab/QuillCrabPoison", 70), // Venomous Crab, 40 Spirit
+        (SpearGuard, 110), // Vaal Guard (spear), 53 Spirit
+        ("Metadata/Monsters/BloodBathers/VaalApparition/SunVaalApparition", 200), // Priest of the Sun, 84 Spirit
+        ("Metadata/Monsters/QuillCrab/QuillCrabPoison", 70), // Venomous Crab, 38 Spirit
         ("Metadata/Monsters/SerpentClanMonster/SerpentClanCasterBoss", 200), // life multiplier 266: tells the columns apart
     };
 
@@ -123,10 +123,10 @@ internal static class SpectreExtractor
         }
 
         // A variety is told when monsters of one name differ in what a corpse of them asks or does. The asking is the
-        // Spirit cost (half the multiplier, to the nearest ten, as SpectreCatalog.SpiritFor has it), not the raw
-        // multiplier: varieties within one cost band are spoken alike, and telling them apart says nothing.
+        // Spirit cost (on the game's curve, as SpectreCatalog.SpiritFor has it), not the raw multiplier: varieties
+        // asking the same are spoken alike in cost, and telling them apart by it says nothing.
         var told = rows.Where(monster => monster.Name.Length > 0).GroupBy(monster => monster.Name, StringComparer.Ordinal)
-            .Where(group => group.Select(monster => (Cost: (monster.Experience + 10) / 20 * 10, monster.Weapon, monster.Attack)).Distinct().Count() > 1)
+            .Where(group => group.Select(monster => (Cost: (int)Math.Floor(Math.Pow(monster.Experience / 100.0, 0.75) * 50), monster.Weapon, monster.Attack)).Distinct().Count() > 1)
             .SelectMany(group => group.Select(monster => monster.Id)).ToHashSet(StringComparer.Ordinal);
 
         var spectres = new SortedDictionary<string, SortedDictionary<string, object>>(StringComparer.Ordinal);

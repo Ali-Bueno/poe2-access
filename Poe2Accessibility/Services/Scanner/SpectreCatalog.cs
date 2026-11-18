@@ -9,9 +9,9 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     What a monster's corpse is and asks in Spirit when bound with Bind Spectre, by the monster's file
-    ///     (catalog/spectres.json, `Poe2UiExtract spectres`): the experience multiplier of its MonsterVarieties row,
-    ///     halved and rounded to the nearest ten — the cost the game's tooltip over a corpse shows, on every monster
-    ///     whose cost is published — and, where monsters of one name differ, the weapon its main hand holds (an
+    ///     (catalog/spectres.json, `Poe2UiExtract spectres`): from the experience multiplier of its MonsterVarieties
+    ///     row on the game's curve (<see cref="SpiritFor"/>) — and, where monsters of one name differ, the weapon
+    ///     its main hand holds (an
     ///     ItemClasses Id) and whether it fights ranged or melee, which variety of the name the corpse is
     ///     (docs/research/corpse-scanning.md). The dat files hold no spirit column; a monster the catalog lacks is
     ///     named without a cost rather than with a guessed one. Pure apart from <see cref="Load"/>.
@@ -114,8 +114,11 @@ namespace Poe2Accessibility.Services
             this.RowOf(path) is { Told: true } entry ? (entry.Weapon, entry.Attack) : null;
 
         /// <summary>
-        ///     The reservation of a monster with this experience multiplier: half of it, to the nearest ten (100 gives 50,
-        ///     110 gives 60, 70 gives 40, 200 gives 100). Null when that rounds to nothing, which no bindable monster's does.
+        ///     The reservation of a monster with this experience multiplier: 50 at a multiplier of 100, scaling with
+        ///     its 0.75 power (100 gives 50, 110 gives 53, 70 gives 38, 200 gives 84). The curve is the game's since
+        ///     0.3.0 rebalanced spectre costs (Path of Building's minion export has it in this form; the round tens
+        ///     published before 0.3.0 no longer hold), and it is the cost the bound gem reads before the player's
+        ///     own reservation efficiency. Null for a multiplier worth nothing, which no bindable monster has.
         /// </summary>
         public static int? SpiritFor(int experience)
         {
@@ -124,7 +127,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var spirit = (int)Math.Floor(experience / 20.0 + 0.5) * 10;
+            var spirit = (int)Math.Floor(Math.Pow(experience / 100.0, 0.75) * 50);
             return spirit > 0 ? spirit : null;
         }
 

@@ -102,7 +102,7 @@ namespace Poe2Accessibility
         /// <summary>
         ///     A dead monster's corpse, with the Spirit a spectre of it reserves when the catalog knows it and, where
         ///     monsters of its name differ, which variety it is (its weapon and whether it fights ranged or melee):
-        ///     "Vaal Guard corpse, bow, ranged, 60 Spirit"; without a cost or a variety when it does not know them.
+        ///     "Vaal Guard corpse, bow, ranged, 53 Spirit"; without a cost or a variety when it does not know them.
         /// </summary>
         public static string CorpseOf(string name, int? spirit, string weapon = "", string attack = "")
         {
