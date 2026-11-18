@@ -19,10 +19,10 @@ namespace Poe2Accessibility.Services
         private const int SoundsMs = 4000;
 
         /// <summary>Moving less than this between polls is standing still: a quarter of a second of walking is about 100.</summary>
-        private const float WalkingWorld = 30f;
+        internal const float WalkingWorld = 30f;
 
         /// <summary>Closer than this the sound sits in the middle (ObjectSounds' centre distance).</summary>
-        private const float CentreWorld = 300f;
+        internal const float CentreWorld = 300f;
 
         private readonly AudioCueService audio;
         private readonly EntityCatalog catalog;
@@ -56,6 +56,15 @@ namespace Poe2Accessibility.Services
 
         /// <summary>...and before the way on is said in words (0: never).</summary>
         public int SpokenAfterAreaMs { get; set; } = 1200000;
+
+        /// <summary>
+        ///     The player has walked over seen ground for <see cref="SeenGroundAfterMs"/> since the last new ground, hints or not:
+        ///     going round in circles. False with that hint off.
+        /// </summary>
+        public bool Circling => this.SeenGroundAfterMs > 0 && this.watch.SinceNewGroundMs >= this.SeenGroundAfterMs;
+
+        /// <summary>Its sound is playing now.</summary>
+        public bool Sounding => this.target != null;
 
         /// <summary>Says the way on, given the cell where it leaves the seen ground.</summary>
         public Action<Vector2>? SayWay { get; set; }

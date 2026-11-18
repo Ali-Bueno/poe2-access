@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
         private long polledAt;
         private long walkedMs;
         private long seenWalkedMs;
+        private long sinceNewMs;
         private long areaMovedMs;
         private long soundAt = -1;
         private long spokenAt = -1;
@@ -41,9 +42,13 @@ namespace Poe2Accessibility.Services
             this.seenBlocks = -1;
             this.walkedMs = 0;
             this.seenWalkedMs = 0;
+            this.sinceNewMs = 0;
             this.areaMovedMs = 0;
             this.soundAt = this.spokenAt = -1;
         }
+
+        /// <summary>How long the player has walked since the last new ground, whatever hint came meanwhile: going round in circles.</summary>
+        public long SinceNewGroundMs => this.sinceNewMs;
 
         /// <summary>
         ///     After <see cref="Update"/>: the player has walked this long over ground already seen, not one new block (0: never
@@ -101,11 +106,13 @@ namespace Poe2Accessibility.Services
                 this.seenBlocks = seenBlocks;
                 this.walkedMs = 0;
                 this.seenWalkedMs = 0;
+                this.sinceNewMs = 0;
                 return false;
             }
 
             this.walkedMs += walking ? step : 0;
             this.seenWalkedMs += walking ? step : 0;
+            this.sinceNewMs += walking ? step : 0;
             if (this.walkedMs < lostAfterMs)
             {
                 return false;

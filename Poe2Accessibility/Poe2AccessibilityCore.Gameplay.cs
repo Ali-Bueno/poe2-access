@@ -122,6 +122,10 @@ namespace Poe2Accessibility
             this.Isolated("lost hint", playing, static (core, playing) => core.lostHint?.Tick(
                 playing && core.Settings.LostHint && core.beacon?.Target == null && !core.InTownOrHideout(),
                 core.fights?.InFight(FightState.AnyEnemy) == true));
+            // The arrow waits while the lost hint sounds: one way to follow at a time.
+            this.Isolated("minimap arrow", playing, static (core, playing) => core.minimapArrow?.Tick(
+                playing && core.Settings.MinimapArrow && core.beacon?.Target == null && core.lostHint?.Sounding != true && !core.InTownOrHideout(),
+                core.fights?.InFight(FightState.AnyEnemy) == true));
             this.Isolated("map parts", playing, static (core, playing) => core.TickMapParts(playing));
             this.Isolated("trial rooms", playing, static (core, playing) => core.TickTrialRooms(playing));
             this.Isolated("map hints", playing, static (core, playing) => core.mapHints?.Tick(playing && core.Settings.MapHints && !core.InTownOrHideout()));

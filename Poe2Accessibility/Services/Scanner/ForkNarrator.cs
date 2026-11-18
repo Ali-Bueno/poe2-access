@@ -47,6 +47,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The named room at a grid cell (<see cref="PlaceNarrator.RoomAt"/>).</summary>
         public Func<Vector2, NamedRoom?>? RoomAt { get; set; }
 
+        /// <summary>
+        ///     While the player goes round in circles, the nearest unexplored ground with its way, said after "ya estuviste aquí"
+        ///     (the owner, 2026-11-18); null otherwise.
+        /// </summary>
+        public Func<string?>? WhenCircling { get; set; }
+
         /// <summary>A new area: every fork and room is news again.</summary>
         public void Reset()
         {
@@ -104,7 +110,9 @@ namespace Poe2Accessibility.Services
                 : RoomTracker.Line(roomName, roomNews, null, empty);
             if (said is { } line)
             {
-                this.output.Say(SpeechKind.Places, Announcements.Fork(line.Name, line.Again, line.Ways));
+                var spoken = Announcements.Fork(line.Name, line.Again, line.Ways);
+                var onward = line.Again ? this.WhenCircling?.Invoke() : null;
+                this.output.Say(SpeechKind.Places, onward is null ? spoken : Announcements.Sentences(new[] { spoken, onward }));
             }
         }
 

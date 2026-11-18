@@ -190,6 +190,7 @@ namespace Poe2Accessibility.Services
             this.itemTitles.Clear();
             this.explored.Reset();
             this.questTargets = Array.Empty<ScanEntry>();
+            this.pointing = Array.Empty<(ScanEntry, float)>();
             lock (this.samplesLock)
             {
                 this.grid.Reset();

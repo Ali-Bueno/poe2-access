@@ -117,6 +117,7 @@ namespace Poe2Accessibility.Services
             // Known to the game but not yet to the player: only the quest marker may point at them.
             var unseen = scratch.Unseen;
             var renders = scratch.Renders;
+            var pointing = new List<(ScanEntry Entry, float ReachCells)>();
             var sampling = this.Fields?.StartPass() ?? false;
             foreach (var (_, entity) in area.AwakeEntities)
             {
@@ -136,6 +137,11 @@ namespace Poe2Accessibility.Services
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
                     this.doors.Forget(entity.Id); // opened: the game takes its target away
                     continue;
+                }
+
+                if (MinimapPointer.Points(entry.Kind) && entity.TryGetComponent<MinimapIcon>(out var icon) && icon.IconName is { Length: > 0 } iconName && !MinimapMarks.IsSpent(iconName))
+                {
+                    pointing.Add((entry, MinimapIconLabel.PointerCells(this.memory, icon)));
                 }
 
                 if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, OnMinimap(entity)))
@@ -201,6 +207,10 @@ namespace Poe2Accessibility.Services
                 {
                     // The table's label and its reward note are of a boss still to fight: said as slain, the note left out.
                     landmark = landmark with { Name = Announcements.BossRoomDefeated(landmark.Subject) };
+                }
+                else if (landmark.Kind == MinimapMarks.BossRoomKind)
+                {
+                    pointing.Add((landmark, TileRoomReach(landmark)));
                 }
 
                 if (landmark.Category == ScanCategory.Exits && ListsExit(found.Values, landmark, toCells))
@@ -272,6 +282,7 @@ namespace Poe2Accessibility.Services
             var questTexts = this.QuestTexts();
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
+            this.pointing = pointing;
             this.listed = (now, area.Address, this.instance, sorted);
             return sorted;
         }
@@ -382,9 +393,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool Pointed(ScanEntry entry, Render player, float worldToGrid)
         {
-            var reach = entry.Id >= ArenaIdBase ? MinimapMarks.MapBossPointerCells : MinimapMarks.CampaignBossPointerCells;
             if (entry.Kind != MinimapMarks.BossRoomKind ||
-                Vector2.Distance(new Vector2(player.GridPosition.X, player.GridPosition.Y), new Vector2(entry.WorldX, entry.WorldY) / worldToGrid) > reach)
+                Vector2.Distance(new Vector2(player.GridPosition.X, player.GridPosition.Y), new Vector2(entry.WorldX, entry.WorldY) / worldToGrid) > TileRoomReach(entry))
             {
                 return false;
             }
@@ -392,6 +402,9 @@ namespace Poe2Accessibility.Services
             this.sighted.Add(entry.Id);
             return true;
         }
+
+        /// <summary>The arrow's reach to a boss room known from the area's tiles, which has no icon row to read it from.</summary>
+        private static float TileRoomReach(ScanEntry entry) => entry.Id >= ArenaIdBase ? MinimapMarks.MapBossPointerCells : MinimapMarks.CampaignBossPointerCells;
 
         /// <summary>The entity carries a MinimapIcons.dat icon (GameHelper's MinimapIcon component): the minimap draws it.</summary>
         private static bool OnMinimap(Entity entity) =>

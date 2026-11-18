@@ -1,9 +1,10 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Concurrent;
     using GameReader.RemoteObjects.Components;
 
-    /// <summary>Reads a minimap icon's label from its MinimapIcons.dat row in game memory (<see cref="GameLayout.MinimapIconRow"/>).</summary>
+    /// <summary>Reads a minimap icon's label and arrow reach from its MinimapIcons.dat row in game memory (<see cref="GameLayout.MinimapIconRow"/>).</summary>
     public static class MinimapIconLabel
     {
         /// <summary>
@@ -39,6 +40,33 @@ namespace Poe2Accessibility.Services
             }
 
             return string.Empty;
+        }
+
+        /// <summary>The table's rows never change while the game runs: each icon's reach is read once.</summary>
+        private static readonly ConcurrentDictionary<string, int> Reaches = new(StringComparer.Ordinal);
+
+        /// <summary>How far, in grid cells, the minimap's edge arrow points to the icon; 0 when the row cannot be read.</summary>
+        public static int PointerCells(HostMemoryReader memory, MinimapIcon icon)
+        {
+            var name = icon.IconName ?? string.Empty;
+            if (Reaches.TryGetValue(name, out var known))
+            {
+                return known;
+            }
+
+            if (!memory.TryRead<IntPtr>(icon.Address + GameLayout.MinimapIconRow.ComponentRowOffset, out var row) || row == IntPtr.Zero ||
+                !memory.TryRead<int>(row + GameLayout.MinimapIconRow.PointerDistanceOffset, out var cells))
+            {
+                return 0;
+            }
+
+            cells = Math.Max(0, cells);
+            if (name.Length > 0)
+            {
+                Reaches[name] = cells;
+            }
+
+            return cells;
         }
 
         private static string LabelAt(HostMemoryReader memory, UiElementReader reader, IntPtr row) =>

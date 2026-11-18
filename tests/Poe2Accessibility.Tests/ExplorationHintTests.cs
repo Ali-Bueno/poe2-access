@@ -19,7 +19,53 @@ namespace Poe2Accessibility.Tests
             (nameof(TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions), TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions),
             (nameof(AChaosRoundIsToldByItsPieces), AChaosRoundIsToldByItsPieces),
             (nameof(EachLeagueRingsWithItsOwnSound), EachLeagueRingsWithItsOwnSound),
+            (nameof(TheMinimapArrowPointsToTheQuestFirstWithinItsReach), TheMinimapArrowPointsToTheQuestFirstWithinItsReach),
+            (nameof(TheArrowsHaloLoopsWithoutASeam), TheArrowsHaloLoopsWithoutASeam),
+            (nameof(GoingRoundInCirclesCountsSinceTheLastNewGround), GoingRoundInCirclesCountsSinceTheLastNewGround),
         };
+
+        private static void TheMinimapArrowPointsToTheQuestFirstWithinItsReach()
+        {
+            var here = new Vector2(100, 100);
+            var room = new MinimapPointer.Mark(1, new Vector2(400, 100), 400, false, false);
+            var quest = new MinimapPointer.Mark(2, new Vector2(100, 300), 250, true, false);
+            var farQuest = quest with { Id = 3, Cell = new Vector2(100, 400) };
+            Equal(2u, MinimapPointer.Pick(new[] { room, quest }, here)?.Id, "the quest's mark before a nearer-or-not boss room");
+            Equal(1u, MinimapPointer.Pick(new[] { room, farQuest }, here)?.Id, "a quest mark past its icon's reach has no arrow");
+            Equal(1u, MinimapPointer.Pick(new[] { room, quest with { InView = true } }, here)?.Id, "on screen the icon itself is drawn: no arrow");
+            Equal(null, MinimapPointer.Pick(new[] { room with { ReachCells = 250 } }, here)?.Id, "a map boss's house points only 250 cells");
+            var nearRoom = room with { Id = 4, Cell = new Vector2(200, 100) };
+            Equal(4u, MinimapPointer.Pick(new[] { room, nearRoom }, here)?.Id, "of two boss rooms, the nearer");
+            Equal(true, MinimapPointer.Points(MinimapMarks.BossRoomKind) && MinimapPointer.Points(MinimapMarks.QuestObjectKind), "boss rooms and quest objects");
+            Equal(false, MinimapPointer.Points("chest"), "a chest has no arrow");
+        }
+
+        private static void TheArrowsHaloLoopsWithoutASeam()
+        {
+            const int rate = 44100;
+            var halo = CueSynth.Halo(rate);
+            var peak = halo.Max(Math.Abs);
+            Equal(true, peak is > 0.3f and < 0.4f, $"heard as loud as on the audition page (peak {peak:0.00})");
+            var step = halo.Zip(halo.Skip(1), (a, b) => Math.Abs(b - a)).Max();
+            Equal(true, Math.Abs(halo[0] - halo[^1]) <= step * 1.5f, "the end runs into the start as any sample into the next");
+        }
+
+        private static void GoingRoundInCirclesCountsSinceTheLastNewGround()
+        {
+            const int never = int.MaxValue;
+            var watch = new LostWatch();
+            watch.Update(0, 5, true, never);
+            for (var now = 250; now <= 30000; now += 250)
+            {
+                watch.Update(now, 5, true, never);
+            }
+
+            Equal(true, watch.SinceNewGroundMs >= 30000, "thirty seconds over seen ground");
+            Equal(true, watch.OverSeenGround(20000), "the hint toward unexplored ground comes...");
+            Equal(true, watch.SinceNewGroundMs >= 30000, "...and the circling goes on counting");
+            watch.Update(30250, 6, true, never);
+            Equal(0L, watch.SinceNewGroundMs, "new ground ends it");
+        }
 
         private static void EachLeagueRingsWithItsOwnSound()
         {

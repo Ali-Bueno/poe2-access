@@ -152,6 +152,12 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   a step out to a path's edge said "Sala 1, ya estuviste aquí", the owner 2026-11-16). A way counts as explored
   once the next place along it and the first stretch of each of its ways were seen (a look from the fork reveals 60 cells of
   every way, so the way's own first cell told nothing).
+- **Going round in circles** (the owner, 2026-11-18: "cuando estoy dando muchas vueltas… que diga zona más cercana sin
+  explorar, a distancia tal en dirección tal"): a "ya estuviste aquí" said after `UnexploredHintSeconds` of walking without one
+  new block of ground (`LostWatch.SinceNewGroundMs`, which the hints do not reset; `LostHint.Circling`, so it needs the lost
+  hint on) goes on "Zona sin explorar más cercana, 40 pasos, arriba 3, luego a la derecha" (`EntityCatalog.DescribeNearestUnexplored`:
+  the nearest place of the best rank the lost hint would use, with the scanner's route). Steps are said here at the owner's
+  word, although distances in speech were turned down on 2026-11-16: this line is asked for, the rest still has none.
 - **Named rooms** (setting `AnnounceRooms`, [rooms](research/rooms.md)): a room the game's layout names (Ogham Manor's
   chapel, wine cellar, throne room…) is said on walking into it, "ya estuviste aquí" when come back to; a fork inside it is
   named after it, in one line ("Capilla: sigue a la izquierda").
@@ -218,6 +224,21 @@ three unexplored stretches with their way. Standing still was considered as the 
 (the owner): a stop for anything else would have spoken.
 
 Whether the steps could tell road from plain ground was looked into and left: [ground types](research/ground-types.md).
+
+## The minimap's arrow
+
+A sighted player sees an arrow at the minimap's edge toward a boss room or a quest mark while within its icon's pointer
+reach (MinimapIcons +0x12, `GameLayout.MinimapIconRow.PointerDistanceOffset`, read per icon by `MinimapIconLabel.PointerCells`;
+a boss room known only from the tiles takes 400 cells for a campaign boss, 250 for a map boss's house). Asked by the owner on
+2026-11-18 (finding the objectives and the boss room faster in large maps, no keys, no cheat): `MinimapPointerCue` plays
+`CueSynth.Halo` as a loop from the mark the arrow points to (pure `MinimapPointer.Pick`: within reach, off screen, the quest's
+first, then the nearest), **in a straight line** as the arrow points, never along the route; left/right by pan, up higher and
+down lower (`ScreenProjection.Voice`). Only while walking (1.5 s after the last step); quiet in fights, menus, dialogue, towns,
+while the guide leads and while the lost hint sounds. A boss room slain or an icon spent drops out; on screen the thing's own
+sound takes over. Setting `MinimapArrow`, at the object volume; glossary key `pointer`. The kinds it points to: boss rooms,
+quest objects and the campaign's landmarks (`MinimapPointer.Points`); exits and NPCs carry pointer reaches too, but whether the
+game draws an arrow for them is not known, so they have none. The client streams entities only a screen or two around the
+player, so an entity's mark is pointed to from that far at most; tile boss rooms from their whole reach.
 
 ## Not ported yet
 

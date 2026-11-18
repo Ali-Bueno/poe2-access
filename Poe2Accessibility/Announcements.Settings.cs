@@ -66,6 +66,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.RadarRooms) => T("Radar: tin at the way into another room", "Radar: ding al pasar a otra sala"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.LostHint) => T("Sound hint when lost", "Pista sonora si te pierdes"),
+            nameof(AccessibilitySettings.MinimapArrow) => T("Minimap arrow sounds toward the boss room and quest marks", "La flecha del minimapa suena hacia la sala del jefe y los objetivos"),
             nameof(AccessibilitySettings.LostHintSeconds) => T("Sound hint: seconds walking without new ground", "Pista sonora: segundos andando sin terreno nuevo"),
             nameof(AccessibilitySettings.UnexploredHintSeconds) => T("Sound toward unexplored ground: seconds walking over ground already seen, 0 for never", "Sonido hacia terreno sin explorar: segundos andando por terreno ya visto, 0 para nunca"),
             nameof(AccessibilitySettings.LostHintAreaMinutes) => T("Sound hint: minutes moving through an area, 0 for never", "Pista sonora: minutos andando por una zona, 0 para nunca"),
@@ -173,6 +174,7 @@ namespace Poe2Accessibility
             "radar_unexplored" => T("Radar: toward unexplored ground", "Radar: hacia terreno sin explorar"),
             Services.Radar.SmallMarkKey => T("Radar: toward unexplored ground that soon ends", "Radar: hacia terreno sin explorar que se acaba pronto"),
             Services.LostHint.LoopName => T("Hint when lost", "Pista si te pierdes"),
+            Services.MinimapPointerCue.SoundKey => T("Minimap arrow", "Flecha del minimapa"),
             "radar2_wall" => T("Player 2 radar: wall", "Radar del jugador 2: pared"),
             "radar2_open" => T("Player 2 radar: open way", "Radar del jugador 2: camino libre"),
             "radar2_exit" => T("Player 2 radar: exit", "Radar del jugador 2: salida"),
@@ -297,6 +299,9 @@ namespace Poe2Accessibility
             Services.LostHint.LoopName => T(
                 "for a few seconds after you have walked a while without finding new ground: that side leads on",
                 "unos segundos tras andar un rato sin encontrar terreno nuevo: por ese lado se sigue"),
+            Services.MinimapPointerCue.SoundKey => T(
+                "while you walk, from the boss room or quest mark the minimap's arrow points to, in a straight line: higher above you, lower below",
+                "mientras caminas, desde la sala del jefe o el objetivo que señala la flecha del minimapa, en línea recta: más agudo arriba, más grave abajo"),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             Services.DiscoveryNarrator.SoundKey => T(
                 "a new exit, waypoint, checkpoint or unique monster came into view, with its name",

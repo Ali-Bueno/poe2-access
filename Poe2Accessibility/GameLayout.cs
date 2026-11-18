@@ -1085,6 +1085,12 @@ namespace Poe2Accessibility
             public static int RowSize { get; internal set; } = 0x2A;
 
             public static int LabelOffset { get; internal set; } = 0x1A;
+
+            /// <summary>
+            ///     The minimap's edge arrow reach, an int in grid cells (dat-schema MinimapIconPointerMaxDistance; read on the table
+            ///     with LibBundle3: 400 Act 1 quest landmarks, 250 most, 150 shrines and essences; docs/research/minimap.md).
+            /// </summary>
+            public static int PointerDistanceOffset { get; internal set; } = 0x12;
         }
 
         /// <summary>

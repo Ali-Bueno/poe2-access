@@ -12,6 +12,9 @@ namespace Poe2Accessibility
         /// <summary>Said to a player long in an area, before the route to where the way to the objective leaves the ground seen.</summary>
         public static string WayOnHint => T("Hint: the way goes on", "Pista: el camino sigue");
 
+        /// <summary>Said after "ya estuviste aquí" while going round in circles, before the way to it.</summary>
+        public static string NearestUnexplored => T("Nearest unexplored ground", "Zona sin explorar más cercana");
+
         /// <summary>Unseen ground with no way on: one look from its edge shows it all.</summary>
         public static string UnexploredPocket => T("Unexplored nook", "Rincón sin explorar");
 

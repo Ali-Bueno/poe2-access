@@ -240,6 +240,7 @@ namespace Poe2Accessibility
             }
 
             this.lostHint?.Reset();
+            this.minimapArrow?.Reset();
             this.mapPart.Reset();
             this.carried.Reset();
             this.nearby?.Reset();

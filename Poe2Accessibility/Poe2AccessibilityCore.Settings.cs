@@ -153,6 +153,11 @@ namespace Poe2Accessibility
                 this.lostHint.SpokenAfterAreaMs = settings.LostSpokenHintMinutes * 60000;
             }
 
+            if (this.minimapArrow != null)
+            {
+                this.minimapArrow.Gain = Fraction(settings.ObjectVolume);
+            }
+
             if (this.mapHints != null)
             {
                 this.mapHints.SaySide = settings.MapHintSides;

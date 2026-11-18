@@ -58,6 +58,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Skills.cs" Link="Plugin\CueSynth.Skills.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.States.cs" Link="Plugin\CueSynth.States.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Refuge.cs" Link="Plugin\CueSynth.Refuge.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Halo.cs" Link="Plugin\CueSynth.Halo.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\StereoSound.cs" Link="Plugin\StereoSound.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\PeakLimiter.cs" Link="Plugin\PeakLimiter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaMemory.cs" Link="Plugin\AreaMemory.cs" />
@@ -290,6 +291,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LostWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapPointer.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ClosedDoors.cs" />

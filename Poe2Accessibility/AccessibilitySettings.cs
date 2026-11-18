@@ -251,6 +251,12 @@ namespace Poe2Accessibility
         /// <summary>After a while walking without new ground, a sound plays for a few seconds on the side the way on lies.</summary>
         public bool LostHint = true;
 
+        /// <summary>
+        ///     The minimap's edge arrow as a loop while walking: from the boss room or quest mark it points to, in a straight line
+        ///     (the owner, 2026-11-18).
+        /// </summary>
+        public bool MinimapArrow = true;
+
         /// <summary>How long the player walks without new ground before that sound plays.</summary>
         public int LostHintSeconds = 180;
 

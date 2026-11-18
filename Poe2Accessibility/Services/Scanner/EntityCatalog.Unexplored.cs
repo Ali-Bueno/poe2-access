@@ -64,9 +64,31 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<Vector2>();
             }
 
+            return this.BestUnexplored(area, player).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
+        }
+
+        /// <summary>
+        ///     "Zona sin explorar más cercana, 40 pasos, arriba 3, luego a la derecha": the nearest of the unseen ground
+        ///     <see cref="UnexploredCells"/> points to, with its route; null when nothing is left unseen.
+        /// </summary>
+        public string? DescribeNearestUnexplored()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if (area.WorldToGridConvertor <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return null;
+            }
+
+            var nearest = this.BestUnexplored(area, player).OrderBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault();
+            return nearest is null ? null : this.Describe(nearest with { Name = Announcements.NearestUnexplored });
+        }
+
+        /// <summary>The unseen ground of the best rank left: ground that goes on while any is left, then what soon ends, pockets last.</summary>
+        private List<ScanEntry> BestUnexplored(AreaInstance area, Render player)
+        {
             var places = this.Unexplored(area, player).Concat(this.UnopenedDoors(area, player)).ToList();
             var best = places.Count == 0 ? 0 : places.Min(entry => ExplorationMap.Rank(entry.Kind));
-            return places.Where(entry => ExplorationMap.Rank(entry.Kind) == best).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
+            return places.Where(entry => ExplorationMap.Rank(entry.Kind) == best).ToList();
         }
 
         /// <summary>The doors seen shut and not opened since, nearest first, as places still to explore (<see cref="ClosedDoors"/>).</summary>
