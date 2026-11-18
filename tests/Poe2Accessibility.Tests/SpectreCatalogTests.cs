@@ -43,6 +43,7 @@ namespace Poe2Accessibility.Tests
         {
             var catalog = SpectreCatalog.Parse(Sample);
             Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving"), "a known monster");
+            Equal(50, catalog.SpiritOf("Metadata/Monsters/VaalMonsters/Living/VaalGuardMortarLiving@40"), "an entity's path, with its level after the '@'");
             Equal(40, catalog.SpiritOf("Metadata/Monsters/QuillCrab/QuillCrabPoison"), "another");
             Equal(null, catalog.SpiritOf("Metadata/Monsters/Worthless"), "one worth nothing is named without a cost");
             Equal(null, catalog.SpiritOf("Metadata/Monsters/NotThere"), "one the catalog lacks");

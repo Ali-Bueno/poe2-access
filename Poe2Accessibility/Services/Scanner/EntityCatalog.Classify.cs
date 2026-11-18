@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
+        private readonly HashSet<string> spiritlessCorpses = new(StringComparer.Ordinal);
         private readonly HashSet<string> silentCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
@@ -197,7 +198,13 @@ namespace Poe2Accessibility.Services
                 if (category == ScanCategory.Corpses)
                 {
                     kind = CorpseKind;
-                    name = name.Length > 0 ? Announcements.CorpseOf(name, SpectreCatalog.Shared.SpiritOf(path)) : name;
+                    var spirit = SpectreCatalog.Shared.SpiritOf(path);
+                    if (spirit == null && name.Length > 0 && this.spiritlessCorpses.Add(path))
+                    {
+                        this.log.Info($"Corpse without a spirit cost: {path}");
+                    }
+
+                    name = name.Length > 0 ? Announcements.CorpseOf(name, spirit) : name;
                 }
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
                 {

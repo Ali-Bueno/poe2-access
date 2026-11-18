@@ -56,9 +56,17 @@ namespace Poe2Accessibility.Services
         public static SpectreCatalog Parse(string json) =>
             new(JsonConvert.DeserializeObject<SpectreFile>(json)?.Spectres ?? throw new JsonSerializationException("no spectres"));
 
-        /// <summary>The Spirit a spectre of the monster at <paramref name="path"/> reserves; null when the catalog lacks it.</summary>
-        public int? SpiritOf(string path) =>
-            path.Length > 0 && this.experience.TryGetValue(path, out var value) ? SpiritFor(value) : null;
+        /// <summary>
+        ///     The Spirit a spectre of the monster at <paramref name="path"/> reserves; null when the catalog lacks it.
+        ///     An entity's path carries its level after an '@' ("…/VaalGuardBowLiving@40"), which the table's Id has not:
+        ///     stripped here, as `BossMechanicsCatalog.MonsterId` strips it for its own tables.
+        /// </summary>
+        public int? SpiritOf(string path)
+        {
+            var at = path.IndexOf('@');
+            var id = at > 0 ? path[..at] : path;
+            return id.Length > 0 && this.experience.TryGetValue(id, out var value) ? SpiritFor(value) : null;
+        }
 
         /// <summary>
         ///     The reservation of a monster with this experience multiplier: half of it, to the nearest ten (100 gives 50,
