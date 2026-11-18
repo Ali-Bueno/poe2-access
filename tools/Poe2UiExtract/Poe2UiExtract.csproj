@@ -22,6 +22,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\StatHandlers.cs" Link="StatHandlers.cs" />
     <!-- The names the plugin's rules match, so game-names checks the very lists the rules use. -->
     <Compile Include="..\..\Poe2Accessibility\Services\Core\GameNames.cs" Link="GameNames.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\SpectreSpirit.cs" Link="SpectreSpirit.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\EnemyStates.cs" Link="EnemyStates.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\ShieldStance.cs" Link="ShieldStance.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\PerfectTimingChannel.cs" Link="PerfectTimingChannel.cs" />

@@ -34,19 +34,19 @@ namespace Poe2Accessibility.Tests
         /// </summary>
         private static void TheSpiritFollowsTheGamesCurve()
         {
-            Equal(50, SpectreCatalog.SpiritFor(100), "Vaal Guard (grenade), 100: the curve's anchor, heard on the bound gem");
-            Equal(53, SpectreCatalog.SpiritFor(110), "Vaal Embalmed Axeman, 110: heard on the bound gem (2026-11-18)");
-            Equal(84, SpectreCatalog.SpiritFor(200), "Priest of the Sun, 200 (100 before 0.3.0)");
-            Equal(38, SpectreCatalog.SpiritFor(70), "Venomous Crab, 70 (40 before 0.3.0)");
-            Equal(64, SpectreCatalog.SpiritFor(140), "Doryani's Elite, 140");
-            Equal(57, SpectreCatalog.SpiritFor(120), "Vaal Embalmed Bearer, 120");
-            Equal(42, SpectreCatalog.SpiritFor(80), "Ribrattle, 80");
-            Equal(93, SpectreCatalog.SpiritFor(230), "Faridun Impaler, 230 (120 before 0.3.0)");
-            Equal(48, SpectreCatalog.SpiritFor(95), "95: just under the anchor, not rounded up to it");
-            Equal(46, SpectreCatalog.SpiritFor(90), "90: under half of 100's cost, where a halving rule says 50");
-            Equal(8, SpectreCatalog.SpiritFor(10), "10: the least multiplier the shipped catalog holds, still a cost");
-            Equal(null, SpectreCatalog.SpiritFor(0), "a multiplier worth nothing");
-            Equal(null, SpectreCatalog.SpiritFor(-1), "a multiplier under nothing");
+            Equal(50, SpectreSpirit.For(100), "Vaal Guard (grenade), 100: the curve's anchor, heard on the bound gem");
+            Equal(53, SpectreSpirit.For(110), "Vaal Embalmed Axeman, 110: heard on the bound gem (2026-11-18)");
+            Equal(84, SpectreSpirit.For(200), "Priest of the Sun, 200 (100 before 0.3.0)");
+            Equal(38, SpectreSpirit.For(70), "Venomous Crab, 70 (40 before 0.3.0)");
+            Equal(64, SpectreSpirit.For(140), "Doryani's Elite, 140");
+            Equal(57, SpectreSpirit.For(120), "Vaal Embalmed Bearer, 120");
+            Equal(42, SpectreSpirit.For(80), "Ribrattle, 80");
+            Equal(93, SpectreSpirit.For(230), "Faridun Impaler, 230 (120 before 0.3.0)");
+            Equal(48, SpectreSpirit.For(95), "95: just under the anchor, not rounded up to it");
+            Equal(46, SpectreSpirit.For(90), "90: under half of 100's cost, where a halving rule says 50");
+            Equal(8, SpectreSpirit.For(10), "10: the least multiplier the shipped catalog holds, still a cost");
+            Equal(null, SpectreSpirit.For(0), "a multiplier worth nothing");
+            Equal(null, SpectreSpirit.For(-1), "a multiplier under nothing");
         }
 
         private static void AMonsterIsFoundByItsFile()

@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     What a monster's corpse is and asks in Spirit when bound with Bind Spectre, by the monster's file
     ///     (catalog/spectres.json, `Poe2UiExtract spectres`): from the experience multiplier of its MonsterVarieties
-    ///     row on the game's curve (<see cref="SpiritFor"/>) — and, where monsters of one name differ, the weapon
+    ///     row on the game's curve (<see cref="SpectreSpirit.For"/>) — and, where monsters of one name differ, the weapon
     ///     its main hand holds (an
     ///     ItemClasses Id) and whether it fights ranged or melee, which variety of the name the corpse is
     ///     (docs/research/corpse-scanning.md). The dat files hold no spirit column; a monster the catalog lacks is
@@ -95,7 +95,7 @@ namespace Poe2Accessibility.Services
                 : new Entry(token.Value<int>(), string.Empty, string.Empty, false);
 
         /// <summary>The Spirit a spectre of the monster at <paramref name="path"/> reserves; null when the catalog lacks it.</summary>
-        public int? SpiritOf(string path) => this.RowOf(path) is { } entry ? SpiritFor(entry.Experience) : null;
+        public int? SpiritOf(string path) => this.RowOf(path) is { } entry ? SpectreSpirit.For(entry.Experience) : null;
 
         /// <summary>
         ///     Both of <see cref="SpiritOf"/> and <see cref="VarietyOf"/> in one lookup, for the listing that names every
@@ -103,7 +103,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public (int? Spirit, (string Weapon, string Attack)? Variety) Lookup(string path) =>
             this.RowOf(path) is { } entry
-                ? (SpiritFor(entry.Experience), entry.Told ? (entry.Weapon, entry.Attack) : null)
+                ? (SpectreSpirit.For(entry.Experience), entry.Told ? (entry.Weapon, entry.Attack) : null)
                 : (null, null);
 
         /// <summary>
@@ -112,24 +112,6 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public (string Weapon, string Attack)? VarietyOf(string path) =>
             this.RowOf(path) is { Told: true } entry ? (entry.Weapon, entry.Attack) : null;
-
-        /// <summary>
-        ///     The reservation of a monster with this experience multiplier: 50 at a multiplier of 100, scaling with
-        ///     its 0.75 power (100 gives 50, 110 gives 53, 70 gives 38, 200 gives 84). The curve is the game's since
-        ///     0.3.0 rebalanced spectre costs (Path of Building's minion export has it in this form; the round tens
-        ///     published before 0.3.0 no longer hold), and it is the cost the bound gem reads before the player's
-        ///     own reservation efficiency. Null for a multiplier worth nothing, which no bindable monster has.
-        /// </summary>
-        public static int? SpiritFor(int experience)
-        {
-            if (experience <= 0)
-            {
-                return null;
-            }
-
-            var spirit = (int)Math.Floor(Math.Pow(experience / 100.0, 0.75) * 50);
-            return spirit > 0 ? spirit : null;
-        }
 
         /// <summary>
         ///     The row of an entity's path. The path carries its level after an '@' ("…/VaalGuardBowLiving@40"), which

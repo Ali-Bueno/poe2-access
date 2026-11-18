@@ -1,3 +1,4 @@
+using Poe2Accessibility.Services;
 using Index = LibBundle3.Index;
 
 /// <summary>
@@ -123,10 +124,10 @@ internal static class SpectreExtractor
         }
 
         // A variety is told when monsters of one name differ in what a corpse of them asks or does. The asking is the
-        // Spirit cost (on the game's curve, as SpectreCatalog.SpiritFor has it), not the raw multiplier: varieties
+        // Spirit cost (on the game's curve, SpectreSpirit.For, the plugin's own), not the raw multiplier: varieties
         // asking the same are spoken alike in cost, and telling them apart by it says nothing.
         var told = rows.Where(monster => monster.Name.Length > 0).GroupBy(monster => monster.Name, StringComparer.Ordinal)
-            .Where(group => group.Select(monster => (Cost: (int)Math.Floor(Math.Pow(monster.Experience / 100.0, 0.75) * 50), monster.Weapon, monster.Attack)).Distinct().Count() > 1)
+            .Where(group => group.Select(monster => (Cost: SpectreSpirit.For(monster.Experience), monster.Weapon, monster.Attack)).Distinct().Count() > 1)
             .SelectMany(group => group.Select(monster => monster.Id)).ToHashSet(StringComparer.Ordinal);
 
         var spectres = new SortedDictionary<string, SortedDictionary<string, object>>(StringComparer.Ordinal);
