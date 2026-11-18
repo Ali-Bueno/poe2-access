@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
         private readonly HashSet<string> spiritlessCorpses = new(StringComparer.Ordinal);
         private readonly HashSet<string> silentCharacters = new(StringComparer.Ordinal);
+        private readonly HashSet<string> hostileCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
@@ -193,8 +194,12 @@ namespace Poe2Accessibility.Services
                 // component, only InteractionAction (MarakethMatriarchDreadnought_.ot, issue #7).
                 var npc = entity.TryGetComponent<NPC>(out _);
                 category = corpse ? ScanCategory.Corpses
-                    : IsCharacter(entity) && !this.Attackable(entity) ? ScanCategory.Npcs
-                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : npc ? ScanCategory.Npcs : null;
+                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : npc || (IsCharacter(entity) && !Attackable(entity)) ? ScanCategory.Npcs : null;
+                if (category == ScanCategory.Enemies && IsCharacter(entity))
+                {
+                    this.LogCharacterAsEnemy(entity, path);
+                }
+
                 if (category == ScanCategory.Corpses)
                 {
                     kind = CorpseKind;
@@ -582,11 +587,15 @@ namespace Poe2Accessibility.Services
         /// <summary>A device whose file names a boss (CanopyBossRitualAltar): it summons the boss once the area's quest is done.</summary>
         private const string BossDevice = "Boss";
 
-        /// <summary>A living creature that is not the player's (minions are friendly).</summary>
+        /// <summary>
+        ///     A living creature that is not the player's (minions are friendly) and that is not one to talk to whom the player
+        ///     cannot attack: town NPCs read hostile, and so did Doryani once his fight was over, with his boss sound (issue #9).
+        /// </summary>
         public static bool IsAliveEnemy(Entity entity) =>
             entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) && !IsFrozenDead(entity) &&
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
-            !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly);
+            !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly) &&
+            !(IsCharacter(entity) && !Attackable(entity));
 
         /// <summary>The scanner's kind of a dead monster's corpse, told apart from a body searched for loot (kind "corpse", a chest).</summary>
         public const string CorpseKind = "monster_corpse";
@@ -610,9 +619,9 @@ namespace Poe2Accessibility.Services
         public bool IsEscort(uint id) => this.walking.Walked(id);
 
         /// <summary>The player can attack it (<see cref="GameLayout.TargetableComponent.AttackableOffset"/>); unread counts as yes.</summary>
-        private bool Attackable(Entity entity) =>
+        private static bool Attackable(Entity entity) =>
             !EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
-            !this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.AttackableOffset, out var flag) || flag != 0;
+            !HostMemoryReader.Read<byte>(target.Address + GameLayout.TargetableComponent.AttackableOffset, out var flag) || flag != 0;
 
         /// <summary>
         ///     Someone to talk to: the NPC component, or a creature the game lets the player use (InteractionAction), as Sekhema
@@ -625,6 +634,19 @@ namespace Poe2Accessibility.Services
         private const string InteractionActionComponent = "InteractionAction";
 
         /// <summary>A character the scanner leaves out, logged once per file with the reason, so a missing one is found from the log.</summary>
+        /// <summary>
+        ///     One to talk to whom the player can attack is listed and sounded as an enemy: logged once, so a character the
+        ///     game turns hostile early (Freya Hartlin at Journey's End, issue #9) shows what it read.
+        /// </summary>
+        private void LogCharacterAsEnemy(Entity entity, string path)
+        {
+            if (this.hostileCharacters.Add(path))
+            {
+                var rarity = entity.TryGetComponent<ObjectMagicProperties>(out var magic) ? magic.Rarity : Rarity.Normal;
+                this.log.Info($"Character listed as an enemy: {path} ({rarity}, NPC component {entity.TryGetComponent<NPC>(out _)}, in play {this.InPlay(entity)})");
+            }
+        }
+
         private void LogLeftOutCharacter(Entity entity, string path, string reason)
         {
             if (IsCharacter(entity) && this.silentCharacters.Add(path))

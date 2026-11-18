@@ -63,6 +63,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Reads a struct as the host does: through the host's remap when a game patch moved its fields.</summary>
         public bool TryRead<T>(IntPtr address, out T value)
+            where T : unmanaged => Read(address, out value);
+
+        /// <summary><see cref="TryRead{T}"/> for a static check that holds no reader.</summary>
+        public static bool Read<T>(IntPtr address, out T value)
             where T : unmanaged
         {
             try
