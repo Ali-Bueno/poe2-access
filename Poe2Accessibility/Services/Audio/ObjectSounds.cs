@@ -93,6 +93,7 @@ namespace Poe2Accessibility.Services
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
             ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
+            ("lifts", 1, entry => entry.Kind == ChaosTrial.LiftSound),
             ("doors", MaxDoorVoices, entry => SoundKind(entry) == ClosedDoors.Kind),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
@@ -194,9 +195,9 @@ namespace Poe2Accessibility.Services
             foreach (var (group, (crowd, entry)) in this.nearest)
             {
                 var distance = Distance(here, entry);
-                if (distance > ReachOf(entry))
+                if (distance > ReachOf(entry) || (entry.Kind == ChaosTrial.LiftSound && distance <= ChaosTrial.LiftZoneWorld))
                 {
-                    continue;
+                    continue; // a lift is silent once the player stands on it (as a boss's shelter once reached)
                 }
 
                 var closeness = 1f - Math.Clamp(distance / RangeOf(entry), 0f, 1f);
@@ -336,6 +337,7 @@ namespace Poe2Accessibility.Services
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),
+            ChaosTrial.LiftSound => this.sounds.Get(ChaosTrial.LiftSound),
             // A league's own recording; a strongbox is a chest until the sounds are extracted again.
             LeaguePieces.StrongboxSound => this.sounds.Get(LeaguePieces.StrongboxSound) ?? this.sounds.Get("chest"),
             LeaguePieces.AbyssChestSound => this.sounds.Get(LeaguePieces.AbyssChestSound) ?? this.sounds.Get("chest"),

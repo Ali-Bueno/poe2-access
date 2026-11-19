@@ -61,6 +61,18 @@ namespace Poe2Accessibility.Services
         /// <summary>The blood altar's state: 3 once its three circles have fed it.</summary>
         public const string AltarCompleteState = "complete";
 
+        /// <summary>
+        ///     The lift's own sound (a lift arriving, the owner's pick 2026-11-19): the lever beside it rings as a quest object, and the
+        ///     two sounded alike.
+        /// </summary>
+        public const string LiftSound = "lift";
+
+        /// <summary>
+        ///     Standing on the lift: its zone, 29 cells of 10.87 world units (LiftPlatformLarge.ot's ControlZone), rounded up. Within
+        ///     it the lift is silent, as a boss's shelter is once reached.
+        /// </summary>
+        public const float LiftZoneWorld = 330f;
+
         /// <summary>The lift's state while it can be ridden.</summary>
         public const string LiftActivatedState = "activated";
 

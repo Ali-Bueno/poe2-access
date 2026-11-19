@@ -15,8 +15,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A lift's lever opens for half a second as it arrives: polled often enough to see it.</summary>
         private const int PollMs = 200;
 
-        /// <summary>The lift's zone, 29 cells of 10.87 world units (LiftPlatformLarge.ot's ControlZone), rounded up.</summary>
-        private const float RiderWorld = 330f;
+        private const float RiderWorld = ChaosTrial.LiftZoneWorld;
 
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;

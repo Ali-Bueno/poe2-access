@@ -176,8 +176,10 @@ namespace Poe2Accessibility.Services
                 // escort, a blood circle until it is full (docs/research/trial-of-chaos.md).
                 category = ChaosTrial.StillAsks(chaos!.Value, StatesOf(entity)) ? ScanCategory.Objects : null;
                 name = name.Length > 0 ? name : Announcements.ChaosPieceName(chaos.Value);
-                sound = MinimapMarks.QuestObjectKind;
-                questMarked = true;
+                var lift = chaos.Value == ChaosPiece.Lift;
+                sound = lift ? string.Empty : MinimapMarks.QuestObjectKind;
+                kind = lift ? ChaosTrial.LiftSound : kind;
+                questMarked = !lift; // a lift sounds as itself, without the quest object's layer
             }
             else if (trap is { } kindOfTrap)
             {

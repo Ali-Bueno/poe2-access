@@ -56,7 +56,7 @@ internal static class GameDataSteps
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
         new Step("mod stats", 3, "mod-stats.json", "mod-stats", true), // 3: what runes and soul cores give socketed; 2: a modifier keying its own buff is told apart
-        new Step(Sounds, 15, null, null, Input: ItemSounds), // 15: the strongbox's sound louder (0.16), the Essence's a little (0.13), the Abyss chests' own, the boss shelter's loop and its end; 14: the exits' ambient sounds (exits/, from exit-sounds.json); 13: the Delirium, Essence, spirit and strongbox sounds the user picked by ear
+        new Step(Sounds, 16, null, null, Input: ItemSounds), // 16: the Trial of Chaos lift's own (ElevatorEnd_02); 15: the strongbox's sound louder (0.16), the Essence's a little (0.13), the Abyss chests' own, the boss shelter's loop and its end; 14: the exits' ambient sounds (exits/, from exit-sounds.json); 13: the Delirium, Essence, spirit and strongbox sounds the user picked by ear
     ];
 
     /// <summary>

@@ -206,6 +206,7 @@ namespace Poe2Accessibility
             Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
             Services.OpenedWays.Kind => OpenedWay,
             Services.ClosedDoors.Kind => T("Door to open", "Puerta por abrir"),
+            Services.ChaosTrial.LiftSound => T("Trial of Chaos lift", "Ascensor de la Prueba de Caos"),
             Services.LeaguePieces.BreachSound => T("Breach", "Fisura"),
             Services.LeaguePieces.DeliriumSound => T("Delirium mirror", "Espejo del Delirio"),
             Services.LeaguePieces.EssenceSound => T("Essence", "Esencia"),
@@ -316,6 +317,9 @@ namespace Poe2Accessibility
             Services.OpenedWays.Kind => T(
                 "a way that opened on its own: once as it opens, then from where it stands until you have walked to it",
                 "un paso que se abrió solo: una vez al abrirse y después desde donde está, hasta que llegues a él"),
+            Services.ChaosTrial.LiftSound => T(
+                "a lift you can ride in the Trial of Chaos, while it can be ridden; silent once you stand on it",
+                "un ascensor de la Prueba de Caos que se puede usar, mientras se puede; calla cuando estás encima"),
             Services.ClosedDoors.Kind => T(
                 "a shut door you open with the interact button: the nearest ones, each on its side, until opened",
                 "una puerta cerrada que se abre con el botón de interactuar: las más cercanas, cada una a su lado, hasta que la abras"),

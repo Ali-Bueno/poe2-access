@@ -80,6 +80,9 @@ internal static partial class SoundExtractor
         // A shut door the player opens: a door's mechanism clicking (user's pick 2026-11-14 of nine door recordings;
         // docs/research/game-audio.md).
         new("closed_door", "PrecursorDoor",    "PrecursorDoor_Mechanic_01", Rms: 0.10),
+        // A Trial of Chaos lift: a lift arriving and stopping, a low thud with a tail, told from the lever's quest sound (user's
+        // pick 2026-11-19 of eight lift, gear, wheel and chain recordings; audition page https://claude.ai/artifact/RuQ88EyvcrmbRtEToAyewh).
+        new("lift",        "G1_15_Elevator",   "ElevatorEnd_02", Rms: 0.10),
         // Each league's encounter rings with a recording of its own (wired 2026-11-14, the user's ear pending on the audition
         // page; docs/research/game-audio.md).
         new("league_breach",     "BreachEncounterPortal",        "Environment_Breach_Portal_Open_01", Rms: 0.10),

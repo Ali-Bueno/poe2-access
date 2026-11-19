@@ -259,6 +259,13 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   on_transition ascends) or "…, sube" at 1, with the way-opened sound from where it stands (`LiftNews`; log "Lift N activated,
   transition s of c"). The Trial of Chaos shows no round line on its HUD, so `TrialDodgeScope` now also takes its rules
   (`RulesetWatch.InChaosTrial`): rooms apart, no left-behind nooks or map parts, every monster warned, as on a Sekhemas floor.
+- **Riding the lift** (live 2026-11-19): standing on it, it goes down and up again on its own; its lever opens for half a second as
+  it reaches the top and shuts as it sets off, so the game keeps a shut lever targeted ("Interruptor, A" did nothing): a shut
+  lever is no target now. Each trip is said to the one on it ("Ascensor subiendo / bajando", by the ground's distance: the
+  platform's height made the rider far when it was down) and its end 2 s later ("Ascensor parado arriba / abajo"; `LiftNews.TripMs`,
+  timed from the lever's log). The lift sounds as itself, `lift` = G1_15_Elevator `ElevatorEnd_02` (the owner's pick, audition page
+  https://claude.ai/artifact/RuQ88EyvcrmbRtEToAyewh), apart from the lever's quest sound, and is silent within its zone (330 world
+  units), as a boss's shelter once reached.
 - **Petrification Statues, first run 2026-11-19** (research log in `TrapWatch`; files by a study the same day): the gaze is a line
   out of the statue's front, beam `UltimatumPetrificationBeam` (MiscBeams row 663) 600 world units long (MEASURED; width and walls
   UNSURE); the statue never turns (`immobile`). Eyes open on animation `ChangeToStance2` (85), shut on `ChangeToStance1` (84), each
