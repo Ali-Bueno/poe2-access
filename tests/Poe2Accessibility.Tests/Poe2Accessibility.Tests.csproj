@@ -73,6 +73,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\UnmetRequirements.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SearchHighlightNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\QuestMatcher.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\CarriedQuestSteps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\QuestGoalCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\QuestTrackerPage.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\CountdownWatch.cs" />

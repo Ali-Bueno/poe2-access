@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller),
+            (nameof(AStepNamingACarriedQuestItemStillCounts), AStepNamingACarriedQuestItemStillCounts),
             (nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone),
             (nameof(GameDataStepsAreEachListedOnce), GameDataStepsAreEachListedOnce),
             (nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver),
@@ -284,6 +285,21 @@ namespace Poe2Accessibility.Tests
             Equal("Gorro de fieltro -> ", Said(SalvageOutcome.Read(new[] { ("Gorro de fieltro", 1), ("Gorro de fieltro, mágico", 1) },
                                                                     new[] { ("Gorro de fieltro, mágico", 1) })),
                   "of two items of one base, the one that went");
+        }
+
+        private static void AStepNamingACarriedQuestItemStillCounts()
+        {
+            // Jiquani's Machinarium, 2026-11-19: four stone altars, a small soul core each; the tracker moved on after the first.
+            var steps = new CarriedQuestSteps();
+            var core = new[] { "Núcleo de alma pequeño" };
+            const string place = "Coloca el núcleo de alma pequeño en el Altar de piedra";
+            const string deeper = "Adéntrate más en el Taller de máquinas";
+            Equal(place, string.Join(" | ", steps.With(new[] { place }, "a", core)), "the step as the tracker shows it");
+            Equal(deeper, string.Join(" | ", steps.With(new[] { deeper }, "a", Array.Empty<string>())), "the core placed: the step is gone");
+            Equal($"{deeper} | {place}", string.Join(" | ", steps.With(new[] { deeper }, "a", core)), "another core picked up: the step counts again");
+            Equal(deeper, string.Join(" | ", steps.With(new[] { deeper }, "b", core)), "another area forgets it");
+            var altars = new[] { new ScanEntry(1, ScanCategory.Objects, "Altar de piedra", 0, 0, 0), new ScanEntry(2, ScanCategory.Objects, "Cofre", 0, 0, 0) };
+            Equal("Altar de piedra", string.Join(" | ", QuestMatcher.Targets(altars, new[] { deeper, place }).Select(entry => entry.Name)), "the altar is the quest's");
         }
 
         private static void QuestNamesItsTargets()

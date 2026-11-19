@@ -63,3 +63,15 @@ A story variant set aside never moves; Asala walks. So a character out of play i
 step from where it was first seen in the area (`WalkingCharacters`, kept until the area changes). Such a character is an
 escort to the beacon (`EntityCatalog.IsEscort`): reaching it does not release the lock. Beside it the ping is quiet, with
 "Asala, aquí" said once. It pings again when she is three steps ahead. A second press of the chord releases it.
+
+## A step the tracker moved past: Jiquani's Machinarium's stone altars (2026-11-19)
+
+The area holds four `Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_{Entrance,Landmark,Exit,Boss}`, all "Altar de
+piedra" (minimap icon `StoneAltarTall`), each taking a Small Soul Core (a quest item, `…/QuestItems/…`, in the main
+inventory). With the first core the tracker said "Coloca el núcleo de alma pequeño en el Altar de piedra"; once it was
+placed it said "Adéntrate más en el Taller de máquinas", and a second core picked up did not bring the step back, so the
+next altars were no quest object (the owner: "el primero sí lo tuvo"). A used altar turns untargetable and leaves the
+listing. `CarriedQuestSteps` keeps the steps an area instance showed that name a quest item carried then, and while such
+an item is carried again adds them to the tracker's texts for `QuestMatcher`; they are kept with the area in
+`AreaMemory` (a trailing list, so older files still read), so a host restart does not lose them. Unit tests only.
+

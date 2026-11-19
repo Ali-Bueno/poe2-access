@@ -474,6 +474,7 @@ namespace Poe2Accessibility
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.entities.QuestItemsCarried = () => this.pickups?.QuestItems ?? (System.Collections.Generic.IReadOnlyCollection<string>)Array.Empty<string>();
                 this.entities.CrystalsCounted = () => this.narrator != null && this.screen != null && this.narrator.CrystalsCounted(this.screen.Current);
                 this.entities.RoomsApart = () => this.trialScope.InTrial(Environment.TickCount64);
                 this.entities.QuestGoals = QuestGoalCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "quest-goals.json"));

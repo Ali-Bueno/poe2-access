@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>What the objective was found to name, between listings (<see cref="QuestMatcher.Memo"/>).</summary>
         private readonly QuestMatcher.Memo questMemo = new();
+        private readonly CarriedQuestSteps carriedSteps = new();
 
         private long trackedAt = long.MinValue / 2;
 
@@ -270,7 +271,7 @@ namespace Poe2Accessibility.Services
             // The objective is known wherever the game knows it, but said only once seen: the rest is for the player to find,
             // with the lost hint for a last resort (user 2026-11-05, over the marker of 2026-10-24; docs/radar.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
-            var questTexts = this.QuestTexts();
+            var questTexts = this.carriedSteps.With(this.QuestTexts(), area.AreaHash, this.QuestItemsCarried());
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);
@@ -288,8 +289,9 @@ namespace Poe2Accessibility.Services
             {
                 var names = this.QuestGoals.StepsToward(area, this.QuestGoals.GoalsOf(texts, Localization.Language))
                     .Select(this.landmarks.AreaNameOf).Where(name => name.Length > 0).ToList();
+                var before = this.leadsTo.Names;
                 this.leadsTo = (area, Localization.Language, texts.ToArray(), names);
-                if (names.Count > 0)
+                if (names.Count > 0 && !names.SequenceEqual(before)) // the tracker's texts hold timers: said once per change of step
                 {
                     this.log.Info($"Quest step leads through: {string.Join(", ", names)} (from {area})");
                 }

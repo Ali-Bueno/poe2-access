@@ -165,7 +165,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, map != AreaMemory.Layout(tiles, 120, 20000), "another grid is another map");
 
             var exit = new ScanEntry(7, ScanCategory.Exits, "Sierraclara", 1f, 2f, 3f, "exit", Sound: "exit", QuestMarked: true, Subject: "way");
-            var snapshot = new AreaMemory.Snapshot(map, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit }, new() { 7, 9 }, new() { [11] = new Vector2(4, 5) });
+            var snapshot = new AreaMemory.Snapshot(map, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit }, new() { 7, 9 }, new() { [11] = new Vector2(4, 5) },
+                QuestSteps: new() { "Coloca el núcleo de alma pequeño en el Altar de piedra" });
             var memory = new AreaMemory(directory, log);
             memory.Keep("ABC", snapshot);
             Equal(true, memory.Recall("ABC", map) == snapshot, "back in the same instance: everything returns");
@@ -177,6 +178,7 @@ namespace Poe2Accessibility.Tests
             Equal("Campamento", fromDisk.CameFrom, "and the way in");
             Equal(true, fromDisk.Explored.SequenceEqual(snapshot.Explored) && fromDisk.Sighted.SetEquals(snapshot.Sighted), "and the explored ground");
             Equal(new Vector2(4, 5), fromDisk.ClosedBarriers[11], "and the closed barriers");
+            Equal("Coloca el núcleo de alma pequeño en el Altar de piedra", string.Join(" | ", fromDisk.QuestSteps!), "and the quest steps of its carried items");
 
             Equal(true, restarted.Recall("ABC", AreaMemory.Layout(regenerated, 100, 20000)) == null, "a regenerated map under the same hash starts unexplored");
             Equal(true, new AreaMemory(directory, log).Recall("ABC", map) == null, "and its old file is gone");

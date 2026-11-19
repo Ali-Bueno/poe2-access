@@ -234,6 +234,13 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>Whether a text names this (four letters or more), accents and case aside.</summary>
+        public static bool Mentions(string text, string name)
+        {
+            var folded = Fold(name);
+            return folded.Length >= 4 && ContainsWord(Fold(text), folded);
+        }
+
         /// <summary>The name's words in a row in the text, each also in the plural ("Busca los altares de ritual" names an "Altar de ritual").</summary>
         private static bool ContainsWord(string text, string name)
         {

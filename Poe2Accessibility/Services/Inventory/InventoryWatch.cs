@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using GameReader.RemoteEnums;
     using GameReader.RemoteObjects.Components;
@@ -32,6 +33,9 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly Dictionary<IntPtr, int> known = new();
+
+        /// <summary>The name of each quest item in the inventory, by slot; null for any other item.</summary>
+        private readonly Dictionary<IntPtr, string?> questNames = new();
         private const int HandPollMs = 100;
 
         /// <summary>The emptied cell is read about 100 ms after the pick-up (2026-10-24); a hold of 1.5 s queued the moves after it.</summary>
@@ -79,9 +83,13 @@ namespace Poe2Accessibility.Services
 
         public Func<uint, string?>? GroundItemTitle { get; set; }
 
+        /// <summary>The names of the quest items carried ("Núcleo de alma pequeño").</summary>
+        public IReadOnlyCollection<string> QuestItems => this.questNames.Values.OfType<string>().ToList();
+
         public void Reset()
         {
             this.known.Clear();
+            this.questNames.Clear();
             this.baseline = true;
             this.movesBaseline = true;
             this.weaponSet = -1;
@@ -102,6 +110,16 @@ namespace Poe2Accessibility.Services
             foreach (var (address, item) in items)
             {
                 present.Add(address);
+                if (!this.questNames.ContainsKey(address))
+                {
+                    var quest = this.reader.ItemKind(item.Address).Kind == "quest";
+                    var name = quest ? this.reader.ItemBaseName(item.Address) : string.Empty;
+                    if (!quest || name.Length > 0) // a quest item's name not read yet: asked again next poll
+                    {
+                        this.questNames[address] = quest ? name : null;
+                    }
+                }
+
                 var count = item.TryGetComponent<Stack>(out var stack) && stack.Count > 0 ? stack.Count : 1;
                 var before = this.known.TryGetValue(address, out var had) ? had : 0;
                 this.known[address] = count;
@@ -122,6 +140,7 @@ namespace Poe2Accessibility.Services
                 if (!present.Contains(gone))
                 {
                     this.known.Remove(gone);
+                    this.questNames.Remove(gone);
                 }
             }
 

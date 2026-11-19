@@ -113,6 +113,7 @@ namespace Poe2Accessibility.Services
             if (known != null)
             {
                 this.explored.Load(known.Explored);
+                this.carriedSteps.Restore(hash, known.QuestSteps);
                 foreach (var (id, entry) in known.Remembered)
                 {
                     this.remembered[id] = entry;
@@ -146,7 +147,7 @@ namespace Poe2Accessibility.Services
         {
             lock (this.samplesLock)
             {
-                return new AreaMemory.Snapshot(this.layout, this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers), this.frame);
+                return new AreaMemory.Snapshot(this.layout, this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers), this.frame, this.carriedSteps.Steps);
             }
         }
 

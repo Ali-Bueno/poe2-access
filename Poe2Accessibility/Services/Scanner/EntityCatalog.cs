@@ -94,6 +94,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
         public Func<IReadOnlyList<string>> QuestTexts { get; set; }
 
+        /// <summary>The names of the quest items the player carries (<see cref="InventoryWatch.QuestItems"/>).</summary>
+        public Func<IReadOnlyCollection<string>> QuestItemsCarried { get; set; } = () => Array.Empty<string>();
+
         /// <summary>
         ///     Whether the HUD counts the Death Crystals left: the room asks for them even when the page of the tracker on
         ///     screen shows other quests than the Trial's (set by the plugin).

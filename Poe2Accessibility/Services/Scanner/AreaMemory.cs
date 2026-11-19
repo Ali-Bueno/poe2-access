@@ -245,6 +245,14 @@ namespace Poe2Accessibility.Services
                 writer.Write(at.X);
                 writer.Write(at.Y);
             }
+
+            // Last, so a file written before them still reads.
+            var steps = snapshot.QuestSteps ?? new List<string>();
+            writer.Write(steps.Count);
+            foreach (var step in steps)
+            {
+                writer.Write(step);
+            }
         }
 
         private static Snapshot? Read(BinaryReader reader)
@@ -280,7 +288,16 @@ namespace Poe2Accessibility.Services
                 barriers[reader.ReadUInt32()] = new Vector2(reader.ReadSingle(), reader.ReadSingle());
             }
 
-            return new Snapshot(layout, explored, cameFrom, remembered, sighted, barriers, frame);
+            var steps = new List<string>();
+            if (reader.BaseStream.Position < reader.BaseStream.Length)
+            {
+                for (var i = reader.ReadInt32(); i > 0; i--)
+                {
+                    steps.Add(reader.ReadString());
+                }
+            }
+
+            return new Snapshot(layout, explored, cameFrom, remembered, sighted, barriers, frame, steps);
         }
 
         private Snapshot? Load(string instance)
@@ -319,6 +336,6 @@ namespace Poe2Accessibility.Services
         /// <summary>One instance as it was left; the area it was entered from tells the way on from the way back.</summary>
         public sealed record Snapshot(
             ulong Layout, byte[] Explored, string CameFrom, Dictionary<uint, ScanEntry> Remembered, HashSet<uint> Sighted, Dictionary<uint, Vector2> ClosedBarriers,
-            ulong Frame = 0);
+            ulong Frame = 0, List<string>? QuestSteps = null);
     }
 }
