@@ -49,6 +49,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> elements = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, List<BossPlaceRule>> places = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, Dictionary<string, (string Name, string Description)>> texts = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, FloodRule> floods = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>How many place rules the catalog holds, for the log.</summary>
         public int Places => this.places.Values.Sum(rules => rules.Count);
@@ -103,6 +104,9 @@ namespace Poe2Accessibility.Services
         public string? Element(string boss, string state, long value) =>
             this.elements.GetValueOrDefault($"{boss}|{state}={value.ToString(CultureInfo.InvariantCulture)}") ?? this.elements.GetValueOrDefault($"{boss}|{state}");
 
+        /// <summary>The flood of a boss's arena (Mektul's molten gold); null for most.</summary>
+        public FloodRule? Flood(string boss) => this.floods.GetValueOrDefault(boss);
+
         /// <summary>What entities of this path are in a boss's arena; empty for most.</summary>
         public IReadOnlyList<BossPlaceRule> PlaceRules(string path) =>
             this.places.TryGetValue(path, out var rules) ? rules : Array.Empty<BossPlaceRule>();
@@ -145,6 +149,13 @@ namespace Poe2Accessibility.Services
                     return true;
                 case "zone":
                     this.zones.Add(c[2]);
+                    return true;
+                case "flood":
+                    if (FloodRule.Parse(c) is { } flood)
+                    {
+                        this.floods[flood.Boss] = flood;
+                    }
+
                     return true;
                 case "stack":
                     this.stacks.Add(c[1]);

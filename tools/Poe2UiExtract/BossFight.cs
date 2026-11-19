@@ -37,4 +37,7 @@ internal sealed record BossFight(
     /// <summary>Every ExecuteGEAL row of the fight: its own skills', its adds' skills' and the server's ones named for its people.</summary>
     public IEnumerable<BossGeal> Geals => this.Skills.SelectMany(skill => skill.Geals).Concat(this.Adds.SelectMany(add => add.Skills).SelectMany(skill => skill.Geals))
         .Concat(this.Orphans).DistinctBy(geal => geal.Id, StringComparer.Ordinal);
+
+    /// <summary>The flood line of its arena (<see cref="BossFloods"/>), null for most.</summary>
+    public string? Flood { get; init; }
 }

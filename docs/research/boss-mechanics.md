@@ -270,7 +270,7 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | Jamanra, the Abomination | sandstorm at ~85 %: stand behind Sekhema Asala's shield | not looked up (the shield's entity) | todo |
 | Azarian | the arena shrinks; censers | `Monsters/ForsakenSon/BossArenaObjects/ForsakenSonCenser`: `transition_on_damage_taken=1`, state `hits` 0..3; boss states `flaming_censer_l/r` (use LIKELY) | todo |
 | Xyclucian (Act 3) | from 90 % it perches on one of 4 pillars: break the pillar | `Monsters/ChimeraWetlandsBoss/ChimeraPillar` (Life, state `damage` 1/2) | todo |
-| Mektul | lava fills the arena; he stands in it at 75 % and 40 % | `Monsters/VaalForgeMaster/Objects/VaalForgemasterSluceLever` (interactable, `lever_pulled`), `ForgemasterDam` state `opening` | todo |
+| Mektul | lava fills the arena; he stands in it at 75 % and 40 % | the clip of `Lava/LavaVisuals` ([Mektul's lava](#mektuls-lava)) | done (unit tests): the flood's edge said as it nears |
 | Queen of Filth | (guides: nothing) | player buffs `queen_of_filth_life_curse` / `_mana_curse`: skills reserve life or mana | named by the harmful-buff reading |
 | Ketzuli | (guides: nothing) | states `sun_wall_count`, `summon_sun_wall`; objects `SunWall*`, `BlackHole/OrbitSun` (LIKELY) | todo |
 | Viper Napuatzi | invulnerable while the arena shrinks: stand where the guards' spears glow | not looked up | todo |
@@ -616,3 +616,35 @@ from 0; a thing to use or break, a counter and a count were cut by the poll's ur
 remembered as nothing; a helper's line or cone pointed east: it points at the player; a nameless protection's end was silent
 ("El jefe ya no está fortalecido"); an element flipping is one change in 3 s; a helper's word follows the dodge-warning
 switch; "behind the cover" is judged by the player's own reach, not the reach setting, and from the boss the cover belongs to.
+
+## Mektul's lava
+
+**Act 3, The Molten Vault (G3_9), and Gulzal in MapVaalFoundry.** The molten gold is no area with a radius: the arena object
+`Metadata/Monsters/VaalForgeMaster/Lava/LavaVisuals` (art `…/VaalForgeMaster/Arena/arena_lava.ao`, rig
+`Art/particles/monster_particles/Act3_FOUR/VaalForgeMaster/mb/Arena/rig.amd`) plays one 300 s clip, `base_animation`
+(10 fps, 3001 frames, 20 bones); before the fight its view `idle_01` loops the first 2.923 s (`view_end = 2923`), the pool
+waiting at the dam. Bone `aux_move` is the front: model (−166,−1709) to (0,−14000), about 41 world units a second after the
+first 20 s. The arcs `aux_L/R_arc_01-09` draw the tongue, half width 414 at most, 905 behind the front; the hall is wider
+than the lava. The player's buff `treasure_vault_lava` (source `Lava/SunAura`, which sits at the front's start and has no
+position on the client) is where the server says the mesh is. PROVEN from the files; the buff's own area is server code.
+
+- **The room:** LavaVisuals is placed at room (1652,286) turned −π/2 (`metadata_terrain_gallows_act3_3_9_rooms_unique_boss.arm`);
+  a room's object line is `x y 0 rotation …` or `x y 1 worldX worldY rotation …`, then a quaternion, flags and the scale.
+  Model → room: turned by the rotation (`(x,y) → (y,−x)` here). Room → world: one of eight signed axis swaps, found from an
+  anchor (the sluice lever, the lift down) seen live: here a mirror across the diagonal, world = (room y, room x) about the
+  object (play log of 2026-11-19: LavaVisuals 12614,21462, lever 11636,19690, lift 11369,18326, all three fit).
+- **Timeline** (world, this placement): the pool sits at the dam (12755,19810); the front reaches the boss's start
+  (Y 19397) at about 10 s, rune sectors at 14, 60, 106, 153 s, the hall's end at about 247 s. It never recedes.
+  `lava_flow` = 2 freezes it to gold (likely on the boss's death). Whether the server pauses the clip during the
+  boss's HeatUp/Cooldown is not in the files (the AI `.ais` is not shipped). GUESS.
+- **The sluice lever** (`lever_pulled` 0 usable, 1 pulled) is a checkpoint state: likely what opens the dam. LIKELY.
+- **In the extractor** (`BossFloods`, part of `boss-mechanics` step v7): an arena room's object whose `.ao` plays a clip
+  in which several bones travel together a room's length is a flood; its line `flood|boss|object|clip ms|tongue|front each
+  second|anchors` (offsets in the room's frame). The map version's line carries the Act 3 room's anchors (the census's
+  arena ranking): there no anchor fits and the map version says nothing.
+- **In the plugin** (`BossFloodWatch`, pure `FloodRule`/`RoomFit`/`FloodGeometry`/`FloodWarnings`): with the boss in sight,
+  the object's AnimationController (`AttackReader.Progress`, unjudged: the clip is longer than any attack) gives the clip
+  time; flowing once `CurrentEnd` reaches the clip's end. "La lava avanza, arriba" once; then "Lava arriba a la izquierda,
+  10 pasos" at 10, 5 and 2 steps from the tongue's nearest edge, "¡En la lava! Sal hacia la derecha" on stepping in.
+  Setting "Avisos de la lava que inunda la arena". The log's "Boss flood:" lines every 5 s hold the front and the player's
+  distance, to check against "Hazard ground: treasure_vault_lava". Unit tests; not heard live.

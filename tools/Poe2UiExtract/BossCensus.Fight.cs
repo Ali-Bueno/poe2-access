@@ -73,8 +73,11 @@ internal sealed partial class BossCensus
         var words = adds.SelectMany(add => BossScripts.WordsOf(add.Name)).Where(word => word.Length >= MinNameWord).Distinct().ToList();
         var named = this.orphans.Where(geal => words.Any(word => Regex.IsMatch(geal.Each, $@"AddBuff\(\s*{Regex.Escape(word)}_", RegexOptions.IgnoreCase))).ToList();
         var fight = new BossFight(boss, chain, bossSkills, adds, objects, named, Array.Empty<BossBuff>());
-        return fight with { Buffs = this.LinkedBuffs(fight, script) };
+        return fight with { Buffs = this.LinkedBuffs(fight, script), Flood = BossFloods.Line(boss, arena, this.FileText) };
     }
+
+    /// <summary>Any game file's text by its path (rooms, art, animations).</summary>
+    private string? FileText(string path) => this.files.TryGetValue(path.ToLowerInvariant(), out var file) ? file.ReadText() : null;
 
     /// <summary>A monster's skills read through their tables; a boss's with the skills its triggers fire, once each.</summary>
     private List<BossSkill> SkillsOf(int monster, bool followTriggers)

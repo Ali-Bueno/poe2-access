@@ -33,6 +33,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<uint> feedersSeen = new();
         private long feedersSaidAt = long.MinValue / 2;
         private BossPlacesWatch? places;
+        private BossFloodWatch? flood;
         private EntityPlaces? positions;
 
         /// <summary>Where entities stand, drawn or not (shared with the dev command that checks it).</summary>
@@ -40,6 +41,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Whether a harmful buff is named to the player elsewhere as it begins (<see cref="HarmfulBuffs"/>): its name is not said twice.</summary>
         public Func<string, bool> NamedElsewhere { get; set; } = _ => false;
+
+        /// <summary>The animation reader (the boss watch's), for an arena's flood (<see cref="BossFloodWatch"/>).</summary>
+        public Func<AttackReader?> Reader { get; set; } = () => null;
+
+        /// <summary>Whether the flood warnings are on.</summary>
+        public Func<bool> FloodOn { get; set; } = () => true;
 
         /// <summary>A skill's danger area from the game's tables (set by <see cref="BossWatch"/>, which reads them).</summary>
         public Func<string, AttackArea?> AreaOf { get; set; } = _ => null;
@@ -121,6 +128,7 @@ namespace Poe2Accessibility.Services
             this.helpers.Clear();
             this.feedersSeen.Clear();
             this.places?.Reset();
+            this.flood?.Reset();
         }
 
         /// <summary>A boss's states and buffs this poll: what changed is kept for the poll's end.</summary>
@@ -159,6 +167,9 @@ namespace Poe2Accessibility.Services
             }
 
             this.Positions.Learn();
+            // A flood starts with the fight, before the boss is hurt: any boss in sight may have one.
+            this.flood ??= new BossFloodWatch(this.log) { Reader = () => this.Reader() };
+            said.AddRange(this.flood.Poll(this.Catalog, !this.FloodOn() ? Enumerable.Empty<string>() : this.bosses.Values.Where(boss => boss.SeenAt == now).Select(boss => boss.Monster).Distinct(StringComparer.OrdinalIgnoreCase), now));
             if (fighting.Count == 0)
             {
                 if (now - this.lastFightAt >= FightOverMs)

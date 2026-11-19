@@ -105,6 +105,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ParryCues) => T("Parry cue", "Aviso de Parada"),
             nameof(AccessibilitySettings.UnblockableCues) => T("Unblockable attack cue", "Aviso de ataque imbloqueable"),
             nameof(AccessibilitySettings.HazardAlarm) => T("Harmful ground alarm", "Alarma de suelo peligroso"),
+            nameof(AccessibilitySettings.FloodWarnings) => T("Boss arena flood warnings", "Avisos de la lava que inunda la arena"),
             nameof(AccessibilitySettings.ParryLeadMs) => T("Parry cue lead, milliseconds", "Antelación del aviso de Parada, milisegundos"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),

@@ -56,6 +56,7 @@ namespace Poe2Accessibility.Services
                     Switch(nameof(AccessibilitySettings.AnnounceStunBar)),
                     Switch(nameof(AccessibilitySettings.PerfectTimingCue)),
                     Switch(nameof(AccessibilitySettings.HazardAlarm)),
+                    Switch(nameof(AccessibilitySettings.FloodWarnings)),
                     OwnVolume("hazard")),
                 Menu("skills",
                     Switch(nameof(AccessibilitySettings.ChargeSpeech)),

@@ -552,6 +552,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   ground or an enemy's damaging zone — burning, caustic, desecrated or bloody ground, a vortex, a boss's flames or
   beam — and stops as you leave it: silence means safe ground. Known by the state the game puts on you there (61 from
   the game files, `catalog/hazards.txt`). Setting "Alarma de suelo peligroso" (on), volume with the enemy sounds, and its own under Sound.
+- **Flood warnings** (Mektul's molten gold): "La lava avanza, arriba" as it starts down the hall, then "Lava arriba a la
+  izquierda, 5 pasos" at 10, 5 and 2 steps from its nearest edge, and "¡En la lava! Sal hacia la derecha" if you step in.
+  Setting "Avisos de la lava que inunda la arena" (on).
 - **Parry cue** (only for a character with the Parry skill: a buckler, a targe or two swords): a reverse hit, a
   struck buckler played backwards, that swells in for a third of a second and stops dead, from the attacker's side;
   press Parry on the stop, which falls 150 ms before a blow you can parry. Strikes from any monster within about a

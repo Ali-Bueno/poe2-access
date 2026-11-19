@@ -128,6 +128,17 @@ namespace Poe2Accessibility
             return heartbeat ? $"{what}: {T("follow the heartbeat", "sigue el latido")}, {way}" : $"{what}, {way}";
         }
 
+        /// <summary>The arena's flood starts down the hall, from where its front is: "The lava is flowing, up".</summary>
+        public static string BossFloodFlows(int octant) => T($"The lava is flowing, {Way(octant)}", $"La lava avanza, {Way(octant)}");
+
+        /// <summary>The flood nears the player, where its nearest edge is: "Lava up left, 5 steps".</summary>
+        public static string BossFloodNear(int octant, int steps) => T($"Lava {Way(octant)}, {Steps(steps)}", $"Lava {Way(octant)}, {Steps(steps)}");
+
+        /// <summary>The player stands in the flood, the way to its nearest edge: "In the lava! Out to the right".</summary>
+        public static string BossFloodInside(int octant) => T($"In the lava! Out {Way(octant)}", $"¡En la lava! Sal hacia {Way(octant)}");
+
+        private static string Way(int octant) => StickDirections[((octant % StickDirections.Length) + StickDirections.Length) % StickDirections.Length];
+
         /// <summary>The way out of a danger area, short enough to act on: "Out!", "To the centre!", "Left!".</summary>
         public static string Counterplay(CounterplayKind kind, int octant) => kind switch
         {

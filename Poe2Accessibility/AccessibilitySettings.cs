@@ -88,6 +88,9 @@ namespace Poe2Accessibility
         /// <summary>A soft, low pulsing alarm while you stand in harmful ground or an enemy's damaging zone (burning, caustic, a boss's flames); silence means safe ground.</summary>
         public bool HazardAlarm = true;
 
+        /// <summary>In a boss arena that floods (Mektul's molten gold), where the flood is as it nears you, in steps, and the way out if you step in.</summary>
+        public bool FloodWarnings = true;
+
         /// <summary>How long before the blow the parry cue stops, milliseconds: raise it if you press late, lower it if you press early.</summary>
         public int ParryLeadMs = 150;
 

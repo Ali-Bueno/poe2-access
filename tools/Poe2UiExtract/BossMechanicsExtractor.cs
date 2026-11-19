@@ -36,6 +36,7 @@ internal static class BossMechanicsExtractor
         "# progress|monster|state[|maximum]   element|monster|state=value|element (fire, cold, lightning, chaos, physical), or element|monster|state|- when no handler names it",
         "# stack|buff|monster (its count on the player)   grab|monster|skill that holds the player   grabbed|monster|buff on the held player   zone|monster|buff of an area",
         "# unavoidable|monster|skill (cannot be dodged, evaded or blocked)   text|language|buff|name|description (the census's buffs' own words)",
+        "# flood|monster|arena object|clip ms|behind:half width;… (its tongue)|x:y;… (its front each second)|object@x:y;… (anchors), offsets in the room's frame (world units)",
     };
 
     public static int Run(Index index, string outFile)

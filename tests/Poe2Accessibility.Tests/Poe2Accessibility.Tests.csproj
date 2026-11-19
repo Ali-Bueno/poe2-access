@@ -253,6 +253,7 @@
     <Compile Include="..\..\host\GameReader\Settings\State.cs" Link="Host\State.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WallRing.cs" Link="Plugin\WallRing.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossMechanicsCatalog.Census.cs" Link="Plugin\BossMechanicsCatalog.Census.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossFlood.cs" Link="Plugin\BossFlood.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossTexts.cs" Link="Plugin\BossTexts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossHelperWarnings.cs" Link="Plugin\BossHelperWarnings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PositionedGridSearch.cs" Link="Plugin\PositionedGridSearch.cs" />
@@ -266,6 +267,7 @@
     <Compile Include="..\..\tools\Poe2UiExtract\BossCensusRules.cs" Link="Extract\BossCensusRules.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossStateRules.cs" Link="Extract\BossStateRules.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossArenaRooms.cs" Link="Extract\BossArenaRooms.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\BossFloods.cs" Link="Extract\BossFloods.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossFamilies.cs" Link="Extract\BossFamilies.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
     <Compile Include="..\..\host\Poe2Access\GameUpdateWatch.cs" Link="Launcher\GameUpdateWatch.cs" />

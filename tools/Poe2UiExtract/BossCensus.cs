@@ -40,12 +40,14 @@ internal sealed partial class BossCensus
     private readonly BossArenaRooms.Rooms rooms;
     private readonly BossFamilies families;
     private readonly DatTable statTable;
+    private readonly Dictionary<string, LibBundle3.Records.FileRecord> files;
 
     private BossCensus(Index index, BossCensusColumns.Tables tables, BossCensusColumns columns, BossColumns bossColumns, BuffColumns buffColumns, BossSkills skills,
         DatTable stats, Func<string, string?> textOf, IReadOnlyDictionary<string, LibBundle3.Records.FileRecord> scripts)
     {
         (this.t, this.c, this.bc, this.buffColumns, this.skills, this.statTable, this.textOf) = (tables, columns, bossColumns, buffColumns, skills, stats, textOf);
         this.scriptPaths = scripts.Keys.ToList();
+        this.files = BundleFiles.ByLowerPath(index);
         var extends = new System.Collections.Concurrent.ConcurrentBag<IReadOnlyList<string>>();
         BundleFiles.ReadGrouped(scripts.Values, (file, bytes) => extends.Add(BossScripts.ExtendsOf(GameFormats.Decode(bytes, file.Path))));
         this.shared = BossScriptChain.SharedBases(extends);

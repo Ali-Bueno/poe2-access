@@ -149,7 +149,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in BossFightTests.All())
+            foreach (var (name, test) in BossFightTests.All().Concat(BossFloodTests.All()))
             {
                 Run(name, test);
             }

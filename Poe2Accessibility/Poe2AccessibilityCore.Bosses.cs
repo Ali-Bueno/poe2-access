@@ -17,6 +17,8 @@ namespace Poe2Accessibility
                 Catalog = catalog,
                 SayAdds = () => !this.Settings.AnnounceEnemies,
                 Heartbeat = () => this.Settings.BossWeakPoint,
+                FloodOn = () => this.Settings.FloodWarnings,
+                Reader = () => this.bosses?.Reader,
             };
         }
     }

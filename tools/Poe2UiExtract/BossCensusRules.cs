@@ -36,7 +36,7 @@ internal static class BossCensusRules
 
     public static IEnumerable<string> Lines(BossFight fight) =>
         Walls(fight).Concat(Daemons(fight)).Concat(Geals(fight)).Concat(Buffs(fight)).Concat(Covers(fight)).Concat(Objects(fight)).Concat(Skills(fight))
-            .Concat(BossStateRules.Lines(fight)).Distinct(StringComparer.Ordinal);
+            .Concat(BossStateRules.Lines(fight)).Concat(fight.Flood is { } flood ? new[] { flood } : Array.Empty<string>()).Distinct(StringComparer.Ordinal);
 
     /// <summary>
     ///     W: a named, skill-less add that extends the inanimate object and blocks the ground, however the boss brings it (Asinia's

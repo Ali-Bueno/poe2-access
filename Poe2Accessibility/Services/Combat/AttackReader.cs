@@ -145,6 +145,16 @@ namespace Poe2Accessibility.Services
             return (reading, events, clip);
         }
 
+        /// <summary>
+        ///     An arena object's controller as read, unjudged but finite: a clip minutes long (Mektul's lava) is no attack clip,
+        ///     so the caller checks it against the length the files give.
+        /// </summary>
+        public AnimationReading? Progress(uint id, IntPtr animated) =>
+            this.AnimatedObjects.Trust != FieldTrust.Lost && this.Clock.Trust != FieldTrust.Lost && this.Find(id, animated) is { Controller: var controller } &&
+            controller != IntPtr.Zero && this.Reading(controller) is var (reading, _) && float.IsFinite(reading.Position) && float.IsFinite(reading.End)
+                ? reading
+                : null;
+
         private (ActionAim? Aim, ushort Type, string? Skill) Action(IntPtr actor, Vector2 place, float worldPerGrid, Func<uint, IntPtr?> entityAt)
         {
             if (this.Actions.Trust == FieldTrust.Lost || !this.memory.TryRead<IntPtr>(actor + HostStructs.Follow<ActorOffset>(Field<ActorOffset>(nameof(ActorOffset.CurrentActionPtr))), out var action) ||
