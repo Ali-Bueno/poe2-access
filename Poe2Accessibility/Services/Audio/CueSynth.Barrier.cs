@@ -10,7 +10,9 @@ namespace Poe2Accessibility.Services
     public static partial class CueSynth
     {
         public const string BarrierSound = "closed_barrier";
-        private const float BarrierLevel = 0.6f;
+
+        /// <summary>2 dB over the first 0.6 at the owner's word (2026-11-19: "está muy bajo, pero no tanto").</summary>
+        private const float BarrierLevel = 0.75f;
 
         /// <summary>One turn of the loop lasts this long: the two blows, then quiet.</summary>
         private const float BarrierLoopSeconds = 1.6f;

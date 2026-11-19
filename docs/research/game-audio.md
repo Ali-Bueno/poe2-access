@@ -278,7 +278,7 @@ A barrier with nothing to click and no story name (`TriggerableBlockage` blocked
 `Waterway_Water`, beams, gates a quest step opens) was listed as "Barrera cerrada" with no sound, and the owner kept walking
 into them ("me veo todo el rato caminando en loop por sitios donde hay barrera cerrada"). Now the nearest one sounds in a loop
 from where it stands while it stays shut (`ScanEntry.Sound` `CueSynth.BarrierSound`, group `barriers` in `ObjectSounds`, a
-bed of `CueSynth.BarrierLoop`: two very low dulled blows, then quiet, 1.6 s a turn); it stops once open, where the
+bed of `CueSynth.BarrierLoop`: two very low dulled blows, then quiet, 1.6 s a turn; peak 0.75, 2 dB over the first 0.6 at the owner's word); it stops once open, where the
 [opened way](#an-opened-way-2026-11-12) takes over, and in menus. A door to click keeps its door sound, a named story barrier
 the quest's. The owner's pick, **D** of four synth candidates ("me gustó el último"; a sealed field's hum, iron bars, a stone
 slab, a heavy gate), asked as a loop "como lo del sonido del paso abierto": [audition page](https://claude.ai/artifact/Wufj2EggLMhkoAmC7YwcD9).
