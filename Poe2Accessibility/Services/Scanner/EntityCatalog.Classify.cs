@@ -67,6 +67,7 @@ namespace Poe2Accessibility.Services
             var sound = string.Empty;
             var timed = false;
             var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
+            var iconHidden = minimap != null && this.memory.TryRead<byte>(minimap.Address + GameLayout.MinimapIconRow.ComponentHiddenOffset, out var hidden) && hidden != 0;
             var questMarked = MinimapMarks.IsQuestIcon(icon);
             ScanCategory? category;
             if (icon == MinimapMarks.StoryGlyph)
@@ -240,13 +241,13 @@ namespace Poe2Accessibility.Services
             {
                 // Stash, bench, well; and a named thing under a lit mark with nothing to click, stepped on instead: the Matlan
                 // Waterways' "Mecanismo del canal" pressure plates (`VaalPressurePlateActive`), left out (the owner, 2026-11-19).
-                var stepped = name.Length > 0 && MinimapMarks.IsLitMark(icon) && league == null && chaos == null;
+                var stepped = name.Length > 0 && MinimapMarks.IsLitMark(icon) && !iconHidden && league == null && chaos == null;
                 category = (entity.TryGetComponent<Targetable>(out _) || stepped) && !IsPet(path) ? ScanCategory.Objects : null;
                 plain = true;
                 kind = MinimapMarks.ServiceKind(icon);
                 // A named object to use under an area's own lit mark is the quest's: the Red Vale's obelisks rang only while
                 // the tracker named them, and "Consigue las dos runas de poder restantes" does not (user 2026-11-13).
-                questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && MinimapMarks.IsLitMark(icon);
+                questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && MinimapMarks.IsLitMark(icon) && !iconHidden;
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
                     // A Trial's rooms are grounds apart on one floor: a crystal the player can walk to is this room's, one on

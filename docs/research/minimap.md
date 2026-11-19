@@ -53,7 +53,10 @@ bubble, and the unit of the pointer distance.
   (components Animated, BaseEvents, Functions, MinimapIcon, Positioned, Render, StateMachine; dev `entities WaterLevel`,
   2026-11-19). Objects needed a Targetable, so the log said "Minimap mark not listed" and the scanner had none (the owner:
   "no salen en el escáner"); now listed as objects, and the lit mark makes them the quest's. League pieces and Trial pieces
-  keep their own rules. Heard in the scanner's list live, not yet stepped on.
+  keep their own rules. One stepped on stays `VaalPressurePlateActive`, but the MinimapIcon component's byte +0x38 turns 1
+  (`GameLayout.MinimapIconRow.ComponentHiddenOffset`): 1 on the activated mechanism and on the Machinarium's used stone
+  altar, 0 on every unused one beside them (two areas, 2026-11-19). A hidden icon is no lit mark: the plate leaves the list
+  (live: 7 listed, 5 after two were used).
 - Characters in a town on ground the player's does not join: not listed until seen or joined. The Ziggurat Encampment holds
   `Metadata/NPC/Four_Act3/AlvaZigguratEncampmentPast` about 2,000 cells from the camp's own `AlvaZigguratEncampment`, same
   icon bytes and in-play flags, on a piece of ground no walk reaches ("el camino se corta antes"; the owner, 2026-11-19:

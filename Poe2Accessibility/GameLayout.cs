@@ -1097,6 +1097,13 @@ namespace Poe2Accessibility
             ///     with LibBundle3: 400 Act 1 quest landmarks, 250 most, 150 shrines and essences; docs/research/minimap.md).
             /// </summary>
             public static int PointerDistanceOffset { get; internal set; } = 0x12;
+
+            /// <summary>
+            ///     A byte of the MinimapIcon component, 1 once the game stops drawing the icon (what was to do is done): the
+            ///     Machinarium's used stone altar and an activated Matlan Waterways mechanism, 0 on every unused one beside them
+            ///     (dev `entities` icon bytes, 0.5.5f, 2026-11-19; docs/research/minimap.md).
+            /// </summary>
+            public static int ComponentHiddenOffset { get; internal set; } = 0x38;
         }
 
         /// <summary>
