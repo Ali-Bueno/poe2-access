@@ -654,5 +654,5 @@ position on the client) is where the server says the mesh is. PROVEN from the fi
   point walked to straight (`BeaconMath.LineWalkable` on the terrain grid, rings 50 apart, 16 directions, out to 15
   steps) that `FloodGeometry.StaysDry`: beside the path a step past the tongue's widest, or a step ahead of where the
   front is in 10 s. The heartbeat leads there (`BossMechanicsWatch.LeadTo`), the warnings add "seguro hacia…".
-  The pulse's sound: candidates on the [audition page](https://claude.ai/artifact/DqYH86yFJFaTwCMhvM548R), A
-  (`CueSynth.FloodBubble`) until the owner picks.
+  The pulse's sound: the owner picked D, a hiss of steam (`CueSynth.FloodHiss`), on the
+  [audition page](https://claude.ai/artifact/DqYH86yFJFaTwCMhvM548R) over a lava bubble, a crackle and a thump; the others are gone.
