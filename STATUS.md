@@ -40,6 +40,9 @@
   the game closes; `restart` (no game start) / `stop` for testing; errors
   in `Poe2Access.log` (one log, `app\` in the package) + a message box. From Steam's Play button: launch options `"<path>\Poe2Access.exe" %command%` (`tools/README.md`).
   Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
+- **Play copy:** the owner plays from `dist/Poe2Access`, which `tools/build.ps1` does NOT update: `Poe2Access.exe stop`,
+  robocopy the built `Plugins/Poe2Accessibility` over `app/Plugins/Poe2Accessibility` (`/E /XD config logs`), then
+  `Poe2Access.exe restart` (the game stays open).
 - **Releases:** public repo (2026-10-26); `pwsh tools/package/Publish-Release.ps1` (`-DryRun` first) refuses off `main`, dirty or unpushed, then builds, tests, packages and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z` + `release.json`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
 - **Test package:** `pwsh tools/package/New-TestPackage.ps1` (build and tests first) → `dist/package/Poe2Access-test-<date>.zip` and `.7z` (zip ~47 MB, 7z ~33 MB since the recorded item sounds; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
