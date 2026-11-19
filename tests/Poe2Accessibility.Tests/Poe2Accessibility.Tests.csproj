@@ -193,8 +193,6 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\ShopBalanceWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
-    <Compile Include="..\..\tools\Poe2UiExtract\ExitSoundDsp.cs" Link="Extract\ExitSoundDsp.cs" />
-    <Compile Include="..\..\tools\Poe2UiExtract\ExitSoundRecipes.cs" Link="Extract\ExitSoundRecipes.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\Say.cs" Link="Extract\Say.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\UiLoss.cs" Link="Extract\UiLoss.cs" />
     <Compile Include="..\..\host\GameReader\Utils\ReadFailureLog.cs" Link="Launcher\ReadFailureLog.cs" />
@@ -365,9 +363,6 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomObjectMatcher.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoomTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Rooms.cs" Link="Plugin\Announcements.Rooms.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TerrainBiome.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExitMaterial.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\Audio\ExitSoundSet.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\LocalPlayerList.cs" />

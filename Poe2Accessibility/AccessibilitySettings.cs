@@ -152,9 +152,6 @@ namespace Poe2Accessibility
         /// <summary>The radar's rays turn to the screen's diagonals where the map's ways run only along them (Ogham Manor).</summary>
         public bool RadarFollowsMap = true;
 
-        /// <summary>The exits of the room or fork you stand in sound in turn from where they leave, by their material.</summary>
-        public bool ExitBeacons = true;
-
         /// <summary>Say what A uses (the label the game marks with the button) whenever it changes: "Stash, A".</summary>
         public bool AnnounceInteractTarget = true;
 

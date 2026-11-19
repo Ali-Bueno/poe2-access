@@ -72,7 +72,6 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.LostSpokenHintMinutes) => T("Spoken hint of the way on: minutes moving through an area, 0 for never", "Pista hablada del camino: minutos andando por una zona, 0 para nunca"),
             nameof(AccessibilitySettings.MapHints) => T("Map hints when passing them", "Pistas del mapa al pasar"),
             nameof(AccessibilitySettings.MapHintSides) => T("Map hints: say which way they go", "Pistas del mapa: decir hacia qué lado van"),
-            nameof(AccessibilitySettings.ExitBeacons) => T("Exits of the room you are in sound from where they leave", "Las salidas de la sala donde estás suenan desde donde salen"),
             nameof(AccessibilitySettings.RadarFollowsMap) => T("Radar: turn diagonal where the corridors run diagonal", "Radar: girar en diagonal donde los pasillos van en diagonal"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
             nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),

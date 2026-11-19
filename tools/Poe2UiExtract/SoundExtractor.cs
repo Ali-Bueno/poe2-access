@@ -214,9 +214,6 @@ internal static partial class SoundExtractor
                 }
                 FMOD_Sound_Release(snd);
             }
-
-            // Apart: the exits' ambient sounds are an extra, their gaps are logged and never fail the step.
-            WriteExitSounds(sys, gameDir, outDir, Path.Combine(Path.GetDirectoryName(itemCatalog) ?? string.Empty, ExitSoundRecipes.FileName), tmp);
         }
         finally
         {

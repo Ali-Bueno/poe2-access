@@ -28,8 +28,6 @@ namespace Poe2Accessibility.Tests
             (nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange),
             (nameof(PiecesAheadAreSaidAsTheyComeInSight), PiecesAheadAreSaidAsTheyComeInSight),
             (nameof(AForkIsToldOnceWithoutTheWayBack), AForkIsToldOnceWithoutTheWayBack),
-            (nameof(TilesTellTheirSetting), TilesTellTheirSetting),
-            (nameof(AnExitsEventsComeUnevenlyNeverTheSameTwice), AnExitsEventsComeUnevenlyNeverTheSameTwice),
             (nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid),
             (nameof(OnlyASwappedLineCutsIn), OnlyASwappedLineCutsIn),
             (nameof(AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice), AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice),
@@ -353,48 +351,6 @@ namespace Poe2Accessibility.Tests
             Equal("ballroom", ForkTracker.MostTelling(new[] { "stairs", "ballroom" }, manor), "a room-piece before any");
             Equal("stairs", ForkTracker.MostTelling(new[] { "stairs" }, manor), "stairs when they are all there is");
             Equal(null, ForkTracker.MostTelling(new[] { "unknown" }, manor), "nothing telling: none");
-        }
-
-        private static void TilesTellTheirSetting()
-        {
-            Equal("interior", TerrainBiome.Of("metadata/terrain/woods/manor/interior/hall_st_01.tdt"), "a manor's hall inside the woods folder is an interior");
-            Equal("forest", TerrainBiome.Of("metadata/terrain/woods/oldforestwoods/fill_01.tdt"), "Clearfell's ground");
-            Equal("water", TerrainBiome.Of("metadata/terrain/woods/mudbankgentle/riverbed_fill_01.tdt"), "a riverbed");
-            Equal("desert", TerrainBiome.Of("metadata/terrain/desert/pillars/pillar_01.tdt"), "the desert");
-            Equal("cave", TerrainBiome.Of("metadata/terrain/mountain/mines/mine_st_01.tdt"), "mines are caves before mountains");
-            Equal(null, TerrainBiome.Of("metadata/terrain/dungeon/black_nofog.tdt"), "filler is nothing");
-            Equal("bridge", ExitMaterial.Of("walkway", false, "forest"), "a walkway sounds as a bridge");
-            Equal("narrow", ExitMaterial.Of(null, true, "forest"), "a narrow passage before the setting");
-            Equal("desert", ExitMaterial.Of(null, false, "desert"), "else the setting");
-        }
-
-        private static void AnExitsEventsComeUnevenlyNeverTheSameTwice()
-        {
-            var scatter = new ExitScatter(2000, 5000, 0, new Random(7));
-            Equal(null, scatter.Next(0, 4), "not with the bed's start");
-            var times = new List<long>();
-            var picks = new List<int>();
-            for (long now = 0; now < 120_000; now += 100)
-            {
-                if (scatter.Next(now, 4) is { } next)
-                {
-                    times.Add(now);
-                    picks.Add(next.Index);
-                    Equal(true, MathF.Abs(next.Pitch - 1f) <= ExitScatter.PitchSpread + 1e-4f, "pitch within its spread");
-                }
-            }
-
-            var gaps = times.Zip(times.Skip(1), (a, b) => b - a).ToList();
-            Equal(true, gaps.All(gap => gap >= 2000 && gap <= 5100), "gaps within the range");
-            Equal(true, gaps.Distinct().Count() > 5, "and uneven");
-            Equal(true, picks.Zip(picks.Skip(1)).All(pair => pair.First != pair.Second), "never the same event twice running");
-            Equal(4, picks.Distinct().Count(), "every event heard");
-
-            var set = new ExitSoundSet();
-            set.Add("bridge", new[] { new float[] { 1 } }, new[] { new float[] { 2 }, new float[] { 3 } }, sound => sound.Select(sample => sample / 2).ToArray());
-            Equal(0.5f, set.Bed("bridge", true, 5)![0], "an explored exit's bed is the muffled copy");
-            Equal(2, set.EventCount("bridge"), "its events");
-            Equal(null, set.Bed("desert", false, 0), "a material without sounds is silent");
         }
 
         private static void ATooltipLineSwappedInPlaceIsSaid()

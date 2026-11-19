@@ -77,7 +77,6 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.RadarRooms)),
                 Switch(nameof(AccessibilitySettings.UnexploredMark)),
                 Switch(nameof(AccessibilitySettings.RadarFollowsMap)),
-                Switch(nameof(AccessibilitySettings.ExitBeacons)),
                 Switch(nameof(AccessibilitySettings.LostHint)),
                 Number(nameof(AccessibilitySettings.LostHintSeconds), 60, 600, 30),
                 Number(nameof(AccessibilitySettings.UnexploredHintSeconds), 0, 120, 5),

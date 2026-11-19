@@ -34,15 +34,15 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Entity paths of what player skills place to be struck: Tempest Bell and its skins (game metadata
-        ///     `metadata/effects/spells/monk_bell/tempest_bell.ot`, `mtx_bell*.ot`), the spectral bells, and Frozen Locus's ice
-        ///     crystal (`Metadata/MiscellaneousObjects/FrostWall/OrbOfIce`, turned up beside the player live 2026-10-29). The
+        ///     `metadata/effects/spells/monk_bell/tempest_bell.ot`, `mtx_bell*.ot`) and Frozen Locus's ice crystal
+        ///     (`Metadata/MiscellaneousObjects/FrostWall/OrbOfIce`, turned up beside the player live 2026-10-29). Hollow Focus's
+        ///     many `monk_spectral_bells/` are left silent (the owner, 2026-11-19: they daze). The
         ///     Actor's own list of placed objects is not where GameHelper reads it (0xC28) and held no entity id anywhere in
         ///     its first 0x1400 bytes with the crystal down (survey 2026-10-29), so the kinds are named here.
         /// </summary>
         private static readonly string[] PlacedPaths =
         {
             "Metadata/Effects/Spells/monk_bell/",
-            "Metadata/Effects/Spells/monk_spectral_bells/",
             "Metadata/MiscellaneousObjects/FrostWall/OrbOfIce",
         };
 

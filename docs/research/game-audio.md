@@ -316,6 +316,9 @@ strongbox A `Strongboxes` `Gameplay_Endgame_Strongboxes_Stinger_Activate_01`, B 
 no game yet.
 
 ## Exits' ambient emitters (2026-11-16)
+**Removed 2026-11-19** at the owner's word (they broke the immersion): `ExitBeacons`, the recipes and their extractor are
+gone from the code; what follows is the record of how they were made.
+
 Every exit is an ambient emitter (`ExitBeacons`, [radar](../radar.md)): per material a few soft bed loops and a pool of short
 events played over a bed at uneven gaps. The owner chose, by ear on the audition page ("está bien los sonidos así"), the
 22 audition sets, **A and B of each of 11 materials used together**. 219 files, mono 44.1 kHz, every file at RMS 0.05

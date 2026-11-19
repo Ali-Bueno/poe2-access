@@ -109,9 +109,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The kind of map piece at a grid cell of the current area, or null.</summary>
         public string? KindAt(Vector2 grid) => this.map?.KindAt(grid);
 
-        /// <summary>The setting of the ground at a grid cell of the current area (<see cref="TerrainBiome"/>), or null.</summary>
-        public string? BiomeAt(Vector2 grid) => this.map?.BiomeAt(grid);
-
         /// <summary>The named room at a grid cell of the current area (its name: <see cref="Announcements.RoomName"/>), or null.</summary>
         public NamedRoom? RoomAt(Vector2 grid) => this.map is { } places ? RoomMatcher.At(places.NamedRooms, grid) : null;
 

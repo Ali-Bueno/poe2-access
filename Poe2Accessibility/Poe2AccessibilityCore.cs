@@ -66,7 +66,6 @@ namespace Poe2Accessibility
         private LeftBehind? leftBehind;
         private MapHintNarrator? mapHints;
         private ForkNarrator? forks;
-        private ExitBeacons? exitBeacons;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
@@ -452,12 +451,6 @@ namespace Poe2Accessibility
                     Pieces = this.places != null ? this.places.Pieces : null,
                     RoomAt = this.places != null ? this.places.RoomAt : null,
                     WhenCircling = () => this.lostHint?.Circling == true ? this.entities.DescribeNearestUnexplored() : null,
-                };
-                this.exitBeacons = new ExitBeacons(this.entities, this.audio)
-                {
-                    KindAt = this.places != null ? this.places.KindAt : null,
-                    BiomeAt = this.places != null ? this.places.BiomeAt : null,
-                    Sounds = GameSounds.LoadExits(Path.Join(this.DllDirectory, "sounds", "exits"), this.log),
                 };
                 if (this.places != null)
                 {

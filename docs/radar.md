@@ -166,19 +166,10 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   and back at 60% or less; said twice running (1 s apart) before turning, and a turn starts the readings afresh. An opening
   beside a corridor walked toward does not turn them (the owner). Diagonal rays pan 0.7 to their side; the upper two breathe
   as ahead, the lower two as behind (`RadarSynth.Diagonal`).
-- **Exits that sound** (`ExitBeacons`, `ExitSoundSet`, `ExitScatter`, `ExitMaterial`, `TerrainBiome`; setting `ExitBeacons`, at
-  the radar's volume × 0.5): the owner, after the forks: "landmarks inmersivos, pero que a la vez ayuden al jugador". Every
-  exit of the rooms and forks within 80 cells is an ambient emitter in its doorway (the place's edge + 6 cells, at least 18),
-  the nearest four heard, louder nearer (fade²), panned and pitched by `ScreenProjection.Voice`. Its material: a map piece
-  within 30 cells along it (bridge, walkway, stairs, ramp, door, gate, dock), a narrow passage, else the setting of the
-  tile 30 cells along (`TerrainBiome` from the tile file's folder: interior, cave, water, desert, city, forest). Each emitter
-  is a bed (one of the material's, from a random point) and events of the material's pool at uneven gaps
-  (`ExitMaterial.EventGapMs`), never the same twice running, pitch ±4%, level ±3 dB (round robin: "más natural y no tan
-  repetitivo"). Explored: the muffled copy (1.5 kHz low-pass) at 0.45; a dead end a look shows whole: silent; a fight: 0.35;
-  menus and the option off: stopped. Sounds from `sounds/exits/<material>/bed_*.wav, event_*.wav` (the game's own
-  recordings, made on each install by the launcher's `sounds` step from the committed recipes `catalog/exit-sounds.json`: the 22
-  audition sets, A and B of each of 11 materials, used together; [game audio](research/game-audio.md#exits-ambient-emitters-2026-11-16)). Candidates and their sources: the
-  [audition page](https://claude.ai/artifact/EKpLcz26HBuxcLB5op3N7p).
+- **Exits that sound: removed 2026-11-19.** The rooms' and forks' exits were ambient emitters by material (rain,
+  leaves, a bridge's wood…); the owner: "están quitando mucho la inmersión". Doors, area exits, portals and waypoints keep
+  their object sounds. The design and its sound recipes are in git history before that date
+  ([game audio](research/game-audio.md#exits-ambient-emitters-2026-11-16)).
 - **Narrow passages:** "paso estrecho" when walked into, as a map piece (`PlaceNarrator.MoreKindAt`).
 - **Pieces ahead** (`LandmarkAhead`, setting `AnnouncePlacesAhead`, **off**): stairs, doors, bridges, narrow passages… named
   with their side as they come within a look. The owner: the distance was too much speech, the sounds are what to learn; the

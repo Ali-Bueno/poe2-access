@@ -173,6 +173,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, DeployedObjects.IsPlaced("Metadata/MiscellaneousObjects/FrostWall/OrbOfIce"), "Frozen Locus's crystal (seen live)");
             Equal(true, DeployedObjects.IsPlaced("Metadata/Effects/Spells/monk_bell/tempest_bell"), "Tempest Bell");
             Equal(true, DeployedObjects.IsPlaced("Metadata/Effects/Spells/monk_bell/mtx_BellAurora"), "a bell skin");
+            Equal(false, DeployedObjects.IsPlaced("Metadata/Effects/Spells/monk_spectral_bells/spectral_bell"), "Hollow Focus's bells are left silent (seen live 2026-11-19)");
             Equal(false, DeployedObjects.IsPlaced("Metadata/MiscellaneousObjects/FrostWall/FrostWall"), "a wall segment is not struck");
             Equal(false, DeployedObjects.IsPlaced("Metadata/Monsters/Wolves/FungalWolf1_@6"), "a monster");
             Equal(true, DeployedObjects.GainAt(100) > DeployedObjects.GainAt(1200) && DeployedObjects.GainAt(DeployedObjects.RangeWorld) > 0, "louder near, never silent in range");

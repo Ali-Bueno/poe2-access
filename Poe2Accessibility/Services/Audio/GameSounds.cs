@@ -177,42 +177,6 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>
-        ///     The exits' ambient sounds (<see cref="ExitSoundSet"/>): `exits/&lt;material&gt;/bed_*.wav` loops and `event_*.wav`
-        ///     one-shots, each with a muffled copy for an explored exit.
-        /// </summary>
-        public static ExitSoundSet LoadExits(string directory, PluginLog log)
-        {
-            var set = new ExitSoundSet();
-            if (!Directory.Exists(directory))
-            {
-                return set;
-            }
-
-            foreach (var folder in Directory.EnumerateDirectories(directory))
-            {
-                var files = new Dictionary<string, float[]>();
-                LoadFolder(folder, LoopMaxSeconds, false, files, log);
-                var beds = files.Where(file => file.Key.StartsWith("bed", StringComparison.Ordinal)).Select(file => file.Value).ToList();
-                var events = files.Where(file => file.Key.StartsWith("event", StringComparison.Ordinal)).Select(file => file.Value).ToList();
-                set.Add(Path.GetFileName(folder), beds, events, sound => Muffled(sound));
-            }
-
-            log.Info($"Exit sounds loaded from {directory}: {set.Describe()}");
-            return set;
-        }
-
-        /// <summary>An explored exit's copy of a sound: its highs gone, as through a wall.</summary>
-        private static float[] Muffled(float[] sound)
-        {
-            var copy = (float[])sound.Clone();
-            LowPass(copy, ExitMuffleHz);
-            return copy;
-        }
-
-        /// <summary>An explored exit sounds through this low-pass (Hz).</summary>
-        private const float ExitMuffleHz = 1500f;
-
         private static void LoadFolder(string folder, float maxSeconds, bool fadeOut, Dictionary<string, float[]> into, PluginLog log)
         {
             foreach (var path in Directory.EnumerateFiles(folder, "*.wav"))

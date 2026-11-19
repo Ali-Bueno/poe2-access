@@ -75,11 +75,6 @@ namespace Poe2Accessibility
                 this.wallBump.Gain = Fraction(settings.RadarVolume);
             }
 
-            if (this.exitBeacons != null)
-            {
-                this.exitBeacons.Gain = Fraction(settings.RadarVolume);
-            }
-
             if (this.wallTones != null)
             {
                 this.wallTones.Gain = Fraction(settings.RadarVolume);
