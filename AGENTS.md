@@ -42,3 +42,6 @@
     beforehand, from the game's data and other sources (docs/research/boss-mechanics.md §12-§13), so the user meets it
     already spoken. A log of the user's session may confirm a finding afterwards; it is never the way to it, and the
     user is not asked to play for it.
+27. One game at a time on this PC: other agents test other mods here (Dragon Ball Z: Kakarot, 2026-11-19). Before
+    starting PoE2, look for another game running (`tasklist`); if one is, ask the owner first. Close PoE2 as soon as the
+    live check is done.
