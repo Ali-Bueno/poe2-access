@@ -241,6 +241,8 @@ namespace Poe2Accessibility
 
             this.lostHint?.Reset();
             this.mapPart.Reset();
+            this.partsDone.Reset();
+            this.leftBehind?.Reset();
             this.carried.Reset();
             this.nearby?.Reset();
             this.places?.Reset();

@@ -278,6 +278,9 @@ namespace Poe2Accessibility
         /// <summary>D2R unexplored mark: a radar open-way or exit cue toward unseen ground ends in two pips.</summary>
         public bool UnexploredMark = true;
 
+        /// <summary>A radar cue from a nook or short branch left unexplored, as the player walks away from it.</summary>
+        public bool LeftBehindCue = true;
+
         /// <summary>The area's announcement says which part of the map the player starts in.</summary>
         public bool AreaCorner = true;
 

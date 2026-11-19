@@ -63,6 +63,7 @@ namespace Poe2Accessibility
         private EnemyCues? enemyCues;
         private Radar? radar;
         private LostHint? lostHint;
+        private LeftBehind? leftBehind;
         private MapHintNarrator? mapHints;
         private ForkNarrator? forks;
         private ExitBeacons? exitBeacons;
@@ -428,6 +429,7 @@ namespace Poe2Accessibility
                 this.culls.Chime = modSounds.Get("cull") ?? this.culls.Chime;
                 this.lostHint = new LostHint(this.audio, this.entities, modSounds.GetLoop(LostHint.LoopName), this.log);
                 this.lostHint.SayWay = cell => this.output?.Say(SpeechKind.Places, this.entities.DescribeWayOn(cell));
+                this.leftBehind = new LeftBehind(this.audio, this.entities, this.log);
                 this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")),
                                                     () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark ? this.entities.UnseenToward(from, axis) : null;
@@ -594,6 +596,7 @@ namespace Poe2Accessibility
             this.enemyCues = null;
             this.radar = null;
             this.lostHint = null;
+            this.leftBehind = null;
             this.mapHints = null;
             this.partnerRadar = null;
             Seats.Attach(null, null);

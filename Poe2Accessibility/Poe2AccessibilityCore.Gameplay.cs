@@ -122,6 +122,9 @@ namespace Poe2Accessibility
             this.Isolated("lost hint", playing, static (core, playing) => core.lostHint?.Tick(
                 playing && core.Settings.LostHint && core.beacon?.Target == null && !core.InTownOrHideout(),
                 core.fights?.InFight(FightState.AnyEnemy) == true));
+            this.Isolated("left behind", playing, static (core, playing) => core.leftBehind?.Tick(
+                playing && core.Settings.LeftBehindCue && !core.InTownOrHideout() && core.entities?.RoomsApart() != true,
+                core.fights?.InFight(FightState.AnyEnemy) == true));
             this.Isolated("map parts", playing, static (core, playing) => core.TickMapParts(playing));
             this.Isolated("trial rooms", playing, static (core, playing) => core.TickTrialRooms(playing));
             this.Isolated("map hints", playing, static (core, playing) => core.mapHints?.Tick(playing && core.Settings.MapHints && !core.InTownOrHideout()));

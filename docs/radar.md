@@ -223,7 +223,26 @@ share, the part the player is in, the parts with ground that goes on and their s
 three unexplored stretches with their way. Standing still was considered as the trigger and dropped for the button
 (the owner): a stop for anything else would have spoken.
 
+**Parts finished** (2026-11-19, the owner: "ya exploré toda la parte derecha, aún falta la izquierda", without a key): a part
+that had ground going on and now has only nooks left is said once, with the parts still to explore, "Completado: Borde
+derecho. Falta: Esquina superior izquierda, Borde izquierdo", or "Todo el mapa explorado" (`MapPartsDone`, read every 2 s
+in the same tick and setting as the parts entered; how the map stands on arrival is no news; a fight holds it back).
+
 Whether the steps could tell road from plain ground was looked into and left: [ground types](research/ground-types.md).
+
+## Left behind
+
+Asked by the owner on 2026-11-19: the radar tells what lies ahead, nothing what is left behind ("saber cuando estoy en una
+zona que ya exploré, pero falta explorar el rincón que quedó ahí pequeñito desapercibido"), with no key and no constant
+sound; the exit beacons stay as they are. Unseen ground that soon ends (a nook or a short branch: `UnseenSize` Pocket or
+Small, joined cell by cell) whose edge came within 1.5 looks (90 cells) of the player and was not seen sounds once, from
+its side (`ScreenProjection.Voice`), when the player is two looks (120 cells) from it: `LeftBehindWatch` (pure) over
+`ExplorationMap.SmallUnseenNear` (the edge blocks within reach, from the last frontier's survey, uncapped: the scanner's
+eight places put nooks last), played by `LeftBehind` at the radar's volume. Each nook once an area: telling one quiets
+its whole edge within a look; two nooks left together are 3 s apart; a fight holds it back until it is over; a jump (a
+portal, a waypoint) forgets what was near. Ground that goes on is not told (it is the normal frontier, and forks and parts
+already say it); nor are towns, hideouts and a Trial's floor. Setting `LeftBehindCue`; sound `radar_left_behind`
+(`CueSynth.LeftBehind`), candidates on the [audition page](https://claude.ai/artifact/PmA3oePRSbyCUFd86V3iMm).
 
 ## The minimap's arrow (tried and removed, 2026-11-18)
 

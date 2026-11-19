@@ -55,6 +55,18 @@ namespace Poe2Accessibility
             standing is not { } part ? string.Empty : part.Explored ? T("Already explored", "Ya explorado") : Explored(part.Percent),
         });
 
+        /// <summary>Parts of the map just finished, then those still with ground left: "Done: Right edge. Left: Top left corner, Left edge".</summary>
+        public static string MapPartsDone(IReadOnlyList<Services.MapPart> done, IReadOnlyList<Services.MapPart> left)
+        {
+            var finished = string.Join(", ", done.Select(part => CornerOfMap(part.Across, part.Down)));
+            var rest = string.Join(", ", left.Select(part => CornerOfMap(part.Across, part.Down)));
+            return Sentences(new[]
+            {
+                T($"Done: {finished}", $"Completado: {finished}"),
+                rest.Length > 0 ? T($"Left: {rest}", $"Falta: {rest}") : T("The whole map is explored", "Todo el mapa explorado"),
+            });
+        }
+
         /// <summary>
         ///     A look at the map in words: the explored share, the part the player is in, the parts with ground left and the
         ///     nearest unexplored stretches. A map too small for parts says none.

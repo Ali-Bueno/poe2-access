@@ -87,6 +87,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.MapHintSides)),
                 Switch(nameof(AccessibilitySettings.AreaCorner)),
                 Switch(nameof(AccessibilitySettings.AnnounceMapParts)),
+                Switch(nameof(AccessibilitySettings.LeftBehindCue)),
                 Switch(nameof(AccessibilitySettings.WallTones)),
                 Number(nameof(AccessibilitySettings.WallToneRange), 200, 1600, 100),
                 Switch(nameof(AccessibilitySettings.WallBump)),
