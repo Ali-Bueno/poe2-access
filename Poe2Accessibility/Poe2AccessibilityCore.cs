@@ -386,7 +386,10 @@ namespace Poe2Accessibility
                 this.deployed = new DeployedWatch(this.audio, this.log);
                 this.traps = new TrapWatch(this.audio, this.log);
                 this.trialDoors = new TrialDoorWatch(this.entities, this.output, this.log);
-                this.chaosTrial = new ChaosTrialWatch(this.entities, this.output, this.log);
+                this.chaosTrial = new ChaosTrialWatch(this.entities, memory, this.output, this.log)
+                {
+                    LiftReady = way => this.objectSounds?.WayOpened(way),
+                };
                 this.cinematics = new CinematicWatch(this.output, this.log)
                 {
                     LoadingAreaId = () => this.gameState?.LoadingAreaId(),

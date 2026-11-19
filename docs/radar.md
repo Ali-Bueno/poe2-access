@@ -241,7 +241,7 @@ its side (`ScreenProjection.Voice`), when the player is two looks (120 cells) fr
 eight places put nooks last), played by `LeftBehind` at the radar's volume. Each nook once an area: telling one quiets
 its whole edge within a look; two nooks left together are 3 s apart; a fight holds it back until it is over; a jump (a
 portal, a waypoint) forgets what was near. Ground that goes on is not told (it is the normal frontier, and forks and parts
-already say it); nor are towns, hideouts and a Trial's floor. Setting `LeftBehindCue`; sound `radar_left_behind`
+already say it); nor are towns, hideouts and a Trial's floor (Sekhemas or Chaos). Setting `LeftBehindCue`; sound `radar_left_behind`
 (`CueSynth.LeftBehind`): a far bell, the owner's pick of four on the [audition page](https://claude.ai/artifact/PmA3oePRSbyCUFd86V3iMm).
 
 ## The minimap's arrow (tried and removed, 2026-11-18)

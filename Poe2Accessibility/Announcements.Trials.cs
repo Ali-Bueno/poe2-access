@@ -50,6 +50,11 @@ namespace Poe2Accessibility
             ? T($"Round {round} of {of} won", $"Ronda {round} de {of} superada")
             : T($"Round {round} won", $"Ronda {round} superada");
 
+        /// <summary>A lift turned ridable and where it goes, as its line starts ("Ascensor activado, baja a la sala, 12 pasos…").</summary>
+        public static string ChaosLiftReady(bool down) => down
+            ? T("Lift ready, goes down to the room", "Ascensor activado, baja a la sala")
+            : T("Lift ready, goes up", "Ascensor activado, sube");
+
         /// <summary>The lift's lever that takes the player on once a round is won, as its line starts ("Interruptor de salida, 30 pasos…").</summary>
         public static string ChaosExitLever => T("Exit lever", "Interruptor de salida");
 

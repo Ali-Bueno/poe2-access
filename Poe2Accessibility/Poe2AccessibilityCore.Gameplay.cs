@@ -150,7 +150,8 @@ namespace Poe2Accessibility
             this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
             this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
             var now = Environment.TickCount64;
-            this.trialScope.Saw(this.screen != null && this.narrator?.TrialShown(this.screen.Current) == true, now);
+            // A Trial of the Sekhemas by its HUD's lines, a Trial of Chaos by its rules: rooms apart, no nooks or map parts, every monster warned.
+            this.trialScope.Saw((this.screen != null && this.narrator?.TrialShown(this.screen.Current) == true) || this.rulesets?.InChaosTrial == true, now);
             var allMonsters = TrialDodgeScope.AllMonsters(this.Settings.DodgeWarningsAllMonsters, this.Settings.DodgeWarningsAllMonstersInTrials, this.trialScope.InTrial(now));
             if (allMonsters != this.bosses.AllMonsters)
             {

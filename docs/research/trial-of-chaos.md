@@ -253,6 +253,18 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   round is `Objects/UltimatumSelector` (states `enabled`, `rewardstaken`, `ultimatum_challenge_world_description`), not a lift lever; it
   was listed under Objects with no sound. Now a round piece (`ChaosPiece.Selector`) that rings as a quest object. Not yet seen: whether
   it stays targetable during the round (it would keep ringing then).
+- **Lifts and the trial's scope** (2026-11-19, the owner: "no me dice si me lleva a la sala"): `Objects/LiftPlatform[Large]` is a
+  round piece (`ChaosPiece.Lift`) listed without a target and ringing as a quest object while `activated` is 1; turning ridable
+  says "Ascensor activado, baja a la sala, N pasos…" when its transition is 2 (up: riding goes down, LiftPlatformLarge.ot's
+  on_transition ascends) or "…, sube" at 1, with the way-opened sound from where it stands (`LiftNews`; log "Lift N activated,
+  transition s of c"). The Trial of Chaos shows no round line on its HUD, so `TrialDodgeScope` now also takes its rules
+  (`RulesetWatch.InChaosTrial`): rooms apart, no left-behind nooks or map parts, every monster warned, as on a Sekhemas floor.
+- **Petrification Statues, first run 2026-11-19** (research log in `TrapWatch`; files by a study the same day): the gaze is a line
+  out of the statue's front, beam `UltimatumPetrificationBeam` (MiscBeams row 663) 600 world units long (MEASURED; width and walls
+  UNSURE); the statue never turns (`immobile`). Eyes open on animation `ChangeToStance2` (85), shut on `ChangeToStance1` (84), each
+  a one-poll blip before Idle, so the open state is latched: open about 2.0-2.2 s, a cycle of 6.6-7 s, statues out of step (log).
+  In the gaze the player carries `petrification_stacker_79` (source = the statue's id, no end) and builds `petrification_stack_79`
+  (charges, 3.5 s each, decays after the gaze); `petrified` is the stone. Not known: the stacks to stone, its length, the facing.
 - **Already there**: the round counter, the modifier icons' names, the Corruption Dais and the reward chest by their
   world titles, the Trialmaster as a character, the bosses' mechanics, Impending Doom's blasts.
 

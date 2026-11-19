@@ -20,6 +20,13 @@ namespace Poe2Accessibility.Services
         ///     (<c>UltimatumSelector</c>, named "Interruptor" in the game; seen live 2026-11-19, it sounded nothing).
         /// </summary>
         Selector,
+
+        /// <summary>
+        ///     A lift between the Trialmaster's level and a room (<c>LiftPlatform[Large]</c>): `activated` 1 while it can be ridden
+        ///     (its minimap icon shows), its transition 2 up and 1 down (LiftPlatformLarge.ot: on_transition ascends). No target:
+        ///     ridden by standing on it and pulling its lever.
+        /// </summary>
+        Lift,
     }
 
     /// <summary>What a round of the Trial of Chaos asks (UltimatumEncounterTypes), as far as its pieces tell.</summary>
@@ -54,6 +61,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The blood altar's state: 3 once its three circles have fed it.</summary>
         public const string AltarCompleteState = "complete";
 
+        /// <summary>The lift's state while it can be ridden.</summary>
+        public const string LiftActivatedState = "activated";
+
+        /// <summary>A lift's transition when it stands up, at the Trialmaster's level: riding it goes down into the room.</summary>
+        public const int LiftUp = 2;
+
         /// <summary>The lever's state while it can be pulled.</summary>
         public const string LeverEnabledState = "enabled";
 
@@ -69,6 +82,8 @@ namespace Poe2Accessibility.Services
             [Folder + "LiftButton"] = ChaosPiece.LiftLever,
             [Folder + "BossLiftTransition"] = ChaosPiece.BossLift,
             [Folder + "UltimatumSelector"] = ChaosPiece.Selector,
+            [Folder + "LiftPlatform"] = ChaosPiece.Lift,
+            [Folder + "LiftPlatformLarge"] = ChaosPiece.Lift,
         };
 
         /// <summary>Each piece's file and the state matched on it, for the data step's check (<see cref="GameNames"/>).</summary>
@@ -77,6 +92,7 @@ namespace Poe2Accessibility.Services
             ChaosPiece.BloodCircle => CircleFilledState,
             ChaosPiece.BloodAltar => AltarCompleteState,
             ChaosPiece.LiftLever => LeverEnabledState,
+            ChaosPiece.Lift => LiftActivatedState,
             _ => (string?)null,
         }));
 
@@ -87,12 +103,20 @@ namespace Poe2Accessibility.Services
             return Files.TryGetValue(mark < 0 ? path : path[..mark], out var piece) ? piece : null;
         }
 
-        /// <summary>A piece the game gives no target and no minimap mark, yet the round is fought beside it.</summary>
-        public static bool IsFoughtBeside(ChaosPiece piece) => piece is ChaosPiece.Statue or ChaosPiece.BloodCircle;
+        /// <summary>A piece the game gives no target, yet the player goes to it: the statue and circles of a round, a lift.</summary>
+        public static bool IsFoughtBeside(ChaosPiece piece) => piece is ChaosPiece.Statue or ChaosPiece.BloodCircle or ChaosPiece.Lift;
 
-        /// <summary>Whether a piece fought beside still asks for the player: a circle until it is full, the statue always.</summary>
-        public static bool StillAsks(ChaosPiece piece, IEnumerable<(string Name, long Value)> states) =>
-            piece != ChaosPiece.BloodCircle || !IsFull(states);
+        /// <summary>Whether such a piece still asks for the player: a circle until it is full, a lift while it can be ridden, the statue always.</summary>
+        public static bool StillAsks(ChaosPiece piece, IEnumerable<(string Name, long Value)> states) => piece switch
+        {
+            ChaosPiece.BloodCircle => !IsFull(states),
+            ChaosPiece.Lift => IsActivated(states),
+            _ => true,
+        };
+
+        /// <summary>A lift that can be ridden now.</summary>
+        public static bool IsActivated(IEnumerable<(string Name, long Value)> states) =>
+            states.Any(state => state.Value > 0 && string.Equals(state.Name, LiftActivatedState, StringComparison.Ordinal));
 
         public static bool IsFull(IEnumerable<(string Name, long Value)> states) =>
             states.Any(state => state.Value > 0 && string.Equals(state.Name, CircleFilledState, StringComparison.Ordinal));
@@ -251,6 +275,22 @@ namespace Poe2Accessibility.Services
             this.won = null;
             var opened = pullable.Where(lever => this.levers[lever.Id].Since >= at - WaitMs).OrderByDescending(lever => this.levers[lever.Id].Since).ToList();
             return (opened.Count > 0 ? opened[0] : pullable.OrderBy(lever => lever.Distance).First()).Id;
+        }
+    }
+
+    /// <summary>A lift that became ridable, once each time it does (the owner, 2026-11-19: "no me dice si me lleva a la sala"). Pure.</summary>
+    public sealed class LiftNews
+    {
+        private readonly Dictionary<uint, bool> activated = new();
+
+        public void Reset() => this.activated.Clear();
+
+        /// <summary>True when this lift has just turned ridable; what stands when first seen is not news.</summary>
+        public bool Activated(uint id, bool now)
+        {
+            var news = this.activated.TryGetValue(id, out var was) && !was && now;
+            this.activated[id] = now;
+            return news;
         }
     }
 }

@@ -73,6 +73,14 @@ namespace Poe2Accessibility.Tests
             Equal((true, false), ChaosTrial.Asks(ChaosPiece.Selector, false, new[] { (ChaosTrial.LeverEnabledState, 1L), ("rewardstaken", 0L) }), "the modifier switch rings before the round");
             Equal((false, false), ChaosTrial.Asks(ChaosPiece.Selector, false, new[] { (ChaosTrial.LeverEnabledState, 0L), ("rewardstaken", 0L) }), "and not once a modifier is chosen");
             Equal((false, false), ChaosTrial.Asks(ChaosPiece.LiftLever, false, new[] { (ChaosTrial.LeverEnabledState, 0L) }), "a lever that cannot be pulled is silent");
+            Equal(true, ChaosTrial.StillAsks(ChaosPiece.Lift, new[] { (ChaosTrial.LiftActivatedState, 1L) }), "a lift that can be ridden is listed and rings");
+            Equal(false, ChaosTrial.StillAsks(ChaosPiece.Lift, new[] { (ChaosTrial.LiftActivatedState, 0L), ("minimap_icon", 0L) }), "a shut one is not");
+            var lifts = new LiftNews();
+            Equal(false, lifts.Activated(5, true), "a lift ridable when first seen is no news");
+            Equal(false, lifts.Activated(6, false), "nor one shut");
+            Equal(true, lifts.Activated(6, true), "one turning ridable is");
+            Equal(false, lifts.Activated(6, true), "once");
+            Equal(true, lifts.Activated(5, false) || lifts.Activated(5, true), "and again after it was ridden and shut");
             Equal(false, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 1L) }), "a full circle is done");
             Equal(true, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 0L), ("spawning", 1L) }), "one filling is not");
             Equal(true, TrialTraps.KindOf("Metadata/Monsters/LeagueUltimatum/Turrets/FireTurret1@40") == TrialTrap.Turret, "a hazard by its MonsterVarieties Id");

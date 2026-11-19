@@ -24,11 +24,14 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<uint, ScanEntry> leverEntries = new();
         private readonly Dictionary<uint, bool> leverWas = new();
         private readonly EntityCatalog catalog;
+        private readonly HostMemoryReader memory;
+        private readonly LiftNews lifts = new();
         private long lastPoll;
 
-        public ChaosTrialWatch(EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
+        public ChaosTrialWatch(EntityCatalog catalog, HostMemoryReader memory, IAccessibilityOutputService output, PluginLog log)
         {
             this.catalog = catalog;
+            this.memory = memory;
             this.output = output;
             this.log = log;
         }
@@ -39,7 +42,11 @@ namespace Poe2Accessibility.Services
             this.news.Reset();
             this.exitLever.Reset();
             this.leverWas.Clear();
+            this.lifts.Reset();
         }
+
+        /// <summary>Gets or sets what sounds a lift that just turned ridable, from where it stands (the way-opened sound).</summary>
+        public Action<ScanEntry>? LiftReady { get; set; }
 
         /// <summary>A room was completed: the lever that takes the player on is said once the way opens.</summary>
         public void RoundWon() => this.exitLever.RoundWon(Environment.TickCount64);
@@ -82,6 +89,17 @@ namespace Poe2Accessibility.Services
                     this.leverWas[entity.Id] = enabled;
                     this.levers.Add((entity.Id, enabled, System.Numerics.Vector3.Distance(from, new(at.X, at.Y, at.Z))));
                     this.leverEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosExitLever, at.X, at.Y, at.Z);
+                }
+
+                if (piece == ChaosPiece.Lift && this.lifts.Activated(entity.Id, ChaosTrial.IsActivated(states)) && entity.TryGetComponent<Render>(out var lift))
+                {
+                    var transition = TransitionState.Of(this.memory, entity);
+                    var down = transition?.State == ChaosTrial.LiftUp;
+                    this.log.Info($"Lift {entity.Id} activated, transition {transition?.State.ToString() ?? "?"} of {transition?.Count.ToString() ?? "?"}");
+                    var place = lift.WorldPosition;
+                    var ride = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosLiftReady(down), place.X, place.Y, place.Z, OpenedWays.Kind);
+                    this.LiftReady?.Invoke(ride);
+                    this.output.Say(SpeechKind.Places, this.catalog.Describe(ride with { Kind = string.Empty }));
                 }
 
                 if (piece == ChaosPiece.BloodCircle && this.news.Filled(entity.Id, ChaosTrial.IsFull(states)))

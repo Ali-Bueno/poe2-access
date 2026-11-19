@@ -48,6 +48,12 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>
+        ///     Gets a value indicating whether this area runs a Trial of Chaos (its rules hold a round). Its HUD shows no round line
+        ///     (never seen, 2026-11-19), so the trial is known by its rules, not by the screen.
+        /// </summary>
+        public bool InChaosTrial { get; private set; }
+
         /// <summary>Gets or sets how many rounds the Trial of Chaos here has (the game's table by area level); null when not known.</summary>
         public Func<int?> TrialRounds { get; set; } = () => null;
 
@@ -97,6 +103,7 @@ namespace Poe2Accessibility.Services
             this.trialHud.Reset();
             this.areaStatsLogged = false;
             this.MinimapRevealed = false;
+            this.InChaosTrial = false;
             this.trialHudFound = long.MinValue / 2;
             (this.Charges, this.lastLogged) = (null, string.Empty);
         }
@@ -115,6 +122,7 @@ namespace Poe2Accessibility.Services
             var ring = this.reader.BreachNear(player);
             this.Charges = this.reader.ExpeditionNear(player);
             var round = this.reader.TrialRound();
+            this.InChaosTrial = round != null;
             this.LogChange(ring, round, player);
             if (!this.areaStatsLogged)
             {
