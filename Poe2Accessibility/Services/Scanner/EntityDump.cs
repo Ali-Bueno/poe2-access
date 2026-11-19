@@ -100,6 +100,11 @@ namespace Poe2Accessibility.Services
                         sb.AppendLine($"         control zone radius: {zoneRadius}");
                     }
 
+                    if (entity.TryGetComponent<StateMachine>(out var machine) && machine.States.Count > 0)
+                    {
+                        sb.AppendLine($"         states: {string.Join(", ", machine.States.Select(state => $"{state.Name}={state.Value}"))}");
+                    }
+
                     if (entity.TryGetComponent<WorldItem>(out var worldItem) && worldItem.ItemEntityAddress != IntPtr.Zero)
                     {
                         // The item a ground entity holds: how its name can be read (gems have no base display name).

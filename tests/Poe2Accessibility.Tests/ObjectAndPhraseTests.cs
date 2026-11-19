@@ -46,6 +46,9 @@ namespace Poe2Accessibility.Tests
             Equal("CarverCowChest_Bundle", Breakables.BodySound("Metadata/Chests/CarverTribeCow02"), "the tribe's cattle sound as the game sounds them");
             Equal("", Breakables.BodySound("Metadata/Chests/Village/Impale01"), "another body keeps the common body's sound");
             Breakables.UseObjectSounds(Array.Empty<string>());
+            Equal(true, MarkDone.Is(new[] { ("burned", 1L) }), "a burned effigy under its quest icon is done");
+            Equal(false, MarkDone.Is(new[] { ("burned", 0L) }), "an unburned one is still to do");
+            Equal(false, MarkDone.Is(new[] { ("open", 1L) }), "a state no file names as done says nothing");
             var loop = CueSynth.BarrierLoop(44100);
             Equal(true, loop.Length >= CueSynth.Barrier(44100).Length && loop[^1] == 0f, "the barrier's loop is its blows, then quiet");
         }

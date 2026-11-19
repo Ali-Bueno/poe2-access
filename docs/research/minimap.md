@@ -57,6 +57,14 @@ bubble, and the unit of the pointer distance.
   (`GameLayout.MinimapIconRow.ComponentHiddenOffset`): 1 on the activated mechanism and on the Machinarium's used stone
   altar, 0 on every unused one beside them (two areas, 2026-11-19). A hidden icon is no lit mark: the plate leaves the list
   (live: 7 listed, 5 after two were used).
+- A quest mark whose object says it is done: the Azak Bog's Flameskin Ritual (`Metadata/Terrain/Gallows/Act3/3_7/Objects/
+  BurningManEffigySmall` x5 "Prender fuego", then the `BurningManEffigyCentral` "Apuñalar corazón sacrificial", no
+  Targetable, a ControlZone; approaching it gives `carver_bog_landmark_buff`, Ignagduk's Harvest, 25% fire resistance and
+  item rarity per poe2wiki). Each small effigy hides its icon once lit (+0x38); the central keeps its `QuestObject` icon and
+  only its StateMachine says `burned=1`, so the scanner kept "Objeto de misión" after the ritual (the owner, 2026-11-19: "no
+  sé si era solo eso o hay que hacer algo más"). `MarkDone` (state names that mean used: `burned`) and the hidden byte keep
+  such a mark out; a quest mark still to do is named by its object ("Apuñalar corazón sacrificial") rather than "Objeto de
+  misión". A copy remembered from before is dropped when the player comes back near it.
 - Characters in a town on ground the player's does not join: not listed until seen or joined. The Ziggurat Encampment holds
   `Metadata/NPC/Four_Act3/AlvaZigguratEncampmentPast` about 2,000 cells from the camp's own `AlvaZigguratEncampment`, same
   icon bytes and in-play flags, on a piece of ground no walk reaches ("el camino se corta antes"; the owner, 2026-11-19:

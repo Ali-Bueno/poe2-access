@@ -297,14 +297,17 @@ namespace Poe2Accessibility.Services
             }
 
             // Only a plain object can be a mark: a used shrine, an opened chest or a minion stays out whatever its icon says.
-            if (plain && (category == null || name.Length == 0) && icon.Length > 0 &&
+            // A mark whose object says it is done (the Azak Bog's central effigy, burned=1 under its quest icon) is no landmark.
+            if (plain && (category == null || name.Length == 0) && icon.Length > 0 && !iconHidden && !MarkDone.Is(StatesOf(entity)) &&
                 MinimapMarks.PointOfInterest(path, icon, this.MarkLabel(path, icon, minimap!, render)) is { } point)
             {
                 // A boss's arena, a secret or a quest landmark as the minimap labels it: the objects carry no name of their own.
                 category = ScanCategory.PointsOfInterest;
                 kind = point.Kind;
                 subject = point.Kind == MinimapMarks.BossRoomKind ? point.Label : string.Empty;
-                name = point.Kind != MinimapMarks.BossRoomKind ? point.Label
+                // A quest mark says what its object is for when the object has a name ("Apuñalar corazón sacrificial").
+                name = point.Kind == MinimapMarks.QuestObjectKind && name.Length > 0 ? name
+                    : point.Kind != MinimapMarks.BossRoomKind ? point.Label
                     : point.Defeated ? Announcements.BossRoomDefeated(point.Label) : Announcements.BossRoom(point.Label);
             }
 
