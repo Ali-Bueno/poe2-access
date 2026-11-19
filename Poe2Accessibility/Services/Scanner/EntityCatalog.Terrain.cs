@@ -20,6 +20,39 @@ namespace Poe2Accessibility.Services
             return grid.Length > 0;
         }
 
+        /// <summary>The pieces of ground are worked out again at most this often (ms) when the grid changes.</summary>
+        private const int RegionsEveryMs = 5000;
+
+        private (string Area, byte[] Grid, long At, System.Threading.Tasks.Task<WalkableRegions> Work)? regionsWork;
+        private (string Area, WalkableRegions Regions)? regionsReady;
+
+        /// <summary>
+        ///     Whether something stands on ground the player's ground does not join (<see cref="WalkableRegions"/>); false while
+        ///     not known yet. Worked out off the game's thread, once per grid that changed.
+        /// </summary>
+        private bool OnGroundApart(Vector2 thing, Vector2 playerCell)
+        {
+            if (!this.TryLiveGrid(out var grid, out var row))
+            {
+                return false;
+            }
+
+            var now = Environment.TickCount64;
+            if (this.regionsWork is { } work && work.Work.IsCompletedSuccessfully)
+            {
+                this.regionsReady = (work.Area, work.Work.Result);
+            }
+
+            if (this.regionsWork is not { } current ||
+                (current.Area != this.instance && current.Work.IsCompleted) ||
+                (!ReferenceEquals(current.Grid, grid) && current.Work.IsCompleted && now - current.At >= RegionsEveryMs))
+            {
+                this.regionsWork = (this.instance, grid, now, System.Threading.Tasks.Task.Run(() => WalkableRegions.Of(grid, row)));
+            }
+
+            return this.regionsReady is { } ready && ready.Area == this.instance && ready.Regions.Apart(thing, playerCell);
+        }
+
         /// <summary>
         ///     The walkable grid as the game holds it now. GameHelper copies it once per area, but the game edits it
         ///     in place when a tutorial barrier or a door opens or closes; the vector itself does not move.

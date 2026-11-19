@@ -48,6 +48,12 @@ bubble, and the unit of the pointer distance.
   moment the owner came in, 234 steps (about 2,000 cells) off in the boss room; no minimap draws an icon that far (the owner,
   2026-11-18: "haz eso solo para las ciudades… a menos que ahí el juego lo muestre sin más"). A character whose icon reaches
   map-wide keeps being listed.
+- Characters in a town on ground the player's does not join: not listed until seen or joined. The Ziggurat Encampment holds
+  `Metadata/NPC/Four_Act3/AlvaZigguratEncampmentPast` about 2,000 cells from the camp's own `AlvaZigguratEncampment`, same
+  icon bytes and in-play flags, on a piece of ground no walk reaches ("el camino se corta antes"; the owner, 2026-11-19:
+  "ni siquiera puedo llegar a ella"). `WalkableRegions` splits the live grid into joined pieces (eight neighbours, worked
+  out off the game's thread when the grid changes, at most every 5 s); a town character off screen, on unexplored ground
+  and on another piece is left out (`EntityCatalog.Unreachable`). Unit tests only.
 - A map with the modifier "El minimapa está revelado" (area stat `map_minimap_revealed`): the layout counts as seen, so the
   area's named tiles (boss rooms, exits of the tiles) and named rooms are listed from the start; things on it still once seen,
   and the ground not walked stays unexplored for the radar, the lost hint and the map's glance.

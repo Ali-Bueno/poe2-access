@@ -34,6 +34,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HarmfulBuffs.cs" Link="Plugin\HarmfulBuffs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveOverrides.cs" Link="Plugin\PassiveOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.cs" Link="Plugin\RoutePlanner.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\WalkableRegions.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.Search.cs" Link="Plugin\RoutePlanner.Search.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.Shaping.cs" Link="Plugin\RoutePlanner.Shaping.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RoutePlanner.Workspace.cs" Link="Plugin\RoutePlanner.Workspace.cs" />

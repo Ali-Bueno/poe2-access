@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(BeaconPointsAlongTheRoute), BeaconPointsAlongTheRoute),
+            (nameof(GroundNoWalkJoinsIsApart), GroundNoWalkJoinsIsApart),
             (nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint),
             (nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot),
             (nameof(RouteStartsOutsideAPocket), RouteStartsOutsideAPocket),
@@ -33,6 +34,30 @@ namespace Poe2Accessibility.Tests
             (nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech),
             (nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose),
         };
+
+        private static void GroundNoWalkJoinsIsApart()
+        {
+            // 20 x 10 cells, two nibbles a byte: open ground left of a wall at x = 10, more open ground right of it.
+            const int row = 10;
+            var grid = new byte[row * 10];
+            for (var y = 0; y < 10; y++)
+            {
+                for (var x = 0; x < 20; x++)
+                {
+                    if (x != 10)
+                    {
+                        grid[(y * row) + (x / 2)] |= (byte)(1 << ((x & 1) * 4));
+                    }
+                }
+            }
+
+            var walled = WalkableRegions.Of(grid, row);
+            Equal(true, walled.Apart(new Vector2(2, 2), new Vector2(17, 8)), "a wall from edge to edge: two pieces of ground");
+            Equal(false, walled.Apart(new Vector2(2, 2), new Vector2(8, 8)), "one side is one piece");
+            Equal(true, walled.RegionAt(new Vector2(10, 5)) > 0, "a cell in the wall stands on the ground beside it");
+            grid[(9 * row) + 5] |= 1; // a gap at the bottom of the wall
+            Equal(false, WalkableRegions.Of(grid, row).Apart(new Vector2(2, 2), new Vector2(17, 8)), "a gap joins them");
+        }
 
         private static void BeaconPointsAlongTheRoute()
         {

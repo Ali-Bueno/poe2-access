@@ -140,7 +140,18 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, this.DrawnOnMinimap(entity, entry, render, player, town)))
+                var drawn = this.DrawnOnMinimap(entity, entry, render, player, town);
+                if (drawn && town && entry.Category == ScanCategory.Npcs && this.Unreachable(render, player, area.WorldToGridConvertor))
+                {
+                    // A town character on ground no walk reaches and never seen: the encampment's past Alva, 2,000 cells
+                    // off beside the owner's own (2026-11-19, "ni siquiera puedo llegar a ella"). Listed again once joined or seen.
+                    this.sighted.Remove(entry.Id);
+                    this.remembered.Remove(entry.Id);
+                    unseen.Add(entry);
+                    continue;
+                }
+
+                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, drawn))
                 {
                     unseen.Add(entry);
                     continue;
@@ -405,6 +416,12 @@ namespace Poe2Accessibility.Services
         ///     characters map-wide from the arrival, the Water Goddess 2,000 cells off in the boss room of Santuarios enterrados, listed
         ///     the moment the owner came in (2026-11-18, "haz eso solo para las ciudades… a menos que ahí el juego lo muestre").
         /// </summary>
+        /// <summary>Not on screen, its ground not explored, and on a piece of ground the player's does not join.</summary>
+        private bool Unreachable(Render render, Render player, float worldToGrid) =>
+            !ScreenProjection.InView(render.WorldPosition) &&
+            !this.explored.IsSeen(new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / worldToGrid) &&
+            this.OnGroundApart(new Vector2(render.GridPosition.X, render.GridPosition.Y), new Vector2(player.GridPosition.X, player.GridPosition.Y));
+
         private bool DrawnOnMinimap(Entity entity, ScanEntry entry, Render render, Render player, bool town)
         {
             if (!entity.TryGetComponent<MinimapIcon>(out var icon) || string.IsNullOrEmpty(icon.IconName))
