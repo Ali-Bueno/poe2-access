@@ -14,6 +14,12 @@ namespace Poe2Accessibility.Services
         BloodAltar,
         LiftLever,
         BossLift,
+
+        /// <summary>
+        ///     The switch beside the Trialmaster that opens the choice of a modifier and so starts the round
+        ///     (<c>UltimatumSelector</c>, named "Interruptor" in the game; seen live 2026-11-19, it sounded nothing).
+        /// </summary>
+        Selector,
     }
 
     /// <summary>What a round of the Trial of Chaos asks (UltimatumEncounterTypes), as far as its pieces tell.</summary>
@@ -62,6 +68,7 @@ namespace Poe2Accessibility.Services
             [Folder + "BloodAltarEncounter/BloodAltar"] = ChaosPiece.BloodAltar,
             [Folder + "LiftButton"] = ChaosPiece.LiftLever,
             [Folder + "BossLiftTransition"] = ChaosPiece.BossLift,
+            [Folder + "UltimatumSelector"] = ChaosPiece.Selector,
         };
 
         /// <summary>Each piece's file and the state matched on it, for the data step's check (<see cref="GameNames"/>).</summary>

@@ -46,6 +46,7 @@ ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BloodAltarEncounter/BloodC
 ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BloodAltarEncounter/BloodAltar	complete	ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/LiftButton	enabled	ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BossLiftTransition		ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/UltimatumSelector		ChaosTrial
 Buff	ultimatum_holding_soul_core		ChaosTrial
 Buff	ultimatum_ruin		ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor	open	TrialDoors

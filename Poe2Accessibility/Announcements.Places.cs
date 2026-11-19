@@ -158,6 +158,7 @@ namespace Poe2Accessibility
             Services.ChaosPiece.BloodAltar => T("Blood altar", "Altar de sangre"),
             Services.ChaosPiece.BossLift => T("Lift to the Trialmaster", "Ascensor al Maestro de pruebas"),
             Services.ChaosPiece.LiftLever => T("Lift lever", "Palanca del ascensor"),
+            Services.ChaosPiece.Selector => T("Challenge switch", "Interruptor del desafío"),
             Services.ChaosPiece.StoneAltar => T("Stone Altar", "Altar de piedra"),
             _ => T("Vaal Soul Core", "Núcleo de alma vaal"),
         };

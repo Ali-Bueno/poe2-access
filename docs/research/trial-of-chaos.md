@@ -249,6 +249,10 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   minutes from "Sala completada" to the lever): 1.5 s after the room is won the lever that turned pullable then, else the nearest
   pullable one, is said with the way to it ("Interruptor de salida, 30 pasos…", `ExitLeverNews`; log "Exit lever named:"). Not yet
   heard: which of a room's two levers that is (the lever log line names both with their states).
+- **The modifier switch** (live 2026-11-19): the "Interruptor" beside the Trialmaster that opens "Elige un modificador" and starts the
+  round is `Objects/UltimatumSelector` (states `enabled`, `rewardstaken`, `ultimatum_challenge_world_description`), not a lift lever; it
+  was listed under Objects with no sound. Now a round piece (`ChaosPiece.Selector`) that rings as a quest object. Not yet seen: whether
+  it stays targetable during the round (it would keep ringing then).
 - **Already there**: the round counter, the modifier icons' names, the Corruption Dais and the reward chest by their
   world titles, the Trialmaster as a character, the bosses' mechanics, Impending Doom's blasts.
 
