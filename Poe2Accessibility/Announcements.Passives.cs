@@ -82,6 +82,9 @@ namespace Poe2Accessibility
         /// <summary>The next node to take for the finder's target, before the way to it.</summary>
         public static string AllocateGoal(string name) => T($"allocate {name}", $"asigna {name}");
 
+        /// <summary>On the build's next node when it is not linked yet: the node to take before it, then the way there.</summary>
+        public static string AllocateFirst(string name) => T($"first allocate {name}", $"asigna primero {name}");
+
         /// <summary>The build's next node, before the way to it.</summary>
         /// <param name="tree">Which of the two trees it is on, when not the cursor's (<see cref="BuildNextTree"/>); else empty.</param>
         /// <param name="points">The weapon set whose points the build takes it with (<see cref="BuildWithSetPoints"/>); else empty.</param>
@@ -177,6 +180,9 @@ namespace Poe2Accessibility
         public static string PassiveRefundable => T("can be refunded", "se puede reintegrar");
 
         /// <summary>While the tree refunds passives: an allocated node other allocated nodes hang from, which must go first.</summary>
+        /// <summary>An allocated node the Build Planner file leaves out but without which some of its nodes have no way to the start.</summary>
+        public static string BuildNeedsIt => T("the build needs it to link up", "la build lo necesita para conectar");
+
         public static string PassiveHolds(int nodes) => nodes == 1 ? T("holds 1 node", "sostiene 1 nodo") : T($"holds {nodes} nodes", $"sostiene {nodes} nodos");
 
         /// <summary>The gold the unconfirmed changes cost, as the tree shows it ("4.273 > 3.826").</summary>

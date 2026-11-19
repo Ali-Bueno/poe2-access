@@ -166,7 +166,12 @@ namespace Poe2Accessibility.Services
             var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated)
                 : state == PassiveState.Allocated && refunding ? this.RefundState(graph, record, allocated)
                 : StateWord(state);
-            var plain = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
+            if (state == PassiveState.Allocated && this.BridgesBuild(graph, record, allocated, marked))
+            {
+                stateWords = $"{stateWords}, {Announcements.BuildNeedsIt}"; // outside the file, but its nodes reach the start only through it
+            }
+
+            var plain =Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
             // A jewel socket says what it holds; a jewel's name follows a leading guide's words, an empty socket says so at once.
             var jewel = this.SocketJewel(node);
             var jewelLine = jewel is { Length: > 0 } ? jewel : null;
@@ -270,6 +275,18 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>"allocated, can be refunded", or "allocated, holds 3 nodes" for one other allocated nodes hang from; a start is only allocated.</summary>
+        /// <summary>Whether an allocated node the build does not mark is the only way some of the build's nodes have to the start.</summary>
+        private bool BridgesBuild(PassiveGraph graph, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
+        {
+            if (marked.Count == 0 || marked.Contains(record))
+            {
+                return false;
+            }
+
+            var atlas = this.AtlasOf(graph);
+            return atlas.Places.Index.TryGetValue(record, out var at) && atlas.BuildNeeds(allocated, marked, at) > 0;
+        }
+
         private string RefundState(PassiveGraph graph, IntPtr record, HashSet<int> allocated)
         {
             var atlas = this.AtlasOf(graph);

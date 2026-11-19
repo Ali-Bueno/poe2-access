@@ -526,6 +526,10 @@ MEASURED live 2026-11-18 (0.5.5f, dev command `inventories` and memory reads), "
   ("Esmeralda") came from the arrival's new entity, which had no title kept and, read just after the move, apparently no
   name words yet. Now the move uses the name the jewel was read by while it sat in its socket.
 
+## Bridges the file leaves out
+
+A Build Planner file need not be one connected tree. The owner's Monk build ("23+ Unarmed - [0.5] WHIRLING Trinity Mar", 2026-11-19) lists 54 main-tree nodes; from the Monk start (44683) only 48 join without `jewel_slot1961` (61834), which the file leaves out: `intelligence25`, `dexterity9`, `dexterity7`, `dexterity46`, `attributes11` and `dexterity47` reach the start only through it (`intelligence7` links it). So the "1 point outside the build" there is no point to refund. `PassiveMap.BuildNeeds` counts the build nodes a taken outside node alone joins to a root, the whole build counted as taken; above zero the node says "la build lo necesita para conectar". The file's order is not a taking order either: its step 46 lies past step 47, so the guide leads to the first node of `TrailTo` toward a next node not linked yet.
+
 ## Ready for a rebuilt tree (2026-11-14)
 
 Version 1.0 (2026-12-11) rebuilds the tree (jewel sockets move inside the skill groups), adds the Shadow and Duelist

@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(MinionsAreCountedByKind), MinionsAreCountedByKind),
             (nameof(PassiveStepsCountThePointsAlongTheLinks), PassiveStepsCountThePointsAlongTheLinks),
             (nameof(ANodeThatHoldsNoOtherCanBeRefunded), ANodeThatHoldsNoOtherCanBeRefunded),
+            (nameof(ANodeOutsideTheBuildThatJoinsItIsNeeded), ANodeOutsideTheBuildThatJoinsItIsNeeded),
             (nameof(PassiveChoicesAreReadWithTheirNodes), PassiveChoicesAreReadWithTheirNodes),
             (nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing),
             (nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists),
@@ -131,6 +132,23 @@ namespace Poe2Accessibility.Tests
             // A ring: 0 - 1 - 2 - 3 - 0. Either way round still joins the rest.
             var ring = new[] { new[] { 1, 3 }, new[] { 0, 2 }, new[] { 1, 3 }, new[] { 2, 0 } };
             Equal(0, PassiveMap.Held(ring, new HashSet<int> { 0, 1, 2, 3 }, new[] { 0 }, 1), "a node of a ring holds none");
+        }
+
+        private static void ANodeOutsideTheBuildThatJoinsItIsNeeded()
+        {
+            // Start 0 - 1 - 2 (a socket outside the build) - 3 - 4, and 1 - 5 - 6; the build is 1, 3, 4, 5, 6, of which 1 and 3 are taken.
+            var links = new[] { new[] { 1 }, new[] { 0, 2, 5 }, new[] { 1, 3 }, new[] { 2, 4 }, new[] { 3 }, new[] { 1, 6 }, new[] { 5 } };
+            var taken = new HashSet<int> { 0, 1, 2, 3 };
+            var build = new HashSet<int> { 1, 3, 4, 5, 6 };
+            var roots = new[] { 0 };
+            Equal(2, PassiveMap.BuildNeeds(links, taken, build, roots, 2), "the socket is the only way to 3 and 4");
+            Equal(0, PassiveMap.BuildNeeds(links, taken, build, roots, 1), "a build node is no bridge outside it");
+            Equal(0, PassiveMap.BuildNeeds(links, taken, build, roots, 5), "nor is a node not taken");
+
+            // With 5 - 3 linked as well, the build joins 3 and 4 by its own nodes: the socket is a point to refund.
+            links[5] = new[] { 1, 6, 3 };
+            links[3] = new[] { 2, 4, 5 };
+            Equal(0, PassiveMap.BuildNeeds(links, taken, build, roots, 2), "the build has its own way round");
         }
 
         private static void PassiveChoicesAreReadWithTheirNodes()

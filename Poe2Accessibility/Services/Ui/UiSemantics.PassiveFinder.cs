@@ -170,6 +170,11 @@ namespace Poe2Accessibility.Services
                 found = $"{Announcements.BuildStep(step + 1, order.Count)}{(set > 0 ? ", " + Announcements.BuildWithSetPoints(set) : string.Empty)}. {found}";
             }
 
+            if (this.finder.Category == PassiveCategory.OutsideBuild && atlas.BuildNeeds(allocated, marked, target) > 0)
+            {
+                found = $"{Announcements.BuildNeedsIt}. {found}"; // a bridge the file left out: no point to refund
+            }
+
             if (this.finder.Category == PassiveCategory.Attributes && ChoiceName(atlas.Nodes[target], choices) is { Length: > 0 } choice)
             {
                 var advice = this.AttributesOf(plan, this.finder.Target, choices) is (BuildNotes.Attribute wanted, BuildNotes.Attribute chosen) && wanted != chosen
@@ -354,19 +359,42 @@ namespace Poe2Accessibility.Services
         /// <summary>The build's next node: nothing on it (its state says "next in the build"), elsewhere the way to it.</summary>
         private GuideSay BuildGuide(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, IntPtr next, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
-            if (next == record)
-            {
-                return new GuideSay(string.Empty, true, true, null, true);
-            }
-
-            var way = this.WayTo(graph, atlas, record, next, MaxFinderPushes);
-            var name = atlas.Places.Index.TryGetValue(next, out var at) ? atlas.Nodes[at].Name : string.Empty;
+            var placed = atlas.Places.Index.TryGetValue(next, out var at);
+            var name = placed ? atlas.Nodes[at].Name : string.Empty;
             // A next node on the other of the two trees says which: the ascendancy's is drawn inside the class's.
             var nextInAscendancy = BuildPlan.IsAscendancyNode(this.PassiveIdOf(next));
             var tree = nextInAscendancy == BuildPlan.IsAscendancyNode(this.PassiveIdOf(record)) ? string.Empty : Announcements.BuildNextTree(nextInAscendancy);
             // A node the build takes with a weapon set's points says so: held A chooses the points, and the tree's own may be none.
             var set = this.PlanOf(graph, marked)?.WeaponSetOf(this.PassiveIdOf(next)) ?? 0;
             var withPoints = set > 0 ? Announcements.BuildWithSetPoints(set) : string.Empty;
+
+            // The file's next node not linked yet is taken through others (the owner's Monk, 2026-11-19: step 46 lay past step 47, and
+            // on it the guide said nothing): the guide leads to the first node of the way, as the finder's trail does.
+            if (placed && this.PassiveRow(next) is { } nextRow &&
+                this.StateOf(graph, this.ReadPassiveRow(next, nextRow), allocated) == PassiveState.Locked &&
+                TrailTo(atlas, at, allocated, marked) is { Count: > 1 } trail)
+            {
+                var first = atlas.Nodes[trail[0]];
+                var goal = Announcements.BuildNextGoal(name, tree, withPoints);
+                if (first.Record == record)
+                {
+                    return new GuideSay(Announcements.PassiveTrail(goal, trail.Count, false, Announcements.AllocateThis), true, true, null, true);
+                }
+
+                var firstWay = this.WayTo(graph, atlas, record, first.Record, MaxFinderPushes);
+                var step = next == record ? Announcements.AllocateFirst(first.Name) : Announcements.PassiveTrail(goal, trail.Count, false, Announcements.AllocateGoal(first.Name));
+                var words = firstWay?.Words(this.PassiveGuideBrief) ?? string.Empty;
+                // On the next node itself its state already says it is next and how far: the node to take first and the way to it.
+                var said = next == record ? (words.Length > 0 ? $"{step}: {words}" : step) : this.GoalAndWay($"build {next} {trail[0]}", step, firstWay);
+                return new GuideSay(said, next == record, marked.Contains(record), firstWay?.Octant, true);
+            }
+
+            if (next == record)
+            {
+                return new GuideSay(string.Empty, true, true, null, true);
+            }
+
+            var way = this.WayTo(graph, atlas, record, next, MaxFinderPushes);
             var line = this.PassiveGuideBrief ? this.GoalAndWay($"build {next}", Announcements.BuildNextGoal(name, tree, withPoints), way) : this.DescribeBuildNext(graph, record, next, allocated);
             return new GuideSay(line, false, marked.Contains(record), way?.Octant, true);
         }
@@ -574,6 +602,11 @@ namespace Poe2Accessibility.Services
 
             /// <summary>How many allocated nodes hang from this one (<see cref="PassiveMap.Held"/>): none, and the game refunds it now.</summary>
             public int Held(HashSet<int> allocated, int node) => PassiveMap.Held(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated).ToHashSet(), this.Roots, node);
+
+            /// <summary>How many of the build's nodes only this one, taken outside the build, joins to the start (<see cref="PassiveMap.BuildNeeds"/>).</summary>
+            public int BuildNeeds(HashSet<int> allocated, HashSet<IntPtr> marked, int node) =>
+                PassiveMap.BuildNeeds(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated).ToHashSet(),
+                    Enumerable.Range(0, this.Nodes.Length).Where(index => marked.Contains(this.Nodes[index].Record)).ToHashSet(), this.Roots, node);
 
             /// <summary>The allocated nodes that hold no other, but the one under the cursor, nearest it first.</summary>
             public IReadOnlyList<IntPtr> Refundable(HashSet<int> allocated, IntPtr near)

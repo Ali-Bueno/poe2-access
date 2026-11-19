@@ -106,28 +106,46 @@ namespace Poe2Accessibility.Services
         /// </returns>
         /// <param name="taken">The taken nodes; the roots need not be among them.</param>
         /// <param name="roots">Where a tree begins: the class's start and the ascendancy's.</param>
-        public static int Held(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int node)
-        {
-            int Joined(int without)
-            {
-                var seen = new HashSet<int>(roots.Where(root => root != without));
-                var queue = new Queue<int>(seen);
-                while (queue.TryDequeue(out var at))
-                {
-                    foreach (var next in links[at])
-                    {
-                        if (next != without && taken.Contains(next) && seen.Add(next))
-                        {
-                            queue.Enqueue(next);
-                        }
-                    }
-                }
+        public static int Held(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int node) =>
+            roots.Contains(node) || !taken.Contains(node) ? 0 : Math.Max(0, Joined(links, taken, roots, NoNode).Count(taken.Contains) - Joined(links, taken, roots, node).Count(taken.Contains) - 1);
 
-                return seen.Count(taken.Contains);
+        /// <returns>
+        ///     How many of the build's nodes only <paramref name="node"/>, taken outside the build, joins to a root once the whole build
+        ///     is taken: a bridge the Build Planner file left out. The owner's Monk (2026-11-19) had a jewel socket allocated that the
+        ///     file did not list; without it six of the file's attribute nodes had no line to the start, so it is no point to refund.
+        /// </returns>
+        /// <param name="taken">The allocated nodes; the roots need not be among them.</param>
+        /// <param name="build">The build's nodes, taken or not.</param>
+        public static int BuildNeeds(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlySet<int> build, IReadOnlyCollection<int> roots, int node)
+        {
+            if (roots.Contains(node) || !taken.Contains(node) || build.Contains(node))
+            {
+                return 0;
             }
 
-            const int None = -1;
-            return roots.Contains(node) || !taken.Contains(node) ? 0 : Math.Max(0, Joined(None) - Joined(node) - 1);
+            var whole = taken.Union(build).ToHashSet();
+            return Joined(links, whole, roots, NoNode).Count(build.Contains) - Joined(links, whole, roots, node).Count(build.Contains);
+        }
+
+        private const int NoNode = -1;
+
+        /// <summary>The roots and every node of <paramref name="taken"/> a line of taken nodes joins to them, without <paramref name="without"/>.</summary>
+        private static HashSet<int> Joined(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int without)
+        {
+            var seen = new HashSet<int>(roots.Where(root => root != without));
+            var queue = new Queue<int>(seen);
+            while (queue.TryDequeue(out var at))
+            {
+                foreach (var next in links[at])
+                {
+                    if (next != without && taken.Contains(next) && seen.Add(next))
+                    {
+                        queue.Enqueue(next);
+                    }
+                }
+            }
+
+            return seen;
         }
 
         /// <returns>
