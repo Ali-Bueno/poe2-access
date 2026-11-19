@@ -123,7 +123,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, PetrifyingStatues.InLine(Vector2.Zero, facing, new Vector2(300, 40)), "in front, near the line");
             Equal(false, PetrifyingStatues.InLine(Vector2.Zero, facing, new Vector2(300, 200)), "stepped aside");
             Equal(false, PetrifyingStatues.InLine(Vector2.Zero, facing, new Vector2(-300, 0)), "behind it");
-            Equal(false, PetrifyingStatues.InLine(Vector2.Zero, facing, new Vector2(700, 0)), "beyond its reach");
+            Equal(true, PetrifyingStatues.InLine(Vector2.Zero, facing, new Vector2(1000, 0)), "a gaze met about 1000 off (log)");
+            Equal(false, PetrifyingStatues.InLine(Vector2.Zero, facing, new Vector2(1500, 0)), "beyond its reach");
             var trip = new LiftNews();
             trip.Moved(8, 2, 0);
             Equal(1, trip.Moved(8, 1, 1000), "sets off down");

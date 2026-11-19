@@ -18,11 +18,15 @@ namespace Poe2Accessibility.Services
         /// <summary>The eyes shutting: ChangeToStance1 (84).</summary>
         public const int ShutAnimation = 84;
 
-        /// <summary>The gaze's reach: the beam UltimatumPetrificationBeam is 600 world units long (MiscBeams row 663).</summary>
-        public const float ReachWorld = 600f;
+        /// <summary>
+        ///     The gaze's reach. The beam UltimatumPetrificationBeam is 600 long (MiscBeams row 663), yet a statue gazed at the player
+        ///     about 1000 world units off (log 2026-11-19: eyes open at 781, the player at 1076 a moment later, then gazed): taken
+        ///     from the log, with a margin.
+        /// </summary>
+        public const float ReachWorld = 1200f;
 
         /// <summary>Eyes opening within this are sounded: the reach and a margin to step aside.</summary>
-        public const float OpenHeardWorld = 800f;
+        public const float OpenHeardWorld = 1300f;
 
         /// <summary>Half the line's width when a learned line is told; the beam's width is not in the files, a first guess.</summary>
         public const float LineHalfWidthWorld = 80f;

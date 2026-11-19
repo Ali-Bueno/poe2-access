@@ -279,6 +279,16 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   a one-poll blip before Idle, so the open state is latched: open about 2.0-2.2 s, a cycle of 6.6-7 s, statues out of step (log).
   In the gaze the player carries `petrification_stacker_79` (source = the statue's id, no end) and builds `petrification_stack_79`
   (charges, 3.5 s each, decays after the gaze); `petrified` is the stone. Not known: the stacks to stone, its length, the facing.
+- **What the plugin does with the statues** (2026-11-19, the owner's picks on https://claude.ai/artifact/4NAjeJWcn3rrGYWtRrQLtj):
+  eyes opening near sound the statue's own `BeamStart_04` (`statue_open`, Daemon_PetrificationStatue) from it; while
+  `petrification_stacker` is on the player a synthesized file over stone (`CueSynth.Gaze`, "la lima") pulses from the statue,
+  650 ms quickening to 200 and a whole tone higher per `petrification_stack` charge, louder at the owner's word; once an area
+  "Te mira una estatua: apártate de lado, fuera de su línea"; the line is learned from where the player stood when gazed and
+  stepping into it with the eyes shut says "En la línea de una estatua" (80 to each side, a guess); stone says "Petrificado", no
+  sound (the owner). Heard live: the gaze, its line learned and told. The reach is taken from the log, not the beam's 600: a statue
+  gazed at the player about 1000 off (`PetrifyingStatues.ReachWorld` 1200; "looks along" logs the distance). Stacks to stone
+  still not known (2 reached). The round kinds no piece explains are explained with their objective (Slay, Survive, Destroy;
+  `Announcements.ChaosObjectiveExplained`), the game holding only their names.
 - **Already there**: the round counter, the modifier icons' names, the Corruption Dais and the reward chest by their
   world titles, the Trialmaster as a character, the bosses' mechanics, Impending Doom's blasts.
 

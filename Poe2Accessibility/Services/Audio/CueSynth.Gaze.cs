@@ -12,7 +12,8 @@ namespace Poe2Accessibility.Services
     {
         public const string GazeSound = "statue_gaze";
 
-        private const float GazeLevel = 0.55f;
+        /// <summary>Raised from 0.55 at the owner's word (2026-11-19: "un poquitín más alto").</summary>
+        private const float GazeLevel = 0.75f;
         private const float GazeSemitone = 1.0594631f;
         private const float GazeBandHz = 700f;
         private const float GazeStrokeHz = 55f;

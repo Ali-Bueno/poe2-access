@@ -160,7 +160,7 @@ namespace Poe2Accessibility.Services
                     PetrifyingStatues.Facing(new Vector2(statue.WorldPosition.X, statue.WorldPosition.Y), here) is { } facing)
                 {
                     this.facings[looking.Statue] = facing;
-                    this.log.Info($"Statue {looking.Statue} looks along {facing.X:0.00},{facing.Y:0.00}");
+                    this.log.Info($"Statue {looking.Statue} looks along {facing.X:0.00},{facing.Y:0.00}, the player {Vector2.Distance(new Vector2(statue.WorldPosition.X, statue.WorldPosition.Y), here):0} away");
                 }
 
                 if (!this.gazeSaid)
