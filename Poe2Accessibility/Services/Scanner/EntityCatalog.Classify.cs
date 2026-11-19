@@ -194,7 +194,7 @@ namespace Poe2Accessibility.Services
                 // component, only InteractionAction (MarakethMatriarchDreadnought_.ot, issue #7).
                 var npc = entity.TryGetComponent<NPC>(out _);
                 category = corpse ? ScanCategory.Corpses
-                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : npc || (IsCharacter(entity) && !Attackable(entity)) ? ScanCategory.Npcs : null;
+                    : IsAliveEnemy(entity) ? ScanCategory.Enemies : npc || IsTalkable(entity) ? ScanCategory.Npcs : null;
                 if (category == ScanCategory.Enemies && IsCharacter(entity))
                 {
                     this.LogCharacterAsEnemy(entity, path);
@@ -593,14 +593,24 @@ namespace Poe2Accessibility.Services
         private const string BossDevice = "Boss";
 
         /// <summary>
-        ///     A living creature that is not the player's (minions are friendly) and that is not one to talk to whom the player
-        ///     cannot attack: town NPCs read hostile, and so did Doryani once his fight was over, with his boss sound (issue #9).
+        ///     A living creature that is not the player's (minions are friendly) and not one to talk to now
+        ///     (<see cref="IsTalkable"/>): town NPCs read hostile, and so do Doryani and Freya Hartlin between their fights (issue #9).
         /// </summary>
         public static bool IsAliveEnemy(Entity entity) =>
             entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) && !IsFrozenDead(entity) &&
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly) &&
-            !(IsCharacter(entity) && !Attackable(entity));
+            !IsTalkable(entity);
+
+        /// <summary>One A talks to now: the NPC component's Friendly flag where it reads, else a character the player cannot attack.</summary>
+        public static bool IsTalkable(Entity entity) => Friendly(entity) ?? (IsCharacter(entity) && !Attackable(entity));
+
+        /// <summary>The NPC component's Friendly flag (<see cref="GameLayout.NpcComponent.FriendlyOffset"/>); null without one, unread or untrusted.</summary>
+        public static bool? Friendly(Entity entity) =>
+            EntityFields.FriendlyTrusted && entity.TryGetComponent<NPC>(out var npc) &&
+            HostMemoryReader.Read<byte>(npc.Address + GameLayout.NpcComponent.FriendlyOffset, out var flag) && flag <= 1
+                ? flag != 0
+                : null;
 
         /// <summary>The scanner's kind of a dead monster's corpse, told apart from a body searched for loot (kind "corpse", a chest).</summary>
         public const string CorpseKind = "monster_corpse";
@@ -638,20 +648,17 @@ namespace Poe2Accessibility.Services
         /// <summary>The game's component that makes an entity usable; the reader has no class for it.</summary>
         private const string InteractionActionComponent = "InteractionAction";
 
-        /// <summary>A character the scanner leaves out, logged once per file with the reason, so a missing one is found from the log.</summary>
-        /// <summary>
-        ///     One to talk to whom the player can attack is listed and sounded as an enemy: logged once, so a character the
-        ///     game turns hostile early (Freya Hartlin at Journey's End, issue #9) shows what it read.
-        /// </summary>
+        /// <summary>A character listed and sounded as an enemy, logged once with what the game said of it (issue #9).</summary>
         private void LogCharacterAsEnemy(Entity entity, string path)
         {
             if (this.hostileCharacters.Add(path))
             {
                 var rarity = entity.TryGetComponent<ObjectMagicProperties>(out var magic) ? magic.Rarity : Rarity.Normal;
-                this.log.Info($"Character listed as an enemy: {path} ({rarity}, NPC component {entity.TryGetComponent<NPC>(out _)}, in play {this.InPlay(entity)})");
+                this.log.Info($"Character listed as an enemy: {path} ({rarity}, NPC component {entity.TryGetComponent<NPC>(out _)}, friendly {Friendly(entity)?.ToString() ?? "unread"}, in play {this.InPlay(entity)})");
             }
         }
 
+        /// <summary>A character the scanner leaves out, logged once per file with the reason, so a missing one is found from the log.</summary>
         private void LogLeftOutCharacter(Entity entity, string path, string reason)
         {
             if (IsCharacter(entity) && this.silentCharacters.Add(path))

@@ -10,7 +10,8 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Entity component fields a game update can move, found again from what they hold (docs/compatibility.md): the
     ///     Targetable in-play flag (<see cref="InPlayFlag"/>), which the interaction target beside it follows, and the
-    ///     NPC quest marker (a MiscAnimated row whose id is NPCQuestMarker). Sampled every few seconds until both are known.
+    ///     NPC quest marker (a MiscAnimated row whose id is NPCQuestMarker), and the NPC Friendly flag checked on town NPCs.
+    ///     Sampled every few seconds until all are known.
     /// </summary>
     public sealed class EntityFields
     {
@@ -41,6 +42,7 @@ namespace Poe2Accessibility.Services
         private int markerSearchedFor = -1;
         private bool flagKnown;
         private bool markerKnown;
+        private bool friendlyKnown;
         private long lastPass = long.MinValue / 2;
 
         public EntityFields(HostMemoryReader memory, UiElementReader elements)
@@ -58,13 +60,22 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool QuestStateTrusted { get; private set; }
 
+        /// <summary>
+        ///     The NPC Friendly flag is believed until NPCs read there something other than a flag, or none of several reads 1
+        ///     (a town's NPCs are all talked to); then a character is judged by the attackable flag alone.
+        /// </summary>
+        public static bool FriendlyTrusted { get; private set; } = true;
+
+        /// <summary>NPCs that must read 0 or 1 at the Friendly flag, none of them 1, before it is given up.</summary>
+        private const int MinFriendlyNpcs = 3;
+
         public CompatibilityReport? Report { get; set; }
 
         /// <summary>Whether this pass over the awake entities samples them (every <see cref="PassMs"/> until both fields are known).</summary>
         public bool StartPass()
         {
             var now = Environment.TickCount64;
-            if ((this.flagKnown && this.markerKnown) || now - this.lastPass < PassMs)
+            if ((this.flagKnown && this.markerKnown && this.friendlyKnown) || now - this.lastPass < PassMs)
             {
                 return false;
             }
@@ -123,6 +134,7 @@ namespace Poe2Accessibility.Services
         {
             this.JudgeFlag();
             this.JudgeMarker();
+            this.JudgeFriendly();
         }
 
         /// <summary>A new game process (perhaps a patched one): both are judged again from where they were measured.</summary>
@@ -132,6 +144,7 @@ namespace Poe2Accessibility.Services
             GameLayout.TargetableComponent.IsTargetedOffset = this.measuredTargeted;
             GameLayout.NpcComponent.MarkerRowOffset = this.measuredMarker;
             (this.flagKnown, this.markerKnown, InPlayTrusted, QuestStateTrusted, this.markerSearchedFor) = (false, false, true, false, -1);
+            (this.friendlyKnown, FriendlyTrusted) = (false, true);
         }
 
         /// <summary>Research (dev command "layout"): every other flag offset within reach that also fits, and the marker's state.</summary>
@@ -146,7 +159,8 @@ namespace Poe2Accessibility.Services
             var ids = this.npcs.Select(npc => this.RowIdAt(npc, GameLayout.NpcComponent.MarkerRowOffset)).Where(id => id.Length > 0).Distinct().ToList();
             var marker = this.markerKnown ? "quest marker ok"
                 : $"quest marker: no NPC shows one here ({this.npcs.Count} NPCs; rows at +0x{GameLayout.NpcComponent.MarkerRowOffset:X}: {(ids.Count == 0 ? "none" : string.Join(", ", ids))})";
-            return $"{flag}; {marker}";
+            var friendly = this.friendlyKnown ? FriendlyTrusted ? "npc friendly ok" : "npc friendly FAIL" : "npc friendly: not judged yet";
+            return $"{flag}; {marker}; {friendly}";
         }
 
         private List<IReadOnlyList<byte[]>> Groups() => this.variants.Values.Where(group => group.Count > 1).Select(group => (IReadOnlyList<byte[]>)group).ToList();
@@ -214,6 +228,32 @@ namespace Poe2Accessibility.Services
                 GameLayout.NpcComponent.MarkerRowOffset = found;
                 this.markerKnown = true;
                 this.Report?.Moved("quest marker", this.measuredMarker, found);
+            }
+        }
+
+        private void JudgeFriendly()
+        {
+            if (this.friendlyKnown || this.npcs.Count == 0)
+            {
+                return;
+            }
+
+            var flags = this.npcs.Select(npc => this.memory.TryRead<byte>(npc + GameLayout.NpcComponent.FriendlyOffset, out var flag) ? flag : (byte?)null)
+                .Where(flag => flag != null).ToList();
+            if (flags.Any(flag => flag > 1))
+            {
+                (this.friendlyKnown, FriendlyTrusted) = (true, false);
+                this.Report?.Missing("npc friendly flag");
+            }
+            else if (flags.Any(flag => flag == 1))
+            {
+                this.friendlyKnown = true;
+                this.Report?.Found("npc friendly flag");
+            }
+            else if (flags.Count >= MinFriendlyNpcs)
+            {
+                (this.friendlyKnown, FriendlyTrusted) = (true, false);
+                this.Report?.Missing("npc friendly flag");
             }
         }
 

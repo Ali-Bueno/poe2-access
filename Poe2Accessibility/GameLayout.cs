@@ -208,6 +208,12 @@ namespace Poe2Accessibility
             public static int MarkerRowOffset { get; internal set; } = 0x50;
 
             public const string QuestMarkerId = "NPCQuestMarker";
+
+            /// <summary>
+            ///     Byte, 1 while A talks to it and it cannot be attacked, 0 while it is a foe: the server's "Friendly" (exe 0.5.5f:
+            ///     debug dump 0x1DA4060, interact test 0x1A7CB5, attack test 0x1A78A9; docs/research/exe-layouts.md, talk or fight).
+            /// </summary>
+            public const int FriendlyOffset = 0x20;
         }
 
         /// <summary>

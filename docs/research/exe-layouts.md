@@ -599,3 +599,27 @@ reads (town NPCs read "hostile" in every dump), and the `hidden_monster` buff no
 in play: the log line `Character not listed: <path> (<reason>)`, once per file, says why any character is left out.
 Later the same day: the Dreadnought's Asala has no NPC component at all (`MarakethMatriarchDreadnought_.ot`: InteractionAction,
 Targetable, MinimapIcon, Actor, Stats), so "character" now also means a monster with the InteractionAction component.
+
+**Talk or fight: the NPC component's "Friendly" byte (2026-11-19, issue #9).** Freya Hartlin (`DeliriumEncounter/LilyRothMum`,
+whose files are `LilyCrewMum.ot/.ao/.act`) and Doryani (`DoryaniInThePast/DoryaniPast`) extend Monster and carry NPC and
+InteractionAction; +0x68 is 1 on both from Monster.ot's client `Targetable { attackable = true }`, and no script writes it at run
+time (`SetTargetableIsVisuallyAttackable`, impl 0x1927A60, is the one writer and no `.ot` calls it). What the game reads instead:
+- The NPC component is 0x28 bytes (pool allocator 0x1DA7C90 `cmp rdx,0x28`; constructor 0x1DA3930): +8 owner, +0x10 dirty,
+  +0x18 type data, **+0x20 Friendly** (starts 1), +0x21 marker shown (from type +0x20). The debug dump (0x1DA4060) prints +0x20
+  as "Friendly: Yes/No"; GEAL `ShowNPCMarker`/`HideNPCMarker` go through virtual slot 0xD0, which writes +0x21.
+- The server sends both bytes (full read slot 19, 0x1DA3EE0; delta read slot 22, 0x1DA3F80, which calls slot 0xC8 when +0x20
+  turns 1 and 0xC0 when it turns 0). 0xC0 (0x1DA6100) clears +0x20 and the marker; 0xC8 (0x1DA6140) sets +0x20. The client
+  never calls them itself: Friendly is the server's word, changed at run time.
+- Interacting (0x1A7AE0): after the Targetable test, the InteractionAction gate and stat key 0x4961 (row 18784,
+  `console_targeting_treat_as_enemy`) being 0, an entity with a WorldItem is refused, one whose NPC +0x20 is set is accepted
+  (0x1A7CB5), and any other with a Monster component is refused (0x1A7D26). A monster is talked to only while it is Friendly.
+- Attacking (0x1A7720, tail at 0x1A7862): needs +0x68, then refuses when NPC +0x20 is set (0x1A78A9) or when the player's team
+  equals the target's (Positioned +0x1E0 & 0x7FFF, or the owner's through 0x1DEBF50) and 0x4961 is 0. Town NPCs read "hostile"
+  only because the plugin's reaction test is `(b & 0x7F) == 1`: NPC.ot and Monster.ot both say `team = 0`, Character.ot `team = 1`.
+So a monster with the NPC component is a character to talk to while NPC +0x20 = 1 and a foe while it is 0; nothing in the files
+gives the phase. Not seen in play: the two values of each phase are deduced from the code (the player talked to both, so 1 then;
+fought Doryani, so 0 then).
+The plugin reads it (`GameLayout.NpcComponent.FriendlyOffset`, `EntityCatalog.IsTalkable`): a creature with the NPC component
+is an enemy only while it reads 0; without one (Asala) the attackable rule stays. `EntityFields` gives it up if a town NPC
+reads anything but 0 or 1, or several read no 1; on 0.5.5h (2026-11-19, the Ziggurat Encampment) it held. Open: the quest
+marker row is read at NPC +0x50 (measured 2026-10-24), past the 0x28 bytes the allocator gives the component.
