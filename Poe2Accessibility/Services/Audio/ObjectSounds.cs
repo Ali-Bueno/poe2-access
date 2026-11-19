@@ -87,7 +87,9 @@ namespace Poe2Accessibility.Services
             ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind is not (MinimapMarks.RitualDoneKind or LeaguePieces.MarkerKind) &&
                                        SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
-            ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
+            // Apart: sharing a voice, the nearer checkpoint kept the waypoint silent (the owner, 2026-11-19: the transporter "no tiene").
+            ("waypoints", 1, entry => entry.Kind == "waypoint"),
+            ("checkpoints", 1, entry => entry.Kind == "checkpoint"),
             ("stashes", 1, entry => entry.Kind == MinimapMarks.StashKind),
             ("wells", 1, entry => entry.Kind == MinimapMarks.WellKind),
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
