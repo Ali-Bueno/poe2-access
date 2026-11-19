@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         private readonly ExitLeverNews nextLift = new();
         private readonly List<(uint Id, bool Enabled, float Distance)> liftsInView = new();
         private readonly Dictionary<uint, ScanEntry> liftEntries = new();
+        private readonly List<(System.Numerics.Vector2 At, bool? Pressed)> plates = new();
+        private readonly List<(uint Id, System.Numerics.Vector2 At, float Far, bool SameFloor)> decks = new();
+        private readonly Dictionary<uint, bool> plateWas = new();
         private readonly List<(uint Id, bool Enabled, float Distance)> levers = new();
         private readonly Dictionary<uint, ScanEntry> leverEntries = new();
         private readonly Dictionary<uint, bool> leverWas = new();
@@ -77,6 +80,8 @@ namespace Poe2Accessibility.Services
             this.leverEntries.Clear();
             this.liftsInView.Clear();
             this.liftEntries.Clear();
+            this.plates.Clear();
+            this.decks.Clear();
 
             System.Numerics.Vector3? player = Seats.Followed.TryGetComponent<Render>(out var seat) ? new(seat.WorldPosition.X, seat.WorldPosition.Y, seat.WorldPosition.Z) : null;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
@@ -111,12 +116,8 @@ namespace Poe2Accessibility.Services
                     // ground's plane: the platform's height is far from the player's while it is down (live 2026-11-19, "bajando" lost).
                     var far = System.Numerics.Vector2.Distance(new(rider.X, rider.Y), new(platform.WorldPosition.X, platform.WorldPosition.Y));
                     this.liftsInView.Add((entity.Id, ChaosTrial.IsActivated(states), far));
-                    var onDeck = far <= RiderWorld && Math.Abs(platform.WorldPosition.Z - rider.Z) <= ChaosTrial.FloorGapWorld;
-                    if (this.lifts.Boarded(entity.Id, onDeck, now))
-                    {
-                        this.log.Info($"Stepped onto lift {entity.Id}, {far:0} from its centre");
-                        this.output.Urge(Announcements.ChaosOnLift);
-                    }
+                    this.decks.Add((entity.Id, new(platform.WorldPosition.X, platform.WorldPosition.Y), far,
+                        Math.Abs(platform.WorldPosition.Z - rider.Z) <= ChaosTrial.FloorGapWorld));
 
                     this.liftEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Objects, Announcements.ChaosNextLift, platform.WorldPosition.X, platform.WorldPosition.Y, platform.WorldPosition.Z);
                     if (this.lifts.Moved(entity.Id, TransitionState.Of(this.memory, entity)?.State, now) is { } moved)
@@ -151,9 +152,37 @@ namespace Poe2Accessibility.Services
                     }
                 }
 
+                if (piece == ChaosPiece.LiftPlate && entity.TryGetComponent<Render>(out var plate))
+                {
+                    var pressed = ChaosTrial.IsPressed(states);
+                    if (pressed is { } now2 && this.plateWas.TryGetValue(entity.Id, out var before) && before != now2)
+                    {
+                        this.log.Info($"Lift plate {entity.Id} {(now2 ? "pressed" : "released")}");
+                    }
+
+                    if (pressed is { } known)
+                    {
+                        this.plateWas[entity.Id] = known;
+                    }
+
+                    this.plates.Add((new(plate.WorldPosition.X, plate.WorldPosition.Y), pressed));
+                }
+
                 if (piece == ChaosPiece.BloodCircle && this.news.Filled(entity.Id, ChaosTrial.IsFull(states)))
                 {
                     this.output.Say(SpeechKind.Quest, Announcements.ChaosCircleFilled);
+                }
+            }
+
+            // On the deck is on its plate: pressed when its state is read, else near enough to the centre to set it off.
+            foreach (var (id, at, far, sameFloor) in this.decks)
+            {
+                var plate = this.plates.Where(each => System.Numerics.Vector2.Distance(each.At, at) <= ChaosTrial.PlateLiftWorld).Select(each => each.Pressed).FirstOrDefault();
+                var onPlate = plate ?? (far <= ChaosTrial.PlateWorld && sameFloor);
+                if (this.lifts.Boarded(id, onPlate, now))
+                {
+                    this.log.Info($"Stepped onto lift {id}'s plate, {far:0} from its centre ({(plate == null ? "by distance" : "pressed")})");
+                    this.output.Urge(Announcements.ChaosOnLift);
                 }
             }
 

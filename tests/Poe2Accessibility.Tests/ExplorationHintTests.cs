@@ -105,6 +105,9 @@ namespace Poe2Accessibility.Tests
             Equal(false, ride.Boarded(10, false, 5500), "the deck going down reads as off it");
             Equal(false, ride.Boarded(10, true, 7200), "and is not stepping on again when it stops below");
             Equal(false, ride.Boarded(10, true, 8000), "nor after, still on it");
+            Equal(true, ChaosTrial.IsPressed(new[] { (ChaosTrial.LeverEnabledState, 0L) }), "a plate stood on");
+            Equal(false, ChaosTrial.IsPressed(new[] { (ChaosTrial.LeverEnabledState, 1L) }), "a plate waiting");
+            Equal(null, ChaosTrial.IsPressed(Array.Empty<(string, long)>()), "a plate whose states were not read");
             var trip = new LiftNews();
             trip.Moved(8, 2, 0);
             Equal(1, trip.Moved(8, 1, 1000), "sets off down");

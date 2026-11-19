@@ -27,6 +27,12 @@ namespace Poe2Accessibility.Services
         ///     ridden by standing on it and pulling its lever.
         /// </summary>
         Lift,
+
+        /// <summary>
+        ///     The pressure plate on a lift's deck that sends it (<c>LiftButton_PlatformLarge</c>, a ControlZone): `enabled` 1 waiting,
+        ///     0 pressed (its `activate` animation). Stepping on the lift but off the plate sends nothing (the owner, 2026-11-19).
+        /// </summary>
+        LiftPlate,
     }
 
     /// <summary>What a round of the Trial of Chaos asks (UltimatumEncounterTypes), as far as its pieces tell.</summary>
@@ -96,6 +102,7 @@ namespace Poe2Accessibility.Services
             [Folder + "UltimatumSelector"] = ChaosPiece.Selector,
             [Folder + "LiftPlatform"] = ChaosPiece.Lift,
             [Folder + "LiftPlatformLarge"] = ChaosPiece.Lift,
+            [Folder + "LiftButton_PlatformLarge"] = ChaosPiece.LiftPlate,
         };
 
         /// <summary>Each piece's file and the state matched on it, for the data step's check (<see cref="GameNames"/>).</summary>
@@ -105,6 +112,7 @@ namespace Poe2Accessibility.Services
             ChaosPiece.BloodAltar => AltarCompleteState,
             ChaosPiece.LiftLever => LeverEnabledState,
             ChaosPiece.Lift => LiftActivatedState,
+            ChaosPiece.LiftPlate => LeverEnabledState,
             _ => (string?)null,
         }));
 
@@ -166,6 +174,19 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Heights further apart than this are two floors: the lift down read about 550-630 world units from a rider up (log).</summary>
         public const float FloorGapWorld = 200f;
+
+        /// <summary>
+        ///     The plate's reach when its state is not read: trips set off with the rider 12-91 world units from the lift's centre and
+        ///     not at 159 (log 2026-11-19).
+        /// </summary>
+        public const float PlateWorld = 95f;
+
+        /// <summary>A plate belongs to the lift nearest it on the ground within this (both stand at the deck's centre).</summary>
+        public const float PlateLiftWorld = 100f;
+
+        /// <summary>A plate being stood on: `enabled` 0; null when its states were not read.</summary>
+        public static bool? IsPressed(IReadOnlyCollection<(string Name, long Value)> states) =>
+            states.FirstOrDefault(state => string.Equals(state.Name, LeverEnabledState, StringComparison.Ordinal)) is { Name: not null } found ? found.Value == 0 : null;
 
         /// <summary>
         ///     Whether the lever's lift stands on another floor, so pulling it calls the lift: true or false for the nearest lift

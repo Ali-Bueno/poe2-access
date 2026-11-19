@@ -49,6 +49,7 @@ ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/BossLiftTransition		ChaosT
 ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/UltimatumSelector		ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/LiftPlatform	activated	ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/LiftPlatformLarge	activated	ChaosTrial
+ObjectFile	Metadata/Terrain/Gallows/Act3/3_10/Objects/LiftButton_PlatformLarge	enabled	ChaosTrial
 Buff	ultimatum_holding_soul_core		ChaosTrial
 Buff	ultimatum_ruin		ChaosTrial
 ObjectFile	Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor	open	TrialDoors
