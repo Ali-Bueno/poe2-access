@@ -174,7 +174,9 @@ namespace Poe2Accessibility.Services
 
             if (this.news.Objective(objective?.Room ?? IntPtr.Zero, objective?.Text) is { } asked && trials && round is { } standing)
             {
-                this.output.Say(SpeechKind.Quest, standing.Round <= (rounds ?? int.MaxValue) ? Announcements.TrialRoundAsks(standing.Round, rounds, asked) : asked);
+                var line = standing.Round <= (rounds ?? int.MaxValue) ? Announcements.TrialRoundAsks(standing.Round, rounds, asked) : asked;
+                var explained = Announcements.ChaosObjectiveExplained(objective!.Value.Kind);
+                this.output.Say(SpeechKind.Quest, explained.Length > 0 ? $"{line}. {explained}" : line);
             }
 
             if (this.news.Progress(round == null ? null : this.reader.TrialProgress()) is { } percent && trials)

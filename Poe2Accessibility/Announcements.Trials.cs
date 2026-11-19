@@ -45,6 +45,23 @@ namespace Poe2Accessibility
         /// <summary>"Ronda 2 de 4: Mata a todos los monstruos" — a Trial of Chaos room's round and what it asks; no count when not known.</summary>
         public static string TrialRoundAsks(int round, int? of, string asks) => $"{TrialRound(round, of ?? 0)}: {asks}";
 
+        /// <summary>
+        ///     What a round kind asks, for the kinds no piece explains (UltimatumEncounterTypes Ids; the game shows only the name and the
+        ///     Trialmaster's line; docs/research/trial-of-chaos.md §3). Collect, Escort and Sacrifice are explained as their pieces come
+        ///     into view (<see cref="ChaosRoundBegan"/>). Empty for those and for an Id not known. The owner, 2026-11-19: "estaría bien
+        ///     que explicase también".
+        /// </summary>
+        public static string ChaosObjectiveExplained(string kind) => kind switch
+        {
+            "Slay" => T("The way out opens once no monster is left in the room",
+                "La salida se abre cuando no quede ningún monstruo en la sala"),
+            "Survive" => T("Start the Corruption Dais, then stay alive until the clock runs out; the arena closes around you",
+                "Activa la tarima de corrupción y aguanta con vida hasta que acabe el tiempo; la arena se cierra a tu alrededor"),
+            "Destroy" => T("Find and destroy the idols spread around the room",
+                "Busca y destruye los ídolos repartidos por la sala"),
+            _ => string.Empty,
+        };
+
         /// <summary>"Ronda 1 de 4 superada" — a Trial of Chaos room completed.</summary>
         public static string TrialRoundWon(int round, int? of) => of is > 0
             ? T($"Round {round} of {of} won", $"Ronda {round} de {of} superada")
