@@ -71,6 +71,14 @@ internal static partial class SoundExtractor
         // What each is heard to do when used: the stash's lid, the well's water (docs/research/game-audio.md).
         new("stash",      "PlayerStash_4.0",   "Open_1", Rms: 0.10),
         new("well",       "General_Gameplay",  "Wellwell_FX_Well_03", Rms: 0.10),
+        // A crafting or salvage bench: an anvil struck, the six takes in turn (user's pick 2026-11-19 of six anvil, hammer,
+        // salvage and forge recordings; audition page https://claude.ai/artifact/7mJ1kMaFXXzBi3774NUyPk).
+        new("bench_1",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_01", Rms: 0.10),
+        new("bench_2",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_02", Rms: 0.10),
+        new("bench_3",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_03", Rms: 0.10),
+        new("bench_4",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_04", Rms: 0.10),
+        new("bench_5",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_05", Rms: 0.10),
+        new("bench_6",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_06", Rms: 0.10),
         // A sign to read: pages turned, from a book pet's idle (user's pick 2026-11-12 of eight page, quill, book and
         // scroll sounds; the game plays nothing at a sign).
         new("sign",       "BookandQuillPetMTX", "BookandQuillPet_IdleRelaxed01_FlipPages_01"),

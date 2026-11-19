@@ -213,9 +213,13 @@ namespace Poe2Accessibility.Services
 
         public const string WellKind = "well";
 
+        /// <summary>A crafting or salvage bench (`CraftingBenchIcon`): it sounded nothing (the owner, 2026-11-19).</summary>
+        public const string BenchKind = "bench";
+
         /// <summary>A town service by its minimap icon ("StashPlayer", "HealingWell"; entity dump of G2_town, 0.5.5f), or empty.</summary>
         public static string ServiceKind(string icon) =>
-            icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind : string.Empty;
+            icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind
+            : icon.StartsWith("CraftingBench", StringComparison.Ordinal) ? BenchKind : string.Empty;
 
         /// <summary>
         ///     A named barrier a campaign area made for itself, such as the Ancient Seal at Balbala's door (Act2/2_2/Objects/BossDoor,

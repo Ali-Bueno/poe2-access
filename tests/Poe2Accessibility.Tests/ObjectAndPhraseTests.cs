@@ -52,6 +52,16 @@ namespace Poe2Accessibility.Tests
             Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_9/Objects/KeyPedestal_02"), "the Molten Vault's stone altar takes a quest item");
             Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss"), "as the Machinarium's do");
             Equal(false, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal"), "a power line beside one is not one");
+            var random = new Random(3);
+            var takes = new List<int> { RoundRobin.Next(6, -1, random) };
+            for (var i = 0; i < 200; i++)
+            {
+                takes.Add(RoundRobin.Next(6, takes[^1], random));
+            }
+
+            Equal(true, takes.Zip(takes.Skip(1)).All(pair => pair.First != pair.Second), "the bench's anvil never strikes the same take twice running");
+            Equal(6, takes.Distinct().Count(), "and every take is heard");
+            Equal(0, RoundRobin.Next(1, 0, random), "one take: that one");
             var loop = CueSynth.BarrierLoop(44100);
             Equal(true, loop.Length >= CueSynth.Barrier(44100).Length && loop[^1] == 0f, "the barrier's loop is its blows, then quiet");
         }

@@ -273,6 +273,19 @@ apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB
   takes (1.5x same pitch, 1.5x and 2x as a sampler) are on the page above.
 - The loader caps every sound at 0.9 s (`GameSoundSeconds`), so a longer recording is cut there.
 
+## A crafting bench and the waypoint (2026-11-19)
+The salvage/crafting bench (`CraftingBenchIcon`, "Mesa de reciclaje": `…/1_town_ExileEncampment/Objects/CraftingBenchEzomyte`,
+`…/3_town/Objects/CraftingBenchKalguuran`) was an object with no kind and no sound; the campaign benches' `.ao` reference
+none (`ao-sounds CraftingBench`). Now kind `bench` (`MinimapMarks.ServiceKind`), group `benches`, sounding as the stash and the
+well do. The owner's pick on the [audition page](https://claude.ai/artifact/7mJ1kMaFXXzBi3774NUyPk) of six (three
+`BlacksmithMechanism` anvil hits, `MektulSalvageBenchMTX` `Hammer_Impact_01`, `Four_CraftingBench` `CraftingBench_UI_Salvage_02`
+/ `_Craft_01` / `UI_Crucible_Forge_01`): the anvil, and in round robin ("haz un round robin entre los sonidos de martillo de
+yunque"): `bench_1`…`bench_6` = `BlacksmithMech_AnvilHit_01`…`06` (0.66-0.77 s, RMS 0.10), any take but the last
+(`GameSounds.Variant`, `RoundRobin`; launcher sounds step v18).
+
+The waypoint ("Transportador") shared one voice with the checkpoints, so a nearer checkpoint kept it silent (the owner: it
+"no tiene" sound); each has its own group now. Not heard live yet.
+
 ## A closed barrier (2026-11-19)
 A barrier with nothing to click and no story name (`TriggerableBlockage` blocked, no `Targetable`: the Matlan Waterways'
 `Waterway_Water`, beams, gates a quest step opens) was listed as "Barrera cerrada" with no sound, and the owner kept walking

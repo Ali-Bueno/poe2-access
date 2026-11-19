@@ -92,6 +92,7 @@ namespace Poe2Accessibility.Services
             ("checkpoints", 1, entry => entry.Kind == "checkpoint"),
             ("stashes", 1, entry => entry.Kind == MinimapMarks.StashKind),
             ("wells", 1, entry => entry.Kind == MinimapMarks.WellKind),
+            ("benches", 1, entry => entry.Kind == MinimapMarks.BenchKind),
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
             ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
@@ -118,6 +119,7 @@ namespace Poe2Accessibility.Services
         private long lastPoll;
         private long lastAnyPlayed;
         private long wayOpenedAt = long.MinValue / 2;
+        private int lastBench = -1;
 
         public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops, GameSounds diabloSounds)
         {
@@ -312,7 +314,7 @@ namespace Poe2Accessibility.Services
         private static ScanEntry WhileWanted(ScanEntry entry, HashSet<uint> wanted) =>
             entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) &&
             (entry.Sound.Length == 0 || (entry.Category == ScanCategory.Encounters && entry.Subject.Length > 0)) &&
-            entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual" and not MinimapMarks.StashKind and not MinimapMarks.WellKind
+            entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual" and not MinimapMarks.StashKind and not MinimapMarks.WellKind and not MinimapMarks.BenchKind
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;
 
@@ -344,6 +346,7 @@ namespace Poe2Accessibility.Services
             "checkpoint" => this.sounds.Get("checkpoint"),
             MinimapMarks.StashKind => this.sounds.Get(MinimapMarks.StashKind),
             MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
+            MinimapMarks.BenchKind => this.sounds.Variant(MinimapMarks.BenchKind, ref this.lastBench),
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),

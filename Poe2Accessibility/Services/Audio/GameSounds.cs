@@ -159,6 +159,27 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     One of a sound's takes (`name_1.wav`, `name_2.wav`…), never the one played last (<paramref name="last"/>, -1 at
+        ///     first): a round robin, so a repeated cue is not the same strike each time. Null when there is none.
+        /// </summary>
+        public float[]? Variant(string name, ref int last)
+        {
+            var takes = new List<float[]>();
+            for (var take = 1; this.sounds.TryGetValue($"{name}_{take}", out var samples); take++)
+            {
+                takes.Add(samples);
+            }
+
+            if (takes.Count == 0)
+            {
+                return null;
+            }
+
+            last = RoundRobin.Next(takes.Count, last, Random.Shared);
+            return takes[last];
+        }
+
         /// <summary>The idle bed of a kind of place (portal, exit, waypoint, checkpoint), or null when it was not extracted.</summary>
         public float[]? GetLoop(string name) => this.loops.TryGetValue(name, out var samples) ? samples : null;
 

@@ -44,6 +44,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ItemSoundGroup.cs" Link="Plugin\ItemSoundGroup.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ItemSoundSet.cs" Link="Plugin\ItemSoundSet.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\LoopReader.cs" Link="Plugin\LoopReader.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\RoundRobin.cs" Link="Plugin\RoundRobin.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\FightState.cs" Link="Plugin\FightState.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\InPlayFlag.cs" Link="Plugin\InPlayFlag.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ChangingField.cs" Link="Plugin\ChangingField.cs" />
