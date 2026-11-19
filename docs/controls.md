@@ -554,6 +554,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   the game files, `catalog/hazards.txt`). Setting "Alarma de suelo peligroso" (on), volume with the enemy sounds, and its own under Sound.
 - **Flood warnings** (Mektul's molten gold): "La lava avanza, arriba" as it starts down the hall, then "Lava arriba a la
   izquierda, 5 pasos" at 10, 5 and 2 steps from its nearest edge, and "¡En la lava! Sal hacia la derecha" if you step in.
+  A low pulse sounds from the lava's side from 10 steps, faster as it nears (enemy volume); within 5 steps the heartbeat
+  leads to dry ground, beside the lava's path or well ahead of it, and the warnings add "seguro hacia…".
   Setting "Avisos de la lava que inunda la arena" (on).
 - **Parry cue** (only for a character with the Parry skill: a buckler, a targe or two swords): a reverse hit, a
   struck buckler played backwards, that swells in for a third of a second and stops dead, from the attacker's side;

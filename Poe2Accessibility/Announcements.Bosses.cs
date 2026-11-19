@@ -131,8 +131,10 @@ namespace Poe2Accessibility
         /// <summary>The arena's flood starts down the hall, from where its front is: "The lava is flowing, up".</summary>
         public static string BossFloodFlows(int octant) => T($"The lava is flowing, {Way(octant)}", $"La lava avanza, {Way(octant)}");
 
-        /// <summary>The flood nears the player, where its nearest edge is: "Lava up left, 5 steps".</summary>
-        public static string BossFloodNear(int octant, int steps) => T($"Lava {Way(octant)}, {Steps(steps)}", $"Lava {Way(octant)}, {Steps(steps)}");
+        /// <summary>The flood nears the player, where its nearest edge is and the way to dry ground: "Lava up left, 5 steps, safe right".</summary>
+        public static string BossFloodNear(int octant, int steps, int? safe) =>
+            T($"Lava {Way(octant)}, {Steps(steps)}", $"Lava {Way(octant)}, {Steps(steps)}") +
+            (safe is { } way ? T($", safe {Way(way)}", $", seguro hacia {Way(way)}") : string.Empty);
 
         /// <summary>The player stands in the flood, the way to its nearest edge: "In the lava! Out to the right".</summary>
         public static string BossFloodInside(int octant) => T($"In the lava! Out {Way(octant)}", $"¡En la lava! Sal hacia {Way(octant)}");

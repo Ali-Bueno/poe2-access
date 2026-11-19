@@ -648,3 +648,11 @@ position on the client) is where the server says the mesh is. PROVEN from the fi
   10 pasos" at 10, 5 and 2 steps from the tongue's nearest edge, "¡En la lava! Sal hacia la derecha" on stepping in.
   Setting "Avisos de la lava que inunda la arena". The log's "Boss flood:" lines every 5 s hold the front and the player's
   distance, to check against "Hazard ground: treasure_vault_lava". Unit tests; not heard live.
+- **Heard and led** (the owner: "un sonido… que se vaya paneando y haciéndose cada vez más rápido… el problema es saber
+  dónde no hay lava"): `FloodCue` pulses from the nearest edge's side from 10 steps, every 1200 ms there down to 300 ms
+  at the edge, silent inside (the ground alarm then). Within 5 steps or inside, dry ground is looked for: the nearest
+  point walked to straight (`BeaconMath.LineWalkable` on the terrain grid, rings 50 apart, 16 directions, out to 15
+  steps) that `FloodGeometry.StaysDry`: beside the path a step past the tongue's widest, or a step ahead of where the
+  front is in 10 s. The heartbeat leads there (`BossMechanicsWatch.LeadTo`), the warnings add "seguro hacia…".
+  The pulse's sound: candidates on the [audition page](https://claude.ai/artifact/DqYH86yFJFaTwCMhvM548R), A
+  (`CueSynth.FloodBubble`) until the owner picks.

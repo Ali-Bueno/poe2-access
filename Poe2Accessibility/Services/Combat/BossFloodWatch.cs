@@ -24,6 +24,24 @@ namespace Poe2Accessibility.Services
         /// <summary>World units of one spoken step, the scanner's.</summary>
         private const float StepWorldUnits = 100f;
 
+        /// <summary>Within this of the flood (world units, the 5-step warning) the way to dry ground is looked for and led to.</summary>
+        private const float LeadWorld = 5 * StepWorldUnits;
+
+        /// <summary>Dry ground keeps a step from the tongue's widest edge, or from where its front will be.</summary>
+        private const float DryMargin = StepWorldUnits;
+
+        /// <summary>Ground ahead of the front counts as dry while the front is this many seconds away from it.</summary>
+        private const float DryLeadSeconds = 10f;
+
+        /// <summary>Dry ground is looked for in rings this far apart (world units), the nearest ring first…</summary>
+        private const float DryStep = 50f;
+
+        /// <summary>…out to this far (15 steps, more than the tongue's width from its middle)…</summary>
+        private const float DryReach = 15 * StepWorldUnits;
+
+        /// <summary>…at this many directions, the stick's eight and those between.</summary>
+        private const int DryDirections = 16;
+
         private readonly PluginLog log;
         private readonly FloodWarnings warnings = new();
         private FloodRule? rule;
@@ -40,8 +58,15 @@ namespace Poe2Accessibility.Services
         /// <summary>The animation reader (the boss watch's), null until it is built.</summary>
         public Func<AttackReader?> Reader { get; set; } = () => null;
 
+        /// <summary>The flood's nearest edge (world), how far (0 inside) and whether the player stands in it; null while it does not flow.</summary>
+        public (Vector2 At, float Distance, bool Inside)? Edge { get; private set; }
+
+        /// <summary>The dry place to lead to while the flood is near or the player stands in it; null otherwise.</summary>
+        public (Vector2 At, float Radius)? DryLead { get; private set; }
+
         public void Reset()
         {
+            (this.Edge, this.DryLead) = (null, null);
             this.warnings.Reset();
             (this.rule, this.lavaId, this.fit, this.unfitLogged, this.flowing) = (null, 0, null, false, false);
         }
@@ -75,6 +100,7 @@ namespace Poe2Accessibility.Services
             if (this.Lava(rule) is not { } lava || this.fit is not { } fit || !lava.TryGetComponent<Animated>(out var animated) ||
                 this.Reader()?.Progress(lava.Id, animated.Address) is not { } clock)
             {
+                (this.Edge, this.DryLead) = (null, null);
                 return Array.Empty<string>();
             }
 
@@ -97,31 +123,51 @@ namespace Poe2Accessibility.Services
 
             if (!flows)
             {
+                (this.Edge, this.DryLead) = (null, null);
                 return lines;
             }
 
             var (inside, distance, nearest) = FloodGeometry.Measure(outline, fit.ToRoom(here - this.origin));
             var edge = this.origin + fit.ToWorld(nearest);
             var steps = (int)Math.Round(distance / StepWorldUnits);
+            var dry = inside || distance <= LeadWorld ? this.DryPlace(rule, fit, clock.Position, here) : null;
+            this.Edge = (edge, inside ? 0f : distance, inside);
+            this.DryLead = dry is { } spot ? (spot, 0f) : null;
             if (now - this.lastLog >= LogMs)
             {
                 this.lastLog = now;
                 var tip = this.origin + fit.ToWorld(outline[0]);
-                this.log.Info($"Boss flood: {clock.Position:0.0} s, front {tip.X:0},{tip.Y:0}, player {(inside ? "inside" : "outside")} {distance:0} from its edge");
+                this.log.Info($"Boss flood: {clock.Position:0.0} s, front {tip.X:0},{tip.Y:0}, player {(inside ? "inside" : "outside")} {distance:0} from its edge" +
+                              (dry is { } at ? $", dry at {at.X:0},{at.Y:0}" : string.Empty));
             }
 
             var way = ScreenProjection.Octant(player.WorldPosition, edge - here);
+            int? safe = dry is { } place ? ScreenProjection.Octant(player.WorldPosition, place - here) : null;
             switch (this.warnings.Update(inside, steps))
             {
                 case FloodNewsKind.Near:
-                    lines.Add(Announcements.BossFloodNear(way, Math.Max(1, steps)));
+                    lines.Add(Announcements.BossFloodNear(way, Math.Max(1, steps), safe));
                     break;
                 case FloodNewsKind.Inside:
-                    lines.Add(Announcements.BossFloodInside(way));
+                    lines.Add(Announcements.BossFloodInside(safe ?? way));
                     break;
             }
 
             return lines;
+        }
+
+        /// <summary>The nearest place the player walks to straight that the flood leaves dry a while (<see cref="FloodGeometry.StaysDry"/>).</summary>
+        private Vector2? DryPlace(FloodRule rule, RoomFit fit, float seconds, Vector2 here)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var (grid, row) = (area.GridWalkableData, area.TerrainMetadata.BytesPerRow);
+            if (grid == null || grid.Length == 0 || row <= 0)
+            {
+                return null;
+            }
+
+            return FloodGeometry.NearestDry(here, point => FloodGeometry.StaysDry(rule, seconds, fit.ToRoom(point - this.origin), DryMargin, DryLeadSeconds),
+                (from, to) => BeaconMath.LineWalkable(grid, row, from / AttackAreas.WorldPerCell, to / AttackAreas.WorldPerCell), DryStep, DryReach, DryDirections);
         }
 
         /// <summary>The flood's object, and the fit of its room to the world from the first anchor in sight.</summary>

@@ -77,6 +77,7 @@ namespace Poe2Accessibility.Services
 
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add(BossRefugeSounds.Lead, CueSynth.Refuge(rate));
+            this.Add(FloodCue.Sound, CueSynth.Flood(rate));
             this.AddGame(gameSounds, rate, BossRefugeSounds.Over);
             this.AddGame(gameSounds, rate, TrapWatch.StatueOpenSound);
             this.Add(CueSynth.GazeSound, CueSynth.Gaze(2, rate));

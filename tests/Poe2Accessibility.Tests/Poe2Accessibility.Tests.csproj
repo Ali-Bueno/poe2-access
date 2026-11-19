@@ -61,6 +61,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Skills.cs" Link="Plugin\CueSynth.Skills.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.States.cs" Link="Plugin\CueSynth.States.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Refuge.cs" Link="Plugin\CueSynth.Refuge.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Flood.cs" Link="Plugin\CueSynth.Flood.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.LeftBehind.cs" Link="Plugin\CueSynth.LeftBehind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\StereoSound.cs" Link="Plugin\StereoSound.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\PeakLimiter.cs" Link="Plugin\PeakLimiter.cs" />

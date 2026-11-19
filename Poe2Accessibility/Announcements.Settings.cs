@@ -145,6 +145,7 @@ namespace Poe2Accessibility
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             Services.BossRefugeSounds.Lead => T("Boss fight shelter", "Refugio en un combate de jefe"),
+            Services.FloodCue.Sound => T("Lava flooding the arena", "Lava que inunda la arena"),
             Services.BossRefugeSounds.Over => T("Shelter no longer needed", "Ya no hace falta el refugio"),
             Services.TrapWatch.StatueOpenSound => T("Statue opening its eyes", "Estatua que abre los ojos"),
             Services.CueSynth.GazeSound => T("A statue looking at you", "Una estatua te mira"),
@@ -268,6 +269,9 @@ namespace Poe2Accessibility
             _ when StateOfSound(key) is not null => T(
                 "an enemy on that side has just been put in this state; a rare or unique one is named too",
                 "un enemigo de ese lado acaba de quedar en este estado; si es raro o único, también se nombra"),
+            Services.FloodCue.Sound => T(
+                "from the side of the nearest edge of the lava flooding a boss's arena (Mektul's molten gold); faster as it nears, from 10 steps; the heartbeat leads to dry ground",
+                "del lado del borde más cercano de la lava que inunda la arena (el oro fundido de Mektul); más rápido al acercarse, desde 10 pasos; el latido lleva a suelo seco"),
             Services.BossRefugeSounds.Lead => T(
                 "from the side of the shelter a boss's attack leaves (Asala's barrier against Jamanra's sandstorm); faster as you near it, silent once you are inside",
                 "del lado del refugio ante un ataque del jefe (la barrera de Asala ante la tormenta de Jamanra); más rápido al acercarte, callado al estar dentro"),

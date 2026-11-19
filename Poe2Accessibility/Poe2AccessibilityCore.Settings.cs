@@ -105,6 +105,11 @@ namespace Poe2Accessibility
                 this.hazards.Gain = Fraction(settings.EnemyVolume);
             }
 
+            if (this.floodCue != null)
+            {
+                this.floodCue.Gain = Fraction(settings.EnemyVolume);
+            }
+
             if (this.culls != null)
             {
                 this.culls.Gain = Fraction(settings.EnemyVolume);

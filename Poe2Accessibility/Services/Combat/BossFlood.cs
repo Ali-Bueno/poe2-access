@@ -135,6 +135,47 @@ namespace Poe2Accessibility.Services
             return (inside, best, nearest);
         }
 
+        /// <summary>
+        ///     Whether a point (room frame) stays dry a while: beside the flood's path past its widest by <paramref name="margin"/>,
+        ///     or that far ahead of where its front will be in <paramref name="lead"/> seconds.
+        /// </summary>
+        public static bool StaysDry(FloodRule rule, float seconds, Vector2 point, float margin, float lead)
+        {
+            var track = rule.Track;
+            var axis = Vector2.Normalize(track[^1] - track[0]);
+            var along = track.Select(sample => Vector2.Dot(sample - track[0], axis)).ToList();
+            var s = Vector2.Dot(point - track[0], axis);
+            var lateral = MathF.Abs(Vector2.Dot(point - Centre(track, along, Math.Clamp(s, along[0], along[^1])), new Vector2(-axis.Y, axis.X)));
+            if (lateral >= rule.Outline.Max(p => p.Y) + margin)
+            {
+                return true;
+            }
+
+            return s >= Along(along, Math.Clamp((seconds + lead) / rule.PeriodSeconds, 0f, track.Count - 1)) + margin;
+        }
+
+        /// <summary>
+        ///     The nearest place that is <paramref name="dry"/> and reached in a straight walk: rings of <paramref name="directions"/>
+        ///     points around the player every <paramref name="step"/>, nearest ring first; null when none lies within <paramref name="reach"/>.
+        /// </summary>
+        public static Vector2? NearestDry(Vector2 here, Func<Vector2, bool> dry, Func<Vector2, Vector2, bool> walkable, float step, float reach, int directions)
+        {
+            for (var r = step; r <= reach; r += step)
+            {
+                for (var k = 0; k < directions; k++)
+                {
+                    var (sin, cos) = MathF.SinCos(2f * MathF.PI * k / directions);
+                    var point = here + (new Vector2(cos, sin) * r);
+                    if (dry(point) && walkable(here, point))
+                    {
+                        return point;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private static float Along(IReadOnlyList<float> along, float index)
         {
             var low = (int)Math.Floor(index);

@@ -58,10 +58,13 @@ namespace Poe2Accessibility.Services
         public Func<Vector2, bool>? HelperCue { get; set; }
 
         /// <summary>Where the heartbeat leads in a boss fight: a hiding boss, the way out of its walls, a place of its arena; null when nowhere.</summary>
-        public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? (this.WayOut is { } wayOut ? (wayOut, 0f) : this.places?.Lead);
+        public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? (this.WayOut is { } wayOut ? (wayOut, 0f) : this.flood?.DryLead ?? this.places?.Lead);
+
+        /// <summary>The arena's flood: its nearest edge and whether the player stands in it; null while none flows.</summary>
+        public (Vector2 At, float Distance, bool Inside)? FloodEdge => this.FloodOn() ? this.flood?.Edge : null;
 
         /// <summary>The heartbeat leads to the fight's shelter (Asala's barrier): it takes the shelter's own sound.</summary>
-        public bool LeadsToRefuge => this.Hiding == null && this.WayOut == null && this.places?.LeadKind == BossPlaceKind.Refuge;
+        public bool LeadsToRefuge => this.Hiding == null && this.WayOut == null && this.flood?.DryLead == null && this.places?.LeadKind == BossPlaceKind.Refuge;
 
         /// <summary>A shelter of the fight is up: the ground alarm is silent, since the shelter is the way out of the boss's storm.</summary>
         public bool RefugeUp => this.places?.RefugeUp ?? false;

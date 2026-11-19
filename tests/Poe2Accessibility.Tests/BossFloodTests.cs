@@ -27,6 +27,8 @@ namespace Poe2Accessibility.Tests
             (nameof(TheShippedLineFitsTheRoomTheLogMet), TheShippedLineFitsTheRoomTheLogMet),
             (nameof(TheTongueHoldsWhatIsBehindItsFrontAndNotBesideIt), TheTongueHoldsWhatIsBehindItsFrontAndNotBesideIt),
             (nameof(WarningsSpeakOncePerCloserBandAndOnStepping), WarningsSpeakOncePerCloserBandAndOnStepping),
+            (nameof(DryGroundIsBesideThePathOrWellAheadOfTheFront), DryGroundIsBesideThePathOrWellAheadOfTheFront),
+            (nameof(TheNearestDryPlaceIsOnTheNearestRingWalkedTo), TheNearestDryPlaceIsOnTheNearestRingWalkedTo),
         };
 
         private static void ARoomLinePlacesTurnsAndScalesItsObject()
@@ -102,6 +104,28 @@ namespace Poe2Accessibility.Tests
             FloodNewsKind? near = FloodNewsKind.Near;
             FloodNewsKind? inside = FloodNewsKind.Inside;
             Equal(string.Join(',', new[] { null, near, null, near, near, null, inside, null, null, null, near }), string.Join(',', heard), "bands nearing, stepping in, clear again");
+        }
+
+        private static void DryGroundIsBesideThePathOrWellAheadOfTheFront()
+        {
+            var rule = Shipped()!;
+            var axis = Vector2.Normalize(rule.Track[^1] - rule.Track[0]);
+            var side = new Vector2(-axis.Y, axis.X);
+            var widest = rule.Outline.Max(point => point.Y);
+            Equal(true, FloodGeometry.StaysDry(rule, 150f, rule.Track[100] + (side * (widest + 150f)), 100f, 10f), "beside the path, past its widest and the margin");
+            Equal(false, FloodGeometry.StaysDry(rule, 150f, rule.Track[100] + (side * (widest + 50f)), 100f, 10f), "within the margin of its edge");
+            var tip = rule.Track[150];
+            var tenSeconds = Vector2.Distance(rule.Track[160], tip);
+            Equal(false, FloodGeometry.StaysDry(rule, 150f, tip + (axis * (tenSeconds + 50f)), 100f, 10f), "ahead, but where the front is in 10 s");
+            Equal(true, FloodGeometry.StaysDry(rule, 150f, tip + (axis * (tenSeconds + 150f)), 100f, 10f), "ahead of that by the margin");
+        }
+
+        private static void TheNearestDryPlaceIsOnTheNearestRingWalkedTo()
+        {
+            var found = FloodGeometry.NearestDry(Vector2.Zero, point => point.X > 100f, (_, to) => to.Y >= 0f, 50f, 1000f, 16);
+            Equal(true, found is { X: > 100f, Y: >= 0f }, $"dry and walked to: {found}");
+            Near(150f, found?.Length(), "the first ring holding one", 0.5f);
+            Equal<Vector2?>(null, FloodGeometry.NearestDry(Vector2.Zero, _ => true, (_, _) => false, 50f, 1000f, 16), "no walk, no place");
         }
 
         private static FloodRule? Shipped()
