@@ -78,6 +78,8 @@ namespace Poe2Accessibility.Services
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add(BossRefugeSounds.Lead, CueSynth.Refuge(rate));
             this.AddGame(gameSounds, rate, BossRefugeSounds.Over);
+            this.AddGame(gameSounds, rate, TrapWatch.StatueOpenSound);
+            this.Add(CueSynth.GazeSound, CueSynth.Gaze(2, rate));
             foreach (var state in Enum.GetValues<EnemyState>())
             {
                 this.Add($"state_{state}", CueSynth.StateCue(state, rate));
@@ -175,7 +177,7 @@ namespace Poe2Accessibility.Services
         public static string? VolumeSetting(string key) => key switch
         {
             "beacon" => nameof(AccessibilitySettings.BeaconVolume),
-            "dodge" or "parry" or "unblockable" => nameof(AccessibilitySettings.DodgeVolume),
+            "dodge" or "parry" or "unblockable" or TrapWatch.StatueOpenSound or CueSynth.GazeSound => nameof(AccessibilitySettings.DodgeVolume),
             "hazard" or "cull" or "crosshair" or "weak_point" or BossRefugeSounds.Lead or "reach" or "enemy" or "elite" or "boss" or "friend" or "player" or "player_down" =>
                 nameof(AccessibilitySettings.EnemyVolume),
             _ when key.StartsWith("state_", StringComparison.Ordinal) => nameof(AccessibilitySettings.EnemyVolume),

@@ -55,6 +55,15 @@ namespace Poe2Accessibility
             ? T("Lift ready, goes down to the room", "Ascensor activado, baja a la sala")
             : T("Lift ready, goes up", "Ascensor activado, sube");
 
+        /// <summary>A petrifying statue looking at the player, said once an area: what to do (its line runs from it to the player).</summary>
+        public static string StatueGaze => T("A statue is looking at you: step aside out of its line", "Te mira una estatua: apártate de lado, fuera de su línea");
+
+        /// <summary>Stepped into a statue's known line while its eyes are shut.</summary>
+        public static string InStatueLine => T("In a statue's line", "En la línea de una estatua");
+
+        /// <summary>Turned to stone by a statue's gaze.</summary>
+        public static string Petrified => T("Petrified", "Petrificado");
+
         /// <summary>Stepped onto a lift's deck: it moves by itself while the player stays on it.</summary>
         public static string ChaosOnLift => T("On the lift, stand still", "Sobre el ascensor, quédate quieto");
 

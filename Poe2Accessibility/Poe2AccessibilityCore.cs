@@ -384,7 +384,7 @@ namespace Poe2Accessibility
                                        PlayerStats.Of(Seats.Followed, "culling_strike_threshold_+%_vs_rare_or_unique_monsters") ?? 0),
                 };
                 this.deployed = new DeployedWatch(this.audio, this.log);
-                this.traps = new TrapWatch(this.audio, this.log);
+                this.traps = new TrapWatch(this.audio, this.output, this.log);
                 this.trialDoors = new TrialDoorWatch(this.entities, this.output, this.log);
                 this.chaosTrial = new ChaosTrialWatch(this.entities, memory, this.output, this.log)
                 {
@@ -413,6 +413,7 @@ namespace Poe2Accessibility
                 this.essences = new EssenceWatch(memory, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
+                this.traps.GameSound = key => gameSounds.Get(key);
                 this.deployed.GameSound = gameSounds.Get;
                 if (GameSounds.LoadOne(Path.Join(this.DllDirectory, "sounds", BossRefugeSounds.Over + ".wav"), RefugeOverSeconds) is { } refugeOver &&
                     this.bosses.Mechanics is { } bossMechanics)

@@ -146,6 +146,8 @@ namespace Poe2Accessibility
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             Services.BossRefugeSounds.Lead => T("Boss fight shelter", "Refugio en un combate de jefe"),
             Services.BossRefugeSounds.Over => T("Shelter no longer needed", "Ya no hace falta el refugio"),
+            Services.TrapWatch.StatueOpenSound => T("Statue opening its eyes", "Estatua que abre los ojos"),
+            Services.CueSynth.GazeSound => T("A statue looking at you", "Una estatua te mira"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
             Services.PerfectTimingWatch.SoundKey => T("Perfect Timing", "Momento perfecto"),
             "cull" => T("Culling Strike", "Golpe de gracia"),
@@ -267,6 +269,12 @@ namespace Poe2Accessibility
             Services.BossRefugeSounds.Lead => T(
                 "from the side of the shelter a boss's attack leaves (Asala's barrier against Jamanra's sandstorm); faster as you near it, silent once you are inside",
                 "del lado del refugio ante un ataque del jefe (la barrera de Asala ante la tormenta de Jamanra); más rápido al acercarte, callado al estar dentro"),
+            Services.TrapWatch.StatueOpenSound => T(
+                "a petrifying statue of the Trial of Chaos opening its eyes near you, from where it stands",
+                "una estatua petrificadora de la Prueba de Caos que abre los ojos cerca, desde donde está"),
+            Services.CueSynth.GazeSound => T(
+                "a statue looking at you: a file over stone from its side, quicker and higher as the stone builds; step aside out of its line",
+                "una estatua te mira: una lima sobre piedra desde su lado, más rápida y aguda según te petrificas; apártate de lado, fuera de su línea"),
             Services.BossRefugeSounds.Over => T(
                 "once, as the attack the shelter kept off is over: you can move freely again",
                 "una vez, al terminar el ataque del que protegía el refugio: ya puedes moverte libremente"),
