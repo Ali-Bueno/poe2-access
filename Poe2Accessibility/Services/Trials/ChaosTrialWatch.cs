@@ -12,7 +12,11 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class ChaosTrialWatch
     {
-        private const int PollMs = 500;
+        /// <summary>A lift's lever opens for half a second as it arrives: polled often enough to see it.</summary>
+        private const int PollMs = 200;
+
+        /// <summary>The lift's zone, 29 cells of 10.87 world units (LiftPlatformLarge.ot's ControlZone), rounded up.</summary>
+        private const float RiderWorld = 330f;
 
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
@@ -64,6 +68,7 @@ namespace Poe2Accessibility.Services
             this.pieces.Clear();
             this.levers.Clear();
             this.leverEntries.Clear();
+
             System.Numerics.Vector3? player = Seats.Followed.TryGetComponent<Render>(out var seat) ? new(seat.WorldPosition.X, seat.WorldPosition.Y, seat.WorldPosition.Z) : null;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
@@ -89,6 +94,26 @@ namespace Poe2Accessibility.Services
                     this.leverWas[entity.Id] = enabled;
                     this.levers.Add((entity.Id, enabled, System.Numerics.Vector3.Distance(from, new(at.X, at.Y, at.Z))));
                     this.leverEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosExitLever, at.X, at.Y, at.Z);
+                }
+
+                if (piece == ChaosPiece.Lift && player is { } rider && entity.TryGetComponent<Render>(out var platform))
+                {
+                    // Said to the one riding it: within the lift's own zone (ControlZone radius 29 cells, LiftPlatformLarge.ot), on the
+                    // ground's plane: the platform's height is far from the player's while it is down (live 2026-11-19, "bajando" lost).
+                    var far = System.Numerics.Vector2.Distance(new(rider.X, rider.Y), new(platform.WorldPosition.X, platform.WorldPosition.Y));
+                    if (this.lifts.Moved(entity.Id, TransitionState.Of(this.memory, entity)?.State, now) is { } moved)
+                    {
+                        this.log.Info($"Lift {entity.Id} set off to transition {moved}, {far:0} away");
+                        if (far <= RiderWorld)
+                        {
+                            this.output.Urge(Announcements.ChaosLiftMoving(moved == ChaosTrial.LiftUp));
+                        }
+                    }
+
+                    if (this.lifts.Arrived(entity.Id, now) is { } floor && far <= RiderWorld)
+                    {
+                        this.output.Urge(Announcements.ChaosLiftStopped(floor == ChaosTrial.LiftUp));
+                    }
                 }
 
                 if (piece == ChaosPiece.Lift && this.lifts.Activated(entity.Id, ChaosTrial.IsActivated(states)) && entity.TryGetComponent<Render>(out var lift))

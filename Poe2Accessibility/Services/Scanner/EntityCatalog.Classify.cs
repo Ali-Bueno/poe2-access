@@ -531,6 +531,13 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                // The game keeps a Trial of Chaos lever targeted while it is shut (the lift away): "Interruptor, A" and A did
+                // nothing (the owner, 2026-11-19).
+                if (ChaosTrial.PieceOf(entity.Path ?? string.Empty) is ChaosPiece.LiftLever or ChaosPiece.Selector && !ChaosTrial.IsEnabled(StatesOf(entity)))
+                {
+                    continue;
+                }
+
                 // The game targets the monster an essence holds, and A frees it: said as the essence. Held, it is out of play for
                 // every other reader (EssencePrison), so it is asked first.
                 if (EssencePrison.Holds(entity.Id) && this.EssenceHolding(render) is { } holding)

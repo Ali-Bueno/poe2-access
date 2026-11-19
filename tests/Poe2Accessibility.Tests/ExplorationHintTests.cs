@@ -81,6 +81,17 @@ namespace Poe2Accessibility.Tests
             Equal(true, lifts.Activated(6, true), "one turning ridable is");
             Equal(false, lifts.Activated(6, true), "once");
             Equal(true, lifts.Activated(5, false) || lifts.Activated(5, true), "and again after it was ridden and shut");
+            Equal(null, lifts.Moved(7, 2), "a lift first seen up has not moved");
+            Equal(1, lifts.Moved(7, 1), "setting off down");
+            Equal(null, lifts.Moved(7, 1), "said once a trip");
+            Equal(2, lifts.Moved(7, 2), "and up again");
+            Equal(null, lifts.Moved(7, null), "an unread transition is nothing");
+            var trip = new LiftNews();
+            trip.Moved(8, 2, 0);
+            Equal(1, trip.Moved(8, 1, 1000), "sets off down");
+            Equal(null, trip.Arrived(8, 2500), "on its way");
+            Equal(1, trip.Arrived(8, 3000), "down once the trip is over");
+            Equal(null, trip.Arrived(8, 3500), "said once");
             Equal(false, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 1L) }), "a full circle is done");
             Equal(true, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 0L), ("spawning", 1L) }), "one filling is not");
             Equal(true, TrialTraps.KindOf("Metadata/Monsters/LeagueUltimatum/Turrets/FireTurret1@40") == TrialTrap.Turret, "a hazard by its MonsterVarieties Id");

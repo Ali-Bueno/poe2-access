@@ -282,8 +282,55 @@ namespace Poe2Accessibility.Services
     public sealed class LiftNews
     {
         private readonly Dictionary<uint, bool> activated = new();
+        /// <summary>
+        ///     A trip, up or down, measured live 2026-11-19 (the lever shut as it set off and opened 2.0 s later at the top; set off
+        ///     down, it set off up again 2.5 s later): the lift's animations at speed 2.5 (LiftPlatformLarge.ot). Then it waits half a
+        ///     second before taking a rider on again.
+        /// </summary>
+        public const int TripMs = 2000;
 
-        public void Reset() => this.activated.Clear();
+        private readonly Dictionary<uint, int> standing = new();
+        private readonly Dictionary<uint, (int Floor, long At)> trips = new();
+
+        public void Reset()
+        {
+            this.activated.Clear();
+            this.standing.Clear();
+            this.trips.Clear();
+        }
+
+        /// <summary>The floor a lift has just reached (2 up, 1 down) once its trip is over; null otherwise. Once a trip.</summary>
+        public int? Arrived(uint id, long now)
+        {
+            if (!this.trips.TryGetValue(id, out var trip) || now - trip.At < TripMs)
+            {
+                return null;
+            }
+
+            this.trips.Remove(id);
+            return trip.Floor;
+        }
+
+        /// <summary>
+        ///     The lift's new transition when it has just set off (2 going up, 1 going down); null otherwise, and when first seen.
+        ///     A player who stays on it rides it up and down again and again (the owner, 2026-11-19), so every trip is news.
+        /// </summary>
+        public int? Moved(uint id, int? transition, long at = 0)
+        {
+            if (transition is not { } now)
+            {
+                return null;
+            }
+
+            var news = this.standing.TryGetValue(id, out var was) && was != now ? now : (int?)null;
+            this.standing[id] = now;
+            if (news is { } floor)
+            {
+                this.trips[id] = (floor, at);
+            }
+
+            return news;
+        }
 
         /// <summary>True when this lift has just turned ridable; what stands when first seen is not news.</summary>
         public bool Activated(uint id, bool now)
