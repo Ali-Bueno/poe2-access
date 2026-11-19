@@ -1005,6 +1005,7 @@
  "a shut door you open with the interact button: the nearest ones, each on its side, until opened": "用互動鍵開啟的關閉的門：最近的幾扇門各自從所在方向發聲，直到開啟為止",
  "a skill of yours finished its cooldown and can be used again; its name is said too": "你的一個技能冷卻結束，可以再次使用；也會報讀技能名稱",
  "a statue looking at you: a file over stone from its side, quicker and higher as the stone builds; step aside out of its line": "石像正在看你：從它那一側傳來銼刀磨石聲，石化累積越多越快越高；往旁邊移開，離開它的視線",
+ "a way kept shut until a quest step opens it (water, a beam, a gate): the nearest one, on its side, in a loop until it opens": "在任務步驟開啟前一直關閉的通道（水、光束、柵門）：最近的一個，從其方向，循環播放直到開啟",
  "a way that opened on its own: once as it opens, then from where it stands until you have walked to it": "自行開啟的通道：開啟時響一次，之後從它所在的位置響起，直到你走到那裡",
  "above ground": "地面上",
  "against any enemy": "對任何敵人",

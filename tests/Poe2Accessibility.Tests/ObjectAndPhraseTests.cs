@@ -42,7 +42,12 @@ namespace Poe2Accessibility.Tests
             Equal("Corpses_Open", Breakables.Material("Metadata/Chests/G2_1/SnakeLadyPotionChest"), "a potion is no pot");
             Equal("urn", Breakables.Material("Metadata/Chests/Urns/Urn1"), "a word keeps its tuned sound");
             Equal("", Breakables.Material("Metadata/Chests/Gold/GoldPileSmall"), "the game gives it none: the common sound");
+            Breakables.UseObjectSounds(new[] { "Metadata/Chests/CarverTribeCow02\tCarverCowChest_Bundle", "Metadata/Chests/Village/Impale01\tImpale_Open" });
+            Equal("CarverCowChest_Bundle", Breakables.BodySound("Metadata/Chests/CarverTribeCow02"), "the tribe's cattle sound as the game sounds them");
+            Equal("", Breakables.BodySound("Metadata/Chests/Village/Impale01"), "another body keeps the common body's sound");
             Breakables.UseObjectSounds(Array.Empty<string>());
+            var loop = CueSynth.BarrierLoop(44100);
+            Equal(true, loop.Length >= CueSynth.Barrier(44100).Length && loop[^1] == 0f, "the barrier's loop is its blows, then quiet");
         }
 
         private static void OpeningSoundsComeFromTheOpeningAnimation()

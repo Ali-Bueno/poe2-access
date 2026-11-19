@@ -62,6 +62,13 @@ namespace Poe2Accessibility.Services
             objectSounds = sounds;
         }
 
+        /// <summary>Bodies that sound as the game sounds them, not as the common body: the Carver tribe's cattle (the owner's pick, 2026-11-19).</summary>
+        private static readonly string[] OwnSoundBodies = { "carvertribecow" };
+
+        /// <summary>A body's own game sound (<c>sounds/breakables.txt</c>), or empty for the common one.</summary>
+        public static string BodySound(string path) =>
+            Array.Exists(OwnSoundBodies, name => path.Contains(name, StringComparison.OrdinalIgnoreCase)) ? ObjectSound(path) : string.Empty;
+
         /// <summary>A body searched for loot, not a chest.</summary>
         public static bool IsCorpse(string path) => Array.Exists(Corpses, name => path.Contains(name, StringComparison.OrdinalIgnoreCase));
 

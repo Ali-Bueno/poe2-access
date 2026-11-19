@@ -95,6 +95,7 @@ namespace Poe2Accessibility.Services
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
             ("lifts", 1, entry => entry.Kind == ChaosTrial.LiftSound),
             ("doors", MaxDoorVoices, entry => SoundKind(entry) == ClosedDoors.Kind),
+            ("barriers", 1, entry => SoundKind(entry) == CueSynth.BarrierSound),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
@@ -105,6 +106,7 @@ namespace Poe2Accessibility.Services
         private readonly ItemDropSounds drops;
         private readonly GameSounds diabloSounds;
         private readonly float[] questRing = CueSynth.Ring(AudioCueService.SampleRate);
+        private readonly float[] barrierLoop = CueSynth.BarrierLoop(AudioCueService.SampleRate);
         private readonly Dictionary<string, long> lastPlayed = new();
         private readonly Dictionary<string, (string Crowd, ScanEntry Entry)> nearest = new();
         private readonly Dictionary<string, long> crowdStarted = new();
@@ -203,6 +205,12 @@ namespace Poe2Accessibility.Services
                 var closeness = 1f - Math.Clamp(distance / RangeOf(entry), 0f, 1f);
                 var (pan, pitch) = ScreenProjection.Voice(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here, distance, CentreWorld);
                 var gain = this.Gain * ProximityFade.Gain(distance, RangeOf(entry), FarGain);
+                if (SoundKind(entry) == CueSynth.BarrierSound)
+                {
+                    this.heardBeds[group] = new HeardLoop(this.barrierLoop, CueSynth.BarrierSound, pan, pitch, gain, false);
+                    continue;
+                }
+
                 if (this.sounds.GetLoop(entry.Kind) is { } idle)
                 {
                     this.heardBeds[entry.Kind] = new HeardLoop(idle, entry.Kind, pan, pitch, gain, false);
@@ -312,7 +320,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and sounds as a quest object or a door to open; a lever as a quest object.</summary>
         private static string SoundKind(ScanEntry entry) =>
-            entry.Sound is MinimapMarks.QuestObjectKind or ClosedDoors.Kind ||
+            entry.Sound is MinimapMarks.QuestObjectKind or ClosedDoors.Kind or CueSynth.BarrierSound ||
             (entry.Sound.StartsWith(LeaguePieces.SoundPrefix, StringComparison.Ordinal) && entry.Kind is "encounter" or "chest")
                 ? entry.Sound
                 : entry.Kind;
@@ -324,7 +332,7 @@ namespace Poe2Accessibility.Services
             "quest" or MinimapMarks.QuestObjectKind => this.sounds.Get("quest_item"),
             "rare" or "unique" => this.sounds.Get(this.Layer(entry.Kind)!),
             "chest" => this.sounds.Get("chest"),
-            "corpse" => this.sounds.Get(GameSounds.Corpse) ?? this.sounds.Get("chest"),
+            "corpse" => (entry.Sound.Length > 0 ? this.sounds.Get($"{GameSounds.BreakableFolder}/{entry.Sound}") : null) ?? this.sounds.Get(GameSounds.Corpse) ?? this.sounds.Get("chest"),
             "breakable" => this.sounds.Get($"{GameSounds.BreakableFolder}/{entry.Sound}") ?? this.sounds.Get(GameSounds.BreakableFallback),
             "switch" => this.sounds.Get("switch"),
             "shrine" => this.sounds.Get("shrine"),

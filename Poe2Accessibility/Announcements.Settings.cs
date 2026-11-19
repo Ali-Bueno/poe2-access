@@ -207,6 +207,7 @@ namespace Poe2Accessibility
             Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
             Services.OpenedWays.Kind => OpenedWay,
             Services.ClosedDoors.Kind => T("Door to open", "Puerta por abrir"),
+            Services.CueSynth.BarrierSound => T("Closed barrier", "Barrera cerrada"),
             Services.ChaosTrial.LiftSound => T("Trial of Chaos lift", "Ascensor de la Prueba de Caos"),
             Services.LeaguePieces.BreachSound => T("Breach", "Fisura"),
             Services.LeaguePieces.DeliriumSound => T("Delirium mirror", "Espejo del Delirio"),
@@ -330,6 +331,9 @@ namespace Poe2Accessibility
             Services.ClosedDoors.Kind => T(
                 "a shut door you open with the interact button: the nearest ones, each on its side, until opened",
                 "una puerta cerrada que se abre con el botón de interactuar: las más cercanas, cada una a su lado, hasta que la abras"),
+            Services.CueSynth.BarrierSound => T(
+                "a way kept shut until a quest step opens it (water, a beam, a gate): the nearest one, on its side, in a loop until it opens",
+                "un paso cerrado hasta que una misión lo abre (agua, un rayo, una verja): el más cercano, a su lado, en bucle hasta que se abra"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
 

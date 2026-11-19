@@ -273,6 +273,20 @@ apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB
   takes (1.5x same pitch, 1.5x and 2x as a sampler) are on the page above.
 - The loader caps every sound at 0.9 s (`GameSoundSeconds`), so a longer recording is cut there.
 
+## A closed barrier (2026-11-19)
+A barrier with nothing to click and no story name (`TriggerableBlockage` blocked, no `Targetable`: the Matlan Waterways'
+`Waterway_Water`, beams, gates a quest step opens) was listed as "Barrera cerrada" with no sound, and the owner kept walking
+into them ("me veo todo el rato caminando en loop por sitios donde hay barrera cerrada"). Now the nearest one sounds in a loop
+from where it stands while it stays shut (`ScanEntry.Sound` `CueSynth.BarrierSound`, group `barriers` in `ObjectSounds`, a
+bed of `CueSynth.BarrierLoop`: two very low dulled blows, then quiet, 1.6 s a turn); it stops once open, where the
+[opened way](#an-opened-way-2026-11-12) takes over, and in menus. A door to click keeps its door sound, a named story barrier
+the quest's. The owner's pick, **D** of four synth candidates ("me gustó el último"; a sealed field's hum, iron bars, a stone
+slab, a heavy gate), asked as a loop "como lo del sonido del paso abierto": [audition page](https://claude.ai/artifact/Wufj2EggLMhkoAmC7YwcD9).
+
+On the same page the Carver tribe's slaughtered cattle, "Restos" (`Metadata/Chests/CarverTribeCow01-03`), which sounded as a
+chest: the owner took the game's own sound for them (`Chests_4_0_Part1_Act3_G3_7_CarverCowChest_Bundle`, from
+`sounds/breakables.txt`) over the common body's; they are bodies (kind `corpse`) with `Breakables.BodySound`.
+
 ## A door to open (2026-11-14)
 A door the player opens (`Metadata/MiscellaneousObjects/Door` and what extends it: `TriggerableBlockage` with `start_blocked`, a
 client `Targetable`, `display_text = "ObjectDisplayTextDoor"`; opening it runs `DisableTargetable()`) was listed among the

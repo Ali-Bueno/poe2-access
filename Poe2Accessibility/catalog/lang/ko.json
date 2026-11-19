@@ -1005,6 +1005,7 @@
  "a shut door you open with the interact button: the nearest ones, each on its side, until opened": "상호작용 버튼으로 여는 닫힌 문: 가장 가까운 문들이 각자의 방향에서 들리며, 열 때까지 계속됩니다",
  "a skill of yours finished its cooldown and can be used again; its name is said too": "스킬 하나의 재사용 대기시간이 끝나 다시 쓸 수 있음. 스킬 이름도 말함",
  "a statue looking at you: a file over stone from its side, quicker and higher as the stone builds; step aside out of its line": "석상이 당신을 보고 있습니다: 석상 쪽에서 돌을 줄질하는 소리, 석화가 쌓일수록 빠르고 높아집니다; 옆으로 비켜 시선에서 벗어나세요",
+ "a way kept shut until a quest step opens it (water, a beam, a gate): the nearest one, on its side, in a loop until it opens": "퀘스트 단계가 열 때까지 닫힌 길(물, 광선, 문): 가장 가까운 것, 그쪽에서, 열릴 때까지 반복",
  "a way that opened on its own: once as it opens, then from where it stands until you have walked to it": "저절로 열린 길: 열릴 때 한 번, 그 뒤에는 도착할 때까지 그 위치에서 들립니다",
  "above ground": "지상",
  "against any enemy": "모든 적 대상",

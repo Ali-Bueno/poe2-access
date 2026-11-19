@@ -119,7 +119,7 @@ namespace Poe2Accessibility.Services
                 // a body searched for loot sounded like a chest (2026-10-28).
                 kind = Switches.IsSwitch(path) ? "switch" : Breakables.IsCorpse(path) ? "corpse"
                     : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
-                sound = kind == "breakable" ? Breakables.Material(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound
+                sound = kind == "breakable" ? Breakables.Material(path) : kind == "corpse" ? Breakables.BodySound(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound
                     : kind == "chest" && LeaguePieces.IsAbyssChest(path) ? LeaguePieces.AbyssChestSound : string.Empty;
             }
             else if (entity.EntityType == EntityTypes.Shrine)
@@ -233,7 +233,7 @@ namespace Poe2Accessibility.Services
                 category = blockage.IsBlocked ? ScanCategory.Objects : null;
                 // A door the player opens is found by ear: shut, it sounds where it stands (the Lost City's, user 2026-11-14).
                 sound = name.Length > 0 && MinimapMarks.IsStoryBarrier(path) ? MinimapMarks.QuestObjectKind
-                    : entity.TryGetComponent<Targetable>(out _) ? ClosedDoors.Kind : string.Empty;
+                    : entity.TryGetComponent<Targetable>(out _) ? ClosedDoors.Kind : CueSynth.BarrierSound; // the rest: heard in a loop while shut (owner, 2026-11-19)
                 name = name.Length > 0 ? name : Announcements.ClosedBarrier;
                 kind = "barrier";
             }

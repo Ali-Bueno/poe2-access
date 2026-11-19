@@ -1005,6 +1005,7 @@
  "a shut door you open with the interact button: the nearest ones, each on its side, until opened": "インタラクトボタンで開ける閉じた扉：近くにあるものがそれぞれの方向から鳴り、開けるまで続きます",
  "a skill of yours finished its cooldown and can be used again; its name is said too": "スキルのクールダウンが終わり、再び使えるようになった。スキル名も読み上げる",
  "a statue looking at you: a file over stone from its side, quicker and higher as the stone builds; step aside out of its line": "像があなたを見ている：像の方向から石にやすりをかける音。石化が進むほど速く高くなります。横に動いて視線の線から外れてください",
+ "a way kept shut until a quest step opens it (water, a beam, a gate): the nearest one, on its side, in a loop until it opens": "クエストの段階で開くまで閉じた道（水、光線、門）：最も近いもの、その方向から、開くまで繰り返し",
  "a way that opened on its own: once as it opens, then from where it stands until you have walked to it": "ひとりでに開いた道：開いたときに一度、その後はたどり着くまでその場所から鳴ります",
  "above ground": "地上",
  "against any enemy": "すべての敵に対して",
