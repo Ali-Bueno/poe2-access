@@ -55,6 +55,15 @@ namespace Poe2Accessibility
             ? T("Lift ready, goes down to the room", "Ascensor activado, baja a la sala")
             : T("Lift ready, goes up", "Ascensor activado, sube");
 
+        /// <summary>Stepped onto a lift's deck: it moves by itself while the player stays on it.</summary>
+        public static string ChaosOnLift => T("On the lift, stand still", "Sobre el ascensor, quédate quieto");
+
+        /// <summary>A lift lever that calls its lift from the other floor, under the game's name for it ("Interruptor, llama al ascensor").</summary>
+        public static string ChaosCallsLift(string name) => T($"{name}, calls the lift", $"{name}, llama al ascensor");
+
+        /// <summary>A round won: the lift to take next, as its line starts ("Siguiente ascensor, 40 pasos, izquierda…"; the owner, 2026-11-19).</summary>
+        public static string ChaosNextLift => T("Next lift", "Siguiente ascensor");
+
         /// <summary>The lift the player stands on has stopped, and where: step off now, it sets off again soon.</summary>
         public static string ChaosLiftStopped(bool up) => up ? T("Lift stopped, upper floor", "Ascensor parado arriba") : T("Lift stopped, lower floor", "Ascensor parado abajo");
 

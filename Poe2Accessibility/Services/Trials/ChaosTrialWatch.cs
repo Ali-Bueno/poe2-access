@@ -23,6 +23,9 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private readonly List<(uint Id, ChaosPiece Piece)> pieces = new();
         private readonly ExitLeverNews exitLever = new();
+        private readonly ExitLeverNews nextLift = new();
+        private readonly List<(uint Id, bool Enabled, float Distance)> liftsInView = new();
+        private readonly Dictionary<uint, ScanEntry> liftEntries = new();
         private readonly List<(uint Id, bool Enabled, float Distance)> levers = new();
         private readonly Dictionary<uint, ScanEntry> leverEntries = new();
         private readonly Dictionary<uint, bool> leverWas = new();
@@ -44,6 +47,7 @@ namespace Poe2Accessibility.Services
         {
             this.news.Reset();
             this.exitLever.Reset();
+            this.nextLift.Reset();
             this.leverWas.Clear();
             this.lifts.Reset();
         }
@@ -52,7 +56,11 @@ namespace Poe2Accessibility.Services
         public Action<ScanEntry>? LiftReady { get; set; }
 
         /// <summary>A room was completed: the lever that takes the player on is said once the way opens.</summary>
-        public void RoundWon() => this.exitLever.RoundWon(Environment.TickCount64);
+        public void RoundWon()
+        {
+            this.exitLever.RoundWon(Environment.TickCount64);
+            this.nextLift.RoundWon(Environment.TickCount64);
+        }
 
         /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
         public void Tick(bool playing)
@@ -67,6 +75,8 @@ namespace Poe2Accessibility.Services
             this.pieces.Clear();
             this.levers.Clear();
             this.leverEntries.Clear();
+            this.liftsInView.Clear();
+            this.liftEntries.Clear();
 
             System.Numerics.Vector3? player = Seats.Followed.TryGetComponent<Render>(out var seat) ? new(seat.WorldPosition.X, seat.WorldPosition.Y, seat.WorldPosition.Z) : null;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
@@ -100,6 +110,15 @@ namespace Poe2Accessibility.Services
                     // Said to the one riding it: within the lift's own zone (ControlZone radius 29 cells, LiftPlatformLarge.ot), on the
                     // ground's plane: the platform's height is far from the player's while it is down (live 2026-11-19, "bajando" lost).
                     var far = System.Numerics.Vector2.Distance(new(rider.X, rider.Y), new(platform.WorldPosition.X, platform.WorldPosition.Y));
+                    this.liftsInView.Add((entity.Id, ChaosTrial.IsActivated(states), far));
+                    var onDeck = far <= RiderWorld && Math.Abs(platform.WorldPosition.Z - rider.Z) <= ChaosTrial.FloorGapWorld;
+                    if (this.lifts.Boarded(entity.Id, onDeck, now))
+                    {
+                        this.log.Info($"Stepped onto lift {entity.Id}, {far:0} from its centre");
+                        this.output.Urge(Announcements.ChaosOnLift);
+                    }
+
+                    this.liftEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Objects, Announcements.ChaosNextLift, platform.WorldPosition.X, platform.WorldPosition.Y, platform.WorldPosition.Z);
                     if (this.lifts.Moved(entity.Id, TransitionState.Of(this.memory, entity)?.State, now) is { } moved)
                     {
                         this.log.Info($"Lift {entity.Id} set off to transition {moved}, {far:0} away");
@@ -124,12 +143,26 @@ namespace Poe2Accessibility.Services
                     var ride = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosLiftReady(down), place.X, place.Y, place.Z, OpenedWays.Kind);
                     this.LiftReady?.Invoke(ride);
                     this.output.Say(SpeechKind.Places, this.catalog.Describe(ride with { Kind = string.Empty }));
+                    if (this.nextLift.Pending)
+                    {
+                        // A round's way on, already said with where the lift goes.
+                        this.nextLift.Cancel();
+                        this.exitLever.Cancel();
+                    }
                 }
 
                 if (piece == ChaosPiece.BloodCircle && this.news.Filled(entity.Id, ChaosTrial.IsFull(states)))
                 {
                     this.output.Say(SpeechKind.Quest, Announcements.ChaosCircleFilled);
                 }
+            }
+
+            if (this.nextLift.Poll(now, this.liftsInView) is { } next && this.liftEntries.TryGetValue(next, out var nextWay))
+            {
+                // The lift is the way on (the owner, 2026-11-19: "el próximo ascensor queda en la dirección tal"); its lever stands by it.
+                this.log.Info($"Next lift named: {next} of {this.liftsInView.Count} lifts");
+                this.output.Say(SpeechKind.Places, this.catalog.Describe(nextWay));
+                this.exitLever.Cancel();
             }
 
             if (this.exitLever.Poll(now, this.levers) is { } lever && this.leverEntries.TryGetValue(lever, out var way))

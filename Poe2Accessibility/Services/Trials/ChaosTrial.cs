@@ -157,6 +157,27 @@ namespace Poe2Accessibility.Services
             _ => (true, false),
         };
 
+        /// <summary>
+        ///     A lift lever only calls its lift to the lever's floor; the lift itself goes by the pressure plate on it
+        ///     (<c>LiftButton_PlatformLarge</c>, a ControlZone; LiftButton.ot sets the lifts' `called`). With the lift already there, A
+        ///     did nothing (the owner, 2026-11-19). A lift belongs to a lever within this reach on the ground's plane.
+        /// </summary>
+        public const float LeverLiftReachWorld = 600f;
+
+        /// <summary>Heights further apart than this are two floors: the lift down read about 550-630 world units from a rider up (log).</summary>
+        public const float FloorGapWorld = 200f;
+
+        /// <summary>
+        ///     Whether the lever's lift stands on another floor, so pulling it calls the lift: true or false for the nearest lift
+        ///     within reach, null when no lift is near (any lever is then taken as useful). Points are (x, y, height).
+        /// </summary>
+        public static bool? LiftAway(System.Numerics.Vector3 lever, IEnumerable<System.Numerics.Vector3> lifts)
+        {
+            var near = lifts.Select(lift => (Lift: lift, Ground: System.Numerics.Vector2.Distance(new(lift.X, lift.Y), new(lever.X, lever.Y))))
+                .Where(pair => pair.Ground <= LeverLiftReachWorld).OrderBy(pair => pair.Ground).ToList();
+            return near.Count == 0 ? null : Math.Abs(near[0].Lift.Z - lever.Z) > FloorGapWorld;
+        }
+
         /// <summary>A switch or lever that can be used now: its `enabled` state above 0; one whose states were not read is taken as usable.</summary>
         public static bool IsEnabled(IEnumerable<(string Name, long Value)>? states) =>
             states?.ToList() is not { Count: > 0 } read || read.Any(state => state.Value > 0 && string.Equals(state.Name, LeverEnabledState, StringComparison.Ordinal));
@@ -256,6 +277,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A room was completed now.</summary>
         public void RoundWon(long now) => this.won = now;
 
+        /// <summary>Gets a value indicating whether a round won still waits for its way on to be named.</summary>
+        public bool Pending => this.won != null;
+
+        /// <summary>The way on was named otherwise (a lift turning ridable says where it goes): nothing more for this round.</summary>
+        public void Cancel() => this.won = null;
+
         /// <summary>The lever to name now, once per round won; null otherwise. <paramref name="present"/>: the levers in view.</summary>
         public uint? Poll(long now, IReadOnlyList<(uint Id, bool Enabled, float Distance)> present)
         {
@@ -301,14 +328,37 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const int TripMs = 2000;
 
+        /// <summary>Off the deck this long before stepping on again is news: walking along its edge says it once.</summary>
+        public const int BoardRearmMs = 2000;
+
         private readonly Dictionary<uint, int> standing = new();
         private readonly Dictionary<uint, (int Floor, long At)> trips = new();
+        private readonly Dictionary<uint, (bool On, long OffSince)> decks = new();
 
         public void Reset()
         {
             this.activated.Clear();
             this.standing.Clear();
             this.trips.Clear();
+            this.decks.Clear();
+        }
+
+        /// <summary>
+        ///     True when the player has just stepped onto the lift's deck, the part that moves (the owner, 2026-11-19: "ascensor,
+        ///     quédate quieto para que funcione"); once a boarding, again only after two seconds off it. Standing there when first
+        ///     seen counts as stepping on.
+        /// </summary>
+        public bool Boarded(uint id, bool onDeck, long now)
+        {
+            var was = this.decks.TryGetValue(id, out var deck) ? deck : (On: false, OffSince: long.MinValue / 2);
+            if (onDeck)
+            {
+                this.decks[id] = (true, was.OffSince);
+                return !was.On && now - was.OffSince >= BoardRearmMs;
+            }
+
+            this.decks[id] = (false, was.On ? now : was.OffSince);
+            return false;
         }
 
         /// <summary>The floor a lift has just reached (2 up, 1 down) once its trip is over; null otherwise. Once a trip.</summary>

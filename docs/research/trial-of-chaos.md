@@ -266,6 +266,13 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   timed from the lever's log). The lift sounds as itself, `lift` = G1_15_Elevator `ElevatorEnd_02` (the owner's pick, audition page
   https://claude.ai/artifact/RuQ88EyvcrmbRtEToAyewh), apart from the lever's quest sound, and is silent within its zone (330 world
   units), as a boss's shelter once reached.
+- **What moves the lift** (2026-11-19): the pressure plate on its deck (`LiftButton_PlatformLarge`, a ControlZone), so a rider who
+  stays on it goes up and down; the lever beside it (`LiftButton`) only calls the lift to its floor (LiftButton.ot sets the lifts'
+  `called`), and with the lift already there A did nothing (the owner). The lever is now "Interruptor, llama al ascensor", rings and
+  is A's target only while the lift is on the other floor (`ChaosTrial.LiftAway`: the nearest lift within 600 on the ground, its
+  height more than 200 from the lever's). Stepping onto the deck says "Sobre el ascensor, quédate quieto" (`LiftNews.Boarded`, again
+  after 2 s off it); a round won names the next lift with the way to it ("Siguiente ascensor, N pasos…", the one that turned ridable
+  then, else the nearest ridable; its lever's line is then left out).
 - **Petrification Statues, first run 2026-11-19** (research log in `TrapWatch`; files by a study the same day): the gaze is a line
   out of the statue's front, beam `UltimatumPetrificationBeam` (MiscBeams row 663) 600 world units long (MEASURED; width and walls
   UNSURE); the statue never turns (`immobile`). Eyes open on animation `ChangeToStance2` (85), shut on `ChangeToStance1` (84), each

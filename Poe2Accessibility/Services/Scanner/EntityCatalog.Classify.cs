@@ -265,6 +265,13 @@ namespace Poe2Accessibility.Services
                 {
                     // What the round asks for next rings, and a Stone Altar against the damage of the core in hand.
                     var (rings, clocked) = ChaosTrial.Asks(piece, this.HoldsSoulCore(), StatesOf(entity));
+                    if (piece == ChaosPiece.LiftLever && this.LiftAwayFrom(render) is { } away)
+                    {
+                        // It only calls the lift: silent, and no target, while the lift stands by it.
+                        rings &= away;
+                        name = Announcements.ChaosCallsLift(name.Length > 0 ? name : Announcements.ChaosPieceName(piece));
+                    }
+
                     sound = rings ? MinimapMarks.QuestObjectKind : string.Empty;
                     questMarked = rings;
                     timed = clocked;
@@ -346,6 +353,21 @@ namespace Poe2Accessibility.Services
         private static int CostOf(Entity entity) => ShrineCost.Of(StatesOf(entity));
 
         /// <summary>The states of the object's script as they stand; none without a StateMachine.</summary>
+        /// <summary>Whether the Trial of Chaos lift by this lever is on another floor (<see cref="ChaosTrial.LiftAway"/>); null with none near.</summary>
+        private bool? LiftAwayFrom(Render lever)
+        {
+            var lifts = new List<Vector3>();
+            foreach (var (_, other) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
+            {
+                if (other.IsValid && ChaosTrial.PieceOf(other.Path ?? string.Empty) == ChaosPiece.Lift && other.TryGetComponent<Render>(out var lift))
+                {
+                    lifts.Add(new Vector3(lift.WorldPosition.X, lift.WorldPosition.Y, lift.WorldPosition.Z));
+                }
+            }
+
+            return ChaosTrial.LiftAway(new Vector3(lever.WorldPosition.X, lever.WorldPosition.Y, lever.WorldPosition.Z), lifts);
+        }
+
         private static IEnumerable<(string Name, long Value)> StatesOf(Entity entity) =>
             entity.TryGetComponent<StateMachine>(out var machine) ? machine.States.Select(state => (state.Name, state.Value)) : Array.Empty<(string, long)>();
 
@@ -535,7 +557,10 @@ namespace Poe2Accessibility.Services
 
                 // The game keeps a Trial of Chaos lever targeted while it is shut (the lift away): "Interruptor, A" and A did
                 // nothing (the owner, 2026-11-19).
-                if (ChaosTrial.PieceOf(entity.Path ?? string.Empty) is ChaosPiece.LiftLever or ChaosPiece.Selector && !ChaosTrial.IsEnabled(StatesOf(entity)))
+                // Nor is a lever whose lift already stands by it: pulling it does nothing.
+                var piece = ChaosTrial.PieceOf(entity.Path ?? string.Empty);
+                if ((piece is ChaosPiece.LiftLever or ChaosPiece.Selector && !ChaosTrial.IsEnabled(StatesOf(entity))) ||
+                    (piece == ChaosPiece.LiftLever && this.LiftAwayFrom(render) == false))
                 {
                     continue;
                 }

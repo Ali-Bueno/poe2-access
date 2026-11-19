@@ -86,6 +86,18 @@ namespace Poe2Accessibility.Tests
             Equal(null, lifts.Moved(7, 1), "said once a trip");
             Equal(2, lifts.Moved(7, 2), "and up again");
             Equal(null, lifts.Moved(7, null), "an unread transition is nothing");
+            var lever = new System.Numerics.Vector3(0, 0, 100);
+            Equal(false, ChaosTrial.LiftAway(lever, new[] { new System.Numerics.Vector3(150, 0, 120) }), "the lift by the lever on its floor: pulling does nothing");
+            Equal(true, ChaosTrial.LiftAway(lever, new[] { new System.Numerics.Vector3(150, 0, -480) }), "the lift on the other floor: the lever calls it");
+            Equal(null, ChaosTrial.LiftAway(lever, new[] { new System.Numerics.Vector3(2000, 0, 100) }), "no lift near: as any lever");
+            var deck = new LiftNews();
+            Equal(false, deck.Boarded(9, false, 0), "beside the lift");
+            Equal(true, deck.Boarded(9, true, 500), "stepping on");
+            Equal(false, deck.Boarded(9, true, 900), "said once");
+            Equal(false, deck.Boarded(9, false, 1000), "a step off its edge");
+            Equal(false, deck.Boarded(9, true, 1500), "and back on at once is not news");
+            Equal(false, deck.Boarded(9, false, 2000), "off");
+            Equal(true, deck.Boarded(9, true, 4500), "on again after a while");
             var trip = new LiftNews();
             trip.Moved(8, 2, 0);
             Equal(1, trip.Moved(8, 1, 1000), "sets off down");
