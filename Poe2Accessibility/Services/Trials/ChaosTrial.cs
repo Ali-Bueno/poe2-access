@@ -328,12 +328,16 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const int TripMs = 2000;
 
+        /// <summary>The stop between two trips, measured with them.</summary>
+        public const int StopMs = 500;
+
         /// <summary>Off the deck this long before stepping on again is news: walking along its edge says it once.</summary>
         public const int BoardRearmMs = 2000;
 
         private readonly Dictionary<uint, int> standing = new();
         private readonly Dictionary<uint, (int Floor, long At)> trips = new();
         private readonly Dictionary<uint, (bool On, long OffSince)> decks = new();
+        private readonly Dictionary<uint, long> departed = new();
 
         public void Reset()
         {
@@ -341,6 +345,7 @@ namespace Poe2Accessibility.Services
             this.standing.Clear();
             this.trips.Clear();
             this.decks.Clear();
+            this.departed.Clear();
         }
 
         /// <summary>
@@ -350,6 +355,13 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool Boarded(uint id, bool onDeck, long now)
         {
+            // On the way the deck's height and the rider's part (live 2026-11-19: "quédate quieto" again at each stop below): a
+            // trip and the half second after it change nothing.
+            if (this.departed.TryGetValue(id, out var left) && now - left < TripMs + StopMs)
+            {
+                return false;
+            }
+
             var was = this.decks.TryGetValue(id, out var deck) ? deck : (On: false, OffSince: long.MinValue / 2);
             if (onDeck)
             {
@@ -389,6 +401,7 @@ namespace Poe2Accessibility.Services
             if (news is { } floor)
             {
                 this.trips[id] = (floor, at);
+                this.departed[id] = at;
             }
 
             return news;

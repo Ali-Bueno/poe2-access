@@ -98,6 +98,13 @@ namespace Poe2Accessibility.Tests
             Equal(false, deck.Boarded(9, true, 1500), "and back on at once is not news");
             Equal(false, deck.Boarded(9, false, 2000), "off");
             Equal(true, deck.Boarded(9, true, 4500), "on again after a while");
+            var ride = new LiftNews();
+            ride.Moved(10, 2, 0);
+            Equal(true, ride.Boarded(10, true, 100), "on the deck above");
+            ride.Moved(10, 1, 5000);
+            Equal(false, ride.Boarded(10, false, 5500), "the deck going down reads as off it");
+            Equal(false, ride.Boarded(10, true, 7200), "and is not stepping on again when it stops below");
+            Equal(false, ride.Boarded(10, true, 8000), "nor after, still on it");
             var trip = new LiftNews();
             trip.Moved(8, 2, 0);
             Equal(1, trip.Moved(8, 1, 1000), "sets off down");
