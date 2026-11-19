@@ -48,7 +48,7 @@ internal static class GameDataSteps
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 3, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings; 3: the rounds per trial
-        new Step("quest goals", 1, "quest-goals.json", "quest-goals", true),
+        new Step("quest goals", 2, "quest-goals.json", "quest-goals", true),
         new Step("shrines", 1, "shrines.json", "shrines", true),
         new Step("spectres", 4, "spectres.json", "spectres", true), // 4: a spear its monster's id names is a spear, not the data's Warstaff; 3: a variety told by its Spirit cost, not the raw multiplier; monsters only; a row of both tags' reach unsaid. Never 1: a legacy stamp vouches for every step at 1; 2: each monster's weapon and reach, and whether its variety is told
         new Step("gems", 1, "gems.json", "gems", true),

@@ -1,5 +1,6 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -40,12 +41,16 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>The tracker's texts, plus the steps of this area that name a quest item carried now.</summary>
-        public IReadOnlyList<string> With(IReadOnlyList<string> texts, string areaKey, IReadOnlyCollection<string> carried)
+        /// <summary>
+        ///     The tracker's texts, plus the steps of this area and of the tracker's quests (<paramref name="questLines"/>, the
+        ///     game's tables: steps never seen too) that name a quest item carried now.
+        /// </summary>
+        public IReadOnlyList<string> With(
+            IReadOnlyList<string> texts, string areaKey, IReadOnlyCollection<string> carried, Func<IReadOnlyCollection<string>>? questLines = null)
         {
             lock (this.gate)
             {
-                if (!string.Equals(areaKey, this.area, System.StringComparison.Ordinal))
+                if (!string.Equals(areaKey, this.area, StringComparison.Ordinal))
                 {
                     this.area = areaKey;
                     this.steps.Clear();
@@ -56,7 +61,7 @@ namespace Poe2Accessibility.Services
                     return texts;
                 }
 
-                foreach (var text in texts)
+                foreach (var text in texts.Concat(questLines?.Invoke() ?? Array.Empty<string>()))
                 {
                     if (!this.steps.Contains(text) && carried.Any(item => QuestMatcher.Mentions(text, item)))
                     {

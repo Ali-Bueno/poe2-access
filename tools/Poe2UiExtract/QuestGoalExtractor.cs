@@ -80,6 +80,7 @@ internal static class QuestGoalExtractor
         }
 
         var result = new SortedDictionary<string, SortedDictionary<string, string[]>>(StringComparer.Ordinal);
+        var questLines = new SortedDictionary<string, List<string[]>>(StringComparer.Ordinal);
         foreach (var (code, folder) in AreaExtractor.Languages)
         {
             var table = folder == null ? states : DatTable.OpenTranslated(index, StatesTable, folder);
@@ -98,6 +99,7 @@ internal static class QuestGoalExtractor
             var (lines, dropped) = LinesOf(table, columns.Text, goals);
             Say.Out.WriteLine($"  {code}: {lines.Count} lines, {dropped} ambiguous dropped");
             result[code] = lines;
+            questLines[code] = LinesByQuest(table, columns);
         }
 
         if (!result.TryGetValue("en", out var english) || !KnownLinesHold(english))
@@ -106,7 +108,7 @@ internal static class QuestGoalExtractor
         }
 
         Say.Out.WriteLine($"  {connections.Count} areas with connections; {goals.Count} states with goals");
-        AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["connections"] = connections, ["goals"] = result });
+        AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["connections"] = connections, ["goals"] = result, ["quests"] = questLines });
         Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
@@ -247,6 +249,13 @@ internal static class QuestGoalExtractor
         var kept = new SortedDictionary<string, string[]>(lines.Where(pair => !ambiguous.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value), StringComparer.Ordinal);
         return (kept, ambiguous.Count);
     }
+
+    /// <summary>Every tracker line of each quest with two or more, so a step the tracker moved past is still known as its quest's.</summary>
+    private static List<string[]> LinesByQuest(DatTable table, Columns c) =>
+        Enumerable.Range(0, table.RowCount).GroupBy(row => table.Key(row, c.Quest)).Where(group => group.Key >= 0).OrderBy(group => group.Key)
+            .Select(group => group.SelectMany(row => table.String(row, c.Text).Replace("\r", string.Empty).Split('\n')).Select(Normalize)
+                .Where(line => line.Length > 0).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray())
+            .Where(lines => lines.Length >= 2).ToList();
 
     /// <summary>The known states lead where the game's data says: the columns and the rule read right.</summary>
     private static bool KnownGoalsHold(DatTable states, Columns c, Dictionary<int, string[]> goals)

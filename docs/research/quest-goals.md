@@ -73,5 +73,10 @@ placed it said "Adéntrate más en el Taller de máquinas", and a second core pi
 next altars were no quest object (the owner: "el primero sí lo tuvo"). A used altar turns untargetable and leaves the
 listing. `CarriedQuestSteps` keeps the steps an area instance showed that name a quest item carried then, and while such
 an item is carried again adds them to the tracker's texts for `QuestMatcher`; they are kept with the area in
-`AreaMemory` (a trailing list, so older files still read), so a host restart does not lose them. Unit tests only.
+`AreaMemory` (a trailing list, so older files still read), so a host restart does not lose them.The step needs no sighting either: `quest-goals.json` now holds `quests`, per language every tracker line of each quest
+(`QuestStates` grouped by `Quest`; launcher step "quest goals" v2), and `QuestGoalCatalog.QuestLinesOf` gives all the lines of
+the quests the tracker's lines belong to (a line of two quests gives none). Of those, the ones naming a carried quest item
+join the texts. In Spanish the Act 3 quest has 60 lines, two naming the small core ("Coloca el núcleo de alma pequeño en el
+Altar de piedra", "Registra el Taller de máquinas de Jiquani para encontrar un núcleo de alma pequeño con el que abrir la
+puerta"). Unit tests only.
 

@@ -271,7 +271,8 @@ namespace Poe2Accessibility.Services
             // The objective is known wherever the game knows it, but said only once seen: the rest is for the player to find,
             // with the lost hint for a last resort (user 2026-11-05, over the marker of 2026-10-24; docs/radar.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
-            var questTexts = this.carriedSteps.With(this.QuestTexts(), area.AreaHash, this.QuestItemsCarried());
+            var tracker = this.QuestTexts();
+            var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => this.QuestGoals.QuestLinesOf(tracker, Localization.Language));
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);

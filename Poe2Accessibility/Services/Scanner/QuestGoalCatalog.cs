@@ -26,10 +26,23 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, Dictionary<string, string[]>> goals = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string[]> connections;
 
+        /// <summary>Per language, each tracker line that belongs to one quest alone, to all that quest's lines.</summary>
+        private readonly Dictionary<string, Dictionary<string, string[]>> questOf = new(StringComparer.Ordinal);
+
         /// <param name="goals">Per language, a tracker line to the areas its step ends on.</param>
         /// <param name="connections">An area to the areas one exit leads to.</param>
-        public QuestGoalCatalog(IReadOnlyDictionary<string, Dictionary<string, string[]>> goals, IReadOnlyDictionary<string, string[]> connections)
+        /// <param name="quests">Per language, each quest's tracker lines.</param>
+        public QuestGoalCatalog(
+            IReadOnlyDictionary<string, Dictionary<string, string[]>> goals, IReadOnlyDictionary<string, string[]> connections,
+            IReadOnlyDictionary<string, List<string[]>>? quests = null)
         {
+            foreach (var (language, list) in quests ?? new Dictionary<string, List<string[]>>())
+            {
+                var normalized = list.Select(lines => lines.Select(Normalize).Where(line => line.Length > 0).Distinct(StringComparer.Ordinal).ToArray()).ToList();
+                this.questOf[language] = normalized.SelectMany(lines => lines.Select(line => (Line: line, Lines: lines))).GroupBy(pair => pair.Line, StringComparer.Ordinal)
+                    .Where(group => group.Count() == 1).ToDictionary(group => group.Key, group => group.First().Lines, StringComparer.Ordinal);
+            }
+
             foreach (var (language, lines) in goals)
             {
                 this.goals[language] = new Dictionary<string, string[]>(lines.GroupBy(pair => Normalize(pair.Key)).ToDictionary(group => group.Key, group => group.First().Value), StringComparer.Ordinal);
@@ -53,7 +66,7 @@ namespace Poe2Accessibility.Services
             {
                 var parsed = JsonConvert.DeserializeObject<QuestGoalFile>(File.ReadAllText(file)) ?? new QuestGoalFile();
                 log.Info($"Quest goals: {parsed.Goals.Count} languages, {parsed.Connections.Count} areas with connections");
-                return new QuestGoalCatalog(parsed.Goals, parsed.Connections);
+                return new QuestGoalCatalog(parsed.Goals, parsed.Connections, parsed.Quests);
             }
             catch (Exception ex) when (ex is IOException or JsonException)
             {
@@ -86,6 +99,26 @@ namespace Poe2Accessibility.Services
         ///     The areas one exit from <paramref name="hereId"/> on a shortest way to a goal (the goal itself when it is next
         ///     door); empty when here is a goal or nothing connects.
         /// </summary>
+        /// <summary>
+        ///     Every tracker line of the quests the tracker's lines belong to, in the client's language (English behind it): the
+        ///     steps the tracker has moved past are among them ("Coloca el núcleo de alma pequeño en el Altar de piedra").
+        /// </summary>
+        public IReadOnlyCollection<string> QuestLinesOf(IReadOnlyList<string> trackerTexts, string language)
+        {
+            this.questOf.TryGetValue(language, out var local);
+            this.questOf.TryGetValue(FallbackLanguage, out var english);
+            var lines = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var line in trackerTexts.SelectMany(text => text.Replace("\r", string.Empty).Split('\n')).Select(Normalize).Where(line => line.Length > 0))
+            {
+                if ((local != null && local.TryGetValue(line, out var all)) || (english != null && english.TryGetValue(line, out all)))
+                {
+                    lines.UnionWith(all);
+                }
+            }
+
+            return lines;
+        }
+
         public IReadOnlyCollection<string> StepsToward(string hereId, IReadOnlyCollection<string> goalIds)
         {
             if (goalIds.Contains(hereId) || !this.connections.TryGetValue(hereId, out var next))
@@ -122,6 +155,9 @@ namespace Poe2Accessibility.Services
 
             [JsonProperty("connections")]
             public Dictionary<string, string[]> Connections { get; set; } = new();
+
+            [JsonProperty("quests")]
+            public Dictionary<string, List<string[]>> Quests { get; set; } = new();
         }
     }
 }

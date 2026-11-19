@@ -300,6 +300,14 @@ namespace Poe2Accessibility.Tests
             Equal(deeper, string.Join(" | ", steps.With(new[] { deeper }, "b", core)), "another area forgets it");
             var altars = new[] { new ScanEntry(1, ScanCategory.Objects, "Altar de piedra", 0, 0, 0), new ScanEntry(2, ScanCategory.Objects, "Cofre", 0, 0, 0) };
             Equal("Altar de piedra", string.Join(" | ", QuestMatcher.Targets(altars, new[] { deeper, place }).Select(entry => entry.Name)), "the altar is the quest's");
+
+            // After a host restart the step was never seen: the game's tables give it as a line of the tracker's quest.
+            var catalog = new QuestGoalCatalog(new Dictionary<string, Dictionary<string, string[]>>(), new Dictionary<string, string[]>(),
+                new Dictionary<string, List<string[]>> { ["es"] = new() { new[] { "Encuentra la entrada", place, deeper }, new[] { "Habla con Oswin", "Encuentra la entrada" } } });
+            Equal(true, catalog.QuestLinesOf(new[] { "Vida 100", deeper }, "es").Contains(place), "the tracker's quest gives its other steps");
+            Equal(0, catalog.QuestLinesOf(new[] { "Encuentra la entrada" }, "es").Count, "a line of two quests gives none");
+            Equal($"{deeper} | {place}", string.Join(" | ", new CarriedQuestSteps().With(new[] { deeper }, "c", core, () => catalog.QuestLinesOf(new[] { deeper }, "es"))),
+                "a step never seen counts while its item is carried");
         }
 
         private static void QuestNamesItsTargets()
