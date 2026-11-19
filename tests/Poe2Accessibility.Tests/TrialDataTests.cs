@@ -150,8 +150,9 @@ namespace Poe2Accessibility.Tests
             var none = new ExitLeverNews();
             none.RoundWon(0);
             Expect(null, none.Poll(2000, new[] { (1u, false, 20f) }));
-            Expect(null, none.Poll(9000, new[] { (1u, false, 20f) }));
-            Expect(null, none.Poll(9500, new[] { (1u, true, 20f) }));
+            Expect(null, none.Poll(40000, new[] { (1u, false, 20f) }));
+            Expect(1u, none.Poll(52000, new[] { (1u, true, 20f) }));
+            Expect(null, none.Poll(53000, new[] { (1u, true, 20f) }));
         }
 
         private static void AClassIsKnownByItsCardsLine()

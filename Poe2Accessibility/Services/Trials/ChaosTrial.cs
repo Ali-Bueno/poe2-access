@@ -207,9 +207,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The wait after the round is won for the way out to open: the lever's state comes with the server's next news.</summary>
         public const int WaitMs = 1500;
 
-        /// <summary>No pullable lever by then: nothing is said (the levers still ring as quest objects).</summary>
-        public const int GiveUpMs = 8000;
-
         private readonly Dictionary<uint, (bool Enabled, long Since)> levers = new();
         private long? won;
 
@@ -243,14 +240,11 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            // Waited for as long as it takes: the lever was shut through the round and opened later than 8 s after it was won
+            // (live 2026-11-19, never said), so the one that opens after the win is the way on.
             var pullable = present.Where(lever => lever.Enabled).ToList();
             if (pullable.Count == 0)
             {
-                if (now - at >= GiveUpMs)
-                {
-                    this.won = null;
-                }
-
                 return null;
             }
 

@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         private readonly ExitLeverNews exitLever = new();
         private readonly List<(uint Id, bool Enabled, float Distance)> levers = new();
         private readonly Dictionary<uint, ScanEntry> leverEntries = new();
+        private readonly Dictionary<uint, bool> leverWas = new();
         private readonly EntityCatalog catalog;
         private long lastPoll;
 
@@ -37,6 +38,7 @@ namespace Poe2Accessibility.Services
         {
             this.news.Reset();
             this.exitLever.Reset();
+            this.leverWas.Clear();
         }
 
         /// <summary>A room was completed: the lever that takes the player on is said once the way opens.</summary>
@@ -72,6 +74,12 @@ namespace Poe2Accessibility.Services
                 {
                     var at = render.WorldPosition;
                     var enabled = states.Count > 0 && ChaosTrial.IsEnabled(states);
+                    if (this.leverWas.TryGetValue(entity.Id, out var was) && was != enabled)
+                    {
+                        this.log.Info($"Lever {entity.Id} {(enabled ? "opened" : "shut")}");
+                    }
+
+                    this.leverWas[entity.Id] = enabled;
                     this.levers.Add((entity.Id, enabled, System.Numerics.Vector3.Distance(from, new(at.X, at.Y, at.Z))));
                     this.leverEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosExitLever, at.X, at.Y, at.Z);
                 }
