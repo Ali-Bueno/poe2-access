@@ -32,6 +32,7 @@ namespace Poe2Accessibility.Services
         private readonly List<(uint Id, bool Enabled, float Distance)> levers = new();
         private readonly Dictionary<uint, ScanEntry> leverEntries = new();
         private readonly Dictionary<uint, bool> leverWas = new();
+        private readonly Dictionary<uint, bool> selectorWas = new();
         private readonly EntityCatalog catalog;
         private readonly HostMemoryReader memory;
         private readonly LiftNews lifts = new();
@@ -52,8 +53,12 @@ namespace Poe2Accessibility.Services
             this.exitLever.Reset();
             this.nextLift.Reset();
             this.leverWas.Clear();
+            this.selectorWas.Clear();
             this.lifts.Reset();
         }
+
+        /// <summary>Gets or sets what follows a round starting: the modifier switch shut once a modifier was chosen (UltimatumSelector.ot).</summary>
+        public Action? RoundStarted { get; set; }
 
         /// <summary>Gets or sets what sounds a lift that just turned ridable, from where it stands (the way-opened sound).</summary>
         public Action<ScanEntry>? LiftReady { get; set; }
@@ -166,6 +171,18 @@ namespace Poe2Accessibility.Services
                     }
 
                     this.plates.Add((new(plate.WorldPosition.X, plate.WorldPosition.Y), pressed));
+                }
+
+                if (piece == ChaosPiece.Selector && states.Count > 0)
+                {
+                    var open = ChaosTrial.IsEnabled(states);
+                    if (this.selectorWas.TryGetValue(entity.Id, out var wasOpen) && wasOpen && !open)
+                    {
+                        this.log.Info($"Round started: modifier switch {entity.Id} shut");
+                        this.RoundStarted?.Invoke();
+                    }
+
+                    this.selectorWas[entity.Id] = open;
                 }
 
                 if (piece == ChaosPiece.BloodCircle && this.news.Filled(entity.Id, ChaosTrial.IsFull(states)))

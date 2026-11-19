@@ -389,6 +389,7 @@ namespace Poe2Accessibility
                 this.chaosTrial = new ChaosTrialWatch(this.entities, memory, this.output, this.log)
                 {
                     LiftReady = way => this.objectSounds?.WayOpened(way),
+                    RoundStarted = () => this.rulesets?.RoundStarted(),
                 };
                 this.cinematics = new CinematicWatch(this.output, this.log)
                 {

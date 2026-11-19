@@ -289,6 +289,9 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   gazed at the player about 1000 off (`PetrifyingStatues.ReachWorld` 1200; "looks along" logs the distance). Stacks to stone
   still not known (2 reached). The round kinds no piece explains are explained with their objective (Slay, Survive, Destroy;
   `Announcements.ChaosObjectiveExplained`), the game holding only their names.
+- **When the next round is said** (2026-11-19): the client names the next room the moment one is won, so "Ronda 2 de 4: Sobrevive…"
+  followed "Ronda 1 de 4 superada" at once. Now only the first room of an area is said on arrival; a later one is held until its
+  round starts, the modifier switch shutting once a modifier is chosen (`RulesetWatch.RoundStarted`; log "Round started").
 - **Already there**: the round counter, the modifier icons' names, the Corruption Dais and the reward chest by their
   world titles, the Trialmaster as a character, the bosses' mechanics, Impending Doom's blasts.
 

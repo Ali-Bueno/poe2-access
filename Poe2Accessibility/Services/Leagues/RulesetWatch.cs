@@ -36,6 +36,14 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
         private long trialHudFound = long.MinValue / 2;
         private bool areaStatsLogged;
+
+        /// <summary>
+        ///     The next room's round and objective, held from the round won until the next round starts: the client names the next
+        ///     room the moment one is won, and it was said over "Ronda 1 de 4 superada" (the owner, 2026-11-19). The first room of an
+        ///     area is said on arrival.
+        /// </summary>
+        private string? heldObjective;
+        private bool objectiveSaid;
         private long lastPoll;
         private string lastLogged = string.Empty;
 
@@ -81,6 +89,16 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool MinimapRevealed { get; private set; }
 
+        /// <summary>A Trial of Chaos round has started (its modifier chosen): the held round and objective are said now.</summary>
+        public void RoundStarted()
+        {
+            if (this.heldObjective is { } line)
+            {
+                this.heldObjective = null;
+                this.output.Say(SpeechKind.Quest, line);
+            }
+        }
+
         /// <summary>Research (dev command "rulesets"): where a session could be, to the log.</summary>
         public void Probe()
         {
@@ -100,6 +118,7 @@ namespace Poe2Accessibility.Services
             this.fogNews.Reset();
             (this.fogWhy, this.fogLogged, this.FogRunning, this.FogSpeaks, this.fogRan) = (string.Empty, long.MinValue / 2, null, false, false);
             this.trialHudNews.Reset();
+            (this.heldObjective, this.objectiveSaid) = (null, false);
             this.trialHud.Reset();
             this.areaStatsLogged = false;
             this.MinimapRevealed = false;
@@ -176,7 +195,16 @@ namespace Poe2Accessibility.Services
             {
                 var line = standing.Round <= (rounds ?? int.MaxValue) ? Announcements.TrialRoundAsks(standing.Round, rounds, asked) : asked;
                 var explained = Announcements.ChaosObjectiveExplained(objective!.Value.Kind);
-                this.output.Say(SpeechKind.Quest, explained.Length > 0 ? $"{line}. {explained}" : line);
+                var whole = explained.Length > 0 ? $"{line}. {explained}" : line;
+                if (this.objectiveSaid)
+                {
+                    this.heldObjective = whole;
+                }
+                else
+                {
+                    this.objectiveSaid = true;
+                    this.output.Say(SpeechKind.Quest, whole);
+                }
             }
 
             if (this.news.Progress(round == null ? null : this.reader.TrialProgress()) is { } percent && trials)
