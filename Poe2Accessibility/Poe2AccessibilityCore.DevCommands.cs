@@ -124,6 +124,10 @@ namespace Poe2Accessibility
                 case "entities":
                     this.entityDump?.Write(80);
                     break;
+                case var filtered when filtered.StartsWith("entities ", StringComparison.Ordinal):
+                    // Research: every awake entity whose path holds the text, however far ("entities WaterLevelLever").
+                    this.entityDump?.Write(int.MaxValue, filtered["entities ".Length..].Trim());
+                    break;
                 case "rulesets":
                     // Research: where the instance session and its rulesets are from the game state (GameLayout.Rulesets).
                     this.rulesets?.Probe();

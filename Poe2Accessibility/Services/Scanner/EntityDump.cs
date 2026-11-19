@@ -36,7 +36,8 @@ namespace Poe2Accessibility.Services
             this.mods = new MonsterMods(memory, reader);
         }
 
-        public string Write(int maxEntities)
+        /// <summary>The nearest entities; with <paramref name="pathPart"/>, only those whose path holds it, however far.</summary>
+        public string Write(int maxEntities, string pathPart = "")
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             if (!Seats.Followed.TryGetComponent<Render>(out var playerRender))
@@ -46,7 +47,8 @@ namespace Poe2Accessibility.Services
 
             var origin = playerRender.GridPosition;
             var rows = area.AwakeEntities.Values
-                .Where(entity => entity.IsValid && entity.TryGetComponent<Render>(out _))
+                .Where(entity => entity.IsValid && entity.TryGetComponent<Render>(out _) &&
+                                 (pathPart.Length == 0 || (entity.Path ?? string.Empty).Contains(pathPart, StringComparison.OrdinalIgnoreCase)))
                 .Select(entity =>
                 {
                     entity.TryGetComponent<Render>(out var render);

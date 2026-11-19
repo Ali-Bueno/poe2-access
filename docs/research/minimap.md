@@ -48,6 +48,12 @@ bubble, and the unit of the pointer distance.
   moment the owner came in, 234 steps (about 2,000 cells) off in the boss room; no minimap draws an icon that far (the owner,
   2026-11-18: "haz eso solo para las ciudades… a menos que ahí el juego lo muestre sin más"). A character whose icon reaches
   map-wide keeps being listed.
+- A named thing under a lit mark with no Targetable component, used by stepping on it: the Matlan Waterways' seven
+  `Metadata/Terrain/Gallows/Act3/3_2_2/Objects/WaterLevelLever*`, "Mecanismo del canal", icon `VaalPressurePlateActive`
+  (components Animated, BaseEvents, Functions, MinimapIcon, Positioned, Render, StateMachine; dev `entities WaterLevel`,
+  2026-11-19). Objects needed a Targetable, so the log said "Minimap mark not listed" and the scanner had none (the owner:
+  "no salen en el escáner"); now listed as objects, and the lit mark makes them the quest's. League pieces and Trial pieces
+  keep their own rules. Heard in the scanner's list live, not yet stepped on.
 - Characters in a town on ground the player's does not join: not listed until seen or joined. The Ziggurat Encampment holds
   `Metadata/NPC/Four_Act3/AlvaZigguratEncampmentPast` about 2,000 cells from the camp's own `AlvaZigguratEncampment`, same
   icon bytes and in-play flags, on a piece of ground no walk reaches ("el camino se corta antes"; the owner, 2026-11-19:

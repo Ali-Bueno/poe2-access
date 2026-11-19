@@ -238,7 +238,10 @@ namespace Poe2Accessibility.Services
             }
             else
             {
-                category = entity.TryGetComponent<Targetable>(out _) && !IsPet(path) ? ScanCategory.Objects : null; // stash, bench, well
+                // Stash, bench, well; and a named thing under a lit mark with nothing to click, stepped on instead: the Matlan
+                // Waterways' "Mecanismo del canal" pressure plates (`VaalPressurePlateActive`), left out (the owner, 2026-11-19).
+                var stepped = name.Length > 0 && MinimapMarks.IsLitMark(icon) && league == null && chaos == null;
+                category = (entity.TryGetComponent<Targetable>(out _) || stepped) && !IsPet(path) ? ScanCategory.Objects : null;
                 plain = true;
                 kind = MinimapMarks.ServiceKind(icon);
                 // A named object to use under an area's own lit mark is the quest's: the Red Vale's obelisks rang only while
