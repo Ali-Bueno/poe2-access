@@ -199,7 +199,11 @@ namespace Poe2Accessibility.Services
             if (this.finder.Category == PassiveCategory.Build && points != null)
             {
                 // Why the list is shorter than what is left of the build: it holds what the points pay for.
-                progress += ", " + Announcements.BuildToTakeNow(Members(PassiveCategory.Build).Count(node => points.Of(Pool(node)) > 0));
+                var takeNow = Members(PassiveCategory.Build).Count(node => points.Of(Pool(node)) > 0);
+                var unspent = plan != null && points.Ascendancy > 0 && (order?.Ascendancy ?? 0) == 0 && !AscendancyPending(atlas, steps, marked)
+                    ? Announcements.BuildAscendancyUnspent(points.Ascendancy, this.buildPlans.NextAscendancyStage(plan, TakenIds(atlas, steps)))
+                    : null;
+                progress += ", " + (unspent == null ? Announcements.BuildToTakeNow(takeNow) : takeNow > 0 ? $"{Announcements.BuildToTakeNow(takeNow)}, {unspent}" : unspent);
             }
             else if (this.finder.Category == PassiveCategory.Ascendancy)
             {
@@ -215,6 +219,14 @@ namespace Poe2Accessibility.Services
 
             return Announcements.InContext(progress.Length > 0 ? $"{list}, {progress}" : list, found);
         }
+
+        /// <summary>Whether the build marks an ascendancy passive not taken yet, which the ascendancy's points would pay for.</summary>
+        private static bool AscendancyPending(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked) =>
+            marked.Any(node => atlas.Places.Index.TryGetValue(node, out var index) && steps[index] != 0 && !atlas.Nodes[index].IsStart && BuildPlan.IsAscendancyNode(atlas.Nodes[index].Id));
+
+        /// <summary>The ids of the nodes the character has taken.</summary>
+        private static HashSet<string> TakenIds(PassiveAtlas atlas, int[] steps) =>
+            Enumerable.Range(0, atlas.Nodes.Length).Where(index => steps[index] == 0).Select(index => atlas.Nodes[index].Id).ToHashSet(StringComparer.Ordinal);
 
         /// <summary>The build's absent node ids last written to the log.</summary>
         private string loggedNotShown = string.Empty;

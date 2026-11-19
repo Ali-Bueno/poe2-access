@@ -239,6 +239,18 @@ namespace Poe2Accessibility
             _ => T($"{nodes} to allocate now", $"{nodes} por asignar ahora"),
         };
 
+        /// <summary>
+        ///     Said with the Build list when ascendancy points wait and the build names no ascendancy passive left to take:
+        ///     "2 ascendancy points the build does not spend, its stage Act 3-6 … names more" (kehgan, 2026-11-19).
+        /// </summary>
+        public static string BuildAscendancyUnspent(int points, string? nextStage)
+        {
+            var unspent = points == 1
+                ? T("1 ascendancy point, the build has no ascendancy passive left", "1 punto de ascendencia, la build no tiene más pasivas de ascendencia")
+                : T($"{points} ascendancy points, the build has no ascendancy passive left", $"{points} puntos de ascendencia, la build no tiene más pasivas de ascendencia");
+            return nextStage == null ? unspent : unspent + ", " + T($"the build {nextStage} has more", $"la build {nextStage} tiene más");
+        }
+
         /// <summary>The same push several times running, counted: "right 3" for "right, right, right".</summary>
         private static IEnumerable<string> Runs(IEnumerable<string> pushes)
         {

@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnAttributeNodeIsOneThatOffersTheChoice), AnAttributeNodeIsOneThatOffersTheChoice),
             (nameof(ABuildsGoneNodesAreCountedByWhatTheCatalogKnows), ABuildsGoneNodesAreCountedByWhatTheCatalogKnows),
             (nameof(ABuildOfNoFileIsToldFromOneOfNoFolder), ABuildOfNoFileIsToldFromOneOfNoFolder),
+            (nameof(AscendancyPointsTheStageDoesNotSpendNameTheNextStage), AscendancyPointsTheStageDoesNotSpendNameTheNextStage),
             (nameof(ATreeIsNotTheCatalogsWhenManyNodesDiffer), ATreeIsNotTheCatalogsWhenManyNodesDiffer),
             (nameof(OneOddRowDoesNotCostTheGraphIdColumn), OneOddRowDoesNotCostTheGraphIdColumn),
             (nameof(AClassListNeedsHalfTheClassesNamedOnceEach), AClassListNeedsHalfTheClassesNamedOnceEach),
@@ -135,6 +136,41 @@ namespace Poe2Accessibility.Tests
             }
             finally
             {
+                System.IO.Directory.Delete(folder, true);
+            }
+        }
+
+        private static void AscendancyPointsTheStageDoesNotSpendNameTheNextStage()
+        {
+            // kehgan's guide (2026-11-19): "23+ Unarmed" names two ascendancy passives, "Act 3-6" two more, the endgame more.
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "builds-" + Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(folder);
+            try
+            {
+                static string File(string link, string ascendancy, params string[] passives) =>
+                    $"{{\"link\":\"{link}\",\"ascendancy\":\"{ascendancy}\",\"passives\":[{string.Join(",", passives.Select(id => $"\"{id}\""))}]}}";
+                var guide = "https://example.org/monk";
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "23+ Unarmed.build"), File(guide, "Monk1", "AscendancyMonk1Start", "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "x1"));
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Act 3-6.build"), File(guide, "Monk1", "AscendancyMonk1Start", "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "AscendancyMonk1Small3", "AscendancyMonk1Notable8", "x1", "x2"));
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Endgame.build"), File(guide, "Monk1", "AscendancyMonk1Start", "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "AscendancyMonk1Small3", "AscendancyMonk1Notable8", "AscendancyMonk1Small5", "AscendancyMonk1Notable4"));
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Other guide.build"), File("https://example.org/other", "Monk1", "AscendancyMonk1Small6"));
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Other ascendancy.build"), File(guide, "Monk2", "AscendancyMonk2Notable1"));
+                var plans = new BuildPlanFolder(folder, System.IO.Path.Join(folder, "config.ini"));
+                var active = plans.Matching("kehgan", new[] { "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "x1" });
+                Equal("https://example.org/monk", active?.Link, "the file's guide is read");
+                var taken = new HashSet<string>(StringComparer.Ordinal) { "AscendancyMonk1Start", "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "x1" };
+                Equal(0, active!.AscendancyLeft(taken), "the stage has nothing left for the points");
+                Equal("Act 3-6", plans.NextAscendancyStage(active, taken), "the nearest stage of the same guide and ascendancy");
+                taken.UnionWith(new[] { "AscendancyMonk1Small3", "AscendancyMonk1Notable8" });
+                Equal("Endgame", plans.NextAscendancyStage(active, taken), "then the next one");
+                taken.UnionWith(new[] { "AscendancyMonk1Small5", "AscendancyMonk1Notable4" });
+                Equal(null, plans.NextAscendancyStage(active, taken), "none of the guide has more");
+                Localization.Set("es", new());
+                Equal("2 puntos de ascendencia, la build no tiene más pasivas de ascendencia, la build Act 3-6 tiene más", Announcements.BuildAscendancyUnspent(2, "Act 3-6"), "said");
+            }
+            finally
+            {
+                Localization.Set("en", new());
                 System.IO.Directory.Delete(folder, true);
             }
         }

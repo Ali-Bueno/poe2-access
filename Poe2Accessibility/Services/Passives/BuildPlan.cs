@@ -86,6 +86,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the build's gear ("inventory_slots": one entry per piece and level interval), empty when the file has none.</summary>
         public IReadOnlyList<BuildGearEntry> Gear { get; init; } = Array.Empty<BuildGearEntry>();
 
+        /// <summary>Gets the guide the file comes from ("link"), empty when it names none: a guide's stages share it.</summary>
+        public string Link { get; init; } = string.Empty;
+
+        /// <summary>Gets the ascendancy the file is for ("ascendancy", "Monk1"), empty when it names none.</summary>
+        public string Ascendancy { get; init; } = string.Empty;
+
+        /// <summary>The file's ascendancy passives not in <paramref name="taken"/>; an ascendancy's start is given, not taken.</summary>
+        public int AscendancyLeft(IReadOnlySet<string> taken) =>
+            this.nodeIds.Count(id => IsAscendancyNode(id) && !IsAscendancyStart(id) && !taken.Contains(id));
+
         /// <summary>
         ///     Whether that many marked nodes can be a build: the tree's mark is one byte with no second sign, and moved by a
         ///     patch any byte that often reads 1 would mark the tree; no build takes a quarter of it (docs/research/passive-tree.md).
@@ -235,7 +245,11 @@ namespace Poe2Accessibility.Services
                 }
 
                 var name = root.TryGetProperty("name", out var named) && named.ValueKind == JsonValueKind.String ? named.GetString() ?? string.Empty : string.Empty;
-                return new BuildPlan(name, list.Where(passive => passive.Id.Length > 0).ToList()) { Skills = ParseSkills(root), Gear = BuildGear.Parse(root) };
+                string Text(string property) => root.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : string.Empty;
+                return new BuildPlan(name, list.Where(passive => passive.Id.Length > 0).ToList())
+                {
+                    Skills = ParseSkills(root), Gear = BuildGear.Parse(root), Link = Text("link"), Ascendancy = Text("ascendancy"),
+                };
             }
             catch (JsonException)
             {

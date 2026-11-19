@@ -109,6 +109,28 @@ namespace Poe2Accessibility.Services
             return match.Plan;
         }
 
+        /// <summary>
+        ///     The next stage of <paramref name="plan"/>'s guide for its ascendancy points: of the folder's other files from the
+        ///     same guide ("link") and ascendancy, the one naming the fewest ascendancy passives not <paramref name="taken"/>,
+        ///     at least one; its file name without extension, null with none. A guide splits a build by level ("Lvl 1-23",
+        ///     "Act 3-6"), and a stage can name fewer ascendancy passives than the trials have given (kehgan, 2026-11-19).
+        /// </summary>
+        public string? NextAscendancyStage(BuildPlan plan, IReadOnlySet<string> taken)
+        {
+            this.Rescan();
+            if (plan.Link.Length == 0)
+            {
+                return null;
+            }
+
+            return this.files.Where(file => file.Value.Plan is { } other && !ReferenceEquals(other, plan) &&
+                    string.Equals(other.Link, plan.Link, StringComparison.OrdinalIgnoreCase) && string.Equals(other.Ascendancy, plan.Ascendancy, StringComparison.OrdinalIgnoreCase))
+                .Select(file => (Name: Path.GetFileNameWithoutExtension(file.Key), Left: file.Value.Plan!.AscendancyLeft(taken), Size: file.Value.Plan!.Passives.Count))
+                .Where(entry => entry.Left > 0)
+                .OrderBy(entry => entry.Left).ThenBy(entry => entry.Size).ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(entry => entry.Name).FirstOrDefault();
+        }
+
         /// <summary>Whether the last <see cref="Matching"/> of the character found build files and none held half of the nodes the tree marks (a build of the website has no file at all).</summary>
         public bool FilesButNoMatch(string character) => this.noneMatched.GetValueOrDefault(character);
 
