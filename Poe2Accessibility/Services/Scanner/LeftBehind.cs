@@ -28,7 +28,7 @@ namespace Poe2Accessibility.Services
             this.audio = audio;
             this.catalog = catalog;
             this.log = log;
-            this.sound = CueSynth.LeftBehind(AudioCueService.SampleRate, 0);
+            this.sound = CueSynth.LeftBehind(AudioCueService.SampleRate);
         }
 
         public float Gain { get; set; } = 1f;

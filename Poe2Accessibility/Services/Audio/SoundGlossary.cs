@@ -105,7 +105,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
-            this.Add(LeftBehind.SoundKey, CueSynth.LeftBehind(rate, 0));
+            this.Add(LeftBehind.SoundKey, CueSynth.LeftBehind(rate));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("beacon", CueSynth.Ping(rate));
             if (gameSounds.Get("waypoint") is { } chime)
