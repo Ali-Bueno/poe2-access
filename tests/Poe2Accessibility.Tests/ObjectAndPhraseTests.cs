@@ -49,6 +49,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, MarkDone.Is(new[] { ("burned", 1L) }), "a burned effigy under its quest icon is done");
             Equal(false, MarkDone.Is(new[] { ("burned", 0L) }), "an unburned one is still to do");
             Equal(false, MarkDone.Is(new[] { ("open", 1L) }), "a state no file names as done says nothing");
+            Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_9/Objects/KeyPedestal_02"), "the Molten Vault's stone altar takes a quest item");
+            Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss"), "as the Machinarium's do");
+            Equal(false, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal"), "a power line beside one is not one");
             var loop = CueSynth.BarrierLoop(44100);
             Equal(true, loop.Length >= CueSynth.Barrier(44100).Length && loop[^1] == 0f, "the barrier's loop is its blows, then quiet");
         }

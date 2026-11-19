@@ -248,6 +248,7 @@ namespace Poe2Accessibility.Services
                 // A named object to use under an area's own lit mark is the quest's: the Red Vale's obelisks rang only while
                 // the tracker named them, and "Consigue las dos runas de poder restantes" does not (user 2026-11-13).
                 questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && MinimapMarks.IsLitMark(icon) && !iconHidden;
+                questMarked |= category == ScanCategory.Objects && KeyPedestals.Is(path) && this.QuestItemsCarried().Count > 0;
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
                     // A Trial's rooms are grounds apart on one floor: a crystal the player can walk to is this room's, one on

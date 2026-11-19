@@ -80,3 +80,9 @@ join the texts. In Spanish the Act 3 quest has 60 lines, two naming the small co
 Altar de piedra", "Registra el Taller de máquinas de Jiquani para encontrar un núcleo de alma pequeño con el que abrir la
 puerta"). Unit tests only.
 
+The Molten Vault (2026-11-19) has a stone altar too, `Metadata/Terrain/Gallows/Act3/3_9/Objects/KeyPedestal_02`, for the
+Frost Core ("Núcleo helado", a quest item); its quest's lines name neither ("Despeja la Cámara fundida", "Derrota a Mektul…"),
+so no step could make it the quest's and it went unheard. The game's own name for such altars is `KeyPedestal` (the
+Machinarium's four as well): a targetable one sounds as a quest object while any quest item is carried (`KeyPedestals`); a
+used one turns untargetable (`activate=1`) and leaves the list. Unit tests only.
+

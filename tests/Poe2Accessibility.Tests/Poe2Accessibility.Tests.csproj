@@ -299,6 +299,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MarkDone.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\KeyPedestals.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapPointer.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
