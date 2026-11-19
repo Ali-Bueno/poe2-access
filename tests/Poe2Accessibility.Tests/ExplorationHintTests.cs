@@ -70,6 +70,9 @@ namespace Poe2Accessibility.Tests
             Equal((false, false), ChaosTrial.Asks(ChaosPiece.SoulCore, holdingCore: true), "and not while one is: a second cannot be taken");
             Equal((true, true), ChaosTrial.Asks(ChaosPiece.StoneAltar, holdingCore: true), "the altar rings against the core's damage, as a clock's goal");
             Equal((false, false), ChaosTrial.Asks(ChaosPiece.StoneAltar, holdingCore: false), "an altar with nothing to put in it is silent");
+            Equal((true, false), ChaosTrial.Asks(ChaosPiece.Selector, false, new[] { (ChaosTrial.LeverEnabledState, 1L), ("rewardstaken", 0L) }), "the modifier switch rings before the round");
+            Equal((false, false), ChaosTrial.Asks(ChaosPiece.Selector, false, new[] { (ChaosTrial.LeverEnabledState, 0L), ("rewardstaken", 0L) }), "and not once a modifier is chosen");
+            Equal((false, false), ChaosTrial.Asks(ChaosPiece.LiftLever, false, new[] { (ChaosTrial.LeverEnabledState, 0L) }), "a lever that cannot be pulled is silent");
             Equal(false, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 1L) }), "a full circle is done");
             Equal(true, ChaosTrial.StillAsks(ChaosPiece.BloodCircle, new[] { (ChaosTrial.CircleFilledState, 0L), ("spawning", 1L) }), "one filling is not");
             Equal(true, TrialTraps.KindOf("Metadata/Monsters/LeagueUltimatum/Turrets/FireTurret1@40") == TrialTrap.Turret, "a hazard by its MonsterVarieties Id");

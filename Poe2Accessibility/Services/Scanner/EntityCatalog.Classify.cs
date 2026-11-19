@@ -262,7 +262,7 @@ namespace Poe2Accessibility.Services
                 if (chaos is { } piece)
                 {
                     // What the round asks for next rings, and a Stone Altar against the damage of the core in hand.
-                    var (rings, clocked) = ChaosTrial.Asks(piece, this.HoldsSoulCore());
+                    var (rings, clocked) = ChaosTrial.Asks(piece, this.HoldsSoulCore(), StatesOf(entity));
                     sound = rings ? MinimapMarks.QuestObjectKind : string.Empty;
                     questMarked = rings;
                     timed = clocked;

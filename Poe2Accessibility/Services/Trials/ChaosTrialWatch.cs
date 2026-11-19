@@ -71,7 +71,7 @@ namespace Poe2Accessibility.Services
                 if (piece == ChaosPiece.LiftLever && player is { } from && entity.TryGetComponent<Render>(out var render))
                 {
                     var at = render.WorldPosition;
-                    var enabled = states.Any(state => state.Value > 0 && string.Equals(state.Name, ChaosTrial.LeverEnabledState, StringComparison.Ordinal));
+                    var enabled = states.Count > 0 && ChaosTrial.IsEnabled(states);
                     this.levers.Add((entity.Id, enabled, System.Numerics.Vector3.Distance(from, new(at.X, at.Y, at.Z))));
                     this.leverEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosExitLever, at.X, at.Y, at.Z);
                 }

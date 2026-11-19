@@ -108,15 +108,22 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What rings as the thing to do next and how: a core while none is held, an altar while one is (against the core's
-        ///     growing damage, so with the clock's range and guide), a lever while it can be pulled, the statue and the circles.
+        ///     growing damage, so with the clock's range and guide), a lever while it can be pulled, the modifier switch only
+        ///     before the round (its `enabled` goes 0 and it turns untargetable once a modifier is chosen: UltimatumSelector.ot;
+        ///     the owner, 2026-11-19: "tiene que sonar solo antes de empezar"), the statue and the circles.
         /// </summary>
-        public static (bool Rings, bool Timed) Asks(ChaosPiece piece, bool holdingCore) => piece switch
+        public static (bool Rings, bool Timed) Asks(ChaosPiece piece, bool holdingCore, IEnumerable<(string Name, long Value)>? states = null) => piece switch
         {
             ChaosPiece.SoulCore => (!holdingCore, false),
             ChaosPiece.StoneAltar => (holdingCore, holdingCore),
             ChaosPiece.BloodAltar or ChaosPiece.BossLift => (false, false),
+            ChaosPiece.Selector or ChaosPiece.LiftLever => (IsEnabled(states), false),
             _ => (true, false),
         };
+
+        /// <summary>A switch or lever that can be used now: its `enabled` state above 0; one whose states were not read is taken as usable.</summary>
+        public static bool IsEnabled(IEnumerable<(string Name, long Value)>? states) =>
+            states?.ToList() is not { Count: > 0 } read || read.Any(state => state.Value > 0 && string.Equals(state.Name, LeverEnabledState, StringComparison.Ordinal));
     }
 
     /// <summary>
