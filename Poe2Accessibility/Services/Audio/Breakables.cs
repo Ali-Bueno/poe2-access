@@ -38,9 +38,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Bodies searched like chests (Metadata/Chests/CorpseChests_95702, the Ogham village's impaled, hanged, stocked
-        ///     and burnt victims, Kedge Bay's mummified dead): they sounded like chests (user 2026-10-28).
+        ///     and burnt victims, Kedge Bay's mummified dead): they sounded like chests (user 2026-10-28). The Carver tribe's
+        ///     slaughtered cattle, "Restos" (Metadata/Chests/CarverTribeCow01-03), too (the owner, 2026-11-19: "nada inmersivo").
         /// </summary>
-        private static readonly string[] Corpses = { "corpse", "mummified", "unworthychest", "hangsaw", "impale", "stocks", "witchstake", "crucifix" };
+        private static readonly string[] Corpses = { "corpse", "mummified", "unworthychest", "hangsaw", "impale", "stocks", "witchstake", "crucifix", "carvertribecow" };
 
         /// <summary>The sound the game gives each object no word names, by its metadata path.</summary>
         private static Dictionary<string, string> objectSounds = new(StringComparer.OrdinalIgnoreCase);

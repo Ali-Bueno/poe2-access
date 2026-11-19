@@ -54,6 +54,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\BaseNameField.cs" Link="Plugin\BaseNameField.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemNameWords.cs" Link="Plugin\ItemNameWords.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.cs" Link="Plugin\CueSynth.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Barrier.cs" Link="Plugin\CueSynth.Barrier.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Gaze.cs" Link="Plugin\CueSynth.Gaze.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Enemy.cs" Link="Plugin\CueSynth.Enemy.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Guidance.cs" Link="Plugin\CueSynth.Guidance.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Skills.cs" Link="Plugin\CueSynth.Skills.cs" />

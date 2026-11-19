@@ -78,6 +78,7 @@ namespace Poe2Accessibility.Tests
             Equal("", Breakables.Material("Metadata/Chests/Village/Scarecrows/Scarecrow01"), "no material: the common sound");
             Equal(true, Breakables.IsCorpse("Metadata/Chests/CorpseChests_95702/PirateCorpse/PirateCorpseChest01"), "a corpse chest is a body");
             Equal(true, Breakables.IsCorpse("Metadata/Chests/Village/Impale01"), "the village's impaled victim is a body");
+            Equal(true, Breakables.IsCorpse("Metadata/Chests/CarverTribeCow02"), "the Carver tribe's slaughtered cattle are remains, not a chest");
             Equal(false, Breakables.IsCorpse("Metadata/Chests/Village/Scarecrows/Scarecrow01"), "a scarecrow is not");
             Equal(false, Switches.IsSwitch("Metadata/Chests/LeverRoom/Chest1"), "only the object's own name counts");
         }
