@@ -42,6 +42,17 @@ namespace Poe2Accessibility
         /// <summary>"Round 3 of 10" — a Trial of Chaos round beginning.</summary>
         public static string TrialRound(int round, int of) => of > 0 ? T($"Round {round} of {of}", $"Ronda {round} de {of}") : T($"Round {round}", $"Ronda {round}");
 
+        /// <summary>"Ronda 2 de 4: Mata a todos los monstruos" — a Trial of Chaos room's round and what it asks; no count when not known.</summary>
+        public static string TrialRoundAsks(int round, int? of, string asks) => $"{TrialRound(round, of ?? 0)}: {asks}";
+
+        /// <summary>"Ronda 1 de 4 superada" — a Trial of Chaos room completed.</summary>
+        public static string TrialRoundWon(int round, int? of) => of is > 0
+            ? T($"Round {round} of {of} won", $"Ronda {round} de {of} superada")
+            : T($"Round {round} won", $"Ronda {round} superada");
+
+        /// <summary>The lift's lever that takes the player on once a round is won, as its line starts ("Interruptor de salida, 30 pasos…").</summary>
+        public static string ChaosExitLever => T("Exit lever", "Interruptor de salida");
+
         /// <summary>A class on the Altar of Ascendancy: "Herrero de Kitava, 3 de 3, en la build. Ansías el poder…".</summary>
         public static string AscendancyCard(string name, int oneBasedIndex, int count, bool inBuild, string about) =>
             Sentences(new[]

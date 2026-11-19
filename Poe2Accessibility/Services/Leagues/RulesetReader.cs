@@ -114,7 +114,7 @@ namespace Poe2Accessibility.Services
         ///     The Trial of Chaos' round as the game names it: the kind's Id ("Survive") and the objective in the client's language
         ///     ("Sobrevive"); null outside one, or when the pointers do not lead to a kind with a plain Id and a text.
         /// </summary>
-        public (string Kind, string Text)? TrialObjective()
+        public (IntPtr Room, string Kind, string Text)? TrialObjective()
         {
             if (this.Find(GameLayout.Rulesets.UltimatumName) is not { } rules ||
                 !this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.UltimatumRoom, out var room) || !this.memory.IsValidAddress(room) ||
@@ -127,7 +127,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return (kind, text);
+            return (room, kind, text);
         }
 
         private const int MaxTextChars = 120;

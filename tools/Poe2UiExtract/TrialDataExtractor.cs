@@ -6,12 +6,13 @@ using Index = LibBundle3.Index;
 ///     { "icons": { icon path: key }, language: { key: text } }. Keys: `effect:` a Sekhemas affliction or boon
 ///     (SanctumPersistentEffects), `mod:` a Trial of Chaos modifier (UltimatumModifiers), `room:` a Sekhemas room type
 ///     (SanctumRoomTypes), `ascendancy:` a class (Ascendancy); `key:about` holds the description; `label:` the HUD formats
-///     (ClientStrings). Each column is found in the English table near where it was measured (dat-strings, 0.5.5f), by its
+///     (ClientStrings); "lengths" the Trial of Chaos' rounds from an area level on (UltimatumTrialLength, { "1": "4", "60": "7" }). Each column is found in the English table near where it was measured (dat-strings, 0.5.5f), by its
 ///     content and by what a known row holds there, and read at the same offset in every language. Read-only on the game.
 /// </summary>
 internal static class TrialDataExtractor
 {
     private const string IconsEntry = "icons";
+    private const string LengthsEntry = "lengths";
     private const string AboutSuffix = ":about";
     private const string ArtPrefix = "Art/";
     private const int IdColumn = 0x0;
@@ -66,8 +67,24 @@ internal static class TrialDataExtractor
         ("SanctumMapWindowInfo", "label:map"),
     };
 
+    /// <summary>
+    ///     UltimatumTrialLength (measured 0.5.5f, dat-kinds): rows of 8 bytes, the area level from which it holds at +0 and the
+    ///     rounds at +4 (1: 4, 60: 7, 75: 10). The client's own count of rounds is always 10 (docs/research/exe-layouts.md).
+    /// </summary>
+    private const string LengthTable = "ultimatumtriallength";
+    private const int LengthRowSize = 8;
+    private const int LengthLevel = 0x0;
+    private const int LengthRounds = 0x4;
+    private const int MostLevel = 100;
+    private const int MostRounds = 20;
+
     public static int Run(Index index, string outFile)
     {
+        if (ReadLengths(index) is not { } lengths)
+        {
+            return 1;
+        }
+
         var search = new DatColumnSearch();
         var found = new List<Found>();
         foreach (var source in Sources)
@@ -140,9 +157,37 @@ internal static class TrialDataExtractor
         }
 
         result[IconsEntry] = icons;
+        result[LengthsEntry] = lengths;
         AreaExtractor.WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}: {icons.Count} icons");
         return 0;
+    }
+
+    /// <summary>The rounds of a trial by the area level they start at; null, said, when the table is not the shape measured.</summary>
+    private static SortedDictionary<string, string>? ReadLengths(Index index)
+    {
+        if (DatTable.Open(index, LengthTable) is not { } table || table.RowSize != LengthRowSize || table.RowCount == 0)
+        {
+            Say.Out.WriteLine($"  {LengthTable} missing or not rows of {LengthRowSize} bytes (check with dat-kinds)");
+            return null;
+        }
+
+        var lengths = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        var lastLevel = 0;
+        for (var row = 0; row < table.RowCount; row++)
+        {
+            var (level, rounds) = (table.Int32(row, LengthLevel), table.Int32(row, LengthRounds));
+            if (level <= lastLevel || level > MostLevel || rounds is < 1 or > MostRounds)
+            {
+                Say.Out.WriteLine($"  {LengthTable} row {row} reads level {level}, {rounds} rounds: not the layout measured (check with dat-kinds)");
+                return null;
+            }
+
+            lengths[level.ToString(System.Globalization.CultureInfo.InvariantCulture)] = rounds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            lastLevel = level;
+        }
+
+        return lengths;
     }
 
     /// <summary>The source's columns in the English table; one not found is recorded in <paramref name="search"/>.</summary>

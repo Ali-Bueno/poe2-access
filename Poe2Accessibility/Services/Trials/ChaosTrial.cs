@@ -181,4 +181,68 @@ namespace Poe2Accessibility.Services
             return grew ? count : null;
         }
     }
+
+    /// <summary>
+    ///     Which lift lever takes the player on once a room is won: a sighted player sees the way out light up, a blind one heard
+    ///     only "Sala completada" (the owner, 2026-11-19: "me costó encontrar la salida"). Each room has two levers, the way in and
+    ///     the way out, shut until the round is won (trial-of-chaos.md §1); the one that turned pullable as the round was won, else
+    ///     the nearest pullable one. Pure.
+    /// </summary>
+    public sealed class ExitLeverNews
+    {
+        /// <summary>The wait after the round is won for the way out to open: the lever's state comes with the server's next news.</summary>
+        public const int WaitMs = 1500;
+
+        /// <summary>No pullable lever by then: nothing is said (the levers still ring as quest objects).</summary>
+        public const int GiveUpMs = 8000;
+
+        private readonly Dictionary<uint, (bool Enabled, long Since)> levers = new();
+        private long? won;
+
+        /// <summary>A new area: nothing is known of its levers.</summary>
+        public void Reset()
+        {
+            this.won = null;
+            this.levers.Clear();
+        }
+
+        /// <summary>A room was completed now.</summary>
+        public void RoundWon(long now) => this.won = now;
+
+        /// <summary>The lever to name now, once per round won; null otherwise. <paramref name="present"/>: the levers in view.</summary>
+        public uint? Poll(long now, IReadOnlyList<(uint Id, bool Enabled, float Distance)> present)
+        {
+            foreach (var (id, enabled, _) in present)
+            {
+                if (!this.levers.TryGetValue(id, out var was))
+                {
+                    this.levers[id] = (enabled, long.MinValue); // first seen: when it turned so is not known
+                }
+                else if (was.Enabled != enabled)
+                {
+                    this.levers[id] = (enabled, now);
+                }
+            }
+
+            if (this.won is not { } at || now - at < WaitMs)
+            {
+                return null;
+            }
+
+            var pullable = present.Where(lever => lever.Enabled).ToList();
+            if (pullable.Count == 0)
+            {
+                if (now - at >= GiveUpMs)
+                {
+                    this.won = null;
+                }
+
+                return null;
+            }
+
+            this.won = null;
+            var opened = pullable.Where(lever => this.levers[lever.Id].Since >= at - WaitMs).OrderByDescending(lever => this.levers[lever.Id].Since).ToList();
+            return (opened.Count > 0 ? opened[0] : pullable.OrderBy(lever => lever.Distance).First()).Id;
+        }
+    }
 }

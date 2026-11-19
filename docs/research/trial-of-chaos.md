@@ -239,7 +239,17 @@ Built on §8, each rule keyed on a file, state or buff the data step "game names
   (Collect, Escort, Sacrifice), "Lleva el núcleo a un altar de piedra" as a core is taken, "Círculo de sangre lleno", and Ruin as it
   grows ("Ruina 3 de 7", urgent from 6; the buff's charges, logged raw as "Ruin: …"). The log says each piece's states the first time
   ("Chaos trial piece seen: …").
-- **Already there**: the round counter ("Ronda 3 de 10"), the modifier icons' names, the Corruption Dais and the reward chest by their
+- **The rounds, first played 2026-11-19 (kehgan, campaign trial, area level 38):** the client's round goes one up as a room is
+  completed, so it read "2/10" the moment the first room was done ("Ronda 2 de 10" was said with "Sala completada": the owner, "cuando
+  estoy en la primera"), and its count is the constant 10 (exe-layouts.md) while this trial has 4 (the Inscribed Ultimatum: "Número de
+  pruebas: 4"). Now the count is `UltimatumTrialLength` by the area level (rows of 8 bytes, level at +0, rounds at +4: 1→4, 60→7, 75→10,
+  MEASURED with `dat-kinds`; `trials.json` "lengths", `TrialCatalog.RoundsAt`); a room completed says "Ronda 1 de 4 superada"
+  (`RulesetNews.RoundWon`) and each room's objective is said with its round, keyed on the room's UltimatumRooms row so a second Slay
+  room is said too ("Ronda 1 de 4: Mata a todos los monstruos", `TrialRoundAsks`). The way out was hard to find (two and a half
+  minutes from "Sala completada" to the lever): 1.5 s after the room is won the lever that turned pullable then, else the nearest
+  pullable one, is said with the way to it ("Interruptor de salida, 30 pasos…", `ExitLeverNews`; log "Exit lever named:"). Not yet
+  heard: which of a room's two levers that is (the lever log line names both with their states).
+- **Already there**: the round counter, the modifier icons' names, the Corruption Dais and the reward chest by their
   world titles, the Trialmaster as a character, the bosses' mechanics, Impending Doom's blasts.
 
 **Left, each for its reason:** the objective of a Slay, Survive, Destroy or Boss round (no piece tells it; said only if the HUD prints

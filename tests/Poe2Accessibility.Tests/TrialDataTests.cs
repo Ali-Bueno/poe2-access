@@ -11,6 +11,8 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TheRoundFormatMatchesTheShownLine), TheRoundFormatMatchesTheShownLine),
+            (nameof(ATrialsRoundsComeFromTheAreaLevel), ATrialsRoundsComeFromTheAreaLevel),
+            (nameof(TheExitLeverIsTheOneThatOpenedAsTheRoundWasWon), TheExitLeverIsTheOneThatOpenedAsTheRoundWasWon),
             (nameof(TheCrystalsFormatMatchesInAnyLanguage), TheCrystalsFormatMatchesInAnyLanguage),
             (nameof(AFormatWithoutNumbersIsNoPattern), AFormatWithoutNumbersIsNoPattern),
             (nameof(ACounterIsSaidOnChangeNotOnFirstSight), ACounterIsSaidOnChangeNotOnFirstSight),
@@ -118,6 +120,38 @@ namespace Poe2Accessibility.Tests
             Expect(true, BuildPlan.IsAscendancyStart("AscendancyWitch1Start__"));
             Expect(false, BuildPlan.IsAscendancyStart("AscendancyWarrior3Notable6_0"));
             Expect(false, BuildPlan.IsAscendancyStart("marauder_start"));
+        }
+
+        private static void ATrialsRoundsComeFromTheAreaLevel()
+        {
+            var catalog = new TrialCatalog(new(), new(StringComparer.Ordinal), new() { ["1"] = "4", ["60"] = "7", ["75"] = "10" });
+            Expect(4, catalog.RoundsAt(38));
+            Expect(7, catalog.RoundsAt(60));
+            Expect(7, catalog.RoundsAt(74));
+            Expect(10, catalog.RoundsAt(83));
+            Expect(null, catalog.RoundsAt(0));
+            Expect(null, TrialCatalog.Empty.RoundsAt(38));
+        }
+
+        private static void TheExitLeverIsTheOneThatOpenedAsTheRoundWasWon()
+        {
+            var news = new ExitLeverNews();
+            Expect(null, news.Poll(0, new[] { (1u, true, 5f), (2u, false, 30f) }));
+            news.RoundWon(1000);
+            Expect(null, news.Poll(1500, new[] { (1u, true, 5f), (2u, true, 30f) }));
+            Expect(2u, news.Poll(2600, new[] { (1u, true, 5f), (2u, true, 30f) }));
+            Expect(null, news.Poll(3000, new[] { (1u, true, 5f), (2u, true, 30f) }));
+
+            var unseen = new ExitLeverNews();
+            unseen.RoundWon(0);
+            Expect(null, unseen.Poll(1000, new[] { (1u, true, 20f) }));
+            Expect(3u, unseen.Poll(2000, new[] { (1u, true, 20f), (3u, true, 8f) }));
+
+            var none = new ExitLeverNews();
+            none.RoundWon(0);
+            Expect(null, none.Poll(2000, new[] { (1u, false, 20f) }));
+            Expect(null, none.Poll(9000, new[] { (1u, false, 20f) }));
+            Expect(null, none.Poll(9500, new[] { (1u, true, 20f) }));
         }
 
         private static void AClassIsKnownByItsCardsLine()

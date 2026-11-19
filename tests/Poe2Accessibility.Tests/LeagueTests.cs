@@ -208,18 +208,23 @@ namespace Poe2Accessibility.Tests
         private static void ATrialRoundIsSaidAsItChanges()
         {
             var news = new RulesetNews();
-            Equal(null, news.Round(null), "no trial here");
-            Equal(null, news.Round(1), "the round standing when first read is no news");
-            Equal(2, news.Round(2), "a room completed: the next round");
-            Equal(null, news.Round(2), "said once");
-            Equal(null, news.Round(null), "the trial left");
-            Equal("Round 3 of 10", Announcements.Ruleset(RulesetLine.TrialRound, 3, 10), "as the window writes it");
+            Equal(null, news.RoundWon(null), "no trial here");
+            Equal(null, news.RoundWon(1), "the round standing when first read is no news");
+            Equal(1, news.RoundWon(2), "a room completed: the client counts the next round, the one won is said (2026-11-19: \"ronda 2\" in the first)");
+            Equal(null, news.RoundWon(2), "said once");
+            Equal(null, news.RoundWon(null), "the trial left");
+            Equal("Round 1 of 4 won", Announcements.TrialRoundWon(1, 4), "with the trial's own count");
+            Equal("Round 1 won", Announcements.TrialRoundWon(1, null), "no count when the tables are not known");
+            Equal("Round 2 of 4: Survive", Announcements.TrialRoundAsks(2, 4, "Survive"), "a room's round and what it asks");
 
-            Equal("Slay all Monsters", news.Objective("Slay all Monsters"), "the first room's objective is said: walking in is when it is needed");
-            Equal(null, news.Objective("Slay all Monsters"), "once");
-            Equal(null, news.Objective(null), "between rooms");
-            Equal(null, news.Objective("Slay all Monsters"), "the same objective back is no news");
-            Equal("Survive", news.Objective("Survive"), "the next room's");
+            var first = new IntPtr(0x1000);
+            var second = new IntPtr(0x2000);
+            Equal("Slay all Monsters", news.Objective(first, "Slay all Monsters"), "the first room's objective is said: walking in is when it is needed");
+            Equal(null, news.Objective(first, "Slay all Monsters"), "once");
+            Equal(null, news.Objective(IntPtr.Zero, null), "between rooms");
+            Equal(null, news.Objective(first, "Slay all Monsters"), "the same room back is no news");
+            Equal("Slay all Monsters", news.Objective(second, "Slay all Monsters"), "another room asking the same is a new round");
+            Equal("Survive", news.Objective(first, "Survive"), "the next room's");
             Equal(null, news.Progress(0.1f), "the bar when first read");
             Equal(25, news.Progress(0.3f), "a quarter of the challenge");
             Equal(null, news.Progress(0.4f), "said once");
@@ -232,8 +237,8 @@ namespace Poe2Accessibility.Tests
             Equal(null, news.Progress(0.2f), "falling back is no news");
             Equal(null, news.Progress(0.3f), "nor climbing again to what was said");
             Equal(75, news.Progress(0.76f), "only a quarter not yet said in the round");
-            Equal(null, news.Round(3), "the round read again");
-            Equal(4, news.Round(4), "the next round");
+            Equal(null, news.RoundWon(3), "the round read again");
+            Equal(3, news.RoundWon(4), "the next room completed");
             Equal(25, news.Progress(0.3f), "its quarters are its own, even when the bar never read empty between");
             Equal("Challenge Progress: 50%", Announcements.TrialProgress(50), "under the bar's own name");
 

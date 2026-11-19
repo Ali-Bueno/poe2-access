@@ -73,14 +73,13 @@ namespace Poe2Accessibility
         };
 
         /// <summary>What the client's rulesets tell: a Breach's ring by quarters and its edge crossed, the Trial of Chaos' round.</summary>
-        public static string Ruleset(RulesetLine line, int round, int rounds) => line switch
+        public static string Ruleset(RulesetLine line) => line switch
         {
             RulesetLine.BreachQuarter => T("Breach a quarter grown", "Fisura a un cuarto"),
             RulesetLine.BreachHalf => T("Breach half grown", "Fisura a la mitad"),
             RulesetLine.BreachThreeQuarters => T("Breach three quarters grown", "Fisura a tres cuartos"),
             RulesetLine.OutsideBreach => T("Outside the Breach's ring", "Fuera del anillo de la fisura"),
-            RulesetLine.InsideBreach => T("Inside the Breach's ring", "Dentro del anillo de la fisura"),
-            _ => T($"Round {round} of {rounds}", $"Ronda {round} de {rounds}"),
+            _ => T("Inside the Breach's ring", "Dentro del anillo de la fisura"),
         };
 
         /// <summary>

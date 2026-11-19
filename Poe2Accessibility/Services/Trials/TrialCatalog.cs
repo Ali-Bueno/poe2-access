@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
     public sealed class TrialCatalog
     {
         public const string IconsEntry = "icons";
+
+        /// <summary>The Trial of Chaos' rounds by the area level they start at (UltimatumTrialLength).</summary>
+        public const string LengthsEntry = "lengths";
         public const string AboutSuffix = ":about";
         public const string RoundLabel = "label:round";
         public const string CrystalsLabel = "label:crystals";
@@ -46,11 +49,14 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> icons;
         private readonly Dictionary<string, Dictionary<string, string>> texts;
         private readonly Dictionary<string, Regex?> patterns = new(StringComparer.Ordinal);
+        private readonly List<(int Level, int Rounds)> lengths;
 
-        public TrialCatalog(Dictionary<string, string> icons, Dictionary<string, Dictionary<string, string>> texts)
+        public TrialCatalog(Dictionary<string, string> icons, Dictionary<string, Dictionary<string, string>> texts, Dictionary<string, string>? lengths = null)
         {
             this.icons = icons;
             this.texts = texts;
+            this.lengths = (lengths ?? new()).Select(pair => (Level: int.TryParse(pair.Key, out var level) ? level : 0, Rounds: int.TryParse(pair.Value, out var rounds) ? rounds : 0))
+                .Where(row => row.Level > 0 && row.Rounds > 0).OrderBy(row => row.Level).ToList();
         }
 
         public static TrialCatalog Empty { get; } = new(new Dictionary<string, string>(), new Dictionary<string, Dictionary<string, string>>());
@@ -70,9 +76,10 @@ namespace Poe2Accessibility.Services
             {
                 var parsed = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(path)) ?? new();
                 var icons = parsed.TryGetValue(IconsEntry, out var byIcon) ? new Dictionary<string, string>(byIcon, StringComparer.Ordinal) : new();
-                var texts = parsed.Where(pair => pair.Key != IconsEntry).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-                log?.Info($"Trial data: {icons.Count} icons, {texts.Count} languages");
-                return new TrialCatalog(icons, texts);
+                var texts = parsed.Where(pair => pair.Key is not (IconsEntry or LengthsEntry)).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+                var catalog = new TrialCatalog(icons, texts, parsed.TryGetValue(LengthsEntry, out var lengths) ? lengths : null);
+                log?.Info($"Trial data: {icons.Count} icons, {texts.Count} languages, rounds by level {(catalog.lengths.Count == 0 ? "none" : string.Join(", ", catalog.lengths.Select(row => $"{row.Level}+ {row.Rounds}")))}");
+                return catalog;
             }
             catch (Exception ex)
             {
@@ -80,6 +87,13 @@ namespace Poe2Accessibility.Services
                 return Empty;
             }
         }
+
+        /// <summary>
+        ///     How many rounds a Trial of Chaos has at this area level (the campaign's, level 38: 4); null when the tables are not
+        ///     known. The client's own count is always 10, whatever the trial.
+        /// </summary>
+        public int? RoundsAt(int areaLevel) =>
+            this.lengths.LastOrDefault(row => row.Level <= areaLevel) is { Rounds: > 0 } row ? row.Rounds : null;
 
         /// <summary>The pattern a HUD line follows, from the game's format: "Round &lt;ultimatumnumber&gt;{{{0}/{1}}}" matches "Round 3/10"; null for no numbers.</summary>
         public static Regex? PatternOf(string format)

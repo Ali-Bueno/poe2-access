@@ -19,16 +19,28 @@ namespace Poe2Accessibility.Services
         private readonly ChaosRoundNews news = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private readonly List<(uint Id, ChaosPiece Piece)> pieces = new();
+        private readonly ExitLeverNews exitLever = new();
+        private readonly List<(uint Id, bool Enabled, float Distance)> levers = new();
+        private readonly Dictionary<uint, ScanEntry> leverEntries = new();
+        private readonly EntityCatalog catalog;
         private long lastPoll;
 
-        public ChaosTrialWatch(IAccessibilityOutputService output, PluginLog log)
+        public ChaosTrialWatch(EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
+            this.catalog = catalog;
             this.output = output;
             this.log = log;
         }
 
         /// <summary>A new area: nothing is known of its rounds.</summary>
-        public void Reset() => this.news.Reset();
+        public void Reset()
+        {
+            this.news.Reset();
+            this.exitLever.Reset();
+        }
+
+        /// <summary>A room was completed: the lever that takes the player on is said once the way opens.</summary>
+        public void RoundWon() => this.exitLever.RoundWon(Environment.TickCount64);
 
         /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
         public void Tick(bool playing)
@@ -41,6 +53,9 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             this.pieces.Clear();
+            this.levers.Clear();
+            this.leverEntries.Clear();
+            System.Numerics.Vector3? player = Seats.Followed.TryGetComponent<Render>(out var seat) ? new(seat.WorldPosition.X, seat.WorldPosition.Y, seat.WorldPosition.Z) : null;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
                 if (!entity.IsValid || ChaosTrial.PieceOf(entity.Path ?? string.Empty) is not { } piece)
@@ -53,10 +68,24 @@ namespace Poe2Accessibility.Services
                     : new List<(string Name, long Value)>();
                 this.LogOnce(entity.Path!, states);
                 this.pieces.Add((entity.Id, piece));
+                if (piece == ChaosPiece.LiftLever && player is { } from && entity.TryGetComponent<Render>(out var render))
+                {
+                    var at = render.WorldPosition;
+                    var enabled = states.Any(state => state.Value > 0 && string.Equals(state.Name, ChaosTrial.LeverEnabledState, StringComparison.Ordinal));
+                    this.levers.Add((entity.Id, enabled, System.Numerics.Vector3.Distance(from, new(at.X, at.Y, at.Z))));
+                    this.leverEntries[entity.Id] = new ScanEntry(entity.Id, ScanCategory.Quest, Announcements.ChaosExitLever, at.X, at.Y, at.Z);
+                }
+
                 if (piece == ChaosPiece.BloodCircle && this.news.Filled(entity.Id, ChaosTrial.IsFull(states)))
                 {
                     this.output.Say(SpeechKind.Quest, Announcements.ChaosCircleFilled);
                 }
+            }
+
+            if (this.exitLever.Poll(now, this.levers) is { } lever && this.leverEntries.TryGetValue(lever, out var way))
+            {
+                this.log.Info($"Exit lever named: {lever} of {this.levers.Count} levers ({string.Join(", ", this.levers.Select(each => $"{each.Id} {(each.Enabled ? "enabled" : "shut")} {each.Distance:0}"))})");
+                this.output.Say(SpeechKind.Places, this.catalog.Describe(way));
             }
 
             if (this.news.Began(this.pieces) is { } round)

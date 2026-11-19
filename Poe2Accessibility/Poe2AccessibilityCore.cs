@@ -386,7 +386,7 @@ namespace Poe2Accessibility
                 this.deployed = new DeployedWatch(this.audio, this.log);
                 this.traps = new TrapWatch(this.audio, this.log);
                 this.trialDoors = new TrialDoorWatch(this.entities, this.output, this.log);
-                this.chaosTrial = new ChaosTrialWatch(this.output, this.log);
+                this.chaosTrial = new ChaosTrialWatch(this.entities, this.output, this.log);
                 this.cinematics = new CinematicWatch(this.output, this.log)
                 {
                     LoadingAreaId = () => this.gameState?.LoadingAreaId(),
@@ -404,6 +404,8 @@ namespace Poe2Accessibility
                 this.rulesets = new RulesetWatch(rulesetReader, new FogReader(memory, rulesetReader), new ChaosTrialHudReader(elements), this.output, this.log)
                 {
                     Container = () => this.focus?.LayerContainer ?? IntPtr.Zero,
+                    TrialRounds = () => this.semantics?.Trials.RoundsAt(AreaLevel()),
+                    RoundWon = _ => this.chaosTrial?.RoundWon(),
                 };
                 this.essences = new EssenceWatch(memory, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);

@@ -48,6 +48,12 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>Gets or sets how many rounds the Trial of Chaos here has (the game's table by area level); null when not known.</summary>
+        public Func<int?> TrialRounds { get; set; } = () => null;
+
+        /// <summary>Gets or sets what follows a Trial of Chaos room completed, with the round won.</summary>
+        public Action<int>? RoundWon { get; set; }
+
         /// <summary>Gets or sets the element every layer of the game's interface hangs from.</summary>
         public Func<IntPtr> Container { get; set; } = () => IntPtr.Zero;
 
@@ -132,17 +138,24 @@ namespace Poe2Accessibility.Services
 
                 if (line == RulesetLine.OutsideBreach)
                 {
-                    this.output.Urge(Announcements.Ruleset(line, 0, 0));
+                    this.output.Urge(Announcements.Ruleset(line));
                 }
                 else
                 {
-                    this.output.Say(SpeechKind.Quest, Announcements.Ruleset(line, 0, 0));
+                    this.output.Say(SpeechKind.Quest, Announcements.Ruleset(line));
                 }
             }
 
-            if (this.news.Round(round?.Round) is { } begun && trials && round is { } trial)
+            // The client counts 10 rounds in every trial; how many this one has is the game's table by the area's level.
+            var rounds = round == null ? null : this.TrialRounds();
+            if (this.news.RoundWon(round?.Round) is { } won)
             {
-                this.output.Say(SpeechKind.Quest, Announcements.Ruleset(RulesetLine.TrialRound, begun, trial.Total));
+                this.log.Info($"Trial round won: {won} of {rounds?.ToString() ?? "?"} (the client's count {round?.Total})");
+                this.RoundWon?.Invoke(won);
+                if (trials)
+                {
+                    this.output.Say(SpeechKind.Quest, Announcements.TrialRoundWon(won, rounds));
+                }
             }
 
             var objective = round == null ? null : this.reader.TrialObjective();
@@ -151,9 +164,9 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Trial objective: {kind.Kind} = \"{kind.Text}\""); // confirms the room's row and its kind's text
             }
 
-            if (this.news.Objective(objective?.Text) is { } asked && trials)
+            if (this.news.Objective(objective?.Room ?? IntPtr.Zero, objective?.Text) is { } asked && trials && round is { } standing)
             {
-                this.output.Say(SpeechKind.Quest, asked);
+                this.output.Say(SpeechKind.Quest, standing.Round <= (rounds ?? int.MaxValue) ? Announcements.TrialRoundAsks(standing.Round, rounds, asked) : asked);
             }
 
             if (this.news.Progress(round == null ? null : this.reader.TrialProgress()) is { } percent && trials)

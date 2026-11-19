@@ -50,7 +50,6 @@ namespace Poe2Accessibility.Services
         BreachThreeQuarters,
         OutsideBreach,
         InsideBreach,
-        TrialRound,
     }
 
     /// <summary>
@@ -70,15 +69,15 @@ namespace Poe2Accessibility.Services
         private bool? inside;
         private long edgeSaid = long.MinValue / 2;
         private int? round;
-        private string? objective;
+        private IntPtr objectiveRoom;
         private int progressQuarter = -1;
         private int progressSaid;
         private Vector2? ringCentre;
 
         /// <summary>A new area: nothing has been read.</summary>
         public void Reset() =>
-            (this.quarter, this.inside, this.edgeSaid, this.round, this.objective, this.progressQuarter, this.progressSaid, this.ringCentre) =
-                (-1, null, long.MinValue / 2, null, null, -1, 0, null);
+            (this.quarter, this.inside, this.edgeSaid, this.round, this.objectiveRoom, this.progressQuarter, this.progressSaid, this.ringCentre) =
+                (-1, null, long.MinValue / 2, null, IntPtr.Zero, -1, 0, null);
 
         /// <summary>The lines of the ring nearest the player while it grows; none for a ring closing or not there.</summary>
         public List<RulesetLine> Breach(BreachRing? ring, Vector2 player, long now)
@@ -135,14 +134,15 @@ namespace Poe2Accessibility.Services
         ///     The round's objective when it is another than the one last said, the first of a Trial included: walking into the
         ///     room is when the player needs it. Null otherwise.
         /// </summary>
-        public string? Objective(string? shown)
+        public string? Objective(IntPtr room, string? shown)
         {
-            if (shown == null || shown == this.objective)
+            // Keyed on the room (its UltimatumRooms row), not the text: the next room may ask the same, and is a new round.
+            if (shown == null || room == IntPtr.Zero || room == this.objectiveRoom)
             {
                 return null;
             }
 
-            this.objective = shown;
+            this.objectiveRoom = room;
             return shown;
         }
 
@@ -185,8 +185,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A bar below this is a round beginning.</summary>
         private const float EmptyBar = 0.05f;
 
-        /// <summary>The Trial of Chaos round now, counted from 1, when it has just changed; null otherwise, and for what stands when first read.</summary>
-        public int? Round(int? shown)
+        /// <summary>
+        ///     The Trial of Chaos round just won, counted from 1: the client's round goes one up as a room is completed
+        ///     (UltimatumRoomCompleted), so "2" read means the first is won and the second is yet to start. Null otherwise, and
+        ///     for what stands when first read.
+        /// </summary>
+        public int? RoundWon(int? shown)
         {
             var was = this.round;
             this.round = shown;
@@ -195,7 +199,7 @@ namespace Poe2Accessibility.Services
                 this.progressSaid = 0;
             }
 
-            return shown is { } now && was is { } before && now != before ? now : null;
+            return shown is { } now && was is { } before && now > before ? before : null;
         }
     }
 }

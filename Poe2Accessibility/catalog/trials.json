@@ -3588,6 +3588,11 @@
     "room:WaterMajor:about": "대형 신성한 물 분수 등장",
     "room:WaterMinor:about": "신성한 물 분수 등장"
   },
+  "lengths": {
+    "1": "4",
+    "60": "7",
+    "75": "10"
+  },
   "pt": {
     "ascendancy:Druid1": "Oráculo",
     "ascendancy:Druid1:about": "Há muitos caminhos para alcançar seus objetivos... e você vê todos eles.",
