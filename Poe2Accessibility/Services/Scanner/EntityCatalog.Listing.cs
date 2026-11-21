@@ -189,15 +189,26 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (landmark.CanVanish && Vector2.Distance(here, new Vector2(landmark.WorldX, landmark.WorldY)) < AwakeWorld)
+                if ((landmark.CanVanish || landmark.Category == ScanCategory.Npcs) && Vector2.Distance(here, new Vector2(landmark.WorldX, landmark.WorldY)) < AwakeWorld)
                 {
-                    this.remembered.Remove(landmark.Id); // near its place and no longer listed: opened, picked up, closed or used
+                    // Near its place and no longer listed: opened, picked up, closed or used; a character gone on, as Alva in the
+                    // past through Utzaal's door, still listed 2 steps off after the game had dropped her (the owner, 2026-11-20).
+                    this.remembered.Remove(landmark.Id);
                     continue;
                 }
 
                 if (landmark.Id is >= InheritedIdBase and < DeathPlaceId && !KeepInherited(landmark, here, found.Values, unseen))
                 {
                     this.remembered.Remove(landmark.Id); // the game's own is listed now, or this instance has none there
+                    continue;
+                }
+
+                if (town && (landmark.Category == ScanCategory.Npcs || landmark.Kind == ScanEntry.PortalKind) &&
+                    this.OnGroundApart(new Vector2(landmark.WorldX, landmark.WorldY) / area.WorldToGridConvertor, new Vector2(player.GridPosition.X, player.GridPosition.Y)))
+                {
+                    // Remembered from the camp's other half: the present's Servi, Oswald and Hooded One, 2,000 cells off and out of
+                    // the game's range, were listed from the past half (the owner, 2026-11-20), and as portals by the memory an
+                    // older build saved; no walk reaches a portal there either. Kept for the way back.
                     continue;
                 }
 
