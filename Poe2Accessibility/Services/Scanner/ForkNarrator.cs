@@ -13,7 +13,7 @@ namespace Poe2Accessibility.Services
     ///     2026-11-16; <see cref="ForkTracker"/>, docs/radar.md "Forks"). Also the named rooms walked into, in the same line
     ///     as a fork in them ("Capilla: sigue…", <see cref="RoomTracker"/>, docs/research/rooms.md).
     /// </summary>
-    public sealed class ForkNarrator
+    public sealed partial class ForkNarrator
     {
         private const int PollMs = 250;
 
@@ -58,6 +58,7 @@ namespace Poe2Accessibility.Services
         {
             this.tracker.Reset();
             this.roomTracker.Reset();
+            this.ResetPending();
             this.shape = null;
             this.trailPoint = default;
             this.cameFrom = default;
@@ -92,6 +93,7 @@ namespace Poe2Accessibility.Services
             if (topology != null && !ReferenceEquals(topology, this.shape))
             {
                 this.tracker.Reset(); // node ids belong to one build
+                this.ResetPending();
                 this.shape = topology;
             }
 
@@ -114,6 +116,11 @@ namespace Poe2Accessibility.Services
                 var onward = line.Again ? this.WhenCircling?.Invoke() : null;
                 this.output.Say(SpeechKind.Places, onward is null ? spoken : Announcements.Sentences(new[] { spoken, onward }));
             }
+
+            if (topology != null)
+            {
+                this.TickPending(topology, here, player, toWorld, now);
+            }
         }
 
         /// <summary>The fork or room of the map's shape just walked into, when it is news, with the ways to tell; null otherwise.</summary>
@@ -134,6 +141,7 @@ namespace Poe2Accessibility.Services
 
             var back = ForkTracker.WayBack(ways.Select(way => way.Direction).ToList(), this.cameFrom + (here - centre));
             var told = new List<(string Side, ForkWay State)>();
+            var onward = new List<Way>();
             for (var i = 0; i < ways.Count; i++)
             {
                 if (i == back)
@@ -142,10 +150,17 @@ namespace Poe2Accessibility.Services
                 }
 
                 var way = ways[i];
-                var state = topology.IsDeadEndWay(entered.Node, way, out var end) && EntityCatalog.SeenWhole(end) ? ForkWay.DeadEnd
-                    : this.catalog.WayExplored(topology, entered.Node, way) ? ForkWay.Explored
-                    : ForkWay.GoesOn;
+                var state = this.StateOf(topology, entered.Node, way);
                 told.Add((Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld)], state));
+                if (state == ForkWay.GoesOn)
+                {
+                    onward.Add(way);
+                }
+            }
+
+            if (ways.Count >= 3)
+            {
+                this.pending.Note(entered.Node, entered.Name, topology.Nodes[entered.Node].Centre, topology.Nodes[entered.Node].Radius, onward);
             }
 
             IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> line = ways.Count >= 3 ? ForkTracker.Tell(told) : Array.Empty<(ForkWay, IReadOnlyList<string>)>();

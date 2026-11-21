@@ -27,7 +27,7 @@ namespace Poe2Accessibility.Services
         private const float LookAheadGrid = 25f;
 
         /// <summary>Close enough to count as arrived: a step and a half.</summary>
-        private const float ArrivalWorld = 150f;
+        public const float ArrivalWorld = 150f;
 
         /// <summary>A chest or item that vanished while the player stood this close was opened or picked up: arrived.</summary>
         private const float GoneNearWorld = 600f;

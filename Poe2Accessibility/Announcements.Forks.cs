@@ -45,6 +45,22 @@ namespace Poe2Accessibility
             _ => T($"goes on {sides}", $"sigue {sides}"),
         };
 
+        /// <summary>A fork left behind with ways still going on: "Dejas un camino pendiente a la izquierda".</summary>
+        public static string PendingLeft(int count, IReadOnlyList<string> sides) => count == 1
+            ? T($"One way left pending {Both(sides)}", $"Dejas un camino pendiente {Both(sides)}")
+            : T($"{count} ways left pending: {Both(sides)}", $"Dejas {count} caminos pendientes: {Both(sides)}");
+
+        /// <summary>A dead end or a place with nothing new, before the nearest way left pending.</summary>
+        public static string PendingNothingHere => T("Nothing more this way", "Por aquí no hay nada más");
+
+        /// <summary>At an exit of the area, before the nearest way left pending.</summary>
+        public static string PendingBeforeExit(int count) => count == 1
+            ? T("Before leaving: one way pending", "Antes de salir: un camino pendiente")
+            : T($"Before leaving: {count} ways pending", $"Antes de salir: {count} caminos pendientes");
+
+        /// <summary>The scanner's name of a way left pending at a place: "Camino pendiente en Cruce 3".</summary>
+        public static string PendingWayAt(string place) => T($"Way pending at {place}", $"Camino pendiente en {place}");
+
         /// <summary>"arriba y a la izquierda"; three or more as "arriba, abajo y a la izquierda".</summary>
         private static string Both(IReadOnlyList<string> sides) => sides.Count switch
         {

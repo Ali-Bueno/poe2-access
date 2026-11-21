@@ -235,6 +235,27 @@ portal, a waypoint) forgets what was near. Ground that goes on is not told (it i
 already say it); nor are towns, hideouts and a Trial's floor (Sekhemas or Chaos). Setting `LeftBehindCue`; sound `radar_left_behind`
 (`CueSynth.LeftBehind`): a far bell, the owner's pick of four on the [audition page](https://claude.ai/artifact/PmA3oePRSbyCUFd86V3iMm).
 
+## Ways left pending (2026-11-21)
+
+Asked by the owner on 2026-11-21 in Aggorat: the fork's line had said "Zona 5: sigue abajo a la izquierda" on the way to the
+exit, and that way, to the Sacrificial Heart's altar, was forgotten while going on fast ("olvidarme de explorar alguna parte y
+seguir rápido explorando por otros sitios"), with no key. What a sighted player keeps on the minimap, the mod keeps for them:
+each fork of three ways or more notes its ways that go on when walked into (`PendingWays`, pure, in `ForkNarrator.Pending`);
+a way leaves the list once its state is no longer "goes on" (explored or a dead end seen whole: the fork line's own rules,
+checked every second). Three lines, queued after what is being said and held back by a fight:
+
+- **Leaving a fork** (`PendingWaysOnLeaving`): once the player is 20 cells past its radius, the ways still pending there but
+  the one taken (within 60° of where the player went), with their side from where the player stands: "Dejas un camino
+  pendiente a la izquierda". The way taken stays pending until explored.
+- **A dead end, or a place with nothing new** (`PendingWaysAtDeadEnds`): standing at a dead end, a fork or a room (not a bend
+  walked back along) where no way goes on, the nearest way pending elsewhere with the scanner's route: "Por aquí no hay nada
+  más. Camino pendiente en Zona 5, 60 pasos, abajo 3, luego a la izquierda". Once per place an area.
+- **An exit of the area** (`PendingWaysAtExits`): within the guide's arrival distance of an area exit, how many are pending and
+  the nearest: "Antes de salir: 2 caminos pendientes. Camino pendiente en Zona 5, …". Again once the player went two looks away.
+
+The two reminders are at least 20 s apart. Built on the forks: with `AnnounceForks` off nothing is noted. Unit-tested; not
+heard live yet.
+
 ## The minimap's arrow (tried and removed, 2026-11-18)
 
 A sighted player sees an arrow at the minimap's edge toward a boss room or a quest mark while within its icon's pointer

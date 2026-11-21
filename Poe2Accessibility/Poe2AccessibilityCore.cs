@@ -453,6 +453,7 @@ namespace Poe2Accessibility
                     Pieces = this.places != null ? this.places.Pieces : null,
                     RoomAt = this.places != null ? this.places.RoomAt : null,
                     WhenCircling = () => this.lostHint?.Circling == true ? this.entities.DescribeNearestUnexplored() : null,
+                    PendingLines = () => (this.Settings.PendingWaysOnLeaving, this.Settings.PendingWaysAtDeadEnds, this.Settings.PendingWaysAtExits),
                 };
                 if (this.places != null)
                 {

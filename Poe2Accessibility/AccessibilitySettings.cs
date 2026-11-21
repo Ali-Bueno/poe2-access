@@ -149,6 +149,15 @@ namespace Poe2Accessibility
         /// <summary>Say a fork of the map as you walk into it: which ways go on, which are dead ends, which are explored.</summary>
         public bool AnnounceForks = true;
 
+        /// <summary>On leaving a fork, say the ways there still going on: "One way left pending to the left".</summary>
+        public bool PendingWaysOnLeaving = true;
+
+        /// <summary>At a dead end or a place with nothing new, say the nearest way left pending at a fork, with its way.</summary>
+        public bool PendingWaysAtDeadEnds = true;
+
+        /// <summary>At an exit of the area, say how many ways are left pending and the nearest, with its way.</summary>
+        public bool PendingWaysAtExits = true;
+
         /// <summary>Name the rooms the game's layouts name as you walk into them: "Chapel", "Wine cellar"; again when you come back.</summary>
         public bool AnnounceRooms = true;
 
