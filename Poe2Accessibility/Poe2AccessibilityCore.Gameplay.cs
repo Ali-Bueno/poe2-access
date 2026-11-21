@@ -451,7 +451,7 @@ namespace Poe2Accessibility
             this.gameState is { CurrentAreaId.Length: > 0 } state ? state.InTownOrHideout
                 : Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
 
-        /// <summary>A hideout (<see cref="InTownOrHideout"/> for the sources): there the trigger, not L3, arms the scanner.</summary>
+        /// <summary>A hideout (<see cref="InTownOrHideout"/> for the sources): there, with its switch on and in gameplay, the trigger, not L3, arms the scanner.</summary>
         private bool IsHideout() =>
             this.gameState is { CurrentAreaId.Length: > 0 } state ? state.IsHideout
                 : Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && area.IsHideout;

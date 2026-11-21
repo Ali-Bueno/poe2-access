@@ -358,23 +358,23 @@ namespace Poe2Accessibility
         public static string HelpText(string topic) => topic switch
         {
             "help_l3" => T(
-                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold, the league encounter (tribute) and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu",
-                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados, el jefe, los frascos, tu nivel y el del área, tu oro, el encuentro de liga (tributo) y cuánto has explorado. Mantener: la pantalla, las pistas de botones y la barra de habilidades. Mantener un segundo y medio: este menú"),
+                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold, the league encounter (tribute) and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu. In a hideout with the left-trigger switch on, the left trigger takes L3's place",
+                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados, el jefe, los frascos, tu nivel y el del área, tu oro, el encuentro de liga (tributo) y cuánto has explorado. Mantener: la pantalla, las pistas de botones y la barra de habilidades. Mantener un segundo y medio: este menú. En un escondite, con el interruptor del gatillo izquierdo activado, el gatillo izquierdo hace de L3"),
             "help_scanner" => T(
-                "Hold L3 and flick the right stick: up and down change the category, left and right go through it, nearest first. Quest is first: what the objective names",
-                "Mantén L3 y mueve el stick derecho: arriba y abajo cambian de categoría, izquierda y derecha la recorren, de la más cercana a la más lejana. Misión va primero: lo que nombra el objetivo"),
+                "Hold L3 and flick the right stick: up and down change the category, left and right go through it, nearest first. Quest is first: what the objective names. In a hideout with the left-trigger switch on, the left trigger takes L3's place",
+                "Mantén L3 y mueve el stick derecho: arriba y abajo cambian de categoría, izquierda y derecha la recorren, de la más cercana a la más lejana. Misión va primero: lo que nombra el objetivo. En un escondite, con el interruptor del gatillo izquierdo activado, el gatillo izquierdo hace de L3"),
             "help_guide" => T(
-                "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again while it guides turns it off",
-                "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez mientras guía la apaga"),
+                "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again while it guides turns it off. In a hideout with the left-trigger switch on, the left trigger takes L3's place",
+                "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez mientras guía la apaga. En un escondite, con el interruptor del gatillo izquierdo activado, el gatillo izquierdo hace de L3"),
             "help_map" => T(
-                "Hold the left trigger and press the right stick: how much of the area you have explored, the part of the map you are in, the parts with ground left to explore and the nearest unexplored ground with its way. Walking into another part of the map says it by itself",
-                "Mantén el gatillo izquierdo y presiona el stick derecho: cuánto has explorado del área, la parte del mapa en la que estás, las partes con terreno por explorar y las zonas sin explorar más cercanas con su camino. Al entrar en otra parte del mapa se dice sola"),
+                "Hold the left trigger and press the right stick: how much of the area you have explored, the part of the map you are in, the parts with ground left to explore and the nearest unexplored ground with its way. Walking into another part of the map says it by itself. In a hideout with the left-trigger switch on, that chord locks the guide instead",
+                "Mantén el gatillo izquierdo y presiona el stick derecho: cuánto has explorado del área, la parte del mapa en la que estás, las partes con terreno por explorar y las zonas sin explorar más cercanas con su camino. Al entrar en otra parte del mapa se dice sola. En un escondite, con el interruptor del gatillo izquierdo activado, esa combinación activa la guía en vez de mirar el mapa"),
             "help_menus" => T(
                 "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
                 "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),
             _ => T(
-                "Right stick up and down move, left and right open a submenu, change a value or play a sound. Tap L3 to go back up one level, tap it at the top to close and save; a double tap closes from anywhere",
-                "Stick derecho arriba y abajo para moverte, izquierda y derecha para abrir un submenú, cambiar un valor o escuchar un sonido. Toca L3 para subir un nivel, y tócalo arriba del todo para cerrar y guardar; un doble toque cierra desde cualquier sitio"),
+                "Right stick up and down move, left and right open a submenu, change a value or play a sound. Tap L3 to go back up one level, tap it at the top to close and save; a double tap closes from anywhere. In a hideout with the left-trigger switch on, the left trigger takes L3's place",
+                "Stick derecho arriba y abajo para moverte, izquierda y derecha para abrir un submenú, cambiar un valor o escuchar un sonido. Toca L3 para subir un nivel, y tócalo arriba del todo para cerrar y guardar; un doble toque cierra desde cualquier sitio. En un escondite, con el interruptor del gatillo izquierdo activado, el gatillo izquierdo hace de L3"),
         };
 
         /// <summary>The settings menu's submenus (D2R submenus, nested), by key.</summary>

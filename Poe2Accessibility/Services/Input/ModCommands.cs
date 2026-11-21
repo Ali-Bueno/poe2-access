@@ -12,8 +12,9 @@ namespace Poe2Accessibility.Services
     ///     reads the screen and the button hints; holding it and flicking the right stick is the scanner (up/down
     ///     category, left/right entry), holding it and pressing the right stick locks the guide beacon. The game
     ///     sees the same presses (L3 does nothing in gameplay or the inventory; on the world map it toggles the
-    ///     legend; in a hideout it is the game's editor toggle, and there the left trigger is fed as the mod button
-    ///     instead, Poe2AccessibilityCore's pad reading; a legend binding the button takes it: <see cref="L3Gestures.GamesButton"/>).
+    ///     legend; in a hideout it is the game's editor toggle, and there, with its switch on and in gameplay, the
+    ///     left trigger is fed as the mod button instead, Poe2AccessibilityCore's pad reading; a legend binding the
+    ///     button in use takes it: <see cref="L3Gestures.GamesButton"/>).
     /// </summary>
     public sealed class ModCommands
     {
@@ -60,6 +61,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Gets or sets when the mod button last went down (<see cref="L3Gestures.PressedAt"/>).</summary>
         public Func<long>? PressedAt { get; set; }
+
+        /// <summary>
+        ///     The gestures arriving were fed from the left trigger, not L3 (a hideout with its switch on, the
+        ///     core's pad reading): the legend is then read for the trigger's glyph, not L3's - an L3 binding does
+        ///     not take a press the editor toggle never sees, and a trigger binding takes the trigger's.
+        /// </summary>
+        public bool TriggerFed { get; set; }
 
         /// <summary>The settings menu is open (its flicks need no L3).</summary>
         public bool InSettingsMenu => this.settingsMenu.IsOpen;
@@ -110,19 +118,24 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Whether the game's own legend (hint bar) binds the mod button on this screen, as a press or as a hold:
-        ///     where it does, the press is the game's and the mod's reading over it hid what it did (a stash's held
-        ///     "Clear search"). A combination naming the button ("RT plus L3") counts.
+        ///     Whether the game's own legend (hint bar) binds the button in use on this screen, as a press or as a
+        ///     hold: where it does, the press is the game's and the mod's reading over it hid what it did (a stash's
+        ///     held "Clear search"). The button in use is L3, or the left trigger where it stands in
+        ///     (<see cref="TriggerFed"/>).
         /// </summary>
         private (bool Hinted, bool HoldHinted) LegendBindsButton()
         {
-            var names = new[] { false, true }.Select(playStation => Announcements.ButtonName(ModButtonGlyph, playStation)).ToList();
-            var buttons = this.screen().Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).Select(text => text.Button).ToList();
-            return (buttons.Any(button => names.Any(button.Contains)), buttons.Any(button => names.Any(name => button == Announcements.HoldButton(name))));
+            var glyph = this.TriggerFed ? TriggerGlyph : ModButtonGlyph;
+            var names = new[] { false, true }.Select(playStation => Announcements.ButtonName(glyph, playStation)).ToList();
+            var buttons = this.screen().Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).Select(text => text.Button);
+            return L3Gestures.LegendBinds(buttons, names, names.Select(Announcements.HoldButton));
         }
 
         /// <summary>The glyph file of the mod button, the left stick's click (<see cref="Announcements.ButtonName"/>).</summary>
         private const string ModButtonGlyph = "LeftStickButton2";
+
+        /// <summary>The glyph file of the left trigger, the button fed in a hideout (<see cref="TriggerFed"/>).</summary>
+        private const string TriggerGlyph = "TriggerLeft";
 
         private void InMenu(PadGesture gesture, AccessibleUiNode current)
         {

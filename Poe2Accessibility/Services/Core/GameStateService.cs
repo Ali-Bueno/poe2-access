@@ -302,6 +302,9 @@ namespace Poe2Accessibility.Services
             else
             {
                 // A loading screen or login before the game: the next area is entered, not resumed.
+                // The hideout flag is of the area in play: it must not outlive it through the loading screen
+                // (nor into an area whose row then fails to read), so the trigger scheme falls back to L3.
+                this.IsHideout = false;
                 this.resuming &= state == GameStateTypes.GameNotLoaded;
                 if (state is GameStateTypes.SelectCharacterState or GameStateTypes.CreateCharacterState or GameStateTypes.LoginState)
                 {

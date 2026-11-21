@@ -56,9 +56,10 @@ namespace Poe2Accessibility
         public bool ControllerCommands = true;
 
         /// <summary>
-        ///     In a hideout, where L3 is the game's editor toggle, the left trigger is the mod button instead (the
-        ///     core's pad reading feeds it as L3). A skill bound to the trigger fires on those presses and holding it
-        ///     to scan keeps casting, so this is off until turned on here; off, hideout L3 is as upstream.
+        ///     In a hideout's gameplay, where L3 is the game's editor toggle, the left trigger is the mod button
+        ///     instead (the core's pad reading feeds it as L3); menus there keep L3. A skill bound to the trigger
+        ///     fires on those presses and holding it to scan keeps casting, so this is off until turned on here;
+        ///     off, hideout L3 is as upstream.
         /// </summary>
         public bool TriggerModButtonInHideout;
 

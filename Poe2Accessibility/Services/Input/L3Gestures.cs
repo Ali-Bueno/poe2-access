@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>What the player did with the mod button (L3), alone or with the right stick, or with the left trigger and R3.</summary>
     public enum PadGesture
@@ -72,11 +73,48 @@ namespace Poe2Accessibility.Services
         ///     game's to leave alone, any legend binding takes the whole button. In a menu the tap stays shared as
         ///     before (the world map's legend toggle, a stash's "Edit search": <see cref="GamesPress"/> has the
         ///     focus-moving tap). The map glance is not the mod button and is never taken. (A hideout's editor toggle
-        ///     is no legend binding either: there the trigger is fed as the mod button, Poe2AccessibilityCore.Input.)
+        ///     is no legend binding either: there, with its switch on and in gameplay, the trigger is fed as the mod
+        ///     button, Poe2AccessibilityCore.Input, and the legend is read for the trigger's glyph, ModCommands.)
         /// </summary>
         public static bool GamesButton(PadGesture gesture, bool inMenu, bool buttonHinted, bool holdHinted) =>
             gesture != PadGesture.TriggerClick &&
-            ((gesture is PadGesture.Hold or PadGesture.LongHold && holdHinted) || (!inMenu && buttonHinted));
+            (((gesture is PadGesture.Hold or PadGesture.LongHold) && holdHinted) || (!inMenu && buttonHinted));
+
+        /// <summary>
+        ///     Whether the left trigger stands in as the mod button in the core's pad reading: its switch on, a
+        ///     hideout, gameplay (menus there keep L3), and in the game at all - through a loading screen the area
+        ///     last read says nothing about the one being entered.
+        /// </summary>
+        public static bool TriggerStandsIn(bool switchOn, bool hideout, bool inMenu, bool inGame) =>
+            switchOn && hideout && !inMenu && inGame;
+
+        /// <summary>
+        ///     Whether a screen's legend (hint bar) binds a button, from its entries' button texts and the
+        ///     button's names (both controller families, and their hold forms): bound when an entry names it - a
+        ///     combination naming it ("RT plus L3") counts - and its hold bound when an entry is a hold form. The
+        ///     button judged is the one being fed: L3, or the trigger where it stands in.
+        /// </summary>
+        public static (bool Hinted, bool HoldHinted) LegendBinds(IEnumerable<string> legendButtons, IEnumerable<string> buttonNames, IEnumerable<string> holdNames)
+        {
+            var buttons = legendButtons.ToList();
+            var names = buttonNames.ToList();
+            var holds = holdNames.ToList();
+            return (buttons.Any(button => names.Any(button.Contains)), buttons.Any(button => holds.Any(hold => button == hold)));
+        }
+
+        /// <summary>
+        ///     The button feeding these gestures changed (the trigger standing in, or no longer): a press begun on
+        ///     the other button is not this one's tap or hold, so the press in flight is forgotten. A button already
+        ///     down at the change counts as spent until released: no hold, no tap from a press not begun here.
+        /// </summary>
+        public void ForgetPress(bool buttonDown)
+        {
+            this.down = buttonDown;
+            this.holdFired = true;
+            this.longHoldFired = true;
+            this.flicked = true;
+            this.pendingTapAt = null;
+        }
         private bool holdFired;
         private bool flicked;
         private bool stickOut;

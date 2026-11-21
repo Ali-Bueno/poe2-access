@@ -13,6 +13,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AnExitHeardIsNotLostToAFlap), AnExitHeardIsNotLostToAFlap),
             (nameof(OnlyATapOnAFocusTheGameMovedIsTheGames), OnlyATapOnAFocusTheGameMovedIsTheGames),
             (nameof(ALegendBindingTakesTheButtonInGameplay), ALegendBindingTakesTheButtonInGameplay),
+            (nameof(TheTriggerStandsInOnlyInAHideoutsGameplay), TheTriggerStandsInOnlyInAHideoutsGameplay),
+            (nameof(ALegendBindsTheButtonInUse), ALegendBindsTheButtonInUse),
             (nameof(ThePanelBesideIsNamedOnlyWhenItAddsSomething), ThePanelBesideIsNamedOnlyWhenItAddsSomething),
             (nameof(ALongTextSplitsIntoItsLinesWithWords), ALongTextSplitsIntoItsLinesWithWords),
             (nameof(AScrollLandsOnTheParagraphHoldingTheOffset), AScrollLandsOnTheParagraphHoldingTheOffset),
@@ -88,6 +90,40 @@ namespace Poe2Accessibility.Tests
             Equal(true, L3Gestures.GamesButton(PadGesture.Hold, true, true, true), "a menu hold the legend binds (a stash's clear search)");
             Equal(false, L3Gestures.GamesButton(PadGesture.Hold, true, true, false), "a menu hold under a press binding stays the mod's reading");
             Equal(false, L3Gestures.GamesButton(PadGesture.TriggerClick, false, true, true), "the map glance is not the mod button");
+            Equal(true, L3Gestures.GamesButton(PadGesture.LongHold, false, true, false), "in gameplay a press binding already takes a long hold");
+            Equal(true, L3Gestures.GamesButton(PadGesture.DoubleTap, false, true, false), "and a double tap");
+            Equal(true, L3Gestures.GamesButton(PadGesture.Hold, false, false, true), "a hold binding alone takes a hold, gameplay too");
+            Equal(false, L3Gestures.GamesButton(PadGesture.Hold, false, false, false), "an unbound hold in gameplay is the mod's screen reading");
+            Equal(false, L3Gestures.GamesButton(PadGesture.DoubleTap, true, true, true), "a menu double tap is never the hold's");
+            Equal(false, L3Gestures.GamesButton(PadGesture.FlickUp, true, true, true), "a flick is the scanner's, not a hold's");
+            Equal(false, L3Gestures.GamesButton(PadGesture.LongHold, true, true, false), "a menu long hold under a press binding stays the mod's");
+        }
+
+        /// <summary>The trigger is the mod button only where the scheme is armed: switch on, a hideout, gameplay, in the game.</summary>
+        private static void TheTriggerStandsInOnlyInAHideoutsGameplay()
+        {
+            Equal(true, L3Gestures.TriggerStandsIn(true, true, false, true), "switch on, a hideout, gameplay, in the game");
+            Equal(false, L3Gestures.TriggerStandsIn(false, true, false, true), "the switch is off by default: hideout L3 is the game's and the mod's as ever");
+            Equal(false, L3Gestures.TriggerStandsIn(true, false, false, true), "a town or a map keeps L3");
+            Equal(false, L3Gestures.TriggerStandsIn(true, true, true, true), "a hideout's menus (its stash) keep L3");
+            Equal(false, L3Gestures.TriggerStandsIn(true, true, false, false), "a loading screen: the area left arms nothing");
+        }
+
+        /// <summary>A legend binds the button being fed: an L3 entry does not take a trigger-fed press, a trigger entry does.</summary>
+        private static void ALegendBindsTheButtonInUse()
+        {
+            var stick = new[] { "left stick click", "L3" };
+            var stickHolds = new[] { "hold left stick click", "hold L3" };
+            var trigger = new[] { "LT", "L2" };
+            var triggerHolds = new[] { "hold LT", "hold L2" };
+            Equal((true, false), L3Gestures.LegendBinds(new[] { "L3" }, stick, stickHolds), "a press binding names L3");
+            Equal((true, true), L3Gestures.LegendBinds(new[] { "hold L3" }, stick, stickHolds), "a hold binding names it and holds it");
+            Equal((true, false), L3Gestures.LegendBinds(new[] { "RT plus L3" }, stick, stickHolds), "a combination naming L3 counts");
+            Equal((true, false), L3Gestures.LegendBinds(new[] { "A", "left stick click" }, stick, stickHolds), "the other family's name for it counts");
+            Equal((false, false), L3Gestures.LegendBinds(new[] { "L3" }, trigger, triggerHolds), "an L3 legend does not bind the trigger fed in a hideout");
+            Equal((true, true), L3Gestures.LegendBinds(new[] { "hold L2" }, trigger, triggerHolds), "the trigger's own legend binds it, hold and all");
+            Equal((false, false), L3Gestures.LegendBinds(new[] { "A", "B" }, stick, stickHolds), "another button's legend binds nothing here");
+            Equal((false, false), L3Gestures.LegendBinds(Array.Empty<string>(), stick, stickHolds), "no hint bar, no binding");
         }
 
         /// <summary>The third condition: the panel beside is named before the tab unless it is the focus's own part or the tab already holds it.</summary>
