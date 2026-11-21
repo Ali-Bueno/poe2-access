@@ -28,6 +28,15 @@ They expect, beside this folder's parent as they were run: `dat/data_balance_<ta
   `S` of `dat.py`: `dat/` (tables), `ot/` (scripts), `armall/` (rooms), `all.txt` (every bundled path) and
   `schema_dl/schema.min.json`. Regenerate the census after a patch that adds bosses.
 
+## The unwarned boss attacks (2026-11-21)
+
+- `audit/gaps.py <dump with dat/ and schema_dl/> <folder of dumped .arm rooms>` reads the census cards and the shipped
+  catalog (`hit-times`, `telegraph-skills`, `telegraph-effects`, `hazards`, `boss-mechanics`) and writes `audit/attacks.tsv`
+  (every damaging skill of every fight's boss, forms, adds and helpers, with each warning path the plugin has for it, its
+  size against the arena, delays and flags), `audit/gaps.tsv` (the rows with a gap, scored) and `audit/classes.tsv` (fights
+  and skills per gap class). It replays the plugin's own rules (the dodge kind from `DodgeThreats.cs`'s word lists, the
+  long-blast stem rule, own-area lookup by the acting skill's id), so a rule change there needs a rerun here.
+
 ## The Trial's "find the exit" rooms (2026-11-12)
 
 - `trial-rooms/armlinks.py` reads a room's `.arm`: its objects in order, each one's variables, and the links between them
