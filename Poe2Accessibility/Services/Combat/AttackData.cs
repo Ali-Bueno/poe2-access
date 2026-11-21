@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, (int Reach, int Impact)> reaches = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, AttackArea> areas = new(StringComparer.Ordinal);
         private readonly Dictionary<ushort, string> actionTypes = new();
+        private readonly Dictionary<string, float?> blasts = new(StringComparer.Ordinal);
 
         /// <summary>The ids of every action type the files list (<see cref="AttackClock.ActionId"/>), for <see cref="AttackFieldCheck.ActionTypeKnown"/>.</summary>
         public IReadOnlySet<ushort> ActionTypeIds => this.actionIds;
@@ -94,6 +95,50 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The danger area a skill's table describes, by GrantedEffects id; null when it describes none.</summary>
         public AttackArea? Area(string skillId) => this.areas.TryGetValue(skillId, out var area) ? area : null;
+
+        /// <summary>
+        ///     The radius (world units) of the widest circle a skill without an area of its own sets off: the circles of the
+        ///     skills whose ids, past their kind's capitals, begin with its own (EASDoryaniCrabExplode sets off GADoryaniCrabExplode,
+        ///     radius 55 cells, and GADoryaniCrabExplodeSmash, 64: docs/research/boss-mechanics.md, Doryani); null when it has an
+        ///     area of its own, no kind prefix, or none such.
+        /// </summary>
+        public float? BlastRadius(string skillId)
+        {
+            if (this.blasts.TryGetValue(skillId, out var cached))
+            {
+                return cached;
+            }
+
+            float? radius = null;
+            if (!this.areas.ContainsKey(skillId) && Stem(skillId) is { } stem)
+            {
+                foreach (var (id, area) in this.areas)
+                {
+                    if (area.Shape == AttackAreas.Circle && Stem(id) is { } other && other.StartsWith(stem, StringComparison.Ordinal))
+                    {
+                        radius = Math.Max(radius ?? 0f, area.Length);
+                    }
+                }
+            }
+
+            this.blasts[skillId] = radius;
+            return radius;
+        }
+
+        /// <summary>
+        ///     A skill id past its kind's capitals ("EAS", "GA", "GS", "MPA"…): the name from the last capital before the first
+        ///     lower-case letter; null when the id starts with a word (no kind prefix).
+        /// </summary>
+        internal static string? Stem(string skillId)
+        {
+            var lower = 0;
+            while (lower < skillId.Length && !char.IsLower(skillId[lower]))
+            {
+                lower++;
+            }
+
+            return lower >= 2 && lower < skillId.Length ? skillId[(lower - 1)..] : null;
+        }
 
         /// <summary>An action type's name ("GroundSlam"), for the log; null when the files do not list it.</summary>
         public string? ActionName(ushort id) => this.actionTypes.TryGetValue(id, out var name) ? name : null;

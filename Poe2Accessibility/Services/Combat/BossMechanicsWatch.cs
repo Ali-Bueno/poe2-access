@@ -101,6 +101,8 @@ namespace Poe2Accessibility.Services
             this.formsSaid.Clear();
             this.addsSaid.Clear();
             this.worded.Clear();
+            this.blastsPending.Clear();
+            this.blastHidden.Clear();
             this.phase = 1;
             this.addsWave = 0;
             this.playerDiedAt = null;
@@ -194,11 +196,24 @@ namespace Poe2Accessibility.Services
                 this.phase = 1;
             }
 
-            foreach (var boss in this.bosses.Values.Where(boss => boss.SeenAt == now))
+            foreach (var (bossId, boss) in this.bosses.Where(pair => pair.Value.SeenAt == now))
             {
                 foreach (var news in boss.Tracker.Update(boss.Facts, now))
                 {
                     if (news == BossNews.NextPhase && !this.NextPhase(now))
+                    {
+                        continue;
+                    }
+
+                    // A boss that vanishes in its long blast is the blast, guided apart; its coming back after it is no news either.
+                    if (news == BossNews.Gone && this.InBlast(bossId, now))
+                    {
+                        this.blastHidden.Add(bossId);
+                        this.log.Info($"Boss turn not said: {boss.Name} vanished in its blast");
+                        continue;
+                    }
+
+                    if (news == BossNews.Back && this.blastHidden.Remove(bossId))
                     {
                         continue;
                     }

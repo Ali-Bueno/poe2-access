@@ -38,7 +38,59 @@ namespace Poe2Accessibility.Tests
             (nameof(ARandomLinePicksAmongItsNumberedSiblings), ARandomLinePicksAmongItsNumberedSiblings),
             (nameof(TheWayOutOfARingOfWallsIsItsOpening), TheWayOutOfARingOfWallsIsItsOpening),
             (nameof(AFewWallsToOneSideGiveNoCircle), AFewWallsToOneSideGiveNoCircle),
+            (nameof(ASelfDestructTakesTheCirclesItSetsOff), ASelfDestructTakesTheCirclesItSetsOff),
+            (nameof(OnlyAFarBlowIsALongBlast), OnlyAFarBlowIsALongBlast),
+            (nameof(ABossPieceIsKnownByItsBoss), ABossPieceIsKnownByItsBoss),
         };
+
+        /// <summary>
+        ///     Doryani's Triumph's self-destruct: its own skill draws nothing; the two it sets off are a nova of 55 cells and a smash
+        ///     of 64 (telegraph-skills, 0.5.5h). The widest, in world units, is the blast; a skill with an area of its own keeps it.
+        /// </summary>
+        private static void ASelfDestructTakesTheCirclesItSetsOff()
+        {
+            var data = new AttackData();
+            data.AddTelegraphSkills(new[]
+            {
+                "GADoryaniCrabExplodeSmash|geometry|shape=circle;length=64;delay=33;range=160|Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/selfdestr_phys_slam.ao|",
+                "GADoryaniCrabExplode|geometry|shape=circle;length=55;delay=33;range=300|Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/selfdestr_lightning_nova.ao|",
+                "GADoryaniCrabBodySlam|geometry|shape=circle;length=36;delay=33;range=99||",
+                "GSDoryaniCrabDiscoLazer|geometry|shape=cone;length=150;angle=75||",
+            });
+            Equal("DoryaniCrabExplode", AttackData.Stem("EASDoryaniCrabExplode"), "the kind's capitals stripped");
+            Equal(null, AttackData.Stem("MeleeAtAnimationSpeedUnique"), "an id that starts with a word has no kind prefix");
+            Near(64f * 250f / 23f, data.BlastRadius("EASDoryaniCrabExplode"), "the smash, the wider of the two");
+            Equal(null, data.BlastRadius("GADoryaniCrabBodySlam"), "a skill with its own area is no blast of others");
+            Equal(null, data.BlastRadius("EASDoryaniCrabLightningCage"), "nothing it sets off draws a circle");
+            Equal(null, data.BlastRadius("EASDoryaniCrabDisco"), "a cone is no blast");
+        }
+
+        /// <summary>Only a unique's blow far ahead is guided out of; steps count to the edge, none once out.</summary>
+        private static void OnlyAFarBlowIsALongBlast()
+        {
+            Equal(true, BlastGuide.Starts(true, 696f, 10191), "the self-destruct, 10.19 s ahead");
+            Equal(false, BlastGuide.Starts(true, 696f, 2953), "the Triumph's 3 s slam keeps the counterplay word");
+            Equal(false, BlastGuide.Starts(false, 696f, 10191), "a common monster's");
+            Equal(false, BlastGuide.Starts(true, null, 10191), "no circle");
+            Equal(false, BlastGuide.Starts(true, 696f, null), "an untimed blow");
+            // Radius 696, the player's 30 and the margin of 40 reach 766 world units.
+            Equal(8, BlastGuide.StepsOut(696f, 0f, 30f), "on the machine: 766 units to the edge");
+            Equal(1, BlastGuide.StepsOut(696f, 760f, 30f), "at the edge, one step still");
+            Equal(0, BlastGuide.StepsOut(696f, 800f, 30f), "out of reach");
+        }
+
+        private static void ABossPieceIsKnownByItsBoss()
+        {
+            var catalog = new BossMechanicsCatalog();
+            catalog.Add(new[]
+            {
+                "part|Metadata/Monsters/DoryaniMechSuit/DoryaniMech|Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun",
+                "add|Metadata/Monsters/DoryaniMechSuit/DoryaniMech|Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun",
+            });
+            Equal(true, catalog.IsPart("Metadata/Monsters/DoryaniMechSuit/DoryaniMech", "Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun"), "the thrown legs are the Triumph's");
+            Equal(true, catalog.IsPart("Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun"), "a piece of some boss");
+            Equal(false, catalog.IsPart("Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast", "Metadata/Monsters/DoryaniMechSuit/DoryaniMechRailGun"), "not another boss's");
+        }
 
         /// <summary>Kabala's ring as the files give it: 80 places on a circle of 50 cells; the walls at <paramref name="missing"/> never rose.</summary>
         private static List<Vector2> Ring(Vector2 centre, params int[] missing) =>

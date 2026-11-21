@@ -274,7 +274,7 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | Queen of Filth | (guides: nothing) | player buffs `queen_of_filth_life_curse` / `_mana_curse`: skills reserve life or mana | named by the harmful-buff reading |
 | Ketzuli | (guides: nothing) | states `sun_wall_count`, `summon_sun_wall`; objects `SunWall*`, `BlackHole/OrbitSun` (LIKELY) | todo |
 | Viper Napuatzi | invulnerable while the arena shrinks: stand where the guards' spears glow | not looked up | todo |
-| Doryani | stay inside the lightning cage | not looked up | todo |
+| Doryani | self-destruct, the legs' laser, crystal beams, lightning cage | [Doryani](#doryani) | self-destruct and legs done (unit tests); beams blocked |
 | Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | todo: the only buffs whose text is an instruction |
 | The Prisoner | use the ballista to stop his regeneration (50 %, 20 %) | not looked up | todo |
 | Diamora | her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | not looked up | todo |
@@ -665,3 +665,59 @@ position on the client) is where the server says the mesh is. PROVEN from the fi
   front is in 10 s. The heartbeat leads there (`BossMechanicsWatch.LeadTo`), the warnings add "seguro hacia…".
   The pulse's sound: the owner picked D, a hiss of steam (`CueSynth.FloodHiss`), on the
   [audition page](https://claude.ai/artifact/DqYH86yFJFaTwCMhvM548R) over a lava bubble, a crackle and a thump; the others are gone.
+
+## Doryani
+
+The Act 3 boss of The Black Chambers (`G3_17`), on foot (`Metadata/Monsters/Doryani/DoryaniInThePast/DoryaniPast`) until
+about 45 %, then in his machine (`Metadata/Monsters/DoryaniMechSuit/DoryaniMech`, "Doryani's Triumph"), riding it on a
+hovercraft (his `hover_crafting`, `audio_param` 2, `stance4` `mech_floating_*` clips). Census cards:
+`tools/research/gamedata/census/cards/Doryani_s_Triumph__DoryaniMech.txt`, `Doryani_Royal_Thaumaturge__DoryaniPast.txt`.
+The owner died six times on 2026-11-21 (log of that afternoon, 17:15-17:24): four on foot, two against the machine (at 17 %
+and 39 %), each machine death a single blow. Found from the game's files (`CrabMech.ao`, `CrabMechLegs.ao`, `DoryaniMech.ot`,
+the skill tables, the arena `metadata/terrain/gallows/act3/3_17/rooms/unique_boss_01.arm`), the log only confirming it.
+Sizes in grid cells (×250/23 world units, [attack telegraphs](attack-telegraphs.md)).
+
+**The arena.** 19×19 tiles, centre cell (218,218) (the `BossRoomMinimapIcon`); the 24 `Bosslight02` stand 81-84 cells from
+it, so the floor is about 80 cells (870 world units) across from the centre to the edge (LIKELY). No cover object in the room.
+
+**Self-destruct (`EASDoryaniCrabExplode`, clip `floating_explode_mech_01`, "Self-destruction!").** The clip's events (s):
+0-2.50 `selfdestr_lightning_marker.ao` on the machine's root; 2.46 `lightning_nova` (`GADoryaniCrabExplode`, 55 cells, lightning,
+500 % more shock chance); 5.01-10.02 `start_stalking`/`end_stalking`; 6.31-10.21 `selfdestr_phys_marker.ao` on its root;
+**10.191 `phys_impact`** (`GADoryaniCrabExplodeSmash`, 64 cells = 700 world units, an attack, `voll_slam_damage_+%_final_at_centre`
+40: less away from the centre); 11.69 `unhide`. PROVEN by the files and twice by the log (the damage 10.2 s after the wind-up;
+the first left 25 % life, the second killed). Neither blow can be dodge-rolled (no `base_skill_can_be_avoided_by_dodge_roll`).
+Both markers ride the machine, which is not drawn from about 3.5 s to 10.5 s (`bb_visible` 0; the server's, not the clip's)
+and stalks the player meanwhile (LIKELY: the stalk events, the `.ais` not shipped). So: away from the machine at once, then
+keep away from where it is, to the far edge. **Done (unit tests, not heard):** the `impact` event times it (`hit-times` v6:
+`DoryaniMech|44=10191/12066`; 4 other bosses' clips gained a time the same way), the skills it sets off give its circle
+(`AttackData.BlastRadius`: an id without an area takes the widest circle of the ids that extend its name, here 64 cells), and
+`BossMechanicsWatch.Blast` says "¡Gran golpe en 10 segundos, aléjate!", then every 1.5 s while in reach of where the machine
+now is "¡Huye hacia arriba, 3 pasos!", once out "Fuera de su alcance"; "ha desaparecido"/"ha vuelto" are not said for it.
+The dodge cue still sounds 0.5 s before the smash. **Left to see in a log:** whether the hidden machine's position follows the
+player (`Boss blast:` lines give the gap every 1.5 s).
+
+**Leg toss (`EAADoryaniCrabLegToss`, clip `leg_toss_01`, "You think you can run?!").** At 3.44 s it takes the player's place,
+at 3.80 s throws the legs (`MPADoryaniCrabLegToss`, projectile `DoryaniMechLeg`, speed 2500, `UseTargetLocation`), which land
+there as the add `DoryaniMechRailGun` (named "Doryani's Triumph" too). Its `orbital_laser_fire` aims at the player from 0 s,
+its tracking falling 40 → 5 by 2.98 s, and fires at **2.987 s** (`GSDoryaniCrabLegProjImpact`, 11 cells, lightning). The
+owner's death at 17:20:11 came 2.65 s after the turret appeared (17:20:08.456). It had no warning: a normal-rarity add.
+**Done (unit tests, not heard):** the census writes `part|boss|add` for an add bearing its boss's name that has skills (the
+Triumph's legs; Atziri's clone), and an engaged boss's piece strikes as the boss (`StrikesForBoss`): its laser gets the
+counterplay word at its start and the dodge cue 0.5 s before (`hit-times`: `DoryaniMechRailGun|35=2987/4733`).
+`DoryaniMechButtLazer` is the disco lasers' beam, not this.
+
+**On foot: the crystal beams (left, blocked).** `EASDoryaniHumanBossActivateMechanism` ("Sacrifice is the only path to
+survival!", 1.30 s) fires `GSDoryaniHumanBossMechanismBeam`(`Flipped`): 120-cell cones 15° wide from the object that set them
+off, lightning, whose ExecuteGEAL lights each `ArenaCrystal` inside (`active`, server-only; the client sees `light`). In the log
+(17:16:10-19) `Metadata/Effects/ServerBeamEffect` entities appeared every 3 s about 117 world units around the centre's
+`DoryaniArenaCrystalMechanism`, and the player, shocked, lost all energy shield and life in under a second. The beams' ends
+are not read: GameHelper's reader gives a ServerBeamEffect one position, not its two ends, and the crystals are placed by the
+AI at run time (not in the `.arm`). Speaking "off the line" needs the beam's endpoints from memory: a reverse-engineering
+task of its own. The 20 `SeismicCrystalTrapMarker` capsules (a 25-cell grid around the centre) only drive a glow from `glow`
+(0-100); what 100 triggers is in the `.ais` (UNSURE). The thrown crystals (`MPSDoryaniHumanBossCrystalToss*`, 21 mines,
+`GSDoryaniHumanBossDecelCrystalExplode`, 12 cells, 2.15 s after landing) are LIKELY.
+
+**Hover phase extras (files only).** `CGEDoryaniIonCannon`: a fixed ground spot (does not follow), about 16 cells, 10 s of
+fire, hit at 1.55 s. `GTDoryaniLightningStorm`: 15 bolts of 5 cells, each 850 ms after its `lightningstorm_marker.ao`.
+`EASDoryaniCrabLightningCage` ("Ravaging power!"): `pylons_active` on the machine, `lightning_cage.ao` on its root, six
+`DoryaniMechZapTarget` posts; whether the inside or the outside hurts is not in the data (UNSURE; guides say stay inside).

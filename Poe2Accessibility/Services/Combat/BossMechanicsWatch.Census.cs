@@ -83,7 +83,18 @@ namespace Poe2Accessibility.Services
                 return boss.Engaged;
             }
 
-            if (this.Catalog.Daemons == 0 || !this.bosses.Values.Any(other => other.Engaged))
+            if (!this.bosses.Values.Any(other => other.Engaged))
+            {
+                return false;
+            }
+
+            var path = BossMechanicsCatalog.MonsterId(entity.Path);
+            if (this.bosses.Values.Any(other => other.Engaged && this.Catalog.IsPart(other.Monster, path)))
+            {
+                return true; // a piece of the boss, bearing its name (Doryani's Triumph's legs): its blows are the boss's
+            }
+
+            if (this.Catalog.Daemons == 0)
             {
                 return false;
             }

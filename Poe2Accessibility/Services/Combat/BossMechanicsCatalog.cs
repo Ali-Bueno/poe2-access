@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> seekStates = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> seekers = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> adds = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> parts = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> walls = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> forms = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> withForms = new(StringComparer.OrdinalIgnoreCase);
@@ -92,6 +93,9 @@ namespace Poe2Accessibility.Services
                         this.seekStates.Add($"{c[1]}|{c[2]}");
                         this.seekers.Add(c[1]);
                         break;
+                    case "part":
+                        this.parts.Add($"{c[1]}|{c[2]}");
+                        break;
                     case "add":
                         this.adds.Add($"{c[1]}|{c[2]}");
                         break;
@@ -146,6 +150,15 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A monster the boss brings into its fight (its script preloads it, no boss bar).</summary>
         public bool IsAdd(string boss, string monster) => this.adds.Contains($"{boss}|{monster}");
+
+        /// <summary>
+        ///     Whether an add is a piece of its boss (<c>part|boss|monster</c>: it bears the boss's own name and strikes, as Doryani's
+        ///     Triumph's thrown legs, <c>DoryaniMechRailGun</c>, whose laser killed the owner on 2026-11-21): its blows are the boss's.
+        /// </summary>
+        public bool IsPart(string monster) => this.parts.Any(key => key.EndsWith("|" + monster, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>Whether <paramref name="monster"/> is a piece of <paramref name="boss"/>.</summary>
+        public bool IsPart(string boss, string monster) => this.parts.Contains($"{boss}|{monster}");
 
         /// <summary>Every boss's adds, by file.</summary>
         public IEnumerable<string> AddPaths => this.adds.Select(key => key[(key.IndexOf('|') + 1)..]).Distinct(StringComparer.OrdinalIgnoreCase);

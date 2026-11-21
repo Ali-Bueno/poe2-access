@@ -139,6 +139,16 @@ namespace Poe2Accessibility
         /// <summary>The player stands in the flood, the way to its nearest edge: "In the lava! Out to the right".</summary>
         public static string BossFloodInside(int octant) => T($"In the lava! Out {Way(octant)}", $"¡En la lava! Sal hacia {Way(octant)}");
 
+        /// <summary>A boss's long blast begins (<see cref="BossMechanicsWatch"/>): "Huge blow in 10 seconds, get away!".</summary>
+        public static string LongBlast(int seconds) =>
+            T($"Huge blow in {seconds} seconds, get away!", $"¡Gran golpe en {seconds} segundos, aléjate!");
+
+        /// <summary>Still in a long blast's reach: the way straight away from the boss and the steps to its edge: "Run up, 3 steps!".</summary>
+        public static string BlastAway(int octant, int steps) => T($"Run {Way(octant)}, {Steps(steps)}!", $"¡Huye hacia {Way(octant)}, {Steps(steps)}!");
+
+        /// <summary>The player has left a long blast's reach.</summary>
+        public static string OutOfBlast => T("Out of its reach", "Fuera de su alcance");
+
         private static string Way(int octant) => StickDirections[((octant % StickDirections.Length) + StickDirections.Length) % StickDirections.Length];
 
         /// <summary>The way out of a danger area, short enough to act on: "Out!", "To the centre!", "Left!".</summary>

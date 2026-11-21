@@ -248,6 +248,7 @@
     <Compile Include="..\..\Poe2Accessibility\Announcements.ClassMechanics.cs" Link="Plugin\Announcements.ClassMechanics.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Bosses.cs" Link="Plugin\Announcements.Bosses.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossCounterplay.cs" Link="Plugin\BossCounterplay.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\BlastGuide.cs" Link="Plugin\BlastGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPhaseTracker.cs" Link="Plugin\BossPhaseTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossLifeSteps.cs" Link="Plugin\BossLifeSteps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossMechanicsCatalog.cs" Link="Plugin\BossMechanicsCatalog.cs" />

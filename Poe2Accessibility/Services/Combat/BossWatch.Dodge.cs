@@ -174,6 +174,8 @@ namespace Poe2Accessibility.Services
             {
                 this.Mechanics?.Attack(id, attack.Unique, attack.StartedAt, decision, snapshot?.SkillId is { } skillId ? this.attackData.Area(skillId) : null,
                     monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, blowIn, now, snapshot?.SkillId);
+                this.Mechanics?.Blast(id, attack.Unique, attack.StartedAt, blowIn, snapshot?.SkillId is { } blastSkill ? this.attackData.BlastRadius(blastSkill) : null,
+                    monster, here, player.ModelBounds.X, player.WorldPosition, snapshot?.SkillId, now);
             }
 
             if (!attack.Unblockable && snapshot?.SkillId is { } unavoidable && this.Mechanics?.IsUnavoidable(unavoidable) == true)

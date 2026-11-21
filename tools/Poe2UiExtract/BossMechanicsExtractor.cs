@@ -28,6 +28,7 @@ internal static class BossMechanicsExtractor
         "# boss|monster|name   hide|monster|state=value (stops drawing it)   phase|monster|state (its value is the fight's phase)",
         "# enrage|monster|state   seek|monster|state (it hides until the player comes near)   add|monster|monster it brings",
         "# form|monster|boss it turns into   wall|monster|add that is a wall standing in the way   buff|id|invulnerable or enrage",
+        "# part|monster|add bearing the boss's own name that strikes (a piece of the boss: its blows are warned as the boss's)",
         "# move|buff id|stop or keep (the player's rule)   line|language|text|monster|skill or -|line id (a voice line announcing a mechanic)",
         "# The census's classes (docs/research/boss-mechanics.md §15): daemon|monster|helper monster|its skills, comma-separated (an invisible helper's area attack)",
         "# arena|monster|state|burn, dark, flood, lava, collapse, shrink, sandstorm, maze, retreat, platform or change   empowered|monster|buff (its text says others empower it)",
@@ -123,6 +124,10 @@ internal static class BossMechanicsExtractor
                 if (monsterRows.TryGetValue(monster, out var other) && other != row && monsters.StringOrNull(other, c.Name) is { Length: > 0 } name && name != HelperName)
                 {
                     output.Add($"{(monsters.Byte(other, c.BossBar) == 1 ? "form" : "add")}|{id}|{monsters.String(other, 0)}");
+                    if (monsters.Byte(other, c.BossBar) != 1 && name == monsters.StringOrNull(row, c.Name) && monsters.KeyList(other, c.MonsterSkills).Count > 0)
+                    {
+                        output.Add($"part|{id}|{monsters.String(other, 0)}"); // bears the boss's name and strikes: its blows are the boss's
+                    }
                     if (monsters.Byte(other, c.BossBar) != 1 && monsters.KeyList(other, c.MonsterSkills).Count == 0 && IsWall(Chain(monsters.StringOrNull(other, c.Script) ?? string.Empty, ScriptOf)))
                     {
                         output.Add($"wall|{id}|{monsters.String(other, 0)}");
