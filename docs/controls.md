@@ -5,8 +5,8 @@ The mod reads the controller state the game itself receives, so it works with an
 button is L3 because the game does nothing with it in gameplay or the inventory (on the world map it also
 toggles the map legend). One exception: in your own hideout L3 is the game's "Open Hideout Editor", fired when
 the button is released however long it was held (the whoosh, then the editor's fast movement), so every scan
-there used to open or close the editor on letting go. **With `TriggerModButtonInHideout` in
-`config/settings.txt` (off by default), the left trigger (LT) is the mod button in a hideout instead of L3**:
+there used to open or close the editor on letting go. **With "Left trigger as the mod button in hideouts" on
+(settings menu, Navigation, or `TriggerModButtonInHideout` in `config/settings.txt`; off by default), the left trigger (LT) is the mod button in a hideout instead of L3**:
 tap, double tap, hold, hold-and-flick scanning and the second-and-a-half settings hold all work on LT exactly as
 on L3, and LT plus R3 locks the guide beacon there (the map glance's chord elsewhere). A skill bound to LT fires
 as you use it so, and holding it to scan keeps casting — the game sees those presses too, and the mana is why the

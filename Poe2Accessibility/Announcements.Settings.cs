@@ -46,6 +46,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.PassiveFinder) => T("Passive tree finder on the D-pad", "Buscador del árbol de pasivas en la cruceta"),
             nameof(AccessibilitySettings.PassiveGuideBrief) => T("Brief passive tree guide", "Guía breve en el árbol de pasivas"),
             nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
+            nameof(AccessibilitySettings.TriggerModButtonInHideout) => T("Left trigger as the mod button in hideouts (fires its skill)", "Gatillo izquierdo como botón del mod en los escondites (activa su habilidad)"),
             nameof(AccessibilitySettings.AnnounceTimers) => T("Countdown timers", "Cuentas atrás"),
             nameof(AccessibilitySettings.AnnounceHonour) => T("Honour in the Trial", "Honor en la Prueba"),
             nameof(AccessibilitySettings.AnnounceTrialCounters) => T("Sacred water and keys in the Trial", "Agua sagrada y llaves en la Prueba"),
