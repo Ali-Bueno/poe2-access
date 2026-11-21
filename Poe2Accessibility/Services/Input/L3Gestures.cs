@@ -41,14 +41,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The settings menu is open: flicks are read without holding L3.</summary>
         public bool FlicksWithoutL3 { get; set; }
 
-        /// <summary>
-        ///     In a hideout: flicks are also read with the left trigger held and L3 free. There L3 is the game's
-        ///     hideout-editor toggle, fired on release however long it was held (the whoosh, then editor movement;
-        ///     log 2026-11-21: every scan's release toggled the editor), so scanning on L3 alone changed the game's
-        ///     state each time. The trigger's own chord (LT + R3, the map glance) is unchanged.
-        /// </summary>
-        public bool TriggerFlicks { get; set; }
-
         /// <summary>A flick counts past this deflection and re-arms once the stick is back under the release.</summary>
         private const float FlickPress = 0.7f;
 
@@ -80,7 +72,7 @@ namespace Poe2Accessibility.Services
         ///     game's to leave alone, any legend binding takes the whole button. In a menu the tap stays shared as
         ///     before (the world map's legend toggle, a stash's "Edit search": <see cref="GamesPress"/> has the
         ///     focus-moving tap). The map glance is not the mod button and is never taken. (A hideout's editor toggle
-        ///     is no legend binding but a HUD text: <see cref="TriggerFlicks"/>.)
+        ///     is no legend binding either: there the trigger is fed as the mod button, Poe2AccessibilityCore.Input.)
         /// </summary>
         public static bool GamesButton(PadGesture gesture, bool inMenu, bool buttonHinted, bool holdHinted) =>
             gesture != PadGesture.TriggerClick &&
@@ -103,7 +95,7 @@ namespace Poe2Accessibility.Services
                 gestures.Add(PadGesture.TriggerClick);
             }
 
-            if (!l3 && (this.FlicksWithoutL3 || (this.TriggerFlicks && leftTrigger)))
+            if (this.FlicksWithoutL3 && !l3)
             {
                 var free = Math.Max(Math.Abs(rightX), Math.Abs(rightY));
                 if (!this.freeStickOut && free >= FlickPress)
@@ -117,10 +109,6 @@ namespace Poe2Accessibility.Services
                 {
                     this.freeStickOut = false;
                 }
-            }
-            else if (!l3)
-            {
-                this.freeStickOut = false; // the arming button let go mid-flick: the next flick starts centred
             }
 
             if (!l3 && this.pendingTapAt is { } tapAt && nowMs - tapAt > DoubleTapMs)

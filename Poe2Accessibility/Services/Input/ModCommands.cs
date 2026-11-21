@@ -12,8 +12,8 @@ namespace Poe2Accessibility.Services
     ///     reads the screen and the button hints; holding it and flicking the right stick is the scanner (up/down
     ///     category, left/right entry), holding it and pressing the right stick locks the guide beacon. The game
     ///     sees the same presses (L3 does nothing in gameplay or the inventory; on the world map it toggles the
-    ///     legend; in a hideout it is the game's editor toggle, where the trigger arms the scanner instead:
-    ///     <see cref="L3Gestures.TriggerFlicks"/>; a legend binding the button takes it: <see cref="L3Gestures.GamesButton"/>).
+    ///     legend; in a hideout it is the game's editor toggle, and there the left trigger is fed as the mod button
+    ///     instead, Poe2AccessibilityCore's pad reading; a legend binding the button takes it: <see cref="L3Gestures.GamesButton"/>).
     /// </summary>
     public sealed class ModCommands
     {

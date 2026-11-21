@@ -95,14 +95,19 @@ namespace Poe2Accessibility
 
             this.FindOnTree(state);
             this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu;
-            this.gestures.TriggerFlicks = this.IsHideout();
             this.commands.PressedAt ??= () => this.gestures.PressedAt;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
             {
                 this.commands.CloseSettingsMenu();
             }
 
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), state.IsDown(GameLayout.PadButtons.LeftTrigger)))
+            // In a hideout L3 is the game's editor toggle, fired on release however long it was held (the whoosh,
+            // then editor movement; log 2026-11-21: every scan on L3 toggled the editor). There the left trigger
+            // is the mod button instead - every gesture of L3's, fed as L3 - and its R3 chord locks the beacon
+            // rather than glancing at the map. Gameplay only: in menus (a hideout's stash) L3 keeps its readings.
+            var triggerButton = this.IsHideout() && this.focus.Current == null;
+            var modButton = triggerButton ? state.IsDown(GameLayout.PadButtons.LeftTrigger) : state.IsDown(GameLayout.PadButtons.LeftStick);
+            foreach (var gesture in this.gestures.Update(Environment.TickCount64, modButton, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), !triggerButton && state.IsDown(GameLayout.PadButtons.LeftTrigger)))
             {
                 this.commands.OnGesture(gesture);
             }
