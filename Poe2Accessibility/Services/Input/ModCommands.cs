@@ -12,7 +12,8 @@ namespace Poe2Accessibility.Services
     ///     reads the screen and the button hints; holding it and flicking the right stick is the scanner (up/down
     ///     category, left/right entry), holding it and pressing the right stick locks the guide beacon. The game
     ///     sees the same presses (L3 does nothing in gameplay or the inventory; on the world map it toggles the
-    ///     legend; editing a hideout binds it, and there the button is left to the game: <see cref="L3Gestures.GamesButton"/>).
+    ///     legend; in a hideout it is the game's editor toggle, where the trigger arms the scanner instead:
+    ///     <see cref="L3Gestures.TriggerFlicks"/>; a legend binding the button takes it: <see cref="L3Gestures.GamesButton"/>).
     /// </summary>
     public sealed class ModCommands
     {
@@ -111,7 +112,7 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Whether the game's own legend (hint bar) binds the mod button on this screen, as a press or as a hold:
         ///     where it does, the press is the game's and the mod's reading over it hid what it did (a stash's held
-        ///     "Clear search"; in gameplay, editing a hideout). A combination naming the button ("RT plus L3") counts.
+        ///     "Clear search"). A combination naming the button ("RT plus L3") counts.
         /// </summary>
         private (bool Hinted, bool HoldHinted) LegendBindsButton()
         {

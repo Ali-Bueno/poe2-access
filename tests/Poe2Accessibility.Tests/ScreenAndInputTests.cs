@@ -316,6 +316,17 @@ namespace Poe2Accessibility.Tests
             var both = new L3Gestures();
             both.Update(0, true, 0f, 0f, false, true);
             Equal("StickClick", Names(both.Update(50, true, 0f, 0f, true, true)), "with L3 held it is the guide's chord");
+            // In a hideout the trigger held arms the scanner's flicks (L3 there is the game's editor toggle).
+            var trigger = new L3Gestures { TriggerFlicks = true };
+            Equal(string.Empty, Names(trigger.Update(0, false, 0f, 0.9f, false, false)), "a flick with nothing held is the game's aim");
+            Equal("FlickUp", Names(trigger.Update(50, false, 0f, 0.9f, false, true)), "a flick under the trigger scans");
+            Equal(string.Empty, Names(trigger.Update(100, false, 0f, 0.9f, false, true)), "held out: once");
+            Equal(string.Empty, Names(trigger.Update(150, false, 0f, 0.9f, false, false)), "the trigger let go mid-flick");
+            Equal("FlickUp", Names(trigger.Update(200, false, 0f, 0.9f, false, true)), "pressed again with the stick still out: a new flick");
+            Equal("TriggerClick", Names(trigger.Update(250, false, 0f, 0f, true, true)), "the map glance keeps its chord");
+            var plain = new L3Gestures();
+            Equal(string.Empty, Names(plain.Update(0, false, 0f, 0.9f, false, true)), "outside a hideout a flick under the trigger is the game's");
+            Equal(true, AreaKind.IsHideout("HideoutShoreline") && AreaKind.IsHideout("GuildHideout__") && !AreaKind.IsHideout("MapHideoutCanal_Claimable") && !AreaKind.IsHideout("G1_1"), "a hideout, not a hideout's map");
         }
 
         private static void StickDirectionsBinInWorldSpace()

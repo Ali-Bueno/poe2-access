@@ -10,7 +10,10 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class AreaKind
     {
-        public static bool IsTownOrHideout(string id, bool townFlag) =>
-            townFlag || (id.Contains("hideout", StringComparison.OrdinalIgnoreCase) && !id.Contains("map", StringComparison.OrdinalIgnoreCase));
+        /// <summary>A hideout of one's own (not a hideout's map): there L3 is the game's hideout-editor toggle.</summary>
+        public static bool IsHideout(string id) =>
+            id.Contains("hideout", StringComparison.OrdinalIgnoreCase) && !id.Contains("map", StringComparison.OrdinalIgnoreCase);
+
+        public static bool IsTownOrHideout(string id, bool townFlag) => townFlag || IsHideout(id);
     }
 }

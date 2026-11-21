@@ -451,6 +451,11 @@ namespace Poe2Accessibility
             this.gameState is { CurrentAreaId.Length: > 0 } state ? state.InTownOrHideout
                 : Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
 
+        /// <summary>A hideout (<see cref="InTownOrHideout"/> for the sources): there the trigger, not L3, arms the scanner.</summary>
+        private bool IsHideout() =>
+            this.gameState is { CurrentAreaId.Length: > 0 } state ? state.IsHideout
+                : Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && area.IsHideout;
+
         /// <summary>Puts the guide on the nearest Death Crystal, and on the next once that one is disabled.</summary>
         private void GuideToTimed(bool playing)
         {

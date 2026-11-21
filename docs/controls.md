@@ -3,10 +3,13 @@
 The mod reads the controller state the game itself receives, so it works with any pad the game accepts
 (Xbox, DualSense, DualShock, with or without Steam Input). It cannot hide a press from the game: the mod
 button is L3 because the game does nothing with it in gameplay or the inventory (on the world map it also
-toggles the map legend). Where the game's own legend at the foot of the screen does give L3 a job in gameplay —
-editing your hideout is one: the whoosh and the fast running on pressing it there are the game's — the mod
-leaves the button to the game and says nothing for it; leave the editing to scan or read. In menus only a hold
-the legend binds is the game's (a stash's "Clear search"); taps there stay shared as they were. Turn the
+toggles the map legend). One exception: in your own hideout L3 is the game's "Open Hideout Editor", fired when
+the button is released however long it was held (the whoosh, then the editor's fast movement), so every scan
+there used to open or close the editor on letting go. **In a hideout, hold the left trigger (LT) and flick the
+right stick to scan**; LT plus R3 is still the map glance. L3's tap, double tap and hold still read in a hideout,
+but the editor toggles as you let go (a double tap toggles it twice, back where it was). Where the game's own
+legend at the foot of the screen binds L3 in gameplay the mod leaves the button to the game; in menus only a
+hold the legend binds is the game's (a stash's "Clear search"), taps there stay shared as they were. Turn the
 controller commands off with `ControllerCommands` in `config/settings.txt`. A `settings.txt` that fails to parse is ignored (the mod says so) and is never overwritten with
 defaults; fix the line and it is read again, as it is whenever it is edited while the host runs.
 
@@ -42,7 +45,7 @@ no A). No tooltip nor build lines are read then. Equipment slots and the flasks'
 ## Scanner (gameplay)
 
 Hold L3 and flick the right stick: up and down change the category, left and right move through it, nearest
-first; both wrap and empty categories are skipped. The category is named only when it changes:
+first; both wrap and empty categories are skipped. (In a hideout hold the left trigger instead, above.) The category is named only when it changes:
 "Characters. Una, 14 steps, right 3, then up right".
 
 - The Trial of the Sekhemas' map reads each room's place: "column 2 of 8, room 3 of 3", columns running from the entrance to the boss, the rooms it leads to in the next column ("leads to rooms 3, 4": the lines the game draws),
