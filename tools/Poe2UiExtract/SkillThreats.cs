@@ -32,6 +32,7 @@ internal sealed class SkillThreats
     private const string MeleeKind = "melee";
     private const string PlayerMeleeKindPrefix = "player_melee";
     private const string GeometryAttackKindPrefix = "geometry_attack";
+    private const string TriggerKindPrefix = "geometry_trigger";
 
     // Kinds whose "deals no damage" stat only means the payload is another skill's: a mortar's shell, a beam's or a
     // geometry's carrier, a trigger (the Ram Giant's wheel throw, Volatile Dead's detonation).
@@ -162,6 +163,13 @@ internal sealed class SkillThreats
         if (set.Overlaps(noDamage) && !CarrierKindParts.Any(part => kind.Contains(part, StringComparison.Ordinal)))
         {
             return (Verdict.Calm, $"{kind}: deals no damage");
+        }
+
+        // A trigger carries its hits in the skill it sets off (the Hags' ice spike field, Kulemak's mega beam): played on an
+        // action whose name sounds calm (Revive, SpellBuffLightning), it was silent (docs/research/boss-mechanics.md, the audit).
+        if (kind.StartsWith(TriggerKindPrefix, StringComparison.Ordinal) && !set.Overlaps(noDamage))
+        {
+            return (Verdict.Ranged, $"{kind}: sets off hits");
         }
 
         return CalmKindPrefixes.Any(prefix => kind.StartsWith(prefix, StringComparison.Ordinal)) ? (Verdict.Calm, kind) : (Verdict.Mute, kind);
