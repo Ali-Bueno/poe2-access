@@ -34,6 +34,9 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, Dictionary<string, string>> monsterNames = new(StringComparer.Ordinal);
         private readonly Dictionary<string, Dictionary<string, string>> worldTitles = new(StringComparer.Ordinal);
         private readonly Dictionary<string, Dictionary<string, string>> itemNames = new(StringComparer.Ordinal);
+
+        /// <summary>The key prefix item-names.json gives quest items (tools/Poe2UiExtract ItemNameExtractor).</summary>
+        private const string QuestItemKeyPrefix = "QuestItems/";
         private readonly Dictionary<string, IReadOnlyDictionary<string, string>> gameNames = new(StringComparer.Ordinal);
         private readonly object gameNamesLock = new();
         private readonly HashSet<string> namesLoaded = new(StringComparer.OrdinalIgnoreCase);
@@ -114,6 +117,11 @@ namespace Poe2Accessibility.Services
         ///     own note on a tile ("Ogham Farmlands Or Deadend", "The Corpse Tree (waypoint)").
         /// </summary>
         public bool IsAreaName(string label) => this.areaNames.Contains(label.Trim());
+
+        /// <summary>Whether a label is a quest item's English name: a place named after what lies there, not a boss ("Sacrificial Dagger").</summary>
+        public bool IsQuestItemName(string label) =>
+            this.itemNames.TryGetValue("en", out var english) && english.Any(row =>
+                row.Key.StartsWith(QuestItemKeyPrefix, StringComparison.Ordinal) && string.Equals(row.Value, label.Trim(), StringComparison.OrdinalIgnoreCase));
 
         /// <summary>The game's name of an area in the client's language (English without one); empty for an id the table lacks.</summary>
         public string AreaNameOf(string areaId) =>

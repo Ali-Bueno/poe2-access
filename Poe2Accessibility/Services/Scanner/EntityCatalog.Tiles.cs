@@ -89,7 +89,8 @@ namespace Poe2Accessibility.Services
 
                 named.Add(MinimapMarks.TileFile(key));
                 var english = source.TryGetValue(key, out var written) ? written : label;
-                var boss = this.landmarks.IsAreaName(english) ? null : MinimapMarks.ArenaBoss(key, english);
+                var boss = this.landmarks.IsAreaName(english) || this.landmarks.IsQuestItemName(MinimapMarks.WithoutNote(english))
+                    ? null : MinimapMarks.ArenaBoss(key, english);
                 if (boss != null)
                 {
                     namedArenas.Add(MinimapMarks.TileFile(key));

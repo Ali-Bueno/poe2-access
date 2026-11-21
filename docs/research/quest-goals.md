@@ -86,3 +86,19 @@ so no step could make it the quest's and it went unheard. The game's own name fo
 Machinarium's four as well): a targetable one sounds as a quest object while any quest item is carried (`KeyPedestals`); a
 used one turns untargetable (`activate=1`) and leaves the list. Unit tests only.
 
+## Aggorat's Sacrificial Heart and Dagger (2026-11-21)
+
+The owner carried the Corazón sacrificial ("Sacrifica este corazón en el lugar de ritual apropiado para recibir dos puntos de
+habilidades pasivas de set de armas"); no quest step names the place, so nothing led there. Seen live at the place: the
+quest item **Daga sacrificial** (`Metadata/Items/QuestItems/Gallows/Act3/AggoratDagger`, "Necesaria para sacrificar
+ritualmente un corazón en el lugar apropiado") on the ground, the object "Colocar corazón sacrificial", then "Apuñalar
+corazón sacrificial", then "Has recibido 2 puntos de habilidad pasiva de set de armas". The radar table names the tile
+`AggoratOuterArena_02` "Sacrificial Dagger (+2 Passive)"; its file name made it a boss room, said "Sala del jefe:
+Sacrificial Dagger" in English.
+
+- `item-names` now extracts quest items too (BaseItemTypes ids under `Metadata/Items/QuestItems/`, keyed `QuestItems/<tail>`),
+  so a label naming one reads in the game's language ("Daga sacrificial (+2 puntos de pasiva)") and is no boss's arena
+  (`LandmarkTable.IsQuestItemName`).
+- An object the game names after a quest item the player carries ("Colocar corazón sacrificial") sounds as the quest's
+  (`KeyPedestals.TakesCarried`). Unit-tested; not heard live yet.
+

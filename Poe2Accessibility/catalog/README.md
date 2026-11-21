@@ -35,7 +35,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `important_tgt_files.txt` | named tiles (exits) | vendored (formerly GameHelper2's Radar table) | `LandmarkTable` |
 | `inline-icons.txt` | the markup images texts show as pictures | `inline-icons`, start | `InlineIcons` |
 | `item-bases.json` | every base a character wears or wields by base item Id: item class, level, base armour, evasion and energy shield; names per language | `item-bases`, start | `ItemBaseCatalog` (`IItemBases`: the base a build plan names) |
-| `item-names.json` | currency item names for inline item art | `item-names` | `ItemNames`, `LandmarkTable` |
+| `item-names.json` | currency item names for inline item art, quest item names for radar-table labels | `item-names` | `ItemNames`, `LandmarkTable` |
 | `item-sounds.json` | item base id to the drop sample the game plays | `item-sounds`, start | `ItemDropSounds` |
 | `landmarks.json` | areas `important_tgt_files.txt` lacks, and corrections to it | by hand | `LandmarkTable` |
 | `map-hints.json` | GGG's map cues by area | by hand, from [map hints by act](../../docs/research/map-hints-by-act.md) | `MapHintTable` |

@@ -473,7 +473,7 @@ public static class Extractor
             return OnIndex(args[1], index => InlineIconExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\inline-icons.txt"));
         }
 
-        // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
+        // Args: item-names <gameDir> [outFile]  -- currency and quest item names per language, for inline item art in legends and radar-table labels.
         if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
         {
             return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");

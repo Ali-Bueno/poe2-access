@@ -3,13 +3,18 @@ using Index = LibBundle3.Index;
 /// <summary>
 ///     `item-names` command: the names of currency items in every language, { language: { idTail: name } }, for the
 ///     inline item art of legends ("Identificar &lt;&lt;itemvisual:CurrencyIdentification&gt;&gt; x 1" costs a Scroll of
-///     Wisdom). BaseItemTypes column +0x0 = Id (the metadata path, its last segment the art's id), +0x20 = Name
+///     Wisdom), and of quest items under "QuestItems/" (a place the radar table names after one: "Sacrificial Dagger").
+///     BaseItemTypes column +0x0 = Id (the metadata path, its last segment the art's id), +0x20 = Name
 ///     (dat-strings, 0.5.5e). Read-only on the game.
 /// </summary>
 internal static class ItemNameExtractor
 {
     private const int IdOffset = 0x0;
     private const string CurrencyPrefix = "Metadata/Items/Currency/";
+    private const string QuestPrefix = "Metadata/Items/QuestItems/";
+
+    /// <summary>Quest items are kept apart from the currency's art ids, for the radar table's labels that name one.</summary>
+    public const string QuestKeyPrefix = "QuestItems/";
 
     public static int Run(string gameDir, string outFile)
     {
@@ -39,6 +44,10 @@ internal static class ItemNameExtractor
                 {
                     names[id[CurrencyPrefix.Length..]] = name;
                 }
+                else if (id != null && id.StartsWith(QuestPrefix, StringComparison.Ordinal) && !string.IsNullOrEmpty(name))
+                {
+                    names[QuestKeyPrefix + id[QuestPrefix.Length..]] = name;
+                }
             }
 
             // A moved column reads metadata paths or nothing: the offsets need updating from dat-strings.
@@ -48,7 +57,7 @@ internal static class ItemNameExtractor
                 return 1;
             }
 
-            Say.Out.WriteLine($"  {code}: {names.Count} currency items");
+            Say.Out.WriteLine($"  {code}: {names.Count} currency and quest items");
             result[code] = names;
         }
 

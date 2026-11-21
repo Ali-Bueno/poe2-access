@@ -26,7 +26,26 @@ namespace Poe2Accessibility.Tests
             (nameof(EnglishSaysTheGamesOwnSpelling), EnglishSaysTheGamesOwnSpelling),
             (nameof(ALanguageWithoutTheTablesKeepsTheLabel), ALanguageWithoutTheTablesKeepsTheLabel),
             (nameof(TheRealTablesNameMostOfWhatTheGameNames), TheRealTablesNameMostOfWhatTheGameNames),
+            (nameof(APlaceNamedAfterAQuestItemIsSaidByTheGamesName), APlaceNamedAfterAQuestItemIsSaidByTheGamesName),
         };
+
+        private static void APlaceNamedAfterAQuestItemIsSaidByTheGamesName()
+        {
+            // Aggorat's AggoratOuterArena_02 is where the Sacrificial Heart is stabbed: "Sala del jefe: Sacrificial Dagger" (2026-11-21).
+            var table = Table();
+            Localization.Detect("es");
+            try
+            {
+                Expect("Daga sacrificial (+2 puntos de pasiva)", table.Localize("Sacrificial Dagger (+2 Passive)"), "the quest item's name in the game's Spanish");
+                Equal(true, table.IsQuestItemName(MinimapMarks.WithoutNote("Sacrificial Dagger (+2 Passive)")), "a quest item's place, not a boss's");
+                Equal(false, table.IsQuestItemName("Lesser Jeweller's Orb"), "currency is no quest item");
+                Equal(false, table.IsQuestItemName("Captain Hartlin"), "a boss is no item");
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
+        }
 
         private static LandmarkTable Table()
         {
@@ -46,8 +65,8 @@ namespace Poe2Accessibility.Tests
             }));
             File.WriteAllText(Path.Join(directory, "item-names.json"), JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, string>>
             {
-                ["en"] = new() { ["CurrencyLesserJeweller"] = "Lesser Jeweller's Orb" },
-                ["es"] = new() { ["CurrencyLesserJeweller"] = "Orbe de joyero menor" },
+                ["en"] = new() { ["CurrencyLesserJeweller"] = "Lesser Jeweller's Orb", ["QuestItems/Gallows/Act3/AggoratDagger"] = "Sacrificial Dagger" },
+                ["es"] = new() { ["CurrencyLesserJeweller"] = "Orbe de joyero menor", ["QuestItems/Gallows/Act3/AggoratDagger"] = "Daga sacrificial" },
             }));
             File.WriteAllText(Path.Join(directory, "world-titles.json"), JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, string>>
             {
