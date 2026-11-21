@@ -110,7 +110,7 @@ namespace Poe2Accessibility
             // locks the beacon rather than glancing at the map. Gameplay only: in menus L3 keeps its readings.
             // A change of the fed button forgets the press in flight (a hold begun on one is not the other's tap
             // or hold), and the commands read the legend for the button in use.
-            var triggerButton = L3Gestures.TriggerStandsIn(this.Settings.TriggerModButtonInHideout, this.IsHideout(), this.focus.Current != null,
+            var triggerButton = L3Gestures.TriggerStandsIn(this.Settings.TriggerModButtonInHideout, this.IsHideout(), this.focus?.Current != null,
                 this.gameState != null && GameStateService.IsInGame(this.gameState.CurrentState));
             var modButton = triggerButton ? state.IsDown(GameLayout.PadButtons.LeftTrigger) : state.IsDown(GameLayout.PadButtons.LeftStick);
             if (triggerButton != this.triggerStoodIn)
