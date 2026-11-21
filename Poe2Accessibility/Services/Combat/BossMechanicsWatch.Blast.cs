@@ -48,12 +48,13 @@ namespace Poe2Accessibility.Services
         private bool InBlast(uint id, long now) => this.blastsPending.Any(pair => pair.Key.Id == id && now <= pair.Value.BlowAt + BlastForgetMs);
 
         /// <summary>
-        ///     Each frame of a unique's attack: a long blast (<see cref="BlastGuide.LongBlastMs"/>, a circle from <paramref name="radius"/>)
-        ///     is announced at its start, then the player is led out of its reach around <paramref name="monster"/>, where the
-        ///     boss stands now.
+        ///     Each frame of a unique's attack: a long blast (<see cref="BlastGuide.LongBlastMs"/>) is announced at its start, then
+        ///     the player is led out of its reach: out of a circle of <paramref name="radius"/> around <paramref name="monster"/>,
+        ///     where the boss stands now (a self-destruct), else out of the attack's own or set-off <paramref name="shaped"/> area
+        ///     aimed at <paramref name="target"/> (Zalmarath's beam, a cone of 150 cells at 5.8 s).
         /// </summary>
-        public void Blast(uint id, bool unique, long startedAt, int? blowInMs, float? radius, Vector2 monster, Vector2 player, float playerRadius,
-                          StdTuple3D<float> origin, string? skill, long now)
+        public void Blast(uint id, bool unique, long startedAt, int? blowInMs, float? radius, AttackArea? shaped, Vector2 monster, Vector2 target,
+                          Vector2 player, float playerRadius, StdTuple3D<float> origin, string? skill, long now)
         {
             foreach (var old in this.blastsPending.Where(pair => now > pair.Value.BlowAt + BlastForgetMs).Select(pair => pair.Key).ToList())
             {
@@ -61,65 +62,91 @@ namespace Poe2Accessibility.Services
             }
 
             var key = (id, startedAt);
-            if (!this.blastsPending.TryGetValue(key, out var blast))
+            var isNew = !this.blastsPending.TryGetValue(key, out var blast);
+            if (isNew)
             {
-                if (!this.BlastOn() || !BlastGuide.Starts(unique, radius, blowInMs))
+                var area = BlastGuide.Guided(shaped);
+                if (!this.BlastOn() || !BlastGuide.Starts(unique, radius ?? area?.Length, blowInMs))
                 {
                     return;
                 }
 
-                blast = new PendingBlast(now + blowInMs.Value, radius.Value)
-                {
-                    At = monster, InReach = BlastGuide.StepsOut(radius.Value, Vector2.Distance(player, monster), playerRadius) > 0,
-                };
+                blast = new PendingBlast(now + blowInMs!.Value, radius, radius == null ? area : null);
                 this.blastsPending[key] = blast;
-                var seconds = (blowInMs.Value + 500) / 1000;
+            }
+
+            var word = this.BlastWord(blast!, monster, target, player, playerRadius, origin);
+            blast!.At = monster;
+            blast.InReach = word != null;
+            if (isNew)
+            {
+                var seconds = (blowInMs!.Value + 500) / 1000;
                 this.output.Urge(Announcements.LongBlast(seconds), WordHoldMs);
                 this.lastWordAt = now;
                 blast.GuidedAt = now;
-                this.log.Info($"Boss blast: monster {id} {skill ?? "?"} lands in {blowInMs} ms, {radius:0} world units around it; the player is {Vector2.Distance(player, monster):0} away");
+                this.log.Info($"Boss blast: monster {id} {skill ?? "?"} lands in {blowInMs} ms, " +
+                              (blast.Radius is { } around ? $"{around:0} world units around it" : $"{blast.Area?.Shape} of {blast.Area?.Length:0}") +
+                              $"; the player is {Vector2.Distance(player, monster):0} away, {(word == null ? "out of" : "in")} its reach");
                 return;
             }
 
-            var gap = Vector2.Distance(player, monster);
-            var steps = BlastGuide.StepsOut(blast.Radius, gap, playerRadius);
-            blast.At = monster;
-            blast.InReach = steps > 0;
             if (now - blast.GuidedAt < BlastGuideGapMs || blast.BlowAt - now < MinWordLeadMs)
             {
                 return;
             }
 
             blast.GuidedAt = now;
-            if (steps > 0)
+            if (word != null)
             {
                 blast.Out = false;
-                var away = gap > 0f ? (player - monster) / gap : Vector2.UnitX;
-                var text = Announcements.BlastAway(ScreenProjection.Octant(origin, away * ProbeWorld), steps);
-                this.output.Urge(text, WordHoldMs);
+                this.output.Urge(word, WordHoldMs);
                 this.lastWordAt = now;
-                this.log.Info($"Boss blast: {gap:0} from monster {id}, {blast.BlowAt - now} ms left -> {text}");
+                this.log.Info($"Boss blast: {Vector2.Distance(player, monster):0} from monster {id}, {blast.BlowAt - now} ms left -> {word}");
             }
             else if (!blast.Out)
             {
                 blast.Out = true;
                 this.output.Urge(Announcements.OutOfBlast, WordHoldMs);
                 this.lastWordAt = now;
-                this.log.Info($"Boss blast: out of reach, {gap:0} from monster {id}, {blast.BlowAt - now} ms left");
+                this.log.Info($"Boss blast: out of reach, {Vector2.Distance(player, monster):0} from monster {id}, {blast.BlowAt - now} ms left");
             }
+        }
+
+        /// <summary>The way out of a pending blast for the player where they stand; null when out of its reach.</summary>
+        private string? BlastWord(PendingBlast blast, Vector2 monster, Vector2 target, Vector2 player, float playerRadius, StdTuple3D<float> origin)
+        {
+            if (blast.Radius is { } radius)
+            {
+                var gap = Vector2.Distance(player, monster);
+                var steps = BlastGuide.StepsOut(radius, gap, playerRadius);
+                var away = gap > 0f ? (player - monster) / gap : Vector2.UnitX;
+                return steps > 0 ? Announcements.BlastAway(ScreenProjection.Octant(origin, away * ProbeWorld), steps) : null;
+            }
+
+            if (blast.Area is not { } area || BossCounterplay.Of(area, monster, target, player, playerRadius, AttackAim.MarginWorld) is not { } answer)
+            {
+                return null;
+            }
+
+            return Announcements.Counterplay(answer.Kind, answer.Kind == CounterplayKind.Step ? ScreenProjection.Octant(origin, answer.Way * ProbeWorld) : 0);
         }
 
         private sealed class PendingBlast
         {
-            public PendingBlast(long blowAt, float radius)
+            public PendingBlast(long blowAt, float? radius, AttackArea? area)
             {
                 this.BlowAt = blowAt;
                 this.Radius = radius;
+                this.Area = area;
             }
 
             public long BlowAt { get; }
 
-            public float Radius { get; }
+            /// <summary>A circle around the boss (world units), or null for <see cref="Area"/>.</summary>
+            public float? Radius { get; }
+
+            /// <summary>The attack's own or set-off area, aimed at its target.</summary>
+            public AttackArea? Area { get; }
 
             public long GuidedAt { get; set; }
 

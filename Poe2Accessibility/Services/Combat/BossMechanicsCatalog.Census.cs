@@ -34,6 +34,7 @@ namespace Poe2Accessibility.Services
         public const string UnknownElement = "-";
 
         private readonly HashSet<string> daemons = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<string>> children = new(StringComparer.Ordinal);
         private readonly HashSet<string> daemonMonsters = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, IReadOnlyList<string>> daemonSkills = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> arenaStates = new(StringComparer.OrdinalIgnoreCase);
@@ -92,6 +93,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A skill (GrantedEffects id) the files mark as impossible to dodge-roll, evade or block.</summary>
         public bool IsUnavoidable(string skill) => this.unavoidable.Contains(skill);
+
+        /// <summary>The skills a boss skill sets off (<c>child|skill|skill</c>, its GeometryTrigger's): their areas are its hits'.</summary>
+        public IReadOnlyList<string> ChildrenOf(string skill) => this.children.TryGetValue(skill, out var list) ? list : Array.Empty<string>();
 
         /// <summary>Whether a state of the boss counts a progress, and its top value when the files give one.</summary>
         public (bool Counts, int? Max) Progress(string boss, string state) =>
@@ -168,6 +172,14 @@ namespace Poe2Accessibility.Services
                     return true;
                 case "unavoidable":
                     this.unavoidable.Add(c[2]);
+                    return true;
+                case "child":
+                    if (!this.children.TryGetValue(c[1], out var list))
+                    {
+                        this.children[c[1]] = list = new List<string>();
+                    }
+
+                    list.Add(c[2]);
                     return true;
                 case "progress":
                     this.progress[$"{c[1]}|{c[2]}"] = c.Length > 3 && int.TryParse(c[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out var max) && max > 0 ? max : null;

@@ -41,7 +41,32 @@ namespace Poe2Accessibility.Tests
             (nameof(ASelfDestructTakesTheCirclesItSetsOff), ASelfDestructTakesTheCirclesItSetsOff),
             (nameof(OnlyAFarBlowIsALongBlast), OnlyAFarBlowIsALongBlast),
             (nameof(ABossPieceIsKnownByItsBoss), ABossPieceIsKnownByItsBoss),
+            (nameof(ATriggerTakesTheAreaOfWhatItSetsOff), ATriggerTakesTheAreaOfWhatItSetsOff),
         };
+
+        /// <summary>
+        ///     A trigger's hits are its children's (census <c>child|</c> lines): the widest is the area said; a long blow of one
+        ///     shape is guided, scattered markers and mortars are not.
+        /// </summary>
+        private static void ATriggerTakesTheAreaOfWhatItSetsOff()
+        {
+            var catalog = new BossMechanicsCatalog();
+            catalog.Add(new[] { "child|GTDoryaniLightningStorm|GSDoryaniLightningStormBolt", "child|GTDoryaniLightningStorm|GSUnknownBolt" });
+            Equal(2, catalog.ChildrenOf("GTDoryaniLightningStorm").Count, "both children");
+            Equal(0, catalog.ChildrenOf("GSDoryaniLightningStormBolt").Count, "a child sets off nothing");
+            var data = new AttackData();
+            data.AddTelegraphSkills(new[]
+            {
+                "GSDoryaniLightningStormBolt|geometry|shape=circle;length=5;delay=850;range=850||",
+                "GSKulemakBossMegaBeam|geometry|shape=rectangle;length=220;width=18||",
+                "GTCarrionCroneIceSpikeField|trigger|count=10;delay=1000;range=145;radius=5||",
+            });
+            Near(220f * 250f / 23f, data.WidestOf(new[] { "GSDoryaniLightningStormBolt", "GSKulemakBossMegaBeam", "GSMissing" })?.Length, "the widest drawn area");
+            Equal(null, data.WidestOf(new[] { "GSMissing" }), "none drawn");
+            Equal(AttackAreas.Rectangle, BlastGuide.Guided(data.Area("GSKulemakBossMegaBeam"))?.Shape, "one beam is guided");
+            Equal(null, BlastGuide.Guided(data.Area("GTCarrionCroneIceSpikeField")), "ten scattered spikes say Move instead");
+            Equal(null, BlastGuide.Guided(null), "no area");
+        }
 
         /// <summary>
         ///     Doryani's Triumph's self-destruct: its own skill draws nothing; the two it sets off are a nova of 55 cells and a smash

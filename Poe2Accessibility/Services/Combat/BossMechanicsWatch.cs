@@ -302,6 +302,11 @@ namespace Poe2Accessibility.Services
                            float playerRadius, StdTuple3D<float> origin, int? blowInMs, long now, string? skill = null)
         {
             this.GrabWord(id, startedAt, decision, skill, now);
+            if (unique && blowInMs is >= BlastGuide.LongBlastMs && BlastGuide.Guided(area) != null && this.BlastOn())
+            {
+                return; // a long blast: Blast says the seconds left and leads out of it again and again
+            }
+
             if (!unique || area is not { } shape || decision.Verdict == DodgeVerdict.Silent || blowInMs is > 0 and < MinWordLeadMs ||
                 now - this.lastWordAt < WordGapMs || this.worded.Contains((id, startedAt)))
             {

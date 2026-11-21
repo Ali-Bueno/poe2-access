@@ -14,6 +14,13 @@ internal static class BossCensusRules
 
     // Names of an invisible helper: the game's "Invisible" and "Daemon" names, an empty one, or such a word in its path (InvisibleFire).
     private static readonly HashSet<string> HelperNames = new(StringComparer.Ordinal) { string.Empty, "Invisible", "Daemon" };
+    /// <summary>
+    ///     An add whose skill draws an area this long or wide (grid cells) strikes as the boss (<c>part|</c>): more than half of
+    ///     the smallest census arenas (75 cells from centre to edge); Kulemak's pale elite's beam (115), the King in the Mists'
+    ///     effigy's pulse (200). The two adds the 0.5.5 census audit found (tools/research/gamedata/audit).
+    /// </summary>
+    private const int BigAddCells = 60;
+
     private static readonly Regex HelperWord = new("invisible|daemon|helper|marker|controller|dummy|proxy", RegexOptions.IgnoreCase);
 
     private static readonly Regex GrabSkill = new("Grab|Cocoon|Entomb|Encase|Devour|Swallow|Imprison(?!er)|Prison(?!er)");
@@ -164,5 +171,8 @@ internal static class BossCensusRules
     /// <summary>GR and U: the boss's holds by their skills' ids, and its skills that cannot be dodged, evaded or blocked.</summary>
     private static IEnumerable<string> Skills(BossFight fight) =>
         fight.Skills.Where(skill => GrabSkill.IsMatch(skill.Id)).Select(skill => $"grab|{fight.Boss}|{skill.Id}")
-            .Concat(fight.Skills.Where(skill => skill.Unavoidable).Select(skill => $"unavoidable|{fight.Boss}|{skill.Id}"));
+            .Concat(fight.Skills.Where(skill => skill.Unavoidable).Select(skill => $"unavoidable|{fight.Boss}|{skill.Id}"))
+            .Concat(fight.Skills.Concat(fight.Adds.SelectMany(add => add.Skills)).SelectMany(skill => skill.Triggers.Select(child => $"child|{skill.Id}|{child}")))
+            .Concat(fight.Adds.Where(add => !add.BossBar && !add.Daemon && add.Skills.Any(skill => skill.Area && skill.Length >= BigAddCells))
+                .Select(add => $"part|{fight.Boss}|{add.Id}"));
 }

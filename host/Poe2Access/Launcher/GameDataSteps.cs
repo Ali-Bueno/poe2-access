@@ -26,13 +26,13 @@ internal static class GameDataSteps
         new Step("area names", 1, "area-names.json", "areas"),
         new Step("dat columns", 7, "dat-columns.json", "dat-columns"), // 7: a skill's stats at its gem's level (GrantedEffectStatSetsPerLevel)
         new Step("experience", 1, "experience.json", "experience"),
-        new Step("hit times", 6, "hit-times.txt", "hit-times", true), // 6: a clip without a contact is timed by its "impact" event (Doryani's Triumph's self-destruct); 5: skills that cannot be dodged, evaded or blocked are unblockable
+        new Step("hit times", 7, "hit-times.txt", "hit-times", true), // 7: a geometry trigger sets off hits, whatever its action's name; 6: a clip without a contact is timed by its "impact" event (Doryani's Triumph's self-destruct); 5: skills that cannot be dodged, evaded or blocked are unblockable
         new Step("hazards", 3, "hazards.txt", "hazards", true),
         new Step("attack reach", 1, "attack-reach.txt", "attack-reach", true),
         new Step("action types", 1, "action-types.txt", "action-types", true),
         new Step("telegraph skills", 1, "telegraph-skills.txt", "telegraph-skills", true),
         new Step("telegraph effects", 1, "telegraph-effects.txt", "telegraph-effects", true),
-        new Step("boss mechanics", 8, "boss-mechanics.txt", "boss-mechanics", true), // 8: a boss's pieces (part|: Doryani's Triumph's legs); 7: an arena's flood (Mektul's lava); 6: the census's classes and their buffs' words
+        new Step("boss mechanics", 9, "boss-mechanics.txt", "boss-mechanics", true), // 9: the skills a boss skill sets off (child|), adds with an area of 60 cells or more as the boss's pieces; 8: a boss's pieces (part|: Doryani's Triumph's legs); 7: an arena's flood (Mektul's lava); 6: the census's classes and their buffs' words
         new Step("buff names", 2, "buff-names.json", "buff-names", true), // 2: without the names the game never shows ("[DNT…")
         new Step("passive overrides", 1, "passive-overrides.txt", "passive-overrides", true),
         new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),

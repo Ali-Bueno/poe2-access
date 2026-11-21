@@ -17,6 +17,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a unique's attack is a long blast: its skill sets off a circle and its blow is at least <see cref="LongBlastMs"/> away.</summary>
         public static bool Starts(bool unique, float? radius, int? blowInMs) => unique && radius is > 0f && blowInMs is >= LongBlastMs;
 
+        /// <summary>
+        ///     An attack's area a long blast can be guided out of: one shape aimed at its target, not scattered markers (a trigger
+        ///     of several hits says "Move!" already) nor a mortar's guess; null otherwise.
+        /// </summary>
+        public static AttackArea? Guided(AttackArea? area) =>
+            area is { Count: <= 1 } one && one.Shape != AttackAreas.Mortar && one.Length > 0f ? one : null;
+
         /// <summary>The steps (at least 1) from the player to the edge of a blast of <paramref name="radius"/> around the boss, <paramref name="gap"/> away; 0 when out of its reach.</summary>
         public static int StepsOut(float radius, float gap, float playerRadius)
         {

@@ -126,6 +126,24 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     The widest area (by length or radius) among the skills a skill sets off (<see cref="BossMechanicsCatalog.ChildrenOf"/>),
+        ///     for a skill that draws none of its own (Kulemak's mega beam: the trigger draws 2 cells, its beam 220); null when none draws one.
+        /// </summary>
+        public AttackArea? WidestOf(IEnumerable<string> skills)
+        {
+            AttackArea? widest = null;
+            foreach (var skill in skills)
+            {
+                if (this.Area(skill) is { } area && (widest is not { } best || area.Length > best.Length))
+                {
+                    widest = area;
+                }
+            }
+
+            return widest;
+        }
+
+        /// <summary>
         ///     A skill id past its kind's capitals ("EAS", "GA", "GS", "MPA"…): the name from the last capital before the first
         ///     lower-case letter; null when the id starts with a word (no kind prefix).
         /// </summary>

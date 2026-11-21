@@ -721,3 +721,28 @@ task of its own. The 20 `SeismicCrystalTrapMarker` capsules (a 25-cell grid arou
 fire, hit at 1.55 s. `GTDoryaniLightningStorm`: 15 bolts of 5 cells, each 850 ms after its `lightningstorm_marker.ao`.
 `EASDoryaniCrabLightningCage` ("Ravaging power!"): `pylons_active` on the machine, `lightning_cage.ao` on its root, six
 `DoryaniMechZapTarget` posts; whether the inside or the outside hurts is not in the data (UNSURE; guides say stay inside).
+
+## 17. The audit of every boss's unwarned attacks (2026-11-21)
+
+The owner, after Doryani: "haz una búsqueda exhaustiva del resto de jefes… sea jefe secundario, de campaña, endgame". Two
+sources: the files (`tools/research/gamedata/audit/gaps.py`, its README entry; output `gaps.tsv`, `classes.tsv`, from the
+0.5.5f dumps of 2026-11-12) and the community guides ([boss guides](boss-guides.md), web, unverified where marked). Of 4,028
+damaging skills of the 183 census fights, 2,727 miss at least one warning path. The classes (fights / skills):
+
+| Class | Fights / skills | What it is | Done |
+|---|---|---|---|
+| SILENT | 43 / 61 | a damaging skill on an action whose name sounds calm (Revive, SpellBuff…) and whose hit-times line had no kind: no cue, no word (`BossWatch.Dodge.cs` returns at the calm threat) | yes: a `geometry_trigger` skill without "deals no damage" is `ranged` (`SkillThreats`, hit-times v7; 371 lines gained a kind, none was calm): the Hags' ice spike field, Kulemak's mega beam, the Necromancer's lightning |
+| CHILD | 142 / 725 (224 skills of 89 fights with a known parent) | an area set off by the playing skill, never read: the word looked only at the playing skill's own area | the known parents: the census writes `child|skill|skill` from GeometryTrigger (122 lines, boss mechanics v9); a skill with no area of its own takes its widest child's (`AttackData.WidestOf`) |
+| LONG | 22 / 33 | timed 4 s or more, a cone or a line: one word at the wind-up | yes: the long blast takes any one-shape area aimed at its target (`BlastGuide.Guided`): the seconds left, the way out every 1.5 s (`BossCounterplay`), the countdown beep; Zalmarath's 5.8 s beam, Phya's 4.8 s cascade |
+| ADD | 42 / 127 | an add's attacks warned only if the server makes it rare | adds with an area of 60 cells or more are the boss's pieces (`part|`): the King in the Mists' effigy, Xesht's floor hand portals, Kulemak's pale elite |
+| EVENT | 159 / 739 | a child fired by a clip event the files do not tie to it | no: which event fires which child is in the `.ais` (not shipped); guessing by name risks wrong words |
+| UNTIMED | 135 / 627 | the cue at the wind-up only (`empty_action_*` clips without contact or impact) | in part: `impact` events (v6); the trigger's own delay and the effect files' shape times are next |
+| SEQUENCE | 80 / 151 | trigger count × delay ≥ 1 s | no: each landing point's marker (a ServerEffect `.ao` of role `marker`) would be warned where it lands; the reader's ServerEffect path has to be checked live first |
+| BEAM | 60 / 143 | lasers and beams | no: a ServerBeamEffect's two ends are not read (Doryani's blocker); where a `MD*LaserTarget` helper exists (Zalmarath, Menmek) the line boss → helper could be built from two read positions |
+| PROJECTILE | 94 / 188 | shells and projectiles landing later | no: the aimed point is read; a "falls where you stand" word from the landing area is next |
+| AOSHAPE | 21 / 38 | effect-driven shapes with times in `telegraph-effects.txt` | no: that catalog is never read (`BossWatch.Telegraph` is never assigned): a ServerEffect watch tied to its caster is needed |
+| HELPER, GROUND, NOAREA | 22 / 38, 14 / 30, 19 / 37 | helpers warned by distance only; lasting ground alarmed only once inside; sized skills without an area line | no |
+
+Not knowable from the files alone: which clip event fires which child, phase thresholds (the `.ais`), an add's rarity (the
+server's), where trigger points land beyond count and spread, server-only objects that may never reach the client, a beam's
+ends. All of the done rows are unit tests only: none was heard in a fight.
