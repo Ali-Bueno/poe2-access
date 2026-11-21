@@ -91,8 +91,8 @@ namespace Poe2Accessibility.Services
                 category = ScanCategory.Exits;
                 kind = "exit";
             }
-            else if (path.Contains("Waypoint", StringComparison.Ordinal) || path.Contains("Checkpoint", StringComparison.Ordinal) ||
-                     path.Contains("Portal", StringComparison.Ordinal))
+            else if ((path.Contains("Waypoint", StringComparison.Ordinal) || path.Contains("Checkpoint", StringComparison.Ordinal) ||
+                      path.Contains("Portal", StringComparison.Ordinal)) && !IsNpc(entity))
             {
                 category = ScanCategory.Waypoints;
                 kind = path.Contains("Checkpoint", StringComparison.Ordinal) ? "checkpoint" : path.Contains("Waypoint", StringComparison.Ordinal) ? "waypoint" : "portal";
@@ -220,7 +220,7 @@ namespace Poe2Accessibility.Services
                     name = Announcements.EnemyWithRarity(name, magic.Rarity);
                 }
             }
-            else if (entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _))
+            else if (IsNpc(entity))
             {
                 category = ScanCategory.Npcs;
             }
@@ -342,6 +342,12 @@ namespace Poe2Accessibility.Services
             {
                 // D2R's NPC "!": the game's quest indicator over the head (someone to talk to for the story).
                 name = Announcements.NpcWithQuest(name);
+                kind = "npc_quest";
+            }
+            else if (category == ScanCategory.Npcs && this.IsEscort(entity.Id))
+            {
+                // An escort walks ahead with no marker over her head: she rings as a character with a quest, so she is
+                // followed by ear (the owner after Alva in the past, 2026-11-20: "el sonidito de npc para cuando tenga que seguirla").
                 kind = "npc_quest";
             }
 
@@ -643,6 +649,13 @@ namespace Poe2Accessibility.Services
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly) &&
             !IsTalkable(entity);
+
+        /// <summary>
+        ///     A character by its type or NPC component. Its path names no portal: the Ziggurat Encampment's Servi, Oswald,
+        ///     Hooded One and Alva wait by the time portal as `…NearTimePortal` and `…AfterTimePortalEntered` (G3_town), and were
+        ///     said as "Portal: Servi" from the past half of the camp, 200 steps off (the owner, 2026-11-20).
+        /// </summary>
+        private static bool IsNpc(Entity entity) => entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _);
 
         /// <summary>One A talks to now: the NPC component's Friendly flag where it reads, else a character the player cannot attack.</summary>
         public static bool IsTalkable(Entity entity) => Friendly(entity) ?? (IsCharacter(entity) && !Attackable(entity));

@@ -252,8 +252,10 @@ namespace Poe2Accessibility.Services
                 {
                     this.Arrive(goal);
                 }
-                else if (!this.routeSpent)
+                else if (this.partialRoute && !this.routeSpent)
                 {
+                    // Only a way that stops short is closed. An escort's whole way ends where it stood at the search: it walked
+                    // on, and each new search allowed the line again, every 700 ms after Alva in the past (2026-11-20).
                     this.Say(this.news.Closest(), goal); // a way that only ran out of budget is not shut: the next search goes on from here
                 }
 

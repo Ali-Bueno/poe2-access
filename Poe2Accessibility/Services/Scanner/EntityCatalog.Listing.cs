@@ -141,10 +141,12 @@ namespace Poe2Accessibility.Services
                 }
 
                 var drawn = this.DrawnOnMinimap(entity, entry, render, player, town);
-                if (drawn && town && entry.Category == ScanCategory.Npcs && this.Unreachable(render, player, area.WorldToGridConvertor))
+                if (drawn && town && entry.Category == ScanCategory.Npcs && this.Unreachable(render, player))
                 {
-                    // A town character on ground no walk reaches and never seen: the encampment's past Alva, 2,000 cells
-                    // off beside the owner's own (2026-11-19, "ni siquiera puedo llegar a ella"). Listed again once joined or seen.
+                    // A town character off screen on ground no walk reaches: the encampment's past Alva, 2,000 cells off
+                    // beside the owner's own (2026-11-19, "ni siquiera puedo llegar a ella"); the present's Servi, Oswald, Hooded
+                    // One and Alva by the time portal, heard from the past half though their ground was explored (2026-11-20).
+                    // Listed again once joined or on screen.
                     this.sighted.Remove(entry.Id);
                     this.remembered.Remove(entry.Id);
                     unseen.Add(entry);
@@ -416,10 +418,9 @@ namespace Poe2Accessibility.Services
         ///     characters map-wide from the arrival, the Water Goddess 2,000 cells off in the boss room of Santuarios enterrados, listed
         ///     the moment the owner came in (2026-11-18, "haz eso solo para las ciudades… a menos que ahí el juego lo muestre").
         /// </summary>
-        /// <summary>Not on screen, its ground not explored, and on a piece of ground the player's does not join.</summary>
-        private bool Unreachable(Render render, Render player, float worldToGrid) =>
+        /// <summary>Not on screen and on a piece of ground the player's does not join.</summary>
+        private bool Unreachable(Render render, Render player) =>
             !ScreenProjection.InView(render.WorldPosition) &&
-            !this.explored.IsSeen(new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / worldToGrid) &&
             this.OnGroundApart(new Vector2(render.GridPosition.X, render.GridPosition.Y), new Vector2(player.GridPosition.X, player.GridPosition.Y));
 
         private bool DrawnOnMinimap(Entity entity, ScanEntry entry, Render render, Render player, bool town)
