@@ -38,6 +38,14 @@ were not in the list, so no far icon could have been drawn. The large map (D-pad
 and labels at the player's places. Not verified: whether an icon is drawn over unexplored ground inside that
 bubble, and the unit of the pointer distance.
 
+- **An exit arrives at the bubble's edge, not later by the mod (2026-11-20, Drowned City):** the owner found "Ápice de
+  la inmundicia" said only after passing the checkpoint. The log: the checkpoint said at 21 steps, the scanner's Exits
+  without the Apex 5 s before, then "Nueva salida… 20 pasos, arriba a la derecha" (a step is 100 world units, about 9
+  cells). Both came as the client got the entity (about 150 cells), when up-right that far is still off screen, so no
+  sighted player had it sooner. The tile table knows the exit from the arrival; it stays unsaid until its door piece is
+  seen (fair-play rule). Sighting it by any piece of its building was offered and declined by the owner ("si está bien
+  así déjalo").
+
 ## Scanner rule
 - Enemies: while on screen (the minimap draws no campaign monsters).
 - Things with a minimap icon (exits, waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the
