@@ -647,7 +647,16 @@ position on the client) is where the server says the mesh is. PROVEN from the fi
   time; flowing once `CurrentEnd` reaches the clip's end. "La lava avanza, arriba" once; then "Lava arriba a la izquierda,
   10 pasos" at 10, 5 and 2 steps from the tongue's nearest edge, "¡En la lava! Sal hacia la derecha" on stepping in.
   Setting "Avisos de la lava que inunda la arena". The log's "Boss flood:" lines every 5 s hold the front and the player's
-  distance, to check against "Hazard ground: treasure_vault_lava". Unit tests; not heard live.
+  distance, to check against "Hazard ground: treasure_vault_lava". Unit tests.
+- **Heard live** (the owner's fight of 2026-11-20, won: "el audio cue de la lava y de la zona segura funcionó"): the read
+  front matches the game's own `Metadata/Monsters/VaalForgeMaster/Objects/LavaBlocking`, a server object that rides the
+  front (read 12614,18619 at 29.4 s; LavaBlocking 12614,18613 0.2 s later; at 7 s about 20 units apart). The clip runs at
+  wall speed (4.3 s to 51.0 s in 46.8 s) and plays twice: once in the intro (to 27 s), then from 0 when the life bar
+  shows. CONFIRMED. The `treasure_vault_lava` hurts read that fight came from the boss's sunder and leap
+  (`MDGoldCrushLavaSunder`), not the flood. Whether HeatUp ("La forja ahora arde con más fuerza") pauses it is still
+  unread: the watch had gone silent. It dropped the flood at every failed read of the boss and had to fit the room again
+  from an anchor in sight, which it could not once the fight moved away from the lift; the flood is now kept 30 s past the
+  boss's last read, with its fit.
 - **Heard and led** (the owner: "un sonido… que se vaya paneando y haciéndose cada vez más rápido… el problema es saber
   dónde no hay lava"): `FloodCue` pulses from the nearest edge's side from 10 steps, every 1200 ms there down to 300 ms
   at the edge, silent inside (the ground alarm then). Within 5 steps or inside, dry ground is looked for: the nearest

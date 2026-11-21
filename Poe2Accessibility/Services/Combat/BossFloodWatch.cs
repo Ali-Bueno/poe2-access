@@ -42,6 +42,13 @@ namespace Poe2Accessibility.Services
         /// <summary>…at this many directions, the stick's eight and those between.</summary>
         private const int DryDirections = 16;
 
+        /// <summary>
+        ///     The flood is kept this long (ms) after the last poll that saw its boss: a boss's read fails now and then and the
+        ///     fight goes on, and the room's fit needs an anchor in sight to be made again (2026-11-20 log: dropped at each lost
+        ///     read, the fit was not made again once the player fought away from the lift, and the flood went silent).
+        /// </summary>
+        private const int KeptMs = 30000;
+
         private readonly PluginLog log;
         private readonly FloodWarnings warnings = new();
         private FloodRule? rule;
@@ -52,6 +59,7 @@ namespace Poe2Accessibility.Services
         private bool flowing;
         private long lastPoll;
         private long lastLog;
+        private long ruleSeenAt;
 
         public BossFloodWatch(PluginLog log) => this.log = log;
 
@@ -71,31 +79,30 @@ namespace Poe2Accessibility.Services
             (this.rule, this.lavaId, this.fit, this.unfitLogged, this.flowing) = (null, 0, null, false, false);
         }
 
-        /// <summary>With the bosses in sight: the lines of the flood to say now.</summary>
+        /// <summary>With the bosses in sight: the lines of the flood to say now. <see cref="Reset"/> once the warnings are off.</summary>
         public IReadOnlyList<string> Poll(BossMechanicsCatalog catalog, IEnumerable<string> bosses, long now)
         {
-            var rule = bosses.Select(catalog.Flood).FirstOrDefault(found => found != null);
-            if (rule == null)
+            if (bosses.Select(catalog.Flood).FirstOrDefault(found => found != null) is { } seen)
             {
-                if (this.rule != null)
+                if (!ReferenceEquals(seen, this.rule))
                 {
                     this.Reset();
+                    this.rule = seen;
                 }
 
-                return Array.Empty<string>();
+                this.ruleSeenAt = now;
+            }
+            else if (this.rule != null && now - this.ruleSeenAt >= KeptMs)
+            {
+                this.Reset();
             }
 
-            if (now - this.lastPoll < PollMs || !Seats.Followed.TryGetComponent<Render>(out var player))
+            if (this.rule is not { } rule || now - this.lastPoll < PollMs || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return Array.Empty<string>();
             }
 
             this.lastPoll = now;
-            if (!ReferenceEquals(rule, this.rule))
-            {
-                this.Reset();
-                this.rule = rule;
-            }
 
             if (this.Lava(rule) is not { } lava || this.fit is not { } fit || !lava.TryGetComponent<Animated>(out var animated) ||
                 this.Reader()?.Progress(lava.Id, animated.Address) is not { } clock)

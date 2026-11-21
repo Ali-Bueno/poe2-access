@@ -172,7 +172,14 @@ namespace Poe2Accessibility.Services
             this.Positions.Learn();
             // A flood starts with the fight, before the boss is hurt: any boss in sight may have one.
             this.flood ??= new BossFloodWatch(this.log) { Reader = () => this.Reader() };
-            said.AddRange(this.flood.Poll(this.Catalog, !this.FloodOn() ? Enumerable.Empty<string>() : this.bosses.Values.Where(boss => boss.SeenAt == now).Select(boss => boss.Monster).Distinct(StringComparer.OrdinalIgnoreCase), now));
+            if (this.FloodOn())
+            {
+                said.AddRange(this.flood.Poll(this.Catalog, this.bosses.Values.Where(boss => boss.SeenAt == now).Select(boss => boss.Monster).Distinct(StringComparer.OrdinalIgnoreCase), now));
+            }
+            else
+            {
+                this.flood.Reset();
+            }
             if (fighting.Count == 0)
             {
                 if (now - this.lastFightAt >= FightOverMs)
