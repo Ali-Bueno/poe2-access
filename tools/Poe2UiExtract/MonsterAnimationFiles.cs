@@ -4,10 +4,11 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 
 /// <summary>
-///     An .ao's AnimationController: its .amd, each animation's first "contact" (s), the first damage key frame of its
-///     Melee section (fraction of the animation), and which animations have any event at all.
+///     An .ao's AnimationController: its .amd, each animation's first "contact" (s), its first "impact" event (s: "impact" or a
+///     name ending "_impact", such as Doryani's Triumph's self-destruct, "phys_impact" at 10.19 s), the first damage key frame
+///     of its Melee section (fraction of the animation), and which animations have any event at all.
 /// </summary>
-internal sealed record AnimatedObject(string? Amd, Dictionary<string, double> Contact, Dictionary<string, double> MeleeKeyFrame, HashSet<string> EventClips);
+internal sealed record AnimatedObject(string? Amd, Dictionary<string, double> Contact, Dictionary<string, double> Impact, Dictionary<string, double> MeleeKeyFrame, HashSet<string> EventClips);
 
 /// <summary>One animation of an .amd: its length (ms) and the "contact" baked into it (ms), if any.</summary>
 internal sealed record AmdClip(int Length, int? Contact);
@@ -20,6 +21,9 @@ internal sealed class MonsterAnimationFiles
     public const double MsPerSecond = 1000;
 
     private const string ContactEvent = "contact";
+
+    /// <summary>An event of this name, or ending in "_" and it, is where a blow without a "contact" lands (docs/research/boss-mechanics.md, Doryani).</summary>
+    private const string ImpactEvent = "impact";
 
     private static readonly Regex Comment = new(@"//[^\n]*", RegexOptions.Compiled);
     private static readonly Regex Stance = new(@"stance\s+\w+\s*\{[^{}]*\}", RegexOptions.Compiled);
@@ -90,6 +94,10 @@ internal sealed class MonsterAnimationFiles
         return map;
     }
 
+    /// <summary>Whether an event names an impact: "impact" itself or a name ending in "_impact".</summary>
+    internal static bool IsImpact(string? name) =>
+        name != null && (name == ImpactEvent || name.EndsWith("_" + ImpactEvent, StringComparison.Ordinal));
+
     public AnimatedObject Ao(string path, int depth = 0)
     {
         if (this.aos.TryGetValue(path, out var cached))
@@ -97,13 +105,14 @@ internal sealed class MonsterAnimationFiles
             return cached;
         }
 
-        var result = new AnimatedObject(null, new Dictionary<string, double>(), new Dictionary<string, double>(), new HashSet<string>());
+        var result = new AnimatedObject(null, new Dictionary<string, double>(), new Dictionary<string, double>(), new Dictionary<string, double>(), new HashSet<string>());
         if (this.Text(path) is { } text)
         {
             if (Extends.Match(text) is { Success: true } parent && parent.Groups[1].Value != "Metadata/Parent" && depth < MaxAliasDepth)
             {
                 var inherited = this.Ao(parent.Groups[1].Value.EndsWith(".ao", StringComparison.OrdinalIgnoreCase) ? parent.Groups[1].Value : parent.Groups[1].Value + ".ao", depth + 1);
-                result = new AnimatedObject(inherited.Amd, new Dictionary<string, double>(inherited.Contact), new Dictionary<string, double>(inherited.MeleeKeyFrame), new HashSet<string>(inherited.EventClips));
+                result = new AnimatedObject(inherited.Amd, new Dictionary<string, double>(inherited.Contact), new Dictionary<string, double>(inherited.Impact),
+                    new Dictionary<string, double>(inherited.MeleeKeyFrame), new HashSet<string>(inherited.EventClips));
             }
 
             if (Controller.Match(text) is { Success: true } controller)
@@ -130,6 +139,14 @@ internal sealed class MonsterAnimationFiles
                             if (times.Count > 0)
                             {
                                 result.Contact[name] = times.Min();
+                            }
+
+                            var impacts = events.EnumerateArray()
+                                .Where(e => e.TryGetProperty("name", out var n) && IsImpact(n.GetString()) && e.TryGetProperty("time", out _))
+                                .Select(e => e.GetProperty("time").GetDouble()).ToList();
+                            if (impacts.Count > 0)
+                            {
+                                result.Impact[name] = impacts.Min();
                             }
                         }
                     });

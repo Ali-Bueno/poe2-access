@@ -43,6 +43,7 @@ internal static class HitTimeExtractor
         Contact,
         DamagePattern,
         BakedContact,
+        Impact,
     }
 
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
@@ -293,7 +294,7 @@ internal static class HitTimeExtractor
 
     /// <summary>
     ///     One animation's blow: the .ao's "contact", else its Melee damage pattern's first key frame, else the "contact"
-    ///     baked into the .amd; null when the files mark none.
+    ///     baked into the .amd, else the .ao's first "impact" event; null when the files mark none.
     /// </summary>
     private static (int Ms, Source Source)? HitOf(AnimatedObject animated, IReadOnlyDictionary<string, AmdClip> clips, string clip)
     {
@@ -308,7 +309,13 @@ internal static class HitTimeExtractor
             return ((int)Math.Round(keyFrame * data.Length), Source.DamagePattern);
         }
 
-        return data?.Contact is { } baked ? (baked, Source.BakedContact) : null;
+        if (data?.Contact is { } baked)
+        {
+            return (baked, Source.BakedContact);
+        }
+
+        // A clip with no contact at all may still name where its blow lands: Doryani's Triumph's self-destruct ("phys_impact", 10.19 s).
+        return animated.Impact.TryGetValue(clip, out var impact) ? ((int)Math.Round(impact * MonsterAnimationFiles.MsPerSecond), Source.Impact) : null;
     }
 
     /// <summary>Counts per outcome, printed so a patch that breaks a source shows at once; bosses apart, the data's kind against the name's.</summary>
