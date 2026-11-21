@@ -18,6 +18,7 @@ namespace Poe2Accessibility
                 SayAdds = () => !this.Settings.AnnounceEnemies,
                 Heartbeat = () => this.Settings.BossWeakPoint,
                 FloodOn = () => this.Settings.FloodWarnings,
+                BlastOn = () => this.Settings.BlastWarnings,
                 Reader = () => this.bosses?.Reader,
             };
         }

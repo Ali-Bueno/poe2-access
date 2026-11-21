@@ -96,6 +96,7 @@ namespace Poe2Accessibility
         private PerfectTimingWatch? perfectTiming;
         private HazardWatch? hazards;
         private FloodCue? floodCue;
+        private BlastCue? blastCue;
         private EncounterReader? encounters;
         private TrapWatch? traps;
         private TrialDoorWatch? trialDoors;
@@ -366,6 +367,7 @@ namespace Poe2Accessibility
                 var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
                 this.floodCue = new FloodCue(this.audio) { Edge = () => this.bosses?.Mechanics?.FloodEdge };
+                this.blastCue = new BlastCue(this.audio) { Countdown = () => this.bosses?.Mechanics?.BlastCountdown };
                 this.hazards = new HazardWatch(this.audio, hazardGround, this.log) { Quiet = () => this.bosses?.Mechanics?.RefugeUp ?? false };
                 var harmfulBuffs = HarmfulBuffs.Load(Path.Join(this.DllDirectory, "catalog", "buff-names.json"));
                 this.log.Info($"Harmful buffs: {harmfulBuffs.Count} named by the game files");
@@ -612,6 +614,7 @@ namespace Poe2Accessibility
             this.wallTones = null;
             this.hazards = null;
             this.floodCue = null;
+            this.blastCue = null;
             this.audio?.Dispose();
             this.audio = null;
 

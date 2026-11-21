@@ -109,6 +109,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.UnblockableCues) => T("Unblockable attack cue", "Aviso de ataque imbloqueable"),
             nameof(AccessibilitySettings.HazardAlarm) => T("Harmful ground alarm", "Alarma de suelo peligroso"),
             nameof(AccessibilitySettings.FloodWarnings) => T("Boss arena flood warnings", "Avisos de la lava que inunda la arena"),
+            nameof(AccessibilitySettings.BlastWarnings) => T("Boss self-destruct warnings", "Avisos de autodestrucción del jefe"),
             nameof(AccessibilitySettings.ParryLeadMs) => T("Parry cue lead, milliseconds", "Antelación del aviso de Parada, milisegundos"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
@@ -149,6 +150,7 @@ namespace Poe2Accessibility
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             Services.BossRefugeSounds.Lead => T("Boss fight shelter", "Refugio en un combate de jefe"),
             Services.FloodCue.Sound => T("Lava flooding the arena", "Lava que inunda la arena"),
+            Services.CueSynth.BlastSound => T("Boss self-destruct countdown", "Cuenta atrás de la autodestrucción del jefe"),
             Services.BossRefugeSounds.Over => T("Shelter no longer needed", "Ya no hace falta el refugio"),
             Services.TrapWatch.StatueOpenSound => T("Statue opening its eyes", "Estatua que abre los ojos"),
             Services.CueSynth.GazeSound => T("A statue looking at you", "Una estatua te mira"),
@@ -272,6 +274,9 @@ namespace Poe2Accessibility
             _ when StateOfSound(key) is not null => T(
                 "an enemy on that side has just been put in this state; a rare or unique one is named too",
                 "un enemigo de ese lado acaba de quedar en este estado; si es raro o único, también se nombra"),
+            Services.CueSynth.BlastSound => T(
+                "from where a boss about to blow up is (Doryani's Triumph's self-destruct), while you are in its reach; faster as the blow nears",
+                "desde donde está un jefe a punto de estallar (la autodestrucción del Triunfo de Doryani), mientras estás a su alcance; más rápido según se acerca el golpe"),
             Services.FloodCue.Sound => T(
                 "from the side of the nearest edge of the lava flooding a boss's arena (Mektul's molten gold); faster as it nears, from 10 steps; the heartbeat leads to dry ground",
                 "del lado del borde más cercano de la lava que inunda la arena (el oro fundido de Mektul); más rápido al acercarse, desde 10 pasos; el latido lleva a suelo seco"),

@@ -27,6 +27,23 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<(uint Id, long StartedAt), PendingBlast> blastsPending = new();
         private readonly HashSet<uint> blastHidden = new();
 
+        /// <summary>Whether long blasts are guided at all (<see cref="AccessibilitySettings.BlastWarnings"/>).</summary>
+        public Func<bool> BlastOn { get; set; } = () => true;
+
+        /// <summary>
+        ///     The pending long blast nearest its blow: where its boss was last seen, how long is left (ms) and whether the player
+        ///     stood in its reach then; null when none is pending (<see cref="BlastCue"/>).
+        /// </summary>
+        public (Vector2 At, int MsLeft, bool InReach)? BlastCountdown
+        {
+            get
+            {
+                var now = Environment.TickCount64;
+                var next = this.blastsPending.Values.Where(blast => blast.BlowAt > now).OrderBy(blast => blast.BlowAt).FirstOrDefault();
+                return next == null ? null : (next.At, (int)(next.BlowAt - now), next.InReach);
+            }
+        }
+
         /// <summary>Whether a boss is in the middle of a long blast: its vanishing and coming back are not said.</summary>
         private bool InBlast(uint id, long now) => this.blastsPending.Any(pair => pair.Key.Id == id && now <= pair.Value.BlowAt + BlastForgetMs);
 
@@ -46,12 +63,15 @@ namespace Poe2Accessibility.Services
             var key = (id, startedAt);
             if (!this.blastsPending.TryGetValue(key, out var blast))
             {
-                if (!BlastGuide.Starts(unique, radius, blowInMs))
+                if (!this.BlastOn() || !BlastGuide.Starts(unique, radius, blowInMs))
                 {
                     return;
                 }
 
-                blast = new PendingBlast(now + blowInMs.Value, radius.Value);
+                blast = new PendingBlast(now + blowInMs.Value, radius.Value)
+                {
+                    At = monster, InReach = BlastGuide.StepsOut(radius.Value, Vector2.Distance(player, monster), playerRadius) > 0,
+                };
                 this.blastsPending[key] = blast;
                 var seconds = (blowInMs.Value + 500) / 1000;
                 this.output.Urge(Announcements.LongBlast(seconds), WordHoldMs);
@@ -61,14 +81,16 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            var gap = Vector2.Distance(player, monster);
+            var steps = BlastGuide.StepsOut(blast.Radius, gap, playerRadius);
+            blast.At = monster;
+            blast.InReach = steps > 0;
             if (now - blast.GuidedAt < BlastGuideGapMs || blast.BlowAt - now < MinWordLeadMs)
             {
                 return;
             }
 
             blast.GuidedAt = now;
-            var gap = Vector2.Distance(player, monster);
-            var steps = BlastGuide.StepsOut(blast.Radius, gap, playerRadius);
             if (steps > 0)
             {
                 blast.Out = false;
@@ -102,6 +124,12 @@ namespace Poe2Accessibility.Services
             public long GuidedAt { get; set; }
 
             public bool Out { get; set; }
+
+            /// <summary>Where the boss was at the last frame of its attack.</summary>
+            public Vector2 At { get; set; }
+
+            /// <summary>Whether the player stood in its reach then.</summary>
+            public bool InReach { get; set; }
         }
     }
 }
