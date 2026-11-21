@@ -55,6 +55,13 @@ namespace Poe2Accessibility
         /// <summary>L3 is the mod button: tap, double tap and hold read lines, details, hints and the screen.</summary>
         public bool ControllerCommands = true;
 
+        /// <summary>
+        ///     In a hideout, where L3 is the game's editor toggle, the left trigger is the mod button instead (the
+        ///     core's pad reading feeds it as L3). A skill bound to the trigger fires on those presses and holding it
+        ///     to scan keeps casting, so this is off until turned on here; off, hideout L3 is as upstream.
+        /// </summary>
+        public bool TriggerModButtonInHideout;
+
         /// <summary>Say when life falls below half and below a quarter.</summary>
         public bool AnnounceLowLife = true;
 
