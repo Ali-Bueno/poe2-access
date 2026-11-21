@@ -12,6 +12,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(AnExitHeardIsNotLostToAFlap), AnExitHeardIsNotLostToAFlap),
             (nameof(OnlyATapOnAFocusTheGameMovedIsTheGames), OnlyATapOnAFocusTheGameMovedIsTheGames),
+            (nameof(ALegendBindingTakesTheButtonInGameplay), ALegendBindingTakesTheButtonInGameplay),
             (nameof(ThePanelBesideIsNamedOnlyWhenItAddsSomething), ThePanelBesideIsNamedOnlyWhenItAddsSomething),
             (nameof(ALongTextSplitsIntoItsLinesWithWords), ALongTextSplitsIntoItsLinesWithWords),
             (nameof(AScrollLandsOnTheParagraphHoldingTheOffset), AScrollLandsOnTheParagraphHoldingTheOffset),
@@ -73,6 +74,20 @@ namespace Poe2Accessibility.Tests
             Equal(false, L3Gestures.GamesPress(PadGesture.Tap, true, null, 1040), "no press time known");
             Equal(false, L3Gestures.GamesPress(PadGesture.FlickUp, true, 1000, 1040), "a flick is the scanner's");
             Equal(false, L3Gestures.GamesPress(PadGesture.Hold, true, 1000, 1040), "so is a hold");
+        }
+
+        /// <summary>A legend binding L3 takes every mod-button gesture in gameplay (hideout editing), only the hold in a menu, and never the map glance.</summary>
+        private static void ALegendBindingTakesTheButtonInGameplay()
+        {
+            Equal(true, L3Gestures.GamesButton(PadGesture.Tap, false, true, false), "a tap in gameplay, the legend binds the button");
+            Equal(true, L3Gestures.GamesButton(PadGesture.FlickUp, false, true, false), "a scanner flick needs the press the legend binds");
+            Equal(true, L3Gestures.GamesButton(PadGesture.StickClick, false, true, false), "the guide chord holds the button too");
+            Equal(true, L3Gestures.GamesButton(PadGesture.LongHold, false, true, true), "a long hold under a hold binding");
+            Equal(false, L3Gestures.GamesButton(PadGesture.Tap, false, false, false), "plain gameplay: the button is the mod's");
+            Equal(false, L3Gestures.GamesButton(PadGesture.Tap, true, true, false), "a menu tap stays shared (the world map's legend)");
+            Equal(true, L3Gestures.GamesButton(PadGesture.Hold, true, true, true), "a menu hold the legend binds (a stash's clear search)");
+            Equal(false, L3Gestures.GamesButton(PadGesture.Hold, true, true, false), "a menu hold under a press binding stays the mod's reading");
+            Equal(false, L3Gestures.GamesButton(PadGesture.TriggerClick, false, true, true), "the map glance is not the mod button");
         }
 
         /// <summary>The third condition: the panel beside is named before the tab unless it is the focus's own part or the tab already holds it.</summary>

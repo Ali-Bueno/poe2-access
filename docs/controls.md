@@ -3,8 +3,11 @@
 The mod reads the controller state the game itself receives, so it works with any pad the game accepts
 (Xbox, DualSense, DualShock, with or without Steam Input). It cannot hide a press from the game: the mod
 button is L3 because the game does nothing with it in gameplay or the inventory (on the world map it also
-toggles the map legend). Turn the controller commands off with `ControllerCommands` in
-`config/settings.txt`. A `settings.txt` that fails to parse is ignored (the mod says so) and is never overwritten with
+toggles the map legend). Where the game's own legend at the foot of the screen does give L3 a job in gameplay —
+editing your hideout is one: the whoosh and the fast running on pressing it there are the game's — the mod
+leaves the button to the game and says nothing for it; leave the editing to scan or read. In menus only a hold
+the legend binds is the game's (a stash's "Clear search"); taps there stay shared as they were. Turn the
+controller commands off with `ControllerCommands` in `config/settings.txt`. A `settings.txt` that fails to parse is ignored (the mod says so) and is never overwritten with
 defaults; fix the line and it is read again, as it is whenever it is edited while the host runs.
 
 Closing the game menu is silent (the focus underneath is not read again); Options opened from the game menu starts with

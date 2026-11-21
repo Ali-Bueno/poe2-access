@@ -12,7 +12,7 @@ namespace Poe2Accessibility.Services
     ///     reads the screen and the button hints; holding it and flicking the right stick is the scanner (up/down
     ///     category, left/right entry), holding it and pressing the right stick locks the guide beacon. The game
     ///     sees the same presses (L3 does nothing in gameplay or the inventory; on the world map it toggles the
-    ///     legend).
+    ///     legend; editing a hideout binds it, and there the button is left to the game: <see cref="L3Gestures.GamesButton"/>).
     /// </summary>
     public sealed class ModCommands
     {
@@ -76,11 +76,6 @@ namespace Poe2Accessibility.Services
         public void OnGesture(PadGesture gesture)
         {
             this.log.Debug($"Mod button: {gesture}");
-            if (gesture is PadGesture.Hold or PadGesture.LongHold && this.GameTakesTheHold())
-            {
-                return;
-            }
-
             if (this.settingsMenu.IsOpen)
             {
                 this.InSettings(gesture);
@@ -88,6 +83,16 @@ namespace Poe2Accessibility.Services
             }
 
             var current = this.focus.Current;
+            if (gesture != PadGesture.TriggerClick)
+            {
+                var (hinted, holdHinted) = this.LegendBindsButton();
+                if (L3Gestures.GamesButton(gesture, current != null, hinted, holdHinted))
+                {
+                    this.log.Info($"Mod button: {gesture} left to the game (its legend binds the button here)");
+                    return;
+                }
+            }
+
             if (L3Gestures.GamesPress(gesture, current != null, this.PressedAt?.Invoke(), this.focus.CurrentSince))
             {
                 return; // the press was the game's (the stash's search field): its new focus was read, not its name again
@@ -104,13 +109,15 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     True while the game's own legend gives the mod button's hold a job (a stash's "Clear search"): the hold is the
-        ///     game's then, and the mod's reading over it hid what it did.
+        ///     Whether the game's own legend (hint bar) binds the mod button on this screen, as a press or as a hold:
+        ///     where it does, the press is the game's and the mod's reading over it hid what it did (a stash's held
+        ///     "Clear search"; in gameplay, editing a hideout). A combination naming the button ("RT plus L3") counts.
         /// </summary>
-        private bool GameTakesTheHold()
+        private (bool Hinted, bool HoldHinted) LegendBindsButton()
         {
-            var holds = new[] { false, true }.Select(playStation => Announcements.HoldButton(Announcements.ButtonName(ModButtonGlyph, playStation))).ToList();
-            return this.screen().Layers.Any(layer => layer.IsHintBar && layer.Texts.Any(text => holds.Contains(text.Button)));
+            var names = new[] { false, true }.Select(playStation => Announcements.ButtonName(ModButtonGlyph, playStation)).ToList();
+            var buttons = this.screen().Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).Select(text => text.Button).ToList();
+            return (buttons.Any(button => names.Any(button.Contains)), buttons.Any(button => names.Any(name => button == Announcements.HoldButton(name))));
         }
 
         /// <summary>The glyph file of the mod button, the left stick's click (<see cref="Announcements.ButtonName"/>).</summary>

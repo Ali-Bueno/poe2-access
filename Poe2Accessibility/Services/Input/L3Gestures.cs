@@ -64,6 +64,19 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool GamesPress(PadGesture gesture, bool inMenu, long? pressedAt, long focusSince) =>
             inMenu && gesture is PadGesture.Tap or PadGesture.DoubleTap && pressedAt is { } pressed && MovedFocus(pressed, focusSince);
+
+        /// <summary>
+        ///     Whether the game's own legend gives the mod button a job on this screen, so the gesture is the game's and
+        ///     the mod does not act on it too (the game sees every press; the mod cannot hide one). A hold the legend
+        ///     binds is the game's anywhere (a stash's "Clear search"). In gameplay, where the button is otherwise the
+        ///     game's to leave alone, any legend binding takes the whole button: editing a hideout binds it there (the
+        ///     whoosh and the fast running are the game's, owner 2026-11-21), and scanning over it fired both. In a menu
+        ///     the tap stays shared as before (the world map's legend toggle, a stash's "Edit search": <see cref="GamesPress"/>
+        ///     has the focus-moving tap). The map glance is not the mod button and is never taken.
+        /// </summary>
+        public static bool GamesButton(PadGesture gesture, bool inMenu, bool buttonHinted, bool holdHinted) =>
+            gesture != PadGesture.TriggerClick &&
+            ((gesture is PadGesture.Hold or PadGesture.LongHold && holdHinted) || (!inMenu && buttonHinted));
         private bool holdFired;
         private bool flicked;
         private bool stickOut;
