@@ -58,10 +58,10 @@ namespace Poe2Accessibility
         /// <summary>
         ///     In a hideout's gameplay, where L3 is the game's editor toggle, the left trigger is the mod button
         ///     instead (the core's pad reading feeds it as L3); menus there keep L3. A skill bound to the trigger
-        ///     fires on those presses and holding it to scan keeps casting, so this is off until turned on here;
-        ///     off, hideout L3 is as upstream.
+        ///     fires on those presses and holding it to scan keeps casting; on by default all the same (the owner, 2026-11-22),
+        ///     since nothing in a hideout can hurt and L3 there opens the editor. Off, hideout L3 is as upstream.
         /// </summary>
-        public bool TriggerModButtonInHideout;
+        public bool TriggerModButtonInHideout = true;
 
         /// <summary>Say when life falls below half and below a quarter.</summary>
         public bool AnnounceLowLife = true;

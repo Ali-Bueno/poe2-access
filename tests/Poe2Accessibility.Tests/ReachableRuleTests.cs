@@ -103,7 +103,7 @@ namespace Poe2Accessibility.Tests
         private static void TheTriggerStandsInOnlyInAHideoutsGameplay()
         {
             Equal(true, L3Gestures.TriggerStandsIn(true, true, false, true), "switch on, a hideout, gameplay, in the game");
-            Equal(false, L3Gestures.TriggerStandsIn(false, true, false, true), "the switch is off by default: hideout L3 is the game's and the mod's as ever");
+            Equal(false, L3Gestures.TriggerStandsIn(false, true, false, true), "the switch off: hideout L3 is the game's and the mod's as ever");
             Equal(false, L3Gestures.TriggerStandsIn(true, false, false, true), "a town or a map keeps L3");
             Equal(false, L3Gestures.TriggerStandsIn(true, true, true, true), "a hideout's menus (its stash) keep L3");
             Equal(false, L3Gestures.TriggerStandsIn(true, true, false, false), "a loading screen: the area left arms nothing");

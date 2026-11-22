@@ -6,11 +6,11 @@ button is L3 because the game does nothing with it in gameplay or the inventory 
 toggles the map legend). One exception: in your own hideout L3 is the game's "Open Hideout Editor", fired when
 the button is released however long it was held (the whoosh, then the editor's fast movement), so every scan
 there used to open or close the editor on letting go. **With "Left trigger as the mod button in hideouts (fires its skill)" on
-(settings menu, Navigation, or `TriggerModButtonInHideout` in `config/settings.txt`; off by default), the left trigger (LT) is the mod button in a hideout's gameplay instead of L3**:
+(settings menu, Navigation, or `TriggerModButtonInHideout` in `config/settings.txt`; on by default), the left trigger (LT) is the mod button in a hideout's gameplay instead of L3**:
 tap, double tap, hold, hold-and-flick scanning and the second-and-a-half settings hold all work on LT exactly as
 on L3, and LT plus R3 locks the guide beacon there (the map glance's chord elsewhere). A skill bound to LT fires
-as you use it so, and holding it to scan keeps casting — the game sees those presses too, which is why the
-switch is opt-in (nothing in a hideout can hurt you for it, but a movement or toggle skill on LT will still go
+as you use it so, and holding it to scan keeps casting — the game sees those presses too, which is why it has a
+switch of its own (on by default since 2026-11-22: nothing in a hideout can hurt you for it, but a movement or toggle skill on LT will still go
 off; the owner prefers it to opening the editor unawares, 2026-11-21). With the switch on, L3 in a hideout's
 gameplay only opens and closes the editor; the mod says nothing for it.
 In menus L3 keeps its readings even in a hideout (a stash there). Where the game's own legend at the foot of
