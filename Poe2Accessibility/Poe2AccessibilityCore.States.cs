@@ -259,6 +259,7 @@ namespace Poe2Accessibility
         /// <summary>Per frame: the pending area announcement once the game has loaded an instance since the last one said.</summary>
         private void AnnounceLoadedArea()
         {
+            this.SayLateTagline();
             if (this.pendingArea is not var (name, resumed, at))
             {
                 return;
@@ -284,12 +285,43 @@ namespace Poe2Accessibility
             this.log?.Info($"Area level {level} (instance {area.AreaHash})");
             // Kept for its length, right behind "Loading area": waiting its turn, the prompt of the exit beside the player
             // took its place, or it came after the quest page and the player's next question cut it (user 2026-11-11).
-            var line = Announcements.Area(name, level) + this.AreaTaglineLine(name) + this.AreaCornerLine();
+            var tagline = this.AreaTaglineLine(name);
+            // The banner can fill a frame after the line is built (Shrike Island: its texts 40 ms after the line, 2026-11-21).
+            this.lateTagline = tagline.Length == 0 ? (name, Environment.TickCount64 + LateTaglineMs) : null;
+            var line = Announcements.Area(name, level) + tagline + this.AreaCornerLine();
             this.output.Keep(line, SpeechFloor.MessageHoldMs(line), SpeechPriority.Interrupts(SpeechKind.Places), yieldsToMoves: true);
             this.nearby?.Arrived();
         }
 
         private readonly AreaBanner areaBanner = new AreaBanner();
+
+        /// <summary>How long after the area line a banner not yet filled is still looked for.</summary>
+        private const int LateTaglineMs = 4000;
+
+        /// <summary>The area whose banner was not filled when its line was said, and until when it is looked for.</summary>
+        private (string Name, long Until)? lateTagline;
+
+        /// <summary>Per frame: a tagline that came after its area line, said after it, queued.</summary>
+        private void SayLateTagline()
+        {
+            if (this.lateTagline is not var (name, until))
+            {
+                return;
+            }
+
+            if (Environment.TickCount64 > until || this.pendingArea != null)
+            {
+                this.lateTagline = null;
+                return;
+            }
+
+            if (this.AreaTaglineLine(name) is { Length: > 0 } tagline)
+            {
+                this.lateTagline = null;
+                this.log?.Info($"Area tagline after its line: {tagline.Trim()}");
+                this.output.Speak(tagline.Trim());
+            }
+        }
 
         /// <summary>The banner's tagline as a sentence, once per area (docs/research/ui-layers.md, arrival banner).</summary>
         private string AreaTaglineLine(string areaName)

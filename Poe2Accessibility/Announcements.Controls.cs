@@ -95,6 +95,12 @@ namespace Poe2Accessibility
 
         public static string Empty => T("empty", "vacío");
 
+        /// <summary>
+        ///     The button a world map pin draws below itself: A has the captain or the caravan talk about the place (the
+        ///     owner on the sailing map, 2026-11-22: Makoru's lines on Whakapanu), while A on the pin itself travels.
+        /// </summary>
+        public static string PinTalk(string place) => place + T(", talk about the place", ", charla sobre el lugar");
+
         /// <summary>The skill picker's red cross: choosing it leaves the button without a skill.</summary>
         public static string ClearBinding => T("empty the button", "vaciar el botón");
 

@@ -363,7 +363,7 @@ namespace Poe2Accessibility.Services
                 // A row of a list whose other rows have captions but this one shows nothing (empty skill slot below
                 // "LVL: 1, Punch"): it is empty, not the list's control id.
                 // Unless it is the button a pin of the caravan's map draws for itself: the pin's name is its own.
-                (label, namedById) = (this.PinNameAbove(info) is { Length: > 0 } pin ? pin : Announcements.Empty, false);
+                (label, namedById) = (this.PinNameAbove(info) is { Length: > 0 } pin ? Announcements.PinTalk(pin) : Announcements.Empty, false);
             }
 
             if (role == UiRole.Button && this.InGame && this.TrialRoomPlace(info) is { Length: > 0 } room)

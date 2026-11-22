@@ -253,8 +253,12 @@ colour to apply …"), so the
   name, no words, and the town's own area (WorldAreas `IsTown`). So "Pueblo" followed every destination (46 times in a
   session). A pin of a town's area is the town only when it carries the area's name (`GameLayout.WorldAreaRow.NameOffset`,
   dat column `WorldAreas.Name`); a stop has no kind. Heard after: "Páramo de los mastodontes. Nivel de monstruos: 22. …" and no more.
-- Not known: what the pin's own button does that A on the pin does not ("Seleccionar, A"); whether the other four pins
-  that have one read the same (only pin 10's was reached with the D-pad).
+- What the pin's own button does (the owner on Makoru's sailing map, Act 4, 2026-11-22): D-pad down from a pin reaches it,
+  "Seleccionar, A", and A has the captain talk about the place, said line by line from layer 17 ("Makoru. Whakapanu es
+  una de las islas más hermosas de Ngamakanui…"); A on the pin itself is "Viajar". Only places with such a talk draw one
+  (likely the `worldscreenmappindialogue` rows, not read). So the button reads "Isla Whakapanu, charla sobre el lugar,
+  botón, 11 de 19" (`Announcements.PinTalk`). The D-pad's button and the pin the cursor rests on can differ ("Isla de los
+  alcaudones, botón" then the popup of Bahía de las anclas): the popup said last is what "Viajar, A" travels to.
 
 ## HUD during an area load (0.5.5f, 2026-11-06)
 

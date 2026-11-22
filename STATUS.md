@@ -102,7 +102,8 @@
 | Window independence | done (live, five sizes) | the camera's matrix for what is seen and heard, laid-out units instead of pixels ([camera view](docs/research/camera-view.md), [data sources](docs/research/data-sources.md)) |
 | World map pins from data | done (live, 16:9, 21:9, 5:4) | MapPins/WorldAreas rows the act canvas keeps; told when the popup was not heard (`MapPinNarrator`) |
 | Area announcement on entering / changing area | done (live) | own read of AreaLoadingState+0xEA0 (GameHelper offset stale) |
-| Area banner tagline (arrival) | done (code, 2026-11-22) | `AreaBanner`: the HUD text equal to the area name whose parent holds two texts; appended to the area line once per area id ([ui-layers](docs/research/ui-layers.md)) |
+| Area banner tagline (arrival) | done (code, 2026-11-22) | `AreaBanner`: the HUD text equal to the area name whose parent holds two texts; appended to the area line once per area id ([ui-layers](docs/research/ui-layers.md)); a banner filled after the line is said on its own, queued, within 4 s (Shrike Island's texts came 40 ms after the line) |
+| Sailing and caravan map: the pin's own button | done (code, 2026-11-22) | D-pad down from a pin, A has the captain talk about the place: "Isla Whakapanu, charla sobre el lugar, botón" (`Announcements.PinTalk`); the talk was already read; the popup said last names where "Viajar, A" goes ([ui-layers](docs/research/ui-layers.md)) |
 | In-game context menus (skill: Manage Sockets…) with "x of n" | done (live) | same-class siblings |
 | Hover tooltips (element+0x120): title names id-only controls, short ones spoken, `details` reads all | done (live) | "Support Gem Slot, Socket a Support Gem of any colour …"; skill gem details |
 | Panel tabs: tab name + where the focus is (also when it stays, e.g. inventory beside Skills) | done (live) | hidden focus = no focus |
