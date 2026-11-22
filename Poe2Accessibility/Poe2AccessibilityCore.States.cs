@@ -1,6 +1,7 @@
 namespace Poe2Accessibility
 {
     using System;
+    using System.Linq;
     using GameReader;
     using GameReader.RemoteEnums;
     using Poe2Accessibility.Services;
@@ -283,9 +284,47 @@ namespace Poe2Accessibility
             this.log?.Info($"Area level {level} (instance {area.AreaHash})");
             // Kept for its length, right behind "Loading area": waiting its turn, the prompt of the exit beside the player
             // took its place, or it came after the quest page and the player's next question cut it (user 2026-11-11).
-            var line = Announcements.Area(name, level) + this.AreaCornerLine();
+            var line = Announcements.Area(name, level) + this.AreaTaglineLine(name) + this.AreaCornerLine();
             this.output.Keep(line, SpeechFloor.MessageHoldMs(line), SpeechPriority.Interrupts(SpeechKind.Places), yieldsToMoves: true);
             this.nearby?.Arrived();
+        }
+
+        private readonly AreaBanner areaBanner = new AreaBanner();
+
+        /// <summary>The banner's tagline as a sentence, once per area (docs/research/ui-layers.md, arrival banner).</summary>
+        private string AreaTaglineLine(string areaName)
+        {
+            var hud = this.narrator == null || this.elements == null ? null : this.screen?.Current.Find(this.narrator.HudLayer);
+            if (hud == null)
+            {
+                return string.Empty;
+            }
+
+            var groups = hud.Texts.Where(text => string.Equals(text.Text, areaName, StringComparison.CurrentCultureIgnoreCase)).Select(this.SiblingTexts).ToList();
+            if (this.areaBanner.TakeOnce(this.gameState?.CurrentAreaId ?? string.Empty, areaName, groups) is not { } tagline)
+            {
+                return string.Empty;
+            }
+
+            return " " + (".!?…".Contains(tagline[^1]) ? tagline : tagline + ".");
+        }
+
+        /// <summary>The texts held by the parent of a text element, itself included.</summary>
+        private System.Collections.Generic.IReadOnlyList<string> SiblingTexts(Poe2Accessibility.Models.ScreenText text)
+        {
+            var texts = new System.Collections.Generic.List<string>();
+            if (this.elements!.TryReadElement(text.Address, out var info) && this.elements.ReadAncestors(info, 1) is { Count: 1 } parent)
+            {
+                foreach (var child in this.elements.ReadChildren(parent[0]))
+                {
+                    if (this.elements.TryReadText(child, out var childText) && childText.Length > 0)
+                    {
+                        texts.Add(childText);
+                    }
+                }
+            }
+
+            return texts;
         }
 
         /// <summary>

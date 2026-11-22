@@ -76,6 +76,13 @@ proven on every screen; **OPEN** = unknown.
 
 ## Area name
 
+- MEASURED (2026-11-22, 0.5.5f-era, UI dump `ui-tree-InGameState-20261122-000026.txt`): the arrival banner is in HUD
+  layer 12, a container that hides after it fades but keeps its texts. One child holds exactly two text children: the
+  area's name and its tagline ("Isla de los alcaudones" / "Aquí los karui recogen huevos para mostrar su valía"); a
+  sibling says "Entrando a <name>...". Found by shape, not path: a HUD text equal to the current area's name whose parent
+  holds exactly two texts (`AreaBanner`); the minimap label and entity labels equal the name but have no such parent. A
+  banner of another area never matches the name; said once per area id per session, after the level in the area line.
+
 - MEASURED: **AreaLoadingState+0xEA0 → current WorldArea.dat row** (+0x00 id "G1_1", +0x08 name
   "The Riverbank"; GameHelper `WorldAreaDatOffsets`). GameHelper reads +0xF40, which is null in 0.5.5e,
   so its `CurrentAreaName` stays empty; the plugin tracks the row pointer itself.

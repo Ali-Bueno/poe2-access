@@ -146,6 +146,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemModCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ComboIdentity.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\BaselineGrace.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Screen\AreaBanner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\AgreedChoice.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\StatKeyCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\SkillNameCheck.cs" />
