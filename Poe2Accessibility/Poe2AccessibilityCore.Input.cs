@@ -10,6 +10,9 @@ namespace Poe2Accessibility
     {
         private uint lastPadButtons;
 
+        /// <summary>Whether the trigger stood in for the mod button last frame: a change forgets the press in flight.</summary>
+        private bool triggerStoodIn;
+
         /// <summary>A stick pushed this far counts as a direction (our threshold: well past rest, before a full push).</summary>
         private const float DirectionDeflection = 0.5f;
 
@@ -101,7 +104,23 @@ namespace Poe2Accessibility
                 this.commands.CloseSettingsMenu();
             }
 
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), state.IsDown(GameLayout.PadButtons.LeftTrigger)))
+            // In a hideout L3 is the game's editor toggle, fired on release however long it was held (the whoosh,
+            // then editor movement; log 2026-11-21: every scan on L3 toggled the editor). With the switch on the
+            // left trigger is the mod button there instead - every gesture of L3's, fed as L3 - and its R3 chord
+            // locks the beacon rather than glancing at the map. Gameplay only: in menus L3 keeps its readings.
+            // A change of the fed button forgets the press in flight (a hold begun on one is not the other's tap
+            // or hold), and the commands read the legend for the button in use.
+            var triggerButton = L3Gestures.TriggerStandsIn(this.Settings.TriggerModButtonInHideout, this.IsHideout(), this.focus?.Current != null,
+                this.gameState != null && GameStateService.IsInGame(this.gameState.CurrentState));
+            var modButton = triggerButton ? state.IsDown(GameLayout.PadButtons.LeftTrigger) : state.IsDown(GameLayout.PadButtons.LeftStick);
+            if (triggerButton != this.triggerStoodIn)
+            {
+                this.triggerStoodIn = triggerButton;
+                this.gestures.ForgetPress(modButton);
+            }
+
+            this.commands.TriggerFed = triggerButton;
+            foreach (var gesture in this.gestures.Update(Environment.TickCount64, modButton, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), !triggerButton && state.IsDown(GameLayout.PadButtons.LeftTrigger)))
             {
                 this.commands.OnGesture(gesture);
             }

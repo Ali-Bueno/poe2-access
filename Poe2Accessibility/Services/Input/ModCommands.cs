@@ -12,7 +12,9 @@ namespace Poe2Accessibility.Services
     ///     reads the screen and the button hints; holding it and flicking the right stick is the scanner (up/down
     ///     category, left/right entry), holding it and pressing the right stick locks the guide beacon. The game
     ///     sees the same presses (L3 does nothing in gameplay or the inventory; on the world map it toggles the
-    ///     legend).
+    ///     legend; in a hideout it is the game's editor toggle, and there, with its switch on and in gameplay, the
+    ///     left trigger is fed as the mod button instead, Poe2AccessibilityCore's pad reading; a legend binding the
+    ///     button in use takes it: <see cref="L3Gestures.GamesButton"/>).
     /// </summary>
     public sealed class ModCommands
     {
@@ -60,6 +62,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets when the mod button last went down (<see cref="L3Gestures.PressedAt"/>).</summary>
         public Func<long>? PressedAt { get; set; }
 
+        /// <summary>
+        ///     The gestures arriving were fed from the left trigger, not L3 (a hideout with its switch on, the
+        ///     core's pad reading): the legend is then read for the trigger's glyph, not L3's - an L3 binding does
+        ///     not take a press the editor toggle never sees, and a trigger binding takes the trigger's.
+        /// </summary>
+        public bool TriggerFed { get; set; }
+
         /// <summary>The settings menu is open (its flicks need no L3).</summary>
         public bool InSettingsMenu => this.settingsMenu.IsOpen;
 
@@ -76,11 +85,6 @@ namespace Poe2Accessibility.Services
         public void OnGesture(PadGesture gesture)
         {
             this.log.Debug($"Mod button: {gesture}");
-            if (gesture is PadGesture.Hold or PadGesture.LongHold && this.GameTakesTheHold())
-            {
-                return;
-            }
-
             if (this.settingsMenu.IsOpen)
             {
                 this.InSettings(gesture);
@@ -88,6 +92,16 @@ namespace Poe2Accessibility.Services
             }
 
             var current = this.focus.Current;
+            if (gesture != PadGesture.TriggerClick)
+            {
+                var (hinted, holdHinted) = this.LegendBindsButton();
+                if (L3Gestures.GamesButton(gesture, current != null, hinted, holdHinted))
+                {
+                    this.log.Info($"Mod button: {gesture} left to the game (its legend binds the button here)");
+                    return;
+                }
+            }
+
             if (L3Gestures.GamesPress(gesture, current != null, this.PressedAt?.Invoke(), this.focus.CurrentSince))
             {
                 return; // the press was the game's (the stash's search field): its new focus was read, not its name again
@@ -104,17 +118,24 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     True while the game's own legend gives the mod button's hold a job (a stash's "Clear search"): the hold is the
-        ///     game's then, and the mod's reading over it hid what it did.
+        ///     Whether the game's own legend (hint bar) binds the button in use on this screen, as a press or as a
+        ///     hold: where it does, the press is the game's and the mod's reading over it hid what it did (a stash's
+        ///     held "Clear search"). The button in use is L3, or the left trigger where it stands in
+        ///     (<see cref="TriggerFed"/>).
         /// </summary>
-        private bool GameTakesTheHold()
+        private (bool Hinted, bool HoldHinted) LegendBindsButton()
         {
-            var holds = new[] { false, true }.Select(playStation => Announcements.HoldButton(Announcements.ButtonName(ModButtonGlyph, playStation))).ToList();
-            return this.screen().Layers.Any(layer => layer.IsHintBar && layer.Texts.Any(text => holds.Contains(text.Button)));
+            var glyph = this.TriggerFed ? TriggerGlyph : ModButtonGlyph;
+            var names = new[] { false, true }.Select(playStation => Announcements.ButtonName(glyph, playStation)).ToList();
+            var buttons = this.screen().Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).Select(text => text.Button);
+            return L3Gestures.LegendBinds(buttons, names, names.Select(Announcements.HoldButton));
         }
 
         /// <summary>The glyph file of the mod button, the left stick's click (<see cref="Announcements.ButtonName"/>).</summary>
         private const string ModButtonGlyph = "LeftStickButton2";
+
+        /// <summary>The glyph file of the left trigger, the button fed in a hideout (<see cref="TriggerFed"/>).</summary>
+        private const string TriggerGlyph = "TriggerLeft";
 
         private void InMenu(PadGesture gesture, AccessibleUiNode current)
         {

@@ -316,6 +316,33 @@ namespace Poe2Accessibility.Tests
             var both = new L3Gestures();
             both.Update(0, true, 0f, 0f, false, true);
             Equal("StickClick", Names(both.Update(50, true, 0f, 0f, true, true)), "with L3 held it is the guide's chord");
+            // The core feeds the trigger as L3 in a hideout (the trigger argument then stays off): its R3 chord
+            // is the guide's, and its tap, hold and flicks are the mod button's own.
+            var fed = new L3Gestures();
+            Equal(string.Empty, Names(fed.Update(0, true, 0f, 0f, false, false)), "the fed trigger goes down");
+            Equal("StickClick", Names(fed.Update(50, true, 0f, 0f, true, false)), "its R3 chord locks the beacon, never the map glance");
+            Equal(string.Empty, Names(fed.Update(100, false, 0f, 0f, false, false)), "the chord's press ends");
+            // The fed button changes (a menu opens, the area changes): the press in flight is forgotten.
+            var swapped = new L3Gestures();
+            swapped.Update(0, true, 0f, 0f);
+            swapped.Update(100, false, 0f, 0f);
+            swapped.ForgetPress(false);
+            Equal(string.Empty, Names(swapped.Update(500, false, 0f, 0f)), "a tap begun on the other button is not said on this one");
+            var held = new L3Gestures();
+            held.ForgetPress(true);
+            Equal(string.Empty, Names(held.Update(0, true, 0f, 0f)), "a button already down as the feed changes is no new press");
+            Equal(string.Empty, Names(held.Update(1600, true, 0f, 0f)), "no hold, and no settings menu, from a press not begun here");
+            Equal(string.Empty, Names(held.Update(1700, false, 0f, 0f)), "nor a tap on its release");
+            held.Update(1800, true, 0f, 0f);
+            held.Update(1900, false, 0f, 0f);
+            Equal("Tap", Names(held.Update(2300, false, 0f, 0f)), "the next press is a press again");
+            Equal(true, AreaKind.IsHideout("HideoutShoreline"), "one's own hideout");
+            Equal(true, AreaKind.IsHideout("GuildHideout__"), "a guild hideout");
+            Equal(true, AreaKind.IsHideout("hideoutshoreline"), "the row's casing is not the rule's");
+            Equal(false, AreaKind.IsHideout("MapHideoutCanal_Claimable"), "a hideout's map is fought in");
+            Equal(false, AreaKind.IsHideout("MAPHIDEOUTCANAL_CLAIMABLE"), "the map exclusion ignores casing too");
+            Equal(false, AreaKind.IsHideout("G1_1"), "a campaign area");
+            Equal(false, AreaKind.IsHideout(string.Empty), "no area read yet");
         }
 
         private static void StickDirectionsBinInWorldSpace()

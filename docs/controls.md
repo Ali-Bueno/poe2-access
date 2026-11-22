@@ -3,8 +3,20 @@
 The mod reads the controller state the game itself receives, so it works with any pad the game accepts
 (Xbox, DualSense, DualShock, with or without Steam Input). It cannot hide a press from the game: the mod
 button is L3 because the game does nothing with it in gameplay or the inventory (on the world map it also
-toggles the map legend). Turn the controller commands off with `ControllerCommands` in
-`config/settings.txt`. A `settings.txt` that fails to parse is ignored (the mod says so) and is never overwritten with
+toggles the map legend). One exception: in your own hideout L3 is the game's "Open Hideout Editor", fired when
+the button is released however long it was held (the whoosh, then the editor's fast movement), so every scan
+there used to open or close the editor on letting go. **With "Left trigger as the mod button in hideouts (fires its skill)" on
+(settings menu, Navigation, or `TriggerModButtonInHideout` in `config/settings.txt`; off by default), the left trigger (LT) is the mod button in a hideout's gameplay instead of L3**:
+tap, double tap, hold, hold-and-flick scanning and the second-and-a-half settings hold all work on LT exactly as
+on L3, and LT plus R3 locks the guide beacon there (the map glance's chord elsewhere). A skill bound to LT fires
+as you use it so, and holding it to scan keeps casting — the game sees those presses too, which is why the
+switch is opt-in (nothing in a hideout can hurt you for it, but a movement or toggle skill on LT will still go
+off; the owner prefers it to opening the editor unawares, 2026-11-21). With the switch on, L3 in a hideout's
+gameplay only opens and closes the editor; the mod says nothing for it.
+In menus L3 keeps its readings even in a hideout (a stash there). Where the game's own legend at the foot of
+the screen binds the button in use (L3, or LT where it stands in) in gameplay the mod leaves the button to the game; in menus only a hold the legend binds is the game's (a stash's "Clear search"),
+taps there stay shared as they were. Turn the
+controller commands off with `ControllerCommands` in `config/settings.txt`. A `settings.txt` that fails to parse is ignored (the mod says so) and is never overwritten with
 defaults; fix the line and it is read again, as it is whenever it is edited while the host runs.
 
 Closing the game menu is silent (the focus underneath is not read again); Options opened from the game menu starts with
@@ -39,7 +51,7 @@ no A). No tooltip nor build lines are read then. Equipment slots and the flasks'
 ## Scanner (gameplay)
 
 Hold L3 and flick the right stick: up and down change the category, left and right move through it, nearest
-first; both wrap and empty categories are skipped. The category is named only when it changes:
+first; both wrap and empty categories are skipped. (In a hideout's gameplay, with the switch above on, LT stands in for L3.) The category is named only when it changes:
 "Characters. Una, 14 steps, right 3, then up right".
 
 - The Trial of the Sekhemas' map reads each room's place: "column 2 of 8, room 3 of 3", columns running from the entrance to the boss, the rooms it leads to in the next column ("leads to rooms 3, 4": the lines the game draws),

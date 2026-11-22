@@ -80,6 +80,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the current area is a town or a hideout, from its own row (<see cref="AreaKind"/>).</summary>
         public bool InTownOrHideout { get; private set; }
 
+        /// <summary>Whether the current area is a hideout, where L3 is the game's editor toggle (<see cref="AreaKind.IsHideout"/>).</summary>
+        public bool IsHideout { get; private set; }
+
         public uint AttachedPid { get; private set; }
 
         public bool IsAttached => this.AttachedPid != 0;
@@ -110,6 +113,7 @@ namespace Poe2Accessibility.Services
             this.CurrentAreaName = name;
             this.CurrentAreaId = id;
             this.InTownOrHideout = AreaKind.IsTownOrHideout(id, this.reader.TryRead<byte>(row + GameLayout.WorldAreaRow.IsTownOffset, out var town) && town != 0);
+            this.IsHideout = AreaKind.IsHideout(id);
             this.log.Info($"Area: {name} ({this.CurrentAreaId}){(this.resuming ? " resumed" : string.Empty)}");
             this.instances.AreaEntered(Core.States.InGameStateObject.CurrentAreaInstance.AreaHash);
             this.AreaChanged?.Invoke(name, this.resuming);
@@ -298,6 +302,9 @@ namespace Poe2Accessibility.Services
             else
             {
                 // A loading screen or login before the game: the next area is entered, not resumed.
+                // The hideout flag is of the area in play: it must not outlive it through the loading screen
+                // (nor into an area whose row then fails to read), so the trigger scheme falls back to L3.
+                this.IsHideout = false;
                 this.resuming &= state == GameStateTypes.GameNotLoaded;
                 if (state is GameStateTypes.SelectCharacterState or GameStateTypes.CreateCharacterState or GameStateTypes.LoginState)
                 {
