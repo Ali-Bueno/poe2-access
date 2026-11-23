@@ -38,9 +38,9 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            var taggedText = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextWithTagsOffset, MaxTextLength, allowEmpty: true);
-            var stripped = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextOffset, MaxTextLength, allowEmpty: true);
-            var copy = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextCopyOffset, MaxTextLength, allowEmpty: true);
+            var taggedText = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextWithTagsOffset, MaxLabelLength, allowEmpty: true);
+            var stripped = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextOffset, MaxLabelLength, allowEmpty: true);
+            var copy = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextCopyOffset, MaxLabelLength, allowEmpty: true);
             if (taggedText == null || stripped == null || copy == null || stripped != copy)
             {
                 return false;
@@ -56,14 +56,14 @@ namespace Poe2Accessibility.Services
         /// <summary>True when the element holds a text too long for <see cref="TryReadText"/>; only its header is read.</summary>
         public bool IsLongText(IntPtr address) =>
             this.reader.TryRead<GameOffsets.Natives.StdWString>(address + GameLayout.Element.TextOffset, out var value) &&
-            value.Length > MaxTextLength && WStringDecoder.LooksLikeString(value, MaxLongTextLength, allowEmpty: false);
+            value.Length > MaxLabelLength && WStringDecoder.LooksLikeString(value, MaxLongTextLength, allowEmpty: false);
 
         /// <summary>The whole text of an element holding a long one (<see cref="IsLongText"/>), markup stripped.</summary>
         public bool TryReadLongText(IntPtr address, out string text)
         {
             var block = this.reader.ReadBytes(address, TextBlockSize);
             text = block.Length == 0 ? string.Empty : WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextOffset, MaxLongTextLength, allowEmpty: false) ?? string.Empty;
-            return text.Length > MaxTextLength;
+            return text.Length > MaxLabelLength;
         }
 
         /// <summary>

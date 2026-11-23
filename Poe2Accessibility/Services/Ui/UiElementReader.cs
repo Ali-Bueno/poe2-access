@@ -15,6 +15,9 @@ namespace Poe2Accessibility.Services
         private const int MaxChildrenPerNode = 4096;
         private const int MaxTextLength = 1024;
 
+        /// <summary>A label's longest text: the longest line of NPCTextAudio is 3227 characters (German, 2026-11-23).</summary>
+        private const int MaxLabelLength = 4096;
+
         /// <summary>The longest text read whole on request (the terms of use hold about 60 000 characters).</summary>
         private const int MaxLongTextLength = 1 << 18;
         private const int MaxParentDepth = 64;
