@@ -29,8 +29,12 @@ namespace Poe2Accessibility.Services
 
         private const int QuickCurrencyNodes = 48;
 
-        /// <summary>Rows already reported to the log, by what they offered and which was hovered.</summary>
-        private readonly HashSet<string> quickCurrencySeen = new(StringComparer.Ordinal);
+        /// <summary>
+        ///     The last row reported to the log (its element, what it offered, which was hovered): consecutive
+        ///     polls of the same row are all the log must not repeat. Forgotten with the other focus memos, so an
+        ///     address the game reuses for a rebuilt row logs again.
+        /// </summary>
+        private (IntPtr Address, int Selected, string[] Currencies) quickCurrencyLogged;
 
         /// <summary>The UI manager's hovered element as the focus tracker last read it: the row's selected button.</summary>
         public IntPtr HoveredAddress { get; set; }
@@ -119,9 +123,16 @@ namespace Poe2Accessibility.Services
             // carry no Metadata name.
             var labelText = this.DescribeElement(label.Address, false)?.Text ?? string.Empty;
 
-            var read = $"{info.Address:X}|{string.Join(",", slots.ConvertAll(offer => offer.Currency))}|{selected}";
-            if (this.quickCurrencySeen.Add(read))
+            var logged = this.quickCurrencyLogged;
+            var unchanged = logged.Address == info.Address && logged.Selected == selected && logged.Currencies is { } seen && seen.Length == slots.Count;
+            for (var i = 0; unchanged && i < slots.Count; i++)
             {
+                unchanged = slots[i].Currency == logged.Currencies[i];
+            }
+
+            if (!unchanged)
+            {
+                this.quickCurrencyLogged = (info.Address, selected, slots.ConvertAll(offer => offer.Currency).ToArray());
                 this.ArtLog?.Invoke(
                     $"Quick currency: {label.Name}: {string.Join(" | ", slots.ConvertAll(offer => $"{(offer.Currency.Length > 0 ? offer.Currency : "unread")} [{string.Join(", ", offer.Keys)}] {offer.Button.Raw.UnscaledSize.X:0}x{offer.Button.Raw.UnscaledSize.Y:0}"))}, selected {selected + 1} of {slots.Count}");
             }

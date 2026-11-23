@@ -53,6 +53,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 1L), ("started", 1L) }), "a box just looted after its ambush is spent");
             Equal(false, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 0L), ("started", 1L) }), "the ambush running: not spent yet");
             Equal(false, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 0L), ("started", 0L) }), "an unopened box, and one that can be opened after its ambush, stay listed");
+            Equal(true, LeaguePieces.IsStrongboxSpent(new[] { ("started", 1L), ("robot", 0L), ("opened", 1L) }), "the states' order is the script's: opened wherever it stands");
+            Equal(false, LeaguePieces.IsStrongboxSpent(new[] { ("started", 1L), ("robot", 1L) }), "states read without opened: not spent");
             Equal(false, LeaguePieces.IsStrongboxSpent(Array.Empty<(string, long)>()), "no states read: not spent");
             Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_9/Objects/KeyPedestal_02"), "the Molten Vault's stone altar takes a quest item");
             Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss"), "as the Machinarium's do");
