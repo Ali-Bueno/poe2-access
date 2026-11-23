@@ -15,7 +15,7 @@ the game offer instead, and which of its tooltips must the mod speak?
 
 "Quick-use currency" is **not** the controller substitute for right-clicking. There are two systems:
 
-**(a) The gamepad hold — "Hold: Apply Currency"** (since launch; the controller path).
+**(a) The gamepad hold — "Hold: Apply Currency"** (LIKELY since launch — the 2025-01-19 console report below already describes it; the controller path).
 ClientStrings carries `GamepadInteractInfoStrongboxAltOnly` = "Hold: Apply Currency" /
 "Mantener presionado: Aplicar objetos monetarios" (MEASURED, league-mechanics.md §6). Standing at a
 strongbox on a gamepad: **tap** the interact button opens it (the ambush starts); **hold** the interact
@@ -60,12 +60,15 @@ modifier lines under it ("Guarded by 10 packs of Monsters"), the gamepad hold hi
 quick-use icons under it. An essence's label likewise names the held monster and its essences, with a
 Vaal Orb icon when one is carried and the essence is not yet corrupted.
 
-The labels are drawn in the world, not in the UI tree the mod reads: in the 2026-11-18 play log, every
-ground item that took the target produced HUD (layer 12) tooltip texts, but no strongbox ever did —
-no modifier line of any box appears anywhere in the log or in the UI dumps (MEASURED by absence:
-`grep -i "guarded by"` over the log and `docs/research/evidence/` finds nothing). The exit label's
-"Hold A (Show Options)" is the same kind of text and is likewise "drawn outside the UI tree"
-(ProximityNarrator, 2026-10-24).
+The labels are in the UI tree but in a layer speech never read: they live under the
+`world_overlay`/`world_ui_layer_parent` prefixes at `[0,1,11]`, which the screen watcher skips (the
+layer and its metadata-path naming were already documented in [ui-layers.md](ui-layers.md) and
+[minimap.md](minimap.md); §4c settles the label subtree itself). That, not world-drawing, is why the
+2026-11-18 play log shows HUD (layer 12) tooltip texts for ground items but never a strongbox text —
+no modifier line of any box appears anywhere in the log or in the UI dumps the watcher took (MEASURED
+by absence: `grep -i "guarded by"` over the log and `docs/research/evidence/` finds nothing). The exit
+label's "Hold A (Show Options)" never reached speech for its part either (ProximityNarrator,
+2026-10-24, written before the layer was read).
 
 What the mod says today, from the same log (five boxes met: Researcher's ×3, Armourer's, Large,
 Blacksmith's):
@@ -86,17 +89,18 @@ Blacksmith's):
 | Fact | Source the host already reads | Status |
 |---|---|---|
 | "hold ⟨button⟩ to apply currency" | the game's own string above; spoken the way the exit's hold hint is (`Announcements.HoldForOptions`, once per area) | done, this change (§4) |
-| strongbox rarity + modifiers | candidate: `ObjectMagicProperties` (Rarity, Mods/ModNames) or `Mods` on the box entity. The host reads both components elsewhere, and `Entity.TryCalculateEntitySubType` reads a chest's `ObjectMagicProperties.Rarity` — but only on the non-strongbox branch, so a strongbox carrying either is UNVERIFIED | logged once per box from this change; spoken only once a log confirms which component carries the label's lines (§5) |
-| modifier lines as text | rendered from the mod ids through the same machinery that writes an item's lines (`catalog/mod-texts.json`, `mod-stats`; the strongbox mods are ordinary Mods rows, e.g. `ChestSummonNormals` "Guarded by (4-8) packs of Monsters", poe2wiki's strongbox modifier tables) | after the component is confirmed |
-| which quick-use buttons would show | derived, as the game derives them: box state (unidentified / rarity / modifier count) × currency in the player's inventory (the host reads inventories; `InventoryReader` names and counts stacks) | design in §5; speak only what the game would show |
-| the hold panel's contents | a UI panel like any other once open: `ScreenWatcher`/`FocusTracker` read panels and inventory grids (a currency cell already reads "…, X to use, then A …"). No dump of this panel exists yet | needs one UI dump with the panel open (§5) |
+| strongbox rarity + modifiers | candidate: `ObjectMagicProperties` (Rarity, Mods/ModNames) or `Mods` on the box entity. The host reads both components elsewhere, and `Entity.TryCalculateEntitySubType` reads a chest's `ObjectMagicProperties.Rarity` — but only on the non-strongbox branch | rarity **spoken** from the follow-up slice and confirmed live (§4d: "Strongbox, rare, A" after the owner's Alchemy; Normal read on a box offering only transmutation/alchemy buttons). The modifiers and the corruption stat are still only logged (`LogStrongbox`, on every change of the read) until a session's log settles speaking them (§5) |
+| modifier lines as text | rendered from the mod ids through the same machinery that writes an item's lines (`catalog/mod-texts.json`, `mod-stats`; the strongbox mods are ordinary Mods rows, e.g. `ChestSummonNormals` "Guarded by (4-8) packs of Monsters", poe2wiki's strongbox modifier tables) | superseded as the first road: the label subtree (§4c) carries the lines in the game's own words — read them there (§5 item 1) |
+| which quick-use buttons would show | derived, as the game derives them: box state (unidentified / rarity / modifier count) × currency in the player's inventory (the host reads inventories; `InventoryReader` names and counts stacks) | not needed: the row itself is read (§4c); deriving it would only duplicate the game |
+| the hold panel's contents | a UI panel like any other once open: `ScreenWatcher`/`FocusTracker` read panels and inventory grids (a currency cell already reads "…, X to use, then A …") | done: captured by the dumps of §4c and read by `DescribeQuickCurrency` (§4c–§4d) |
 | essence vaal-able | the crystal's states already read (`is_corrupted`, `num_essences`, … in `LeagueWatch`'s "League piece seen"); a Vaal Orb in the inventory as above | design in §5 |
 
-One trap for whoever builds §5: `ObjectMagicProperties.UpdateData` and `Mods.UpdateData` rebuild their
-mod lists only when the component address changes (`hasAddressChanged`); rarity is re-read every
-update. Applying currency changes a box's mods in place, so after an application the cached list may
-be stale — the component must be re-read (or its change detected via rarity) before the new lines are
-spoken, or the mod will repeat the old box.
+One trap for whoever builds §5: `ObjectMagicProperties.UpdateData` and `Mods.UpdateData`
+(`host/GameReader/RemoteObjects/Components/ObjectMagicProperties.cs`, `Mods.cs`) rebuild their mod
+lists only when the component address changes (`hasAddressChanged`); rarity is re-read every update,
+before that guard. Applying currency changes a box's mods in place, so after an application the
+cached list may be stale — the component must be re-read (or its change detected via rarity) before
+the new lines are spoken, or the mod will repeat the old box.
 
 ## 4. What this change does (2026-11-23)
 
@@ -108,13 +112,18 @@ The smallest slice that game data alone supports, no unverified field spoken:
   **"Researcher's Strongbox, A. hold A to apply currency"** (`ProximityNarrator.Label`, beside the
   exit's "hold A for options", once per area the same way; `Announcements.HoldToApplyCurrency`, phrase
   in all ten languages, `phrases.py check` clean).
-- `EntityCatalog.LogStrongbox`: once per box, log what `ObjectMagicProperties` and `Mods` read on it
-  ("Strongbox mods: Metadata/Chests/StrongBoxes/…: ObjectMagicProperties Rare, mods […]; Mods none") —
-  the shrine-row/essence-contents pattern: how the field is confirmed from a session's log before
-  anything is spoken from it (AGENTS 26: the log confirms a finding, it is not the way to it — the
-  design in §5 stands on the files either way; the log only picks the component).
+- `EntityCatalog.LogStrongbox`: each time a box's read changes, log what `ObjectMagicProperties` and
+  `Mods` read on it, with the candidate corruption mark in its three possible homes — the
+  `GameStats.dropped_items_are_corrupted` stat in `ObjectMagicProperties.ModStats` and in the entity's
+  own `Stats` (`StatsChangedByItems`/`StatsChangedByBuffAndActions`) — since a corrupted box's mark is
+  not spoken yet ("Strongbox mods: Metadata/Chests/StrongBoxes/…: ObjectMagicProperties Rare,
+  mods […], corrupt stat 0; Mods none; Stats corrupt 0/0"). The shrine-row/essence-contents pattern:
+  how the field is confirmed from a session's log before anything is spoken from it (AGENTS 26: the
+  log confirms a finding, it is not the way to it — the design in §5 stands on the files either way;
+  the log only picks the component).
 
-Build and the full unit suite pass (`tools/linux-tests.sh`); not heard live yet.
+Build and the full unit suite pass (`tools/linux-tests.sh`); not heard live at this slice — heard
+later the same day (§4b–§4d).
 
 ## 4b. The same day, live (play log 2026-11-23, the build before §4)
 
@@ -126,8 +135,10 @@ The owner walked around two landmark strongboxes in Holten trying exactly this. 
   `EntityCatalog.Classify` trusts the Chest component's `IsOpened`, which read unopened. Ordinary spent boxes
   agree in both (a looted `CasterStrongboxLow` was left unlisted on 2026-11-18); the landmark variant does
   not. Fixed the same day: a strongbox whose script state `opened` is set is spent
-  (`LeaguePieces.IsStrongboxSpent`, unit-tested) and is no longer listed or named. A box whose states do not
-  read stays listed.
+  (`LeaguePieces.IsStrongboxSpent`, unit-tested; the state's meaning is MEASURED in
+  [league-mechanics.md](league-mechanics.md) §6 — Strongbox.ot handlers: `opened` 1 = looted, the
+  script every strongbox inherits from `Metadata/Chests/StrongBoxes/Strongbox`) and is no longer
+  listed or named. A box whose states do not read stays listed.
 - The second box (`…/P1_4LandmarkStrongbox2`, `opened=0`) took the target once the owner stood close enough
   ("Strongbox, A", 14:31:39 — beacon "arrived" and scanner "here" are both outside interact reach; the
   target line is the only sign A will work). Holding A then **did open the apply panel** — and the mod said
@@ -143,8 +154,13 @@ The owner walked around two landmark strongboxes in Holten trying exactly this. 
 ## 4c. The hold panel captured (UI dumps 2026-11-23 14:34, live-verified after)
 
 Two research dumps 18 s apart, before and after the hold, plus live `describe`/`hex` probes, settle what the
-panel is. World labels live in their own layer (`[0,1,11]`, before the HUD; the screen watcher skips the
-`world_overlay`/`world_ui_layer_parent` prefixes, which is why no label text ever reached speech):
+panel is. (The dumps are the play copy's `ResearchMode` auto-dumps of 2026-11-23 14:34 —
+`ui-tree-*-20261123-1434*.txt` in its `Plugins/Poe2Accessibility/debug/`, per `UiTreeDumper`'s naming;
+they are runtime evidence on the play machine, not committed here. The 15:12 rare-label dump of §4d
+is the same road. A patch recheck (AGENTS 18) re-takes them the same way: `ResearchMode` on, target a
+box, hold, dump.) World labels live in their own layer (`[0,1,11]`, before the HUD; the screen watcher skips the
+`world_overlay`/`world_ui_layer_parent` prefixes, which is why no label text ever reached speech;
+layer provenance §2):
 
 - `[0,1,11,0,0,*]` — every nearby object's plain label, hidden until targeted; each element's name is the
   object's file ("Metadata/Chests/Manor/Urn1").
@@ -161,19 +177,22 @@ panel is. World labels live in their own layer (`[0,1,11]`, before the HUD; the 
   Orb of Alchemy (read from the texture object's buffer by hex probe; the owner carried 2, and no
   transmutation).
 - The icon art does not resolve through the price catalog: the orbs with Greater/Perfect tiers share one art
-  file in `BaseItemTypes`, so `CurrencyArtExtractor` leaves it unnamed. The button shows one concrete item,
-  and its id is the art file's stem, tiers numbered (`CurrencyUpgradeToMagic2` the Greater): named by
-  `CurrencyIcons.QuickUseName` (catalog first, stem else), unit-tested. Whether a tiered button's art is the
-  base file or its own numbered one is UNVERIFIED — the first log line of a tiered button settles it
-  ("Quick currency:" logs every key read, once per button).
+  file in `BaseItemTypes`, so `CurrencyArtExtractor` leaves it unnamed. A button whose art stem is the
+  item's own id names that item (`CurrencyIcons.QuickUseName`: catalog first, stem else; the Alchemy
+  stem measured above) — but a base stem of a tiered family (`CurrencyUpgradeToMagic`, LIKELY the
+  Greater being `…Magic2` by the item-names catalog's numbering) cannot say which tier the button
+  would spend. Whether a tiered button's art is that shared base file or its own numbered one is
+  UNVERIFIED, so `QuickUseName` leaves a base stem with a numbered sibling unnamed ("Currency") rather
+  than speak the base orb; the first "Quick currency:" log line of a tiered button (every key read,
+  logged when the row's read changes) settles which art it carries (review fix, 2026-11-23).
 - The icon child is flagged invisible in every dump (its parent draws it), so texture hunting must walk
   invisible children too.
 
 Built on it the same day, deployed and verified live at the same box: `UiSemantics.DescribeQuickCurrency`
 makes the focused button read as itself — `Focus -> … role=Button text="Orb of Alchemy"
 context="Strongbox, Guarded by 10 packs of Monsters"` — the label as the spoken context, "x of n" when a
-label offers several buttons (UNVERIFIED, one-button sample). `ResearchMode` was switched off again after
-the capture (an auto-dump costs a ~5 s tick).
+label offers several buttons (at this slice UNVERIFIED, one-button sample; settled in §4d).
+`ResearchMode` was switched off again after the capture (an auto-dump costs a ~5 s tick).
 
 ## 4d. The box made rare, and the Vaal question settled (live, 2026-11-23)
 
@@ -184,7 +203,8 @@ then an `explicit-stats` layout of five visible lines for four modifiers — "63
 Items" (two suffixes summed: 30(15-30) with 17% increased Effectiveness, 33(25-50)), "20% more Rarity of
 Contained Items / Freezes you when activated" (the Arctic prefix), "Guarded by a pack of Rare Monsters";
 the hidden reminder branches carry each mod's range, tier (T1) and Prefix/Suffix. Two prefixes and two
-suffixes: room for one more of each under the default cap.
+suffixes: LIKELY room for one more of each (the 3+3 cap is item-mod logic by analogy; no
+strongbox-specific source found).
 
 The Vaal road was also tried to its end — and it **works**, correcting what this section first said. The
 inventory opened while the box is the game's interact target (the panel's X legend, or the backpack key
@@ -209,11 +229,17 @@ is a single focused element, directions move a selection inside it, and the firs
 icon it found first — the owner heard "Orb of Transmutation" four times while the selection stood
 elsewhere. Applying the Transmutation updated the row in place (the same focus read "Orb of Alchemy"
 under the new "Arctic …" label a minute later). A later two-button capture disproved the first guess
-that the selected button stands grown: both buttons read 60×60. The UI manager instead alternates the
-two press-button addresses in its hovered slot as D-pad left/right move the selection. The reader now
-names the slot whose address matches that hovered element (size only if no button matches), with its
-place in the row. Verified live at the same two-button box after deployment: D-pad right logged
-`selected 2 of 2` and said "Orb of Alchemy, button, 2 of 2" (2026-11-23 17:00).
+that the selected button stands grown: both press buttons read 60×60. (The sizes in this file are of
+different elements: the root-child wrapper 61×51 in §4c, the press buttons inside it 60×60 here, and
+the single-button row's button 61×61 focused / 40×40 not, from the first capture — size therefore
+only a fallback.) The UI manager instead alternates the two press-button addresses in its hovered
+slot as D-pad left/right move the selection. That slot is no new offset: it is the pre-existing
+`GameLayout.UiManager.HoveredOffset` (0x760, layout-probe adjusted) the focus tracker already read
+for hover (`FocusTracker.Reading.cs`; audited in
+[field-protection-audit.md](field-protection-audit.md)). The reader now names the slot whose address
+matches that hovered element, with its place in the row. Verified live at the same two-button box
+after deployment: D-pad right logged `selected 2 of 2` and said "Orb of Alchemy, button, 2 of 2"
+(2026-11-23 17:00).
 
 ## 4e. Exalted: GGG's list against the gamepad's reality (live, 2026-11-23)
 
@@ -240,16 +266,18 @@ this input, it never builds (LIKELY mechanism for what looks like a gamepad-side
 
 1. **Say the label on taking the target, without the hold.** The label subtree (§4c) stands in the tree
    whenever the box is targeted, title and modifier lines in the game's own words — a better source than
-   reconstructing them from a mods component. What is missing is the wiring from the entity the catalog
-   targets to its label element (the root is named by the entity's file; several same-file labels can
-   stand in `[0,1,11,0,0]`, the targeted one under `[0,1,11,0,1]`), and rarity: the label's colour says
-   it to sighted players, no text does (the "Strongbox mods:" component log of §4 still picks that
-   field; no line yet, the catalog is not polled while a panel is over the game). Unidentified must
-   withhold the lines, as the label does.
-2. **Several buttons on one label** (a box offering transmutation and alchemy at once) and a **tiered
-   button's art** (base file or numbered): first log line of each settles both ("Quick currency:" in the
-   plugin log). Re-say the label when its lines change after a currency is applied — the label elements
-   rebuild (addresses differed between the two dumps), so diff by text, not address.
+   reconstructing them from a mods component. What is missing is only the wiring from the entity the
+   catalog targets to its label element (the root is named by the entity's file; several same-file
+   labels can stand in `[0,1,11,0,0]`, the targeted one under `[0,1,11,0,1]`). Rarity needs no label:
+   it is already spoken from `ObjectMagicProperties` (§4d). Unidentified must withhold the lines, as
+   the label does. The "Strongbox mods:" log (§4) meanwhile keeps watching for what no label text
+   carries — above all where a corrupted box's mark reads — before anything more is spoken from it.
+2. **A tiered button's art** (shared base file or its own numbered one) is the one unsettled read:
+   the first "Quick currency:" line from a tiered button settles it, and until then the shared base
+   art speaks unnamed (§4c). Several buttons on one label are settled (§4d: hovered-slot selection,
+   live 17:00). Still to do: re-say the label when its lines change after a currency is applied —
+   the label elements rebuild (addresses differed between the two dumps), so diff by text, not
+   address.
 3. **Essences**: the same reader covers a crystal's label by construction (its root is the held
    monster's file), but no essence button has been seen: whether holding the interact button at a
    crystal focuses its Vaal button the same way is UNVERIFIED until a dump shows one.
