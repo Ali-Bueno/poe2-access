@@ -641,8 +641,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
   Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on
   entering an area"; not in towns and hideouts).
-- Whether the campaign's map changes: "Fixed map" when the game has one layout for the area, so what you learnt there holds
-  the next time; "Variable map, the same as last time" (or "the last 3 times", or "different from last time") against the
+- Whether the campaign's map changes: "Fixed map" when its exits are always at the same places, so what you learnt there
+  holds the next time; "The map may change" when the game's files hold several layouts and it was not met often enough to
+  tell; "Variable map, the same as last time" (or "the last 3 times", or "different from last time") against the
   instances met before on this computer, whatever the character. What lies in the rooms may change on a fixed map too.
   Setting "Say whether the map changes on entering an area"; the glance at the map says it either way.
 - Enemies coming into view, each monster once per area, a pack in one line by name, count and the direction of its

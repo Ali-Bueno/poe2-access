@@ -126,14 +126,19 @@ namespace Poe2Accessibility.Tests
             var file = System.IO.Path.Join(System.IO.Path.GetTempPath(), $"area-maps-{Guid.NewGuid():N}.txt");
             try
             {
-                const string catalog = "{ 'G3_17': 1, 'G1_4': 12 }";
-                var layouts = new AreaLayouts(catalog, file);
+                const string catalog = "{ 'G3_17': 1, 'G1_4': 12, 'G1_2': 33, 'G3_5': 20 }";
+                const string measured = "{ 'fixed': ['G1_2'], 'varies': ['G1_4'] }";
+                var layouts = new AreaLayouts(catalog, measured, file);
+                Equal("Fixed map", layouts.Line("G1_2", "A1", 5), "many layouts in the files, one met in play");
+                Equal("The map may change", layouts.Line("G3_5", "A1", 5), "many in the files, not met often enough");
+                Equal("The map may change, the same as last time", layouts.Line("G3_5", "B2", 5), "and once more");
+                Equal("Variable map, different from last time", layouts.Line("G3_5", "C3", 6), "met differing here");
                 Equal("Fixed map", layouts.Line("G3_17", "A1", 5), "one layout");
                 Equal(string.Empty, layouts.Line("MapCrypt", "A1", 5), "an area the data do not list");
                 Equal("Variable map", layouts.Line("G1_4", "A1", 5), "met for the first time");
                 Equal("Variable map", layouts.Line("G1_4", "A1", 5), "the same instance entered again");
                 Equal("Variable map, the same as last time", layouts.Line("G1_4", "B2", 5), "another instance, laid out alike");
-                Equal("Variable map, the same as the last 2 times", new AreaLayouts(catalog, file).Line("G1_4", "C3", 5), "and once more, after a restart");
+                Equal("Variable map, the same as the last 2 times", new AreaLayouts(catalog, measured, file).Line("G1_4", "C3", 5), "and once more, after a restart");
                 Equal("Variable map, different from last time", layouts.Line("G1_4", "D4", 9), "another layout");
                 Equal("Variable map", layouts.Line("G1_4", "E5", 0), "a map with no frame cannot be compared");
             }

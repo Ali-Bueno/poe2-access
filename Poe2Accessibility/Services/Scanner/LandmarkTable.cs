@@ -112,6 +112,9 @@ namespace Poe2Accessibility.Services
             return result;
         }
 
+        /// <summary>The area's tiles named by another area: its ways out.</summary>
+        public IEnumerable<string> ExitTiles(string areaId) => this.Source(areaId).Where(tile => this.IsAreaName(tile.Value)).Select(tile => tile.Key);
+
         /// <summary>
         ///     The label names a world area, in any language (an exit before the game loads it), not the radar table's
         ///     own note on a tile ("Ogham Farmlands Or Deadend", "The Corpse Tree (waypoint)").

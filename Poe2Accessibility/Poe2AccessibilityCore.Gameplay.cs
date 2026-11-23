@@ -452,10 +452,10 @@ namespace Poe2Accessibility
 
         private (string Instance, int Tiles, ulong Frame) areaFrame = (string.Empty, 0, 0);
 
-        /// <summary>Whether the map changes from one instance to the next, its frame worked out once an instance; empty in towns and hideouts.</summary>
+        /// <summary>Whether the map changes from one instance to the next, its exits compared once an instance; empty in towns and hideouts.</summary>
         private string LayoutLine()
         {
-            if (this.areaLayouts == null || InTownOrHideout())
+            if (this.areaLayouts == null || this.landmarks == null || InTownOrHideout())
             {
                 return string.Empty;
             }
@@ -464,7 +464,7 @@ namespace Poe2Accessibility
             var tiles = area.TgtTilesLocations;
             if (this.areaFrame.Instance != area.AreaHash || this.areaFrame.Tiles != tiles.Count)
             {
-                this.areaFrame = (area.AreaHash, tiles.Count, AreaMemory.Frame(tiles, area.TerrainMetadata.BytesPerRow, area.GridWalkableData.Length));
+                this.areaFrame = (area.AreaHash, tiles.Count, AreaLayouts.Exits(tiles, this.landmarks.ExitTiles(this.gameState?.CurrentAreaId ?? string.Empty), area.TerrainMetadata.BytesPerRow, area.GridWalkableData.Length));
             }
 
             return this.areaLayouts.Line(this.gameState?.CurrentAreaId ?? string.Empty, area.AreaHash, this.areaFrame.Frame);

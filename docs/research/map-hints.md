@@ -197,19 +197,27 @@ derecha 1, luego derecha": the sign stands on the way. The exit's place on a fir
 
 ## Fixed and variable maps (2026-11-23)
 
-`WorldAreas` lists for each area the rows of `Topologies` it draws from (0.5.5f: the list at +0x60, the graph file at +0x8;
-both found by content). A graph's nodes stand at fixed cells, so the count of graphs is the count of layouts: 40 of the
-campaign's 103 areas have one (the Waterways, the Black Chambers, the Eye of Hinekora, most of the interlude). Two traps:
+`WorldAreas` lists for each area the rows of `Topologies` it may be drawn from (0.5.5f: the list at +0x60, the graph file at
++0x8; both found by content; extractor `area-layouts`). A graph's nodes stand at fixed cells, so one graph is one layout: 40 of
+the campaign's 103 areas (the Waterways, the Black Chambers, the Eye of Hinekora, most of the interlude). A graph can hold
+others (`"graph"` nodes): one naming a file is fixed, one naming a group of the master file's `FileGroups` is drawn (the
+Dreadnought's single graph holds one of four). The Trials put their rooms together anew; left out.
 
-- A graph can hold others (`"graph"` nodes). One that names a file is fixed (Derelict's two floors); one that names a group
-  of the master file's `FileGroups` is drawn: the Dreadnought's single graph holds one of four, and the owner's characters had
-  met two. Those count as many layouts as the group has.
-- The Trials (`G2_13`, `G3_10`) put their rooms together anew; left out, as are the endgame's maps, not in the campaign.
+**Several graphs do not mean a map that changes** (the first version said so; the owner: Clearfell and the Manor Ramparts never
+changed). The game draws only from the graphs that fit the area's side of the act's world map, turned or mirrored when need be
+(Hunting Grounds met: `HuntingGroundsW_N` mirrored and `E_S` mirrored, both east to north; Clearfell always `felling_S_W_E`,
+Halani Gates always `gates_SN`), and that side is the same for a league's every instance (guides: Halani Gates one pattern in
+all leagues, turned one way in softcore, another in hardcore and SSF; Arastas one layout a league). Dungeons and dead ends are
+free. The rule that picks among the fitting graphs is not known, so what counts is what was met: `catalog/area-maps.json`.
 
-Checked against the exits and waypoints the mod had remembered for all characters (`config/known-places.txt`, 2,600 lines):
-in no campaign area did an exit stand at more places than the area has layouts, beside the Dreadnought above and places that
-share a name. Two areas with one layout and several instances met are only the camps; the others rest on the files.
+| Evidence | How |
+|---|---|
+| Instances generated (`tools/research/topology/instances.py`) | the client's `logs/Client.txt`: `Generating level 2 area "G1_2" with seed ...`, 1805 since 2026-10-23 |
+| Where things lay in them | `config/known-places.txt` (exits, waypoints, checkpoints, five characters), `config/explored/*.bin` |
+| Fixed: at least 5 seeds, every exit at one place | Clearfell (65 seeds), Halani Gates (8), Mawdun Mine (5); Manor Ramparts (8), whose door to the Manor has two places, 12 tiles apart, all else one |
+| Varies: an exit, waypoint or stairs at several | 33 areas; Hunting Grounds and Mud Burrow exactly two |
 
-At run time the count says fixed or variable; "the same as last time" compares the frame (`AreaMemory.Frame`: the transition
-tiles and the grid) with the instances kept in `config/area-maps.txt`, twelve an area. What lies in the rooms is drawn anew in
-a fixed map too. Extractor: `area-layouts`; runtime: `AreaLayouts`.
+Anything else with several graphs "may change". At run time "the same as last time" compares where the exits lie
+(`AreaLayouts.Exits`: the landmark table's tiles named by an area and the transition tiles) with the instances kept in
+`config/area-exits.txt`, twelve an area, whatever the character. What lies in the rooms is drawn anew in a fixed map too, and
+another league's map may be a turned one.

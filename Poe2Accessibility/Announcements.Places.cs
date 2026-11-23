@@ -100,8 +100,12 @@ namespace Poe2Accessibility
         public static string FixedMap => T("Fixed map", "Mapa fijo");
 
         /// <summary>The game has several layouts for the area; how many instances in a row, up to now, had this one.</summary>
-        public static string VariableMap(int same, bool metBefore) => same switch
+        /// <param name="varies">Met differing; otherwise it only may, by the files.</param>
+        public static string VariableMap(bool varies, int same, bool metBefore) => same switch
         {
+            0 when !varies => T("The map may change", "El mapa puede cambiar"),
+            1 when !varies => T("The map may change, the same as last time", "El mapa puede cambiar, igual que la última vez"),
+            _ when !varies => T($"The map may change, the same as the last {same} times", $"El mapa puede cambiar, igual que las últimas {same} veces"),
             0 when metBefore => T("Variable map, different from last time", "Mapa variable, distinto de la última vez"),
             0 => T("Variable map", "Mapa variable"),
             1 => T("Variable map, the same as last time", "Mapa variable, igual que la última vez"),

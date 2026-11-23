@@ -67,6 +67,7 @@ namespace Poe2Accessibility
         private MapHintNarrator? mapHints;
         private HintTrails? trails;
         private AreaLayouts? areaLayouts;
+        private LandmarkTable? landmarks;
         private ForkNarrator? forks;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
@@ -278,7 +279,7 @@ namespace Poe2Accessibility
             ControllerGlyphs.Dropped = message => this.log.Info(message);
             InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
                 // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
-                var landmarks = LandmarkTable.Load(
+                var landmarks = this.landmarks = LandmarkTable.Load(
                     this.log,
                     Path.Join(this.DllDirectory, "catalog", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "landmarks.json"));
@@ -444,7 +445,7 @@ namespace Poe2Accessibility
                 this.lostHint.SayWay = cell => this.output?.Say(SpeechKind.Places, this.entities.DescribeWayOn(cell));
                 this.leftBehind = new LeftBehind(this.audio, this.entities, this.log);
                 this.trails = new HintTrails(this.entities, this.output, this.audio, this.log);
-                this.areaLayouts = AreaLayouts.Load(this.log, Path.Join(this.DllDirectory, "catalog", "area-layouts.json"), Path.Join(this.DllDirectory, "config", "area-maps.txt"));
+                this.areaLayouts = AreaLayouts.Load(this.log, Path.Join(this.DllDirectory, "catalog", "area-layouts.json"), Path.Join(this.DllDirectory, "catalog", "area-maps.json"), Path.Join(this.DllDirectory, "config", "area-exits.txt"));
                 this.entities.LayoutLine = this.LayoutLine;
                 this.entities.TrailEntries = this.trails.Entries;
                 this.entities.TrailLines = this.trails.Lines;
