@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> hostileCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
+        private readonly HashSet<uint> strongboxRows = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
         /// <summary>
@@ -66,6 +67,7 @@ namespace Poe2Accessibility.Services
             var loot = LootTier.Valuable;
             var sound = string.Empty;
             var timed = false;
+            var strongbox = false;
             var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
             var iconHidden = minimap != null && this.memory.TryRead<byte>(minimap.Address + GameLayout.MinimapIconRow.ComponentHiddenOffset, out var hidden) && hidden != 0;
             var questMarked = MinimapMarks.IsQuestIcon(icon);
@@ -121,6 +123,11 @@ namespace Poe2Accessibility.Services
                     : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
                 sound = kind == "breakable" ? Breakables.Material(path) : kind == "corpse" ? Breakables.BodySound(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound
                     : kind == "chest" && LeaguePieces.IsAbyssChest(path) ? LeaguePieces.AbyssChestSound : string.Empty;
+                strongbox = chest is { IsStrongbox: true };
+                if (strongbox)
+                {
+                    this.LogStrongbox(entity);
+                }
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {
@@ -361,7 +368,7 @@ namespace Poe2Accessibility.Services
                     // "Foco vaal", and they sounded as an encounter it does not ask for (owner, 2026-11-18).
                     : this.landmarks.WorldTitle(LeaguePieces.AncientBeaconTitle),
                 timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
-                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0);
+                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0, Strongbox: strongbox);
         }
 
         /// <summary>What the object asks in sacred water, from its script's shared state; 0 without one.</summary>
@@ -438,6 +445,25 @@ namespace Poe2Accessibility.Services
             }
 
             return known == null ? string.Empty : ShrineCatalog.Shared.NameOf(known, Localization.Language);
+        }
+
+        /// <summary>
+        ///     What a strongbox reads as, once per box: whether the mods components the host already reads carry its
+        ///     rarity and modifiers is what speaking them waits on; each box read is logged once, as the shrine rows and
+        ///     essence contents are, so a session's log confirms the field (docs/research/strongbox-currency.md).
+        /// </summary>
+        private void LogStrongbox(Entity entity)
+        {
+            if (!this.strongboxRows.Add(entity.Id))
+            {
+                return;
+            }
+
+            var objectMods = entity.TryGetComponent<ObjectMagicProperties>(out var properties)
+                ? $"{properties.Rarity}, mods [{string.Join(", ", properties.ModNames)}]" : "none";
+            var itemMods = entity.TryGetComponent<Mods>(out var mods)
+                ? $"{mods.Rarity}, {mods.ImplicitMods.Count} implicit, {mods.ExplicitMods.Count} explicit" : "none";
+            this.log.Info($"Strongbox mods: {entity.Path}: ObjectMagicProperties {objectMods}; Mods {itemMods}");
         }
 
         /// <summary>
