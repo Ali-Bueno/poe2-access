@@ -198,6 +198,20 @@ this way at 15:14: the stack went 2 → 1, the suffix vanished (a corrupted box 
 label gained a visible "Corrupted" line, and rarity and modifiers stand unchanged — which also locks
 the box against the Exalted Orbs that were next in line: **exalt first, vaal last**.
 
+The same backpack split its currencies in two (15:46, the next box): the manual-only ones (Vaal, Chaos)
+read "Apply (<box name>), X", while a quick-listed one the box's state calls for (an Exalted Orb at the
+now-Rare box) read plain "Use, X" and its X entered the item-apply mode — the quick row is that orb's
+road, the backpack the others'. Measured in two sessions at three box states; the mechanism (a suffix
+only where the row cannot serve) is LIKELY.
+
+That box also stood two buttons in its row at once (Transmutation and Alchemy art in one read): the row
+is a single focused element, directions move a selection inside it, and the first reader named whichever
+icon it found first — the owner heard "Orb of Transmutation" four times while the selection stood
+elsewhere. Applying the Transmutation updated the row in place (the same focus read "Orb of Alchemy"
+under the new "Arctic …" label a minute later). The reader now enumerates the row's press-sound buttons
+and names the grown one (61×61 against 40×40 in the dumps) with its place — UNVERIFIED live until the
+next two-button row, whose log line will carry every slot's size.
+
 
 ## 5. The rest, in order
 
