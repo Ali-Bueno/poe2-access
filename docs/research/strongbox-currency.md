@@ -212,6 +212,26 @@ under the new "Arctic …" label a minute later). The reader now enumerates the 
 and names the grown one (61×61 against 40×40 in the dumps) with its place — UNVERIFIED live until the
 next two-button row, whose log line will carry every slot's size.
 
+## 4e. Exalted: GGG's list against the gamepad's reality (live, 2026-11-23)
+
+At the same now-Rare box, carrying 6 Exalted Orbs, **no Exalted button exists on a controller**:
+
+- In the backpack opened on the targeted box, the Exalted cell read plain "Use, X" in every session
+  (15:13, 15:46, 15:54) while Chaos and Vaal cells in the same openings read "Apply (<box>), X".
+- Holding the interact button at the Rare box (15:57, pad log: A held ~0.9 s) never focused a row
+  button — the backpack opened directly. At Normal and Magic boxes the same hold focused the row.
+  The row at this Rare box is empty (its branch stands hidden and childless in the dumps), and an
+  empty row's hold falls through to the backpack.
+
+So GGG's 0.2.0h sentence ("buttons for Orbs of Alchemy, Exalted Orbs, and Regal Orbs") does not hold
+on a gamepad in 0.5.5 for Exalted — whether the row differs by input, by campaign/endgame, by an Atlas
+passive, or the button quietly went away is UNSURE; no source found distinguishes them. What is
+measured: **on a controller, an Exalted Orb cannot be applied to a strongbox by any known path**
+(mouse right-click remains, per the wiki's currency pages). The suffix split of §4d also reads
+differently in this light: "Apply (<box>), X" marks exactly the currencies with no row button at this
+box, quick-listed or not — Exalted's plain "Use, X" then means the game expects it in a row that, on
+this input, it never builds (LIKELY mechanism for what looks like a gamepad-side bug).
+
 
 ## 5. The rest, in order
 
