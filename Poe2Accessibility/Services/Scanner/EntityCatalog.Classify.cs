@@ -27,7 +27,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> hostileCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
-        private readonly HashSet<uint> strongboxRows = new();
+        private readonly Dictionary<uint, string> strongboxReads = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
         /// <summary>
@@ -460,22 +460,29 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     What a strongbox reads as, once per box: whether the mods components the host already reads carry its
-        ///     rarity and modifiers is what speaking them waits on; each box read is logged once, as the shrine rows and
-        ///     essence contents are, so a session's log confirms the field (docs/research/strongbox-currency.md).
+        ///     What a strongbox reads as, each time the read changes: the host's mods components carry its rarity
+        ///     (spoken since the first live box) and its modifiers; whether a spent currency shows in them — the
+        ///     lists rebuild only when their component's address changes — and where corruption reads (the
+        ///     <c>dropped_items_are_corrupted</c> stat among the mods' stats, or the entity's own) is what
+        ///     speaking either waits on, so every change of the whole read is logged as a session's log confirms
+        ///     it (docs/research/strongbox-currency.md §5).
         /// </summary>
         private void LogStrongbox(Entity entity)
         {
-            if (!this.strongboxRows.Add(entity.Id))
+            var objectMods = entity.TryGetComponent<ObjectMagicProperties>(out var properties)
+                ? $"{properties.Rarity}, mods [{string.Join(", ", properties.ModNames)}], corrupt stat {(properties.ModStats.TryGetValue(GameStats.dropped_items_are_corrupted, out var byMods) ? byMods : 0)}" : "none";
+            var itemMods = entity.TryGetComponent<Mods>(out var mods)
+                ? $"{mods.Rarity}, {mods.ImplicitMods.Count} implicit, {mods.ExplicitMods.Count} explicit" : "none";
+            var own = entity.TryGetComponent<Stats>(out var stats)
+                ? $"{(stats.StatsChangedByItems.TryGetValue(GameStats.dropped_items_are_corrupted, out var byItems) ? byItems : 0)}/{(stats.StatsChangedByBuffAndActions.TryGetValue(GameStats.dropped_items_are_corrupted, out var byBuffs) ? byBuffs : 0)}" : "none";
+            var read = $"ObjectMagicProperties {objectMods}; Mods {itemMods}; Stats corrupt {own}";
+            if (this.strongboxReads.TryGetValue(entity.Id, out var last) && last == read)
             {
                 return;
             }
 
-            var objectMods = entity.TryGetComponent<ObjectMagicProperties>(out var properties)
-                ? $"{properties.Rarity}, mods [{string.Join(", ", properties.ModNames)}]" : "none";
-            var itemMods = entity.TryGetComponent<Mods>(out var mods)
-                ? $"{mods.Rarity}, {mods.ImplicitMods.Count} implicit, {mods.ExplicitMods.Count} explicit" : "none";
-            this.log.Info($"Strongbox mods: {entity.Path}: ObjectMagicProperties {objectMods}; Mods {itemMods}");
+            this.strongboxReads[entity.Id] = read;
+            this.log.Info($"Strongbox mods: {entity.Path}: {read}");
         }
 
         /// <summary>
