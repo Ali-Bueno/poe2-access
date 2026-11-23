@@ -114,6 +114,13 @@ namespace Poe2Accessibility.Services
                 : null;
         }
 
+        /// <summary>The area's tiles of an English label, seen or not.</summary>
+        public IReadOnlyList<ScanEntry> HintTiles(string label)
+        {
+            var name = this.landmarks.Localize(label);
+            return this.AreaLandmarks().Where(entry => string.Equals(entry.Name, name, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
         /// <summary>An English label as the game says it.</summary>
         public string Localized(string label) => this.landmarks.Localize(label);
 

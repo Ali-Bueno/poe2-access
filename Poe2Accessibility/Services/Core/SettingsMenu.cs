@@ -86,6 +86,7 @@ namespace Poe2Accessibility.Services
                 Number(nameof(AccessibilitySettings.LostSpokenHintMinutes), 0, 120, 5),
                 Switch(nameof(AccessibilitySettings.MapHints)),
                 Switch(nameof(AccessibilitySettings.MapHintSides)),
+                Switch(nameof(AccessibilitySettings.TrailCue)),
                 Switch(nameof(AccessibilitySettings.AreaCorner)),
                 Switch(nameof(AccessibilitySettings.AnnounceMapParts)),
                 Switch(nameof(AccessibilitySettings.LeftBehindCue)),

@@ -473,6 +473,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   camp. New exit: Chimeral Wetlands". The side is the mod's own working out, by the walk to where the cue leads, not something
   the game shows; a sign says none while the place it names is unknown (settings "Map hints when passing them" and
   "Map hints: say which way they go").
+  A cue that runs somewhere (the Grelwood's river, the roads of the Hunting Grounds and Ogham, the cracks of the Badlands,
+  the locust swarm after a ritual) is a **trail**: the reader says which part of it you are on, where it leads and the way
+  ("River, half way, toward The Red Vale, 60 steps, right 5, then up right"), a soft sound from ahead keeps you company
+  while you follow it (setting "Map hints: sound while following a trail"), and it tells you when you take it the wrong
+  way or leave it. It is in the scanner's Quest list ("Trail: ..."), so the guide can lead you along it, and in the glance
+  at the map.
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap

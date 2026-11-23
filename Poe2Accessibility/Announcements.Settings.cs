@@ -80,6 +80,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
             nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),
             nameof(AccessibilitySettings.AnnounceMapParts) => T("Say the part of the map you walk into and the parts finished", "Decir la parte del mapa en la que entras y las que completas"),
+            nameof(AccessibilitySettings.TrailCue) => T("Map hints: sound while following a trail", "Pistas del mapa: sonido al seguir un rastro"),
             nameof(AccessibilitySettings.LeftBehindCue) => T("Radar: nook left behind", "Radar: rincón que dejas atrás"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
@@ -183,6 +184,7 @@ namespace Poe2Accessibility
             "radar_unexplored" => T("Radar: toward unexplored ground", "Radar: hacia terreno sin explorar"),
             Services.Radar.SmallMarkKey => T("Radar: toward unexplored ground that soon ends", "Radar: hacia terreno sin explorar que se acaba pronto"),
             Services.LostHint.LoopName => T("Hint when lost", "Pista si te pierdes"),
+            Services.HintTrails.SoundKey => T("Trail followed", "Rastro que sigues"),
             Services.LeftBehind.SoundKey => T("Radar: nook left behind", "Radar: rincón que dejas atrás"),
             "radar2_wall" => T("Player 2 radar: wall", "Radar del jugador 2: pared"),
             "radar2_open" => T("Player 2 radar: open way", "Radar del jugador 2: camino libre"),
@@ -323,6 +325,9 @@ namespace Poe2Accessibility
             Services.LostHint.LoopName => T(
                 "for a few seconds after you have walked a while without finding new ground: that side leads on",
                 "unos segundos tras andar un rato sin encontrar terreno nuevo: por ese lado se sigue"),
+            Services.HintTrails.SoundKey => T(
+                "now and then while you follow a trail of the map, a river or a road: the way it goes on",
+                "de vez en cuando mientras sigues un rastro del mapa, un río o un camino: por dónde continúa"),
             Services.LeftBehind.SoundKey => T(
                 "once, from its side, as you walk away from a nook or short branch you have not seen",
                 "una vez, desde su lado, al alejarte de un rincón o un ramal corto que no viste"),

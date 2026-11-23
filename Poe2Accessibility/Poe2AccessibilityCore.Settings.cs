@@ -168,6 +168,12 @@ namespace Poe2Accessibility
                 this.mapHints.SaySide = settings.MapHintSides;
             }
 
+            if (this.trails != null)
+            {
+                this.trails.Gain = Fraction(settings.ObjectVolume);
+                this.trails.Sounds = settings.TrailCue;
+            }
+
             if (this.nearby != null)
             {
                 this.nearby.LootLevel = settings.LootSounds;

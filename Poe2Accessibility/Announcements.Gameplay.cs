@@ -126,11 +126,52 @@ namespace Poe2Accessibility
             ("mushrooms", false) => T("Mushrooms", "Setas"),
             ("roots", true) => T($"Glowing roots, running {side}", $"Raíces luminosas, siguen {side}"),
             ("roots", false) => T("Glowing roots", "Raíces luminosas"),
-            ("river", true) => T($"River, upstream {side}", $"Río, corriente arriba {side}"),
-            ("river", false) => T("River", "Río"),
             ("camp", _) => T("Explorer camp", "Campamento de exploradores"),
             _ => hint,
         };
+
+        /// <summary>What a trail is, by its row's hint.</summary>
+        private static string TrailNoun(string hint) => hint switch
+        {
+            "river" => T("River", "Río"),
+            "road" => T("Road", "Camino"),
+            "street" => T("Paved street", "Calle empedrada"),
+            "burrow" => T("Burrower's trail", "Rastro del excavador"),
+            "cracks" => T("Cracks in the ground", "Grietas en el suelo"),
+            "seals" => T("Maraketh seals on the walls", "Sellos maraketh en las paredes"),
+            "swarm" => T("Locust swarm", "Enjambre de langostas"),
+            _ => hint,
+        };
+
+        /// <summary>A trail where the player stands on it: "River, half way, toward The Red Vale".</summary>
+        public static string TrailAt(string hint, Services.TrailPart? part, string goal)
+        {
+            var noun = TrailNoun(hint);
+            return part switch
+            {
+                Services.TrailPart.Start => T($"{noun}, at its beginning, toward {goal}", $"{noun}, al principio, hacia {goal}"),
+                Services.TrailPart.Middle => T($"{noun}, half way, toward {goal}", $"{noun}, a mitad, hacia {goal}"),
+                Services.TrailPart.End => T($"{noun}, near its end, toward {goal}", $"{noun}, cerca del final, hacia {goal}"),
+                _ => T($"{noun}, toward {goal}", $"{noun}, hacia {goal}"),
+            };
+        }
+
+        /// <summary>A trail in the scanner.</summary>
+        public static string Trail(string hint, string goal)
+        {
+            var noun = TrailNoun(hint);
+            return T($"Trail: {noun}, toward {goal}", $"Rastro: {noun}, hacia {goal}");
+        }
+
+        public static string TrailWrongWay(string line) => T($"Wrong way. {line}", $"Vas al revés. {line}");
+
+        public static string TrailLeft(string hint, string side)
+        {
+            var noun = TrailNoun(hint);
+            return side.Length > 0 ? T($"You leave the trail: {noun}, {side}", $"Dejas el rastro: {noun}, {side}") : T($"You leave the trail: {noun}", $"Dejas el rastro: {noun}");
+        }
+
+        public static string RitualAltarName => T("Ritual altar", "Altar de ritual");
 
         /// <summary>An NPC with the quest indicator over its head.</summary>
         public static string NpcWithQuest(string name) => T($"{name}, has a quest", $"{name}, con misión");

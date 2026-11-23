@@ -298,6 +298,7 @@ namespace Poe2Accessibility.Services
             var tracker = this.QuestTexts();
             var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => this.QuestGoals.QuestLinesOf(tracker, Localization.Language));
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
+            sorted.InsertRange(0, this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>());
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);
             return sorted;

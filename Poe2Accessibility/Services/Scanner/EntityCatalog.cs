@@ -106,6 +106,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The area's named places (<see cref="PlaceNarrator.Entries"/>), set by the plugin.</summary>
         public Func<float, IEnumerable<ScanEntry>>? PlaceEntries { get; set; }
 
+        /// <summary>The trails the player has met (<see cref="HintTrails"/>), listed after the quest's own places.</summary>
+        public Func<IEnumerable<ScanEntry>>? TrailEntries { get; set; }
+
+        /// <summary>...and how each goes on, for the glance at the map.</summary>
+        public Func<IEnumerable<string>>? TrailLines { get; set; }
+
         /// <summary>The ways that opened and are still to be walked to, for the player's world position (<see cref="OpenedWays.Update"/>).</summary>
         public Func<float, float, IReadOnlyList<ScanEntry>>? OpenedWayEntries { get; set; }
 

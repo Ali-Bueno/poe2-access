@@ -7,21 +7,85 @@ of the map is in [radar](../radar.md). Every area, act by act: [map-hints-by-act
 
 `MapHintNarrator`, with the cues listed by hand in `catalog/map-hints.json`; dev command `maphints` lists what was found.
 Walking within 60 cells of a cue (the ground the mod counts as seen) it is said once, again only 200 cells on
-(`MapHintMemory`: the Grelwood's mushrooms are one patch). Every story sign is said, with no row needed.
+(`MapHintMemory`: the Grelwood's mushrooms are one patch). Every story sign is said, with no row needed. The cues that run
+somewhere (bold) are trails, below.
 
-| Cue | Area | Found by | Side toward |
+| Cue | Area | Found by | Leads to |
 |---|---|---|---|
-| Dead cattle | Clearfell | model `DeadBull_01`, listed at arrival | the boss room |
-| Dead cattle | Hunting Grounds | entity `Objects/DeadBull`, near | the boss room |
+| Dead cattle | Clearfell, Hunting Grounds | model `DeadBull_01`; entity `Objects/DeadBull` near | the boss room |
 | Mushrooms | Grelwood | model `FungiCluster`, listed at arrival | The Grim Tangle |
-| Glowing roots | Grelwood | entity `Objects/TreeRoot`, near | quest object `TreeOfSoulsRoots`, once the client has shown it: no side before |
-| River | Grelwood | tiles `Woods/RedvaleRiver/` | The Red Vale |
-| Explorer camp | Infested Barrens, Jungle Ruins, Chimeral Wetlands | model `AbandonedExpedition/Camp` | none: the entrance is added to the scanner |
+| Glowing roots | Grelwood | entity `Objects/TreeRoot`, near | the Tree of Souls' tile |
+| **River** (trail) | Grelwood | tiles `RedvaleRiver/`, `WideRiver/`, `Woods_WideRiver/` | The Red Vale |
+| **Burrower's trail** | Clearfell | tiles `Mudburrow/trail` | Mud Burrow |
+| **Road** | Hunting Grounds | tiles `Woods/Road/`, `Woods/CliffRoad/` | Ogham Farmlands, the end no bramble closes |
+| **Road** | Ogham Farmlands; Ogham Village | tiles `RoadFields/RoadEdge/Road`; `.../RoadOpen` | Ogham Village; Renly's workshop |
+| **Swarm** | Hunting Grounds; Freythorn | the ritual altar's `current_state` reaching 3 | Freythorn; the nearest altar left, then the boss |
+| **Maraketh seals** | Traitor's Passage | objects `Act2/2_2/Objects/WallSeals` | Balbala's arena |
+| **Cracks** | Mastodon Badlands | doodads `AbyssNew/Scatter/g2_5_abyss` | Lightless Passage |
+| **Paved street** | Drowned City; Utzaal | tiles `VaalExterior/SunkenStreet/`; `VaalExterior/Street/` | Apex of Filth; the boss |
+| Explorer camp | Infested Barrens, Jungle Ruins, Chimeral Wetlands | model `AbandonedExpedition/Camp` | the entrance, added to the scanner |
 | Sign | anywhere | `StoryGlyph` icon | the exit of its name, if known |
 
-**Checked live** (2026-11-05, Mercenary, standing at Clearfell's waypoint, dev command `maphints`): 3 cattle spots found, "Reses
-muertas, el rastro de sangre sigue arriba a la derecha". The Grelwood's rows only against the logged list of that area: 411
-`FungiCluster` models, `TreeOfSoulsRoots` a near entity. Not seen: the roots' and the river's rows, a line said walking, the camps.
+A place's line is followed by the walk to where it leads, unless that is in view ("Reses muertas, el rastro de sangre sigue
+arriba. Sala del jefe: …, 120 pasos, …").
+
+## Trails (2026-11-23)
+
+Asked by the owner on 2026-11-23: the river was said "ya prácticamente cuando la he encontrado"; wanted which way it goes,
+whether one is at its beginning, middle or end, a sound perhaps, something easy to follow.
+
+**Why the river came late:** its row matched only `Woods/RedvaleRiver/`, whose tiles lie on the far side of the water in most
+of the map; within 60 cells of them lay 1% of the Grelwood's walkable ground, against 21% with the wide river it flows into
+(live grid and tiles, 2026-11-23). The whole bank belongs to it: up to 1,300 cells of walk from the entrance.
+
+**How a trail is followed** (rows with `line` in `catalog/map-hints.json`; `HintTrails`, pure `TrailField`, `TrailFollower`,
+`RitualProgress`):
+- *Met* (a spot of it within the 60 cells a player sees): "Río, a mitad, hacia El valle rojo, 60 pasos, derecha 5, luego
+  arriba a la derecha": the part (thirds of the walk between its two ends), where it leads, the scanner's route there.
+- *Followed*: its sound (`CueSynth.Trail`, every 1.6 s, at the objects' volume, setting `TrailCue`) from where the walk to
+  the goal has got 40 cells on, only while the player nears the goal along it (and 5 s after it is met). Said again at the
+  next part.
+- *Wrong way* (40 cells farther from the goal) and *left* (3 s off it, with the side it lies): once, 20 s between two
+  warnings, not with enemies about nor while the guide leads. Met again only after a minute off it.
+- *In the scanner*: "Rastro: río, hacia El valle rojo" in Quest after the quest's own places, so the guide leads along it (on
+  its own when the quest names nothing here); and in the glance at the map. Until the goal's ground is seen.
+
+The walk is a breadth-first field from the goal over the routed grid, off the frame thread. The swarm's trail has no spots: it
+leads from where the ritual was won. The player does not see the game's own swarm effect (`VoodooRitualDirection`, preloaded
+by the altars): its target is worked out, the nearest altar left (poe2way: "the nearest remaining ritual").
+
+**Heard live** (2026-11-23, malgdhler, dev host): Grelwood "Río, cerca del final, hacia El valle rojo, 24 pasos, derecha 2…",
+the sound played 4 times; Ogham Farmlands at the waypoint "Camino, al principio, hacia Pueblo de Ogham, 255 pasos…" and on its
+way "a mitad…". In the Hunting Grounds, the Traitor's Passage and the Badlands only that the spots are found at arrival (167,
+42, 16; 6 brambles). Not seen: the swarm's line (needs a ritual won), Ogham Village's road, the two street rows (files only).
+
+## The level graphs (2026-11-23)
+
+Every campaign area is generated from a few authored graphs (`metadata/terrain/gallows/<act>/<area>/graphs/*.tgr|*.dgr`; 1 to
+33 an area): named nodes with their place (`.tgr`: cells; `.dgr`: rooms, stretched) and edges of a ground type between them.
+`tools/research/topology/graphs.py` joins each edge type's nodes over all of an area's graphs; what holds in every one is a
+rule of the map, which no file says elsewhere:
+
+| Area | Edge | Joins, in every graph |
+|---|---|---|
+| Clearfell | `burrower_trail` | its end cap and the Mud Burrow (33 of 33) |
+| Grelwood | `wideriver_redvaleriver_virtual` | the Red Vale, from the river (12 of 12) |
+| Hunting Grounds | `road_fields` | the road to Ogham Farmlands and a dead end, over the signposts (24 of 24) |
+| Ogham Farmlands | `RoadUnwalkable` | the entrance, hamlet, Una's house and Ogham Village (32 of 32) |
+| Ogham Village | `RoadOpen` | the entrance and the blacksmith's (12 of 12) |
+| Mastodon Badlands | `AbyssTrail` | the Lightless Passage (12 of 12); `BonePassage` the Bone Pits |
+| Drowned City, Utzaal | `flooded_street` | the entrance, the blockade and Aggorat's door; the boss (6 of 6) |
+
+Act 4 and most of the interlude have one graph each, no edge to follow and no cue known to the press or the guides.
+
+**The road's two ends** carry the same tile, `Bramble_Cnr_transition_01`. The three dead-end rooms (`road_end_01..03`) hold
+5 to 9 `HuntingGrounds/Bramble/Bramble_*` doodads, the two entrance rooms none, and doodads are listed at arrival: on
+2026-11-23 the west end had six within 160 cells, the south one none.
+
+**Freythorn's altars** are known from arrival: four `Leagues/Ritual/RitualRuneObject` entities, at the altar places of its
+three ritual rooms (by their checkpoint totems, `CanopyBundle_01`) and at the arena's centre.
+
+## Checks and limits
 
 **The side is the mod's, not the game's:** where the walk to the goal leaves the seen ground, as the lost hint. The goals are
 judgement: nothing in the files ties the bulls to a boss.
@@ -30,11 +94,6 @@ judgement: nothing in the files ties the bulls to a boss.
 `RevealMinimapInRadius(80)`, but what sets that state is in the server scripts. `TroubledCampLandmarkTitle` fires at radius 50 and
 stops on quest flag `JungleOutskirtsLandmarkComplete`, so the reveal may need more than arriving. The mod adds the entrance
 when the player reaches the camp: check it in Act 3.
-
-**The road's sign says no side on a first visit:** it names Ogham Village, the exit is Ogham Farmlands, and the mod does not
-know where that exit is until it is seen or kept from another instance. `Bramble_Cnr_transition_01` ("Or Deadend") cannot
-stand in for it. `AreaTransitionBlockage` doodads mark closed transitions in Clearfell (three, each with an
-`AreaTransitionDoodad`, seen live) but none was listed in the Hunting Grounds, so they do not settle it there.
 
 Left out: arrival-room caravan tracks (they mark where the player came from), Khari Crossing's wayfinders (no target
 known), the line effects (`direction.ao`, `fire_direction_01.ao`, `ritual_direction_01.ao`: spawned by server script), title cards.

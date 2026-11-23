@@ -295,6 +295,9 @@ namespace Poe2Accessibility
         /// <summary>A map hint says which way it goes, by the walk to where it leads.</summary>
         public bool MapHintSides = true;
 
+        /// <summary>A map hint that runs somewhere (a river, a road) sounds toward the way while the player follows it.</summary>
+        public bool TrailCue = true;
+
         /// <summary>D2R unexplored mark: a radar open-way or exit cue toward unseen ground ends in two pips.</summary>
         public bool UnexploredMark = true;
 

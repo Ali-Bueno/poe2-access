@@ -453,7 +453,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, memory.Note("mushrooms", start + new System.Numerics.Vector2(MapHintMemory.AgainCells, 0)), "far on, it may go another way");
             Equal(false, memory.Note("mushrooms", start), "back where it was said");
 
-            var table = MapHintTable.Parse("{ 'G1_4': [ { 'match': 'FungiCluster', 'hint': 'mushrooms', 'goal': 'The Grim Tangle' }, { 'tile': 'Woods/RedvaleRiver/', 'hint': 'river' } ] }");
+            var table = MapHintTable.Parse("{ 'G1_4': [ { 'match': 'FungiCluster', 'hint': 'mushrooms', 'goal': 'The Grim Tangle' }, { 'tiles': ['Woods/RedvaleRiver/'], 'hint': 'river', 'line': true } ] }");
             Equal(2, table.For("G1_4").Count, "an area's rows");
             Equal(0, table.For("G1_5").Count, "an area with none");
             Equal("mushrooms", MapHintTable.Matching(table.For("G1_4"), "Metadata/Doodads/fungicluster03.ao")?.Hint, "a model, in any case");
@@ -473,10 +473,13 @@ namespace Poe2Accessibility.Tests
             {
                 foreach (var row in table.For(area))
                 {
-                    var sources = new[] { row.Match, row.Tile, row.Sign }.Count(source => source.Length > 0);
+                    var sources = new[] { row.Match, row.Sign, row.After, row.Tiles.FirstOrDefault() ?? string.Empty }.Count(source => source.Length > 0);
                     Equal(1, sources, $"{area}: found one way");
                     Equal(true, row.Sign.Length > 0 || row.Hint.Length > 0, $"{area}: a cue has its line");
                     Equal(true, !row.Reveals || row.Goal.Length > 0, $"{area}: reveals something");
+                    Equal(true, !row.Line || (row.Goal.Length > 0 && Announcements.Trail(row.Hint, "x") != $"Trail: {row.Hint}, toward x"), $"{area}: a trail leads somewhere and has a name");
+                    Equal(true, row.After.Length == 0 || row.Line, $"{area}: what an altar shows is followed");
+                    Equal(true, row.Blocked.Length == 0 || row.GoalTile.Length > 0, $"{area}: what closes a tile names the tile");
                 }
             }
         }

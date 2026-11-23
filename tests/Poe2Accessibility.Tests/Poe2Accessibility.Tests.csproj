@@ -292,6 +292,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Parts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.LeftBehind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LeftBehindWatch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TrailField.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TrailFollower.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\RitualProgress.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapPartsDone.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapTopology.Raster.cs" />

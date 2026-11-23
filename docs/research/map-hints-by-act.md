@@ -152,6 +152,6 @@ G1_1, G1_3, G1_5, G1_8, G1_9, G1_10; G2_4_2, G2_7, G2_9, G2_9_2, G2_10_2, G2_12;
 ## Not found or not readable
 - Press cues with no file: Traitor's Passage parchment, Hunting Grounds locust trail, Matlan/Venom Crypts/Azak Bog "changes".
 - Server scripts are not in the bundles, so the targets of `direction.ao`, `fire_direction_01.ao`, `ritual_direction_01.ao` and the wayfinder pointers are unknown.
-- Graph (`.dgr`) adjacency was not parsed: "next to a transition" rests on room file names, not on graph nodes.
+- Graph (`.dgr`, `.tgr`) adjacency: parsed on 2026-11-23, the rules are in [map hints](map-hints.md#the-level-graphs-2026-11-23).
 - Doodads placed by `doodads.ddt`/tile `.tdt` tables (not `.arm`) were not read.
 - Folder-to-id mapping is by naming (above), not by a dat link.

@@ -65,6 +65,7 @@ namespace Poe2Accessibility
         private LostHint? lostHint;
         private LeftBehind? leftBehind;
         private MapHintNarrator? mapHints;
+        private HintTrails? trails;
         private ForkNarrator? forks;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
@@ -441,7 +442,10 @@ namespace Poe2Accessibility
                 this.lostHint = new LostHint(this.audio, this.entities, modSounds.GetLoop(LostHint.LoopName), this.log);
                 this.lostHint.SayWay = cell => this.output?.Say(SpeechKind.Places, this.entities.DescribeWayOn(cell));
                 this.leftBehind = new LeftBehind(this.audio, this.entities, this.log);
-                this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")),
+                this.trails = new HintTrails(this.entities, this.output, this.audio, this.log);
+                this.entities.TrailEntries = this.trails.Entries;
+                this.entities.TrailLines = this.trails.Lines;
+                this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")), this.trails,
                                                     () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark ? this.entities.UnseenToward(from, axis) : null;
                 this.radar.LeadsToDeadEnd = (from, axis) => this.Settings.UnexploredMark && this.entities.DeadEndToward(from, axis);
@@ -606,6 +610,7 @@ namespace Poe2Accessibility
             this.lostHint = null;
             this.leftBehind = null;
             this.mapHints = null;
+            this.trails = null;
             this.partnerRadar = null;
             Seats.Attach(null, null);
             this.localPlayers = null;

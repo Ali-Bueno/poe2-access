@@ -129,6 +129,9 @@ namespace Poe2Accessibility
             this.Isolated("map parts", playing, static (core, playing) => core.TickMapParts(playing));
             this.Isolated("trial rooms", playing, static (core, playing) => core.TickTrialRooms(playing));
             this.Isolated("map hints", playing, static (core, playing) => core.mapHints?.Tick(playing && core.Settings.MapHints && !core.InTownOrHideout()));
+            this.Isolated("trails", playing, static (core, playing) => core.trails?.Tick(
+                playing && core.Settings.MapHints && !core.InTownOrHideout(), core.fights?.InFight(FightState.AnyEnemy) == true,
+                core.beacon?.Target != null || core.fights?.InFight(FightState.RaresAndUniques) == true));
             this.Isolated("discoveries", playing, static (core, playing) => core.discoveries?.Tick(playing && core.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", playing, static (core, playing) => core.enemyNews?.Tick(playing && core.Settings.AnnounceEnemies));
             this.Isolated("wall bump", playing, static (core, playing) =>

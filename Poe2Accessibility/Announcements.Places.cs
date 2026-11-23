@@ -71,7 +71,7 @@ namespace Poe2Accessibility
         ///     A look at the map in words: the explored share, the part the player is in, the parts with ground left and the
         ///     nearest unexplored stretches. A map too small for parts says none.
         /// </summary>
-        public static string MapGlance(int? percent, (int Across, int Down) here, IReadOnlyList<Services.MapPart> parts, IReadOnlyList<string> stretches)
+        public static string MapGlance(int? percent, (int Across, int Down) here, IReadOnlyList<Services.MapPart> parts, IReadOnlyList<string> stretches, IReadOnlyList<string>? trails = null)
         {
             var place = CornerOfMap(here.Across, here.Down);
             var left = string.Join("; ", parts.Where(part => !part.Explored).Select(part =>
@@ -85,6 +85,7 @@ namespace Poe2Accessibility
                 parts.Count > 1 ? T($"You are at: {place}", $"Estás en: {place}") : string.Empty,
                 left.Length > 0 ? T($"Left to explore: {left}", $"Por explorar: {left}") : string.Empty,
             };
+            lines.AddRange(trails ?? new List<string>());
             lines.AddRange(stretches);
             if (stretches.Count == 0)
             {

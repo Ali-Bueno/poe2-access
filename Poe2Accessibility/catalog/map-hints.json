@@ -1,15 +1,33 @@
 {
   "G1_2": [
-    { "match": "DeadBull_01", "hint": "cattle", "goal": "boss" }
+    { "match": "DeadBull_01", "hint": "cattle", "goal": "boss" },
+    { "tiles": ["Mudburrow/trail"], "hint": "burrow", "goal": "Mud Burrow", "line": true }
   ],
   "G1_4": [
     { "match": "FungiCluster", "hint": "mushrooms", "goal": "The Grim Tangle" },
-    { "match": "Objects/TreeRoot", "hint": "roots", "goal": "TreeOfSoulsRoots" },
-    { "tile": "Woods/RedvaleRiver/", "hint": "river", "goal": "The Red Vale" }
+    { "match": "Objects/TreeRoot", "hint": "roots", "goal": "The Corpse Tree (waypoint)" },
+    { "tiles": ["Woods/RedvaleRiver/", "Woods/WideRiver/", "Woods/Woods_WideRiver/"], "hint": "river", "goal": "The Red Vale", "line": true, "reach": 45 }
   ],
   "G1_11": [
     { "match": "Objects/DeadBull", "hint": "cattle", "goal": "boss" },
-    { "sign": "Ogham Village", "goal": "Ogham Farmlands" }
+    { "tiles": ["Woods/Road/", "Woods/CliffRoad/"], "hint": "road", "goal": "Ogham Farmlands", "goalTile": "Ogham Farmlands Or Deadend", "blocked": "HuntingGrounds/Bramble/Bramble_", "line": true },
+    { "sign": "Ogham Village", "goal": "Ogham Farmlands", "goalTile": "Ogham Farmlands Or Deadend" },
+    { "after": "Objects/HuntingGroundsRitualAltar", "hint": "swarm", "goal": "Freythorn", "line": true }
+  ],
+  "G1_12": [
+    { "after": "Objects/CanopyRitualAltar", "hint": "swarm", "goal": "ritual", "line": true }
+  ],
+  "G1_13_1": [
+    { "tiles": ["RoadFields/RoadEdge/Road"], "hint": "road", "goal": "Ogham Village", "line": true, "reach": 30 }
+  ],
+  "G1_13_2": [
+    { "tiles": ["RoadFields/RoadEdge/RoadOpen"], "hint": "road", "goal": "Renly's Tools (Salvaging Bench)", "line": true, "reach": 30 }
+  ],
+  "G2_2": [
+    { "match": "Act2/2_2/Objects/WallSeals", "hint": "seals", "goal": "boss", "line": true, "reach": 50 }
+  ],
+  "G2_5_1": [
+    { "match": "AbyssNew/Scatter/g2_5_abyss", "hint": "cracks", "goal": "Lightless Passage", "line": true, "reach": 50 }
   ],
   "G3_2_1": [
     { "match": "AbandonedExpedition/Camp", "hint": "camp", "goal": "Chimeral Wetlands", "reveals": true }
@@ -19,5 +37,11 @@
   ],
   "G3_5": [
     { "match": "AbandonedExpedition/Camp", "hint": "camp", "goal": "The Temple of Chaos", "reveals": true }
+  ],
+  "G3_8": [
+    { "tiles": ["VaalExterior/SunkenStreet/"], "hint": "street", "goal": "Apex of Filth", "line": true }
+  ],
+  "G3_14": [
+    { "tiles": ["VaalExterior/Street/"], "hint": "street", "goal": "boss", "line": true }
   ]
 }

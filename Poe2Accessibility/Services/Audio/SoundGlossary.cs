@@ -110,6 +110,7 @@ namespace Poe2Accessibility.Services
 
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
             this.Add(LeftBehind.SoundKey, CueSynth.LeftBehind(rate));
+            this.Add(HintTrails.SoundKey, CueSynth.Trail(rate));
             this.Add(CueSynth.BarrierSound, CueSynth.Barrier(rate));
             var bench = -1;
             if (gameSounds.Variant(MinimapMarks.BenchKind, ref bench) is { } anvil)
