@@ -120,6 +120,11 @@ namespace Poe2Accessibility.Services
                 return markerNode;
             }
 
+            if (this.DescribeQuickCurrency(info) is { } quickNode)
+            {
+                return quickNode;
+            }
+
             var ownText = this.elements.TryReadSpokenText(address, out var text) ? text : string.Empty;
             // A text box wrapped in a bare frame (social filter): the frame takes the focus, its child is the input.
             var input = ownText.Length == 0 && !info.HasFlagBit(GameLayout.Element.TextInputFlagBit) ? this.TextInputChild(info) : IntPtr.Zero;

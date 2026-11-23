@@ -48,5 +48,31 @@ namespace Poe2Accessibility.Services
             var art = (end < 0 ? key : key[..end]).ToLowerInvariant();
             return Localization.Pick(names, Localization.Language, art);
         }
+
+        /// <summary>
+        ///     The currency a quick-use button offers, by its icon: the art catalog where it names the file, else the
+        ///     item whose id is the file's stem ("CurrencyUpgradeToRare.dds" is <c>CurrencyUpgradeToRare</c>, the Orb
+        ///     of Alchemy, measured on a strongbox's button 2026-11-23). The orbs with Greater and Perfect tiers share
+        ///     one art file in the game's tables, so the extractor leaves it unnamed for prices; a button shows one
+        ///     concrete item, and each tier's id is its file's stem with its number.
+        /// </summary>
+        public static string? QuickUseName(string key)
+        {
+            if (FromTextureKey(key) is { Length: > 0 } named)
+            {
+                return named;
+            }
+
+            var end = key.IndexOf(KeyDetailsMark);
+            var file = end < 0 ? key : key[..end];
+            var slash = file.LastIndexOf('/');
+            var stem = slash < 0 ? file : file[(slash + 1)..];
+            if (stem.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
+            {
+                stem = stem[..^4];
+            }
+
+            return stem.Length > 0 ? ItemNames.Of(stem) : null;
+        }
     }
 }

@@ -115,6 +115,12 @@ namespace Poe2Accessibility.Tests
             Expect("none", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
             Expect("none", CurrencyIcons.FromTextureKey("Art/Other/Thing.dds") ?? "none");
             Expect(Announcements.Gold, CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Ruthless/CoinPileTier1.dds|0,0,0,0|0") ?? "none");
+            ItemNames.Set(new() { ["en"] = new() { ["CurrencyUpgradeToRare"] = "Orb of Alchemy", ["CurrencyUpgradeToMagic2"] = "Greater Orb of Transmutation" } });
+            Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds|0,0,0,0|0") ?? "none");
+            Expect("Greater Orb of Transmutation", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic2.dds|0,0,0,0|0") ?? "none");
+            Expect("Scroll of Wisdom", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0") ?? "none");
+            Expect("none", CurrencyIcons.QuickUseName("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
+            ItemNames.Set(new());
         }
 
         private static void APasswordIsOnlyCounted()

@@ -136,27 +136,59 @@ The owner walked around two landmark strongboxes in Holten trying exactly this. 
   targets are items only; the box cannot be chosen there. Nothing was applied (the Vaal Orb count never
   changed), and five silent openings of an empty-reading layer 66 punctuate the attempt.
 
+## 4c. The hold panel captured (UI dumps 2026-11-23 14:34, live-verified after)
+
+Two research dumps 18 s apart, before and after the hold, plus live `describe`/`hex` probes, settle what the
+panel is. World labels live in their own layer (`[0,1,11]`, before the HUD; the screen watcher skips the
+`world_overlay`/`world_ui_layer_parent` prefixes, which is why no label text ever reached speech):
+
+- `[0,1,11,0,0,*]` — every nearby object's plain label, hidden until targeted; each element's name is the
+  object's file ("Metadata/Chests/Manor/Urn1").
+- `[0,1,11,0,1,0]` — the targeted object's label, named by its file, its first child the title ("Strongbox")
+  and a `layout` of modifier lines ("Guarded by 10 packs of Monsters", the advanced "(5-10)" variant and
+  tier hidden). The generic reading of this root already says it whole: `Button "Strongbox, Guarded by 10
+  packs of Monsters"` (measured by `describe`).
+- Each further child of the root is one **quick-use button**: a 61×51 wrapper over a click-sound button whose
+  icon child carries the currency art as its texture. The buttons stand under the label as soon as the box is
+  targeted (the 0.2.0h row, sighted players click these); **holding the interact button moves the game's
+  focus onto the first** — that focus change is the whole "hold panel". One legend row joins the wrapper
+  while it holds the focus ("Select", "Back", "Inventory" texts with Steam Deck glyphs — what the old build
+  read as the panel's name). One button was present: `Art/2DItems/Currency/CurrencyUpgradeToRare.dds`, the
+  Orb of Alchemy (read from the texture object's buffer by hex probe; the owner carried 2, and no
+  transmutation).
+- The icon art does not resolve through the price catalog: the orbs with Greater/Perfect tiers share one art
+  file in `BaseItemTypes`, so `CurrencyArtExtractor` leaves it unnamed. The button shows one concrete item,
+  and its id is the art file's stem, tiers numbered (`CurrencyUpgradeToMagic2` the Greater): named by
+  `CurrencyIcons.QuickUseName` (catalog first, stem else), unit-tested. Whether a tiered button's art is the
+  base file or its own numbered one is UNVERIFIED — the first log line of a tiered button settles it
+  ("Quick currency:" logs every key read, once per button).
+- The icon child is flagged invisible in every dump (its parent draws it), so texture hunting must walk
+  invisible children too.
+
+Built on it the same day, deployed and verified live at the same box: `UiSemantics.DescribeQuickCurrency`
+makes the focused button read as itself — `Focus -> … role=Button text="Orb of Alchemy"
+context="Strongbox, Guarded by 10 packs of Monsters"` — the label as the spoken context, "x of n" when a
+label offers several buttons (UNVERIFIED, one-button sample). `ResearchMode` was switched off again after
+the capture (an auto-dump costs a ~5 s tick).
+
 
 ## 5. The rest, in order
 
-1. **Pick the component** from the first log carrying "Strongbox mods:" lines against a box whose
-   label a sighted check (or the box's own ambush: packs summoned, Daemon hazards) corroborates.
-   Then, on taking the target (and in the scanner entry's description), say rarity + the modifier
-   lines — the sighted label, word for word — and re-say them when they change after a currency is
-   applied (diff the snapshot; mind the stale-list trap in §3). Unidentified must say
-   "unidentified" and withhold the lines, as the label does.
-2. **Name the quick-use buttons** the game would show, with the target line, only for currency in the
-   inventory: e.g. "Orb of Transmutation, Regal Orb available" — or, if the hold panel (3) reads
-   well, leave the choice to it and keep the target line to the state + hold hint. Decide by speech
-   length: the target line is heard while walking, often mid-fight.
-3. **Read the hold panel**: one UI dump (`ResearchMode`) with the panel open at a box; check whether
-   its grid is the inventory grid the mod already reads, what its title/hints say, and what applying
-   answers. Until then, holding A at a box opens a panel whose reading is UNVERIFIED — the hint now
-   spoken relies on the generic panel reading, and B closes it like any panel (LIKELY).
-4. **Essences**: when a crystal takes the target, is not corrupted, and a Vaal Orb is carried, say so
-   once ("… a Vaal Orb can corrupt it" — wording from the game's strings when found; the
-   `GamepadInteractInfo*` family has an essence member only UNSURE). How a gamepad vaals an essence —
-   the same hold, or only the quick-use icon — is UNSURE until the strings or a dump say.
+1. **Say the label on taking the target, without the hold.** The label subtree (§4c) stands in the tree
+   whenever the box is targeted, title and modifier lines in the game's own words — a better source than
+   reconstructing them from a mods component. What is missing is the wiring from the entity the catalog
+   targets to its label element (the root is named by the entity's file; several same-file labels can
+   stand in `[0,1,11,0,0]`, the targeted one under `[0,1,11,0,1]`), and rarity: the label's colour says
+   it to sighted players, no text does (the "Strongbox mods:" component log of §4 still picks that
+   field; no line yet, the catalog is not polled while a panel is over the game). Unidentified must
+   withhold the lines, as the label does.
+2. **Several buttons on one label** (a box offering transmutation and alchemy at once) and a **tiered
+   button's art** (base file or numbered): first log line of each settles both ("Quick currency:" in the
+   plugin log). Re-say the label when its lines change after a currency is applied — the label elements
+   rebuild (addresses differed between the two dumps), so diff by text, not address.
+3. **Essences**: the same reader covers a crystal's label by construction (its root is the held
+   monster's file), but no essence button has been seen: whether holding the interact button at a
+   crystal focuses its Vaal button the same way is UNVERIFIED until a dump shows one.
 
 Out of scope, by the rules: applying anything for the player. Every step above is speech about what
 the game already shows; the hands stay the player's (AGENTS 4, 14).
