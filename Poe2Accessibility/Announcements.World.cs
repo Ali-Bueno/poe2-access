@@ -97,7 +97,10 @@ namespace Poe2Accessibility
 
         public static string Minions(System.Collections.Generic.IEnumerable<string> groups) => T("Minions: ", "Esbirros: ") + string.Join("; ", groups);
 
-        public static string EnemyWithRarity(string name, GameReader.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
+        /// <summary>A name with its rarity said after it, as items and enemies say it: "Strongbox, rare".</summary>
+        public static string WithRarity(string name, GameReader.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
+
+        public static string EnemyWithRarity(string name, GameReader.RemoteEnums.Rarity rarity) => WithRarity(name, rarity);
 
         /// <summary>
         ///     A dead monster's corpse, with the Spirit a spectre of it reserves when the catalog knows it and, where

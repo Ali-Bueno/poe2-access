@@ -127,6 +127,14 @@ namespace Poe2Accessibility.Services
                 if (strongbox)
                 {
                     this.LogStrongbox(entity);
+                    // The sighted label is coloured by rarity; the component the host reads carries it (confirmed
+                    // live: Normal on a box offering only transmutation/alchemy buttons, 2026-11-23). Normal says
+                    // nothing, as a normal item says nothing.
+                    if (entity.TryGetComponent<ObjectMagicProperties>(out var properties) &&
+                        properties.Rarity is Rarity.Magic or Rarity.Rare or Rarity.Unique)
+                    {
+                        name = Announcements.WithRarity(name, properties.Rarity);
+                    }
                 }
                 if (strongbox && LeaguePieces.IsStrongboxSpent(StatesOf(entity)))
                 {
