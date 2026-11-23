@@ -194,3 +194,22 @@ twice on the way). A kept log shows the two facts that matter: on 2026-10-2x the
 14 pasos" with "Misión. Tierras de cultivo de Ogham, 83 pasos", so that tile **is a dead end there**, not the exit; and
 "Letrero: Pueblo de Ogham, 30 pasos, abajo a la derecha 2, luego derecha" with the real exit "81 pasos, abajo a la
 derecha 1, luego derecha": the sign stands on the way. The exit's place on a first visit is still unknown to the mod.
+
+## Fixed and variable maps (2026-11-23)
+
+`WorldAreas` lists for each area the rows of `Topologies` it draws from (0.5.5f: the list at +0x60, the graph file at +0x8;
+both found by content). A graph's nodes stand at fixed cells, so the count of graphs is the count of layouts: 40 of the
+campaign's 103 areas have one (the Waterways, the Black Chambers, the Eye of Hinekora, most of the interlude). Two traps:
+
+- A graph can hold others (`"graph"` nodes). One that names a file is fixed (Derelict's two floors); one that names a group
+  of the master file's `FileGroups` is drawn: the Dreadnought's single graph holds one of four, and the owner's characters had
+  met two. Those count as many layouts as the group has.
+- The Trials (`G2_13`, `G3_10`) put their rooms together anew; left out, as are the endgame's maps, not in the campaign.
+
+Checked against the exits and waypoints the mod had remembered for all characters (`config/known-places.txt`, 2,600 lines):
+in no campaign area did an exit stand at more places than the area has layouts, beside the Dreadnought above and places that
+share a name. Two areas with one layout and several instances met are only the camps; the others rest on the files.
+
+At run time the count says fixed or variable; "the same as last time" compares the frame (`AreaMemory.Frame`: the transition
+tiles and the grid) with the instances kept in `config/area-maps.txt`, twelve an area. What lies in the rooms is drawn anew in
+a fixed map too. Extractor: `area-layouts`; runtime: `AreaLayouts`.

@@ -14,6 +14,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | File | What it holds | Made by | Read by |
 |---|---|---|---|
 | `action-types.txt` | the game's action names | `action-types`, start | `AttackData` |
+| `area-layouts.json` | how many layouts the game has for each campaign area (one: the map never changes) | `area-layouts`, start | `AreaLayouts` |
 | `area-names.json` | area names per language | `areas`, start | `LandmarkTable`, `GameNewsNotes` |
 | `attack-reach.txt` | how far each monster clip's blow reaches and lands | `attack-reach`, start | `AttackData` |
 | `boss-mechanics.txt` | boss fights' hides, hide-and-seek states, phases, adds, the adds that are walls, unhurtable buffs, movement rules, mechanic lines | `boss-mechanics`, start | `BossMechanicsCatalog` |

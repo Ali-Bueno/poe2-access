@@ -288,7 +288,7 @@ namespace Poe2Accessibility
             var tagline = this.AreaTaglineLine(name);
             // The banner can fill a frame after the line is built (Shrike Island: its texts 40 ms after the line, 2026-11-21).
             this.lateTagline = tagline.Length == 0 ? (name, Environment.TickCount64 + LateTaglineMs) : null;
-            var line = Announcements.Area(name, level) + tagline + this.AreaCornerLine();
+            var line = Announcements.Area(name, level) + tagline + this.AreaLayoutLine() + this.AreaCornerLine();
             this.output.Keep(line, SpeechFloor.MessageHoldMs(line), SpeechPriority.Interrupts(SpeechKind.Places), yieldsToMoves: true);
             this.nearby?.Arrived();
         }

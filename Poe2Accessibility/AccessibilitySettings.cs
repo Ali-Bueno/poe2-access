@@ -307,6 +307,9 @@ namespace Poe2Accessibility
         /// <summary>The area's announcement says which part of the map the player starts in.</summary>
         public bool AreaCorner = true;
 
+        /// <summary>...and whether the map is the same in every instance.</summary>
+        public bool AreaLayout = true;
+
         /// <summary>Walking into another part of the map says it, with how much of it is explored.</summary>
         public bool AnnounceMapParts = true;
 

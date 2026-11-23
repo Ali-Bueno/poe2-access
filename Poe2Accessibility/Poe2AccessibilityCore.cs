@@ -66,6 +66,7 @@ namespace Poe2Accessibility
         private LeftBehind? leftBehind;
         private MapHintNarrator? mapHints;
         private HintTrails? trails;
+        private AreaLayouts? areaLayouts;
         private ForkNarrator? forks;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
@@ -443,6 +444,8 @@ namespace Poe2Accessibility
                 this.lostHint.SayWay = cell => this.output?.Say(SpeechKind.Places, this.entities.DescribeWayOn(cell));
                 this.leftBehind = new LeftBehind(this.audio, this.entities, this.log);
                 this.trails = new HintTrails(this.entities, this.output, this.audio, this.log);
+                this.areaLayouts = AreaLayouts.Load(this.log, Path.Join(this.DllDirectory, "catalog", "area-layouts.json"), Path.Join(this.DllDirectory, "config", "area-maps.txt"));
+                this.entities.LayoutLine = this.LayoutLine;
                 this.entities.TrailEntries = this.trails.Entries;
                 this.entities.TrailLines = this.trails.Lines;
                 this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")), this.trails,
@@ -611,6 +614,7 @@ namespace Poe2Accessibility
             this.leftBehind = null;
             this.mapHints = null;
             this.trails = null;
+            this.areaLayouts = null;
             this.partnerRadar = null;
             Seats.Attach(null, null);
             this.localPlayers = null;

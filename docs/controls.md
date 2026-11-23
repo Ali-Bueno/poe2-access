@@ -156,7 +156,7 @@ the map. Left to explore: Top right corner, 4 percent; Right edge, 30 percent. L
 3, then up". It is what a look at the large map tells: how much of the ground you can reach you have seen, the part of
 the map you are in (thirds across and down, as on entering the area), the parts where ground that goes on is left with
 how much of each you have seen, and the three nearest unexplored stretches with their way. A small map has no parts and
-says the share and the stretches alone. The left trigger alone only shows the second skill set, as ever.
+says the share and the stretches alone. After the share comes whether the map changes (below). The left trigger alone only shows the second skill set, as ever.
 
 Walking into another part of the map says it by itself: "Right edge. Explored 12 percent", or "Middle of the map. Already
 explored" when only nooks are left there. Not in towns nor in a Trial of the Sekhemas; during a fight it waits until the fight is over (setting "Say
@@ -641,6 +641,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
   Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on
   entering an area"; not in towns and hideouts).
+- Whether the campaign's map changes: "Fixed map" when the game has one layout for the area, so what you learnt there holds
+  the next time; "Variable map, the same as last time" (or "the last 3 times", or "different from last time") against the
+  instances met before on this computer, whatever the character. What lies in the rooms may change on a fixed map too.
+  Setting "Say whether the map changes on entering an area"; the glance at the map says it either way.
 - Enemies coming into view, each monster once per area, a pack in one line by name, count and the direction of its
   middle: "Drowned, 3, right. Rotten Wolf, rare, up" (`AnnounceEnemies`; bosses are discoveries); without the
   direction when `EnemyDirections` is off.

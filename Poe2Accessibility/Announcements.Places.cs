@@ -71,7 +71,7 @@ namespace Poe2Accessibility
         ///     A look at the map in words: the explored share, the part the player is in, the parts with ground left and the
         ///     nearest unexplored stretches. A map too small for parts says none.
         /// </summary>
-        public static string MapGlance(int? percent, (int Across, int Down) here, IReadOnlyList<Services.MapPart> parts, IReadOnlyList<string> stretches, IReadOnlyList<string>? trails = null)
+        public static string MapGlance(int? percent, (int Across, int Down) here, IReadOnlyList<Services.MapPart> parts, IReadOnlyList<string> stretches, IReadOnlyList<string>? trails = null, string layout = "")
         {
             var place = CornerOfMap(here.Across, here.Down);
             var left = string.Join("; ", parts.Where(part => !part.Explored).Select(part =>
@@ -82,6 +82,7 @@ namespace Poe2Accessibility
             var lines = new List<string>
             {
                 percent is { } share ? Explored(share) : string.Empty,
+                layout,
                 parts.Count > 1 ? T($"You are at: {place}", $"Estás en: {place}") : string.Empty,
                 left.Length > 0 ? T($"Left to explore: {left}", $"Por explorar: {left}") : string.Empty,
             };
@@ -94,6 +95,18 @@ namespace Poe2Accessibility
 
             return Sentences(lines);
         }
+
+        /// <summary>The game has one layout for the area: it is the same in every instance.</summary>
+        public static string FixedMap => T("Fixed map", "Mapa fijo");
+
+        /// <summary>The game has several layouts for the area; how many instances in a row, up to now, had this one.</summary>
+        public static string VariableMap(int same, bool metBefore) => same switch
+        {
+            0 when metBefore => T("Variable map, different from last time", "Mapa variable, distinto de la última vez"),
+            0 => T("Variable map", "Mapa variable"),
+            1 => T("Variable map, the same as last time", "Mapa variable, igual que la última vez"),
+            _ => T($"Variable map, the same as the last {same} times", $"Mapa variable, igual que las últimas {same} veces"),
+        };
 
         /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
         public static string DeathPlace => T("Where you died", "Donde moriste");

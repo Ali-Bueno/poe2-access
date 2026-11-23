@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
             (nameof(WrongWayAndLeavingAreSaidOnce), WrongWayAndLeavingAreSaidOnce),
             (nameof(TrailComeBackToIsNewsOnlyAfterLong), TrailComeBackToIsNewsOnlyAfterLong),
             (nameof(SwarmFliesToTheNearestAltarLeft), SwarmFliesToTheNearestAltarLeft),
+            (nameof(MapSaysWhetherItChanges), MapSaysWhetherItChanges),
         };
 
         /// <summary>An open field with a wall at x 200 but for its last rows; a river (not walkable) along the top ten.</summary>
@@ -118,6 +119,28 @@ namespace Poe2Accessibility.Tests
             follower.Update(10000 + TrailFollower.LeftMs, 600, false, false, (0, 900));
             Equal(TrailNews.Found, follower.Update(10000 + TrailFollower.AgainMs, 200, true, true, (0, 900)), "back after long");
             Equal(TrailPart.End, follower.Part, "farther along");
+        }
+
+        private static void MapSaysWhetherItChanges()
+        {
+            var file = System.IO.Path.Join(System.IO.Path.GetTempPath(), $"area-maps-{Guid.NewGuid():N}.txt");
+            try
+            {
+                const string catalog = "{ 'G3_17': 1, 'G1_4': 12 }";
+                var layouts = new AreaLayouts(catalog, file);
+                Equal("Fixed map", layouts.Line("G3_17", "A1", 5), "one layout");
+                Equal(string.Empty, layouts.Line("MapCrypt", "A1", 5), "an area the data do not list");
+                Equal("Variable map", layouts.Line("G1_4", "A1", 5), "met for the first time");
+                Equal("Variable map", layouts.Line("G1_4", "A1", 5), "the same instance entered again");
+                Equal("Variable map, the same as last time", layouts.Line("G1_4", "B2", 5), "another instance, laid out alike");
+                Equal("Variable map, the same as the last 2 times", new AreaLayouts(catalog, file).Line("G1_4", "C3", 5), "and once more, after a restart");
+                Equal("Variable map, different from last time", layouts.Line("G1_4", "D4", 9), "another layout");
+                Equal("Variable map", layouts.Line("G1_4", "E5", 0), "a map with no frame cannot be compared");
+            }
+            finally
+            {
+                System.IO.File.Delete(file);
+            }
         }
 
         private static void SwarmFliesToTheNearestAltarLeft()

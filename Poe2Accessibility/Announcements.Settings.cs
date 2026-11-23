@@ -81,6 +81,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),
             nameof(AccessibilitySettings.AnnounceMapParts) => T("Say the part of the map you walk into and the parts finished", "Decir la parte del mapa en la que entras y las que completas"),
             nameof(AccessibilitySettings.TrailCue) => T("Map hints: sound while following a trail", "Pistas del mapa: sonido al seguir un rastro"),
+            nameof(AccessibilitySettings.AreaLayout) => T("Say whether the map changes on entering an area", "Decir si el mapa cambia al entrar en un área"),
             nameof(AccessibilitySettings.LeftBehindCue) => T("Radar: nook left behind", "Radar: rincón que dejas atrás"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),

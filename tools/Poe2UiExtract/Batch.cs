@@ -24,6 +24,7 @@ internal static class Batch
     {
         ["item-sounds"] = ItemSoundExtractor.Run,
         ["areas"] = (_, index, output) => AreaExtractor.Run(index, output),
+        ["area-layouts"] = (_, index, output) => AreaLayoutExtractor.Run(index, output),
         ["dat-columns"] = (_, index, output) => DatColumnExtractor.Run(index, output),
         ["experience"] = (_, index, output) => ExperienceExtractor.Run(index, output),
         ["hit-times"] = (_, index, output) => HitTimeExtractor.Run(index, output),

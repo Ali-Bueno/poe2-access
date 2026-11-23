@@ -450,6 +450,29 @@ namespace Poe2Accessibility
                 : string.Empty;
         }
 
+        private (string Instance, int Tiles, ulong Frame) areaFrame = (string.Empty, 0, 0);
+
+        /// <summary>Whether the map changes from one instance to the next, its frame worked out once an instance; empty in towns and hideouts.</summary>
+        private string LayoutLine()
+        {
+            if (this.areaLayouts == null || InTownOrHideout())
+            {
+                return string.Empty;
+            }
+
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var tiles = area.TgtTilesLocations;
+            if (this.areaFrame.Instance != area.AreaHash || this.areaFrame.Tiles != tiles.Count)
+            {
+                this.areaFrame = (area.AreaHash, tiles.Count, AreaMemory.Frame(tiles, area.TerrainMetadata.BytesPerRow, area.GridWalkableData.Length));
+            }
+
+            return this.areaLayouts.Line(this.gameState?.CurrentAreaId ?? string.Empty, area.AreaHash, this.areaFrame.Frame);
+        }
+
+        /// <summary>" Fixed map." after the area's name.</summary>
+        private string AreaLayoutLine() => this.Settings.AreaLayout && this.LayoutLine() is { Length: > 0 } line ? $" {line}." : string.Empty;
+
         /// <summary>From the area row the loading state holds; the host's WorldData row only before that row was read.</summary>
         private bool InTownOrHideout() =>
             this.gameState is { CurrentAreaId.Length: > 0 } state ? state.InTownOrHideout
