@@ -174,6 +174,28 @@ namespace Poe2Accessibility.Services
         /// <summary>Above 0 once the crystal is corrupted: 1 plays Vaal_Corrupt, 2 shatters as Shatter_Vaal (Monolith.ot).</summary>
         public const string EssenceCorruptedState = "is_corrupted";
 
+        /// <summary>A strongbox's state once looted (Strongbox.ot handlers; league-mechanics.md §6).</summary>
+        public const string StrongboxOpenedState = "opened";
+
+        /// <summary>
+        ///     Whether a strongbox's states say it was looted. Pure. The Chest component's own opened flag does not agree
+        ///     on every box: a campaign landmark box in Holten read <c>opened=1</c> from first sight with its loot already
+        ///     on the ground and the component unopened, so the scanner named and guided to a box nothing could target
+        ///     (the owner walking around it, play log 2026-11-23). No states read: not spent, the box stays listed.
+        /// </summary>
+        public static bool IsStrongboxSpent(IEnumerable<(string Name, long Value)> states)
+        {
+            foreach (var state in states)
+            {
+                if (state.Name == StrongboxOpenedState && state.Value > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>An Abyss fissure fully open, the one state its minimap icon shows in (AbyssCrackBase: 1 closed, 2-7 opening, 9-16 closing).</summary>
         public const int CrackOpen = 8;
 

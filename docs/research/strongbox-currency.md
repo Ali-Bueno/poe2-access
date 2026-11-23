@@ -112,6 +112,31 @@ The smallest slice that game data alone supports, no unverified field spoken:
 
 Build and the full unit suite pass (`tools/linux-tests.sh`); not heard live yet.
 
+## 4b. The same day, live (play log 2026-11-23, the build before §4)
+
+The owner walked around two landmark strongboxes in Holten trying exactly this. What the log proves:
+
+- The first box (`LandmarkStrongbox/P1_4LandmarkStrongbox1`) read `opened=1, started=0` from first sight, its
+  loot (an uncut gem, gloves) already on the ground, and never took the interact target in 40 minutes of
+  walking around it — while the scanner named it, sounded it and guided to it as a live chest, because
+  `EntityCatalog.Classify` trusts the Chest component's `IsOpened`, which read unopened. Ordinary spent boxes
+  agree in both (a looted `CasterStrongboxLow` was left unlisted on 2026-11-18); the landmark variant does
+  not. Fixed the same day: a strongbox whose script state `opened` is set is spent
+  (`LeaguePieces.IsStrongboxSpent`, unit-tested) and is no longer listed or named. A box whose states do not
+  read stays listed.
+- The second box (`…/P1_4LandmarkStrongbox2`, `opened=0`) took the target once the owner stood close enough
+  ("Strongbox, A", 14:31:39 — beacon "arrived" and scanner "here" are both outside interact reach; the
+  target line is the only sign A will work). Holding A then **did open the apply panel** — and the mod said
+  only its hint line: `Focus -> … role=Panel text="Select, Back, Inventory"`, repeated verbatim as the
+  D-pad moved ("A direction moved nothing: the focus again" ×4). No currency, no box state, no selection
+  is read from it (MEASURED). What its elements are waits on a UI dump of the panel open (`ResearchMode`
+  now on in the play copy: one auto-dump per new panel, 2.5 s after it settles).
+- Trying the other road — X to use a Vaal Orb in the ordinary inventory (13:55) — puts the game in
+  item-apply mode ("Change Item [Y] | Cancel Apply [B] | Quick Navigate (Applicable Items Only)"), whose
+  targets are items only; the box cannot be chosen there. Nothing was applied (the Vaal Orb count never
+  changed), and five silent openings of an empty-reading layer 66 punctuate the attempt.
+
+
 ## 5. The rest, in order
 
 1. **Pick the component** from the first log carrying "Strongbox mods:" lines against a box whose

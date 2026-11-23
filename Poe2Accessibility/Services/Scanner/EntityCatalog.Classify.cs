@@ -128,6 +128,10 @@ namespace Poe2Accessibility.Services
                 {
                     this.LogStrongbox(entity);
                 }
+                if (strongbox && LeaguePieces.IsStrongboxSpent(StatesOf(entity)))
+                {
+                    category = null; // looted by its script though the Chest component still reads unopened (a landmark box)
+                }
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {

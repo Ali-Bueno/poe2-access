@@ -49,6 +49,11 @@ namespace Poe2Accessibility.Tests
             Equal(true, MarkDone.Is(new[] { ("burned", 1L) }), "a burned effigy under its quest icon is done");
             Equal(false, MarkDone.Is(new[] { ("burned", 0L) }), "an unburned one is still to do");
             Equal(false, MarkDone.Is(new[] { ("open", 1L) }), "a state no file names as done says nothing");
+            Equal(true, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 1L), ("started", 0L) }), "a landmark box looted from first sight is spent");
+            Equal(true, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 1L), ("started", 1L) }), "a box just looted after its ambush is spent");
+            Equal(false, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 0L), ("started", 1L) }), "the ambush running: not spent yet");
+            Equal(false, LeaguePieces.IsStrongboxSpent(new[] { ("opened", 0L), ("started", 0L) }), "an unopened box, and one that can be opened after its ambush, stay listed");
+            Equal(false, LeaguePieces.IsStrongboxSpent(Array.Empty<(string, long)>()), "no states read: not spent");
             Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_9/Objects/KeyPedestal_02"), "the Molten Vault's stone altar takes a quest item");
             Equal(true, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_1/Objects/KeyPedestal_Boss"), "as the Machinarium's do");
             Equal(false, KeyPedestals.Is("Metadata/Terrain/Gallows/Act3/3_6_2/Objects/GlyphPowerLineKeyPedestal"), "a power line beside one is not one");
