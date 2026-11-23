@@ -208,9 +208,11 @@ That box also stood two buttons in its row at once (Transmutation and Alchemy ar
 is a single focused element, directions move a selection inside it, and the first reader named whichever
 icon it found first — the owner heard "Orb of Transmutation" four times while the selection stood
 elsewhere. Applying the Transmutation updated the row in place (the same focus read "Orb of Alchemy"
-under the new "Arctic …" label a minute later). The reader now enumerates the row's press-sound buttons
-and names the grown one (61×61 against 40×40 in the dumps) with its place — UNVERIFIED live until the
-next two-button row, whose log line will carry every slot's size.
+under the new "Arctic …" label a minute later). A later two-button capture disproved the first guess
+that the selected button stands grown: both buttons read 60×60. The UI manager instead alternates the
+two press-button addresses in its hovered slot as D-pad left/right move the selection. The reader now
+names the slot whose address matches that hovered element (size only if no button matches), with its
+place in the row. Deployed after that capture; a spoken move to the second button is still to be heard.
 
 ## 4e. Exalted: GGG's list against the gamepad's reality (live, 2026-11-23)
 

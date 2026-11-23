@@ -15,8 +15,9 @@ namespace Poe2Accessibility.Services
     ///     the currencies' icons: the label said as the context, each currency named by its art.
     ///
     ///     The row is one focused element however many currencies it offers: the direction buttons move a
-    ///     selection inside it, and the selected button stands grown (61x61 against the others' 40x40,
-    ///     dumps of 2026-11-23). One read therefore names the grown button, with its place in the row.
+    ///     selection inside it, which the UI manager keeps in its hovered slot (the two buttons' addresses
+    ///     alternate there as directions are pressed, dumps and focus log of 2026-11-23) while every button
+    ///     stands at the same size. One read therefore names the hovered button, with its place in the row.
     /// </summary>
     public sealed partial class UiSemantics
     {
@@ -28,8 +29,11 @@ namespace Poe2Accessibility.Services
 
         private const int QuickCurrencyNodes = 48;
 
-        /// <summary>Rows already reported to the log, by what they offered and which stood grown.</summary>
+        /// <summary>Rows already reported to the log, by what they offered and which was hovered.</summary>
         private readonly HashSet<string> quickCurrencySeen = new(StringComparer.Ordinal);
+
+        /// <summary>The UI manager's hovered element as the focus tracker last read it: the row's selected button.</summary>
+        public IntPtr HoveredAddress { get; set; }
 
         private AccessibleUiNode? DescribeQuickCurrency(in UiElementReader.ElementInfo info)
         {
@@ -92,18 +96,22 @@ namespace Poe2Accessibility.Services
                 return null; // under a world label but no button in it: not the currency row
             }
 
-            // Tree order is the row's order (the dumps list the buttons left to right); the grown one is selected.
-            var selected = 0;
-            var grown = -1f;
-            for (var i = 0; i < slots.Count; i++)
+            // Tree order is the row's order (the dumps list the buttons left to right); the hovered one is
+            // selected, the grown one (a single button stands 61x61 focused, 40x40 not) when none is hovered.
+            var selected = slots.FindIndex(offer => offer.Button.Address == this.HoveredAddress);
+            if (selected < 0)
             {
-                var size = slots[i].Button.Raw.UnscaledSize;
-                if (size.X * size.Y > grown)
+                selected = 0;
+                var grown = -1f;
+                for (var i = 0; i < slots.Count; i++)
                 {
-                    (selected, grown) = (i, size.X * size.Y);
+                    var size = slots[i].Button.Raw.UnscaledSize;
+                    if (size.X * size.Y > grown)
+                    {
+                        (selected, grown) = (i, size.X * size.Y);
+                    }
                 }
             }
-
             var slot = slots[selected];
 
             // The label whole, as the generic reading already makes it ("Strongbox, Guarded by 10 packs of
