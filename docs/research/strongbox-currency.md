@@ -21,11 +21,15 @@ ClientStrings carries `GamepadInteractInfoStrongboxAltOnly` = "Hold: Apply Curre
 strongbox on a gamepad: **tap** the interact button opens it (the ambush starts); **hold** the interact
 button instead opens "a small inventory panel view which will let you use crafting currency you hold
 or wisdom scrolls to identify" (Reddit, PS5, 2025-01-19, web — consistent with the string and with a
-forum report of the same week: "I tried holding the A button, but only my inventory popup…"). In that
-panel the chosen currency is applied to the box; the full manual range is available (identify,
-transmute, augment, regal, exalt, alchemy, chaos, vaal…), as right-clicking is on a mouse (the wiki's
-currency pages all read "Right click this item then left click an item…"; a strongbox is such a
-target: corrupting one with a Vaal Orb makes everything it drops Corrupted, poe2wiki "Strongbox").
+forum report of the same week: "I tried holding the A button, but only my inventory popup…"). What the
+hold does in the current build was measured later the same day (§4c): it moves the game's focus into the
+quick-use button row under the label — the "small inventory panel" of the launch-era reports is that row
+plus its legend (Select A, Back B, **Inventory X**). The full manual range (chaos, vaal, …) is reached
+through that Inventory entry — or by opening the backpack while the box is the interact target by any
+road: every currency the box accepts then reads "Apply (Strongbox), X" on its cell and that X applies
+it straight to the box (§4d, measured with a Vaal Orb). As on a mouse, corrupting a strongbox with a
+Vaal Orb makes everything it drops Corrupted and locks it against any further currency (poe2wiki
+"Strongbox").
 
 **(b) Quick-use currency buttons** (0.2.0h, May 2025; all input methods, a shortcut).
 GGG, patch summary: *"We've added Quick-Use buttons that appear below the labels of Strongboxes and
@@ -40,10 +44,10 @@ same change but with Vaal Orbs for corrupting them into the Corrupted Essences."
 will only be visible if you have the currency items in your inventory."*
 The buttons are currency icons in a row under the world label (preview image in the summary: "LARGE
 STRONGBOX / Guarded by 10 packs of Monsters" with two orb icons under it — seen 2026-11-23). On a
-mouse each icon is a click target. Whether/how a gamepad presses an icon is **UNSURE**: no source
-found; the gamepad has the hold of (a), so the icons may be display-only there (LIKELY). A game option
-toggles the row: the options panel's UI section has a **"Currency Quick UI"** checkbox (MEASURED: UI
-dump of 2026-09-15, between "Hide Remove-only Tabs" and "Support Gem Utility Popup").
+mouse each icon is a click target; on a gamepad the hold of (a) focuses the row and A applies
+(measured, §4c). A game option toggles the row: the options panel's UI section has a **"Currency
+Quick UI"** checkbox (MEASURED: UI dump of 2026-09-15, between "Hide Remove-only Tabs" and "Support
+Gem Utility Popup").
 
 Do not confuse either with **"Bulk Quick Use [hold Y]"**, the stash/inventory hint the mod already
 reads (play log, layer 61): that moves whole currency stacks between inventories (0.2.0h "CTRL +
@@ -182,13 +186,17 @@ Contained Items / Freezes you when activated" (the Arctic prefix), "Guarded by a
 the hidden reminder branches carry each mod's range, tier (T1) and Prefix/Suffix. Two prefixes and two
 suffixes: room for one more of each under the default cap.
 
-The Vaal road was also tried to its end: using a Vaal Orb in the backpack (15:09) enters the ordinary
-item-apply mode ("Change Item [Y] | Cancel Apply [B] | Quick Navigate (Applicable Items Only)") whose
-targets are items only — the box cannot be chosen there, exactly as at 13:55. With the quick list closed
-to Vaal by design (§1), **no controller path to Vaaling (or Chaosing) a strongbox is known**; the panel
-legend's own Inventory entry (X, decoded from its glyphs: Select A, Back B, Inventory X) was not tried as
-a chain — the owner closed the panel first — so strictly the last door is UNVERIFIED, and would land in
-the same inventory either way (LIKELY).
+The Vaal road was also tried to its end — and it **works**, correcting what this section first said. The
+inventory opened while the box is the game's interact target (the panel's X legend, or the backpack key
+beside the targeted box) is no ordinary backpack: every currency the box accepts reads on its cell
+"**Apply (Strongbox), X**" instead of "Use, X", and that X applies it straight to the box — no target
+selection (measured 15:13–15:14: Chaos and Vaal cells carried the suffix; the same inventory opened
+without the box targeted, at 13:55 and 15:09, read plain "Use, X" and put the game in the item-only
+apply mode). The mod already speaks that suffix from the cell's own hint, so the manual road was
+accessible before quick-use was; only nobody could know to stand at the box first. One Vaal Orb spent
+this way at 15:14: the stack went 2 → 1, the suffix vanished (a corrupted box accepts no more), the
+label gained a visible "Corrupted" line, and rarity and modifiers stand unchanged — which also locks
+the box against the Exalted Orbs that were next in line: **exalt first, vaal last**.
 
 
 ## 5. The rest, in order
