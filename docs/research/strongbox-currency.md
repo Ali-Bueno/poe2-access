@@ -171,6 +171,25 @@ context="Strongbox, Guarded by 10 packs of Monsters"` — the label as the spoke
 label offers several buttons (UNVERIFIED, one-button sample). `ResearchMode` was switched off again after
 the capture (an auto-dump costs a ~5 s tick).
 
+## 4d. The box made rare, and the Vaal question settled (live, 2026-11-23)
+
+The owner applied the Alchemy (Select in the panel): the panel closed, and the next target line read
+"Strongbox, rare, A" — the rarity speech of §4's follow-up slice, live on its first box. The rare label
+(dump 15:12) is the Normal one's shape grown: title two lines ("Horror Bond\nStrongbox"), the implicit,
+then an `explicit-stats` layout of five visible lines for four modifiers — "63% more Quantity of Contained
+Items" (two suffixes summed: 30(15-30) with 17% increased Effectiveness, 33(25-50)), "20% more Rarity of
+Contained Items / Freezes you when activated" (the Arctic prefix), "Guarded by a pack of Rare Monsters";
+the hidden reminder branches carry each mod's range, tier (T1) and Prefix/Suffix. Two prefixes and two
+suffixes: room for one more of each under the default cap.
+
+The Vaal road was also tried to its end: using a Vaal Orb in the backpack (15:09) enters the ordinary
+item-apply mode ("Change Item [Y] | Cancel Apply [B] | Quick Navigate (Applicable Items Only)") whose
+targets are items only — the box cannot be chosen there, exactly as at 13:55. With the quick list closed
+to Vaal by design (§1), **no controller path to Vaaling (or Chaosing) a strongbox is known**; the panel
+legend's own Inventory entry (X, decoded from its glyphs: Select A, Back B, Inventory X) was not tried as
+a chain — the owner closed the panel first — so strictly the last door is UNVERIFIED, and would land in
+the same inventory either way (LIKELY).
+
 
 ## 5. The rest, in order
 
