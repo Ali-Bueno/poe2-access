@@ -212,7 +212,8 @@ under the new "Arctic …" label a minute later). A later two-button capture dis
 that the selected button stands grown: both buttons read 60×60. The UI manager instead alternates the
 two press-button addresses in its hovered slot as D-pad left/right move the selection. The reader now
 names the slot whose address matches that hovered element (size only if no button matches), with its
-place in the row. Deployed after that capture; a spoken move to the second button is still to be heard.
+place in the row. Verified live at the same two-button box after deployment: D-pad right logged
+`selected 2 of 2` and said "Orb of Alchemy, button, 2 of 2" (2026-11-23 17:00).
 
 ## 4e. Exalted: GGG's list against the gamepad's reality (live, 2026-11-23)
 
