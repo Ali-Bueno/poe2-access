@@ -60,7 +60,24 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private void OnHudChange(ScreenChange change, ScreenSnapshot snapshot)
+        /// <summary>A HUD action's title with the button of the legend that repeats it; none when the encounter tracker says that line itself.</summary>
+        private List<ScreenText> WithLegendButtons(List<ScreenText> lines, IReadOnlyList<ScreenText> legends)
+        {
+            var result = new List<ScreenText>(lines.Count);
+            foreach (var line in lines)
+            {
+                var button = legends.FirstOrDefault(legend => legend.Text == line.Text)?.Button ?? string.Empty;
+                var spoken = Announcements.WithButton(line.Text, button);
+                if (button.Length == 0 || this.EncounterLinesShown?.Invoke().Contains(spoken) != true)
+                {
+                    result.Add(line with { Text = spoken });
+                }
+            }
+
+            return result;
+        }
+
+        private void OnHudChange(ScreenChange change, ScreenSnapshot snapshot, IReadOnlyList<ScreenText> legends)
         {
             this.hudSpoken.UnionWith(this.CheckQuestPage(snapshot).Select(text => ScreenDiffer.Shape(text.Text)));
             if (this.hudBaseline)
@@ -113,7 +130,7 @@ namespace Poe2Accessibility.Services
                 else if (news.Where(text => !PropertyLine.IsMatch(text.Text)).ToList() is { Count: > 0 } lines && DateTime.UtcNow >= this.hudQuietUntil &&
                          (DateTime.UtcNow - this.groundItemAt).TotalMilliseconds >= FocusTextMergeMs)
                 {
-                    this.Speak("hud", Describe(lines), false);
+                    this.Speak("hud", Describe(this.WithLegendButtons(lines, legends)), false);
                 }
             }
         }

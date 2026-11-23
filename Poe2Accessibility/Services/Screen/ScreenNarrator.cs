@@ -281,7 +281,7 @@ namespace Poe2Accessibility.Services
 
             if (this.inGame && change.Layer.Address == this.HudLayer)
             {
-                this.OnHudChange(change, snapshot);
+                this.OnHudChange(change, snapshot, legends);
                 return;
             }
 

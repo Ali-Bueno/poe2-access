@@ -146,6 +146,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<IntPtr, bool>? IsSkillBarText { get; set; }
 
+        /// <summary>The league encounter tracker's lines as read now, said by their own watch.</summary>
+        public Func<IReadOnlyList<string>>? EncounterLinesShown { get; set; }
+
         /// <summary>A quest's title or objective line in the HUD's quest tracker.</summary>
         public Func<IntPtr, bool>? IsQuestTrackerText { get; set; }
 

@@ -377,6 +377,7 @@ namespace Poe2Accessibility
                 this.log.Info($"Class mechanics: {mechanics.Resources.Count} resources, {mechanics.Limits.Count} limits, {mechanics.BuffCount} buffs, {mechanics.SkillCount} skills from the game files");
                 this.alerts.Statuses.IsCovered = hazardGround.IsHazard;
                 this.encounters = new EncounterReader(elements);
+                this.narrator.EncounterLinesShown = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>();
                 this.minions = new MinionReport(elements);
                 var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));
                 this.log.Info($"Cull skills: {cullSkills.Count} skills from the game files");

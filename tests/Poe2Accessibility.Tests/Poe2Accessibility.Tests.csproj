@@ -352,6 +352,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Core\TickCosts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Input\ControllerGlyphs.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\EncounterLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\InlineIcons.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ArtCaptions.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\ArtWords.cs" />

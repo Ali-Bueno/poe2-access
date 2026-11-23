@@ -18,7 +18,8 @@ namespace Poe2Accessibility.Services
         public const int SettleMs = 700;
 
         private static readonly Regex Fraction = new(@"\d+\s*/\s*\d+", RegexOptions.CultureInvariant);
-        private static readonly Regex Digits = new(@"\d+", RegexOptions.CultureInvariant);
+        /// <summary>A number of the encounter's, not a button's ("L2").</summary>
+        private static readonly Regex Digits = new(@"(?<![\p{L}\d])\d+", RegexOptions.CultureInvariant);
 
         private readonly Dictionary<string, (string Text, long At)> pending = new(StringComparer.Ordinal);
         private readonly HashSet<string> titlesSaid = new(StringComparer.Ordinal);

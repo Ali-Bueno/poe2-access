@@ -272,6 +272,18 @@ namespace Poe2Accessibility.Tests
             Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 8000).Count, "and showing it again makes no title new");
             Equal(0, news.Heard(new[] { "Expedition Encounter", "Explosives Placed: 2/5" }, 9000).Count, "nor the count it already said... once it stood");
 
+            var ship = new List<string>();
+            EncounterLines.Add(ship, "Return to Ship", "Return to Ship");
+            EncounterLines.Add(ship, " + ", "<<xbox_button_lt>>+<<xbox_button_dpad_up>>");
+            EncounterLines.Add(ship, "Return to Ship", "Return to Ship");
+            Equal(Announcements.WithButton("Return to Ship", ControllerGlyphs.FromMarkup("<<xbox_button_lt>>+<<xbox_button_dpad_up>>")), string.Join(" | ", ship), "a HUD action's buttons go with it, and no bare plus");
+            var legend = new List<string> { "Return to Ship" };
+            EncounterLines.Add(legend, " +  Return to Ship", "<<xbox_button_lt>>+<<xbox_button_dpad_up>> Return to Ship");
+            Equal(ship[0], string.Join(" | ", legend), "the same from a legend repeating the title");
+            var action = new EncounterNews();
+            Equal(0, action.Heard(Array.Empty<string>(), 0).Count, "not offered yet");
+            Equal("Return to Ship, L2 plus D-pad up", string.Join(" | ", action.Heard(new[] { "Return to Ship, L2 plus D-pad up" }, 1000)), "a button's own number is no count");
+
             var ritual = new EncounterNews();
             Equal(0, ritual.Heard(new[] { "Ritual Encounter", "100 Tribute", "2 Rituals Remaining" }, 0).Count, "what the tracker shows when first looked at is no news");
             Equal(0, ritual.Heard(new[] { "Ritual Encounter", "140 Tribute", "2 Rituals Remaining" }, 1000).Count, "a bare number running on is not news: it stays in the vitals");

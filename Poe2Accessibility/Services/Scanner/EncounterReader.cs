@@ -38,9 +38,9 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (this.elements.TryReadText(info.Address, out var text) && text.Trim() is { Length: > 0 } line && !lines.Contains(line))
+                if (this.elements.TryReadText(info.Address, out var text, out var tagged))
                 {
-                    lines.Add(line);
+                    EncounterLines.Add(lines, text, tagged);
                 }
 
                 foreach (var child in Enumerable.Reverse(this.elements.ReadChildren(info)))
