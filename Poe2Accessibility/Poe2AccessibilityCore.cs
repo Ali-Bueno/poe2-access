@@ -509,6 +509,7 @@ namespace Poe2Accessibility
                 this.commands.SkillBar = this.ReadSkillBar;
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
+                this.narrator.SpeakerIn = this.semantics.SpeakerIn;
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
                 this.narrator.SidePanel = () => this.pickups?.SidePanel?.Invoke() ?? string.Empty;
                 this.narrator.InSiblingRow = this.semantics.InSiblingRow;

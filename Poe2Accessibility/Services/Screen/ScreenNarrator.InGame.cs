@@ -231,9 +231,13 @@ namespace Poe2Accessibility.Services
             var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems.Concat(focus.Tooltip)) { focus.Text, focus.Value, focus.Group };
             var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
             var chrome = this.Chrome(change.Texts);
+            var speaks = this.SpeakerIn?.Invoke(change.Layer.Address) ?? string.Empty;
+            bool IsSpeaker(ScreenText text) => speaks.Length > 0 && text.Name == GameLayout.InGameUi.DialogueNameLabel && text.Text == speaks;
             var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !IsTierNumeral(text.Text) && !said.Contains(text.Text) &&
                                                               !chrome.Contains(text.Address) && text.Name != TierLabelName &&
-                                                              !(text.Text.Length > ShortLabelChars && focus != null &&
+                                                              !(IsSpeaker(text) && this.speaker.JustSaid(text.Text, DateTime.UtcNow)) &&
+                                                              !(speaks.Length > 0 && change.Kind == ScreenChangeKind.TextsAppeared && this.JustNarrated(text.Text)) &&
+                                                              !((text.Text.Length > ShortLabelChars || speaks.Length > 0) && !IsSpeaker(text) && focus != null &&
                                                                 (focus.Text.Contains(text.Text, StringComparison.Ordinal) || focus.Value.Contains(text.Text, StringComparison.Ordinal))) &&
                                                               !FocusDetails.Names(text.Text, focus?.Text ?? string.Empty) &&
                                                               !InFocusContext(focus, text.Text)).ToList();
@@ -328,12 +332,11 @@ namespace Poe2Accessibility.Services
                 // The text came with the focus move (a skill's details, an expanded definition): the focus again,
                 // since this cuts it off, then the text — the name before a long description, never after it. Rows of
                 // the same list coming into view (the next trade listings) are read when the cursor gets there.
-                var near = focus == null || this.InSiblingRow is not { } sibling
-                    ? texts
-                    : Describe(kept.Where(text => !sibling(text.Address, focus.Address)));
-                if (near.Length > 0)
+                var name = kept.Any(IsSpeaker) ? speaks : string.Empty;
+                var near = Describe(kept.Where(text => !IsSpeaker(text) && (focus == null || this.InSiblingRow?.Invoke(text.Address, focus.Address) != true)));
+                if (name.Length > 0 || near.Length > 0)
                 {
-                    this.Speak("appeared with focus", Announcements.Sentences(new[] { this.lastFocusSpeech, near }), true);
+                    this.Speak("appeared with focus", Announcements.Sentences(new[] { name, this.lastFocusSpeech, near }), true);
                 }
             }
             else if (change.Kind == ScreenChangeKind.TextsAppeared && (DateTime.UtcNow - this.collapsedAt).TotalMilliseconds >= FocusTextMergeMs)

@@ -687,6 +687,14 @@ namespace Poe2Accessibility
 
             public const string ShopEntryNameLabel = "name_label";
 
+            /// <summary>
+            ///     Who speaks in an NPC dialogue or the title of a sign: the first child of the dialogue's layer and its label
+            ///     (UI dumps 2026-11-11 and 2026-11-23, above the line on screen).
+            /// </summary>
+            public const string DialogueNamePanel = "name_label_panel";
+
+            public const string DialogueNameLabel = "name_label";
+
             /// <summary>A shop category's card ("Pestañas de alijo", "27/27"): its highlight frame's parent is its "item_frame".</summary>
             public const string ShopCategoryName = "eshop_category_item";
 

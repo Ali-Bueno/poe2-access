@@ -45,6 +45,7 @@ namespace Poe2Accessibility.Services
             if (layer != this.lastFocusLayer)
             {
                 this.lastGroup = string.Empty; // another screen: its section is news
+                this.speaker.Forget();
             }
 
             if (node.Group.Length > 0 && node.Group != this.lastGroup)
@@ -97,13 +98,16 @@ namespace Poe2Accessibility.Services
             var intoNewLayer = layer != this.lastFocusLayer ||
                                (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs;
             this.lastFocusLayer = layer;
+            var speaks = this.SpeakerIn?.Invoke(layer) ?? string.Empty;
             if (intoNewLayer)
             {
+                text = Announcements.InContext(this.speaker.Next(speaks), text);
                 this.deferredFocus = (text, DateTime.UtcNow, node);
                 this.SayShortcuts(node, afterDeferredFocus: true);
                 return;
             }
 
+            text = Announcements.InContext(this.speaker.Say(speaks, DateTime.UtcNow), text);
             this.notesContext = node.Context;
             this.deferredFocus = null;
             this.NoteNarrated(text);
@@ -297,6 +301,7 @@ namespace Poe2Accessibility.Services
             else if ((now - this.unfocusedSince).TotalMilliseconds >= BackToPlayMs)
             {
                 this.panelShown = false;
+                this.speaker.Forget();
                 this.shortcutsSaid.Clear();
                 this.tabbedLayer = IntPtr.Zero;
                 this.deferredFocus = null;
@@ -392,6 +397,8 @@ namespace Poe2Accessibility.Services
                 // to the first item): the waiting readout says where it is now, not where it was.
                 var now = this.Focused(node);
                 this.lastFocusSpeech = now;
+                this.speaker.Forget(); // what waited is not said: its speaker still is to be
+                now = Announcements.InContext(this.speaker.Next(this.SpeakerIn?.Invoke(this.lastFocusLayer) ?? string.Empty), now);
                 this.deferredFocus = (node.Context.Length > 0 && waiting.Text.StartsWith(node.Context, StringComparison.Ordinal)
                     ? Announcements.InContext(node.Context, now)
                     : now, waiting.At, node);
@@ -457,7 +464,8 @@ namespace Poe2Accessibility.Services
                 // focus already holds, so the line is said here; "empty" is the blank between two lines.
                 if (node.Text.Length > 0 && node.Text != Announcements.Empty)
                 {
-                    this.output.Speak(this.Focused(node), true);
+                    var name = this.speaker.Say(this.SpeakerIn?.Invoke(this.lastFocusLayer) ?? string.Empty, DateTime.UtcNow);
+                    this.output.Speak(Announcements.InContext(name, this.Focused(node)), true);
                 }
 
                 return;

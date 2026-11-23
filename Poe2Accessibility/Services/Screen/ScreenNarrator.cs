@@ -60,6 +60,7 @@ namespace Poe2Accessibility.Services
         private string lastContext = string.Empty;
         private string lastFocusSpeech = string.Empty;
         private string lastGroup = string.Empty;
+        private readonly SpeakerTurn speaker = new();
         private readonly TrialCounterWatch trialCounters = new();
         private readonly QuestTrackerPage questPage = new();
         private readonly CountdownWatch countdown = new();
@@ -180,6 +181,7 @@ namespace Poe2Accessibility.Services
             this.lastTop = IntPtr.Zero;
             this.lastContext = string.Empty;
             this.lastGroup = string.Empty;
+            this.speaker.Forget();
             this.lastSelectorPosition = string.Empty;
             this.lastSelectorChoice = null;
             this.legendsLayer = IntPtr.Zero;

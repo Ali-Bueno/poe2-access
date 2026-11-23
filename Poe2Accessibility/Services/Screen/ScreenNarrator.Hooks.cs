@@ -12,6 +12,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The focused node described again (its panel may have been built since); null when gone.</summary>
         public Func<AccessibleUiNode, AccessibleUiNode?>? Refresh { get; set; }
 
+        /// <summary>Who speaks in a dialogue layer (the name drawn over the line), empty when the layer is none.</summary>
+        public Func<IntPtr, string>? SpeakerIn { get; set; }
+
         /// <summary>Whether a text lies inside the panel with the given title; null reads every text.</summary>
         public Func<IntPtr, string, bool>? InPanel { get; set; }
 
