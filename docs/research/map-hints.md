@@ -22,7 +22,11 @@ somewhere (bold) are trails, below.
 | **Swarm** | Hunting Grounds; Freythorn | the ritual altar's `current_state` reaching 3 | Freythorn; the nearest altar left, then the boss |
 | **Maraketh seals** | Traitor's Passage | objects `Act2/2_2/Objects/WallSeals` | Balbala's arena |
 | **Cracks** | Mastodon Badlands | doodads `AbyssNew/Scatter/g2_5_abyss` | Lightless Passage |
-| **Paved street** | Drowned City; Utzaal | tiles `VaalExterior/SunkenStreet/`; `VaalExterior/Street/` | Apex of Filth; the boss |
+| **Paved street** | Drowned City; Utzaal | tiles `VaalExterior/SunkenStreet/`; `VaalExterior/Street/` | Apex of Filth; Aggorat's door, in Viper's room |
+| **Gold channel** | Molten Vault | tiles `TreasureVault/GoldChannel` | the boss |
+| **Coast** | Kedge Bay; Whakapanu Island | tiles `Island/ShoreLine/`; `TropicalIsland/Coastline/` | Journey's End; Singing Caverns |
+| **Cliff by the sea** | Journey's End | tiles `Island/WalkableCliffOcean/` | the boss |
+| **River** | Khari Crossing | tiles `SevenWaters/Tiles/River/` | The Galai Gates |
 | Explorer camp | Infested Barrens, Jungle Ruins, Chimeral Wetlands | model `AbandonedExpedition/Camp` | the entrance, added to the scanner |
 | Sign | anywhere | `StoryGlyph` icon | the exit of its name, if known |
 
@@ -76,7 +80,24 @@ rule of the map, which no file says elsewhere:
 | Mastodon Badlands | `AbyssTrail` | the Lightless Passage (12 of 12); `BonePassage` the Bone Pits |
 | Drowned City, Utzaal | `flooded_street` | the entrance, the blockade and Aggorat's door; the boss (6 of 6) |
 
-Act 4 and most of the interlude have one graph each, no edge to follow and no cue known to the press or the guides.
+| Molten Vault | `channel_rooms` | the gold's source, the double block, the boss (2 of 2) |
+| Kedge Bay | `island_shoreline` | the entrance, the map piece, the boss, Journey's End (8 of 8) |
+| Journey's End | `island_cliffedge` | the entrance, the boss (9 of 9) |
+| Whakapanu Island | `tropical_shoreline` | the entrance, Crab Cave, the boss, the caverns (8 of 8) |
+| Khari Crossing | `seven_waters_river` | the boss and the Galai Gates (one graph) |
+
+The last five are no cue of GGG's that the press or the guides name; the graph makes them one.
+
+**Checked without entering the areas** (2026-11-23, the owner's characters not to be moved; `tools/research/topology/sweep.py`):
+a graph's edge is often a *room's* edge (`flooded_street.et`), so the ground it means is the tile edge its rooms hold and the
+others do not: Drowned City's street rooms hold `vaal_streetwall.et` in 38 of 41 (3 of 45 others), Utzaal's in 38 of 40 (0 of
+48), Whakapanu's shore rooms the coastline in 23 of 23 (1 of 68), Kedge Bay's the shore line in 46 of 46 (8 of 43), Journey's
+End's cliff rooms `island_walkable_cliff_ocean` in 64 of 64 (0 of 54). The `.tdt` files of the area's tile set that name that
+edge give the folder of the row. A unit test keeps every goal a label of the landmark table. The goals: the rooms of each graph node
+force the tag of the goal's tile (Utzaal's `boss_01` forces `atziri_entrance_metatile`, Aggorat's door; the Molten Vault's
+`boss_channel_end`, the Drowned City's `atziri_transition`, the Badlands' `abysshole`, Whakapanu's `cove`/`crabcave`); Kedge
+Bay's exit and the Farmlands' village gate hold no tag, the gate was seen live. Qimah's riverbed was left out: its landmark
+table names the arena's way in "Entrance". Unproven until entered: how the trails run there.
 
 **The road's two ends** carry the same tile, `Bramble_Cnr_transition_01`. The three dead-end rooms (`road_end_01..03`) hold
 5 to 9 `HuntingGrounds/Bramble/Bramble_*` doodads, the two entrance rooms none, and doodads are listed at arrival: on

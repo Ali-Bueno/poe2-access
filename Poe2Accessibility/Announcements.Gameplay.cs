@@ -139,6 +139,9 @@ namespace Poe2Accessibility
             "burrow" => T("Burrower's trail", "Rastro del excavador"),
             "cracks" => T("Cracks in the ground", "Grietas en el suelo"),
             "seals" => T("Maraketh seals on the walls", "Sellos maraketh en las paredes"),
+            "channel" => T("Gold channel", "Canal de oro"),
+            "coast" => T("Coast", "Costa"),
+            "cliff" => T("Cliff by the sea", "Acantilado junto al mar"),
             "swarm" => T("Locust swarm", "Enjambre de langostas"),
             _ => hint,
         };

@@ -41,7 +41,22 @@
   "G3_8": [
     { "tiles": ["VaalExterior/SunkenStreet/"], "hint": "street", "goal": "Apex of Filth", "line": true }
   ],
+  "G3_9": [
+    { "tiles": ["TreasureVault/GoldChannel"], "hint": "channel", "goal": "boss", "line": true }
+  ],
   "G3_14": [
-    { "tiles": ["VaalExterior/Street/"], "hint": "street", "goal": "boss", "line": true }
+    { "tiles": ["VaalExterior/Street/"], "hint": "street", "goal": "Aggorat", "line": true }
+  ],
+  "G4_2_1": [
+    { "tiles": ["Island/ShoreLine/"], "hint": "coast", "goal": "Journey's End", "line": true }
+  ],
+  "G4_2_2": [
+    { "tiles": ["Island/WalkableCliffOcean/"], "hint": "cliff", "goal": "boss", "line": true }
+  ],
+  "G4_3_1": [
+    { "tiles": ["TropicalIsland/Coastline/"], "hint": "coast", "goal": "Singing Caverns", "line": true }
+  ],
+  "P2_1": [
+    { "tiles": ["SevenWaters/Tiles/River/"], "hint": "river", "goal": "The Galai Gates", "line": true, "reach": 45 }
   ]
 }

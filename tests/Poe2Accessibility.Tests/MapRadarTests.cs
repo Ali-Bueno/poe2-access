@@ -469,10 +469,24 @@ namespace Poe2Accessibility.Tests
             }
 
             var table = MapHintTable.Parse(System.IO.File.ReadAllText(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "map-hints.json")));
+            var catalog = System.IO.Path.Join(directory, "Poe2Accessibility", "catalog");
+            var labels = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (var file in new[] { "important_tgt_files.txt", "landmarks.json" })
+            {
+                foreach (var (area, tiles) in Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(System.IO.File.ReadAllText(System.IO.Path.Join(catalog, file)))!)
+                {
+                    labels.TryAdd(area, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+                    labels[area].UnionWith(tiles.Values);
+                }
+            }
+
             foreach (var area in table.Areas)
             {
                 foreach (var row in table.For(area))
                 {
+                    var goal = row.GoalTile.Length > 0 ? row.GoalTile : row.Goal;
+                    Equal(true, goal.Length == 0 || goal is MapHintTable.BossGoal or MapHintTable.RitualGoal || row.Reveals || labels.GetValueOrDefault(area)?.Contains(goal) == true,
+                          $"{area}: the landmark table has {goal}");
                     var sources = new[] { row.Match, row.Sign, row.After, row.Tiles.FirstOrDefault() ?? string.Empty }.Count(source => source.Length > 0);
                     Equal(1, sources, $"{area}: found one way");
                     Equal(true, row.Sign.Length > 0 || row.Hint.Length > 0, $"{area}: a cue has its line");
