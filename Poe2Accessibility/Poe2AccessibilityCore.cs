@@ -369,7 +369,6 @@ namespace Poe2Accessibility
                 this.bossEffects = new BossEffectWatch(this.output, effectAreas, this.log)
                 {
                     Fighting = () => this.bosses?.Mechanics?.Fighting,
-                    Rotation = entity => this.bosses?.Mechanics?.Positions.Rotation(entity),
                 };
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };

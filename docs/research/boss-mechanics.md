@@ -743,11 +743,12 @@ fire, hit at 1.55 s. `GTDoryaniLightningStorm`: 15 bolts of 5 cells, each 850 ms
   where the model's socket is `0 -495 0`. Settings after a `monster =` line are that spawn's, not the last shape's. PROVEN (files).
 - **Rotation:** the float after the cell in Positioned (+0x44C beside +0x444 / +0x448), the same as Render +0x188: Matiki's
   1.2309 and the water door's 3.89 are their room turns (-1.23094, 2.41249) mirrored in x with the room. PROVEN live.
-  `EntityPlaces.Rotation`.
+  `Render.Rotation` (the Positioned search finds its cell only among still entities, not in a fight).
 - **Where the effect is in memory:** none of the three fights' logs holds a ServerEffect for a wave: it is no server entity. The
   awake map also holds the client's visuals (ids from 0x40000000), which the host's walk leaves out; they carry Animated (the
-  `.ao`), Render and Positioned, and `Metadata/Effects/Effect` is among them (108 visuals at the checkpoint). PROVEN live. That
-  the wave is one is LIKELY; the log's `Boss effect drawn:` line will say.
+  `.ao`), Render and Positioned, and `Metadata/Effects/Effect` is among them (108 visuals at the checkpoint). PROVEN live. A
+  monster's skill effect `BrineMaiden/screech.ao` (an add's geometry skill) was drawn there in the owner's next fight (16:03 log,
+  `Metadata/Effects/Effect`): PROVEN for the kind; the wave itself is LIKELY until the log's `Boss effect drawn:` names it.
 - **Orbs** (`SirenBossWaterBall`, 35 % phase): touching one is "Ahogamiento". **Whirlpools** are ground effects (`vortex_79`),
   four or five in a line where she leaps across the ring, others cast under the player; 15 s. **Gaze** (about 65 % and 35 %): she
   sings in the middle, half the ring in her sight, mirrors (`SirenMirror`) on the outer water reflect it; 5 stacks petrify.

@@ -17,6 +17,9 @@ namespace GameReader.RemoteObjects.Components
         // Computed on each read: the terrain search sets the cells per tile from what the terrain holds (AreaLayoutSearch).
         private static float WorldToGridRatio => TileStructure.TileToWorldConversion / TileStructure.TileToGridConversion;
 
+        /// <summary>A rotation beyond two turns is no rotation: the field moved.</summary>
+        private const float MaxTurn = 4f * MathF.PI;
+
         /// <summary>Both grid coordinates in one word (X low, Y high): written and read whole, with no object per update.</summary>
         private long gridSnap;
 
@@ -52,6 +55,11 @@ namespace GameReader.RemoteObjects.Components
         /// </summary>
         public StdTuple3D<float> WorldPosition { get; private set; }
 
+        /// <summary>
+        ///     Gets the rotation of the entity (radians, counter-clockwise in the world's axes); NaN when the field holds none.
+        /// </summary>
+        public float Rotation { get; private set; } = float.NaN;
+
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -60,6 +68,7 @@ namespace GameReader.RemoteObjects.Components
             this.OwnerEntityAddress = data.Header.EntityPtr;
             this.WorldPosition = data.CurrentWorldPosition;
             this.ModelBounds = data.CharactorModelBounds;
+            this.Rotation = MathF.Abs(data.Rotation) <= MaxTurn ? data.Rotation : float.NaN;
 
             var newX = data.CurrentWorldPosition.X / WorldToGridRatio;
             var newY = data.CurrentWorldPosition.Y / WorldToGridRatio;

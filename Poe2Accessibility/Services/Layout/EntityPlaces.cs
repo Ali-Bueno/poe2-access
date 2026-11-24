@@ -22,9 +22,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Entities read per search: enough to rule out a chance match, few enough for one frame.</summary>
         private const int MaxSamples = 16;
 
-        /// <summary>A rotation beyond two turns is no rotation: the field moved.</summary>
-        private const float MaxTurn = 4f * MathF.PI;
-
         private readonly HostMemoryReader memory;
         private readonly PluginLog log;
         private int? offset;
@@ -70,17 +67,6 @@ namespace Poe2Accessibility.Services
             var inGrid = bytesPerRow > 0 && x > 0 && y > 0 && x < bytesPerRow * 2 && y < area.GridWalkableData.Length / bytesPerRow;
             return inGrid ? new Vector2(x + HalfCell, y + HalfCell) * area.WorldToGridConvertor : null;
         }
-
-        /// <summary>
-        ///     The entity's rotation (radians, counter-clockwise in the world's axes), the float after its cell in Positioned;
-        ///     null when not read. Found live 2026-11-24 (patch 0.5.5f): the Singing Caverns' Matiki and water door hold their
-        ///     room file's turns, mirrored with the room, there and in Render (docs/research/boss-mechanics.md, Diamora).
-        /// </summary>
-        public float? Rotation(Entity entity) =>
-            entity.TryGetComponent<Positioned>(out var positioned) && this.Offset() is { } at &&
-            this.memory.TryRead<float>(positioned.Address + at + (2 * sizeof(int)), out var rotation) && float.IsFinite(rotation) && MathF.Abs(rotation) <= MaxTurn
-                ? rotation
-                : null;
 
         /// <summary>
         ///     Research: for a few drawn entities, where in Positioned an integer or a float holds their cell or their world

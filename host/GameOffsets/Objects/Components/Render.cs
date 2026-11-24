@@ -20,9 +20,9 @@ namespace GameOffsets.Objects.Components
 
         // [FieldOffset(0x00A0)] public StdWString ClassName;
 
-        // Exactly the same as provided in the Positioned component.
-        // [FieldOffset(0x00C0)] public float RotationCurrent;
-        // [FieldOffset(0x00C4)] public float RotationFuture;
+        // Radians, the same as Positioned's after its cell (+0x44C) and as the next float here. Found live 2026-11-24 (0.5.5f):
+        // the Singing Caverns' Matiki and water door hold their room file's turns (docs/research/boss-mechanics.md, Diamora).
+        [FieldOffset(0x188)] public float Rotation;
         [FieldOffset(0x1B0)] public float TerrainHeight;
     }
 }

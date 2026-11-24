@@ -267,7 +267,7 @@ namespace Poe2Accessibility
                     var drawn = new System.Collections.Concurrent.ConcurrentBag<string>();
                     var walked = Core.States.InGameStateObject.CurrentAreaInstance.ScanVisuals(id => false, (id, visual) =>
                         drawn.Add($"{visual.Path} {(visual.TryGetComponent<GameReader.RemoteObjects.Components.Animated>(out var shown) ? shown.ModelPath : "-")} " +
-                                  $"render={visual.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out _)} positioned={visual.TryGetComponent<GameReader.RemoteObjects.Components.Positioned>(out _)}"));
+                                  $"{(visual.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var placed) ? FormattableString.Invariant($"at {placed.WorldPosition.X:0},{placed.WorldPosition.Y:0} turned {placed.Rotation:0.00}") : "not drawn")}"));
                     this.log?.Info($"Visuals: {drawn.Count} of {walked} awake nodes");
                     foreach (var group in drawn.GroupBy(line => line).OrderByDescending(group => group.Count()).Take(60))
                     {

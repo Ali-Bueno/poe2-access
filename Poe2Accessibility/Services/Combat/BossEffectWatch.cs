@@ -64,9 +64,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a boss being fought stands; null when none is.</summary>
         public Func<Vector2?> Fighting { get; set; } = () => null;
 
-        /// <summary>An entity's rotation (<see cref="EntityPlaces.Rotation"/>).</summary>
-        public Func<Entity, float?> Rotation { get; set; } = _ => null;
-
         /// <summary>Where to walk to out of the effect; null when the player is in none.</summary>
         public Vector2? Lead { get; private set; }
 
@@ -136,7 +133,7 @@ namespace Poe2Accessibility.Services
                 this.known[id] = now;
                 if (!first && ao != null && entity.Path.StartsWith(EffectPaths, StringComparison.Ordinal) && entity.TryGetComponent<Render>(out var render))
                 {
-                    this.Place(id, entity, ao, new Vector2(render.WorldPosition.X, render.WorldPosition.Y), now);
+                    this.Place(id, entity.Path, ao, render, now);
                 }
             }
 
@@ -160,15 +157,16 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
-        private void Place(uint id, Entity entity, string ao, Vector2 at, long now)
+        private void Place(uint id, string path, string ao, Render render, long now)
         {
-            var rotation = this.Rotation(entity);
+            var at = new Vector2(render.WorldPosition.X, render.WorldPosition.Y);
+            var turned = render.Rotation;
             if (this.logged.Count < MaxLogged && this.logged.Add(ao))
             {
-                this.log.Info($"Boss effect drawn: {entity.Path} #{id} {ao} at {at.X:0},{at.Y:0} turned {rotation?.ToString("0.00") ?? "?"}");
+                this.log.Info($"Boss effect drawn: {path} #{id} {ao} at {at.X:0},{at.Y:0} turned {turned:0.00}");
             }
 
-            if (rotation is not { } turned || this.areas.Of(ao) is not { } shapes || shapes.Max(shape => shape.EndMs) < MinLeadMs)
+            if (float.IsNaN(turned) || this.areas.Of(ao) is not { } shapes || shapes.Max(shape => shape.EndMs) < MinLeadMs)
             {
                 return;
             }
