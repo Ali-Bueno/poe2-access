@@ -12,6 +12,9 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class ItemNames
     {
+        /// <summary>What a currency's base type id has before the id its name is filed under.</summary>
+        public const string CurrencyPrefix = "Metadata/Items/Currency/";
+
         private static Dictionary<string, Dictionary<string, string>> names = new(StringComparer.Ordinal);
 
         /// <summary>Reads the catalog; a missing or broken one leaves the art unnamed.</summary>

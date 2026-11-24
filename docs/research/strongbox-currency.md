@@ -176,15 +176,9 @@ layer provenance §2):
   read as the panel's name). One button was present: `Art/2DItems/Currency/CurrencyUpgradeToRare.dds`, the
   Orb of Alchemy (read from the texture object's buffer by hex probe; the owner carried 2, and no
   transmutation).
-- The icon art does not resolve through the price catalog: the orbs with Greater/Perfect tiers share one art
-  file in `BaseItemTypes`, so `CurrencyArtExtractor` leaves it unnamed. A button whose art stem is the
-  item's own id names that item (`CurrencyIcons.QuickUseName`: catalog first, stem else; the Alchemy
-  stem measured above) — but a base stem of a tiered family (`CurrencyUpgradeToMagic`, LIKELY the
-  Greater being `…Magic2` by the item-names catalog's numbering) cannot say which tier the button
-  would spend. Whether a tiered button's art is that shared base file or its own numbered one is
-  UNVERIFIED, so `QuickUseName` leaves a base stem with a numbered sibling unnamed ("Currency") rather
-  than speak the base orb; the first "Quick currency:" log line of a tiered button (every key read,
-  logged when the row's read changes) settles which art it carries (review fix, 2026-11-23).
+- The icon art does not resolve through the price catalog: several items share one art file in `BaseItemTypes`,
+  so `CurrencyArtExtractor` leaves it unnamed. A button whose art stem is the item's own id names that item
+  (`CurrencyIcons.QuickUseName`: catalog first, stem else; the Alchemy stem measured above). The tiered orbs: §4f.
 - The icon child is flagged invisible in every dump (its parent draws it), so texture hunting must walk
   invisible children too.
 
@@ -262,6 +256,18 @@ box, quick-listed or not — Exalted's plain "Use, X" then means the game expect
 this input, it never builds (LIKELY mechanism for what looks like a gamepad-side bug).
 
 
+## 4f. Which tier a button spends (game tables, 2026-11-23)
+
+`BaseItemTypes` → `ItemVisualIdentity.DDSFile` (the `currency-art` command's own columns, ids printed): the base,
+Greater and Perfect tiers of the Transmutation, Augmentation, Regal, Exalted and Chaos orbs (ids `X`, `X2`, `X3`) all
+point to the **same file**, the base's. No numbered art exists, so an icon never tells the tier. Alchemy's file is
+shared only with a "[DNT] Not Shown To Players" item.
+
+GGG's notes (§1b): a button shows only for a currency in the inventory. With a single tier in the backpack the button
+can therefore spend no other, and it is said by its full name; with several, or with the backpack unread, the base
+name is said with "tier unknown" (`Announcements.TierUnknown`). The backpack is the host's `MainInventory1`
+(`UiSemantics.CarriesCurrency`). Unit-tested; not heard live. Which tier the game picks with several carried: UNKNOWN.
+
 ## 5. The rest, in order
 
 1. **Say the label on taking the target, without the hold.** The label subtree (§4c) stands in the tree
@@ -272,12 +278,9 @@ this input, it never builds (LIKELY mechanism for what looks like a gamepad-side
    it is already spoken from `ObjectMagicProperties` (§4d). Unidentified must withhold the lines, as
    the label does. The "Strongbox mods:" log (§4) meanwhile keeps watching for what no label text
    carries — above all where a corrupted box's mark reads — before anything more is spoken from it.
-2. **A tiered button's art** (shared base file or its own numbered one) is the one unsettled read:
-   the first "Quick currency:" line from a tiered button settles it, and until then the shared base
-   art speaks unnamed (§4c). Several buttons on one label are settled (§4d: hovered-slot selection,
-   live 17:00). Still to do: re-say the label when its lines change after a currency is applied —
-   the label elements rebuild (addresses differed between the two dumps), so diff by text, not
-   address.
+2. **Several tiers carried**: which one the button spends is unknown (§4f). Several buttons on one label are settled
+   (§4d: hovered-slot selection, live 17:00). Still to do: re-say the label when its lines change after a currency is
+   applied — the label elements rebuild (addresses differed between the two dumps), so diff by text, not address.
 3. **Essences**: the same reader covers a crystal's label by construction (its root is the held
    monster's file), but no essence button has been seen: whether holding the interact button at a
    crystal focuses its Vaal button the same way is UNVERIFIED until a dump shows one.

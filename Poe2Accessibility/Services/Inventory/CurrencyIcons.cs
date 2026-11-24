@@ -10,6 +10,9 @@ namespace Poe2Accessibility.Services
     {
         private const char KeyDetailsMark = '|';
 
+        /// <summary>The number the Greater tier's id ends in ("CurrencyUpgradeToMagic2"); Perfect is the next.</summary>
+        private const int SecondTier = 2;
+
         private static Dictionary<string, Dictionary<string, string>> names = new(StringComparer.Ordinal);
 
         /// <summary>Reads catalog/currency-art.json ({ language: { art file, lower case: item name } }); without it only gold is named.</summary>
@@ -50,15 +53,12 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The currency a quick-use button offers, by its icon: the art catalog where it names the file, else the
-        ///     item whose id is the file's stem ("CurrencyUpgradeToRare.dds" is <c>CurrencyUpgradeToRare</c>, the Orb
-        ///     of Alchemy, measured on a strongbox's button 2026-11-23). The orbs with Greater and Perfect tiers share
-        ///     one art file in the game's tables, so the extractor leaves it unnamed and the stem names only the base
-        ///     tier: which tier a button showing that shared file would spend is unverified (strongbox-currency.md
-        ///     §4c), so a base stem with a numbered tier sibling is not spoken as any orb. A stem that itself carries
-        ///     its tier's number names that concrete item, as the measured Alchemy stem names its item.
+        ///     The currency a quick-use button offers, by its icon. Every tier of an orb shows the base tier's icon, so a tiered
+        ///     orb is the one tier carried, or its base name with the tier unknown (docs/research/strongbox-currency.md §4f).
         /// </summary>
-        public static string? QuickUseName(string key)
+        /// <param name="key">The icon's texture key.</param>
+        /// <param name="carries">Whether the backpack holds the currency of this id (<see cref="ItemNames.CurrencyPrefix"/> left out).</param>
+        public static string? QuickUseName(string key, Func<string, bool> carries)
         {
             if (!key.StartsWith(GameLayout.Image.CurrencyArtPrefix, StringComparison.Ordinal))
             {
@@ -71,20 +71,25 @@ namespace Poe2Accessibility.Services
             }
 
             var end = key.IndexOf(KeyDetailsMark);
-            var file = end < 0 ? key : key[..end];
-            var slash = file.LastIndexOf('/');
-            var stem = slash < 0 ? file : file[(slash + 1)..];
-            if (stem.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
+            var stem = Path.GetFileNameWithoutExtension(end < 0 ? key : key[..end]);
+            if (ItemNames.Of(stem) is not { } baseName)
             {
-                stem = stem[..^4];
+                return null;
             }
 
-            if (stem.Length == 0 || ItemNames.Of(stem + "2") != null)
+            var tiers = new List<string> { stem };
+            for (var tier = SecondTier; !char.IsDigit(stem[^1]) && ItemNames.Of(stem + tier) != null; tier++)
             {
-                return null; // tiers share this file: naming the base tier would understate what the button spends
+                tiers.Add(stem + tier);
             }
 
-            return ItemNames.Of(stem);
+            if (tiers.Count == 1)
+            {
+                return baseName;
+            }
+
+            var held = tiers.FindAll(id => carries(id));
+            return held.Count == 1 ? ItemNames.Of(held[0]) : Announcements.TierUnknown(baseName);
         }
     }
 }

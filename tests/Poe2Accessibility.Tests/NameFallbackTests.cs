@@ -127,14 +127,17 @@ namespace Poe2Accessibility.Tests
                         ["CurrencyUpgradeToMagic3"] = "Perfect Orb of Transmutation",
                     },
                 });
-                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds|0,0,0,0|0") ?? "none");
-                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds") ?? "none"); // no key details
-                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare|0,0,0,0|0") ?? "none"); // no .dds
-                Expect("none", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic.dds|0,0,0,0|0") ?? "none"); // the tiers share this file: which one it spends is unverified
-                Expect("Greater Orb of Transmutation", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic2.dds|0,0,0,0|0") ?? "none"); // a stem carrying its tier's number names that item
-                Expect("none", CurrencyIcons.QuickUseName("Art/Other/CurrencyUpgradeToRare.dds|0,0,0,0|0") ?? "none"); // art outside the currency folder names nothing, stem or not
-                Expect("Scroll of Wisdom", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0") ?? "none");
-                Expect("none", CurrencyIcons.QuickUseName("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
+                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds|0,0,0,0|0", _ => false) ?? "none");
+                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds", _ => false) ?? "none"); // no key details
+                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare|0,0,0,0|0", _ => false) ?? "none"); // no .dds
+                Expect("Orb of Transmutation", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic.dds|0,0,0,0|0", id => id == "CurrencyUpgradeToMagic") ?? "none"); // the tiers share this file: the one carried
+                Expect("Perfect Orb of Transmutation", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic.dds|0,0,0,0|0", id => id == "CurrencyUpgradeToMagic3") ?? "none");
+                Expect(Announcements.TierUnknown("Orb of Transmutation"), CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic.dds|0,0,0,0|0", _ => true) ?? "none"); // several carried: the icon tells none
+                Expect(Announcements.TierUnknown("Orb of Transmutation"), CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic.dds|0,0,0,0|0", _ => false) ?? "none"); // the backpack did not read
+                Expect("Greater Orb of Transmutation", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic2.dds|0,0,0,0|0", _ => false) ?? "none"); // a stem carrying its tier's number names that item
+                Expect("none", CurrencyIcons.QuickUseName("Art/Other/CurrencyUpgradeToRare.dds|0,0,0,0|0", _ => false) ?? "none"); // art outside the currency folder names nothing, stem or not
+                Expect("Scroll of Wisdom", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0", _ => false) ?? "none");
+                Expect("none", CurrencyIcons.QuickUseName("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0", _ => false) ?? "none");
             }
             finally
             {

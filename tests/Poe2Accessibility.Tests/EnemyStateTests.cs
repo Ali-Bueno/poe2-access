@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
             (nameof(CullingSkillsComeFromTheCatalog), CullingSkillsComeFromTheCatalog),
             (nameof(CrossingAnAreaLeadsToTheWayOn), CrossingAnAreaLeadsToTheWayOn),
             (nameof(AnAncientBeaconIsTheQuestsByItsOtherTitle), AnAncientBeaconIsTheQuestsByItsOtherTitle),
+            (nameof(AStrongboxIsTheQuestsWhateverItsRarity), AStrongboxIsTheQuestsWhateverItsRarity),
             (nameof(ExploredGroundIsKeptAsBytes), ExploredGroundIsKeptAsBytes),
             (nameof(PlacedObjectsSoundByDistance), PlacedObjectsSoundByDistance),
             (nameof(SkillsAreReadyOnceTheirCooldownEnds), SkillsAreReadyOnceTheirCooldownEnds),
@@ -131,6 +132,16 @@ namespace Poe2Accessibility.Tests
             Equal("Quest Foco vaal", Names("Focos antiguos", "Activa el foco antiguo"), "the first");
             Equal("Quest Foco vaal", Names("Focos antiguos", "Activa cinco focos antiguos adicionales"), "the five more, in the plural");
             Equal(string.Empty, Names("Legado de los vaal", "Viaja a Yermo infestado"), "a quest that does not ask for it");
+        }
+
+        private static void AStrongboxIsTheQuestsWhateverItsRarity()
+        {
+            var plain = new ScanEntry(1, ScanCategory.Chests, "Cofre reforzado", 0, 0, 0, "chest", Strongbox: true);
+            var rare = plain with { Name = Announcements.WithRarity(plain.Name, GameReader.RemoteEnums.Rarity.Rare), Subject = plain.Name };
+            string Names(ScanEntry box, string text) => string.Join(" | ", QuestMatcher.Targets(new[] { box }, new[] { text }, "Holten").Select(entry => entry.Name));
+            Equal(plain.Name, Names(plain, "Abre el cofre reforzado"), "a normal box by its name");
+            Equal(rare.Name, Names(rare, "Abre el cofre reforzado"), "a rare one by its name without the rarity");
+            Equal(string.Empty, Names(rare, "Busca la semilla de la corrupción"), "an objective that does not ask for it");
         }
 
         private static void CrossingAnAreaLeadsToTheWayOn()

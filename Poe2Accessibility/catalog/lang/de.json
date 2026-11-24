@@ -1537,6 +1537,7 @@
  "{0}, socketed": "{0}, gesockelt",
  "{0}, socketed in {1}": "{0}, gesockelt in {1}",
  "{0}, the build asks for {1}": "{0}, der Build verlangt {1}",
+ "{0}, tier unknown": "{0}, Stufe unbekannt",
  "{0}, toward {1}": "{0}, Richtung {1}",
  "{0}, tree preview": "{0}, Baumvorschau",
  "{0}, you have {1}": "{0}, du hast {1}",

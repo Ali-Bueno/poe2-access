@@ -2,6 +2,8 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
 
     /// <summary>
@@ -28,6 +30,11 @@ namespace Poe2Accessibility.Services
         private const int QuickCurrencyDepth = 4;
 
         private const int QuickCurrencyNodes = 48;
+
+        /// <summary>The row is read each poll, the backpack behind it once in this long.</summary>
+        private const int CarriedCurrencyMs = 500;
+
+        private (long At, string Character, HashSet<string> Ids)? carriedCurrency;
 
         /// <summary>
         ///     The last row reported to the log (its element, what it offered, which was hovered): consecutive
@@ -116,6 +123,7 @@ namespace Poe2Accessibility.Services
                     }
                 }
             }
+
             var slot = slots[selected];
 
             // The label whole, as the generic reading already makes it ("Strongbox, Guarded by 10 packs of
@@ -164,7 +172,7 @@ namespace Poe2Accessibility.Services
                 if (this.elements.ReadAnyTextureKey(node) is { } key)
                 {
                     keys.Add(key);
-                    if (currency.Length == 0 && CurrencyIcons.QuickUseName(key) is { Length: > 0 } named)
+                    if (currency.Length == 0 && CurrencyIcons.QuickUseName(key, this.CarriesCurrency) is { Length: > 0 } named)
                     {
                         currency = named;
                     }
@@ -185,6 +193,33 @@ namespace Poe2Accessibility.Services
             }
 
             return currency;
+        }
+
+        /// <summary>Whether the asking player's backpack holds the currency of this id; false while the backpack does not read.</summary>
+        private bool CarriesCurrency(string id)
+        {
+            var now = Environment.TickCount64;
+            var character = AskingCharacter();
+            if (this.carriedCurrency is not { } cached || cached.Character != character || now - cached.At >= CarriedCurrencyMs)
+            {
+                var ids = new HashSet<string>(StringComparer.Ordinal);
+                try
+                {
+                    if (this.inventory.Locals?.Of(Seats.Input) is { } inventories && inventories.TryGetValue(InventoryName.MainInventory1, out var backpack))
+                    {
+                        ids.UnionWith(ServerInventory.Items(this.reader, backpack).Select(item => this.inventory.ItemBaseId(item.Entity))
+                            .Where(path => path.StartsWith(ItemNames.CurrencyPrefix, StringComparison.Ordinal)).Select(path => path[ItemNames.CurrencyPrefix.Length..]));
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    ids.Clear(); // the host rebuilt its inventory list meanwhile: no tier is known until the next read
+                }
+
+                this.carriedCurrency = cached = (now, character, ids);
+            }
+
+            return cached.Ids.Contains(id);
         }
 
         /// <summary>The first tooltip lines in a button's subtree (the currency item's, as its backpack cell reads).</summary>

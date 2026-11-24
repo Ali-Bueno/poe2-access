@@ -140,6 +140,7 @@ namespace Poe2Accessibility.Services
                     if (name.Length > 0 && properties != null &&
                         properties.Rarity is Rarity.Magic or Rarity.Rare or Rarity.Unique)
                     {
+                        subject = name; // an objective names the box without its rarity
                         name = Announcements.WithRarity(name, properties.Rarity);
                     }
                 }

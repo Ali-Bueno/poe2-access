@@ -43,7 +43,7 @@ namespace Poe2Accessibility.Services
     /// <param name="Timed">What a clock is running against, to be heard from afar: a Death Crystal.</param>
     /// <param name="Subject">
     ///     What an objective would name it by: for a boss room, whom or what its label names ("Asinia"); for a Vaal Beacon,
-    ///     the campaign's "Foco antiguo".
+    ///     the campaign's "Foco antiguo"; for a strongbox, its name without the rarity said after it.
     /// </param>
     /// <param name="About">What the game writes under the object's title, said once with its button (<see cref="Announcements.ObjectDescription"/>).</param>
     /// <param name="Cost">What a Trial shrine asks in sacred water (<see cref="ShrineCost"/>), 0 for an object with no cost.</param>
