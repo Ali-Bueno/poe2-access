@@ -13,6 +13,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Longest one-word label drawn after its number ("11" then "DEX").</summary>
         private const int MaxTrailingLabelChars = 12;
 
+        /// <summary>The controller hint bar labels each entry with an element of this name (dumps 2026-10-23).</summary>
+        private const string HintEntryName = "entry_label";
+
+        /// <summary>A hint-bar entry label or a text paired with its button glyph.</summary>
+        public static bool IsLegend(ScreenText text) => text.Name == HintEntryName || text.Button.Length > 0;
+
         /// <summary>A text of digits and their separators only: "6", "25%", "0:08".</summary>
         public static bool IsNumber(string text) => text.All(c => char.IsDigit(c) || c is '.' or ',' or ':' or '%' or '/' or '+' or '-' or ' ');
 

@@ -52,12 +52,19 @@ namespace Poe2Accessibility.Services
 
             chrome.Add(counter);
             var unit = amount.Text.TrimStart('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ',', ' ');
-            foreach (var text in texts.Where(text => unit.Length > 0 && string.Equals(text.Text, unit, StringComparison.CurrentCultureIgnoreCase)))
+            foreach (var text in texts.Where(text => unit.Length > 0 && IsGoldHeader(text.Text, unit)))
             {
                 chrome.Add(text.Address);
             }
 
             return chrome;
+        }
+
+        /// <summary>The gold's header: its unit word alone, or after what was just gained ("+25, Oro").</summary>
+        internal static bool IsGoldHeader(string text, string unit)
+        {
+            var parts = text.Split(", ");
+            return string.Equals(parts[^1], unit, StringComparison.CurrentCultureIgnoreCase) && parts.SkipLast(1).All(IsNumber);
         }
 
         /// <summary>Notes the HUD coming back on top, once per snapshot.</summary>

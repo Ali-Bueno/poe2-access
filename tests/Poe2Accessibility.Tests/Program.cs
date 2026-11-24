@@ -145,6 +145,7 @@ namespace Poe2Accessibility.Tests
                 WorldCombatAuditTests.All(),
                 PlayerItemNewsTests.All(),
                 UnseenReaderTests.All(),
+                PanelOpeningTests.All(),
                 RoomTests.All(),
                 RoomObjectTests.All(),
             };

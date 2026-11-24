@@ -24,8 +24,8 @@ namespace Poe2Accessibility.Services
         public void SpeakScreen(ScreenSnapshot snapshot, IntPtr focusLayer, bool withHints = false)
         {
             var layer = snapshot.Find(focusLayer) ?? snapshot.TopInteractive;
-            var texts = layer == null ? new List<ScreenText>() : ScreenReadout.Texts(layer.Texts, ScreenWatcher.IsLegend);
-            var hints = withHints ? snapshot.Layers.SelectMany(each => each.Texts).Where(ScreenWatcher.IsLegend).ToList() : new List<ScreenText>();
+            var texts = layer == null ? new List<ScreenText>() : ScreenReadout.Texts(layer.Texts, ScreenReadout.IsLegend);
+            var hints = withHints ? snapshot.Layers.SelectMany(each => each.Texts).Where(ScreenReadout.IsLegend).ToList() : new List<ScreenText>();
             var counters = layer?.Address == snapshot.TopInteractive?.Address ? this.TrialMapCounters(snapshot) : string.Empty;
             var unnamed = layer?.UnnamedControls > 0 ? Announcements.ControlsWithoutName(layer.UnnamedControls) : string.Empty;
             var spoken = Announcements.Sentences(new[] { Describe(texts), counters, unnamed, Describe(hints) }.Where(part => part.Length > 0));
@@ -63,7 +63,7 @@ namespace Poe2Accessibility.Services
             for (var i = 0; i < texts.Count; i++)
             {
                 if (i + 1 < texts.Count && IsNumber(texts[i].Text) && texts[i].Text.Trim().Length > 0 &&
-                    texts[i + 1].Text.Length is > 0 and <= MaxPairedLabel && texts[i + 1].Text.All(char.IsLetter))
+                    texts[i + 1].Text.Length is > 0 and <= MaxPairedLabel && texts[i + 1].Text.All(char.IsLetter) && !IsTierNumeral(texts[i + 1].Text))
                 {
                     paired.Add(texts[i + 1] with { Text = $"{texts[i + 1].Text} {texts[i].Text.Trim()}" });
                     i++;
@@ -78,9 +78,15 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     A support gem's tier drawn on its icon ("I", "II"): a stash page with such gems said a bare "I" as it was
-        ///     shown (2026-11-10); the gem's name says its tier.
+        ///     shown (2026-11-10); the gem's name says its tier. A row of cells joins them, stacks included ("XI, III", "7, XI").
         /// </summary>
-        internal static bool IsTierNumeral(string text) => text.Length is > 0 and <= 4 && text.All(c => c is 'I' or 'V' or 'X');
+        internal static bool IsTierNumeral(string text)
+        {
+            var parts = text.Split(", ");
+            return parts.Any(IsNumeral) && parts.All(part => IsNumeral(part) || IsNumber(part));
+
+            static bool IsNumeral(string part) => part.Length is > 0 and <= 4 && part.All(c => c is 'I' or 'V' or 'X');
+        }
 
         private static bool IsNumber(string text) => ScreenReadout.IsNumber(text); // "6", "25%", "0:08"
 

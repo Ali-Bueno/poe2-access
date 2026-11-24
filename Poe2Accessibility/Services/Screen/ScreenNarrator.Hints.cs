@@ -97,7 +97,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Speaks the hint bar (controller legends) on request.</summary>
         public void SpeakHints(ScreenSnapshot snapshot)
         {
-            var hints = snapshot.Layers.SelectMany(layer => layer.Texts).Where(ScreenWatcher.IsLegend).ToList();
+            var hints = snapshot.Layers.SelectMany(layer => layer.Texts).Where(ScreenReadout.IsLegend).ToList();
             this.Speak("hints", hints.Count == 0 ? Announcements.NoHints : Describe(hints), true);
         }
     }

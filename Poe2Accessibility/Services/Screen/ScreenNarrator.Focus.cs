@@ -22,6 +22,13 @@ namespace Poe2Accessibility.Services
                 this.Engraving = (node.Text, this.Engraving.Category);
             }
 
+            if (this.pendingPage is { Browsed: true } landed && !node.IsHovered && !node.IsPassiveNode)
+            {
+                // The panel was reported before its cursor (a slow first read of the cell): it is a page to move through,
+                // not a free cursor's, so only its tab goes before the focus, as when the focus comes first.
+                this.pendingPage = landed with { Page = string.Empty };
+            }
+
             this.unnamedFocus = node.Text.Length == 0 && node.Value.Length == 0 ? node.Address : IntPtr.Zero;
             if (this.inGame && node.NamedByControlId && node.Role is UiRole.Panel or UiRole.Unknown)
             {
@@ -253,7 +260,7 @@ namespace Poe2Accessibility.Services
             }
 
             if (this.pendingPage is { } pending && this.deferredFocus == null &&
-                (DateTime.UtcNow - pending.At).TotalMilliseconds >= NewLayerFocusDelayMs)
+                (DateTime.UtcNow - pending.At).TotalMilliseconds >= (this.FocusPending?.Invoke() == true ? HeldPageMs : NewLayerFocusDelayMs))
             {
                 // No focus came with the page (Challenges: a free cursor): the page alone, after its tab.
                 this.Speak("tab", this.WithPendingPage(string.Empty), true);

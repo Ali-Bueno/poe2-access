@@ -29,9 +29,6 @@ namespace Poe2Accessibility.Services
         /// <summary>A text this far below a control belongs to it (button caption, check box label).</summary>
         private const int ControlCaptionHops = 3;
 
-        /// <summary>The controller hint bar labels each entry with an element of this name (dumps 2026-10-23).</summary>
-        private const string HintEntryName = "entry_label";
-
         /// <summary>A glyph labels a text sharing an ancestor at most this far up (hint entry: icon and label meet two levels up).</summary>
         private const int GlyphPairHops = 3;
 

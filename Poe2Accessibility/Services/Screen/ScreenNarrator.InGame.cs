@@ -105,9 +105,13 @@ namespace Poe2Accessibility.Services
                     // so its content follows the tab ("Skill points: 0", the attributes); a progress count ("0/8")
                     // stays, other bare numbers mean nothing alone. The page under an overlay page stays visible to
                     // the tree (Friends under Challenges): only the texts inside the panel the tab names.
-                    var pageTexts = PairNumbers(change.Texts).Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/'))).ToList();
+                    // The stacks, gem tiers and gold of the inventory beside it are the cursor's and the gold command's.
+                    var pageChrome = this.Chrome(change.Texts);
+                    var pageTexts = PairNumbers(change.Texts).Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/')) &&
+                                                                            !IsTierNumeral(text.Text) && !pageChrome.Contains(text.Address)).ToList();
                     var inPage = this.InPanel == null ? pageTexts : pageTexts.Where(text => this.InPanel(text.Address, tabTitle.Text)).ToList();
-                    var page = Describe(inPage.Count > 0 ? inPage : pageTexts);
+                    var pageShown = inPage.Count > 0 ? inPage : pageTexts;
+                    var page = Describe(pageShown);
                     var pageSaid = new HashSet<string>(change.Texts.Select(text => text.Text));
                     this.lastPanel = (change.Layer.Address, page, DateTime.UtcNow);
                     if (focus != null && this.deferredFocus == null)
@@ -119,7 +123,7 @@ namespace Poe2Accessibility.Services
                     }
 
                     // A cursor may still land on the page (the passive tree's node): one utterance with it, else alone.
-                    this.pendingPage = (named ? string.Empty : tabTitle.Text, page, pageSaid, DateTime.UtcNow);
+                    this.pendingPage = (named ? string.Empty : tabTitle.Text, page, pageShown.Count > SmallBoxTexts, pageSaid, DateTime.UtcNow);
                     return;
                 }
 

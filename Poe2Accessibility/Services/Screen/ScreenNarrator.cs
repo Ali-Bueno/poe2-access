@@ -129,8 +129,8 @@ namespace Poe2Accessibility.Services
         /// <summary>The layer whose tab was last announced; cleared when another screen comes on top.</summary>
         private IntPtr lastTabLayer;
 
-        /// <summary>A tab's page waiting to see whether a focus lands on it: tab, page, its texts, when.</summary>
-        private (string Tab, string Page, HashSet<string> Texts, DateTime At)? pendingPage;
+        /// <summary>A tab's page waiting to see whether a focus lands on it: tab, page, whether a control's focus browses it instead, its texts, when.</summary>
+        private (string Tab, string Page, bool Browsed, HashSet<string> Texts, DateTime At)? pendingPage;
 
         /// <summary>A tutorial hint that arrived while a new layer's focus was still waiting: said after that focus.</summary>
         private string hintAfterFocus = string.Empty;
@@ -253,8 +253,8 @@ namespace Poe2Accessibility.Services
             }
 
             // Legends inside a content layer (the game menu's own hint bar) are read on request, not with the content.
-            var legends = change.Texts.Where(ScreenWatcher.IsLegend).ToList();
-            change = change with { Texts = change.Texts.Where(text => !ScreenWatcher.IsLegend(text)).ToList() };
+            var legends = change.Texts.Where(ScreenReadout.IsLegend).ToList();
+            change = change with { Texts = change.Texts.Where(text => !ScreenReadout.IsLegend(text)).ToList() };
             if (change.Texts.Count == 0 && change.Kind != ScreenChangeKind.TopLayerChanged)
             {
                 return;

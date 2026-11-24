@@ -169,7 +169,7 @@ namespace Poe2Accessibility.Services
             PairWeaponSets(nodes, texts, setIcons);
             MergeRows(nodes, texts);
             // A legend layer holds nothing but legends; a menu layer may carry its own hint bar (game menu).
-            isHintBar = texts.Count > 0 && texts.TrueForAll(text => IsLegend(text.Text));
+            isHintBar = texts.Count > 0 && texts.TrueForAll(text => ScreenReadout.IsLegend(text.Text));
             return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name, UnnamedControls: unnamed, SkipsCinematic: skipsCinematic);
         }
 
@@ -191,9 +191,6 @@ namespace Poe2Accessibility.Services
         private static bool IsOffScreen(IntPtr element, RectangleF screen, PluginUiElementReflection.RectCache rects) =>
             !screen.IsEmpty && PluginUiElementReflection.TryGetAbsoluteRect(element, rects, out var position, out var size) &&
             !screen.IntersectsWith(new RectangleF(position.X, position.Y, size.X, size.Y));
-
-        /// <summary>A hint-bar entry label or a text paired with its button glyph.</summary>
-        public static bool IsLegend(ScreenText text) => text.Name == HintEntryName || text.Button.Length > 0;
 
         /// <summary>Art key of an image element; texture keys are cached (shared resources).</summary>
         private bool HasChildNamed(IntPtr[] children, int count, string name)

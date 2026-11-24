@@ -1,0 +1,94 @@
+namespace Poe2Accessibility.Tests
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using Poe2Accessibility.Models;
+    using Poe2Accessibility.Services;
+    using static Check;
+    using static ScreenFixtures;
+
+    /// <summary>What a panel says as it opens, its layer reported before its cursor: the order the inventory came in (2026-11-24).</summary>
+    public static class PanelOpeningTests
+    {
+        /// <summary>Past the moment a page waits for its focus (300 ms).</summary>
+        private const int SettledMs = 350;
+
+        public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
+        {
+            (nameof(TheInventoryOpensWithItsCursorOnly), TheInventoryOpensWithItsCursorOnly),
+            (nameof(APanelToMoveThroughLeavesItsRowsToTheCursor), APanelToMoveThroughLeavesItsRowsToTheCursor),
+            (nameof(AFreeCursorsPageIsStillRead), AFreeCursorsPageIsStillRead),
+        };
+
+        private static void TheInventoryOpensWithItsCursorOnly()
+        {
+            var said = Open(Cell("Inventario"), "Inventario", "35, 1", "IV", "1, 1", "9", "7", "XI", "1", "X", "X", "XI, III", "+25, Oro", "Oro");
+            Equal("Inventario. Wisdom, columna 1, fila 1", said, "spoken");
+            Equal("Inventario", Open(null, "Inventario", "35, 1", "IV", "7", "XI", "XI, III", "+25, Oro", "Oro"), "spoken");
+        }
+
+        private static void APanelToMoveThroughLeavesItsRowsToTheCursor()
+        {
+            var said = Open(Cell("Inventario"), "Habilidades", "Skill one", "Skill two", "Skill three", "Skill four", "Skill five");
+            Equal("Habilidades. Inventario. Wisdom, columna 1, fila 1", said, "spoken");
+        }
+
+        private static void AFreeCursorsPageIsStillRead()
+        {
+            var said = Open(null, "Pasivas", "11", "DEX", "Points left", "One", "Two", "Three", "Four");
+            Equal("Pasivas. DEX 11. Points left. One. Two. Three. Four", said, "spoken");
+        }
+
+        /// <summary>The panel's layer comes on top with no focus known, then the focus (none: a free cursor), then time passes.</summary>
+        private static string Open(AccessibleUiNode? focus, string title, params string[] shown)
+        {
+            var gold = Text(900, "112.462 oro");
+            var texts = shown.Select((text, at) => Text(100 + at, text)).Append(gold)
+                .Append(new ScreenText((IntPtr)901, title, "label_tab_title", false, true)).ToArray();
+            var layer = Layer(17, 0, true, texts);
+            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+            using var output = new Recorder();
+            var narrator = new ScreenNarrator(output, log, _ => string.Empty) { GoldCounter = () => gold.Address };
+            narrator.Reset(true);
+            narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TopLayerChanged, layer, texts), Snapshot(layer), null, IntPtr.Zero);
+            if (focus != null)
+            {
+                narrator.OnFocusChanged(focus);
+            }
+
+            Thread.Sleep(SettledMs);
+            narrator.Tick();
+            return string.Join(" | ", output.Said);
+        }
+
+        private static AccessibleUiNode Cell(string panel) => new()
+        {
+            Address = (IntPtr)500, Role = UiRole.GridCell, Text = "Wisdom", Value = "columna 1, fila 1", Context = panel, IsVisible = true,
+        };
+
+        private sealed class Recorder : IAccessibilityOutputService
+        {
+            public List<string> Said { get; } = new();
+
+            public string BackendName => "test";
+
+            public void Speak(string text, bool interrupt = false) => this.Said.Add(text);
+
+            public void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false) => this.Said.Add(text);
+
+            public void Repeat()
+            {
+            }
+
+            public void Stop()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
+        }
+    }
+}
