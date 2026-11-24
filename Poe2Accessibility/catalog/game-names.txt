@@ -68,6 +68,7 @@ MinimapIcon	StoryGlyph		MinimapIconIds
 MinimapIcon	RitualRune		MinimapIconIds
 MinimapIcon	RitualRuneFinished		MinimapIconIds
 MinimapIcon	Essence		MinimapIconIds
+MinimapIcon	TreasureVaultHammerActive		MinimapIconIds
 UiArt	/Sanctum/GoldIcon		TrialArt
 UiArt	/Sanctum/BronzeKeyIcon		TrialArt
 UiArt	/Sanctum/SilverKeyIcon		TrialArt

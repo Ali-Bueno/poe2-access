@@ -28,6 +28,12 @@ namespace Poe2Accessibility.Services
             "MarakethSanctumFountain", "MarakethSanctumKey", "MarakethSanctumKeyConverterActive", "SanctumPact", "UltimatumRewardChestActive",
         };
 
-        public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence });
+        /// <summary>
+        ///     The Reforging Bench, a town service (Act1/1_town_ExileEncampment/Objects/CraftingBenchVaalHammer.ot, the hideout's
+        ///     ReforgingBench.ot: the only two scripts with it): "Active" by its name, never what a quest asks for.
+        /// </summary>
+        public const string ReforgingBench = "TreasureVaultHammerActive";
+
+        public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence, ReforgingBench });
     }
 }

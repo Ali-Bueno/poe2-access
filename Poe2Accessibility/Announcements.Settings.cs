@@ -216,6 +216,7 @@ namespace Poe2Accessibility
             Services.MinimapMarks.StashKind => T("Stash", "Alijo"),
             Services.MinimapMarks.WellKind => T("Well", "Pozo"),
             Services.MinimapMarks.BenchKind => T("Crafting bench", "Mesa de reciclaje"),
+            Services.MinimapMarks.ReforgeKind => T("Reforging Bench", "Mesa de reforja"),
             Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
             Services.OpenedWays.Kind => OpenedWay,
             Services.ClosedDoors.Kind => T("Door to open", "Puerta por abrir"),

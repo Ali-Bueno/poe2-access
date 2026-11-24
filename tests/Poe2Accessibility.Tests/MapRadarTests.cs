@@ -391,6 +391,8 @@ namespace Poe2Accessibility.Tests
             Equal(null, MinimapMarks.PointOfInterest("Metadata/NPC/Four_Act1/HuntingGroundsSignpostGlyph", MinimapMarks.StoryGlyph, string.Empty), "a sign is no point of interest");
             Equal(true, MinimapMarks.IsQuestIcon("QuestObject") && MinimapMarks.IsQuestIcon("QuestItem") && !MinimapMarks.IsQuestIcon("NPC"), "the quest's own icons");
             Equal(true, MinimapMarks.IsSpent("TitanGrottoEntranceInActive"), "the table's other spelling of inactive");
+            Equal(MinimapMarks.ReforgeKind, MinimapMarks.ServiceKind("TreasureVaultHammerActive"), "the Reforging Bench is a service");
+            Equal(false, MinimapMarks.IsLitMark("TreasureVaultHammerActive") || !MinimapMarks.IsService(MinimapMarks.ReforgeKind), "never a quest's mark");
             Equal(true, MinimapMarks.IsLitMark("RustObeliskActive"), "an area's own mark, lit: the obelisk still to use");
             Equal(false, MinimapMarks.IsLitMark("RustObeliskInactive") || MinimapMarks.IsLitMark("TitanGrottoEntranceInActive"), "dimmed once done, in either spelling");
             Equal(false, MinimapMarks.IsLitMark("CheckpointNotActive") || MinimapMarks.IsLitMark("Stash") || MinimapMarks.IsLitMark(string.Empty), "and no other icon is one");

@@ -84,7 +84,7 @@ namespace Poe2Accessibility.Services
         ///     docs/research/minimap.md): on a named object to use it is the quest's, whatever the tracker says.
         /// </summary>
         public static bool IsLitMark(string icon) =>
-            icon.EndsWith("Active", StringComparison.Ordinal) && !icon.EndsWith("NotActive", StringComparison.Ordinal) && !IsSpent(icon);
+            icon != MinimapIconIds.ReforgingBench && icon.EndsWith("Active", StringComparison.Ordinal) && !icon.EndsWith("NotActive", StringComparison.Ordinal) && !IsSpent(icon);
 
         public static bool IsBossRoom(string path) => path.Contains(BossRoomObject, StringComparison.OrdinalIgnoreCase);
 
@@ -216,10 +216,17 @@ namespace Poe2Accessibility.Services
         /// <summary>A crafting or salvage bench (`CraftingBenchIcon`): it sounded nothing (the owner, 2026-11-19).</summary>
         public const string BenchKind = "bench";
 
+        /// <summary>The Reforging Bench: it rang as a quest object for its "Active" icon (the owner, 2026-11-24).</summary>
+        public const string ReforgeKind = "reforging_bench";
+
         /// <summary>A town service by its minimap icon ("StashPlayer", "HealingWell"; entity dump of G2_town, 0.5.5f), or empty.</summary>
         public static string ServiceKind(string icon) =>
             icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind
-            : icon.StartsWith("CraftingBench", StringComparison.Ordinal) ? BenchKind : string.Empty;
+            : icon.StartsWith("CraftingBench", StringComparison.Ordinal) ? BenchKind
+            : icon == MinimapIconIds.ReforgingBench ? ReforgeKind : string.Empty;
+
+        /// <summary>The kinds <see cref="ServiceKind"/> gives: with a sound of their own, never the quest object's.</summary>
+        public static bool IsService(string kind) => kind is StashKind or WellKind or BenchKind or ReforgeKind;
 
         /// <summary>
         ///     A named barrier a campaign area made for itself, such as the Ancient Seal at Balbala's door (Act2/2_2/Objects/BossDoor,
