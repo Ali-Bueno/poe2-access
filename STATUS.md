@@ -520,7 +520,7 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
-**2026-11-24 (a user said the Ritual's favours are not read; the owner's log of 2026-11-20 shows they are, with two faults; 1038 tests, deployed, NOT released):** the stale tribute said on opening and the silence when a favour joins a stack carried are fixed ([favours window](docs/research/ui-unseen-panels.md)). **Next:** unheard: the tribute on opening and after a favour, "Obtenido" for a stacked orb; whether the window's label changes before it is closed.
+**2026-11-24 (a user said the Ritual's favours are not read; the owner's log of 2026-11-20 shows they are, with two faults; 1038 tests, deployed, released at the owner's word as v2026.11.24):** the stale tribute said on opening and the silence when a favour joins a stack carried are fixed ([favours window](docs/research/ui-unseen-panels.md)). **Next:** unheard: the tribute on opening and after a favour, "Obtenido" for a stacked orb; whether the window's label changes before it is closed.
 
 **2026-11-23, night (PR #11 by hjozwiak merged; 1036 tests, deployed, released at the owner's word as v2026.11.23-4):** strongbox currency, then a tiered orb named by the tier carried and a box's quest matched without its rarity ([strongbox currency §4f](docs/research/strongbox-currency.md)). **Next:** unheard: the tiered names; an essence's button.
 
