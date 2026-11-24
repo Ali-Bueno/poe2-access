@@ -9,6 +9,8 @@ After the D2R mod's design (`d2r-access/docs/entity-cues.md`). Code: `EnemyCues`
   almost everything: it marks every log and rock. Runs over 8 cells of it hide a monster too (`SightLine.Seen`, the live grid):
   the projectile layer leaves pits and water open, and a pack forty cells of wall away in the Mawdun foundry sounded though
   it could be neither walked to nor hit (owner, 2026-11-16).
+- A thing under `Metadata/Monsters/` with neither the Monster component nor Targetable is no enemy (`EntityCatalog.IsProp`:
+  the pirates' gunpowder trails, owner, 2026-11-24).
 - One shared sound: a 90 ms low growl (175 → 125 Hz, fluttering at 36 Hz). Magic and rare monsters add a bright 750 Hz
   buzz chattering at 62 Hz; uniques add a struck-metal ring. So pitch only ever means up or down.
 - Stereo = side of the screen (±0.9); below the player the pitch drops to 0.8 at the bottom edge.

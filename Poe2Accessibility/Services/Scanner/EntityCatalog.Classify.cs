@@ -705,7 +705,17 @@ namespace Poe2Accessibility.Services
             entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) && !IsFrozenDead(entity) &&
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly) &&
-            !IsTalkable(entity);
+            !IsTalkable(entity) && !IsProp(entity);
+
+        /// <summary>
+        ///     A thing under the creatures' folder with a life and no side, yet no creature: neither the Monster component nor one
+        ///     to be targeted by. The pirates' trails of gunpowder (Pirates/objects/GunpowderLines, life 1) growled all along
+        ///     them; every other living hostile of 132 dumps (639 of them) has both (owner, 2026-11-24).
+        /// </summary>
+        private static bool IsProp(Entity entity) => !entity.HasComponent(MonsterComponent) && !entity.TryGetComponent<Targetable>(out _);
+
+        /// <summary>The game's component of a creature; the reader has no class for it.</summary>
+        private const string MonsterComponent = "Monster";
 
         /// <summary>
         ///     A character by its type or NPC component. Its path names no portal: the Ziggurat Encampment's Servi, Oswald,
