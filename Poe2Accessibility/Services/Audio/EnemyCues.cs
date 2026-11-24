@@ -189,7 +189,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var to = new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / toGrid;
-                if (!down && layer != CueSynth.Layer.Boss && !SightLine.Seen(sight, walkable, row, from, to))
+                if (!down && layer != CueSynth.Layer.Boss && !InSight(layer, sight, walkable, row, from, to))
                 {
                     continue;
                 }
@@ -216,6 +216,11 @@ namespace Poe2Accessibility.Services
 
             return found;
         }
+
+        private static bool InSight(CueSynth.Layer? layer, byte[] sight, byte[] walkable, int row, Vector2 from, Vector2 to) =>
+            layer is CueSynth.Layer.Friend or CueSynth.Layer.Player
+                ? SightLine.SeenCharacter(sight, walkable, row, from, to)
+                : SightLine.Seen(sight, walkable, row, from, to);
 
         /// <summary>Research (dev command "enemies"): why each awake monster is or is not voiced.</summary>
         public string Diagnose()
@@ -244,7 +249,7 @@ namespace Poe2Accessibility.Services
                 var animation = entity.TryGetComponent<Actor>(out var actor) ? AnimationNames.Of(actor.Animation) ?? $"{(int)actor.Animation}" : "-";
                 var buffs = entity.TryGetComponent<Buffs>(out var effects) ? string.Join(",", effects.StatusEffects.Keys.Take(12)) : "-";
                 lines.Add($"  {entity.Id} {entity.Path}: alive enemy {EntityCatalog.IsAliveEnemy(entity)}, in play {EntityCatalog.IsInPlay(this.memory, entity)}, " +
-                          $"screen {world.WorldToScreen(render.WorldPosition)}, in sight {SightLine.Seen(sight, walkable, area.TerrainMetadata.BytesPerRow, from, to)}, " +
+                          $"screen {world.WorldToScreen(render.WorldPosition)}, in sight {InSight(this.LayerOf(entity), sight, walkable, area.TerrainMetadata.BytesPerRow, from, to)}, " +
                           $"life {life}, animation {animation}, buffs [{buffs}]");
             }
 

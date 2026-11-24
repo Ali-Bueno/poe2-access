@@ -14,7 +14,9 @@ After the D2R mod's design (`d2r-access/docs/entity-cues.md`). Code: `EnemyCues`
 - Stereo = side of the screen (±0.9); below the player the pitch drops to 0.8 at the bottom edge.
 - Tempo = nearness: 600 ms between pulses at the screen's corner down to 150 ms next to the player.
 - NPCs and other players (in play, on screen, in sight): a light wooden tap (84 ms, 700 Hz knock) for the nearest
-  one, on its own stream beside the enemy streams, same pan and tempo rules. Setting `NpcSounds`.
+  one, on its own stream beside the enemy streams, same pan and tempo rules. Setting `NpcSounds`. Their sight is the projectile
+  layer alone (`SightLine.SeenCharacter`, runs over 8): with the walkable grid's rule, Freya Hartlin inside the Karui totems'
+  circle (unwalkable, 45 cells) and Tujen past it were silent from its edge (owner, 2026-11-24).
 - At most four enemy streams: the nearest unique, the nearest elite, then the nearest others. Starts keep 100 ms apart; due
   streams take turns, most overdue first; a stream keeps its cadence when its target changes (no burst).
 - Silent whenever a panel, menu or dialogue has the focus, the game window is in the back, or the player is dead.

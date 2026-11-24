@@ -43,6 +43,10 @@ namespace Poe2Accessibility.Tests
             Equal(false, SightLine.Seen(sight, walkable, row, player, acrossTheWall), "but no one walks or fights across forty cells of wall");
             Equal(false, SightLine.Seen(Array.Empty<byte>(), walkable, row, player, acrossTheWall), "nor without the sight layer");
             Equal(true, SightLine.Seen(sight, walkable, row, player, new Vector2(20, 100)), "a prop four cells wide hides nothing");
+            // A character on the far side of ground to see and talk over (the Karui totems' circle, 2026-11-24).
+            Equal(true, SightLine.SeenCharacter(sight, walkable, row, player, acrossTheWall), "a character across it is heard");
+            Equal(false, SightLine.SeenCharacter(Array.Empty<byte>(), walkable, row, player, acrossTheWall), "not when the sight layer is unread");
+            Equal(false, SightLine.SeenCharacter(walkable, walkable, row, player, acrossTheWall), "nor through a wall that blocks sight");
         }
 
         private static void EnemyCuesPulseFasterWhenNearAndTakeTurns()
