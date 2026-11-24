@@ -24,6 +24,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The title of the panel open beside the inventory (salvage bench, stash), empty when none.</summary>
         public Func<string>? SidePanel { get; set; }
 
+        /// <summary>Whether a text is the tribute left in the Ritual's favours window.</summary>
+        public Func<IntPtr, bool>? IsTributeLabel { get; set; }
+
+        /// <summary>The Ritual's favours window shows.</summary>
+        public bool FavoursShown { get; private set; }
+
         /// <summary>Whether a text lies in another row of the list the focus is a row of (text, focus).</summary>
         public Func<IntPtr, IntPtr, bool>? InSiblingRow { get; set; }
 

@@ -39,11 +39,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A hint never said in this area; or said long ago and shown again while playing (the HUD on top, no panel just closed).</summary>
         /// <summary>
         ///     The inventory's gold amount and its header (the unit word alone, "Oro"): a reward or vendor panel opens
-        ///     beside the inventory and read "20 oro. Oro." first.
+        ///     beside the inventory and read "20 oro. Oro." first. The tribute in the favours window too: its own watch says it once it is right.
         /// </summary>
         private HashSet<IntPtr> Chrome(IReadOnlyList<ScreenText> texts)
         {
-            var chrome = new HashSet<IntPtr>();
+            var chrome = texts.Where(this.IsTribute).Select(text => text.Address).ToHashSet();
             var counter = this.GoldCounter?.Invoke() ?? IntPtr.Zero;
             if (counter == IntPtr.Zero || texts.FirstOrDefault(text => text.Address == counter) is not { } amount)
             {

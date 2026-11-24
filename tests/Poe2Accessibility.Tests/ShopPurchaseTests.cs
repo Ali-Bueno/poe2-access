@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
             (nameof(PressedItAsksToConfirmWithTheItemsName), PressedItAsksToConfirmWithTheItemsName),
             (nameof(ACardsFlagsAreWords), ACardsFlagsAreWords),
             (nameof(ThePointsAreSaidWhenShownAndWhenTheyChange), ThePointsAreSaidWhenShownAndWhenTheyChange),
+            (nameof(TheTributeIsSaidOnceItIsRightAndAfterAFavour), TheTributeIsSaidOnceItIsRightAndAfterAFavour),
         };
 
         private static void TheBuyButtonSaysWhatItBuysAndForHowMuch()
@@ -79,6 +80,21 @@ namespace Poe2Accessibility.Tests
 
             Equal(true, ShopPurchase.IsAmount("150") && ShopPurchase.IsAmount("1.250") && ShopPurchase.IsAmount("200-230"), "points and a range of them");
             Equal(false, ShopPurchase.IsAmount("Confirmar") || ShopPurchase.IsAmount(string.Empty) || ShopPurchase.IsAmount("27/27"), "a caption and a count are no price");
+        }
+
+        private static void TheTributeIsSaidOnceItIsRightAndAfterAFavour()
+        {
+            var tribute = new ShopBalanceWatch(1200, 200, 0, text => text.Contains("tributo", StringComparison.Ordinal));
+            Equal(null, tribute.Heard("1.727 de tributo", 24472), "the last window's number, shown as this one opens (play log 2026-11-20)");
+            Equal(null, tribute.Heard("1.727 de tributo", 25100), "still there 630 ms later");
+            Equal(null, tribute.Heard("1.265 de tributo", 25105), "corrected");
+            Equal("1.265 de tributo", tribute.Heard("1.265 de tributo", 26305), "only the right one is said");
+            Equal(null, tribute.Heard("628 de tributo", 40840), "a favour");
+            Equal("628 de tributo", tribute.Heard("628 de tributo", 41040), "what it left, at once");
+            Equal(null, tribute.Heard("628 de tributo", 41100), "and once");
+            Equal(null, tribute.Heard(null, 41439), "closed");
+            Equal(null, tribute.Heard("628 de tributo", 41900), "opened again soon");
+            Equal("628 de tributo", tribute.Heard("628 de tributo", 43100), "said again, though the same");
         }
 
         private static void ThePointsAreSaidWhenShownAndWhenTheyChange()

@@ -75,6 +75,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A trade window is open: what leaves the inventory was handed over, not dropped or used.</summary>
         public Func<bool>? InTrade { get; set; }
 
+        /// <summary>The Ritual's favours window is open: what arrives was obtained, not taken from a panel that keeps items.</summary>
+        public Func<bool>? InFavours { get; set; }
+
         /// <summary>The engraving window's last choice and category (<see cref="ScreenNarrator.Engraving"/>).</summary>
         public Func<(string Choice, string Category)>? Engraving { get; set; }
 

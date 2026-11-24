@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ADurationIsAPositiveFiniteNumber), ADurationIsAPositiveFiniteNumber),
             (nameof(ACountBackWhereItWasIsNotSaidAgain), ACountBackWhereItWasIsNotSaidAgain),
             (nameof(WhatATradeGivesAndTakesIsBothSaid), WhatATradeGivesAndTakesIsBothSaid),
+            (nameof(AStackThatGrewAloneGainedWhatItGrewBy), AStackThatGrewAloneGainedWhatItGrewBy),
             (nameof(AMovedBitNeedsASecondRound), AMovedBitNeedsASecondRound),
             (nameof(ANodesRowIsBelievedOnlyWhileMostRowsAgree), ANodesRowIsBelievedOnlyWhileMostRowsAgree),
             (nameof(AnotherAreaAtTheSameAddressIsASecondWitness), AnotherAreaAtTheSameAddressIsASecondWitness),
@@ -156,6 +157,22 @@ namespace Poe2Accessibility.Tests
             var shards = new List<(InventoryName, string)> { (Main, "Frasco de vida"), (Main, "Esquirla de transmutación") };
             Equal("DroppedOrUsed Frasco de vida", Said(ItemMoves.Read(new List<(InventoryName, string)> { (Main, "Esquirla de transmutación, 2") }, shards, Announcements.SlotName, true, 0, string.Empty, inTrade: true)),
                   "a stack that grew is still no departure and no arrival");
+        }
+
+        private static void AStackThatGrewAloneGainedWhatItGrewBy()
+        {
+            static string Said(string after, string before, long gold = 0, string side = "", bool inPanel = true) => string.Join(" | ", ItemMoves.Read(
+                new List<(InventoryName, string)> { (InventoryName.MainInventory1, after) }, new List<(InventoryName, string)> { (InventoryName.MainInventory1, before) },
+                Announcements.SlotName, inPanel, gold, side).Select(move => $"{move.Kind} {move.Name} {move.Where}".Trim()));
+
+            Equal("Obtained Orbe de joyero menor", Said("Orbe de joyero menor, 2", "Orbe de joyero menor"), "a favour put on the stack carried");
+            Equal("Obtained Orbe regio, 3", Said("Orbe regio, 8", "Orbe regio, 5"), "several at once");
+            Equal("Bought Orbe regio", Said("Orbe regio, 8", "Orbe regio, 7", gold: -50), "with gold spent, bought");
+            Equal("TakenFrom Orbe regio Alijo", Said("Orbe regio, 8", "Orbe regio, 7", side: "Alijo"), "beside the stash, taken from it");
+            Equal(string.Empty, Said("Orbe regio, 7", "Orbe regio, 8"), "a stack used");
+            Equal(string.Empty, Said("Orbe regio, 8", "Orbe regio, 8"), "a stack in a new place");
+            Equal(string.Empty, Said("Orbe regio, 8", "Orbe regio, 7", inPanel: false), "during play the pick-up watch speaks");
+            Equal(0, ItemMoves.Growth("Orbe regio", "Orbe de caos, 2"), "another item");
         }
 
         private static void ABuffThatRunsOutIsToldHoweverOftenItComes()

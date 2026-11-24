@@ -67,6 +67,7 @@ namespace Poe2Accessibility.Services
         // Both wait for the page's own line: the account's points were cut 14 to 160 ms in by the first card (live 2026-11-10).
         private readonly ShopBalanceWatch shopBalance = new(ShopPageSettleMs);
         private readonly ShopBalanceWatch guildBalance = new(ShopPageSettleMs);
+        private readonly ShopBalanceWatch tributeBalance = new(TributeSettleMs, TributeChangeMs, 0, HasDigit);
 
         /// <summary>When a shop tab's actions are due (<see cref="SayShopPageActions"/>), zero when none are.</summary>
         private long shopActionsDueAt;

@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
             }
 
             var located = new Dictionary<IntPtr, InventoryName>();
+            var grown = new List<(IntPtr Entity, string Before)>();
             foreach (var name in Tracked)
             {
                 if (this.Reader(inventories, name) is { } reader)
@@ -38,7 +39,12 @@ namespace Poe2Accessibility.Services
                     foreach (var (_, item) in reader.Items)
                     {
                         located[item.Address] = name;
+                        var before = this.names.Has(item.Address) ? this.names.Last(item.Address) : null;
                         this.Reread(item);
+                        if (!playing && name == InventoryName.MainInventory1 && before != null && ItemMoves.Growth(before, this.names.Last(item.Address)) > 0)
+                        {
+                            grown.Add((item.Address, before));
+                        }
                     }
                 }
             }
@@ -87,6 +93,15 @@ namespace Poe2Accessibility.Services
                         this.NoteGem(entity, this.NameOf(entity));
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
+                }
+
+                // A stack that grew in place reads as the game's other way: the old stack gone, the larger one come.
+                foreach (var (entity, before) in grown.Where(stack => this.where.ContainsKey(stack.Entity)))
+                {
+                    this.departures.Add((InventoryName.MainInventory1, before));
+                    this.arrivals.Add((InventoryName.MainInventory1, this.names.Last(entity)));
+                    this.arrivalEntities.Add(entity);
+                    (this.lastMoveAt, this.movedInPanel) = (now, true);
                 }
 
                 if ((this.arrivals.Count > 0 || this.departures.Count > 0) && now - this.lastMoveAt >= SettleMs)
@@ -156,7 +171,7 @@ namespace Poe2Accessibility.Services
         private void SpeakMoves()
         {
             var goldChange = this.Gold?.Invoke() is { } now && this.goldBefore is { } before ? now - before : 0;
-            var side = this.movedInPanel ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
+            var side = this.movedInPanel && this.InFavours?.Invoke() != true ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
             // The skills panel takes and gives back gems only: anything else that leaves beside it was dropped or used.
             Func<string, bool>? sideTakes = side == Announcements.SkillGemPanel ? this.batchGems.Contains : null;
             var inTrade = this.InTrade?.Invoke() == true;

@@ -660,7 +660,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   Padded Boots, for 9 gold" (Y at a merchant), "Bought: …, for 9 gold", "Moved to Stash: …" and "Taken from Stash: …"
   (any panel beside the inventory, by its own title: the stash, the skills — which take and give back only gems:
   anything else that leaves beside them was dropped or used), "Dropped: …" (it lands on the ground),
-  "Used: …" (a currency's last orb, a rune socketed), "Obtained: …" (a ritual favour, a reward). The focus update the
+  "Used: …" (a currency's last orb, a rune socketed), "Obtained: …" (a ritual favour, a reward; also when it joins a stack you carry, with how many came). The favours window says
+  the tribute you have once it shows the right one, and what is left after each favour. The focus update the
   move causes waits for them instead of cutting them off.
 - Messages the game or your action produces ("Inventory full", "The item has no room for more mods", "Game menu",
   "Character selection") are no longer cut off by the cursor's next stop: it follows them. Closing a panel or an NPC

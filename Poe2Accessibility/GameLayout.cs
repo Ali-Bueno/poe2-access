@@ -748,6 +748,14 @@ namespace Poe2Accessibility
             /// </summary>
             public const string GamblingStockLabelName = "gambling_stock_display_label";
 
+            /// <summary>
+            ///     Two buttons of the Ritual's favours window ("offer tribute to the King", confirming what is deferred), its only
+            ///     named controls and nowhere else in the tree (UI dumps 2026-11-14 to 22, there while hidden too): they tell the window.
+            /// </summary>
+            public const string RitualTributeButtonName = "tribute_button";
+
+            public const string RitualDeferButtonName = "layby_pay_button";
+
             /// <summary>The guild's points under the account's, on the shop's guild tab ("0"; UI dump 2026-11-10, docs/research/shop.md).</summary>
             public const string ShopGuildBalanceName = "player_guild_points_label";
 

@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using GameReader.RemoteEnums;
 
@@ -36,7 +37,7 @@ namespace Poe2Accessibility.Services
     ///     item counting from the panel it was picked up in, unless that panel cannot hold it (the skills hold only gems:
     ///     an orb used or an item dropped beside them was "moved to Skills", user 2026-10-31). In a trade what arrives was
     ///     received and what leaves was handed over, both said: an arrival there is no item of the inventory in a new
-    ///     place unless it carries the same name. Pure.
+    ///     place unless it carries the same name. A stack that grew, nothing else moving, gained what it grew by. Pure.
     /// </summary>
     public static class ItemMoves
     {
@@ -55,6 +56,7 @@ namespace Poe2Accessibility.Services
             bool IsEquipment(InventoryName name) => slotName(name) != null;
             var left = new List<(InventoryName From, string Name)>(departures);
             var moves = new List<ItemMove>();
+            var alone = arrivals.Count == 1 && departures.Count == 1 && !inTrade;
             foreach (var (to, name) in arrivals)
             {
                 if (slotName(to) is { } slot)
@@ -97,11 +99,16 @@ namespace Poe2Accessibility.Services
                             moves.Add(new ItemMove(ItemMoveKind.TakenFrom, placed == Announcements.UnknownItem ? name : placed, handFrom));
                         }
                     }
-                    else if ((TakeSame(name) ?? Rearranged()) == null && inPanel)
+                    else if (TakeSame(name) is { } stack)
                     {
-                        moves.Add(goldChange < 0 ? new ItemMove(ItemMoveKind.Bought, name)
-                            : !inTrade && Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
-                            : new ItemMove(ItemMoveKind.Obtained, name));
+                        if (alone && inPanel && Growth(stack, name) is > 0 and var gained)
+                        {
+                            moves.Add(Gained(gained > 1 ? $"{Title(name)}, {gained}" : Title(name)));
+                        }
+                    }
+                    else if (Rearranged() == null && inPanel)
+                    {
+                        moves.Add(Gained(name));
                     }
                 }
             }
@@ -125,6 +132,10 @@ namespace Poe2Accessibility.Services
             }
 
             return moves;
+
+            ItemMove Gained(string name) => goldChange < 0 ? new ItemMove(ItemMoveKind.Bought, name)
+                : !inTrade && Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
+                : new ItemMove(ItemMoveKind.Obtained, name);
 
             // An arrival with another name is the inventory's own item in a new place when its departure never read, and
             // outside a trade whatever its name (an item changed in place). In a trade it is what the other side gave:
@@ -167,6 +178,24 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a ground item is the one dropped: named alike, or as the base a titled item's new entity is read by.</summary>
         public static bool IsDropOf(string onGround, string dropped, string byBase) =>
             Title(onGround) is var title && (title == Title(dropped) || (byBase.Length > 0 && title == Title(byBase)));
+
+        /// <summary>How many more of the same item the second line counts; zero for another item or a stack no larger.</summary>
+        public static int Growth(string before, string after) =>
+            Title(before) == Title(after) ? Math.Max(0, Count(after) - Count(before)) : 0;
+
+        /// <summary>The stack an item's line says (<see cref="Announcements.Item"/>); one that says none is one item.</summary>
+        private static int Count(string name)
+        {
+            foreach (var part in name.Split(',').Skip(1))
+            {
+                if (int.TryParse(part.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var count))
+                {
+                    return count;
+                }
+            }
+
+            return 1;
+        }
 
         /// <summary>An item's name without its stack or rarity ("Orbe de aumento, 3" → "Orbe de aumento"), to find it on the ground.</summary>
         public static string Title(string name) => name.Split(',')[0].Trim();

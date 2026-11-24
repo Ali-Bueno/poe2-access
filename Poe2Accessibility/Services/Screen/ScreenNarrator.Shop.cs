@@ -70,21 +70,40 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     The favours window opens with the tribute of the last one opened and corrects it up to 630 ms later ("1.727" for
+        ///     1.265, play log 2026-11-20): its first value waits twice that.
+        /// </summary>
+        private const long TributeSettleMs = 1200;
+
+        /// <summary>What a favour leaves is said at once, after the item.</summary>
+        private const long TributeChangeMs = 200;
+
+        private static bool HasDigit(string text) => text.Any(char.IsDigit);
+
+        /// <summary>The tribute left in the favours window; only a counter is looked up.</summary>
+        private bool IsTribute(ScreenText text) =>
+            text.Name.Length == 0 && !text.IsControl && HasDigit(text.Text) && text.Text.Any(char.IsLetter) && this.IsTributeLabel?.Invoke(text.Address) == true;
+
+        /// <summary>
         ///     Says the account's points when the shop shows them and when a purchase changes them, after what is being said;
-        ///     the guild's, on its tab, by their own name.
+        ///     the guild's, on its tab, by their own name; a ritual's tribute, as its window writes it.
         /// </summary>
         public void CheckShopBalance(ScreenSnapshot snapshot)
         {
             string? shown = null;
             string? guild = null;
+            string? tribute = null;
             foreach (var layer in this.inGame ? snapshot.Layers : Array.Empty<ScreenLayer>())
             {
                 foreach (var text in layer.IsHintBar || layer.Address == this.HudLayer ? Array.Empty<ScreenText>() : layer.Texts)
                 {
                     shown ??= text.Name == GameLayout.InGameUi.ShopBalanceName ? text.Text : null;
                     guild ??= text.Name == GameLayout.InGameUi.ShopGuildBalanceName ? text.Text : null;
+                    tribute ??= this.IsTribute(text) ? text.Text : null;
                 }
             }
+
+            this.FavoursShown = tribute != null;
 
             var now = Environment.TickCount64;
             if (this.shopBalance.Heard(shown, now) is { } points)
@@ -95,6 +114,11 @@ namespace Poe2Accessibility.Services
             if (this.guildBalance.Heard(guild, now) is { } guildPoints)
             {
                 this.Speak("guild balance", Announcements.Capitalised(Announcements.ShopGuildBalance(guildPoints)), false);
+            }
+
+            if (this.tributeBalance.Heard(tribute, now) is { } left)
+            {
+                this.Speak("tribute left", left, false);
             }
 
             this.SayDueShopActions(snapshot, now);

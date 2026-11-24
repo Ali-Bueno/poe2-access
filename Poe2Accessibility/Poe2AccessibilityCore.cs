@@ -336,6 +336,7 @@ namespace Poe2Accessibility
                 this.focus.InGameHighlightRoot = this.ShopHighlightRoot;
                 this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);
                 this.pickups.InTrade = () => tradeOffers.Open;
+                this.pickups.InFavours = () => this.narrator?.FavoursShown == true;
                 this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
                     this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
@@ -528,6 +529,7 @@ namespace Poe2Accessibility
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
                 this.narrator.IsQuestTrackerText = this.IsQuestTrackerText;
+                this.narrator.IsTributeLabel = this.semantics.IsTributeLabel;
                 this.narrator.AreaLinePending = this.AreaLinePending;
                 this.focus.FocusChanged += this.OnCreationFocus;
                 this.focus.FocusChanged += this.OnPreGameFocus;
