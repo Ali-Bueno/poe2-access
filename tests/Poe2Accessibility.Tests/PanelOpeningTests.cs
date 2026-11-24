@@ -24,8 +24,7 @@ namespace Poe2Accessibility.Tests
             (nameof(APanelToMoveThroughLeavesItsRowsToTheCursor), APanelToMoveThroughLeavesItsRowsToTheCursor),
             (nameof(AFreeCursorsPageIsStillRead), AFreeCursorsPageIsStillRead),
             (nameof(TheInventorysGoldIsSaidOnceAnOpening), TheInventorysGoldIsSaidOnceAnOpening),
-            (nameof(TheTributeGoesBeforeTheFavoursExplanation), TheTributeGoesBeforeTheFavoursExplanation),
-            (nameof(AMoveDropsTheFavoursExplanation), AMoveDropsTheFavoursExplanation),
+            (nameof(TheTributeGoesBeforeEverythingInTheFavours), TheTributeGoesBeforeEverythingInTheFavours),
         };
 
         private static void TheInventoryOpensWithItsCursorOnly()
@@ -59,35 +58,44 @@ namespace Poe2Accessibility.Tests
                 string.Join(" | ", output.Said), "spoken");
         }
 
-        private static void TheTributeGoesBeforeTheFavoursExplanation() =>
-            Equal("Favores. 1.155 de tributo. Modo de reservas", Favours(false), "spoken");
-
-        private static void AMoveDropsTheFavoursExplanation() => Equal("1.155 de tributo", Favours(true), "spoken");
-
-        /// <summary>The favours window on top with the cursor in it; what follows the cursor's line once the tribute is right.</summary>
-        private static string Favours(bool moved)
+        private static void TheTributeGoesBeforeEverythingInTheFavours()
         {
-            var layer = Layer(17, 0, true, Text(1, "Favores"), Text(2, "1.155 de tributo"), Text(3, "Modo de reservas"));
+            const string Whole = "1.155 de tributo. Altar. Wisdom, columna 1, fila 1 | Favores. Modo de reservas";
+            Equal(Whole, Favours("1.155 Tributo", cursorFirst: true, settledMs: 0), "cursor first");
+            Equal(Whole, Favours("1.155 Tributo", cursorFirst: false, settledMs: 0), "window first");
+            Equal(string.Empty, Favours("990 Tributo", cursorFirst: true, settledMs: 0), "the last window's tribute is not said");
+            Equal(Whole, Favours("990 Tributo", cursorFirst: true, settledMs: TributeSettledMs), "a tribute the HUD never shows");
+        }
+
+        /// <summary>The favours window opens with the cursor in it, before or after its layer; what is said by then.</summary>
+        private static string Favours(string onHud, bool cursorFirst, int settledMs)
+        {
+            var hud = Layer(12, 0, false, Text(50, onHud));
+            var layer = Layer(17, 1, true, Text(1, "Favores"), Text(2, "1.155 de tributo"), Text(3, "Modo de reservas"));
             using var output = new Recorder();
             var narrator = new ScreenNarrator(output, Log(), _ => string.Empty)
             {
-                IsTributeLabel = address => address == (IntPtr)2, FocusLayer = () => layer.Address,
+                IsTributeLabel = address => address == (IntPtr)2, InFavoursWindow = _ => true, FocusLayer = () => layer.Address, HudLayer = hud.Address,
             };
             narrator.Reset(true);
+            narrator.CheckShopBalance(Snapshot(hud));
             var cell = Cell("Altar");
-            narrator.OnFocusChanged(cell);
             var screen = Snapshot(layer);
-            narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TopLayerChanged, layer, layer.Texts), screen, cell, layer.Address);
-            narrator.CheckShopBalance(screen);
-            Thread.Sleep(SettledMs);
-            narrator.Tick();
-            if (moved)
+            if (cursorFirst)
             {
-                narrator.OnValueChanged(new AccessibleUiNode { Address = cell.Address, Role = cell.Role, Text = "Shield", Value = "columna 2, fila 1", Context = cell.Context });
+                narrator.OnFocusChanged(cell);
             }
 
-            output.Said.Clear();
-            Thread.Sleep(TributeSettledMs);
+            narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TopLayerChanged, layer, layer.Texts), screen,
+                cursorFirst ? cell : null, cursorFirst ? layer.Address : IntPtr.Zero);
+            if (!cursorFirst)
+            {
+                narrator.OnFocusChanged(cell);
+            }
+
+            narrator.CheckShopBalance(screen);
+            Thread.Sleep(SettledMs + settledMs);
+            narrator.Tick();
             narrator.CheckShopBalance(screen);
             return string.Join(" | ", output.Said);
         }

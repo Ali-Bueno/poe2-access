@@ -14,6 +14,13 @@ namespace Poe2Accessibility.Services
             this.elements.TryReadElement(text, out var info) && info.Name.Length == 0 &&
             this.elements.ReadAncestors(info, TributeLabelHops) is [var holder, var window] &&
             this.elements.ReadChildren(holder) is [_, var label] && label == text &&
+            this.IsFavoursWindow(window);
+
+        /// <summary>Whether a control lies in the favours window.</summary>
+        public bool InFavoursWindow(IntPtr control) =>
+            this.elements.TryReadElement(control, out var info) && this.elements.ReadAncestors(info, PanelTitleHops).Any(ancestor => this.IsFavoursWindow(ancestor));
+
+        private bool IsFavoursWindow(in UiElementReader.ElementInfo window) =>
             this.elements.ReadChildren(window).Any(child => this.elements.TryReadElement(child, out var button) &&
                 button.Name is GameLayout.InGameUi.RitualTributeButtonName or GameLayout.InGameUi.RitualDeferButtonName);
     }

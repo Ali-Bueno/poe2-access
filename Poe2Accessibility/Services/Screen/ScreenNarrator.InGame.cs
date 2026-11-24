@@ -65,6 +65,11 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            if (this.HoldsFavours(change))
+            {
+                return;
+            }
+
             var tabTitle = change.Texts.FirstOrDefault(text => TabTitleNames.Contains(text.Name));
             if (tabTitle == null && change.Kind == ScreenChangeKind.TopLayerChanged)
             {
@@ -322,13 +327,6 @@ namespace Poe2Accessibility.Services
                 // A panel back on top with its focus (the social panel from the game menu): the few lines its frame shows
                 // besides controls (the account name and area over Friends), after the focus. A panel full of labels is
                 // left to the focus that browses it.
-                if (change.Texts.Any(this.IsTribute))
-                {
-                    // The favours window: its long explanation of reservations waits for the tribute, which goes first.
-                    this.heldFavours ??= (lines, Environment.TickCount64);
-                    return;
-                }
-
                 this.AfterFocus("panel lines after focus", Describe(lines));
             }
             else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused && !FocusDetails.HeadedBy(change.Texts, focus?.Text ?? string.Empty, TierLabelName) &&

@@ -81,6 +81,62 @@ namespace Poe2Accessibility.Services
         /// <summary>The favours window's own lines, held until its tribute is right; dropped when the cursor moves on.</summary>
         private (IReadOnlyList<ScreenText> Lines, long At)? heldFavours;
 
+        /// <summary>
+        ///     The favours window coming on top, before its cursor or after it: its long explanation of reservations waits for
+        ///     the tribute, which goes first.
+        /// </summary>
+        private bool HoldsFavours(ScreenChange change)
+        {
+            if (change.Kind is not (ScreenChangeKind.LayerOpened or ScreenChangeKind.TopLayerChanged) || !change.Texts.Any(this.IsTribute))
+            {
+                return false;
+            }
+
+            var chrome = this.Chrome(change.Texts);
+            var lines = PairNumbers(change.Texts).Where(text => !text.IsControl && !IsNumber(text.Text) && !IsTierNumeral(text.Text) && !chrome.Contains(text.Address)).ToList();
+            if (lines.Count > SmallBoxTexts)
+            {
+                return false;
+            }
+
+            if (this.favoursDue)
+            {
+                this.favoursDue = false; // a popup closing over the window brings it on top again: said once an opening
+                this.heldFavours = (lines, Environment.TickCount64);
+            }
+
+            return true;
+        }
+
+        /// <summary>The favours window's explanation is still due since every panel closed.</summary>
+        private bool favoursDue = true;
+
+        /// <summary>The favours window's tribute as it reads now, null while the window is not shown.</summary>
+        private string? tributeShown;
+
+        /// <summary>The HUD as last seen: it counts the area's tribute, right while the window's label is still the last window's.</summary>
+        private ScreenLayer? lastHud;
+
+        /// <summary>Every panel closed: the next focus opens one.</summary>
+        private void PanelsClosed() => (this.goldDue, this.openingDue, this.favoursDue) = (true, true, true);
+
+        /// <summary>
+        ///     Whether the focus of an opening favours window still waits for a tribute to trust: the number the HUD showed,
+        ///     or one that has had the time to be corrected (<see cref="TributeSettleMs"/>).
+        /// </summary>
+        private bool AwaitsTribute(DateTime since)
+        {
+            if (this.heldFavours is not { } held)
+            {
+                return this.deferredFavours && (DateTime.UtcNow - since).TotalMilliseconds < TributeSettleMs;
+            }
+
+            return Environment.TickCount64 - held.At < TributeSettleMs &&
+                   !(this.tributeShown is { } shown && this.lastHud?.Texts.Any(text => HasDigit(text.Text) && Digits(text.Text) == Digits(shown)) == true);
+
+            static string Digits(string text) => new(text.Where(char.IsDigit).ToArray());
+        }
+
         private static bool HasDigit(string text) => text.Any(char.IsDigit);
 
         /// <summary>The tribute left in the favours window; only a counter is looked up.</summary>
@@ -107,6 +163,8 @@ namespace Poe2Accessibility.Services
             }
 
             this.FavoursShown = tribute != null;
+            this.tributeShown = tribute;
+            this.lastHud = snapshot.Find(this.HudLayer) is { Texts.Count: > 0 } hud ? hud : this.lastHud;
 
             var now = Environment.TickCount64;
             if (this.shopBalance.Heard(shown, now) is { } points)
@@ -119,12 +177,13 @@ namespace Poe2Accessibility.Services
                 this.Speak("guild balance", Announcements.Capitalised(Announcements.ShopGuildBalance(guildPoints)), false);
             }
 
-            var left = this.tributeBalance.Heard(tribute, now);
+            var withFocus = this.deferredFocus != null && (this.heldFavours != null || this.deferredFavours);
+            var left = withFocus ? null : this.tributeBalance.Heard(tribute, now);
             if (this.heldFavours is { } held && tribute == null)
             {
                 this.heldFavours = now - held.At < TributeSettleMs ? held : null; // closed, or its label read a moment later
             }
-            else if (this.heldFavours is { } favours && (left != null || now - favours.At >= 2 * TributeSettleMs))
+            else if (!withFocus && this.heldFavours is { } favours && (left != null || now - favours.At >= 2 * TributeSettleMs))
             {
                 // Its title, the tribute (said already when the window was rebuilt at once), then what the window explains.
                 this.heldFavours = null;

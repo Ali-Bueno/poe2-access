@@ -531,6 +531,7 @@ namespace Poe2Accessibility
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
                 this.narrator.IsQuestTrackerText = this.IsQuestTrackerText;
                 this.narrator.IsTributeLabel = this.semantics.IsTributeLabel;
+                this.narrator.InFavoursWindow = this.semantics.InFavoursWindow;
                 this.narrator.AreaLinePending = this.AreaLinePending;
                 this.focus.FocusChanged += this.OnCreationFocus;
                 this.focus.FocusChanged += this.OnPreGameFocus;

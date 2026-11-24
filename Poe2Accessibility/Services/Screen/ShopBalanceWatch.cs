@@ -29,6 +29,9 @@ namespace Poe2Accessibility.Services
             this.isBalance = isBalance ?? ShopPurchase.IsAmount;
         }
 
+        /// <summary>The balance was said elsewhere (with the focus that came with the window): only a change of it is news.</summary>
+        public void Told(string shown, long now) => (this.last, this.pending, this.seenAt) = (shown, shown, now);
+
         /// <returns>The points to say now, or null.</returns>
         /// <param name="shown">The points label's text, null while no shop page shows one.</param>
         /// <param name="now">Milliseconds on any steady clock.</param>

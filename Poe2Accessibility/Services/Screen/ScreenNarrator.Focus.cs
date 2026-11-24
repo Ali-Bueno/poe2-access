@@ -110,7 +110,10 @@ namespace Poe2Accessibility.Services
 
             this.lastFocusSpeech = focused;
             var intoNewLayer = layer != this.lastFocusLayer ||
-                               (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs;
+                               (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs || this.heldFavours != null;
+            this.deferredFavours = this.openingDue && this.heldFavours == null && this.inGame && this.InFavoursWindow?.Invoke(node.Address) == true;
+            this.openingDue = false;
+            intoNewLayer |= this.deferredFavours;
             this.lastFocusLayer = layer;
             var speaks = this.SpeakerIn?.Invoke(layer) ?? string.Empty;
             if (intoNewLayer)
@@ -239,9 +242,10 @@ namespace Poe2Accessibility.Services
         {
             this.TickBackToPlay();
             this.TickTabKey();
-            if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs)
+            if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs && !this.AwaitsTribute(deferred.At))
             {
                 this.deferredFocus = null;
+                this.deferredFavours = false;
                 this.notesContext = deferred.Node.Context;
                 var text = deferred.Text;
                 if (deferred.Node.Context.Length == 0 && this.Refresh?.Invoke(deferred.Node) is { Context.Length: > 0 } fresh &&
@@ -255,7 +259,15 @@ namespace Poe2Accessibility.Services
                 // A message that cut in while the focus waited is not cut off by it: "Waiting for the player to accept
                 // the trade invitation…" over the party panel the focus went back to was cut by the panel's lines
                 // (user 2026-10-28).
-                if (!this.SayHeldPage(deferred.Node))
+                if (this.heldFavours is { } favours && this.tributeShown is { } tribute)
+                {
+                    // The favours window: what is left to spend before anything else, then the place, then what the window explains.
+                    this.heldFavours = null;
+                    this.tributeBalance.Told(tribute, Environment.TickCount64);
+                    this.Speak("focus after tribute", Announcements.Sentences(new[] { tribute, text }), this.cutInAt < deferred.At);
+                    this.Speak("favours", Describe(favours.Lines), false);
+                }
+                else if (!this.SayHeldPage(deferred.Node))
                 {
                     this.Speak("focus in a new layer", this.WithPendingPage(text), this.cutInAt < deferred.At);
                 }
@@ -317,7 +329,7 @@ namespace Poe2Accessibility.Services
             else if ((now - this.unfocusedSince).TotalMilliseconds >= BackToPlayMs)
             {
                 this.panelShown = false;
-                this.goldDue = true;
+                this.PanelsClosed();
                 this.speaker.Forget();
                 this.shortcutsSaid.Clear();
                 this.tabbedLayer = IntPtr.Zero;

@@ -39,6 +39,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the microtransaction shop is the panel shown. Set by the plugin.</summary>
         public Func<bool>? ShopShown { get; set; }
 
+        /// <summary>Whether a control lies in the Ritual's favours window. Set by the plugin.</summary>
+        public Func<IntPtr, bool>? InFavoursWindow { get; set; }
+
         /// <summary>The gold to say with a focus in the panel of this title: the inventory's, nothing open beside it; empty elsewhere. Set by the plugin.</summary>
         public Func<string, string>? GoldOf { get; set; }
 
