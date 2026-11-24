@@ -10,6 +10,9 @@ come from the community dat-schema's `poe2/` overrides (poe-tool-dev/dat-schema,
 build match: GrantedEffects 0x129, GeometryAttack 0x152, GeometryTrigger 0xEA, SpawnObject 0x56, EffectDrivenSkill
 0x77, MonsterMortar 0x88) or from content where the schema leaves a column unnamed, and I say which.
 
+**2026-11-24:** path A for effect-driven skills is wired (`BossEffectWatch`): their effects are client visuals, not ServerEffect
+entities, and the shapes' frame is known ([Diamora](boss-mechanics.md#diamora)).
+
 ## 1. Summary
 
 PoE2 has **no single "telegraph" table**. The warning a sighted player sees is drawn by five mechanisms, and four of

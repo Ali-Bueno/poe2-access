@@ -206,6 +206,7 @@ namespace Poe2Accessibility
             this.trialScope.Reset();
             this.weakPoint?.Reset();
             this.arenaLog?.Reset();
+            this.bossEffects?.Reset();
             this.shield?.Reset();
             this.perfectTiming?.Reset();
             this.culls?.Reset();

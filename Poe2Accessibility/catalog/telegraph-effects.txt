@@ -1,5 +1,5 @@
 # Effect files the client plays for those skills: a ServerEffect entity's .ao names one of them (tools/Poe2UiExtract telegraph-effects).
-# .ao path|roles (visual, marker, impact, effect)|shapes of its EffectDrivenEvent block as shape:ms from start:length:width:angle
+# .ao path|roles (visual, marker, impact, effect)|shapes of its EffectDrivenEvent block as shape:ms from start:length:width:angle, then x:y:orientation:sweep ms when placed or swept
 Metadata/Effects/Environment/chests/Strongboxes/daemonStrongbox/storm/ao/lightningstorm_trackingbolt.ao|visual|
 Metadata/Effects/Environment/Endgame/Rituals/CorpseFissure/bloodpop.ao|visual|
 Metadata/Effects/Environment/Endgame/Rituals/CrimsonWolves/CrimsonWolf.ao|visual|
@@ -29,7 +29,7 @@ Metadata/Effects/Spells/fire_rolling_magma/impact_aoe.ao|visual|
 Metadata/Effects/Spells/greybox/wave250ms_Rectangle.ao|visual|
 Metadata/Effects/Spells/greybox/wave500ms_Ring.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/blood_comet_impact.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/blood_dash_detonate.ao|effect|rectangle:10:120:13:,rectangle:10:120:13:
+Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/blood_dash_detonate.ao|effect|rectangle:10:120:13::::90:330,rectangle:10:120:13::::-90:330
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/detonation_wave.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/frozen_minion_explode.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Baron/icewall_lacerate_L.ao|visual|
@@ -133,7 +133,7 @@ Metadata/Effects/Spells/monsters_effects/Act1_FOUR/Skeleton_Golemancer/projectil
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/SwollenMiller/ao/slamCascade.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/TheCountsGuardEliteCorruptedMageLessCorrupted/explosion.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/TheCountsGuardEliteCorruptedMageLessCorrupted/fireball_impact.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act1_FOUR/TheCountsGuardEliteCorruptedMageLessCorrupted/flamethrower_active.ao|effect|cone:10:42::30,cone:100:42::30,cone:200:42::30,cone:300:42::30,cone:400:42::30,cone:500:42::30,cone:600:42::30,cone:700:42::30,cone:800:42::30,cone:900:42::30
+Metadata/Effects/Spells/monsters_effects/Act1_FOUR/TheCountsGuardEliteCorruptedMageLessCorrupted/flamethrower_active.ao|effect|cone:10:42::30::::120,cone:100:42::30::::120,cone:200:42::30::::120,cone:300:42::30::::120,cone:400:42::30::::120,cone:500:42::30::::120,cone:600:42::30::::120,cone:700:42::30::::120,cone:800:42::30::::120,cone:900:42::30::::120
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/The_Crypt/GhoulCommander/blood_vomit.ao|effect|rectangle:150:30:11:,rectangle:300:30:11:,rectangle:450:30:11:,rectangle:550:30:11:
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/TombStalker/slam_cone.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act1_FOUR/TwigMonster/seed_Explode.ao|visual|
@@ -193,7 +193,7 @@ Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MutewindBanditWoman/chop_shor
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/MutewindBanditWoman/stab.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/beaconproj_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/bigaxe_cleave.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/big_zap_02_impact.ao|effect|circle:0:17::,donut:285:34:17:,donut:570:51:34:
+Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/big_zap_02_impact.ao|effect|circle:0:17::::::100,donut:285:34:17:::::100,donut:570:51:34:::::100
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/bladeslam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/corruption_beam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/PerennialKing/ao/corruption_projectile.ao|visual|
@@ -229,7 +229,7 @@ Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/impact_small_fi
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SaltGolemBoss/slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/ao/vulnerabilityRune/explosion.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/SerpentClanBoss/decel_proj_impact.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act2_FOUR/ShellMonster/flamethrower.ao|effect|cone:10:32::31
+Metadata/Effects/Spells/monsters_effects/Act2_FOUR/ShellMonster/flamethrower.ao|effect|cone:10:32::31::::200
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/ShellMonster/plasma_mortar_impact.ao|impact|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TimeWraith/sand_nova.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/TitanBoss/ao/arm_slam/wave.ao|visual|
@@ -249,11 +249,11 @@ Metadata/Effects/Spells/monsters_effects/Act2_FOUR/VaseMonster/mortarHit.ao|impa
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/VultureRegurgitator/poison_spit_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act2_FOUR/VultureZombie/ao/impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/act3/citystalker_richmens/delayblast.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_01_01.ao|effect|circle:2000:10::,circle:2000:10::,circle:2000:10::
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_02_01.ao|effect|circle:2000:10::,circle:2000:10::,circle:2000:10::
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_03_01.ao|effect|circle:2000:10::,circle:2000:10::,circle:2000:10::
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_04_01.ao|effect|circle:2000:10::,circle:2000:10::,circle:2000:10::
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_05_01.ao|effect|circle:2000:10::,circle:2000:10::,circle:2000:10::
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_01_01.ao|effect|circle:2000:10::::::200,circle:2000:10::::::200,circle:2000:10::::::200
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_02_01.ao|effect|circle:2000:10::::::200,circle:2000:10::::::200,circle:2000:10::::::200
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_03_01.ao|effect|circle:2000:10::::::200,circle:2000:10::::::200,circle:2000:10::::::200
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_04_01.ao|effect|circle:2000:10::::::200,circle:2000:10::::::200,circle:2000:10::::::200
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/AnchoriteMother/m_flameblast_05_01.ao|effect|circle:2000:10::::::200,circle:2000:10::::::200,circle:2000:10::::::200
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BaneSapling/ao/mortar_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BaneSapling/ao/mortar_impact_midair.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/BlackJawSuperUnique/ao/cone_01.ao|visual|
@@ -321,9 +321,9 @@ Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam_corr_rectsla
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/coldbeam_corr_rectslam_mini.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/combo_splitslam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/combo_splitslam_mini.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/flameblast_charge.ao|effect|circle:2322:37::
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/flameblast_ranged_charge.ao|effect|circle:2322:37::
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/flameblast_ranged_charge_solarorb.ao|effect|circle:2322:37::
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/flameblast_charge.ao|effect|circle:2322:37::::::200
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/flameblast_ranged_charge.ao|effect|circle:2322:37::::::200
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/flameblast_ranged_charge_solarorb.ao|effect|circle:2322:37::::::200
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/greater_fireball_aoe.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/laser_blast_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/lightningstorm_bolt.ao|visual|
@@ -333,8 +333,8 @@ Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/nova.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/refract_cone.ao|effect|cone:0:44::135,cone:100:44::135,cone:200:44::135,cone:300:44::135,cone:400:44::135,cone:500:44::135,cone:600:44::135,cone:700:44::135,cone:800:44::135,cone:900:44::135
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/selfdestr_lightning_nova.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/selfdestr_phys_slam.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/slam_01.ao|effect|circle:0:15::,rectangle:0:110:18:
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/slam_01_mini.ao|effect|circle:0:15::,rectangle:0:65:11:
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/slam_01.ao|effect|circle:0:15::::::100,rectangle:0:110:18:
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/slam_01_mini.ao|effect|circle:0:15::::::100,rectangle:0:65:11:::::100
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/slam_02.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/Doryani/slam_02_mini.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/DredgeFiend/ao/mortar_impact.ao|visual|
@@ -382,7 +382,7 @@ Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/miniSunExpl
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/miniSunExplosionBig.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/miniSunProminence.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SunWorshipperBoss/sunCollisionExplosion.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SwarmHost/ao/poison_spray.ao|effect|cone:10:50::30
+Metadata/Effects/Spells/monsters_effects/Act3_FOUR/SwarmHost/ao/poison_spray.ao|effect|cone:10:50::30::::500
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/TrenchHag/WaterOrb_explosion.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalArchivist/ao/ice_bubble.ao|effect|donut:1055:23:15:,circle:2950:23::
 Metadata/Effects/Spells/monsters_effects/Act3_FOUR/VaalCrystalCarrier/ao/bloodgem_mine_aoe.ao|visual|
@@ -428,10 +428,10 @@ Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodFeverButcher/Slam.ao|vis
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Bloodfevered2HAxe/leap_slam_new.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Bloodfevered2HAxe/Slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodfeveredBoar/pustule_explosion.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodfeveredDrunk/ao/vomit_core_new.ao|effect|cone:200:35::36,cone:400:35::36
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodfeveredDrunk/ao/vomit_core_new.ao|effect|cone:200:35::36::::200,cone:400:35::36::::200
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodfeveredMedicineWoman/bloodfever_blob_explosion.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BloodKnightBoss/BloodFall_enraged.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Brimstone_Crab/flamethrower.ao|effect|cone:10:32::31
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Brimstone_Crab/flamethrower.ao|effect|cone:10:32::31::::200
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Brimstone_Crab/impact_small_fire.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Brimstone_Crab/mortar_impact.ao|impact|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/BrineMaiden/screech.ao|visual|
@@ -461,7 +461,7 @@ Metadata/Effects/Spells/monsters_effects/Act4_FOUR/FrozenOneBoss/FrozenOneCascad
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/FrozenOneBoss/FrozenOneIcicleCrash_Icebomb.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinBeast/beastslam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinDrummer/warcry_SEISMIC.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/burp_cone.ao|effect,visual|cone:0:55::60,circle:0:15::
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/burp_cone.ao|effect,visual|cone:0:55::60::::200,circle:0:15::
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/corpse_slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/limb_cone_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/GoblinGiantBoss/ao/stomp.ao|visual|
@@ -479,7 +479,7 @@ Metadata/Effects/Spells/monsters_effects/Act4_FOUR/KaruiSpiritTurtle/ground_slam
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/KaruiTuatara/ao/tail_slam_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/KaruiTuatara/ao/tail_slam_impact_phys.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/KaruiWarriorHorn/ground_slam.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MaidenParasite/screech.ao|visual|cone:10:55::30
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MaidenParasite/screech.ao|visual|cone:10:55::30::::650
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MantaRayParasite/ao/close_shock.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/bird_mortar_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/bird_vomit_slam.ao|visual|
@@ -493,11 +493,11 @@ Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/carrion_drop_07
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/carrion_drop_08.ao|marker|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/carrion_hit.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/single_peck.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/vomit_spray_02.ao|effect|rectangle:0:60:23:
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/MutantBird/ao/vomit_spray_02.ao|effect|rectangle:0:60:23:::::250
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Necromancer/delayed_blast.ao|effect,visual|circle:1250:16::
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Ngamahu/BlackbarkDemolisher/flameblast_explode.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Ngamahu/BlackbarkDemolisher/line_slam.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/OctopusParasite/ink_spray.ao|effect|cone:10:50::30
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/OctopusParasite/ink_spray.ao|effect|cone:10:50::30::::500
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrecursorCentipede/defibulator_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/blood_slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/blood_tendrilbeam_impact.ao|visual|
@@ -507,16 +507,16 @@ Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/ice_nova.
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/ice_punch_cascade.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/leap_slam_aoe.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/phys_shockwave.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/spear_aoe_cleave_01.ao|effect,visual|cone:0:45::180,donut:100:45:30:180,donut:200:45:30:180,donut:300:45:30:180,donut:400:45:30:180,donut:500:45:30:180,donut:600:45:30:180,donut:700:45:30:180,donut:800:45:30:180,donut:900:45:30:180,donut:1000:45:30:180,donut:1100:45:30:180,donut:1200:45:30:180,donut:1300:45:30:180,donut:1400:45:30:180,donut:1500:45:30:180,donut:1600:45:30:180,donut:1700:45:30:180,donut:1800:45:30:180,donut:1900:45:30:180
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/spear_aoe_cleave_01.ao|effect,visual|cone:0:45::180::::100,donut:100:45:30:180,donut:200:45:30:180,donut:300:45:30:180,donut:400:45:30:180,donut:500:45:30:180,donut:600:45:30:180,donut:700:45:30:180,donut:800:45:30:180,donut:900:45:30:180,donut:1000:45:30:180,donut:1100:45:30:180,donut:1200:45:30:180,donut:1300:45:30:180,donut:1400:45:30:180,donut:1500:45:30:180,donut:1600:45:30:180,donut:1700:45:30:180,donut:1800:45:30:180,donut:1900:45:30:180
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/spear_groundslam_01.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/spear_ground_rend.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/spear_leap_slam_aoe.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/PrisonerMonsterBoss/TIS_ice_nova.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/QuillCrabCold/ao/IceImpact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/RumCarrier/water_explosion.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/L_triplet_wave_crash_01.ao|effect|rectangle:1550:68:37:,rectangle:1550:68:37:,rectangle:1550:68:37:,rectangle:3100:70:38:,rectangle:3100:48:38:,rectangle:3100:48:38:
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/L_twin_wave_crash_01.ao|effect|rectangle:1550:68:37:,rectangle:1550:68:37:,rectangle:3050:60:38:,rectangle:3100:60:38:,rectangle:3150:60:38:
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/screech.ao|effect|cone:10:55::25
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/L_triplet_wave_crash_01.ao|effect|rectangle:1550:68:37::-68::90:1550,rectangle:1550:68:37::37:60:210:1550,rectangle:1550:68:37::37:-60:330:1550,rectangle:3100:70:38::-30::90:,rectangle:3100:48:38::14:24:210:,rectangle:3100:48:38::14:-24:330:
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/L_twin_wave_crash_01.ao|effect|rectangle:1550:68:37::-68::90:1550,rectangle:1550:68:37::68::-90:1550,rectangle:3050:60:38::-30::90:,rectangle:3100:60:38::-30::90:,rectangle:3150:60:38::-30::90:
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/screech.ao|effect|cone:10:55::25::::200
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/waterjet_01.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/Siren/water_wall_blocker_TEMP.ao|effect|rectangle:660:55:30:
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/StarFish/ao/mortar_impact.ao|visual|
@@ -576,7 +576,7 @@ Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/ligh
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/lightning_rod_burst.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/lightning_warp_nova.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/maze_detonation_blast.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/maze_detonation_blast_rect.ao|effect|rectangle:5000:150:140:
+Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/maze_detonation_blast_rect.ao|effect|rectangle:5000:150:140:::::300
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/maze_donut_blast.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/retreat_raise_burst.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/rock_detonate.ao|visual|
@@ -701,8 +701,8 @@ Metadata/Effects/Spells/monsters_effects/aura/nemesis_mod/static_discharge/disch
 Metadata/Effects/Spells/monsters_effects/Breach/Blood/ao/teeth_cone.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/charge/clap_aoe.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/esh_nova/EshNova.ao|visual|
-Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/handprint_slam/HandImpact_L.ao|effect|circle:0:16::,circle:0:14::,rectangle:0:55:10:,rectangle:0:50:10:,rectangle:0:33:8:,rectangle:0:22:8:,rectangle:0:18:5:,rectangle:0:30:12:
-Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/handprint_slam/HandImpact_R.ao|effect|circle:0:16::,circle:0:14::,rectangle:0:55:10:,rectangle:0:50:10:,rectangle:0:33:8:,rectangle:0:22:8:,rectangle:0:18:5:,rectangle:0:30:12:
+Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/handprint_slam/HandImpact_L.ao|effect|circle:0:16:::12:-16::,circle:0:14:::-2:1::,rectangle:0:55:10::-3:-1:-35:,rectangle:0:50:10::3::-20:,rectangle:0:33:8::-13:-3:-60:,rectangle:0:22:8::-12:-12:-75:,rectangle:0:18:5::-21:-19:90:,rectangle:0:30:12::23:-16::
+Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/handprint_slam/HandImpact_R.ao|effect|circle:0:16:::-12:-16::,circle:0:14:::2:1::,rectangle:0:55:10::3:-1:35:,rectangle:0:50:10::-3::20:,rectangle:0:33:8::13:-3:60:,rectangle:0:22:8::12:-12:75:,rectangle:0:18:5::21:-19:-90:,rectangle:0:30:12::-23:-16::
 Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/head_fireball/head_fireball_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/pistol_flick_single/pistol_flick_single_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/Breach/BreachOverseerBoss/ao/pistol_flick_single/sonicbeam.ao|visual|
@@ -777,9 +777,9 @@ Metadata/Effects/Spells/monsters_effects/essence2/AttackEssence1/EmergingWeapons
 Metadata/Effects/Spells/monsters_effects/essence2/AttackEssence1/EmergingWeapons/ComboSword2_600.ao|effect|circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:750:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::,circle:1170:4::
 Metadata/Effects/Spells/monsters_effects/essence2/ChaosEssence1/hammer_vine_slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/essence2/CorruptedEssences/Insanity/donut_blast.ao|visual|
-Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/flameblast_charge.ao|effect|circle:2322:37::
-Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/flameblast_ranged_charge.ao|effect|circle:2322:37::
-Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/flameblast_ranged_charge_solarorb.ao|effect|circle:2322:37::
+Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/flameblast_charge.ao|effect|circle:2322:37::::::200
+Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/flameblast_ranged_charge.ao|effect|circle:2322:37::::::200
+Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/flameblast_ranged_charge_solarorb.ao|effect|circle:2322:37::::::200
 Metadata/Effects/Spells/monsters_effects/essence2/FireEssence1/nova.ao|visual|
 Metadata/Effects/Spells/monsters_effects/essence2/LifeEssence1/moonbeam_enraged.ao|visual|
 Metadata/Effects/Spells/monsters_effects/essence2/LightningEssence1/ground_slam.ao|visual|
@@ -815,7 +815,7 @@ Metadata/Effects/Spells/monsters_effects/League_Abyss/ExplodingRunes/Pit_rune_ex
 Metadata/Effects/Spells/monsters_effects/League_Abyss/FarudinCorpseStrider/Barrage_Impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/FarudinCorpseStrider/spike_proj_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/FrontalColdBeam/impact.ao|visual|
-Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/abyssal_meteor/abyssal_meteor.ao|effect|circle:3100:24::
+Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/abyssal_meteor/abyssal_meteor.ao|effect|circle:3100:24::::::210
 Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/blackblood_remnant/life_remnant_explosion.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/exploding_orb/abyssal_orb_explode.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/general_effects/kurgals_gasp/AOs/ChaosMortarImpact.ao|visual|
@@ -825,7 +825,7 @@ Metadata/Effects/Spells/monsters_effects/League_Abyss/MonolithicSlug/Projectile_
 Metadata/Effects/Spells/monsters_effects/League_Abyss/MonolithicSlug/Projectile_Impact_Fire.ao|impact|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/MorayClanMonster/explode_01.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/MorayClanMonster/fireball_impact.ao|visual|
-Metadata/Effects/Spells/monsters_effects/League_Abyss/MorayClanMonster/flamethrower_active.ao|effect|cone:10:42::30,cone:100:42::30,cone:150:42::30,cone:200:42::30,cone:250:42::30
+Metadata/Effects/Spells/monsters_effects/League_Abyss/MorayClanMonster/flamethrower_active.ao|effect|cone:10:42::30::::120,cone:100:42::30::::120,cone:150:42::30::::120,cone:200:42::30::::120,cone:250:42::30::::120
 Metadata/Effects/Spells/monsters_effects/League_Abyss/PaleElite/snowball_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/PaleWalker/mine_explode.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Abyss/PaleWalker/SoulExplode.ao|visual|
@@ -852,7 +852,7 @@ Metadata/Effects/Spells/monsters_effects/League_Archnemesis/mechanics/arcane_gua
 Metadata/Effects/Spells/monsters_effects/League_Archnemesis/mechanics/bombardier_mortar_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Archnemesis/mechanics/obelisk_shocknova_01.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Archnemesis/mechanics/obelisk_shocknova_02.ao|visual|
-Metadata/Effects/Spells/monsters_effects/League_Archnemesis/mechanics/reckoning_shield_aim.ao|effect|rectangle:670:48:10:
+Metadata/Effects/Spells/monsters_effects/League_Archnemesis/mechanics/reckoning_shield_aim.ao|effect|rectangle:670:48:10:::-5::100
 Metadata/Effects/Spells/monsters_effects/League_Azmeri/monsters/CrazedCannibalPicts_BigMale/onAct_slam_attack_01.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/bugbomb_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Azmeri/monster_fx/vodoo_king_boss/deathmark_pulse.ao|visual|
@@ -875,7 +875,7 @@ Metadata/Effects/Spells/monsters_effects/League_Delirium/DeliriumMonsters/Malice
 Metadata/Effects/Spells/monsters_effects/League_Delirium/DeliriumMonsters/Rage/ComboImpact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Delirium/DeliriumMonsters/Rage/leapslam_01_Impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Delirium/DeliriumMonsters/Spite/deceleratingLightningBallExplode.ao|visual|
-Metadata/Effects/Spells/monsters_effects/League_Delirium/Demons/Fire/overheadSwordSlash.ao|visual|circle:0:28::,rectangle:0:110:18:
+Metadata/Effects/Spells/monsters_effects/League_Delirium/Demons/Fire/overheadSwordSlash.ao|visual|circle:0:28::::::100,rectangle:0:110:18:
 Metadata/Effects/Spells/monsters_effects/League_Delirium/Demons/IceSpear/iceSpikes.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Delirium/Demons/LightningElectricFlail/electrical_hit.ao|impact|
 Metadata/Effects/Spells/monsters_effects/League_Delirium/Kosis/spam_fire_impact.ao|visual|
@@ -1018,7 +1018,7 @@ Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_pale_king/leapsla
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_pale_king/snipe_projectile_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/attack_01.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/attack_02.ao|visual|
-Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/fissure_start_slam.ao|visual|cone:0:35::135,cone:0:15::225
+Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/fissure_start_slam.ao|visual|cone:0:35::135,cone:0:15::225:::180:
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/leap_slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/boss_xenobyte_matriarch/mortar_explode.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_corpus_insanity/blood_orb_explode.ao|visual|
@@ -1029,7 +1029,7 @@ Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_pale_punishment/
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_pale_regret/beam_blast.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_pale_regret/lightning_strike_impact.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_xenobyte_sage/crystal_mortar_impact.ao|impact|
-Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_xenobyte_sage/flameblast_charge.ao|effect|circle:2322:26::
+Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_xenobyte_sage/flameblast_charge.ao|effect|circle:2322:26::::::200
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/elite_xenobyte_succubus/screech_sustained.ao|effect|cone:0:37::25,cone:250:37::25,cone:500:37::25,cone:750:37::25,cone:980:37::25
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/mob_corpus_breaker/leap_slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Hellscape/mob_corpus_brute/slam_01.ao|visual|
@@ -1090,7 +1090,7 @@ Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/iceNova.ao
 Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/IceSpikeMarker.ao|marker|
 Metadata/Effects/Spells/monsters_effects/League_Sanctum/TheExperimets/livingBomb.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Sanctum/UndeadPriest/fire_impact.ao|visual|
-Metadata/Effects/Spells/monsters_effects/League_Sanctum/UndeadPriest/flameblast_charge.ao|effect|circle:2322:37::
+Metadata/Effects/Spells/monsters_effects/League_Sanctum/UndeadPriest/flameblast_charge.ao|effect|circle:2322:37::::::200
 Metadata/Effects/Spells/monsters_effects/League_Synthesis/Synthesis_Guardian4/V_slam_proj/rectangle/cascade.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Ultimatum/general_combat/chaosgod_bat/line_slam.ao|visual|
 Metadata/Effects/Spells/monsters_effects/League_Ultimatum/general_combat/chaosgod_gorilla/chaos_slam_impact.ao|visual|
@@ -1155,7 +1155,7 @@ Metadata/Monsters/BrainWorm/BrainWormArmsStab.ao|visual|
 Metadata/Monsters/EtchedBeetles/Effects/Ao/hunker_explode.ao|visual|
 Metadata/Monsters/EtchedBeetles/Effects/Ao/sunder.ao|visual|
 Metadata/Monsters/EtchedBeetles/Effects/Ao/sundercharge.ao|visual|
-Metadata/Monsters/KaruiSpiritTortoise/turtle_firebreath_TEMP.ao|effect|cone:10:50::16
+Metadata/Monsters/KaruiSpiritTortoise/turtle_firebreath_TEMP.ao|effect|cone:10:50::16::::500
 Metadata/Monsters/LeagueRitual/Daemons/bugbomb_impact.ao|visual|
 Metadata/Monsters/LeagueRitual/Daemons/volatile_explode.ao|visual|
 Metadata/Monsters/MarAcolyte/Effects/Ao/mortarimpact.ao|impact|
@@ -1171,7 +1171,7 @@ Metadata/Monsters/TormentedSpirits/Wolf/SpiritOfTheWolfDash.ao|visual|
 Metadata/Monsters/TwilightOrderStigmata/StigmataMace/Objects/quakeslam_big.ao|visual|
 Metadata/Monsters/TwilightOrderStigmata/StigmataMace/Objects/quakeslam_one.ao|visual|
 Metadata/Monsters/UniqueItemMonsters/AzmerianPackleaderMinion/PackleaderGreatHuntDash.ao|visual|
-Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes02.ao|effect|rectangle:1300:80:35:,rectangle:1300:80:35:
-Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes03.ao|effect|rectangle:1300:50:50:,rectangle:1300:40:40:,rectangle:1300:40:40:,rectangle:1300:40:40:
-Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes04.ao|effect|rectangle:1300:30:5:,rectangle:1300:50:50:,rectangle:1300:50:50:
-Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes05.ao|effect|rectangle:1300:80:35:,rectangle:1300:80:35:
+Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes02.ao|effect|rectangle:1300:80:35::35:-25::,rectangle:1300:80:35::25:-35:270:
+Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes03.ao|effect|rectangle:1300:50:50::-10:-15::,rectangle:1300:40:40::-10:-20:45:,rectangle:1300:40:40::15:-5::,rectangle:1300:40:40::-15:-35::
+Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes04.ao|effect|rectangle:1300:30:5::-10:-10:45:,rectangle:1300:50:50::-35:-60::,rectangle:1300:50:50::35:10::
+Metadata/Terrain/Interlude/Part1/P1_5/Bossroom/Spikes05.ao|effect|rectangle:1300:80:35::-35:25:180:,rectangle:1300:80:35::-25:35:90:

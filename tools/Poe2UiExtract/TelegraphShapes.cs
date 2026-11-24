@@ -68,6 +68,9 @@ internal static class TelegraphShapes
                     current = new EffectShape(animation, value.ToLowerInvariant());
                     shapes.Add(current);
                     break;
+                case "monster":
+                    current = null; // a monster the effect spawns: its settings are not a shape's
+                    break;
                 default:
                     current?.Settings[key] = value;
                     break;
@@ -81,12 +84,18 @@ internal static class TelegraphShapes
     public static double? Number(EffectShape shape, string key) =>
         shape.Settings.TryGetValue(key, out var text) && double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : null;
 
-    /// <summary>One shape as the effects catalog writes it: shape:ms:length:width:angle (empty where the file says nothing).</summary>
+    /// <summary>
+    ///     One shape as the effects catalog writes it: shape:ms:length:width:angle (empty where the file says nothing), then,
+    ///     for a shape off the effect's middle, turned in it or sweeping its length, :x:y:orientation:sweep ms.
+    /// </summary>
     public static string Format(EffectShape shape)
     {
         static string Field(double? value) => value is { } v ? v.ToString(CultureInfo.InvariantCulture) : string.Empty;
         var time = Number(shape, "time") is { } seconds ? (double?)Math.Round(seconds * MsPerSecond) : null;
-        return string.Join(':', shape.Shape, Field(time), Field(Number(shape, "length")), Field(Number(shape, "width")), Field(Number(shape, "angle")));
+        var basics = string.Join(':', shape.Shape, Field(time), Field(Number(shape, "length")), Field(Number(shape, "width")), Field(Number(shape, "angle")));
+        var sweep = Number(shape, "wave_time") is { } swept ? (double?)Math.Round(swept * MsPerSecond) : null;
+        var placed = new[] { Number(shape, "offset_x"), Number(shape, "offset_y"), Number(shape, "orientation_to_effect"), sweep };
+        return placed.All(value => value == null) ? basics : basics + ":" + string.Join(':', placed.Select(Field));
     }
 
     /// <summary>The earliest hit of an effect's shapes, in ms from the effect's start; null when none has a time.</summary>

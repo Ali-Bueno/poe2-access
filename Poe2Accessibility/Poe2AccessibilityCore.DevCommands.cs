@@ -262,6 +262,19 @@ namespace Poe2Accessibility
                     }
 
                     break;
+                case "visuals":
+                    // Research: the client-side visuals of the awake map (what the per-frame walk leaves out), by model.
+                    var drawn = new System.Collections.Concurrent.ConcurrentBag<string>();
+                    var walked = Core.States.InGameStateObject.CurrentAreaInstance.ScanVisuals(id => false, (id, visual) =>
+                        drawn.Add($"{visual.Path} {(visual.TryGetComponent<GameReader.RemoteObjects.Components.Animated>(out var shown) ? shown.ModelPath : "-")} " +
+                                  $"render={visual.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out _)} positioned={visual.TryGetComponent<GameReader.RemoteObjects.Components.Positioned>(out _)}"));
+                    this.log?.Info($"Visuals: {drawn.Count} of {walked} awake nodes");
+                    foreach (var group in drawn.GroupBy(line => line).OrderByDescending(group => group.Count()).Take(60))
+                    {
+                        this.log?.Info($"Visual x{group.Count()} {group.Key}");
+                    }
+
+                    break;
                 case "unrendered":
                     // Research: awake entities without a Render component (icon-only objects), with their components.
                     foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)

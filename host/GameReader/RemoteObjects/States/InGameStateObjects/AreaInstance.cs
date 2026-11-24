@@ -532,6 +532,37 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 }).Nodes;
         }
 
+        /// <summary>
+        ///     Scans the client-side visuals of the awake map (ids from <see cref="EntityFilter.FirstVisualId"/> on), which the
+        ///     per-frame walk leaves out: a boss skill's effect the client draws by itself is one. Each call walks the whole map.
+        ///     NOTE: the callback may run in parallel, as <see cref="ScanSleepingEntities"/>'s.
+        /// </summary>
+        /// <param name="isKnown">Whether a visual met before (by id) needs no reading again.</param>
+        /// <param name="onVisual">Invoked (possibly concurrently) for each visual not known yet.</param>
+        /// <returns>Total number of awake nodes walked.</returns>
+        public int ScanVisuals(Func<uint, bool> isKnown, Action<uint, Entity> onVisual)
+        {
+            if (this.Address == IntPtr.Zero)
+            {
+                return 0;
+            }
+
+            var reader = Core.Process.Handle;
+            return reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(
+                this.Layout.Read(reader, this.Address).Entities.AwakeEntities,
+                100000,
+                (key, value) =>
+                {
+                    if (EntityFilter.IgnoreVisualsAndDecorations(key) || !SafeMemoryHandle.IsValidAddress(value.EntityPtr) || isKnown(key.id))
+                    {
+                        return false;
+                    }
+
+                    onVisual(key.id, new Entity(value.EntityPtr));
+                    return true;
+                }).Nodes;
+        }
+
         private IEnumerator<Wait> OnPerFrame()
         {
             while (true)

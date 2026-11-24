@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Poe2Accessibility.Services;
     using static Check;
 
     /// <summary>The telegraph extractor's pure parsing: effect-driven shapes, geometry shape names and catalog lines.</summary>
@@ -22,6 +23,10 @@ namespace Poe2Accessibility.Tests
             (nameof(AFileWithoutTheBlockHasNoShapes), AFileWithoutTheBlockHasNoShapes),
             (nameof(TheFirstHitIsTheEarliestShapeInMs), TheFirstHitIsTheEarliestShapeInMs),
             (nameof(AShapeIsWrittenAsItsKindTimeAndSize), AShapeIsWrittenAsItsKindTimeAndSize),
+            (nameof(APlacedOrSweepingShapeSaysWhereItLiesAndHowLongItSweeps), APlacedOrSweepingShapeSaysWhereItLiesAndHowLongItSweeps),
+            (nameof(ASpawnedMonstersSettingsAreNotTheShapes), ASpawnedMonstersSettingsAreNotTheShapes),
+            (nameof(TheTwinWavesAreLeftSideways), TheTwinWavesAreLeftSideways),
+            (nameof(TheTripleWavesLeaveAGapBetweenThem), TheTripleWavesLeaveAGapBetweenThem),
             (nameof(GeometryShapesAreNamedByTheTablesValues), GeometryShapesAreNamedByTheTablesValues),
             (nameof(GeometryPairsLeaveZerosOutAndReadBack), GeometryPairsLeaveZerosOutAndReadBack),
             (nameof(OnlyMechanismKindsGetALine), OnlyMechanismKindsGetALine),
@@ -67,6 +72,54 @@ namespace Poe2Accessibility.Tests
             var shapes = TelegraphShapes.ParseEffectDrivenEvents(Cascade);
             Expect("circle:750:10:10:", TelegraphShapes.Format(shapes[0]), "a circle");
             Expect("cone:1500:::60", TelegraphShapes.Format(shapes[1]), "a cone with only an angle");
+        }
+
+        private static void APlacedOrSweepingShapeSaysWhereItLiesAndHowLongItSweeps()
+        {
+            var shapes = TelegraphShapes.ParseEffectDrivenEvents(BloodDash);
+            Expect("rectangle:10:120:13::::90:330", TelegraphShapes.Format(shapes[0]), "turned and sweeping");
+            Expect("rectangle:10:120:13::::-90:", TelegraphShapes.Format(shapes[1]), "turned only");
+        }
+
+        private static void ASpawnedMonstersSettingsAreNotTheShapes()
+        {
+            var shapes = TelegraphShapes.ParseEffectDrivenEvents(
+                "version 3\n\nEffectDrivenEvent\n{\n\tanimation = \"once\"\n\t\tshape = \"circle\"\n\t\t\ttime = 1\n\t\t\tlength = 5\n\t\tmonster = \"M\"\n\t\t\ttime = 2\n\t\t\toffset_y = 250\n}\n");
+            Expect("circle:1000:5::", TelegraphShapes.Format(shapes[0]), "the shape's own time and no offset");
+        }
+
+        private static IReadOnlyList<EffectZone> Zones(string shapes, System.Numerics.Vector2 at, float rotation)
+        {
+            var areas = new EffectAreas();
+            areas.Add(new[] { "# header", "X/Wave.ao|effect|" + shapes });
+            return areas.Of("x/wave.ao")!.Select(shape => new EffectZone(shape, at, rotation)).ToList();
+        }
+
+        private static void TheTwinWavesAreLeftSideways()
+        {
+            // Diamora's L_twin_wave_crash_01: two waves 37 cells wide from 68 cells on each side along the effect's x axis.
+            var at = new System.Numerics.Vector2(10000f, 6000f);
+            var zones = Zones("rectangle:1550:68:37::-68::90:1550,rectangle:1550:68:37::68::-90:1550,rectangle:3100:60:38::-30::90:", at, MathF.PI / 2f);
+            var along = new System.Numerics.Vector2(0f, 1f); // a quarter turn: the x axis lies along the world's y
+            var across = new System.Numerics.Vector2(1f, 0f);
+            Expect(true, zones.Take(2).All(zone => zone.Catches(at, 40f)), "both waves meet at the middle");
+            Expect(true, zones.Any(zone => zone.Catches(at + (along * 600f), 40f)), "600 along is still in a wave");
+            Expect(false, zones.Any(zone => zone.Catches(at + (across * 260f), 40f)), "260 sideways is out");
+            Expect(3100, zones[0].StrikesIn(at, 0), "the middle is struck at the end of the sweep");
+            var fronts = zones.Take(2).Select(zone => zone.Front(at, 2325)!.Value).ToList();
+            Expect(true, fronts.All(front => MathF.Abs(front.Ahead - (34f * 250f / 23f)) < 1f), "halfway through the sweep each front is half its way off");
+            Expect(true, MathF.Abs(System.Numerics.Vector2.Distance(fronts[0].At, fronts[1].At) - (68f * 250f / 23f)) < 1f, "one on each side");
+            Expect(true, zones[2].Front(at, 0) == null, "the crash does not sweep");
+        }
+
+        private static void TheTripleWavesLeaveAGapBetweenThem()
+        {
+            // L_triplet_wave_crash_01: from -x and from (37, 60) and (37, -60): in the model, half a turn from the shapes, from +x.
+            var at = System.Numerics.Vector2.Zero;
+            var zones = Zones("rectangle:1550:68:37::-68::90:1550,rectangle:1550:68:37::37:60:210:1550,rectangle:1550:68:37::37:-60:330:1550", at, 0f);
+            Expect(true, zones[0].Catches(new System.Numerics.Vector2(600f, 0f), 0f), "the first comes from the world's +x");
+            Expect(true, zones[1].Catches(new System.Numerics.Vector2(-370f, -600f), 0f), "the second from between -x and -y");
+            Expect(false, zones.Any(zone => zone.Catches(new System.Numerics.Vector2(-500f, 0f), 40f)), "the gap opposite the first wave");
         }
 
         private static void GeometryShapesAreNamedByTheTablesValues()

@@ -49,7 +49,7 @@ internal static class TelegraphExtractor
     private const string SkillsHeader1 = "# Monster skills whose tables describe the danger area the client draws (tools/Poe2UiExtract telegraph-skills), regenerated after patches.";
     private const string SkillsHeader2 = "# skill id|kind|area (shape=circle|cone|rectangle|donut; length or radius, width, angle in degrees, delay ms, range, count)|visual .ao files|spawned objects";
     private const string EffectsHeader1 = "# Effect files the client plays for those skills: a ServerEffect entity's .ao names one of them (tools/Poe2UiExtract telegraph-effects).";
-    private const string EffectsHeader2 = "# .ao path|roles (visual, marker, impact, effect)|shapes of its EffectDrivenEvent block as shape:ms from start:length:width:angle";
+    private const string EffectsHeader2 = "# .ao path|roles (visual, marker, impact, effect)|shapes of its EffectDrivenEvent block as shape:ms from start:length:width:angle, then x:y:orientation:sweep ms when placed or swept";
 
     /// <summary>The three files' lines, header apart.</summary>
     internal sealed record Lines(IReadOnlyCollection<string> Skills, IReadOnlyCollection<string> Effects, IReadOnlyCollection<string> Monsters);

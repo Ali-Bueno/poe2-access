@@ -95,6 +95,7 @@ namespace Poe2Accessibility
         private readonly TrialDodgeScope trialScope = new();
         private WeakPointGuide? weakPoint;
         private BossArenaLog? arenaLog;
+        private BossEffectWatch? bossEffects;
         private ShieldWatch? shield;
         private PerfectTimingWatch? perfectTiming;
         private HazardWatch? hazards;
@@ -363,6 +364,13 @@ namespace Poe2Accessibility
                     LeadsToRefuge = () => this.bosses?.Mechanics?.LeadsToRefuge ?? false,
                 };
                 this.arenaLog = new BossArenaLog(this.log) { Fighting = () => this.bosses?.Mechanics?.Fighting };
+                var effectAreas = EffectAreas.Load(Path.Join(this.DllDirectory, "catalog", EffectAreas.File));
+                this.log.Info($"Boss effects: {effectAreas.Count} with shapes from the game files");
+                this.bossEffects = new BossEffectWatch(this.output, effectAreas, this.log)
+                {
+                    Fighting = () => this.bosses?.Mechanics?.Fighting,
+                    Rotation = entity => this.bosses?.Mechanics?.Positions.Rotation(entity),
+                };
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
                 var skills = new PlayerSkills(memory, elements, this.log);

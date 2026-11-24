@@ -277,7 +277,7 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | Doryani | self-destruct, the legs' laser, crystal beams, lightning cage | [Doryani](#doryani) | self-destruct and legs done (unit tests); beams blocked |
 | Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | todo: the only buffs whose text is an instruction |
 | The Prisoner | use the ballista to stop his regeneration (50 %, 20 %) | not looked up | todo |
-| Diamora | her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | not looked up | todo |
+| Diamora | waves from opposite sides; her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | [Diamora](#diamora) | waves done (unit tests); gaze todo |
 | Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) (LIKELY) | todo |
 | Yama | at 75 % clones on the pillars: run to the one that does not react; at 65 % to the clone with the circle | `chosen_one` clone state, not read | todo |
 | Tavakai | which totem the player stands nearest decides his power; the room burns | state `room_burning_progress` 0..100; `KaruiCaptainBossJadeWall` (Life); `GodTotem` state `current_phase` | todo |
@@ -722,6 +722,44 @@ fire, hit at 1.55 s. `GTDoryaniLightningStorm`: 15 bolts of 5 cells, each 850 ms
 `EASDoryaniCrabLightningCage` ("Ravaging power!"): `pylons_active` on the machine, `lightning_cage.ao` on its root, six
 `DoryaniMechZapTarget` posts; whether the inside or the outside hurts is not in the data (UNSURE; guides say stay inside).
 
+## Diamora
+
+**Act 4, Singing Caverns (G4_3_2), and Syvora in maps** (`Metadata/Monsters/SirenMonster/SirenBoss`). Researched 2026-11-24
+(0.5.5f) after the owner's three deaths there.
+
+- **The ring:** walkable ground from about 600 to 1190 world units around her centre (11266,6005 that day; terrain dump), an
+  inner pool and an outer water she swims in. PROVEN.
+- **The waves:** `EASSirenBossWaveSmash` (clip `twin_wave_crash_01`, `wavesmash` at 1.987 s) sets off
+  `EDSSirenBossDoubleWaveSmash` or, later, `EDSSirenBossTripleWaveSmash` (which of the two is the AI's): effect-driven, damage
+  that no roll, evasion or block avoids. The effect files time them: two (three) walls 37 cells wide, 68 cells out on opposite
+  sides of the effect (120° apart), still for 1.55 s, then 1.55 s running to its middle, where they crash at 3.1 s. The way out
+  is sideways: 201 units from the middle, plus the body, or the gap between the three. PROVEN (files). Matiki calls it
+  ("¡Huye! ¡No te ahogues!", his state `warn_wave`).
+- **Which way they lie:** `EffectDrivenSkill` +0x4B is the effect's turn in degrees from the cast's direction (90 on both waves,
+  -10 / 10 on the Harvest hound's left / right flamethrower, 180, 270 on others), so they likely run along the line from her to
+  the player. LIKELY; the plugin reads the effect's own rotation instead.
+- **The shapes' frame:** forward (`orientation_to_effect` 0) is +y, 90 is +x, and the whole frame is half a turn from the
+  model's: `Spikes02.ao`'s two rectangles and its spike sockets draw the same L only so; a spawn's `offset_y = 575` stands
+  where the model's socket is `0 -495 0`. Settings after a `monster =` line are that spawn's, not the last shape's. PROVEN (files).
+- **Rotation:** the float after the cell in Positioned (+0x44C beside +0x444 / +0x448), the same as Render +0x188: Matiki's
+  1.2309 and the water door's 3.89 are their room turns (-1.23094, 2.41249) mirrored in x with the room. PROVEN live.
+  `EntityPlaces.Rotation`.
+- **Where the effect is in memory:** none of the three fights' logs holds a ServerEffect for a wave: it is no server entity. The
+  awake map also holds the client's visuals (ids from 0x40000000), which the host's walk leaves out; they carry Animated (the
+  `.ao`), Render and Positioned, and `Metadata/Effects/Effect` is among them (108 visuals at the checkpoint). PROVEN live. That
+  the wave is one is LIKELY; the log's `Boss effect drawn:` line will say.
+- **Orbs** (`SirenBossWaterBall`, 35 % phase): touching one is "Ahogamiento". **Whirlpools** are ground effects (`vortex_79`),
+  four or five in a line where she leaps across the ring, others cast under the player; 15 s. **Gaze** (about 65 % and 35 %): she
+  sings in the middle, half the ring in her sight, mirrors (`SirenMirror`) on the outer water reflect it; 5 stacks petrify.
+
+**In the plugin** (`BossEffectWatch`, pure `EffectAreas` / `EffectZone`, unit tests; not heard in a fight): while a boss is
+fought, the visuals are walked ten times a second (`AreaInstance.ScanVisuals`); a new effect whose `.ao` has timed shapes in
+`telegraph-effects.txt` (step v2: place, turn and sweep of each shape) is placed by its own position and rotation. While the
+player stands in one that strikes 0.7 s or more ahead: the way out in one word, again each second; the heartbeat leads to the
+nearest ground walked to straight that no shape holds; a wave's front sounds as the flood's hiss, turn about from each side,
+faster as it nears; "Fuera de su alcance" once out. Setting: the flood warnings'. This is every boss's AOSHAPE class (§17), not
+Diamora's alone. Dev command `visuals` lists the visuals by model.
+
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 
 The owner, after Doryani: "haz una búsqueda exhaustiva del resto de jefes… sea jefe secundario, de campaña, endgame". Two
@@ -740,7 +778,7 @@ damaging skills of the 183 census fights, 2,727 miss at least one warning path. 
 | SEQUENCE | 80 / 151 | trigger count × delay ≥ 1 s | no: each landing point's marker (a ServerEffect `.ao` of role `marker`) would be warned where it lands; the reader's ServerEffect path has to be checked live first |
 | BEAM | 60 / 143 | lasers and beams | no: a ServerBeamEffect's two ends are not read (Doryani's blocker); where a `MD*LaserTarget` helper exists (Zalmarath, Menmek) the line boss → helper could be built from two read positions |
 | PROJECTILE | 94 / 188 | shells and projectiles landing later | no: the aimed point is read; a "falls where you stand" word from the landing area is next |
-| AOSHAPE | 21 / 38 | effect-driven shapes with times in `telegraph-effects.txt` | no: that catalog is never read (`BossWatch.Telegraph` is never assigned): a ServerEffect watch tied to its caster is needed |
+| AOSHAPE | 21 / 38 | effect-driven shapes with times in `telegraph-effects.txt` | yes for those that strike 0.7 s or more ahead (`BossEffectWatch`, [Diamora](#diamora); unit tests) |
 | HELPER, GROUND, NOAREA | 22 / 38, 14 / 30, 19 / 37 | helpers warned by distance only; lasting ground alarmed only once inside; sized skills without an area line | no |
 
 Not knowable from the files alone: which clip event fires which child, phase thresholds (the `.ais`), an add's rarity (the

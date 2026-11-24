@@ -32,7 +32,7 @@ internal static class GameDataSteps
         new Step("attack reach", 1, "attack-reach.txt", "attack-reach", true),
         new Step("action types", 1, "action-types.txt", "action-types", true),
         new Step("telegraph skills", 1, "telegraph-skills.txt", "telegraph-skills", true),
-        new Step("telegraph effects", 1, "telegraph-effects.txt", "telegraph-effects", true),
+        new Step("telegraph effects", 2, "telegraph-effects.txt", "telegraph-effects", true),
         new Step("boss mechanics", 9, "boss-mechanics.txt", "boss-mechanics", true), // 9: the skills a boss skill sets off (child|), adds with an area of 60 cells or more as the boss's pieces; 8: a boss's pieces (part|: Doryani's Triumph's legs); 7: an arena's flood (Mektul's lava); 6: the census's classes and their buffs' words
         new Step("buff names", 2, "buff-names.json", "buff-names", true), // 2: without the names the game never shows ("[DNT…")
         new Step("passive overrides", 1, "passive-overrides.txt", "passive-overrides", true),

@@ -20,6 +20,8 @@ namespace Poe2Accessibility
                 FloodOn = () => this.Settings.FloodWarnings,
                 BlastOn = () => this.Settings.BlastWarnings,
                 Reader = () => this.bosses?.Reader,
+                EffectLead = () => this.bossEffects?.Lead,
+                EffectFront = () => this.bossEffects?.Front,
             };
         }
     }

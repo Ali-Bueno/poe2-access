@@ -111,7 +111,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ParryCues) => T("Parry cue", "Aviso de Parada"),
             nameof(AccessibilitySettings.UnblockableCues) => T("Unblockable attack cue", "Aviso de ataque imbloqueable"),
             nameof(AccessibilitySettings.HazardAlarm) => T("Harmful ground alarm", "Alarma de suelo peligroso"),
-            nameof(AccessibilitySettings.FloodWarnings) => T("Boss arena flood warnings", "Avisos de la lava que inunda la arena"),
+            nameof(AccessibilitySettings.FloodWarnings) => T("Boss arena flood warnings", "Avisos de la lava o las olas que inundan la arena"),
             nameof(AccessibilitySettings.BlastWarnings) => T("Boss self-destruct warnings", "Avisos de autodestrucción del jefe"),
             nameof(AccessibilitySettings.ParryLeadMs) => T("Parry cue lead, milliseconds", "Antelación del aviso de Parada, milisegundos"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
@@ -152,7 +152,7 @@ namespace Poe2Accessibility
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             Services.BossRefugeSounds.Lead => T("Boss fight shelter", "Refugio en un combate de jefe"),
-            Services.FloodCue.Sound => T("Lava flooding the arena", "Lava que inunda la arena"),
+            Services.FloodCue.Sound => T("Lava flooding the arena", "Lava u ola que inunda la arena"),
             Services.CueSynth.BlastSound => T("Boss self-destruct countdown", "Cuenta atrás de la autodestrucción del jefe"),
             Services.BossRefugeSounds.Over => T("Shelter no longer needed", "Ya no hace falta el refugio"),
             Services.TrapWatch.StatueOpenSound => T("Statue opening its eyes", "Estatua que abre los ojos"),
@@ -286,7 +286,7 @@ namespace Poe2Accessibility
                 "desde donde está un jefe a punto de estallar (la autodestrucción del Triunfo de Doryani), mientras estás a su alcance; más rápido según se acerca el golpe"),
             Services.FloodCue.Sound => T(
                 "from the side of the nearest edge of the lava flooding a boss's arena (Mektul's molten gold); faster as it nears, from 10 steps; the heartbeat leads to dry ground",
-                "del lado del borde más cercano de la lava que inunda la arena (el oro fundido de Mektul); más rápido al acercarse, desde 10 pasos; el latido lleva a suelo seco"),
+                "del lado del borde más cercano de la lava que inunda la arena (el oro fundido de Mektul); más rápido al acercarse, desde 10 pasos; también desde el frente de las olas de un jefe (Diamora) mientras estás en su franja; el latido lleva a suelo seco"),
             Services.BossRefugeSounds.Lead => T(
                 "from the side of the shelter a boss's attack leaves (Asala's barrier against Jamanra's sandstorm); faster as you near it, silent once you are inside",
                 "del lado del refugio ante un ataque del jefe (la barrera de Asala ante la tormenta de Jamanra); más rápido al acercarte, callado al estar dentro"),

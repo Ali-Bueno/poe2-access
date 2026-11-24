@@ -227,7 +227,7 @@ Bosses and what a player must answer. All from the one page I fetched under the 
 - Piranha Pools deal damage over time. Below 50% Sharknado: two tornadoes throw piranhas in a spiral.
 
 **Diamora** — Singing Caverns
-- Submerge double leap leaves waterspouts; stand near the arena entrance to avoid the leap. Tidal Crash and Drowning Orb have avoid cues.
+- Submerge double leap leaves waterspouts; stand near the arena entrance to avoid the leap. Tidal Crash and Drowning Orb have avoid cues. Tidal Crash: two waves on either side of the player close on them (three under half life); leave sideways.
 - Below 60% Siren Song: a petrifying beam plus adds that rush you.
 
 **Captain Hartlin** — Journey's End
