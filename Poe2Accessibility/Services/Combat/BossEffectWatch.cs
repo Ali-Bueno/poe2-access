@@ -125,13 +125,15 @@ namespace Poe2Accessibility.Services
             foreach (var (id, entity) in fresh)
             {
                 var ao = entity.TryGetComponent<Animated>(out var animated) ? animated.ModelPath : null;
-                if (ao is { Length: 0 })
+                entity.TryGetComponent<Render>(out var render);
+                var unplaced = render is { WorldPosition: { X: 0f, Y: 0f } } && ao != null && this.areas.Of(ao) != null;
+                if (ao is { Length: 0 } || unplaced)
                 {
-                    continue; // still being made: read again at the next poll
+                    continue; // still being made (a wave was once met at 0,0): read again at the next poll
                 }
 
                 this.known[id] = now;
-                if (!first && ao != null && entity.Path.StartsWith(EffectPaths, StringComparison.Ordinal) && entity.TryGetComponent<Render>(out var render))
+                if (!first && ao != null && entity.Path.StartsWith(EffectPaths, StringComparison.Ordinal) && render != null)
                 {
                     this.Place(id, entity.Path, ao, render, now);
                 }

@@ -736,8 +736,10 @@ fire, hit at 1.55 s. `GTDoryaniLightningStorm`: 15 bolts of 5 cells, each 850 ms
   is sideways: 201 units from the middle, plus the body, or the gap between the three. PROVEN (files). Matiki calls it
   ("¡Huye! ¡No te ahogues!", his state `warn_wave`).
 - **Which way they lie:** `EffectDrivenSkill` +0x4B is the effect's turn in degrees from the cast's direction (90 on both waves,
-  -10 / 10 on the Harvest hound's left / right flamethrower, 180, 270 on others), so they likely run along the line from her to
-  the player. LIKELY; the plugin reads the effect's own rotation instead.
+  -10 / 10 on the Harvest hound's left / right flamethrower, 180, 270 on others), the cast's
+  direction being the AI's. The plugin reads the effect's own rotation: three waves of 2026-11-24 lay along the radius (turned
+  0.25, 4.15 and 4.09 where the radius from her centre lies so), one from the inner pool and one from the outer water, so the way out
+  is along the ring. CONFIRMED.
 - **The shapes' frame:** forward (`orientation_to_effect` 0) is +y, 90 is +x, and the whole frame is half a turn from the
   model's: `Spikes02.ao`'s two rectangles and its spike sockets draw the same L only so; a spawn's `offset_y = 575` stands
   where the model's socket is `0 -495 0`. Settings after a `monster =` line are that spawn's, not the last shape's. PROVEN (files).
@@ -748,12 +750,14 @@ fire, hit at 1.55 s. `GTDoryaniLightningStorm`: 15 bolts of 5 cells, each 850 ms
   awake map also holds the client's visuals (ids from 0x40000000), which the host's walk leaves out; they carry Animated (the
   `.ao`), Render and Positioned, and `Metadata/Effects/Effect` is among them (108 visuals at the checkpoint). PROVEN live. A
   monster's skill effect `BrineMaiden/screech.ao` (an add's geometry skill) was drawn there in the owner's next fight (16:03 log,
-  `Metadata/Effects/Effect`): PROVEN for the kind; the wave itself is LIKELY until the log's `Boss effect drawn:` names it.
+  `Metadata/Effects/Effect`): PROVEN for the kind; the wave itself is `Metadata/Effects/SleepableEffect` with
+  `L_twin_wave_crash_01.ao`, met about 1.8 s after Matiki's `warn_wave`. CONFIRMED (seven in the owner's fights).
 - **Orbs** (`SirenBossWaterBall`, 35 % phase): touching one is "Ahogamiento". **Whirlpools** are ground effects (`vortex_79`),
   four or five in a line where she leaps across the ring, others cast under the player; 15 s. **Gaze** (about 65 % and 35 %): she
   sings in the middle, half the ring in her sight, mirrors (`SirenMirror`) on the outer water reflect it; 5 stacks petrify.
 
-**In the plugin** (`BossEffectWatch`, pure `EffectAreas` / `EffectZone`, unit tests; not heard in a fight): while a boss is
+**In the plugin** (`BossEffectWatch`, pure `EffectAreas` / `EffectZone`, unit tests; heard in the owner's fights of 2026-11-24, won at 16:27: said 1.1 to 2.6 s
+ahead, "out of it" 0.1 to 1.1 s later; one met at 0,0 before the game placed it is now read again): while a boss is
 fought, the visuals are walked ten times a second (`AreaInstance.ScanVisuals`); a new effect whose `.ao` has timed shapes in
 `telegraph-effects.txt` (step v2: place, turn and sweep of each shape) is placed by its own position and rotation. While the
 player stands in one that strikes 0.7 s or more ahead: the way out in one word, again each second; the heartbeat leads to the
