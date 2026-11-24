@@ -55,3 +55,4 @@ Newest version and source code: https://github.com/Ali-Bueno/poe2-access
 CREDITS
 - GameHelper2 (GPLv3 license), whose memory-reading code the mod's host is built on: https://github.com/Gordin/GameHelper2
 - PRISM 0.18.3 (MPL-2.0 license), for the screen reader output: https://github.com/ethindp/prism (its licenses are in app\Plugins\Poe2Accessibility\licenses\prism)
+- Hunter Jozwiak, contributor: the corpses for Bind Spectre, the left trigger as the mod button in hideouts, strongbox currency on the gamepad, and bug reports: https://github.com/hjozwiak

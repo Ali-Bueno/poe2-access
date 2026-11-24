@@ -114,6 +114,10 @@ Send these two files, with what you were doing and at what time:
 - [GameHelper2](https://github.com/Gordin/GameHelper2) (GPLv3): the mod's host (`host/`) is built on its memory-reading
   code, with changes that find its offsets again after a game patch.
 - [PRISM](https://github.com/ethindp/prism), the screen reader output.
+- [Hunter Jozwiak](https://github.com/hjozwiak), contributor: the corpses for Bind Spectre
+  ([#8](https://github.com/Ali-Bueno/poe2-access/pull/8)), the left trigger as the mod button in hideouts ([#10](https://github.com/Ali-Bueno/poe2-access/pull/10)),
+  strongbox currency on the gamepad ([#11](https://github.com/Ali-Bueno/poe2-access/pull/11)), and bug reports
+  ([#7](https://github.com/Ali-Bueno/poe2-access/issues/7), [#9](https://github.com/Ali-Bueno/poe2-access/issues/9)).
 
 ## For developers
 
