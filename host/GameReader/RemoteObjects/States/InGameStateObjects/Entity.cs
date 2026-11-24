@@ -538,7 +538,10 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             }
             else if (this.TryGetComponent<Life>(out var _))
             {
-                if (this.TryGetComponent<TriggerableBlockage>(out var _))
+                // A wall, a door or a pillar with a life; a creature can carry the component too: Diamora, the siren
+                // (SirenMonster/SirenBoss.ot, the only one of the 51 monster scripts with it that extends Monster, with her map
+                // versions), was no monster to the mod, silent and without her life (owner, 2026-11-24).
+                if (!this.componentAddresses.ContainsKey("Monster") && this.TryGetComponent<TriggerableBlockage>(out var _))
                 {
                     return false;
                 }
