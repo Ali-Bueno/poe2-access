@@ -12,4 +12,5 @@ añadirle un sonido"). Evidence: dumps `entities-20261124-*` (play copy) and the
   (hidden, untargetable). PROVEN from the scripts; `prime=0, explode=0` seen live; a lit one not yet seen live.
 - **`Pirates/objects/BarrelForPickup`**: a pirate's ammunition (`claimed`), no hazard of its own.
 - The mod: `PowderBarrels` (pure), an Objects entry told by sound alone, `powder_barrel` standing and `powder_fuse` lit, two
-  nearest of each. Open: the blast's radius and the fuse's length; the sounds are a first choice, the owner's ear decides.
+  nearest of each. Open: the blast's radius and the fuse's length; the sounds are the owner's picks (A of both) on their
+  [page](https://claude.ai/artifact/5FuHttSuuDXSen2JLYdS87).

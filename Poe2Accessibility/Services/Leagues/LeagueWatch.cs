@@ -289,7 +289,7 @@ namespace Poe2Accessibility.Services
             var possessed = HasBuff(buffs, LeaguePieces.PossessedBuff);
             if (possessed && EntityCatalog.IsAliveEnemy(monster) && this.news.Possessed(monster.Id))
             {
-                this.output.Say(SpeechKind.EnemyNames, Announcements.Possessed(this.NameOf(monster)));
+                this.output.Say(SpeechKind.EnemyNames, Announcements.Possessed(this.NameOf(monster)), happened: true);
             }
 
             var file = FileOf(path);
@@ -303,7 +303,7 @@ namespace Poe2Accessibility.Services
         {
             var named = line is LeagueLine.StrongboxAmbush or LeagueLine.StrongboxReady or LeagueLine.RogueExileFight;
             var text = Announcements.League(line, named ? this.NameOf(entity) : string.Empty, LeaguePieces.WaveOf(states));
-            this.output.Say(line == LeagueLine.RogueExileFight ? SpeechKind.EnemyNames : SpeechKind.Quest, text);
+            this.output.Say(line == LeagueLine.RogueExileFight ? SpeechKind.EnemyNames : SpeechKind.Quest, text, happened: line == LeagueLine.RogueExileFight);
         }
 
         /// <summary>The name the game shows over the object, in the client's language; empty without one.</summary>

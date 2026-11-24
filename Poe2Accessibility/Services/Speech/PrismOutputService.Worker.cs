@@ -111,6 +111,13 @@ namespace Poe2Accessibility.Services
         private enum Delivery
         {
             Normal,
+
+            /// <summary>A warning that waits its turn, but cuts passing lines.</summary>
+            Warning,
+
+            /// <summary>Only worth hearing now (<see cref="IAccessibilityOutputService.SpeakPassing"/>).</summary>
+            Passing,
+
             Urgent,
             Kept,
             KeptMessage,

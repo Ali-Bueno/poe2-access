@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
             (nameof(KeptLessonIsHeardWhole), KeptLessonIsHeardWhole),
             (nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart),
             (nameof(PlayerMoveCutsAMessage), PlayerMoveCutsAMessage),
+            (nameof(EnemiesAppearingReplaceOneAnother), EnemiesAppearingReplaceOneAnother),
             (nameof(ANoticesCopyInTheHintBoxIsNoLesson), ANoticesCopyInTheHintBoxIsNoLesson),
             (nameof(AMessageCuttingAMoveIsFollowedByIt), AMessageCuttingAMoveIsFollowedByIt),
             (nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen),
@@ -282,6 +283,26 @@ namespace Poe2Accessibility.Tests
             floor.Sent(new string('x', 1000), true, later);
             floor.Keep("lesson", false, 2000, later);
             Equal(false, floor.Held(later.AddMilliseconds(SpeechFloor.MaxAheadMs + 2100)), "a long line ahead delays the hold only so far");
+        }
+
+        private static void EnemiesAppearingReplaceOneAnother()
+        {
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 11, 24, 14, 29, 2);
+            Equal((true, false), floor.Pass("Demoledor putrefacto. Explorador ahogado, mágico", start), "the first is said");
+            Equal((true, true), floor.Pass("Explorador ahogado, 3", start.AddMilliseconds(900)), "the next cuts it");
+            Equal(true, floor.OnlyPassing(start.AddMilliseconds(950)), "nothing else is being said: a warning may cut it");
+            floor.Sent("Vida 25 por ciento", true, start.AddMilliseconds(1000));
+            Equal(false, floor.OnlyPassing(start.AddMilliseconds(1100)), "the warning itself is not cut");
+            Equal((false, false), floor.Pass("Aguaviva", start.AddMilliseconds(1100)), "a name waits behind the warning");
+            Equal((false, false), floor.Pass("Aguaviva, 2", start.AddMilliseconds(1200)), "the newest alone");
+            Equal<string?>(null, floor.ReleasePassing(start.AddMilliseconds(1300), true, out _), "not while the warning is said");
+            Equal("Aguaviva, 2", floor.ReleasePassing(start.AddMilliseconds(2000), true, out _), "then said");
+            Equal<string?>(null, floor.ReleasePassing(start.AddMilliseconds(2100), true, out _), "once");
+            floor.Sent(new string('x', 100), true, start.AddMilliseconds(5000));
+            floor.Pass("Aguaviva", start.AddMilliseconds(5100));
+            floor.ReleasePassing(start.AddMilliseconds(5200 + SpeechFloor.PassingFreshMs), true, out var late);
+            Equal("Aguaviva", late, "one that waited too long is dropped");
         }
 
         private static void PlayerMoveCutsAMessage()

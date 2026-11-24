@@ -27,6 +27,18 @@ namespace Poe2Accessibility.Services
         /// <summary>The readings the last <see cref="Release"/> left unsaid for their age.</summary>
         public IReadOnlyList<string> Dropped { get; private set; } = Array.Empty<string>();
         private DateTime speechEndsAt = DateTime.MinValue;
+
+        /// <summary>When the last line that is not a passing one is estimated said: past it, only passing lines are in flight.</summary>
+        private DateTime plainEndsAt = DateTime.MinValue;
+
+        /// <summary>The passing line waiting for the others to be said; the next takes its place.</summary>
+        private (string Text, DateTime At)? waitingPassing;
+
+        /// <summary>A passing line that waited this long is no longer said: who appeared then is where the sounds say now.</summary>
+        public const int PassingFreshMs = 3000;
+
+        /// <summary>The least time before a waiting passing line is looked at again (an urged line can hold it past the estimate).</summary>
+        private const int PassingPollMs = 50;
         private DateTime keptUntil = DateTime.MinValue;
 
         /// <summary>The part of the hold the player's own move does not end (a lesson's).</summary>
@@ -74,6 +86,61 @@ namespace Poe2Accessibility.Services
         ///     is kept as a lesson: "+20 a la vida máxima" held the cursor back for 3 s (user 2026-11-11).
         /// </summary>
         public bool Echoes(string text, DateTime now) => now < this.lastKept.Until && this.lastKept.Text.Contains(text, StringComparison.Ordinal);
+
+        /// <summary>Whether all that is still being said are passing lines, which a warning cuts.</summary>
+        public bool OnlyPassing(DateTime now) => !this.Held(now) && !this.Quiet(now) && this.plainEndsAt <= now;
+
+        /// <summary>
+        ///     A passing line: out now, cutting the passing one still being said, or (false) waiting for the other lines to be
+        ///     said, in the place of the one that waited.
+        /// </summary>
+        /// <param name="mayGo">False while an urged line holds the floor.</param>
+        public (bool GoesOut, bool Interrupt) Pass(string text, DateTime now, bool mayGo = true)
+        {
+            this.waitingPassing = null;
+            if (!mayGo || this.Held(now) || this.plainEndsAt > now)
+            {
+                this.waitingPassing = (text, now);
+                return (false, false);
+            }
+
+            var cuts = !this.Quiet(now);
+            this.SentPassing(text, now);
+            return (true, cuts);
+        }
+
+        /// <summary>The waiting passing line once the others are said (null: none, or not yet), or dropped for its age.</summary>
+        public string? ReleasePassing(DateTime now, bool mayGo, out string? dropped)
+        {
+            dropped = null;
+            if (this.waitingPassing is not { } waiting)
+            {
+                return null;
+            }
+
+            if ((now - waiting.At).TotalMilliseconds > PassingFreshMs)
+            {
+                dropped = waiting.Text;
+                this.waitingPassing = null;
+                return null;
+            }
+
+            if (!mayGo || this.Held(now) || this.held.Count > 0 || this.plainEndsAt > now)
+            {
+                return null;
+            }
+
+            this.waitingPassing = null;
+            this.SentPassing(waiting.Text, now);
+            return waiting.Text;
+        }
+
+        /// <summary>A passing line starts now: it cut the passing one being said, or there was none.</summary>
+        private void SentPassing(string text, DateTime now)
+        {
+            this.speechEndsAt = now.AddMilliseconds(SpokenMs(text));
+            this.lastMove = null;
+        }
 
         /// <summary>True when the phrase goes out now; false when it waits for the kept line (an interrupt drops what waited).</summary>
         /// <param name="reading">The phrase says a value that changes by itself, not something that happened.</param>
@@ -173,6 +240,7 @@ namespace Poe2Accessibility.Services
         {
             this.keptUntil = this.lessonUntil = now;
             this.held.Clear();
+            this.waitingPassing = null;
             this.Sent(text, true, now);
         }
 
@@ -180,7 +248,7 @@ namespace Poe2Accessibility.Services
         public void Sent(string text, bool interrupt, DateTime now)
         {
             var start = interrupt || this.speechEndsAt < now ? now : this.speechEndsAt;
-            this.speechEndsAt = start.AddMilliseconds(SpokenMs(text));
+            this.plainEndsAt = this.speechEndsAt = start.AddMilliseconds(SpokenMs(text));
             if (interrupt)
             {
                 this.lastMove = null;
@@ -212,17 +280,32 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>How long until what waits is due; null when nothing waits.</summary>
-        public TimeSpan? DueIn(DateTime now) => this.held.Count == 0 ? null : this.Held(now) ? this.keptUntil - now : TimeSpan.Zero;
+        public TimeSpan? DueIn(DateTime now)
+        {
+            var due = this.held.Count == 0 ? (TimeSpan?)null : this.Held(now) ? this.keptUntil - now : TimeSpan.Zero;
+            if (this.waitingPassing is not { } waiting)
+            {
+                return due;
+            }
+
+            // Looked at again when the others should be said, or to be dropped for its age.
+            var free = new[] { this.keptUntil, this.plainEndsAt, now.AddMilliseconds(PassingPollMs) }.Max();
+            var stale = waiting.At.AddMilliseconds(PassingFreshMs + 1);
+            var passing = (free < stale ? free : stale) - now;
+            passing = passing > TimeSpan.Zero ? passing : TimeSpan.Zero;
+            return due is { } first && first < passing ? first : passing;
+        }
 
         /// <summary>Speech stopped: nothing is being said, nothing waits.</summary>
         public void Clear(DateTime now)
         {
             this.held.Clear();
+            this.waitingPassing = null;
             this.keptUntil = DateTime.MinValue;
             this.lessonUntil = DateTime.MinValue;
             this.lastMove = null;
             this.lastKept = (string.Empty, DateTime.MinValue);
-            this.speechEndsAt = now;
+            this.plainEndsAt = this.speechEndsAt = now;
         }
     }
 }

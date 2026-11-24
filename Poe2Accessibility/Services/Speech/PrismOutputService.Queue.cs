@@ -100,7 +100,11 @@ namespace Poe2Accessibility.Services
                         interrupt &= !this.floor.Held(now); // right behind the lesson being kept, never dropped with what waits
                         this.floor.Sent(text, interrupt, now);
                         break;
+                    case Delivery.Passing:
+                        (goesOut, interrupt) = this.floor.Pass(text, now, now >= this.urgedUntil && now >= this.urgedSoftlyUntil);
+                        break;
                     default:
+                        interrupt |= delivery == Delivery.Warning && this.floor.OnlyPassing(now);
                         goesOut = this.floor.Admit(text, interrupt, now, reading);
                         break;
                 }
@@ -121,6 +125,7 @@ namespace Poe2Accessibility.Services
 
             this.log.Info(goesOut
                 ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery is Delivery.Kept or Delivery.KeptMessage ? ", kept" : delivery == Delivery.Move ? ", moved" : string.Empty)}: {text}"
+                : delivery == Delivery.Passing ? $"Speech waits for the lines before it, in the place of any other that did: {text}"
                 : $"Speech waits for the kept line{(SpeechFloor.Replaces(interrupt, reading) ? ", replacing what waited" : string.Empty)}: {text}");
             if (resumed != null)
             {
@@ -159,6 +164,8 @@ namespace Poe2Accessibility.Services
             IReadOnlyList<string> due;
             IReadOnlyList<string> dropped;
             TimeSpan? next;
+            string? passing;
+            string? late;
             lock (this.queueGate)
             {
                 var now = DateTime.UtcNow;
@@ -169,12 +176,29 @@ namespace Poe2Accessibility.Services
                     this.EnqueueLocked(new SpeechRequest(text, false));
                 }
 
+                passing = this.floor.ReleasePassing(now, now >= this.urgedUntil && now >= this.urgedSoftlyUntil, out late);
+                if (passing != null)
+                {
+                    this.EnqueueLocked(new SpeechRequest(passing, false));
+                    this.sent.Add((passing, now, false));
+                }
+
                 next = this.floor.DueIn(now);
             }
 
             foreach (var text in due)
             {
                 this.log.Info($"Speech after the kept line: {text}");
+            }
+
+            if (passing != null)
+            {
+                this.log.Info($"Speech after the lines before it: {passing}");
+            }
+
+            if (late != null)
+            {
+                this.log.Info($"Speech not said (who appeared too long ago): {late}");
             }
 
             foreach (var text in dropped)

@@ -67,13 +67,20 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds. News
         ///     held only by its level (a state that began, an arrival) yields to the player's own move.
-        ///     <paramref name="happened"/>: the line reports an event under a kind that otherwise carries readings.
+        ///     <paramref name="happened"/>: the line reports an event under a kind that otherwise carries readings, or names only
+        ///     worth hearing now: enemies coming one after another queued up, and the player died behind their list (2026-11-24).
         /// </summary>
         public static void Say(this IAccessibilityOutputService output, SpeechKind kind, string text, bool urgent = false, bool happened = false)
         {
             if (Level(kind) == Holds || (urgent && Level(kind) == Urgent))
             {
                 output.Urge(text, yieldsToMoves: !urgent);
+                return;
+            }
+
+            if (kind == SpeechKind.EnemyNames && !happened && !Interrupts(kind, urgent))
+            {
+                output.SpeakPassing(text);
                 return;
             }
 

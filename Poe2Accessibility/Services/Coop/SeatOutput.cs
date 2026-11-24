@@ -32,6 +32,8 @@ namespace Poe2Accessibility.Services
         public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) =>
             this.inner.Keep(this.Named(text), holdMs, interrupt, yieldsToMoves);
 
+        public void SpeakPassing(string text) => this.inner.SpeakPassing(this.Named(text));
+
         public void Moved(string text) => this.inner.Moved(this.Named(text));
 
         public void MentionNews(string text) => this.inner.MentionNews(this.Named(text));

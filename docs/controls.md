@@ -190,7 +190,9 @@ cuts in when urgent, cuts in, or cuts in and cannot be cut off (later news queue
 a harmful state beginning and an arrival with the guide hold; a state ending cuts in; low life/mana, boss life,
 enemy names (aimed and coming into view) and places cut in only when urgent (life at or under `LowLifeBelow`, 25 %, mana at 10 %, a boss at
 30 % or defeated, a rare enemy coming into view, a quick sweep of the aim); objectives, picked-up items, charges and
-combo points wait.
+combo points wait. Enemy names that do not cut in replace one
+another: a new list cuts the one being said, waits (the newest alone, 3 s at most) behind other lines, and life, shield,
+mana and flask lines cut it.
 
 **Items heard and named** (D2R loot filter): which items on the ground get their drop sound and are named on
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The

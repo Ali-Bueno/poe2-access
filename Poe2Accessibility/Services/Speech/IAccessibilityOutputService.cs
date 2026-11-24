@@ -54,6 +54,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         void MentionNews(string text) => this.Mention(text);
 
+        /// <summary>
+        ///     A line only worth hearing now (the enemies that appeared): the next one takes its place, said or waiting, and a
+        ///     warning (<see cref="Mention"/>) cuts it. It never cuts another line, and is dropped when it waits too long.
+        /// </summary>
+        void SpeakPassing(string text) => this.Speak(text);
+
         /// <summary>Re-speak the last announcement (user hotkey).</summary>
         void Repeat();
 

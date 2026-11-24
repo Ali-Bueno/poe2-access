@@ -39,8 +39,8 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | sign | BookandQuillPetMTX | BookandQuillPet_IdleRelaxed01_FlipPages_01 (pages turned, 0.9 s; see [signs](#signs-2026-11-12)) |
 | opened_way | ExitDoorArena | Environment_Sanctum_EntranceDoor_Impact_01 (the Trial's entrance door striking home, cut to 1.5 s; the user's pick, see [an opened way](#an-opened-way-2026-11-12)) |
 | closed_door | PrecursorDoor | PrecursorDoor_Mechanic_01 (a door's mechanism clicking, 0.26 s; the user's pick, see [a door to open](#a-door-to-open-2026-11-14)) |
-| powder_barrel | GunpowderPirates | FLY_Barrel_Drop_01 (a barrel set down, cut to 0.6 s; see [powder barrels](powder-barrels.md)) |
-| powder_fuse | G4_2_2_ExplodingBarrels | FLY_Gunpowder_Ignite_01 (gunpowder lighting, 0.8 s, RMS 0.16) |
+| powder_barrel | GunpowderPirates | FLY_Barrel_Drop_01 (a barrel set down, cut to 0.6 s, the user's pick, A; see [powder barrels](powder-barrels.md)) |
+| powder_fuse | G4_2_2_ExplodingBarrels | FLY_Gunpowder_Ignite_01 (gunpowder lighting, 0.8 s, RMS 0.16, the user's pick, A) |
 | league_breach | BreachEncounterPortal | Environment_Breach_Portal_Open_01 (see [league encounters](#league-encounters-2026-11-14)) |
 | league_delirium | Four_Delirium | Delirium_UI_SpecialReveal_01 (the user's pick, C) |
 | league_essence | EssenceMonoliths | Environment_Endgame_EssenceMonoliths_Break_Foley_01 (the user's pick, C; RMS 0.13 since 2026-11-17, a little louder at the user's word) |

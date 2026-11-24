@@ -166,7 +166,7 @@ namespace Poe2Accessibility.Services
                 quiet = this.floor.Quiet(DateTime.UtcNow);
             }
 
-            if (!this.Say(text, false, Delivery.Normal, 0, reading))
+            if (!this.Say(text, false, Delivery.Warning, 0, reading))
             {
                 return; // held back as a repeat: it was just heard
             }
@@ -181,6 +181,8 @@ namespace Poe2Accessibility.Services
 
         public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) =>
             this.Say(text, interrupt, yieldsToMoves ? Delivery.KeptMessage : Delivery.Kept, holdMs);
+
+        public void SpeakPassing(string text) => this.Say(text, false, Delivery.Passing, 0);
 
         public void Moved(string text) => this.Say(text, true, Delivery.Move, 0);
 
