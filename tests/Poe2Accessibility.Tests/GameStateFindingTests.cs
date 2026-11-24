@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart),
             (nameof(PlayerMoveCutsAMessage), PlayerMoveCutsAMessage),
             (nameof(EnemiesAppearingReplaceOneAnother), EnemiesAppearingReplaceOneAnother),
+            (nameof(UrgentNewsWaitsForTheFirstWordsOfTheLastOnly), UrgentNewsWaitsForTheFirstWordsOfTheLastOnly),
             (nameof(ANoticesCopyInTheHintBoxIsNoLesson), ANoticesCopyInTheHintBoxIsNoLesson),
             (nameof(AMessageCuttingAMoveIsFollowedByIt), AMessageCuttingAMoveIsFollowedByIt),
             (nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen),
@@ -283,6 +284,16 @@ namespace Poe2Accessibility.Tests
             floor.Sent(new string('x', 1000), true, later);
             floor.Keep("lesson", false, 2000, later);
             Equal(false, floor.Held(later.AddMilliseconds(SpeechFloor.MaxAheadMs + 2100)), "a long line ahead delays the hold only so far");
+        }
+
+        private static void UrgentNewsWaitsForTheFirstWordsOfTheLastOnly()
+        {
+            var dodge = new DateTime(2026, 11, 24, 14, 48, 18, 603);
+            Equal(true, SpeechFloor.UrgentWaits(dodge, dodge.AddMilliseconds(300)), "the dodge call is being heard");
+            Equal(false, SpeechFloor.UrgentWaits(dodge, dodge.AddMilliseconds(1298)), "life at 25 cuts in 1.3 s after it");
+            Equal(true, SpeechFloor.SameReading("Vida 50 por ciento", "Vida 25 por ciento"), "the older life is not said before it");
+            Equal(false, SpeechFloor.SameReading("Maná 50 por ciento", "Vida 25 por ciento"), "mana is another reading");
+            Equal(false, SpeechFloor.SameReading("Aturdido", "Aturdido"), "no number, no reading");
         }
 
         private static void EnemiesAppearingReplaceOneAnother()

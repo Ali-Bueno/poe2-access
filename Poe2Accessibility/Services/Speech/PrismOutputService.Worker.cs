@@ -119,6 +119,10 @@ namespace Poe2Accessibility.Services
             Passing,
 
             Urgent,
+
+            /// <summary>Held like urgent news, but cut by it and by the player's own move (a state that began).</summary>
+            UrgentSoft,
+
             Kept,
             KeptMessage,
             Move,

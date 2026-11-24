@@ -87,6 +87,20 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool Echoes(string text, DateTime now) => now < this.lastKept.Until && this.lastKept.Text.Contains(text, StringComparison.Ordinal);
 
+        /// <summary>
+        ///     How long urgent news keeps the next urgent news behind it: its first words. Over a state that began, or an urgent
+        ///     line older than this, urgent news cuts in at once: "Vida 25 por ciento" waited behind "Inflamabilidad" and a
+        ///     dodge call of 1.3 s before, and all that was queued ahead of them, and was never heard (2026-11-24).
+        /// </summary>
+        public const int UrgentFirstWordsMs = 700;
+
+        /// <summary>Whether urgent news waits behind the urgent news before it.</summary>
+        public static bool UrgentWaits(DateTime lastUrgent, DateTime now) => (now - lastUrgent).TotalMilliseconds < UrgentFirstWordsMs;
+
+        /// <summary>The same reading with another number ("Vida 50 por ciento", "Vida 25 por ciento"): only the newer is true.</summary>
+        public static bool SameReading(string before, string after) =>
+            before.Any(char.IsDigit) && before.Where(c => !char.IsDigit(c)).SequenceEqual(after.Where(c => !char.IsDigit(c)));
+
         /// <summary>Whether all that is still being said are passing lines, which a warning cuts.</summary>
         public bool OnlyPassing(DateTime now) => !this.Held(now) && !this.Quiet(now) && this.plainEndsAt <= now;
 

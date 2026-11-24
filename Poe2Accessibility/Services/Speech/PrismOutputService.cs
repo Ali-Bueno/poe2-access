@@ -50,6 +50,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Until then interrupting phrases queue (see <see cref="Urge"/>).</summary>
         private DateTime urgedUntil = DateTime.MinValue;
 
+        /// <summary>When urgent news was last said (<see cref="SpeechFloor.UrgentWaits"/>).</summary>
+        private DateTime lastUrgent = DateTime.MinValue;
+
         /// <summary>The same for an urged phrase that is not urgent news: the player's own move still cuts it.</summary>
         private DateTime urgedSoftlyUntil = DateTime.MinValue;
 
@@ -135,7 +138,7 @@ namespace Poe2Accessibility.Services
             // An urgent phrase still being heard keeps the floor: this one waits behind it ("Life 25 percent" was cut
             // off by "Burning" 70 ms later, 2026-10-24), then holds in turn.
             var until = DateTime.UtcNow.AddMilliseconds(holdMs);
-            this.Say(text, true, Delivery.Urgent, 0);
+            this.Say(text, true, yieldsToMoves ? Delivery.UrgentSoft : Delivery.Urgent, 0);
             if (yieldsToMoves)
             {
                 this.urgedSoftlyUntil = until > this.urgedSoftlyUntil ? until : this.urgedSoftlyUntil;

@@ -27,14 +27,16 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if ((!interrupt || delivery == Delivery.Urgent) && this.repeats.IsRepeat(text, now))
+            if ((!interrupt || delivery is Delivery.Urgent or Delivery.UrgentSoft) && this.repeats.IsRepeat(text, now))
             {
                 this.log.Info($"Speech held back (duplicate): {text}");
                 return false;
             }
 
             this.repeats.Note(text, now);
-            if (interrupt && (now < this.urgedUntil || (now < this.urgedSoftlyUntil && delivery != Delivery.Move)))
+            if (interrupt && (delivery == Delivery.Urgent
+                    ? SpeechFloor.UrgentWaits(this.lastUrgent, now)
+                    : now < this.urgedUntil || (now < this.urgedSoftlyUntil && delivery != Delivery.Move)))
             {
                 interrupt = false; // an urged phrase is still being heard: wait behind it
             }
@@ -46,7 +48,7 @@ namespace Poe2Accessibility.Services
             if (interrupt && this.mentioned is { } news)
             {
                 this.mentioned = null;
-                if ((now - news.At).TotalMilliseconds < MentionMs)
+                if ((now - news.At).TotalMilliseconds < MentionMs && !SpeechFloor.SameReading(news.Text, text))
                 {
                     bool heard;
                     lock (this.queueGate)
@@ -70,6 +72,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.lastUrgent = delivery == Delivery.Urgent ? now : this.lastUrgent;
             this.lastText = text;
             lock (this.said)
             {
@@ -97,6 +100,7 @@ namespace Poe2Accessibility.Services
                         this.floor.Take(text, now);
                         break;
                     case Delivery.Urgent:
+                    case Delivery.UrgentSoft:
                         interrupt &= !this.floor.Held(now); // right behind the lesson being kept, never dropped with what waits
                         this.floor.Sent(text, interrupt, now);
                         break;
