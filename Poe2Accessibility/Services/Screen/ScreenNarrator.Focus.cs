@@ -265,7 +265,7 @@ namespace Poe2Accessibility.Services
                     this.heldFavours = null;
                     this.tributeBalance.Told(tribute, Environment.TickCount64);
                     this.Speak("focus after tribute", Announcements.Sentences(new[] { tribute, text }), this.cutInAt < deferred.At);
-                    this.Speak("favours", Describe(favours.Lines), false);
+                    this.Speak("favours", Describe(favours.Lines.Where(line => line.Text != deferred.Node.Context)), false);
                 }
                 else if (!this.SayHeldPage(deferred.Node))
                 {

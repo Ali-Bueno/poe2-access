@@ -60,7 +60,7 @@ namespace Poe2Accessibility.Tests
 
         private static void TheTributeGoesBeforeEverythingInTheFavours()
         {
-            const string Whole = "1.155 de tributo. Altar. Wisdom, columna 1, fila 1 | Favores. Modo de reservas";
+            const string Whole = "1.155 de tributo. Favores. Wisdom, columna 1, fila 1 | Modo de reservas";
             Equal(Whole, Favours("1.155 Tributo", cursorFirst: true, settledMs: 0), "cursor first");
             Equal(Whole, Favours("1.155 Tributo", cursorFirst: false, settledMs: 0), "window first");
             Equal(string.Empty, Favours("990 Tributo", cursorFirst: true, settledMs: 0), "the last window's tribute is not said");
@@ -79,7 +79,7 @@ namespace Poe2Accessibility.Tests
             };
             narrator.Reset(true);
             narrator.CheckShopBalance(Snapshot(hud));
-            var cell = Cell("Altar");
+            var cell = Cell("Favores");
             var screen = Snapshot(layer);
             if (cursorFirst)
             {

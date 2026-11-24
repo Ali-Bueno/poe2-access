@@ -83,8 +83,15 @@ namespace Poe2Accessibility.Services
                 ? this.elements.Controls?.Shift(ControlGroup.PanelTitle, info.Address, at => ancestors.Any(ancestor => this.TitleAt(ancestor, at).Length > 0)) ?? 0
                 : this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
             var title = ancestors.Select(ancestor => this.TitleAt(ancestor, shift)).FirstOrDefault(title => title.Length > 0) ?? string.Empty;
-            // An untitled panel beside the inventory (the group under panels_parent holds it): the object it was opened at.
-            return title.Length == 0 && inPanels && ancestors.Count >= SidePanelHops ? this.OpenedAt(ancestors[^SidePanelHops]) : title;
+            if (title.Length > 0 || !inPanels || ancestors.Count < SidePanelHops)
+            {
+                return title;
+            }
+
+            // An untitled panel beside the inventory (the group under panels_parent holds it): the favours window by the name
+            // it shows, any other by the object it was opened at.
+            var side = ancestors[^SidePanelHops];
+            return this.FavoursTitle(side, chain) is { Length: > 0 } favours ? favours : this.OpenedAt(side);
         }
 
         /// <summary>From panels_parent down to a side panel: its group, then the panel.</summary>

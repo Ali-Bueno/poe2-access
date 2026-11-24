@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>The Ritual's favours window in <see cref="UiSemantics"/>.</summary>
@@ -19,6 +20,28 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a control lies in the favours window.</summary>
         public bool InFavoursWindow(IntPtr control) =>
             this.elements.TryReadElement(control, out var info) && this.elements.ReadAncestors(info, PanelTitleHops).Any(ancestor => this.IsFavoursWindow(ancestor));
+
+        /// <summary>The favours window by its own name ("Favores"), as its moves name it (<see cref="SidePanelTitle"/>); empty when the panel is no such window.</summary>
+        /// <param name="panel">The side panel the focus is in.</param>
+        /// <param name="chain">The focus's ancestors.</param>
+        private string FavoursTitle(IntPtr panel, IEnumerable<UiElementReader.ElementInfo> chain)
+        {
+            if (this.favoursTitle.Panel == panel)
+            {
+                return this.favoursTitle.Name;
+            }
+
+            var name = chain.Any(ancestor => this.IsFavoursWindow(ancestor)) && this.elements.TryReadElement(panel, out var info) ? this.FirstLabel(info) : string.Empty;
+            if (name.Length > 0)
+            {
+                this.favoursTitle = (panel, name);
+            }
+
+            return name;
+        }
+
+        /// <summary>The favours window's name, once read: its panel keeps it.</summary>
+        private (IntPtr Panel, string Name) favoursTitle;
 
         private bool IsFavoursWindow(in UiElementReader.ElementInfo window) =>
             this.elements.ReadChildren(window).Any(child => this.elements.TryReadElement(child, out var button) &&
