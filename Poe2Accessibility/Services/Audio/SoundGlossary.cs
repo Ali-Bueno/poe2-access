@@ -117,6 +117,13 @@ namespace Poe2Accessibility.Services
             {
                 this.Add(MinimapMarks.BenchKind, anvil);
             }
+
+            var reforge = -1;
+            if (gameSounds.Variant(MinimapMarks.ReforgeKind, ref reforge) is { } hammer)
+            {
+                this.Add(MinimapMarks.ReforgeKind, hammer);
+            }
+
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("beacon", CueSynth.Ping(rate));
             if (gameSounds.Get("waypoint") is { } chime)
@@ -129,7 +136,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
 
-            this.AddGame(gameSounds, rate, "exit", "portal", "waypoint", "checkpoint", MinimapMarks.StashKind, MinimapMarks.WellKind, MinimapMarks.ReforgeKind, MinimapMarks.SignKind, OpenedWays.Kind, ClosedDoors.Kind, PowderBarrels.Kind, PowderBarrels.LitKind, ChaosTrial.LiftSound, LeaguePieces.BreachSound, LeaguePieces.DeliriumSound, LeaguePieces.EssenceSound, LeaguePieces.ExpeditionSound,
+            this.AddGame(gameSounds, rate, "exit", "portal", "waypoint", "checkpoint", MinimapMarks.StashKind, MinimapMarks.WellKind, MinimapMarks.SignKind, OpenedWays.Kind, ClosedDoors.Kind, PowderBarrels.Kind, PowderBarrels.LitKind, ChaosTrial.LiftSound, LeaguePieces.BreachSound, LeaguePieces.DeliriumSound, LeaguePieces.EssenceSound, LeaguePieces.ExpeditionSound,
                 LeaguePieces.AbyssSound, LeaguePieces.SpiritSound, LeaguePieces.VaalSound, LeaguePieces.StrongboxSound, LeaguePieces.AbyssChestSound, "chest", "corpse", "breakable", "switch", "shrine", "ritual");
             this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
             this.Add("npc_quest", CueSynth.Ring(rate));

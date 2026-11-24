@@ -79,8 +79,14 @@ internal static partial class SoundExtractor
         new("bench_4",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_04", Rms: 0.10),
         new("bench_5",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_05", Rms: 0.10),
         new("bench_6",    "BlacksmithMechanism", "BlacksmithMech_AnvilHit_06", Rms: 0.10),
-        // The Reforging Bench, Mektul's hammer: its own heavy blow, deeper than the anvil's (a first choice, on an audition page).
-        new("reforging_bench", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_04", 1.0, Rms: 0.10),
+        // The Reforging Bench, Mektul's hammer: its heavy blow, deeper than the anvil's, the six takes in turn (user's pick
+        // 2026-11-24 of five hammer and bench recordings; audition page https://claude.ai/artifact/W3GuGC47Ynb7vqkiR97ZEi).
+        new("reforging_bench_1", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_01", 1.0, Rms: 0.10),
+        new("reforging_bench_2", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_02", 1.0, Rms: 0.10),
+        new("reforging_bench_3", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_03", 1.0, Rms: 0.10),
+        new("reforging_bench_4", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_04", 1.0, Rms: 0.10),
+        new("reforging_bench_5", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_05", 1.0, Rms: 0.10),
+        new("reforging_bench_6", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_06", 1.0, Rms: 0.10),
         // A sign to read: pages turned, from a book pet's idle (user's pick 2026-11-12 of eight page, quill, book and
         // scroll sounds; the game plays nothing at a sign).
         new("sign",       "BookandQuillPetMTX", "BookandQuillPet_IdleRelaxed01_FlipPages_01"),

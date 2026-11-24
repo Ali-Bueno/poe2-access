@@ -127,6 +127,7 @@ namespace Poe2Accessibility.Services
         private long lastAnyPlayed;
         private long wayOpenedAt = long.MinValue / 2;
         private int lastBench = -1;
+        private int lastReforge = -1;
 
         public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops, GameSounds diabloSounds)
         {
@@ -240,9 +241,10 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (this.SoundFor(entry) is not { } samples ||
-                    (this.lastPlayed.TryGetValue(group, out var last) && now - last < interval) ||
-                    (entry.Kind == OpenedWays.Kind && now - this.wayOpenedAt < FarIntervalMs))
+                // The sound last: asking for one takes a round robin's turn.
+                if ((this.lastPlayed.TryGetValue(group, out var last) && now - last < interval) ||
+                    (entry.Kind == OpenedWays.Kind && now - this.wayOpenedAt < FarIntervalMs) ||
+                    this.SoundFor(entry) is not { } samples)
                 {
                     continue;
                 }
@@ -354,7 +356,7 @@ namespace Poe2Accessibility.Services
             MinimapMarks.StashKind => this.sounds.Get(MinimapMarks.StashKind),
             MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
             MinimapMarks.BenchKind => this.sounds.Variant(MinimapMarks.BenchKind, ref this.lastBench),
-            MinimapMarks.ReforgeKind => this.sounds.Get(MinimapMarks.ReforgeKind),
+            MinimapMarks.ReforgeKind => this.sounds.Variant(MinimapMarks.ReforgeKind, ref this.lastReforge),
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),

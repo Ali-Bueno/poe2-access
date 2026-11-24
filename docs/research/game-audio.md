@@ -279,7 +279,7 @@ apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB
 "Mesa de reforja" (`CraftingBenchVaalHammer`, the hideout's `ReforgingBench`) rang as a quest object and was listed under
 Misión: its icon, `TreasureVaultHammerActive`, reads as a lit mark (`MinimapMarks.IsLitMark`). It is a service, unlocked by
 `CraftingBenchVaalHammerUsed` (PROVEN, both .ot, the only scripts with the icon). Now kind `reforging_bench`, sound
-`VaalCraftingBenches` / `VaalForgeMaster_FX_HammerDoorLarge_04` (1 s, RMS 0.10), candidate A of five on [its page](https://claude.ai/artifact/W3GuGC47Ynb7vqkiR97ZEi).
+`VaalCraftingBenches` / `VaalForgeMaster_FX_HammerDoorLarge_01`…`06` in round robin (1 s, RMS 0.10), the user's pick, A of five on [its page](https://claude.ai/artifact/W3GuGC47Ynb7vqkiR97ZEi).
 
 ## A crafting bench and the waypoint (2026-11-19)
 The salvage/crafting bench (`CraftingBenchIcon`, "Mesa de reciclaje": `…/1_town_ExileEncampment/Objects/CraftingBenchEzomyte`,
