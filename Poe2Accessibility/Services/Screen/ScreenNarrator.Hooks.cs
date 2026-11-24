@@ -39,6 +39,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the microtransaction shop is the panel shown. Set by the plugin.</summary>
         public Func<bool>? ShopShown { get; set; }
 
+        /// <summary>The gold to say with a focus in the panel of this title: the inventory's, nothing open beside it; empty elsewhere. Set by the plugin.</summary>
+        public Func<string, string>? GoldOf { get; set; }
+
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
 

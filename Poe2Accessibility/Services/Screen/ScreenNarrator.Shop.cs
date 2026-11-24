@@ -78,6 +78,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What a favour leaves is said at once, after the item.</summary>
         private const long TributeChangeMs = 200;
 
+        /// <summary>The favours window's own lines, held until its tribute is right; dropped when the cursor moves on.</summary>
+        private (IReadOnlyList<ScreenText> Lines, long At)? heldFavours;
+
         private static bool HasDigit(string text) => text.Any(char.IsDigit);
 
         /// <summary>The tribute left in the favours window; only a counter is looked up.</summary>
@@ -116,7 +119,20 @@ namespace Poe2Accessibility.Services
                 this.Speak("guild balance", Announcements.Capitalised(Announcements.ShopGuildBalance(guildPoints)), false);
             }
 
-            if (this.tributeBalance.Heard(tribute, now) is { } left)
+            var left = this.tributeBalance.Heard(tribute, now);
+            if (this.heldFavours is { } held && tribute == null)
+            {
+                this.heldFavours = now - held.At < TributeSettleMs ? held : null; // closed, or its label read a moment later
+            }
+            else if (this.heldFavours is { } favours && (left != null || now - favours.At >= 2 * TributeSettleMs))
+            {
+                // Its title, the tribute (said already when the window was rebuilt at once), then what the window explains.
+                this.heldFavours = null;
+                var title = favours.Lines.Count > 1 ? 1 : 0;
+                left = Announcements.Sentences(new[] { Describe(favours.Lines.Take(title)), left ?? tribute!, Describe(favours.Lines.Skip(title)) }.Where(part => part.Length > 0));
+            }
+
+            if (left != null)
             {
                 this.Speak("tribute left", left, false);
             }

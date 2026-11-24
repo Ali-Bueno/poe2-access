@@ -91,6 +91,13 @@ namespace Poe2Accessibility.Services
                 text = Announcements.InContext(Announcements.Sentences(notes), text);
             }
 
+            var gold = this.goldDue && node.Context.Length > 0 ? this.GoldOf?.Invoke(node.Context) ?? string.Empty : string.Empty;
+            if (gold.Length > 0)
+            {
+                this.goldDue = false;
+                text = Announcements.InContext(gold, text);
+            }
+
             if (node.Context.Length > 0 && node.Context != this.lastContext)
             {
                 if (!this.JustChosen(node.Context))
@@ -110,6 +117,7 @@ namespace Poe2Accessibility.Services
             {
                 text = Announcements.InContext(this.speaker.Next(speaks), text);
                 this.deferredFocus = (text, DateTime.UtcNow, node);
+                this.deferredGold = gold;
                 this.SayShortcuts(node, afterDeferredFocus: true);
                 return;
             }
@@ -150,6 +158,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The cursor's new place: the player's own move ends a message's hold, the game's refresh does not.</summary>
         private void SayMove(string text)
         {
+            this.heldFavours = null; // moved on: the window's explanation would follow another item's line
             if (this.focusBehindAnswer)
             {
                 this.output.Speak(text, false);
@@ -308,6 +317,7 @@ namespace Poe2Accessibility.Services
             else if ((now - this.unfocusedSince).TotalMilliseconds >= BackToPlayMs)
             {
                 this.panelShown = false;
+                this.goldDue = true;
                 this.speaker.Forget();
                 this.shortcutsSaid.Clear();
                 this.tabbedLayer = IntPtr.Zero;
@@ -406,6 +416,7 @@ namespace Poe2Accessibility.Services
                 this.lastFocusSpeech = now;
                 this.speaker.Forget(); // what waited is not said: its speaker still is to be
                 now = Announcements.InContext(this.speaker.Next(this.SpeakerIn?.Invoke(this.lastFocusLayer) ?? string.Empty), now);
+                now = this.deferredGold.Length > 0 ? Announcements.InContext(this.deferredGold, now) : now;
                 this.deferredFocus = (node.Context.Length > 0 && waiting.Text.StartsWith(node.Context, StringComparison.Ordinal)
                     ? Announcements.InContext(node.Context, now)
                     : now, waiting.At, node);

@@ -132,6 +132,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A tab's page waiting to see whether a focus lands on it: tab, page, whether a control's focus browses it instead, its texts, when.</summary>
         private (string Tab, string Page, bool Browsed, HashSet<string> Texts, DateTime At)? pendingPage;
 
+        /// <summary>The inventory's gold is said once an opening, before its first focus, whichever of the two the game shows first.</summary>
+        private bool goldDue = true;
+
+        /// <summary>The gold that goes with <see cref="deferredFocus"/>: kept when the cursor moves on before it is said.</summary>
+        private string deferredGold = string.Empty;
+
         /// <summary>A tutorial hint that arrived while a new layer's focus was still waiting: said after that focus.</summary>
         private string hintAfterFocus = string.Empty;
         private IntPtr lastFocusLayer;
@@ -182,6 +188,8 @@ namespace Poe2Accessibility.Services
             this.lastTop = IntPtr.Zero;
             this.lastContext = string.Empty;
             this.lastGroup = string.Empty;
+            this.goldDue = true;
+            this.heldFavours = null;
             this.speaker.Forget();
             this.lastSelectorPosition = string.Empty;
             this.lastSelectorChoice = null;
@@ -229,6 +237,7 @@ namespace Poe2Accessibility.Services
                 this.panelLegends = (string.Empty, DateTime.MinValue);
                 this.lastContext = string.Empty;
                 this.notesContext = string.Empty;
+                this.goldDue = true;
             }
 
             this.log.Debug($"Screen change {change.Kind} layer 0x{change.Layer.Address.ToInt64():X} focus layer 0x{focusLayer.ToInt64():X} hint={change.Layer.IsHintBar} top=0x{snapshot.TopInteractive?.Address.ToInt64() ?? 0:X} justFocused={this.JustFocused()}");

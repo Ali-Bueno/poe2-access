@@ -522,6 +522,7 @@ namespace Poe2Accessibility
                 this.narrator.SpeakerIn = this.semantics.SpeakerIn;
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
                 this.narrator.SidePanel = () => this.pickups?.SidePanel?.Invoke() ?? string.Empty;
+                this.narrator.GoldOf = this.GoldOf;
                 this.narrator.InSiblingRow = this.semantics.InSiblingRow;
                 this.narrator.InAnotherShopCard = this.semantics.InAnotherShopCard;
                 this.narrator.ShopShown = () => this.ShopPage() != IntPtr.Zero;

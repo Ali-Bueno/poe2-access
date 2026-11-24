@@ -350,6 +350,12 @@ namespace Poe2Accessibility
             return Announcements.Sentences(new[] { vitals, string.Join(", ", states), charges, minions, this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
         }
 
+        /// <summary>The gold carried, as the inventory writes it, for a focus in the panel that shows it; a merchant or the stash beside it says it its own way.</summary>
+        private string GoldOf(string panel) =>
+            this.gold is { } watch && watch.ReadNow() is { } coins && this.semantics?.IsInPanel(watch.Counter, panel) == true && (this.pickups?.SidePanel?.Invoke() ?? string.Empty).Length == 0
+                ? Announcements.Amount(coins.ToString("N0", System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false)
+                : string.Empty;
+
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>
         private string SpeechLevel(SpeechKind kind) => kind switch
         {

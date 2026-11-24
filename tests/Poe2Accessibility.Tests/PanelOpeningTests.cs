@@ -15,24 +15,30 @@ namespace Poe2Accessibility.Tests
         /// <summary>Past the moment a page waits for its focus (300 ms).</summary>
         private const int SettledMs = 350;
 
+        /// <summary>Past the moment a favours window's tribute waits to be right (1200 ms).</summary>
+        private const int TributeSettledMs = 1000;
+
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TheInventoryOpensWithItsCursorOnly), TheInventoryOpensWithItsCursorOnly),
             (nameof(APanelToMoveThroughLeavesItsRowsToTheCursor), APanelToMoveThroughLeavesItsRowsToTheCursor),
             (nameof(AFreeCursorsPageIsStillRead), AFreeCursorsPageIsStillRead),
+            (nameof(TheInventorysGoldIsSaidOnceAnOpening), TheInventorysGoldIsSaidOnceAnOpening),
+            (nameof(TheTributeGoesBeforeTheFavoursExplanation), TheTributeGoesBeforeTheFavoursExplanation),
+            (nameof(AMoveDropsTheFavoursExplanation), AMoveDropsTheFavoursExplanation),
         };
 
         private static void TheInventoryOpensWithItsCursorOnly()
         {
             var said = Open(Cell("Inventario"), "Inventario", "35, 1", "IV", "1, 1", "9", "7", "XI", "1", "X", "X", "XI, III", "+25, Oro", "Oro");
-            Equal("Inventario. Wisdom, columna 1, fila 1", said, "spoken");
+            Equal("Inventario. 112.462 oro. Wisdom, columna 1, fila 1", said, "spoken");
             Equal("Inventario", Open(null, "Inventario", "35, 1", "IV", "7", "XI", "XI, III", "+25, Oro", "Oro"), "spoken");
         }
 
         private static void APanelToMoveThroughLeavesItsRowsToTheCursor()
         {
             var said = Open(Cell("Inventario"), "Habilidades", "Skill one", "Skill two", "Skill three", "Skill four", "Skill five");
-            Equal("Habilidades. Inventario. Wisdom, columna 1, fila 1", said, "spoken");
+            Equal("Habilidades. Inventario. 112.462 oro. Wisdom, columna 1, fila 1", said, "spoken");
         }
 
         private static void AFreeCursorsPageIsStillRead()
@@ -41,6 +47,55 @@ namespace Poe2Accessibility.Tests
             Equal("Pasivas. DEX 11. Points left. One. Two. Three. Four", said, "spoken");
         }
 
+        private static void TheInventorysGoldIsSaidOnceAnOpening()
+        {
+            using var output = new Recorder();
+            var narrator = new ScreenNarrator(output, Log(), _ => string.Empty) { GoldOf = Gold };
+            narrator.Reset(true);
+            narrator.OnFocusChanged(Cell("Inventario"));
+            narrator.OnFocusChanged(Cell("Habilidades"));
+            narrator.OnFocusChanged(Cell("Inventario"));
+            Equal("Inventario. 112.462 oro. Wisdom, columna 1, fila 1 | Habilidades. Wisdom, columna 1, fila 1 | Inventario. Wisdom, columna 1, fila 1",
+                string.Join(" | ", output.Said), "spoken");
+        }
+
+        private static void TheTributeGoesBeforeTheFavoursExplanation() =>
+            Equal("Favores. 1.155 de tributo. Modo de reservas", Favours(false), "spoken");
+
+        private static void AMoveDropsTheFavoursExplanation() => Equal("1.155 de tributo", Favours(true), "spoken");
+
+        /// <summary>The favours window on top with the cursor in it; what follows the cursor's line once the tribute is right.</summary>
+        private static string Favours(bool moved)
+        {
+            var layer = Layer(17, 0, true, Text(1, "Favores"), Text(2, "1.155 de tributo"), Text(3, "Modo de reservas"));
+            using var output = new Recorder();
+            var narrator = new ScreenNarrator(output, Log(), _ => string.Empty)
+            {
+                IsTributeLabel = address => address == (IntPtr)2, FocusLayer = () => layer.Address,
+            };
+            narrator.Reset(true);
+            var cell = Cell("Altar");
+            narrator.OnFocusChanged(cell);
+            var screen = Snapshot(layer);
+            narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TopLayerChanged, layer, layer.Texts), screen, cell, layer.Address);
+            narrator.CheckShopBalance(screen);
+            Thread.Sleep(SettledMs);
+            narrator.Tick();
+            if (moved)
+            {
+                narrator.OnValueChanged(new AccessibleUiNode { Address = cell.Address, Role = cell.Role, Text = "Shield", Value = "columna 2, fila 1", Context = cell.Context });
+            }
+
+            output.Said.Clear();
+            Thread.Sleep(TributeSettledMs);
+            narrator.CheckShopBalance(screen);
+            return string.Join(" | ", output.Said);
+        }
+
+        private static string Gold(string panel) => panel == "Inventario" ? "112.462 oro" : string.Empty;
+
+        private static PluginLog Log() => new(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+
         /// <summary>The panel's layer comes on top with no focus known, then the focus (none: a free cursor), then time passes.</summary>
         private static string Open(AccessibleUiNode? focus, string title, params string[] shown)
         {
@@ -48,9 +103,8 @@ namespace Poe2Accessibility.Tests
             var texts = shown.Select((text, at) => Text(100 + at, text)).Append(gold)
                 .Append(new ScreenText((IntPtr)901, title, "label_tab_title", false, true)).ToArray();
             var layer = Layer(17, 0, true, texts);
-            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
             using var output = new Recorder();
-            var narrator = new ScreenNarrator(output, log, _ => string.Empty) { GoldCounter = () => gold.Address };
+            var narrator = new ScreenNarrator(output, Log(), _ => string.Empty) { GoldCounter = () => gold.Address, GoldOf = Gold };
             narrator.Reset(true);
             narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TopLayerChanged, layer, texts), Snapshot(layer), null, IntPtr.Zero);
             if (focus != null)
