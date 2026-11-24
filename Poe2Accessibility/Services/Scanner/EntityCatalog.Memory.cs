@@ -189,6 +189,8 @@ namespace Poe2Accessibility.Services
             this.sighted.Clear();
             this.walking.Clear();
             this.itemTitles.Clear();
+            this.strongboxReads.Clear(); // entity ids are this instance's: a later area's box may reuse one
+            this.essenceRows.Clear();
             this.explored.Reset();
             this.questTargets = Array.Empty<ScanEntry>();
             lock (this.samplesLock)

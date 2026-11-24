@@ -137,6 +137,7 @@ namespace Poe2Accessibility.Services
             this.locator.ObserveFocus(manager);
             if (manager == IntPtr.Zero)
             {
+                this.semantics.HoveredAddress = IntPtr.Zero;
                 this.CurrentRoot = IntPtr.Zero;
                 return (IntPtr.Zero, false);
             }
@@ -145,6 +146,7 @@ namespace Poe2Accessibility.Services
             var seat = (this.Seat - 1) * GameLayout.UiManager.PlayerStride;
             var current = this.ElementAt(manager + GameLayout.UiManager.CurrentOffset + seat);
             var hovered = this.ElementAt(manager + GameLayout.UiManager.HoveredOffset + seat);
+            this.semantics.HoveredAddress = hovered;
             if (this.SlotTrace != null && (current, hovered) != this.tracedSlots)
             {
                 this.tracedSlots = (current, hovered);

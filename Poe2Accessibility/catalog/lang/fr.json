@@ -1181,6 +1181,7 @@
  "hay bale": "botte de foin",
  "hold {0}": "maintenir {0}",
  "hold {0} for options": "maintenez {0} pour les options",
+ "hold {0} to apply currency": "maintenez {0} pour appliquer un objet monétaire",
  "holds 1 node": "soutient 1 nœud",
  "holds {0} nodes": "soutient {0} nœuds",
  "hole": "trou",

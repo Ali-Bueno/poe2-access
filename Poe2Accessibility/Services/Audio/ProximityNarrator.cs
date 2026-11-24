@@ -75,6 +75,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool exitOptionsSaid;
 
+        /// <summary>
+        ///     A strongbox's label shows "Hold: Apply Currency" on a gamepad (<c>GamepadInteractInfoStrongboxAltOnly</c>,
+        ///     drawn with the label outside the UI tree): said once per area, the first time a strongbox takes the target.
+        /// </summary>
+        private bool currencyHintSaid;
+
         /// <summary>The descriptions said in this area (<see cref="ScanEntry.About"/>), each once.</summary>
         private readonly HashSet<string> aboutSaid = new(StringComparer.Ordinal);
 
@@ -114,6 +120,7 @@ namespace Poe2Accessibility.Services
             this.targetSpoken = null;
             this.targetLeft = null;
             this.exitOptionsSaid = false;
+            this.currencyHintSaid = false;
             this.aboutSaid.Clear();
             this.prompts.Reset();
             this.arriving = false;
@@ -309,6 +316,12 @@ namespace Poe2Accessibility.Services
                 // What the game's box says the object is for, once an area: the Blood Chalice said its name and the button,
                 // nothing of what using it does (user 2026-11-12). Not against a clock: the objective has said it.
                 return Announcements.WithCost($"{label}. {entry.About}", entry.Cost);
+            }
+
+            if (entry.Strongbox && !this.currencyHintSaid)
+            {
+                this.currencyHintSaid = true;
+                return $"{label}. {Announcements.HoldToApplyCurrency(ControllerGlyphs.Interact)}";
             }
 
             if (entry.Category != ScanCategory.Exits || this.exitOptionsSaid)

@@ -110,11 +110,37 @@ namespace Poe2Accessibility.Tests
 
         private static void ACurrencyIconIsNamedByItsArtFile()
         {
-            CurrencyIcons.Set(new() { ["en"] = new() { ["art/2ditems/currency/currencyidentification.dds"] = "Scroll of Wisdom" } });
-            Expect("Scroll of Wisdom", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0") ?? "none");
-            Expect("none", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
-            Expect("none", CurrencyIcons.FromTextureKey("Art/Other/Thing.dds") ?? "none");
-            Expect(Announcements.Gold, CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Ruthless/CoinPileTier1.dds|0,0,0,0|0") ?? "none");
+            try
+            {
+                CurrencyIcons.Set(new() { ["en"] = new() { ["art/2ditems/currency/currencyidentification.dds"] = "Scroll of Wisdom" } });
+                Expect("Scroll of Wisdom", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0") ?? "none");
+                Expect("none", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
+                Expect("none", CurrencyIcons.FromTextureKey("Art/Other/Thing.dds") ?? "none");
+                Expect(Announcements.Gold, CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Ruthless/CoinPileTier1.dds|0,0,0,0|0") ?? "none");
+                ItemNames.Set(new()
+                {
+                    ["en"] = new()
+                    {
+                        ["CurrencyUpgradeToRare"] = "Orb of Alchemy",
+                        ["CurrencyUpgradeToMagic"] = "Orb of Transmutation",
+                        ["CurrencyUpgradeToMagic2"] = "Greater Orb of Transmutation",
+                        ["CurrencyUpgradeToMagic3"] = "Perfect Orb of Transmutation",
+                    },
+                });
+                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds|0,0,0,0|0") ?? "none");
+                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare.dds") ?? "none"); // no key details
+                Expect("Orb of Alchemy", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToRare|0,0,0,0|0") ?? "none"); // no .dds
+                Expect("none", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic.dds|0,0,0,0|0") ?? "none"); // the tiers share this file: which one it spends is unverified
+                Expect("Greater Orb of Transmutation", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyUpgradeToMagic2.dds|0,0,0,0|0") ?? "none"); // a stem carrying its tier's number names that item
+                Expect("none", CurrencyIcons.QuickUseName("Art/Other/CurrencyUpgradeToRare.dds|0,0,0,0|0") ?? "none"); // art outside the currency folder names nothing, stem or not
+                Expect("Scroll of Wisdom", CurrencyIcons.QuickUseName("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0") ?? "none");
+                Expect("none", CurrencyIcons.QuickUseName("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
+            }
+            finally
+            {
+                CurrencyIcons.Set(new());
+                ItemNames.Set(new());
+            }
         }
 
         private static void APasswordIsOnlyCounted()

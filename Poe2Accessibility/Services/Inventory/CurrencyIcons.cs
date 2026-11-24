@@ -48,5 +48,43 @@ namespace Poe2Accessibility.Services
             var art = (end < 0 ? key : key[..end]).ToLowerInvariant();
             return Localization.Pick(names, Localization.Language, art);
         }
+
+        /// <summary>
+        ///     The currency a quick-use button offers, by its icon: the art catalog where it names the file, else the
+        ///     item whose id is the file's stem ("CurrencyUpgradeToRare.dds" is <c>CurrencyUpgradeToRare</c>, the Orb
+        ///     of Alchemy, measured on a strongbox's button 2026-11-23). The orbs with Greater and Perfect tiers share
+        ///     one art file in the game's tables, so the extractor leaves it unnamed and the stem names only the base
+        ///     tier: which tier a button showing that shared file would spend is unverified (strongbox-currency.md
+        ///     §4c), so a base stem with a numbered tier sibling is not spoken as any orb. A stem that itself carries
+        ///     its tier's number names that concrete item, as the measured Alchemy stem names its item.
+        /// </summary>
+        public static string? QuickUseName(string key)
+        {
+            if (!key.StartsWith(GameLayout.Image.CurrencyArtPrefix, StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            if (FromTextureKey(key) is { Length: > 0 } named)
+            {
+                return named;
+            }
+
+            var end = key.IndexOf(KeyDetailsMark);
+            var file = end < 0 ? key : key[..end];
+            var slash = file.LastIndexOf('/');
+            var stem = slash < 0 ? file : file[(slash + 1)..];
+            if (stem.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
+            {
+                stem = stem[..^4];
+            }
+
+            if (stem.Length == 0 || ItemNames.Of(stem + "2") != null)
+            {
+                return null; // tiers share this file: naming the base tier would understate what the button spends
+            }
+
+            return ItemNames.Of(stem);
+        }
     }
 }

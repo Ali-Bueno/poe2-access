@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Services
             this.mapHere = default;
             this.depthToggle = default;
             this.notEndgame.Clear();
+            this.quickCurrencyLogged = default;
         }
 
         private AccessibleUiNode? DescribeInventory(in UiElementReader.ElementInfo info, bool underCursor)

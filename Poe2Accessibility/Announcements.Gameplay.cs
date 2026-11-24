@@ -94,6 +94,12 @@ namespace Poe2Accessibility
         /// <summary>An exit's own hint: holding the interact button offers its options (a new instance).</summary>
         public static string HoldForOptions(string button) => T($"hold {button} for options", $"mantén {button} para opciones");
 
+        /// <summary>A strongbox's own gamepad hint (<c>GamepadInteractInfoStrongboxAltOnly</c>): holding the interact button applies currency instead of opening it.</summary>
+        public static string HoldToApplyCurrency(string button) => T($"hold {button} to apply currency", $"mantén {button} para aplicar objetos monetarios");
+
+        /// <summary>A quick-use button whose currency icon no table names: a currency to apply, nothing more is shown.</summary>
+        public static string QuickCurrencyUnnamed => T("Currency", "Moneda");
+
         /// <summary>The chat panel shown, with its hint ("Hold LT to chat").</summary>
         public static string ChatShown(string hint) => T($"Chat. {hint}", $"Chat. {hint}");
 

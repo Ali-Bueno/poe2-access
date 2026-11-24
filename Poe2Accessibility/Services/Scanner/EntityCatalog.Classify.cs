@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> hostileCharacters = new(StringComparer.Ordinal);
         private readonly HashSet<string> shrineRows = new(StringComparer.Ordinal);
         private readonly HashSet<uint> essenceRows = new();
+        private readonly Dictionary<uint, (bool HasProperties, Rarity Rarity, int ModCount, int CorruptByMods, bool HasMods, Rarity ModsRarity, int Implicit, int Explicit, bool HasStats, int CorruptByItems, int CorruptByBuffs)> strongboxReads = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
         /// <summary>
@@ -66,6 +67,7 @@ namespace Poe2Accessibility.Services
             var loot = LootTier.Valuable;
             var sound = string.Empty;
             var timed = false;
+            var strongbox = false;
             var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
             var iconHidden = minimap != null && this.memory.TryRead<byte>(minimap.Address + GameLayout.MinimapIconRow.ComponentHiddenOffset, out var hidden) && hidden != 0;
             var questMarked = MinimapMarks.IsQuestIcon(icon);
@@ -121,6 +123,26 @@ namespace Poe2Accessibility.Services
                     : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
                 sound = kind == "breakable" ? Breakables.Material(path) : kind == "corpse" ? Breakables.BodySound(path) : chest is { IsStrongbox: true } ? LeaguePieces.StrongboxSound
                     : kind == "chest" && LeaguePieces.IsAbyssChest(path) ? LeaguePieces.AbyssChestSound : string.Empty;
+                strongbox = chest is { IsStrongbox: true };
+                if (strongbox && LeaguePieces.IsStrongboxSpent(StatesOf(entity)))
+                {
+                    category = null; // looted by its script though the Chest component still reads unopened (a landmark box)
+                }
+
+                if (strongbox && category != null)
+                {
+                    var properties = entity.TryGetComponent<ObjectMagicProperties>(out var magicProperties) ? magicProperties : null;
+                    this.LogStrongbox(entity, properties);
+                    // The sighted label is coloured by rarity; the component the host reads carries it (confirmed
+                    // live: Normal on a box offering only transmutation/alchemy buttons, 2026-11-23). Normal says
+                    // nothing, as a normal item says nothing; an unread name stays unread, so the box is dropped
+                    // below rather than listed as a bare rarity.
+                    if (name.Length > 0 && properties != null &&
+                        properties.Rarity is Rarity.Magic or Rarity.Rare or Rarity.Unique)
+                    {
+                        name = Announcements.WithRarity(name, properties.Rarity);
+                    }
+                }
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {
@@ -361,7 +383,7 @@ namespace Poe2Accessibility.Services
                     // "Foco vaal", and they sounded as an encounter it does not ask for (owner, 2026-11-18).
                     : this.landmarks.WorldTitle(LeaguePieces.AncientBeaconTitle),
                 timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
-                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0);
+                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0, Strongbox: strongbox);
         }
 
         /// <summary>What the object asks in sacred water, from its script's shared state; 0 without one.</summary>
@@ -438,6 +460,39 @@ namespace Poe2Accessibility.Services
             }
 
             return known == null ? string.Empty : ShrineCatalog.Shared.NameOf(known, Localization.Language);
+        }
+
+        /// <summary>
+        ///     What a strongbox reads as, each time the read changes: the host's mods components carry its rarity
+        ///     (spoken since the first live box) and its modifiers; whether a spent currency shows in them — the
+        ///     lists rebuild only when their component's address changes — and where corruption reads (the
+        ///     <c>dropped_items_are_corrupted</c> stat among the mods' stats, or the entity's own) is what
+        ///     speaking either waits on, so every change of the whole read is logged as a session's log confirms
+        ///     it (docs/research/strongbox-currency.md §5). The change test is the read's shape (rarities, mod
+        ///     counts, corruption values), compared without building the line; the line itself, with the mod
+        ///     names in a fixed order, is built only when the shape changed.
+        /// </summary>
+        private void LogStrongbox(Entity entity, ObjectMagicProperties? properties)
+        {
+            var corruptByMods = properties != null && properties.ModStats.TryGetValue(GameStats.dropped_items_are_corrupted, out var byMods) ? byMods : 0;
+            var mods = entity.TryGetComponent<Mods>(out var itemMods) ? itemMods : null;
+            var stats = entity.TryGetComponent<Stats>(out var ownStats) ? ownStats : null;
+            var corruptByItems = stats != null && stats.StatsChangedByItems.TryGetValue(GameStats.dropped_items_are_corrupted, out var byItems) ? byItems : 0;
+            var corruptByBuffs = stats != null && stats.StatsChangedByBuffAndActions.TryGetValue(GameStats.dropped_items_are_corrupted, out var byBuffs) ? byBuffs : 0;
+            var read = (HasProperties: properties != null, Rarity: properties != null ? properties.Rarity : default(Rarity), ModCount: properties?.ModNames.Count ?? 0, CorruptByMods: corruptByMods,
+                HasMods: mods != null, ModsRarity: mods != null ? mods.Rarity : default(Rarity), Implicit: mods?.ImplicitMods.Count ?? 0, Explicit: mods?.ExplicitMods.Count ?? 0,
+                HasStats: stats != null, CorruptByItems: corruptByItems, CorruptByBuffs: corruptByBuffs);
+            if (this.strongboxReads.TryGetValue(entity.Id, out var last) && last == read)
+            {
+                return;
+            }
+
+            this.strongboxReads[entity.Id] = read;
+            var objectMods = properties != null
+                ? $"{properties.Rarity}, mods [{string.Join(", ", properties.ModNames.OrderBy(mod => mod, StringComparer.Ordinal))}], corrupt stat {corruptByMods}" : "none";
+            var modsRead = mods != null ? $"{mods.Rarity}, {mods.ImplicitMods.Count} implicit, {mods.ExplicitMods.Count} explicit" : "none";
+            var own = stats != null ? $"{corruptByItems}/{corruptByBuffs}" : "none";
+            this.log.Info($"Strongbox mods: {entity.Path}: ObjectMagicProperties {objectMods}; Mods {modsRead}; Stats corrupt {own}");
         }
 
         /// <summary>
