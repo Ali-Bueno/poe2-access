@@ -118,6 +118,11 @@ Send these two files, with what you were doing and at what time:
   ([#8](https://github.com/Ali-Bueno/poe2-access/pull/8)), the left trigger as the mod button in hideouts ([#10](https://github.com/Ali-Bueno/poe2-access/pull/10)),
   strongbox currency on the gamepad ([#11](https://github.com/Ali-Bueno/poe2-access/pull/11)), and bug reports
   ([#7](https://github.com/Ali-Bueno/poe2-access/issues/7), [#9](https://github.com/Ali-Bueno/poe2-access/issues/9)).
+- [dnz3d4c](https://github.com/dnz3d4c), contributor: the Korean (Kakao Games) client ([#1](https://github.com/Ali-Bueno/poe2-access/pull/1)), Korean wording
+  ([#2](https://github.com/Ali-Bueno/poe2-access/pull/2)), no repeated chat history ([#3](https://github.com/Ali-Bueno/poe2-access/pull/3))
+  and no flask said as equipped when drunk ([#4](https://github.com/Ali-Bueno/poe2-access/pull/4)).
+- [borys22blinddev](https://github.com/borys22blinddev), contributor: Linux and Steam Deck ([#5](https://github.com/Ali-Bueno/poe2-access/pull/5))
+  and stopping the speech with Ctrl ([#6](https://github.com/Ali-Bueno/poe2-access/pull/6)).
 
 ## For developers
 
