@@ -88,6 +88,10 @@ internal static partial class SoundExtractor
         // A shut door the player opens: a door's mechanism clicking (user's pick 2026-11-14 of nine door recordings;
         // docs/research/game-audio.md).
         new("closed_door", "PrecursorDoor",    "PrecursorDoor_Mechanic_01", Rms: 0.10),
+        // The pirates' powder barrels (Journey's End): one set down, and the gunpowder lighting as a barrel's fuse does (its
+        // own bank's); louder, so it carries through a fight (docs/research/powder-barrels.md).
+        new("powder_barrel", "GunpowderPirates", "FLY_Barrel_Drop_01", 0.6, Rms: 0.10),
+        new("powder_fuse", "G4_2_2_ExplodingBarrels", "FLY_Gunpowder_Ignite_01", 0.8, Rms: 0.16),
         // A Trial of Chaos lift: a lift arriving and stopping, a low thud with a tail, told from the lever's quest sound (user's
         // pick 2026-11-19 of eight lift, gear, wheel and chain recordings; audition page https://claude.ai/artifact/RuQ88EyvcrmbRtEToAyewh).
         new("lift",        "G1_15_Elevator",   "ElevatorEnd_02", Rms: 0.10),

@@ -154,7 +154,7 @@ namespace Poe2Accessibility.Services
                 this.lastPoll = now;
                 // Gold is said once, as it is picked up ("Recogido 2 de oro", GoldWatch); its sound leads the way to it.
                 var quietLoot = this.QuietLoot();
-                var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category) && entry.Kind != "gold" &&
+                var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category) && entry.Kind != "gold" && !PowderBarrels.IsSoundOnly(entry.Kind) &&
                     !(quietLoot && FightState.QuietsInFight(entry.Category, entry.Kind)) &&
                     (entry.Category != ScanCategory.Items || LootFilter.Allows(this.LootLevel, entry.Loot)));
                 foreach (var entry in this.tracker.Update(player.WorldPosition.X, player.WorldPosition.Y, near, now))

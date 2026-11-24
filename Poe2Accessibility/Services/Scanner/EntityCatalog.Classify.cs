@@ -205,6 +205,12 @@ namespace Poe2Accessibility.Services
                 kind = lift ? ChaosTrial.LiftSound : kind;
                 questMarked = !lift; // a lift sounds as itself, without the quest object's layer
             }
+            else if (PowderBarrels.Is(path))
+            {
+                kind = PowderBarrels.KindOf(StatesOf(entity)) ?? string.Empty;
+                category = kind.Length > 0 ? ScanCategory.Objects : null;
+                name = kind == PowderBarrels.LitKind ? Announcements.LitPowderBarrel : Announcements.PowderBarrel;
+            }
             else if (trap is { } kindOfTrap)
             {
                 // Untargetable and flagged hidden, yet there on the floor for anyone who can see.

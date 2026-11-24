@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(EnemyCuesPulseFasterWhenNearAndTakeTurns), EnemyCuesPulseFasterWhenNearAndTakeTurns),
             (nameof(AnEnemyPastAWallThatSightLeavesOpenIsNotHeard), AnEnemyPastAWallThatSightLeavesOpenIsNotHeard),
+            (nameof(APowderBarrelIsHeardUntilItBlowsUp), APowderBarrelIsHeardUntilItBlowsUp),
             (nameof(EnemyCueSoundsStayInRangeAndDiffer), EnemyCueSoundsStayInRangeAndDiffer),
             (nameof(CuesRingOutAndTheMixerRoundsOff), CuesRingOutAndTheMixerRoundsOff),
             (nameof(LoudCuesAreLimitedNotSaturated), LoudCuesAreLimitedNotSaturated),
@@ -30,6 +31,16 @@ namespace Poe2Accessibility.Tests
             (nameof(LocalPlayerListTrustsOnlyItsOwnPlayerFirst), LocalPlayerListTrustsOnlyItsOwnPlayerFirst),
             (nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach),
         };
+
+        private static void APowderBarrelIsHeardUntilItBlowsUp()
+        {
+            const string folder = "Metadata/Monsters/Pirates/objects/";
+            Equal(true, PowderBarrels.Is(folder + "BarrelPlaced") && PowderBarrels.Is(folder + "BarrelPlacedSecondary") && PowderBarrels.Is(folder + "BarrelLandmark"), "the three barrels that blow up");
+            Equal(false, PowderBarrels.Is(folder + "BarrelForPickup") || PowderBarrels.Is(folder + "GunpowderLines"), "a pirate's ammunition and the trail are none");
+            Equal(PowderBarrels.Kind, PowderBarrels.KindOf(new[] { ("prime", 0L), ("explode", 0L) }), "standing");
+            Equal(PowderBarrels.LitKind, PowderBarrels.KindOf(new[] { ("prime", 1L), ("explode", 0L) }), "lit");
+            Equal<string?>(null, PowderBarrels.KindOf(new[] { ("prime", 1L), ("explode", 1L) }), "blown up");
+        }
 
         private static void AnEnemyPastAWallThatSightLeavesOpenIsNotHeard()
         {

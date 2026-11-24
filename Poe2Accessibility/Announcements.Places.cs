@@ -122,6 +122,10 @@ namespace Poe2Accessibility
         public static string OpenedWay => T("Opened way", "Paso abierto");
 
         /// <summary>A door seen shut and not opened yet, among the scanner's unexplored: the ground behind it is still to see.</summary>
+        public static string PowderBarrel => T("Powder barrel", "Barril de pólvora");
+
+        public static string LitPowderBarrel => T("Powder barrel about to explode", "Barril de pólvora a punto de explotar");
+
         public static string UnopenedDoor => T("Unopened door", "Puerta sin abrir");
 
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>

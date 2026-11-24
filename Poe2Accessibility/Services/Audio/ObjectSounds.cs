@@ -65,6 +65,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Shut doors heard at once, nearest first: a hall's two or three, each on its side (a first guess, not heard yet).</summary>
         private const int MaxDoorVoices = 3;
 
+        /// <summary>Powder barrels heard at once, nearest first, the lit ones apart (a first guess, not heard yet).</summary>
+        private const int MaxBarrelVoices = 2;
+
         /// <summary>A crowd's voices (chests, breakables) never start within this time of each other, so a cluster is heard as several.</summary>
         private const int CrowdGapMs = 70;
 
@@ -98,6 +101,9 @@ namespace Poe2Accessibility.Services
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
             ("lifts", 1, entry => entry.Kind == ChaosTrial.LiftSound),
             ("doors", MaxDoorVoices, entry => SoundKind(entry) == ClosedDoors.Kind),
+            // The lit ones apart: an unlit barrel nearer must not take the voice of one about to blow up.
+            ("powder barrels", MaxBarrelVoices, entry => entry.Kind == PowderBarrels.Kind),
+            ("lit barrels", MaxBarrelVoices, entry => entry.Kind == PowderBarrels.LitKind),
             ("barriers", 1, entry => SoundKind(entry) == CueSynth.BarrierSound),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
@@ -350,6 +356,8 @@ namespace Poe2Accessibility.Services
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),
+            PowderBarrels.Kind => this.sounds.Get(PowderBarrels.Kind),
+            PowderBarrels.LitKind => this.sounds.Get(PowderBarrels.LitKind),
             ChaosTrial.LiftSound => this.sounds.Get(ChaosTrial.LiftSound),
             // A league's own recording; a strongbox is a chest until the sounds are extracted again.
             LeaguePieces.StrongboxSound => this.sounds.Get(LeaguePieces.StrongboxSound) ?? this.sounds.Get("chest"),
