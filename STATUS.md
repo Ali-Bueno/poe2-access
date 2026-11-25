@@ -359,6 +359,7 @@
 - Game element layout hints (ExileCore2): `Text`, `TextNoTags`, `Tooltip`, `isHighlighted`, `Type` ushort;
   `IngameState.UIHover/UIHoverElement/FocusedInputElement`: `docs/research/exilecore2-study.md`.
 - Terrain/entities/landmarks (for later): `docs/research/poe2radar-study.md`.
+- PoE1Access's exploration compared, what to take and what would be a map hack (2026-11-25, nothing built): `docs/research/poe1access-exploration.md`.
 - Local players (couch co-op): std::vector at GameHelper's `LocalPlayerStruct`+0x08, entry 0 = `AreaInstance.Player`,
   entry 1 = player 2; J2's pad and menu cursor never reach the mod; co-op HUD has one `skill_bar` per player
   (`docs/research/local-coop.md`).
