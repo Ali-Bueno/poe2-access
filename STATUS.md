@@ -527,6 +527,8 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-25, 19:00 (the owner, fighting: Yama's "me dijo que me quedase dentro y aún así me wanshoteó", Torvian's scaffolding, Benedictus, the Countess and Kanu sounding on; 1113 tests, deployed, released at the owner's word as v2026.11.25-4):** [Yama](docs/research/boss-mechanics.md#yama), [Torvian](docs/research/boss-mechanics.md#torvian), [Benedictus](docs/research/boss-mechanics.md#benedictus); scene figures without a target are left out (`EntityCatalog.IsScenery`). **Next:** Benedictus's armed rods and barrage; what the `Boss clone:`, `Boss throw:` and `Boss maze:` lines of a later fight confirm.
+
 **2026-11-25, 15:40 (PR #12, the owner: "sí, está bien lo que sugeriste", then release; 1108 tests, deployed, released at the owner's word as v2026.11.25-3):** Inspect Mode's table by the right stick, merged and fixed (see *Item comparison*); the spoken difference stays with the setting off. **Next:** when the PC and the game are free, hear the table in Spanish, against two rings, and on an item with nothing to focus.
 
 **2026-11-25, 11:15 (the owner in the Halls of the Dead: "apenas entré en el mapa con el monge y ya detectó la salida de la misión"; 1057 tests, deployed, released at the owner's word as v2026.11.25-3):** the client had that exit 3,950 cells off and exits were listed at any distance; now within their icon's reach (250 cells), on screen or on explored ground ([minimap](docs/research/minimap.md#scanner-rule)). The instance already played keeps the exit it was told of.
