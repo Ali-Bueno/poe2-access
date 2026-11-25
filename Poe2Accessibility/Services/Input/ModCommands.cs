@@ -72,6 +72,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The settings menu is open (its flicks need no L3).</summary>
         public bool InSettingsMenu => this.settingsMenu.IsOpen;
 
+        /// <summary>Gets or sets Inspect Mode's comparison table; null without one.</summary>
+        public InspectTableWatch? Inspect { get; set; }
+
+        /// <summary>The table is on in item Inspect Mode: the right stick's flicks are its, with no need to hold L3.</summary>
+        public bool InInspectTable => this.Inspect?.Active == true;
+
         /// <summary>A panel opened over the settings menu: close it quietly (saved).</summary>
         public void CloseSettingsMenu()
         {
@@ -88,6 +94,13 @@ namespace Poe2Accessibility.Services
             if (this.settingsMenu.IsOpen)
             {
                 this.InSettings(gesture);
+                return;
+            }
+
+            if (this.Inspect is { Active: true } inspect && gesture is PadGesture.FlickUp or PadGesture.FlickDown or PadGesture.FlickLeft or PadGesture.FlickRight)
+            {
+                // Item Inspect Mode: the right stick walks the item and the worn one, one line of one item a flick.
+                this.output.Speak(inspect.Flick(gesture), true);
                 return;
             }
 

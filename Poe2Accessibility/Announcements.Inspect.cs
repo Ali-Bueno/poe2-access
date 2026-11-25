@@ -8,6 +8,11 @@ namespace Poe2Accessibility
     /// </summary>
     public static partial class Announcements
     {
+        /// <summary>The controls help's sentence on the table, after the menus' (settings menu, help).</summary>
+        public static string InspectHelp => T(
+            "In Inspect Mode on an item, flick the right stick: up and down go through its lines, left and right switch between the item and what you wear",
+            "En el modo inspección de un objeto, mueve el stick derecho: arriba y abajo recorren sus líneas, izquierda y derecha cambian entre el objeto y lo que llevas puesto");
+
         /// <summary>The label of the item the player inspected, said when the table switches to it.</summary>
         public static string InspectThisItem => T("This item", "Este objeto");
 

@@ -212,7 +212,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, watch.Active, "flicks go to the table from the start");
             Expect(null, watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 50), "it arrives: the wait starts again");
             Expect(null, watch.Tick(150), "still settling");
+            Equal(true, watch.OpeningDue, "the legend waits for the opening");
             Expect("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud", watch.Tick(210), "settled");
+            Equal(false, watch.OpeningDue, "said");
             Expect(null, watch.Tick(400), "said once");
             Expect("Hale Tattered Robe of the Pupil, magic", watch.Flick(PadGesture.FlickDown), "the table");
         }

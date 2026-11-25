@@ -33,10 +33,10 @@ namespace Poe2Accessibility.Services
         ///     The items item Inspect Mode shows, the inspected one first and the worn ones after it; null when no such layer
         ///     is on the screen, it was not opened on the item last focused, or its tooltips cannot be read apart.
         /// </summary>
-        public IReadOnlyList<InspectItem>? InspectItems(ScreenSnapshot screen)
+        public IReadOnlyList<InspectItem>? InspectItems(ScreenSnapshot screen, AccessibleUiNode? focus = null)
         {
             var (source, sourceWorn) = this.inspectSource;
-            if (source == IntPtr.Zero || this.FindInspectLayer(screen) is not { } found)
+            if (source == IntPtr.Zero || this.FindInspectLayer(screen, focus) is not { } found)
             {
                 this.inspectLayer = (IntPtr.Zero, Array.Empty<IntPtr>());
                 return null;
@@ -89,15 +89,43 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The inspect layer on the screen: a top layer whose second child holds one element whose children are item
-        ///     tooltips (each with a `layout`). The one found last is looked at first.
+        ///     The Inspect Mode tooltip an element sits in: its layer, the tooltip, the child of `layout` the element is under
+        ///     (a row), and the line element when that row is a modifier group. Null outside one. The focus comes before the
+        ///     screen's snapshot holds the new layer, so the layer is found from the focus up.
         /// </summary>
-        private (IntPtr Layer, string Label, List<(IntPtr Address, InspectNode Node)> Tooltips)? FindInspectLayer(ScreenSnapshot screen)
+        private (IntPtr Layer, IntPtr Tooltip, UiElementReader.ElementInfo Row, UiElementReader.ElementInfo? Line)? ItemTooltipOf(in UiElementReader.ElementInfo info)
         {
-            var layers = screen.Layers.OrderByDescending(layer => layer.Address == this.inspectLayer.Layer).ThenByDescending(layer => layer.Index);
-            foreach (var layer in layers)
+            var path = new List<UiElementReader.ElementInfo> { info };
+            path.AddRange(this.elements.ReadAncestors(info, MaxInspectDepth));
+            for (var level = 1; level + 4 < path.Count; level++)
             {
-                if (!this.elements.TryReadElement(layer.Address, out var layerInfo) || !layerInfo.IsVisibleFlag)
+                // layout -> tooltip -> container -> holder -> layer, the holder being the layer's second child.
+                if (path[level].Name != InspectLayout.LayoutName ||
+                    this.elements.ReadChildren(path[level + 4]) is not { Length: >= 2 } parts || parts[1] != path[level + 3].Address)
+                {
+                    continue;
+                }
+
+                var row = path[level - 1];
+                var line = InspectLayout.IsModGroup(row.Name) && level >= 2 ? path[level - 2] : (UiElementReader.ElementInfo?)null;
+                return (path[level + 4].Address, path[level + 1].Address, row, line);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     The inspect layer: a top layer whose second child holds one element whose children are item tooltips (each
+        ///     with a `layout`). The focus's layer is looked at first, then the one found last, then the screen's from the top.
+        /// </summary>
+        private (IntPtr Layer, string Label, List<(IntPtr Address, InspectNode Node)> Tooltips)? FindInspectLayer(ScreenSnapshot screen, AccessibleUiNode? focus)
+        {
+            var fromFocus = focus != null && this.elements.TryReadElement(focus.Address, out var focusInfo) && this.ItemTooltipOf(focusInfo) is { } focused ? focused.Layer : IntPtr.Zero;
+            var layers = new[] { fromFocus, this.inspectLayer.Layer }.Where(address => address != IntPtr.Zero)
+                .Concat(screen.Layers.OrderByDescending(layer => layer.Index).Select(layer => layer.Address)).Distinct();
+            foreach (var address in layers)
+            {
+                if (!this.elements.TryReadElement(address, out var layerInfo) || !layerInfo.IsVisibleFlag)
                 {
                     continue;
                 }
@@ -110,19 +138,19 @@ namespace Poe2Accessibility.Services
                 }
 
                 var tooltips = new List<(IntPtr Address, InspectNode Node)>();
-                foreach (var address in this.elements.ReadChildren(container))
+                foreach (var tooltip in this.elements.ReadChildren(container))
                 {
                     var budget = MaxInspectNodes;
-                    if (this.InspectNodeAt(address, 0, ref budget) is { } node)
+                    if (this.InspectNodeAt(tooltip, 0, ref budget) is { } node)
                     {
-                        tooltips.Add((address, node));
+                        tooltips.Add((tooltip, node));
                     }
                 }
 
                 if (tooltips.Count > 0 && tooltips.All(tooltip => tooltip.Node.Children.Any(child => child.Name == InspectLayout.LayoutName)))
                 {
                     var label = this.elements.TryReadText(parts[0], out var text) ? text.Trim() : string.Empty;
-                    return (layer.Address, label, tooltips);
+                    return (address, label, tooltips);
                 }
             }
 

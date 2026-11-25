@@ -35,6 +35,9 @@ namespace Poe2Accessibility
         private EntityCatalog? entities;
         private GamepadReader? pad;
         private ModCommands? commands;
+
+        /// <summary>Item Inspect Mode's comparison table, shared by the narrator (what it says) and the commands (the right stick).</summary>
+        private readonly InspectTableWatch inspect = new();
         private L3Gestures gestures = new();
 
         /// <summary>How often the guide looks for the next Death Crystal: a disabled one leaves the list at the scanner's pace.</summary>
@@ -243,6 +246,12 @@ namespace Poe2Accessibility
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
                 this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
                 this.narrator.FocusBehindAnswer = this.FocusOfFinderPress;
+                this.narrator.Inspect = this.inspect;
+                this.narrator.InspectItems = focus => this.semantics?.InspectItems(this.screen?.Current ?? ScreenSnapshot.Empty, focus);
+                this.narrator.InspectItemOf = node => this.semantics?.InspectItemOf(node);
+                this.narrator.InspectModeLabel = () => this.semantics?.InspectModeLabel ?? string.Empty;
+                this.narrator.InspectTableOn = () => this.Settings.InspectCompareTable;
+                this.narrator.SinceStickPress = () => Environment.TickCount64 - this.rightStickPressedAt;
                 this.focus.HoverOverFocus = (focused, hovered) =>
                     this.PreviewTree is var tree && tree != IntPtr.Zero && this.semantics?.NodeUnderPlannerButton(tree, hovered, focused) == true;
                 this.focus.SlotTrace = this.Settings.ResearchMode ? line => this.log?.Info(line) : null;
@@ -494,6 +503,7 @@ namespace Poe2Accessibility
                 };
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
+                this.commands.Inspect = this.inspect;
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.QuestItemsCarried = () => this.pickups?.QuestItems ?? (System.Collections.Generic.IReadOnlyCollection<string>)Array.Empty<string>();

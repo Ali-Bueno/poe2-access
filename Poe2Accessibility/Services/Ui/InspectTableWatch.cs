@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets a value indicating whether the table is on and items are on screen, so the right stick's flicks are its.</summary>
         public bool Active => this.table != null;
 
+        /// <summary>Gets a value indicating whether the opening is still to be said: what would follow it (the game's legend) waits.</summary>
+        public bool OpeningDue => this.openingDue && this.table != null;
+
         /// <summary>
         ///     Takes the items item Inspect Mode shows (null when it is not open), the game's own name for the mode, and
         ///     whether the table is switched on. Returns what to say now: a cell whose text changed under the cursor, or null.

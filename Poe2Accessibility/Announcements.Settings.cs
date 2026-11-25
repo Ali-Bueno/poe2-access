@@ -37,6 +37,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnouncePlayerChat) => T("Global and trade chat", "Chat global y de comercio"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.RepeatOnBlockedMove) => T("Say the control again when a direction moves nothing", "Repetir el control cuando una dirección no mueve nada"),
+            nameof(AccessibilitySettings.InspectCompareTable) => T("Comparison table in Inspect Mode, right stick", "Tabla de comparación en el modo inspección, stick derecho"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
             nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),
@@ -394,7 +395,7 @@ namespace Poe2Accessibility
                 "Mantén el gatillo izquierdo y presiona el stick derecho: cuánto has explorado del área, la parte del mapa en la que estás, las partes con terreno por explorar y las zonas sin explorar más cercanas con su camino. Al entrar en otra parte del mapa se dice sola. En un escondite, con el interruptor del gatillo izquierdo activado, esa combinación activa la guía en vez de mirar el mapa"),
             "help_menus" => T(
                 "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
-                "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),
+                "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa") + ". " + InspectHelp,
             _ => T(
                 "Right stick up and down move, left and right open a submenu, change a value or play a sound. Tap L3 to go back up one level, tap it at the top to close and save; a double tap closes from anywhere. In a hideout with the left-trigger switch on, the left trigger takes L3's place",
                 "Stick derecho arriba y abajo para moverte, izquierda y derecha para abrir un submenú, cambiar un valor o escuchar un sonido. Toca L3 para subir un nivel, y tócalo arriba del todo para cerrar y guardar; un doble toque cierra desde cualquier sitio. En un escondite, con el interruptor del gatillo izquierdo activado, el gatillo izquierdo hace de L3"),

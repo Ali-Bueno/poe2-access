@@ -108,6 +108,12 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.QuietForInspect(reason))
+            {
+                this.log.Debug($"Narrate ({reason}) left to Inspect Mode's table: {text}");
+                return;
+            }
+
             // A page still waiting for its focus goes first: what follows (the area the quest map shows) must not
             // be cut off by the page arriving a moment later.
             text = this.WithPendingPage(text);

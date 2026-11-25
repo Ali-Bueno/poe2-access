@@ -420,6 +420,18 @@ its field says what it lights as the cursor enters the grid.
 **An item you cannot use** says which requirement is missing right after its name: "Doom Chant, rare, column 3, row 3,
 Cannot use: 21 Int", then the whole tooltip.
 
+**Comparing an item with what you wear** (setting "Comparison table in Inspect Mode, right stick", Items, on by default).
+R3 on an item in the bag, a stash or a merchant's stock opens the game's Inspect Mode. The mod says the item and what it
+is set against ("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud"),
+then where the game's focus is, then the game's legend. Flick the right stick up or down to go through the lines, one
+stat a row, and left or right to switch between the item and the worn one on the same row. Each flick says one line of
+one item in the game's own words, with the item's label when it changes ("Worn. Energy Shield: 43"). A line an item lacks
+is said as missing ("to maximum Life, none"), so a row means the same stat on every item. The first row is the name with
+the rarity, sockets have a row of their own, and an unmet requirement is named on the requirements row. Holding R3
+toggles the game's advanced info (ranges, tiers, prefix and suffix), and the rows follow it. Nothing is compared for you.
+With two worn items (rings) each is named by its slot. The D-pad still walks the game's links and names the item it
+crosses into, with the table on or off; with the setting off, R3 reads the item as before.
+
 ## Other panels
 
 - Trials: the mod says honour each time it falls past a tenth, sacred water and keys as they are gained, and the L3 double tap adds them to the vitals ("Honour 474 of 513. Sacred Water 39, plus 7. Keys: bronze 1, silver 0, gold 0"). A trap about to strike plays the dodge warning from its side; those in the open are in the scanner and named on approach. Both are switches in Surroundings.

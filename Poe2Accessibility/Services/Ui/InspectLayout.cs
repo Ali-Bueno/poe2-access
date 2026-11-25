@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Rows that are no line of the item: its price or sell value, and its buttons.</summary>
         private static readonly HashSet<string> NoRows = new(StringComparer.Ordinal) { "cost", "gamepad_popup_button_legend_layout" };
 
+        /// <summary>Whether a row element is a modifier group, one line a child and the group's label last.</summary>
+        public static bool IsModGroup(string name) => name.EndsWith(ModGroupSuffix, StringComparison.Ordinal);
+
         /// <summary>
         ///     A tooltip's title (name and base joined) and lines, the title row first; null when the node holds no
         ///     <see cref="LayoutName"/>. On a worn tooltip the last text row is the game's "Equipped" line and is left out.
@@ -50,7 +53,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (row.Name.EndsWith(ModGroupSuffix, StringComparison.Ordinal))
+                if (IsModGroup(row.Name))
                 {
                     lines.AddRange(GroupLines(row));
                 }

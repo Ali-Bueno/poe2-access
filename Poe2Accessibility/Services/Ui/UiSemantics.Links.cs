@@ -37,6 +37,15 @@ namespace Poe2Accessibility.Services
             var link = links[index];
             var keyword = ShownText(link);
             var row = this.LinkRow(parent, sentence, keyword, out var rowElement);
+            var group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty;
+            if (this.ItemTooltipOf(info) is { } item)
+            {
+                // An item's tooltip in Inspect Mode: its rows have no heading (the "group" was the line above, so "Energy
+                // Shield: 28" came before "+6 to Intelligence"), and the row two levels up was the whole tooltip. The row
+                // is the link's own line, with the modifier's tier (docs/research/ui-layers.md, "Item Inspect Mode").
+                (row, group) = (item.Line is { } line ? this.RowText(line) : sentence, string.Empty);
+            }
+
             return new AccessibleUiNode
             {
                 Address = info.Address,
@@ -45,7 +54,7 @@ namespace Poe2Accessibility.Services
                 Text = keyword,
                 Value = row,
                 // The stat list's section ("Escudo de energía" over its rows): said as the links move into it.
-                Group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty,
+                Group = group,
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.InGame ? this.PanelTitle(info) : string.Empty,
                 Tooltip = this.Definition(info),
