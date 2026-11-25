@@ -55,7 +55,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `telegraph-skills.txt` | what the game draws before a monster skill lands | `telegraph-skills`, start | `AttackData` |
 | `trials.json` | the trials' icons and HUD formats per language | `trial-data`, start | `TrialCatalog` |
 | `ui-catalog.json` | the menus, from the game's `.ui` scripts | `ui-catalog`, start | `UiCatalog` |
-| `world-titles.json` | names objects show only in a WorldDescription, and what it says they are for ("body:" entries) | `world-titles` | `LandmarkTable` |
+| `world-titles.json` | names objects show only in a WorldDescription, and what it says they are for ("body:" entries); the map legend's words ("legend:") | `world-titles` | `LandmarkTable` |
 | `lang/<code>.json` | the mod's phrases in the game's other languages | `py tools/localization/phrases.py merge` | `Localization` |
 
 The game's own sounds (`../sounds/`, gitignored) are extracted by the `sounds` command, deployed to the development host

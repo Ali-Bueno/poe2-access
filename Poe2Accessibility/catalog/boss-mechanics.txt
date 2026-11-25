@@ -8,6 +8,7 @@
 # arena|monster|state|burn, dark, flood, lava, collapse, shrink, sandstorm, maze, retreat, platform or change   empowered|monster|buff (its text says others empower it)
 # consume|monster|add it consumes   shelter|monster|buff on the player that shelters   refuge|monster|monster or object|state non-zero while it shelters
 # cover|monster|object to hide behind   clone|monster|clone path|state marking the true one   use|monster|object to use   target|monster|object or add to break
+# clonepath|monster|object marking the way its clones walk (with Start and End)   areas|monster|its area skills, comma-separated (a fight with clones)
 # progress|monster|state[|maximum]   element|monster|state=value|element (fire, cold, lightning, chaos, physical), or element|monster|state|- when no handler names it
 # stack|buff|monster (its count on the player)   grab|monster|skill that holds the player   grabbed|monster|buff on the held player   zone|monster|buff of an area
 # unavoidable|monster|skill (cannot be dodged, evaded or blocked)   text|language|buff|name|description (the census's buffs' own words)
@@ -1644,6 +1645,8 @@ clone|Metadata/Monsters/YamaBoss/YamaBoss|Metadata/Monsters/YamaBoss/objects/Yam
 clone|Metadata/Monsters/YamaBoss/YamaBoss|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrFourB|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBoss|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBoss|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFourB|chosen_one
+clonepath|Metadata/Monsters/YamaBoss/YamaBoss|Metadata/Monsters/YamaBoss/objects/YamaFutureClonePath
+areas|Metadata/Monsters/YamaBoss/YamaBoss|GSYamaChaosCloud,GSYamaDelayedEyeBlast,GAYamaJumpForwardsCleave,GSYamaTimeFreezeSlam,GAYamaTotemPhaseEnd,GAYamaProjectileImpactGround,GAYamaProjectileImpactWall,GAYamaTotemRelocate
 clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureClone|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFourB|chosen_one
@@ -1657,6 +1660,8 @@ clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/Ya
 clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrFourB|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFourB|chosen_one
+clonepath|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureClonePath
+areas|Metadata/Monsters/YamaBoss/YamaBossCampaignSTANDALONE|GSYamaChaosCloud,GSYamaDelayedEyeBlast,GAYamaJumpForwardsCleave,GSYamaTimeFreezeSlam,GAYamaTotemPhaseEnd,GAYamaProjectileImpactGround,GAYamaProjectileImpactWall,GAYamaTotemRelocate
 clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureClone|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFourB|chosen_one
@@ -1670,6 +1675,8 @@ clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects
 clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrFourB|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFourB|chosen_one
+clonepath|Metadata/Monsters/YamaBoss/YamaBossMAP_|Metadata/Monsters/YamaBoss/objects/YamaFutureClonePath
+areas|Metadata/Monsters/YamaBoss/YamaBossMAP_|GSYamaChaosCloud,GSYamaDelayedEyeBlast,GAYamaJumpForwardsCleave,GSYamaTimeFreezeSlam,GAYamaTotemPhaseEnd,GAYamaProjectileImpactGround,GAYamaProjectileImpactWall,GAYamaTotemRelocate
 clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureClone|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFourB|chosen_one
@@ -1683,6 +1690,8 @@ clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/object
 clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrFourB|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFourB|chosen_one
+clonepath|Metadata/Monsters/YamaBoss/YamaBossClone|Metadata/Monsters/YamaBoss/objects/YamaFutureClonePath
+areas|Metadata/Monsters/YamaBoss/YamaBossClone|GAYamaProjectileImpactGround,GAYamaProjectileImpactWall,GAYamaCloneTotemSlam
 clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureClone|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_DexFourB|chosen_one
@@ -1696,6 +1705,8 @@ clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/o
 clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrFourB|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFour|chosen_one
 clone|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureCone_Children/YamaFutureClone_StrIntFourB|chosen_one
+clonepath|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|Metadata/Monsters/YamaBoss/objects/YamaFutureClonePath
+areas|Metadata/Monsters/YamaBoss/YamaBossSTANDALONE|GSYamaChaosCloud,GSYamaDelayedEyeBlast,GAYamaJumpForwardsCleave,GSYamaTimeFreezeSlam,GAYamaTotemPhaseEnd,GAYamaProjectileImpactGround,GAYamaProjectileImpactWall,GAYamaTotemRelocate
 consume|Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHostBoss|Metadata/Monsters/ParasiteMonsters/MantaRayParasite
 consume|Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHostBoss|Metadata/Monsters/ParasiteMonsters/OctopusParasite
 consume|Metadata/Monsters/ParasiteHostMiniBoss/ParasiteHostBoss|Metadata/Monsters/ParasiteMonsters/TurtleParasite__

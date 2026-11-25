@@ -30,8 +30,11 @@ namespace Poe2Accessibility.Services
         public static int Rank(string kind) => kind == PocketKind ? 3 : kind == SmallKind ? 2 : kind == ClosedDoors.Kind ? 1 : 0;
 
 
-        /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
-        public const float SeenRadiusCells = 60f;
+        /// <summary>The fog the game clears around a character with no light radius, measured on its map (docs/research/minimap.md "The fog").</summary>
+        public const float SeenRadiusCells = 80f;
+
+        /// <summary>What the screen shows around the player, about half its height: the look by which dead ends, places and cues are told.</summary>
+        public const float LookCells = 60f;
 
         /// <summary>
         ///     A radar ray is marked unexplored when it leaves the seen ground within this many cells (LeAccess: twice the
@@ -51,8 +54,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Smaller frontier groups before a pocket are not worth a place of their own.</summary>
         private const int MinGroupBlocks = 2;
 
-        /// <summary>Unseen ground smaller than this is a pocket: half the reveal disc, what one look from its edge shows whole.</summary>
-        private const int PocketBlocks = (int)(Math.PI * SeenRadiusCells * SeenRadiusCells / (2 * BlockCells * BlockCells));
+        /// <summary>Unseen ground smaller than this is a pocket: half a look's disc, what one look from its edge shows whole.</summary>
+        private const int PocketBlocks = (int)(Math.PI * LookCells * LookCells / (2 * BlockCells * BlockCells));
 
         /// <summary>
         ///     Unseen ground under two reveal discs soon ends, a room or a short branch; ten discs and more is a large part of
@@ -218,8 +221,8 @@ namespace Poe2Accessibility.Services
         Large,
     }
 
-    /// <summary>An unexplored place: where unseen ground begins, and how much of it there is.</summary>
-    public readonly record struct FrontierPlace(Vector2 Cell, UnseenSize Size)
+    /// <summary>An unexplored place: where unseen ground begins, how much of it there is, the walk to it (cells) and the known goals the walk to which passes it.</summary>
+    public readonly record struct FrontierPlace(Vector2 Cell, UnseenSize Size, int Steps, IReadOnlyList<int> LeadsTo)
     {
         public bool Pocket => this.Size == UnseenSize.Pocket;
     }

@@ -49,6 +49,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Where a boss being fought stands (<see cref="BossMechanicsWatch.Fighting"/>); null when none is.</summary>
         public Func<Vector2?> Fighting { get; set; } = () => null;
 
+        /// <summary>Where an entity stands, drawn or not (<see cref="EntityPlaces"/>); null when not known.</summary>
+        public Func<Entity, Vector2?> PlaceOf { get; set; } = _ => null;
+
         /// <summary>A new area: nothing of the last arena is known.</summary>
         public void Reset()
         {
@@ -100,7 +103,7 @@ namespace Poe2Accessibility.Services
                 return; // nothing more is logged of it, so nothing of it is read
             }
 
-            Vector2? at = entity.TryGetComponent<Render>(out var render) ? new Vector2(render.WorldPosition.X, render.WorldPosition.Y) : null;
+            var at = this.PlaceOf(entity);
             if (at is { } spot && Vector2.Distance(spot, boss) > ArenaWorld)
             {
                 return;

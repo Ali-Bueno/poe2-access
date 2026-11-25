@@ -339,6 +339,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A town pin popup's "Town" in the client's language, empty when the table has none.</summary>
         public string PinTownLabel => this.Title("label:pin-town");
 
+        /// <summary>The map legend's word for a picture ("WorldMapContentBoss", "Encuentro de jefe"), empty for a picture it does not show.</summary>
+        public string MapLegendWord(string picture) => this.Title("legend:" + picture);
+
         /// <summary>The tracker line without which an object means nothing, empty for most.</summary>
         public string ObjectiveOf(string path) => this.Title("objective:" + FileOf(path));
 

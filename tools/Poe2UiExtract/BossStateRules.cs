@@ -13,6 +13,8 @@ internal static class BossStateRules
 {
     private const string BracketCall = "TriggerBracket(";
     private const string ArenaWord = "arena";
+    private const string PathStart = "Start";
+    private const string PathEnd = "End";
     private const string ChangeKind = "change";
 
     /// <summary>The arena changes the plugin can name, each the start of a word of the state's name ("room_burning_progress" → burn).</summary>
@@ -39,7 +41,7 @@ internal static class BossStateRules
         ("chaos", new[] { "chaos" }), ("physical", new[] { "physical" }),
     };
 
-    public static IEnumerable<string> Lines(BossFight fight) => Arena(fight).Concat(Progress(fight)).Concat(Element(fight)).Concat(Clones(fight)).Concat(Refuges(fight));
+    public static IEnumerable<string> Lines(BossFight fight) => Arena(fight).Concat(Progress(fight)).Concat(Element(fight)).Concat(Clones(fight)).Concat(ClonePaths(fight)).Concat(Refuges(fight));
 
     /// <summary>AR: a state whose handler triggers an arena bracket, or one named for an arena change; never the fight's end.</summary>
     private static IEnumerable<string> Arena(BossFight fight)
@@ -111,6 +113,32 @@ internal static class BossStateRules
             .Where(entity => BossScripts.WordsOf(entity.Path[(entity.Path.LastIndexOf('/') + 1)..]).Any(CloneWords.Contains))
             .SelectMany(entity => entity.Script.States.Select(state => state.Name).Where(state => BossScripts.WordsOf(state).Any(TrueWords.Contains)).Distinct(StringComparer.Ordinal)
                 .Select(state => $"clone|{fight.Boss}|{entity.Path}|{state}"));
+
+    /// <summary>
+    ///     For a fight with a marked clone: the markers its clones walk (objects named for a clone, the stem and the stem with
+    ///     "Start" and "End"), and the boss's area skills, among which the one with a hole tells how near the clone is safe.
+    /// </summary>
+    private static IEnumerable<string> ClonePaths(BossFight fight)
+    {
+        if (!Clones(fight).Any())
+        {
+            yield break;
+        }
+
+        var objects = fight.Objects.Select(item => item.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var stem in fight.Objects.Select(item => item.Path)
+                     .Where(path => BossScripts.WordsOf(path[(path.LastIndexOf('/') + 1)..]).Any(CloneWords.Contains) && objects.Contains(path + PathStart) && objects.Contains(path + PathEnd))
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            yield return $"clonepath|{fight.Boss}|{stem}";
+        }
+
+        var areas = fight.Skills.Where(skill => skill.Area).Select(skill => skill.Id).Distinct(StringComparer.Ordinal).ToList();
+        if (areas.Count > 0)
+        {
+            yield return $"areas|{fight.Boss}|{string.Join(",", areas)}";
+        }
+    }
 
     /// <summary>
     ///     The person a shelter comes from: the add named in the shelter's buff id (asala_sand_shield, Sekhema Asala) whose script plays

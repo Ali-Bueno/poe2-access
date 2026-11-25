@@ -150,6 +150,11 @@ namespace Poe2Accessibility
                 this.objectSounds.SoundSet = settings.ItemSounds;
             }
 
+            if (this.entities != null)
+            {
+                this.entities.NameKnownWays = settings.NameKnownWays;
+            }
+
             if (this.leftBehind != null)
             {
                 this.leftBehind.Gain = Fraction(settings.RadarVolume);

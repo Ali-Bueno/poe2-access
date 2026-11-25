@@ -230,7 +230,7 @@ namespace Poe2Accessibility.Services
                     fresh.RemoveAll(line => node.TooltipNews.Contains(line) && this.JustNarrated(line));
                 }
 
-                if (fresh.Count > 0)
+                if (fresh.Count > 0 && !FocusDetails.Detailed(said, node.Tooltip))
                 {
                     this.Speak("tooltip of focus", Announcements.Sentences(fresh), FocusDetails.LineSwapped(said, node.Tooltip));
                 }

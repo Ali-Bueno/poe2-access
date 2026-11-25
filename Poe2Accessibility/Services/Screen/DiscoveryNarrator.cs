@@ -145,7 +145,11 @@ namespace Poe2Accessibility.Services
             // height (user 2026-11-11). The straight line alone said "abajo" for the Dreadnought's far boss room, the scanner
             // "izquierda 3, luego arriba a la izquierda" for the near one, both "Sala del jefe" (owner, 2026-11-18).
             Vector2 Offset(ScanEntry entry) => new Vector2(entry.WorldX, entry.WorldY) - here;
-            string Found(ScanEntry entry) => this.catalog.Describe(entry with { Name = Announcements.Discovered(entry, Near(entry)) });
+            var quest = entries.Where(entry => entry.Category == ScanCategory.Quest).Select(entry => entry.Id).ToHashSet();
+            string Named(ScanEntry entry) => entry.Category == ScanCategory.Exits && this.catalog.IsQuestGoal(entry, quest)
+                ? Announcements.QuestPlace(Announcements.Discovered(entry, Near(entry)))
+                : Announcements.Discovered(entry, Near(entry));
+            string Found(ScanEntry entry) => this.catalog.Describe(entry with { Name = Named(entry) });
             // Said once, ever: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in and it was never heard (2026-11-05).
             this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(Found)), urgent: true);
             if (this.sound != null)

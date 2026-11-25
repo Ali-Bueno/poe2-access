@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
         private const int ArrivalMs = 2500;
 
         /// <summary>What the player sees walking by: the ground the mod counts as seen.</summary>
-        private const float PassingCells = ExplorationMap.SeenRadiusCells;
+        private const float PassingCells = ExplorationMap.LookCells;
 
         /// <summary>A campaign ritual's altar, known for the whole map (Freythorn's four stood on its rooms' altars, 2026-11-23).</summary>
         private const string AltarPath = "Leagues/Ritual/RitualRuneObject";

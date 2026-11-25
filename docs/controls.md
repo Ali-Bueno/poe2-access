@@ -99,7 +99,9 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   where it goes on, nearest first; then "Small unexplored ground", a room or a short branch that soon ends; then
   "Unexplored nook" where one look from its edge would show it all, a dead end. The size is of the ground you would
   reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
-  the wall. It never says where the exit is; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  the wall. An exit not known yet is never told; ground that leads to a place you know of and have not reached (an exit
+  already listed, a boss room the map points to, what the quest asks) says so: "Large unexplored ground, toward The
+  Grelwood", with "your quest" after it when the quest is in that very area (setting "Say which known place a fork's way or unexplored ground leads to"). Ground within about 80 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too; "Essence: Blood Cretin", a crystal holding a
@@ -148,6 +150,12 @@ closed"; the ping goes on by itself once the barrier opens.
 **Guide without confirming** (setting "Guide to the scanner's choice without confirming", Navigation, off by default): the
 ping starts on whatever the scanner names, as in the D2R mod, and the next flick moves it to the next choice. Nothing extra
 is said. The same gesture turns it off.
+
+**Exploring** (setting "Guide to unexplored ground goes on to the next", Navigation, on by default): guiding to an unexplored
+entry does not end there. Near the ground it led to, once you have seen it, the guide takes the unseen ground beside it
+without a word, the ping going on; when that way is done it says the next, "Next: Unexplored ground, 40 steps, down left".
+It ends with "Nothing left to explore within reach but nooks"; the same gesture turns it off. It knows only what you have
+seen: which way to take at a fork is still yours.
 
 ## Glance at the map (gameplay)
 
@@ -417,6 +425,16 @@ counted), "Nothing highlighted", and "Search cleared" when you hold L3 to clear 
 stays quiet there). A lit item under the cursor says "highlighted" after its name. A stash opened with a search still in
 its field says what it lights as the cursor enters the grid.
 
+**Comparing with what you wear (R3, "Compare").** The view opens with the difference, for each worn item it shows (both
+rings): "Compared with Armageddon Horn, Felt Cap, Equipped. Evasion Rating: 127, the worn one 81. +27 to maximum Mana, the
+worn one +14. +9% to Fire Resistance, the worn one +15%. Only the worn one: +56 to maximum Life; 40% increased Evasion
+Rating; …" — then "Only this one" and "The same in both" when there are such lines. Ranges and tiers are left out of it and
+a stat several modifiers give is added up. Tap L3 to walk it line by line, then the worn item whole, then this one; double
+tap goes back, hold reads it all. The D-pad moves over the game's links and modifier tiers: the item is named when the
+cursor passes to the other one ("Equipped, Armageddon Horn, Felt Cap"), and a modifier is said with its range, tier and kind
+("+9% to Fire Resistance, range 6-10, T8, Suffix"). A explains a link, B comes back, R3 closes. Hold R3 turns the advanced
+details off and on. On an item you wear, or one with nothing to set it against, R3 reads its modifiers that way.
+
 **An item you cannot use** says which requirement is missing right after its name: "Doom Chant, rare, column 3, row 3,
 Cannot use: 21 Int", then the whole tooltip.
 
@@ -569,6 +587,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   And to the way out of a boss's walls (Kabala's bone cage, before her blast): "Muros: sigue el latido hasta la salida,
   arriba", or with no way out on foot "Muros por todos lados: sigue el latido y rompe uno, izquierda" (the beat leads to
   the nearest wall); "Fuera de los muros" once you are out. Not heard in the game yet.
+  And to where the safe clone stops when a boss freezes time (Yama): "Zona segura: sigue el latido, arriba, 5 pasos", the
+  way again when it changes ("izquierda, 3 pasos"), and "Dentro, quédate" once you are in it. Not heard in the game yet.
 - **Dodge warning:** a blade drawn over a low gong, diving into a deep bass drop on the moment to dodge (metal and
   bass, so it is not taken for the radar's breath of open floor; the drop needs headphones or speakers with some
   bass, the blade is heard anywhere), on the side of a rare or
@@ -653,6 +673,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   exit: Clearfell, up left", "New checkpoint, near Clearfell Encampment, down right", "Boss in sight: The Bloated
   Miller, right" (`AnnounceDiscoveries`). The direction is where it lies on the screen, in a straight line, and the
   chime comes from that side, higher above you and lower below.
+  An exit straight to the area the quest asks for says it: "New exit: The Grelwood, your quest".
   Said once, so it holds through a fight for a moment; other spoken news waits behind it.
 - Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
   Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on

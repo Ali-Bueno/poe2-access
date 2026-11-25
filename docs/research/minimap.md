@@ -46,10 +46,26 @@ bubble, and the unit of the pointer distance.
   seen (fair-play rule). Sighting it by any piece of its building was offered and declined by the owner ("si está bien
   así déjalo").
 
+## The fog (measured 2026-11-25, a Mercenary with no light radius, screenshots of the large map)
+
+- The map clears a **disc of 80 cells** around the player (146 pixels of its edge, scale fitted from the checkpoint and the
+  exit's icons and a walk between two shots: mean 79-82, spread 1). The mod took 60 (half the screen's height) until then;
+  `ExplorationMap.SeenRadiusCells` is 80 and the screen's look, for dead ends, places and cues, stays 60 (`LookCells`).
+- **The game draws the edge of unexplored ground itself:** a blue line along the walkable ground's border with the fog, on
+  the large map and the minimap. The scanner's unexplored places, the radar's pips and the exploring guide are that line.
+- Light radius widens the disc (poe2db: "the radius within which terrain and points of interest are revealed on the map");
+  the stat is `light_radius_+%` (Stats row 1210), its effect on the radius not measured, not read by the mod.
+- Two quest objects known to the client 177 to 321 cells off in the fog drew nothing (out of play, so their icons may have
+  been hidden). Icons in play over fog: still UNSURE.
+
 ## Scanner rule
 - Enemies: while on screen (the minimap draws no campaign monsters).
-- Things with a minimap icon (exits, waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the
-  client has them; the game draws their icon or the edge pointer.
+- Things with a minimap icon (waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the client has them;
+  the game draws their icon or the edge pointer. An exit to another area (not on a Trial's floor): within its icon's pointer
+  reach (`MinimapPointer.Drawn`), on screen or on explored ground. Until 2026-11-25 at any distance: in the Halls of the Dead (G4_4_2) the client had the exit "La prueba de los ancestros" 429 steps off (about
+  3,950 cells) three seconds after arriving and "Nueva salida: …, tu misión" was said (the owner: "¿está el minimapa mostrando
+  esto o es el mod que se ha vuelto loco?"). `Entrance` reaches 250 cells, as 1,011 of the 1,050 rows; only eight reach map-wide
+  (100000) and none is an exit. What the quest's own icon marks is still in the Quest category at any distance.
 - Characters (NPCs) out of a town or hideout: only within their icon's pointer reach (+0x12; "NPC" 250 cells), on screen or
   on explored ground (`MinimapPointer.Drawn`). The client knows some quest characters map-wide from the arrival: in
   Santuarios enterrados (Act 2, 2026-11-17) the Water Goddess (`Metadata/NPC/Four_Act2/WaterGoddessUnnamed`) was listed the

@@ -69,6 +69,7 @@ namespace Poe2Accessibility.Services
         private readonly List<(int Node, string Button)> walkGlyphs = new();
         private readonly List<(int Node, string Unit)> walkUnits = new();
         private readonly List<(int Node, int Set)> walkSetIcons = new();
+        private readonly List<(int Node, string Art)> walkMapPictures = new();
 
         /// <summary>The parts of tab controls met in the layer being walked, by their control, and one entry per end button already given its legend.</summary>
         private readonly List<int> walkTabBars = new();
@@ -115,6 +116,9 @@ namespace Poe2Accessibility.Services
             this.log = log;
             Task.Run(this.RunAsync);
         }
+
+        /// <summary>The world map legend's word for a picture (<see cref="MapContentIcons"/>), empty for none.</summary>
+        public Func<string, string> MapLegendWord { get; set; } = _ => string.Empty;
 
         /// <summary>Latest snapshot (render thread reads it to know which layer owns input).</summary>
         public ScreenSnapshot Current { get; private set; } = ScreenSnapshot.Empty;

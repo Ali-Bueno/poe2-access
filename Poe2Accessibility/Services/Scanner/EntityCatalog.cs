@@ -52,7 +52,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Closed barriers seen in this area by entity id (grid position), kept past the network bubble.</summary>
         private readonly Dictionary<uint, Vector2> closedBarriers = new();
         private readonly ClosedDoors doors = new();
-        private (string Area, string Language, string[] Texts, IReadOnlyCollection<string> Names) leadsTo = (string.Empty, string.Empty, Array.Empty<string>(), Array.Empty<string>());
+        private (string Area, string Language, string[] Texts, IReadOnlyCollection<string> Names, IReadOnlyCollection<string> Goals) leadsTo =
+            (string.Empty, string.Empty, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>());
 
         /// <summary>Where each quest step leads, by the game's tables (set by the plugin).</summary>
         public QuestGoalCatalog QuestGoals { get; set; } = QuestGoalCatalog.Empty;

@@ -36,6 +36,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a text lies in another card of the shop's list than the focused card (text, focus).</summary>
         public Func<IntPtr, IntPtr, bool>? InAnotherShopCard { get; set; }
 
+        /// <summary>Whether a text lies in a card of inspect mode. Set by the plugin.</summary>
+        public Func<IntPtr, bool>? InInspectCard { get; set; }
+
+        /// <summary>Whether the inspect card of a focus shows the advanced details; null when it has no modifiers. Set by the plugin.</summary>
+        public Func<IntPtr, bool?>? InspectAdvanced { get; set; }
+
+        /// <summary>What a layer of inspect mode says when nothing in it takes the cursor; empty for another layer. Set by the plugin.</summary>
+        public Func<IntPtr, string>? InspectOpening { get; set; }
+
+        private bool? inspectAdvanced;
+
         /// <summary>Whether the microtransaction shop is the panel shown. Set by the plugin.</summary>
         public Func<bool>? ShopShown { get; set; }
 

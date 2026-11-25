@@ -64,6 +64,15 @@ namespace Poe2Accessibility.Services
         private const float CornerToleranceGrid = 3f;
         private const float MinLegGrid = 5f;
 
+        /// <summary>Unseen ground farther than two looks from the last is another way, said; nearer it is the same way going on.</summary>
+        private const float ApartCells = 2 * ExplorationMap.SeenRadiusCells;
+
+        /// <summary>The guide goes on once this near the ground it led to (half a look): nearer legs turned at every step in open ground.</summary>
+        private const float ExploreOnCells = ExplorationMap.SeenRadiusCells / 2;
+
+        /// <summary>When the unexplored ground guided to was found seen; null while it is not.</summary>
+        private long? goalSeenAt;
+
         /// <summary>One spoken step (EntityCatalog), and the probe used to read the camera's axes.</summary>
         private const float StepWorld = 100f;
         private const float ProbeOffset = 100f;
@@ -88,6 +97,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The partial way in use is only as far as the last search got (<see cref="WayCut.Long"/>), not closed.</summary>
         private bool routeSpent;
         private Vector2? lastTurn;
+        private int? lastTurnWay;
         private bool partialRoute;
 
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
@@ -164,6 +174,8 @@ namespace Poe2Accessibility.Services
             this.listedAs = entry.Category;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             this.lockedIn = (area.Address, area.AreaHash ?? string.Empty);
+            this.goalSeenAt = null;
+            this.lastTurnWay = null;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
             this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
@@ -224,7 +236,13 @@ namespace Poe2Accessibility.Services
                 this.StartSearch(here / gridSize, new Vector2(goal.WorldX, goal.WorldY) / gridSize);
             }
 
+            if (this.ExploreOn(goal, here, gridSize, now))
+            {
+                return;
+            }
+
             this.CollectSearch();
+            var exploring = this.goalSeenAt != null; // the next ground is being worked out: no arrival yet
             var away = Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY));
             var escort = this.catalog.IsEscort(goal.Id);
             if (escort && this.Beside(goal, away))
@@ -234,7 +252,11 @@ namespace Poe2Accessibility.Services
 
             if (away <= ArrivalWorld)
             {
-                this.Arrive(goal);
+                if (!exploring)
+                {
+                    this.Arrive(goal);
+                }
+
                 return;
             }
 
@@ -248,11 +270,11 @@ namespace Poe2Accessibility.Services
             var remainingWorld = BeaconMath.Remaining(path, from, playerGrid) * gridSize;
             if (remainingWorld <= ArrivalWorld)
             {
-                if (!this.partialRoute && !escort)
+                if (!this.partialRoute && !escort && !exploring)
                 {
                     this.Arrive(goal);
                 }
-                else if (this.partialRoute && !this.routeSpent)
+                else if (this.partialRoute && !this.routeSpent && !exploring)
                 {
                     // Only a way that stops short is closed. An escort's whole way ends where it stood at the search: it walked
                     // on, and each new search allowed the line again, every 700 ms after Alva in the past (2026-11-20).
@@ -278,6 +300,62 @@ namespace Poe2Accessibility.Services
             this.LastAim = (screen, remainingWorld);
             var (pan, pitch) = BeaconMath.Voice(screen);
             this.audio.Play(this.ping, pan, pitch, this.Gain, "beacon");
+        }
+
+        /// <summary>The guide to unexplored ground goes on to the next as it is seen (setting GuideExplores).</summary>
+        public bool Explores { get; set; } = true;
+
+        private bool Exploring => this.Explores && this.target is { Category: ScanCategory.Unexplored } goal && goal.Kind != ClosedDoors.Kind;
+
+        /// <summary>
+        ///     Exploring: the guide, near the ground it led to and that ground seen, takes the unseen ground beside it, the same
+        ///     way going on, without a word; with none there, the nearest by the walk, said. True when the target changed.
+        /// </summary>
+        private bool ExploreOn(ScanEntry goal, Vector2 here, float gridSize, long now)
+        {
+            var at = new Vector2(goal.WorldX, goal.WorldY) / gridSize;
+            if (!this.Exploring ||
+                Vector2.Distance(here / gridSize, at) > ExploreOnCells || !this.catalog.IsSeen(at))
+            {
+                this.goalSeenAt = null;
+                return false;
+            }
+
+            if (this.goalSeenAt is not { } seenAt)
+            {
+                this.goalSeenAt = now;
+                this.catalog.HurryUnexplored();
+                return false;
+            }
+
+            var (known, next) = this.catalog.NextUnexplored(seenAt, at, ApartCells);
+            if (!known)
+            {
+                return false;
+            }
+
+            if (next == null)
+            {
+                this.output.Say(SpeechKind.Arrivals, Announcements.ExploreDone);
+                this.Clear(false);
+                return true;
+            }
+
+            var apart = Vector2.Distance(at, new Vector2(next.WorldX, next.WorldY) / gridSize) > ApartCells;
+            var (locked, turnWay) = (this.lockedAt, this.lastTurnWay);
+            this.Aim(next);
+            if (apart)
+            {
+                this.output.Say(SpeechKind.Arrivals, Announcements.ExploreNext(this.catalog.Describe(next, out var cut, out var longWay)));
+                this.news.Aim(cut, longWay);
+            }
+            else
+            {
+                (this.lockedAt, this.lastTurnWay) = (locked, turnWay); // the ping goes on: only a spoken lock is followed by silence
+                this.news.Aim(false, false);
+            }
+
+            return true;
         }
 
         /// <summary>Test aid (dev command "beacon"): target, route, search and ping state.</summary>
@@ -318,6 +396,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastTurn = turn;
+            if (this.Exploring && legs[0].Direction == this.lastTurnWay)
+            {
+                return; // each leg of the exploring guide is a new route: the same way on is no turn
+            }
+
+            this.lastTurnWay = legs[0].Direction;
             var steps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorld));
             this.output.SpeakReading(Announcements.RouteTurn(Announcements.StickDirections[legs[0].Direction], steps));
         }

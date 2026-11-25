@@ -34,6 +34,9 @@ internal static class WorldTitleExtractor
     private const string PinTownKey = "WorldPanelPinPopupTown";
     private const string PinTownEntry = "label:pin-town";
 
+    /// <summary>The world map's legend: the word for each picture ("legend:WorldMapContentBoss", "Boss Encounter").</summary>
+    private const string LegendPrefix = "legend:";
+
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
     /// <summary>What the box says under its title, a ClientStrings key too: what the object is for.</summary>
@@ -45,6 +48,9 @@ internal static class WorldTitleExtractor
 
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
     private static readonly Regex Colour = new(@"^<\w+>\{(.*)\}$", RegexOptions.Compiled);
+
+    /// <summary>A size around a legend's word (the Thai table's "&lt;size:32&gt;{…}").</summary>
+    private static readonly Regex Sized = new(@"^<[^>]+>\{(.*)\}$", RegexOptions.Compiled);
 
     /// <summary>A linked word, "[Honour|Honor]" or "[Honour]", shown as its last half, up to the colon of the line.</summary>
     private static readonly Regex LinkedLabel = new(@"^\[(?:[^|\]]*\|)?([^\]]*)\]", RegexOptions.Compiled);
@@ -115,6 +121,22 @@ internal static class WorldTitleExtractor
         }
 
         var iconLabel = search.Text(englishIcons, iconAnchor.Column, iconAnchor.Measured, known: (DatColumnSearch.RowOf(englishIcons, iconAnchor.Id), text => text == iconAnchor.Name));
+        // The map legend's words are extra: without them a picture is said without its kind.
+        var legendAnchor = NameAnchor.MapLegends;
+        var englishLegends = DatTable.Open(index, legendAnchor.Table);
+        var (legendArt, legendName) = (-1, -1);
+        if (englishLegends != null)
+        {
+            var legendSearch = new DatColumnSearch();
+            var boss = DatColumnSearch.RowOf(englishLegends, legendAnchor.Id);
+            legendName = legendSearch.Text(englishLegends, legendAnchor.Column, legendAnchor.Measured, known: (boss, text => text == legendAnchor.Name));
+            legendArt = legendSearch.Text(englishLegends, "WorldMapLegends.Art", 0x8, known: (boss, text => text.EndsWith("/WorldMapContentBoss", StringComparison.Ordinal)));
+            if (!legendSearch.Report("world-titles legend"))
+            {
+                englishLegends = null;
+            }
+        }
+
         if (!search.Report("world-titles") || strings is not { } columns)
         {
             return 1;
@@ -195,6 +217,16 @@ internal static class WorldTitleExtractor
                 if (icons.String(row, 0) is { Length: > 0 } id && icons.StringOrNull(row, iconLabel)?.Trim() is { Length: > 0 } shownOnMap)
                 {
                     titles[IconPrefix + id] = shownOnMap;
+                }
+            }
+
+            var legends = englishLegends == null || folder == null ? englishLegends : DatTable.OpenTranslated(index, legendAnchor.Table, folder);
+            for (var row = 0; legends != null && ClientStringColumns.SameShape(englishLegends!, legends) && row < legends.RowCount; row++)
+            {
+                if (englishLegends!.StringOrNull(row, legendArt) is { } art && art[(art.LastIndexOf('/') + 1)..] is var picture &&
+                    picture.StartsWith("WorldMap", StringComparison.Ordinal) && legends.StringOrNull(row, legendName)?.Trim() is { Length: > 0 } word)
+                {
+                    titles[LegendPrefix + picture] = Sized.Replace(word, "$1");
                 }
             }
 

@@ -183,6 +183,38 @@ a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknow
   de la corrupción / Reconstruye el Cuerno de Vastiri") and its content pins. `MapPinNarrator` tells the pin from its data only
   when its words were not said since the cursor reached it, so the quests still come from the screen reading.
 
+## 7. What the world map's pictures say (0.5.5f, MEASURED live 2026-11-25, kehgan, Monk 53)
+
+The owner, lost among Act 4's islands: "Isla de los alcaudones. Nivel de monstruos: 50. … Azote de los cielos. Trozo de mapa
+rasgado" did not say what was done; "if a sighted player sees it, I want it". A sighted player does (screenshots):
+
+- Each thing within an area (boss, chest, torn map piece) is a picture on the map and a row of the area's popup, **grey and
+  crossed out once done**: `WorldMapContentBoss` / `WorldMapContentBossDone`, `Act4/WorldMapContentTreasureMapFragments2` /
+  `…2Done`. A popup row and a row of "Inspeccionar puntos de interés" (R3) are a picture and a text side by side; the picture's
+  texture key tells the state (`MapContentIcons`, `ScreenWatcher.PairMapPictures`, `UiSemantics.MapPointOfInterest`).
+- The kind is the map legend's word for the picture, `WorldMapLegends` (Id, art +0x8, name +0x10; 14 pictures), in
+  `world-titles.json` as `legend:<picture>`.
+- MapPins has a row per state (`G4_7_ScourgeBoss` / `…Killed`): +0x38 the flags that show it (`Visited-G4_7`,
+  `G4_7ScourgeKilled`), +0x84 the area's own pin, +0xC5 the done mark (189 rows). Seven done pictures do not end in "Done"
+  (`MapContentIcons.OtherDone`).
+- Area pins: "?" never entered, a ring, a blue swirl with the waypoint active. The pin element keeps +0x318 known, +0x319
+  entered, +0x31E waypoint active, +0x31F 0 on the quest and waypoint maps and 3 on a travel map (576 pins of all acts read; the
+  only area shown and not entered was the one with the "?"). On a travel map the bytes are the stops' (the unentered island
+  read as entered), so there an area is entered when one of its things is drawn.
+- A travel map (Makoru's ship, the caravan's desert map) shows every stop with the same marker and a popup of name and level
+  only; the things are drawn beside it. The mod says the stop's area and what lies behind it (`QuestGoalCatalog.Behind`: the
+  connections table, not through towns or other stops): "Visitada. Tatuajes ancestrales, Salones de los muertos, Objeto notable,
+  pendiente. Completado: Descanso de Navali, Yama, el Blanco". A caravan stop's area is told by name (its row has the town's).
+- **The game's Spanish tables name the ship's marker of Isla del clan "Marca del rey"** (`G4_ShipMarker_IsleOfKin` +0x28): the
+  screen shows the town's name over the island. The only one of its kind in the ten languages. The mod adds "El juego la
+  nombra mal: es Isla del clan" whenever a marker has another area's name.
+- Act 4's islands take the level of the order they are played in: the popup said 50 and the table 46, which the mod said after
+  it. The level now comes from the popup, the table only without one.
+- The four torn map pieces (El buscador de runas): Isla del clan, Bahía de las anclas, Isla Whakapanu, Isla de los alcaudones.
+- Heard live the same day: popups and list of points of interest, the ship's and the caravan's maps, the quest map of acts 2
+  and 4. UNSURE: an area whose waypoint exists and is not active (the legend's fourth picture) reads "Visitada, sin
+  transportador activo" like an area without one.
+
 ## Priority for the next live session
 1. Atlas (largest unknown, best prepared: GameHelper already has nodes/edges/status; build the navigator offline).
 2. Ascendancy toggle (cheap: one dump with the view on/off).

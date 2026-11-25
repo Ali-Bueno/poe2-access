@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
+    using TableLine = Poe2Accessibility.Services.InspectLine; // the table's line, not UiSemantics.InspectLine (the Compare view's)
 
     /// <summary>
     ///     Item Inspect Mode for <see cref="UiSemantics"/> (docs/research/ui-layers.md, "Item Inspect Mode"): the items its
@@ -215,7 +216,7 @@ namespace Poe2Accessibility.Services
         ///     One item of the table: its tooltip's lines, its rarity after its title (as the item line says it), and its
         ///     sockets where the mod's socket sentence goes, both left out when its entity cannot be read.
         /// </summary>
-        private InspectItem InspectItem((string Title, IReadOnlyList<InspectLine> Lines) read, IntPtr entity, bool worn, string? slot)
+        private InspectItem InspectItem((string Title, IReadOnlyList<TableLine> Lines) read, IntPtr entity, bool worn, string? slot)
         {
             var lines = read.Lines.ToList();
             if (this.inventory.ItemRarity(entity) is { } rarity && rarity != Rarity.Normal)
@@ -228,11 +229,11 @@ namespace Poe2Accessibility.Services
                 // The socket sentence takes the runes' lines and goes where the first of them was (UiSemantics.Sockets).
                 var said = this.WithSockets(entity, lines.Skip(1).Select(line => line.Match).ToList());
                 var left = lines.Skip(1).ToList();
-                var withSockets = new List<InspectLine> { lines[0] };
+                var withSockets = new List<TableLine> { lines[0] };
                 foreach (var text in said)
                 {
                     var index = left.FindIndex(line => line.Match == text);
-                    withSockets.Add(index >= 0 ? left[index] : new InspectLine(text, InspectRows.SocketsMatch));
+                    withSockets.Add(index >= 0 ? left[index] : new TableLine(text, InspectRows.SocketsMatch));
                     if (index >= 0)
                     {
                         left.RemoveAt(index);

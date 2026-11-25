@@ -8,6 +8,12 @@ namespace Poe2Accessibility
         /// <summary>"Guiding to Clearfell, 116 steps, down 3, then left" (the scanner's route description).</summary>
         public static string BeaconLocked(string described) => T($"Guiding to {described}", $"Guiando hacia {described}");
 
+        /// <summary>The exploring guide goes on to ground apart from what it led to: "Siguiente: zona sin explorar, 40 pasos, abajo".</summary>
+        public static string ExploreNext(string described) => T($"Next: {described}", $"Siguiente: {described}");
+
+        /// <summary>The exploring guide has no ground that goes on left; nooks may be.</summary>
+        public static string ExploreDone => T("Nothing left to explore within reach but nooks", "Solo quedan rincones por explorar a tu alcance");
+
         /// <summary>The guide reached a turn: "Now up right, 12".</summary>
         public static string RouteTurn(string direction, int steps) => T($"Now {direction}, {steps}", $"Ahora {direction}, {steps}");
 

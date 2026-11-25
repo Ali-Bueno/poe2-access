@@ -342,11 +342,11 @@ namespace Poe2Accessibility.Tests
             var map = new ExplorationMap();
             map.Visit(player, width, height);
             var way = map.WayOn(grid, width / 2, player, goal);
-            Equal(true, way is { X: > 100 and < 140, Y: > 94 and < 106 }, "the east corridor, at the edge of the seen ground, not the north way nor the goal");
+            Equal(true, way is { X: > 100 and < 160, Y: > 94 and < 106 }, "the east corridor, at the edge of the seen ground, not the north way nor the goal");
             Equal(null, map.WayOn(grid, width / 2, player, new System.Numerics.Vector2(220, 180)), "no ground leads to a walled-off room");
             var further = new System.Numerics.Vector2(200, 100);
             map.Visit(further, width, height);
-            Equal(true, map.WayOn(grid, width / 2, further, goal) is { X: > 240 and < 280 }, "the way moves on with the player");
+            Equal(true, map.WayOn(grid, width / 2, further, goal) is { X: > 260 and < 300 }, "the way moves on with the player");
             var seen = map.SeenBlocks;
             map.Visit(goal, width, height);
             Equal(true, map.SeenBlocks > seen, "new ground counts");

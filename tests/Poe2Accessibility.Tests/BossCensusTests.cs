@@ -282,6 +282,11 @@ namespace Poe2Accessibility.Tests
             var clone = new BossObject("Metadata/Monsters/YamaBoss/objects/YamaFutureClone", Script(ObjectScript));
             var notClone = new BossObject("Metadata/Monsters/YamaBoss/objects/YamaPlayerProxy", Script(ObjectScript));
             Equal($"clone|{Boss}|Metadata/Monsters/YamaBoss/objects/YamaFutureClone|chosen_one", string.Join(";", Lines(Fight(objects: new[] { clone, notClone }), "clone")), "a clone's marking state");
+            var ways = new[] { "YamaFutureClonePath", "YamaFutureClonePathStart", "YamaFutureClonePathEnd" }.Select(name => new BossObject("Metadata/Monsters/YamaBoss/objects/" + name, NoScript)).ToList();
+            var skills = new[] { Skill("GSSlam", area: true), Skill("Roar") };
+            Equal($"clonepath|{Boss}|Metadata/Monsters/YamaBoss/objects/YamaFutureClonePath", string.Join(";", Lines(Fight(objects: ways.Append(clone).ToList(), skills: skills), "clonepath")), "the way its clones walk");
+            Equal($"areas|{Boss}|GSSlam", string.Join(";", Lines(Fight(objects: new[] { clone }, skills: skills), "areas")), "the skills with an area, where clones are");
+            Equal(string.Empty, string.Join(";", Lines(Fight(objects: ways, skills: skills), "areas")), "no marked clone: neither");
         }
 
         private static void ARefugeIsThePersonTheShelterIsNamedFor()

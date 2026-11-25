@@ -13,8 +13,8 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed partial class MapTopology
     {
-        /// <summary>What one look shows (π · 60², <see cref="ExplorationMap.SeenRadiusCells"/>): a branch smaller than this is a nook.</summary>
-        public const int RevealDiscCells = (int)(Math.PI * ExplorationMap.SeenRadiusCells * ExplorationMap.SeenRadiusCells);
+        /// <summary>What one look shows (π · 60², <see cref="ExplorationMap.LookCells"/>): a branch smaller than this is a nook.</summary>
+        public const int RevealDiscCells = (int)(Math.PI * ExplorationMap.LookCells * ExplorationMap.LookCells);
 
         /// <summary>
         ///     A passage at most this many cells wide (about 90 world units, a quarter of the Manor's usual corridor) is narrow:
@@ -238,6 +238,57 @@ namespace Poe2Accessibility.Services
             var dead = this.Judge(this.Beyond(node, way.Edge), way.Edge, this.nodeBlock[node]);
             info = dead ?? default;
             return dead != null;
+        }
+
+        /// <summary>The way out of <paramref name="node"/> the shortest walk to <paramref name="goal"/> takes; null when the goal stands in it or on other ground.</summary>
+        public Way? WayToward(int node, Vector2 goal)
+        {
+            var item = this.ItemAt(goal, GoalSlackCells);
+            if (item < 0 || item == node || node < 0 || node >= this.nodes.Length || this.PieceOf(item) != this.nodes[node].Piece)
+            {
+                return null;
+            }
+
+            // Walks to the goal from every place, outward from it; a goal on a way counts half of it from either end.
+            var walks = new Dictionary<int, float>();
+            var queue = new PriorityQueue<int, float>();
+            var goalEdge = item - this.nodes.Length;
+            if (goalEdge < 0)
+            {
+                queue.Enqueue(item, 0f);
+            }
+            else
+            {
+                queue.Enqueue(this.edges[goalEdge].A, this.edges[goalEdge].Length / 2);
+                queue.Enqueue(this.edges[goalEdge].B, this.edges[goalEdge].Length / 2);
+            }
+
+            while (queue.TryDequeue(out var at, out var walk))
+            {
+                if (at == node || !walks.TryAdd(at, walk))
+                {
+                    continue; // a walk back through the place itself is none of its ways' own
+                }
+
+                foreach (var way in this.ways[at])
+                {
+                    queue.Enqueue(way.To, walk + this.edges[way.Edge].Length);
+                }
+            }
+
+            Way? best = null;
+            var shortest = float.MaxValue;
+            foreach (var way in this.ways[node])
+            {
+                var length = this.edges[way.Edge].Length;
+                var walk = way.Edge == goalEdge ? length / 2 : walks.TryGetValue(way.To, out var rest) ? length + rest : float.MaxValue;
+                if (walk < shortest)
+                {
+                    (best, shortest) = (way, walk);
+                }
+            }
+
+            return best;
         }
 
         /// <summary>The places worth reaching (exits, quest targets, unfound boss rooms): ground holding one is never a dead end.</summary>

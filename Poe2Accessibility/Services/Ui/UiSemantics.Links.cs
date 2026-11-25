@@ -56,7 +56,7 @@ namespace Poe2Accessibility.Services
                 // The stat list's section ("Escudo de energía" over its rows): said as the links move into it.
                 Group = group,
                 IsVisible = this.elements.IsVisible(info),
-                Context = this.InGame ? this.PanelTitle(info) : string.Empty,
+                Context = this.InGame && this.PanelTitle(info) is { Length: > 0 } title ? title : this.InspectViewAround(info),
                 Tooltip = this.Definition(info),
             };
         }
@@ -81,7 +81,7 @@ namespace Poe2Accessibility.Services
             }
 
             rowElement = null;
-            return sentence == keyword ? string.Empty : sentence;
+            return sentence == keyword ? string.Empty : Announcements.Flatten(sentence);
         }
 
         /// <summary>A keyword link's hover tooltip: the keyword as title (dropped), then its definition (character stats).</summary>

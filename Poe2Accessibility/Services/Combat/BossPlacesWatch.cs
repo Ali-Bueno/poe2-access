@@ -20,6 +20,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A helper walks toward the player: looked for this often (ms), between the boss watch's own polls.</summary>
         private const int PollMs = 300;
 
+        /// <summary>While a fight's clones walk, at each poll of the boss watch (150 ms): seconds decide.</summary>
+        private const int ClonePollMs = 100;
+
+        /// <summary>The true clone's place is logged this often (ms) while the player is led to it.</summary>
+        private const int CloneLogMs = 500;
+
         /// <summary>A boss arena around the boss (world units), as <see cref="WeakPointGuide"/> takes it.</summary>
         private const float ArenaWorld = 2000f;
 
@@ -28,13 +34,19 @@ namespace Poe2Accessibility.Services
         private readonly EntityPlaces positions;
         private readonly PluginLog log;
         private readonly BossPlaces places = new();
+        private readonly ClonePaths clonePaths = new();
+        private readonly SafeSpotGuide safeSpot = new();
+        private readonly List<ClonePathMarker> markers = new();
         private readonly RefugeEnd refugeEnd = new();
         private readonly BossHelperWarnings helperWarnings = new();
         private readonly Dictionary<uint, string> names = new();
-        private readonly Dictionary<uint, (IReadOnlyList<BossPlaceRule> Rules, string? Helper)> kinds = new();
+        private readonly Dictionary<uint, (IReadOnlyList<BossPlaceRule> Rules, string? Helper, (string Stem, ClonePathRole Role)? Marker)> kinds = new();
         private readonly List<BossPlaceSight> sights = new();
         private readonly List<(uint Id, Vector2 At, AttackArea? Area)> helpers = new();
+        private (Vector2 At, float Radius)? cloneLead;
+        private bool clonesAbout;
         private long lastPoll;
+        private long lastCloneLog;
 
         public BossPlacesWatch(UiElementReader elements, HostMemoryReader memory, EntityPlaces positions, PluginLog log)
         {
@@ -48,10 +60,13 @@ namespace Poe2Accessibility.Services
         public Func<string, AttackArea?> AreaOf { get; set; } = _ => null;
 
         /// <summary>Where the heartbeat leads (world) and how wide the place is; null when nowhere.</summary>
-        public (Vector2 At, float Radius)? Lead => this.places.Lead;
+        public (Vector2 At, float Radius)? Lead => this.places.LeadKind == BossPlaceKind.Clone ? this.cloneLead : this.places.Lead;
 
         /// <summary>The kind of place the heartbeat leads to; null when nowhere.</summary>
         public BossPlaceKind? LeadKind => this.places.LeadKind;
+
+        /// <summary>The lines of the last poll that leave no time to wait: the way to the true clone, and that the player is there.</summary>
+        public IReadOnlyList<string> Urgent { get; private set; } = Array.Empty<string>();
 
         /// <summary>A shelter of the fight is up.</summary>
         public bool RefugeUp { get; private set; }
@@ -65,6 +80,12 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.places.Reset();
+            this.clonePaths.Reset();
+            this.safeSpot.Reset();
+            this.markers.Clear();
+            this.cloneLead = null;
+            this.clonesAbout = false;
+            this.Urgent = Array.Empty<string>();
             this.refugeEnd.Reset();
             this.helperWarnings.Reset();
             this.names.Clear();
@@ -83,6 +104,7 @@ namespace Poe2Accessibility.Services
         {
             this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
             this.Told = Array.Empty<string>();
+            this.Urgent = Array.Empty<string>();
             this.RefugeOver = false;
             if (fighting.Count == 0)
             {
@@ -94,7 +116,7 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<string>();
             }
 
-            if ((catalog.Places == 0 && catalog.Daemons == 0) || now - this.lastPoll < PollMs || !Seats.Followed.TryGetComponent<Render>(out var player))
+            if ((catalog.Places == 0 && catalog.Daemons == 0) || now - this.lastPoll < (this.clonesAbout ? ClonePollMs : PollMs) || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return Array.Empty<string>();
             }
@@ -102,6 +124,7 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             this.sights.Clear();
             this.helpers.Clear();
+            this.markers.Clear();
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
@@ -115,9 +138,15 @@ namespace Poe2Accessibility.Services
             this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
             this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
             this.RefugeOver = this.refugeEnd.Update(this.RefugeUp, now) && Seats.Followed.TryGetComponent<Life>(out var life) && life.IsAlive;
+            this.Urgent = this.PollClones(catalog, here, player, heartbeat, now);
             var (lines, told) = (new List<string>(), new List<string>());
             foreach (var news in this.places.Update(this.sights, here, player.ModelBounds.X, sheltered))
             {
+                if (news.Kind == BossPlaceKind.Clone)
+                {
+                    continue; // said by the safe spot's guide, with where it stops
+                }
+
                 this.log.Info($"Boss place: {news.Kind} {news.Name} to {news.To.X:0},{news.To.Y:0}, {Vector2.Distance(news.To, here):0} world units from the player");
                 (news.Pressing ? lines : told).Add(
                     Announcements.BossPlace(news.Kind, news.Name, ScreenProjection.Octant(player.WorldPosition, news.To - here), heartbeat && news.Pressing));
@@ -125,6 +154,46 @@ namespace Poe2Accessibility.Services
 
             this.Told = told;
             return lines;
+        }
+
+        /// <summary>The fight's clones: where each walks, and for the true one the lead and the lines to where it stops.</summary>
+        private IReadOnlyList<string> PollClones(BossMechanicsCatalog catalog, Vector2 here, Render player, bool heartbeat, long now)
+        {
+            var clones = this.sights.Where(sight => sight.Kind == BossPlaceKind.Clone).ToList();
+            this.clonesAbout = clones.Count > 0;
+            this.clonePaths.Update(this.markers, clones.Select(sight => (sight.Id, sight.At)).ToList(), now);
+            this.cloneLead = null;
+            var chosen = clones.Where(sight => sight.Active).Select(sight => (BossPlaceSight?)sight).FirstOrDefault();
+            var stopped = chosen is { } seen ? this.clonePaths.StoppedMs(seen.Id, now) : 0;
+            if (chosen is not { } clone || stopped >= SafeSpotGuide.StaleMs)
+            {
+                this.safeSpot.Reset();
+                this.sights.RemoveAll(sight => sight.Kind == BossPlaceKind.Clone); // its blow is past: no more a place of the fight
+                return Array.Empty<string>();
+            }
+
+            var end = this.clonePaths.EndOf(clone.Id);
+            var spot = end ?? clone.At;
+            var hole = catalog.AreaSkills(clone.Monster).Select(this.AreaOf)
+                .Where(area => area is { Shape: AttackAreas.Donut, Width: > 0f }).Select(area => (float?)area!.Value.Width).FirstOrDefault();
+            var radius = player.ModelBounds.X;
+            var news = this.safeSpot.Update(clone.Id, spot, end != null || stopped >= ClonePaths.SettledMs, here, radius, hole,
+                offset => ScreenProjection.Octant(player.WorldPosition, offset), now);
+            this.cloneLead = (spot, hole is { } inner ? SafeSpotGuide.BeatRadius(inner, radius) : clone.Radius);
+            if (news != null || now - this.lastCloneLog >= CloneLogMs)
+            {
+                this.lastCloneLog = now;
+                this.log.Info($"Boss clone: #{clone.Id} at {clone.At.X:0},{clone.At.Y:0}, {(end is { } to ? $"its way ends at {to.X:0},{to.Y:0}" : "no way fits")} of {this.clonePaths.Count}, " +
+                              $"stopped {stopped} ms, hole {hole?.ToString("0") ?? "?"}, player {here.X:0},{here.Y:0}, {Vector2.Distance(spot, here):0} from it, inside {this.safeSpot.Inside}");
+            }
+
+            return news switch
+            {
+                { Kind: SafeSpotNewsKind.First } first => new[] { Announcements.BossClone(hole != null, first.Octant, first.Steps, heartbeat) },
+                { Kind: SafeSpotNewsKind.Way } way => new[] { Announcements.BossCloneWay(way.Octant, way.Steps) },
+                { Kind: SafeSpotNewsKind.Inside } => new[] { Announcements.BossCloneReached },
+                _ => Array.Empty<string>(),
+            };
         }
 
         private void Note(BossMechanicsCatalog catalog, Entity entity, IReadOnlyList<(string Monster, Vector2 At)> fighting, Vector2 player, float playerRadius)
@@ -138,12 +207,17 @@ namespace Poe2Accessibility.Services
 
                 // Asked once per entity: most of an arena is neither a place nor a helper.
                 var path = BossMechanicsCatalog.MonsterId(entity.Path);
-                this.kinds[entity.Id] = kind = (catalog.PlaceRules(path), catalog.IsDaemon(path) ? path : null);
+                this.kinds[entity.Id] = kind = (catalog.PlaceRules(path), catalog.IsDaemon(path) ? path : null, catalog.ClonePath(path));
             }
 
-            if ((kind.Rules.Count == 0 && kind.Helper == null) || this.positions.Of(entity) is not { } at)
+            if ((kind.Rules.Count == 0 && kind.Helper == null && kind.Marker == null) || this.positions.Of(entity) is not { } at)
             {
                 return;
+            }
+
+            if (kind.Marker is { } marker)
+            {
+                this.markers.Add(new ClonePathMarker(entity.Id, marker.Stem, marker.Role, at));
             }
 
             if (kind.Helper is { } helper)
@@ -162,7 +236,7 @@ namespace Poe2Accessibility.Services
 
                 // A cover or a marker the game does not draw has a place and neither a name nor a size.
                 var (name, radius) = entity.TryGetComponent<Render>(out var render) ? (this.NameOf(entity.Id, render), render.ModelBounds.X) : (string.Empty, 0f);
-                this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, name, at, radius, this.IsActive(entity, rule), bossAt));
+                this.sights.Add(new BossPlaceSight(entity.Id, rule.Kind, entity.Path, name, at, radius, this.IsActive(entity, rule), bossAt) { Monster = rule.Boss });
                 return; // one place per entity: the catalog's first rule for this boss
             }
         }

@@ -355,6 +355,12 @@ namespace Poe2Accessibility
         /// <summary>The guide beacon starts on whatever the scanner names, with no press to confirm it (D2R).</summary>
         public bool AutoGuide;
 
+        /// <summary>The guide to unexplored ground goes on by itself to the next as it is seen, until the area's ground is explored.</summary>
+        public bool GuideExplores = true;
+
+        /// <summary>Unexplored ground and the ways of a fork say which known place (an exit, a boss room, the quest's) they lead to.</summary>
+        public bool NameKnownWays = true;
+
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area, and a barrier that opens.</summary>
         public bool AnnounceDiscoveries = true;
 

@@ -73,6 +73,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\RadarSynth.cs" Link="Plugin\RadarSynth.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ProximityTracker.cs" Link="Plugin\ProximityTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BeaconMath.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapAreaState.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\MapContentIcons.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\WalkingCharacters.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\UnmetRequirements.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SearchHighlightNews.cs" />
@@ -150,6 +152,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\InspectTableWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\InspectLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Inspect.cs" Link="Plugin\Announcements.Inspect.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemComparison.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Compare.cs" Link="Plugin\Announcements.Compare.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ComboIdentity.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\BaselineGrace.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\AreaBanner.cs" />
@@ -270,6 +274,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PositionedGridSearch.cs" Link="Plugin\PositionedGridSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossSignals.cs" Link="Plugin\BossSignals.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlaces.cs" Link="Plugin\BossPlaces.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\ClonePaths.cs" Link="Plugin\BossPlaces.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\SafeSpotGuide.cs" Link="Plugin\BossPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\RefugeEnd.cs" Link="Plugin\RefugeEnd.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlayerBuffs.cs" Link="Plugin\BossPlayerBuffs.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />

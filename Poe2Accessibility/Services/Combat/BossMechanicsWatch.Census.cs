@@ -64,7 +64,10 @@ namespace Poe2Accessibility.Services
         public Func<Vector2, bool>? HelperCue { get; set; }
 
         /// <summary>Where the heartbeat leads in a boss fight: a hiding boss, the way out of its walls, a place of its arena; null when nowhere.</summary>
-        public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? (this.EffectLead() is { } clear ? (clear, 0f) : this.WayOut is { } wayOut ? (wayOut, 0f) : this.flood?.DryLead ?? this.places?.Lead);
+        public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? this.CloneLead ?? (this.EffectLead() is { } clear ? (clear, 0f) : this.WayOut is { } wayOut ? (wayOut, 0f) : this.flood?.DryLead ?? this.places?.Lead);
+
+        /// <summary>Where the fight's true clone stops: the only place its blow spares, so it goes before any ground to leave.</summary>
+        private (Vector2 At, float Radius)? CloneLead => this.places is { LeadKind: BossPlaceKind.Clone } clone ? clone.Lead : null;
 
         /// <summary>The arena's flood, or a wave's front: its nearest edge and whether the player stands in it; null while none flows.</summary>
         public (Vector2 At, float Distance, bool Inside)? FloodEdge => this.FloodOn() ? this.EffectFront() ?? this.flood?.Edge : null;
@@ -219,6 +222,13 @@ namespace Poe2Accessibility.Services
             }
 
             said.AddRange(this.places.Poll(this.Catalog, fighting.Select(boss => (boss.Monster, boss.At)).ToList(), this.playerBuffs.Sheltered, this.Heartbeat(), now));
+            foreach (var text in this.places.Urgent)
+            {
+                this.lastWordAt = now;
+                this.output.Urge(text, WordHoldMs);
+                this.log.Info($"Boss clone: {text}");
+            }
+
             if (this.places.RefugeOver)
             {
                 this.log.Info("Boss fight: the shelter is over, the player can move freely");

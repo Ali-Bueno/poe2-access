@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     public sealed class CarriedWatch
     {
         /// <summary>What the player sees around in grid cells: a walk, a roll or a blink between two looks stays well inside it.</summary>
-        public const float FartherThanFeet = ExplorationMap.SeenRadiusCells;
+        public const float FartherThanFeet = ExplorationMap.LookCells;
 
         private Vector2? last;
 

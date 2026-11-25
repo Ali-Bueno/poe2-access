@@ -58,6 +58,9 @@ namespace Poe2Accessibility.Tests
             Equal(null, map.DeadEndToward(new Vector2(900, 208), new Vector2(40, 208)), "the west arm holds the exit");
             Equal(false, map.IsDeadEndWay(fork, west, out _), "the way to the exit");
             Equal(true, map.IsDeadEndWay(fork, east, out var info) && info.AreaCells > 12_000, "the east arm still ends");
+            Equal(west, map.WayToward(fork, new Vector2(40, 208)), "a place down the west arm is walked to by it");
+            Equal(east, map.WayToward(fork, new Vector2(1500, 208)), "and one down the east arm by that");
+            Equal(null, map.WayToward(fork, new Vector2(1790, 470)), "a place off the ground has no way");
         }
 
         private static void AnAlcoveIsANookOffTheCorridor()

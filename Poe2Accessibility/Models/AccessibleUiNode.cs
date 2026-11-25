@@ -123,6 +123,12 @@ namespace Poe2Accessibility.Models
         /// <summary>The socket of the item the cursor is on ("engarce 2 de 2: vacío"), in <see cref="Value"/> too; empty elsewhere.</summary>
         public string Socket { get; init; } = string.Empty;
 
+        /// <summary>In a card of inspect mode, whose texts the cursor walks.</summary>
+        public bool InInspectCard { get; init; }
+
+        /// <summary>A modifier's tier in inspect mode: walked like the links, but none.</summary>
+        public bool IsModTier { get; init; }
+
         /// <summary>A grid cell with no item on it.</summary>
         public bool IsEmptyCell { get; init; }
 

@@ -20,7 +20,7 @@ namespace Poe2Accessibility.Services
         ///     A dead end is told only when a look shows it whole, as a sighted player sees it end on screen: its side no
         ///     longer than the screen is high (two reveal radii) and no larger than two reveal discs. Larger ones are walked.
         /// </summary>
-        private const float SeenWholeExtentCells = 2 * ExplorationMap.SeenRadiusCells;
+        private const float SeenWholeExtentCells = 2 * ExplorationMap.LookCells;
 
         private const int SeenWholeAreaCells = 2 * MapTopology.RevealDiscCells;
 
@@ -37,7 +37,7 @@ namespace Poe2Accessibility.Services
         private const float NarrowReachCells = 6f;
 
         /// <summary>The ways of the forks this near (cells, a look) tell which way the map runs around the player.</summary>
-        private const float LayoutReachCells = ExplorationMap.SeenRadiusCells;
+        private const float LayoutReachCells = ExplorationMap.LookCells;
 
         private MapTopology? topology;
         private string topologyFor = string.Empty;

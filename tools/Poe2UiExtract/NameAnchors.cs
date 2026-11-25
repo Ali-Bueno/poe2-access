@@ -9,6 +9,7 @@ internal sealed record NameAnchor(string Table, string Column, int Measured, str
     public static readonly NameAnchor Passives = new("passiveskills", "PassiveSkills.Name", 0x32, "passive_keystone_resolute_technique", "Resolute Technique");
     public static readonly NameAnchor ActiveSkills = new("activeskills", "ActiveSkills.DisplayedName", 0x8, "fireball", "Fireball");
     public static readonly NameAnchor MinimapIcons = new("minimapicons", "MinimapIcons.Label", 0x1A, "Waypoint", "Waypoint");
+    public static readonly NameAnchor MapLegends = new("worldmaplegends", "WorldMapLegends.Name", 0x10, "UniqueMonster", "Boss Encounter");
     public static readonly NameAnchor Characters = new("characters", "Characters.Name", 0x8, "Metadata/Characters/Str/StrFourb", "Warrior");
 
     /// <summary>The first area of the campaign (its Id is the stable part, as the Endgame and map-pin searches use it).</summary>

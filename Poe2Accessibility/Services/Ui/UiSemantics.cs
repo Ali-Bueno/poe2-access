@@ -85,6 +85,11 @@ namespace Poe2Accessibility.Services
                 return endgameNode;
             }
 
+            if (this.DescribeInspectCard(info) is { } cardNode)
+            {
+                return cardNode;
+            }
+
             if (this.DescribeLink(info) is { } linkNode)
             {
                 return linkNode;
@@ -284,6 +289,10 @@ namespace Poe2Accessibility.Services
             {
                 value = trialIcon; // an affliction, boon or modifier icon of the trials
             }
+            else if (this.InGame && value.Length == 0 && role is UiRole.Panel or UiRole.Unknown or UiRole.Button)
+            {
+                value = this.MapPointOfInterest(info); // a row of the world map's list of points of interest
+            }
 
             if (role == UiRole.Button && ownText.Length == 0 && this.elements.ReadAncestors(info, NamedAncestorHops).Any(ancestor => ancestor.Name == NewsBannerFrame))
             {
@@ -369,6 +378,8 @@ namespace Poe2Accessibility.Services
                 // "LVL: 1, Punch"): it is empty, not the list's control id.
                 // Unless it is the button a pin of the caravan's map draws for itself: the pin's name is its own.
                 (label, namedById) = (this.PinNameAbove(info) is { Length: > 0 } pin ? Announcements.PinTalk(pin) : Announcements.Empty, false);
+                // Its siblings are every pin of the map, shown or not: "6 de 40" among eight places (2026-11-25).
+                position = this.PinNameAbove(info).Length > 0 ? string.Empty : position;
             }
 
             if (role == UiRole.Button && this.InGame && this.TrialRoomPlace(info) is { Length: > 0 } room)

@@ -29,9 +29,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Places to head for, one per unexplored group and direction, each with the size of the unseen ground behind it:
-        ///     ground that goes on first, then what soon ends, then pockets, nearest first.
+        ///     ground that goes on first, then what soon ends, then pockets, nearest first. A place the walk to one of
+        ///     <paramref name="goals"/> (grid cells) passes carries its index, and is kept past <paramref name="maxEntries"/>.
         /// </summary>
-        public IReadOnlyList<FrontierPlace> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries)
+        public IReadOnlyList<FrontierPlace> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries, IReadOnlyList<Vector2>? goals = null)
         {
             if (!this.Fits(grid, bytesPerRow, out var width, out var height))
             {
@@ -39,7 +40,7 @@ namespace Poe2Accessibility.Services
             }
 
             var open = WalkableBlocks(grid, bytesPerRow, width, height);
-            var (reachable, unseenGround) = this.Survey(grid, bytesPerRow, width, height, from);
+            var (reachable, unseenGround, walk) = this.Survey(grid, bytesPerRow, width, height, from);
             var frontier = new List<int>();
             for (var i = 0; i < open.Length; i++)
             {
@@ -78,24 +79,52 @@ namespace Poe2Accessibility.Services
             }
 
             var groups = frontier.GroupBy(block => (run[block], Octant(this.Centre(block) - from)));
+            var leads = this.BlocksLeadingTo(grid, bytesPerRow, from, goals ?? Array.Empty<Vector2>(), inFrontier);
             var targets = new List<(FrontierPlace Place, float Distance)>();
             foreach (var group in groups)
             {
                 var nearest = group.OrderBy(block => Vector2.DistanceSquared(this.Centre(block), from)).First();
-                if (group.Count() < MinGroupBlocks && unseenGround[nearest] < PocketBlocks)
+                var leadsTo = leads.Where(lead => group.Contains(lead.Block)).Select(lead => lead.Goal).ToList();
+                if (leadsTo.Count == 0 && group.Count() < MinGroupBlocks && unseenGround[nearest] < PocketBlocks)
                 {
                     continue; // a narrow gap counts when ground goes on behind it
                 }
 
                 if (NearestWalkable(grid, bytesPerRow, width, height, this.Centre(nearest)) is { } cell)
                 {
-                    targets.Add((new FrontierPlace(cell, SizeOf(unseenGround[nearest])), Vector2.Distance(cell, from)));
+                    targets.Add((new FrontierPlace(cell, SizeOf(unseenGround[nearest]), walk[nearest], leadsTo), Vector2.Distance(cell, from)));
                 }
             }
 
             var best = targets.Count == 0 ? UnseenSize.Pocket : targets.Max(target => target.Place.Size);
             this.ground = (reachable, unseenGround, best == UnseenSize.Pocket ? 0 : PocketBlocks);
-            return targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
+            return targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Select(target => target.Place)
+                .Where((place, index) => index < maxEntries || place.LeadsTo.Count > 0).ToList();
+        }
+
+        /// <summary>Per goal, the frontier block where the walk to it leaves the seen ground (<see cref="WayOn"/>), or the frontier block beside it.</summary>
+        private List<(int Goal, int Block)> BlocksLeadingTo(byte[] grid, int bytesPerRow, Vector2 from, IReadOnlyList<Vector2> goals, HashSet<int> frontier)
+        {
+            var leads = new List<(int Goal, int Block)>();
+            for (var goal = 0; goal < goals.Count; goal++)
+            {
+                if (this.WayOn(grid, bytesPerRow, from, goals[goal]) is not { } way)
+                {
+                    continue;
+                }
+
+                var block = ((int)way.Y / BlockCells * this.blocksX) + ((int)way.X / BlockCells);
+                foreach (var near in this.Neighbours8(block).Prepend(block))
+                {
+                    if (frontier.Contains(near))
+                    {
+                        leads.Add((goal, near));
+                        break;
+                    }
+                }
+            }
+
+            return leads;
         }
 
         /// <summary>
@@ -166,26 +195,31 @@ namespace Poe2Accessibility.Services
         ///     walkable cells join without crossing seen ground (four neighbours, cell by cell, as the walk). Blocks side by
         ///     side were taken for one ground until 2026-11-12, so a dead end beside a wall with unseen ground behind it was
         ///     "ground that goes on" and the walk to it ended at that wall (user). A block two grounds share takes the larger.
+        ///     Also each block's shortest walk from the player.
         /// </summary>
-        private (bool[] Reachable, int[] UnseenGround) Survey(byte[] grid, int bytesPerRow, int width, int height, Vector2 from)
+        private (bool[] Reachable, int[] UnseenGround, int[] Walk) Survey(byte[] grid, int bytesPerRow, int width, int height, Vector2 from)
         {
             var reachable = new bool[this.blocksX * this.blocksY];
             var sizes = new int[reachable.Length];
+            var nearest = new int[reachable.Length];
+            Array.Fill(nearest, int.MaxValue);
             if (NearestWalkable(grid, bytesPerRow, width, height, from) is not { } start)
             {
-                return (reachable, sizes);
+                return (reachable, sizes, nearest);
             }
 
             var cells = width * height;
             lock (this.walks)
             {
-                Walk(grid, bytesPerRow, width, height, start, this.walks, false);
-                var (walk, queue) = (this.walks.Marks, this.walks.Queue);
+                Walk(grid, bytesPerRow, width, height, start, this.walks, true);
+                var (walk, queue, steps) = (this.walks.Marks, this.walks.Queue, this.walks.Steps);
                 for (var cell = 0; cell < cells; cell++)
                 {
                     if (walk[cell] != 0)
                     {
-                        reachable[this.BlockOf(cell, width)] = true;
+                        var block = this.BlockOf(cell, width);
+                        reachable[block] = true;
+                        nearest[block] = Math.Min(nearest[block], steps[cell]);
                     }
                 }
 
@@ -251,7 +285,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return (reachable, sizes);
+            return (reachable, sizes, nearest);
         }
 
         private int BlockOf(int cell, int width) => ((cell / width / BlockCells) * this.blocksX) + (cell % width / BlockCells);

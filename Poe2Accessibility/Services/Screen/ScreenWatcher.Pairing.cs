@@ -69,6 +69,24 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     What the world map says of an area row by row, a picture and the thing's name side by side (an area's popup, the
+        ///     list of points of interest): the picture tells what it is and whether it is done.
+        /// </summary>
+        private void PairMapPictures(List<WalkNode> nodes, List<(int Node, ScreenText Text)> texts)
+        {
+            foreach (var (pictureNode, art) in this.walkMapPictures)
+            {
+                var row = nodes[pictureNode].Parent;
+                var at = texts.FindIndex(text => nodes[text.Node].Parent == row);
+                if (row >= 0 && at >= 0)
+                {
+                    var text = texts[at].Text;
+                    texts[at] = (texts[at].Node, text with { Text = MapContentIcons.Describe(text.Text, art, this.MapLegendWord) });
+                }
+            }
+        }
+
         private static bool IsAmount(string text) => text.Length > 0 && text.All(c => char.IsDigit(c) || c is ',' or '.' or ' ');
 
         /// <summary>The text closest to an image in the tree (deepest shared ancestor, at most GlyphPairHops up), then on screen.</summary>

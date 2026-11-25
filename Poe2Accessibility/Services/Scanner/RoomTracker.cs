@@ -15,7 +15,7 @@ namespace Poe2Accessibility.Services
         private NamedRoom? inside;
 
         /// <param name="awayCells">Coming back to a room is news once the player went this far from its box.</param>
-        public RoomTracker(float awayCells = 2 * ExplorationMap.SeenRadiusCells) => this.awayCells = awayCells;
+        public RoomTracker(float awayCells = 2 * ExplorationMap.LookCells) => this.awayCells = awayCells;
 
         /// <summary>The room the player stands in, as of the last <see cref="Enter"/>.</summary>
         public NamedRoom? Inside => this.inside;

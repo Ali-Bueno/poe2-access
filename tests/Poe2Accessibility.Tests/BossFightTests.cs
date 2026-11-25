@@ -28,6 +28,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ACountIsSaidOnceItHoldsStill), ACountIsSaidOnceItHoldsStill),
             (nameof(ACoverIsStoodBehindAsSeenFromTheBoss), ACoverIsStoodBehindAsSeenFromTheBoss),
             (nameof(TheMostPressingPlaceLeads), TheMostPressingPlaceLeads),
+            (nameof(AClonesWayNamesWhereItStops), AClonesWayNamesWhereItStops),
+            (nameof(TheSafeSpotIsSaidUntilThePlayerIsInIt), TheSafeSpotIsSaidUntilThePlayerIsInIt),
             (nameof(TheShelterEndsOnceItStaysDown), TheShelterEndsOnceItStaysDown),
             (nameof(AThingToUseIsToldOfOnceAndNeverLedTo), AThingToUseIsToldOfOnceAndNeverLedTo),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
@@ -53,6 +55,8 @@ namespace Poe2Accessibility.Tests
                 $"shelter|{King}|asala_sand_shield",
                 $"refuge|{King}|{Asala}|sandstorm_defence",
                 $"clone|{King}|Metadata/Monsters/Clone|chosen_one",
+                $"clonepath|{King}|Metadata/Monsters/ClonePath",
+                $"areas|{King}|GAOne,GSTwo",
                 $"progress|{King}|collected|8",
                 $"progress|{King}|timer",
                 $"element|{King}|infuse=1|fire",
@@ -267,6 +271,64 @@ namespace Poe2Accessibility.Tests
             Equal(1, places.Update(sights, player, 10f, false).Count, "a shelter that comes up again is said again");
         }
 
+        private static void AClonesWayNamesWhereItStops()
+        {
+            const string Stem = "Metadata/Monsters/ClonePath";
+            var catalog = Sample();
+            Equal((Stem, ClonePathRole.Start), catalog.ClonePath(Stem + "Start"), "a way's start");
+            Equal((Stem, ClonePathRole.Way), catalog.ClonePath(Stem), "its markers");
+            Equal((Stem, ClonePathRole.End), catalog.ClonePath(Stem + "End"), "its end");
+            Equal("GAOne,GSTwo", string.Join(",", catalog.AreaSkills(King)), "the boss's area skills");
+
+            // Two ways from one start that part later, the markers in no order.
+            ClonePathMarker Marker(uint id, ClonePathRole role, float x, float y) => new(id, Stem, role, new Vector2(x, y));
+            var markers = new[]
+            {
+                Marker(13, ClonePathRole.End, 600, 0), Marker(10, ClonePathRole.Start, 0, 0), Marker(11, ClonePathRole.Way, 200, 0), Marker(12, ClonePathRole.Way, 400, 0),
+                Marker(20, ClonePathRole.Start, 0, 0), Marker(21, ClonePathRole.Way, 200, 0), Marker(22, ClonePathRole.Way, 200, 200), Marker(23, ClonePathRole.End, 200, 600),
+                Marker(30, ClonePathRole.Start, 0, 0),
+            };
+            var paths = new ClonePaths();
+            void Seen(float x, float y, long now) => paths.Update(markers, new[] { (7u, new Vector2(x, y)) }, now);
+            Seen(0, 0, 1000);
+            Equal(2, paths.Count, "a start without an end is no way");
+            Seen(150, 5, 1150);
+            Equal(true, paths.EndOf(7) == null, "on the stretch the ways share: not known yet");
+            Seen(205, 150, 1300);
+            Equal(new Vector2(200, 600), paths.EndOf(7)!.Value, "where they part, the way that fits names the end");
+            Equal(true, paths.EndOf(8) == null, "a clone never seen");
+            Seen(205, 155, 1600);
+            Equal(300L, paths.StoppedMs(7, 1600), "standing still since it last moved");
+            Seen(400, 400, 1750);
+            Equal(0L, paths.StoppedMs(7, 1750), "moving again");
+            Equal(true, paths.EndOf(7) == null, "off every way: none is guessed");
+            paths.Update(markers, Array.Empty<(uint, Vector2)>(), 1900);
+            Equal(0L, paths.StoppedMs(7, 5000), "a clone that is gone is forgotten");
+        }
+
+        private static void TheSafeSpotIsSaidUntilThePlayerIsInIt()
+        {
+            const float Hole = 228f;
+            var guide = new SafeSpotGuide();
+            static int Octant(Vector2 offset) => MathF.Abs(offset.X) >= MathF.Abs(offset.Y) ? (offset.X >= 0 ? 0 : 4) : (offset.Y >= 0 ? 2 : 6);
+            SafeSpotNews? At(Vector2 spot, bool settled, Vector2 player, long now) => guide.Update(1, spot, settled, player, 20f, Hole, Octant, now);
+            var safe = Hole - 20f - AttackAim.MarginWorld;
+
+            Equal(new SafeSpotNews(SafeSpotNewsKind.First, 0, (int)MathF.Ceiling((600 - safe) / 100)), At(new Vector2(600, 0), false, Vector2.Zero, 1000), "marked: the way and the steps to the hole's edge");
+            Equal(true, At(new Vector2(0, 600), false, Vector2.Zero, 2500) == null, "still walking: its turns are not said");
+            Equal(SafeSpotNewsKind.Way, At(new Vector2(0, 600), true, Vector2.Zero, 2650)!.Value.Kind, "settled: the way again at once");
+            Equal(true, At(new Vector2(0, 600), true, new Vector2(0, 100), 5000) == null, "the same way is not repeated: the beat tells it nears");
+            Equal(new SafeSpotNews(SafeSpotNewsKind.Way, 4, (int)MathF.Ceiling((480 - safe) / 100)), At(new Vector2(0, 600), true, new Vector2(480, 600), 6000), "another way is");
+            Equal(SafeSpotNewsKind.Inside, At(new Vector2(0, 600), true, new Vector2(safe - 1, 600), 6150)!.Value.Kind, "the whole body in the hole");
+            Equal(true, At(new Vector2(0, 600), true, new Vector2(0, 600), 8000) == null, "once");
+            Equal(SafeSpotNewsKind.Way, At(new Vector2(0, 600), true, new Vector2(300, 600), 8150)!.Value.Kind, "out of it: the way back");
+            Equal(SafeSpotNewsKind.First, guide.Update(2, Vector2.Zero, false, new Vector2(300, 0), 20f, Hole, Octant, 8300)!.Value.Kind, "another clone starts anew");
+            Equal(true, guide.Update(3, Vector2.Zero, true, Vector2.Zero, 20f, null, Octant, 8400) == null, "no hole in the files: being near promises nothing");
+            Equal(true, SafeSpotGuide.BeatRadius(Hole, 20f) + 20f + BossPlaces.AtPlaceWorld <= safe, "the beat's there is wholly inside");
+            Equal("Safe spot: follow the heartbeat, up, 5 steps", Announcements.BossClone(true, 2, 5, true), "its first line");
+            Equal("The true one, up, 5 steps", Announcements.BossClone(false, 2, 5, false), "without a hole or the heartbeat");
+        }
+
         private static void TheShelterEndsOnceItStaysDown()
         {
             var end = new RefugeEnd();
@@ -359,6 +421,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, catalog.BuffText("guard_boss_utility_buff", "es") is { Name.Length: > 0, Description.Length: > 0 }, "Torvian's protection in the game's Spanish");
             Equal(false, catalog.BuffText("guard_boss_utility_buff", "es")!.Value.Description.Contains('['), "without the game's links");
             Equal(true, catalog.IsWall("Metadata/Monsters/WifeMonster/WifeMonster", "Metadata/Monsters/WifeMonster/WifeMonsterBoneWall"), "Asinia's walls");
+            const string Yama = "Metadata/Monsters/YamaBoss/YamaBoss";
+            Equal(ClonePathRole.End, catalog.ClonePath("Metadata/Monsters/YamaBoss/objects/YamaFutureClonePathEnd")!.Value.Role, "where Yama's clones stop");
+            Equal(true, catalog.AreaSkills(Yama).Contains("GSYamaTimeFreezeSlam"), "his blow with the hole");
             Equal(true, catalog.Places > 200 && catalog.Daemons > 40, "every fight's places and helpers");
 
             // A monster the reader ignores is never typed: Jamanra's King's Attendants were listed as objects to use (issue #7).
