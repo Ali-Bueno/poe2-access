@@ -248,16 +248,22 @@ written down as still open, not guessed.
   and "Taken from Map Device" on removal. So the generic inventory reading carries the device better than §2
   feared; the one wrinkle on record is its focus context reading "Quests". An empty-device dump is still
   uncaptured but no longer needed to judge readability.
-- Atlas tree node chain: **the tree's door is not controller-focusable (live, 12:47–12:55).** The only element
-  referencing it is an unnamed 32×32 edge button at (14,111), under the search bar inside
-  `favourite_pins_container_frame` — the depth-toggle widget class, its probed fields holding the action ids
-  `AtlasSkillTree` / `AtlasKeystones` / Quick Access. In the Bookmarks side panel it is focus item "1 of 3"
-  (Bookmarks 2, Edge Display 3), but every D-pad direction from both neighbours was tried and none lands on it
-  ("It's refusing to go there" — the owner); the agent cannot click it either (the fullscreen Proton window is
-  not reachable by the desktop tools, and the repo's virtual pad would seize player 1). Untried at press time:
-  right-stick free cursor to the corner, hold-X action menu, a switch inside the passive tree screen. If those
-  fail too, reaching the Atlas tree by controller is a game-side hole the mod must route around in Phase 1, and
-  the point count (spoken only by the tree's header) stays unread until then.
+- **Atlas Skill Tree (REACHED and captured live, 12:56):** on the Atlas, **hold X (Action Menu radial), point
+  the stick down to "Atlas Skill Tree", release** — the owner's route, "like the radial thingy"
+  ([evidence/atlas-skill-tree-20261125.log](evidence/atlas-skill-tree-20261125.log),
+  [evidence/ui-tree-atlas-skill-tree-20261125-125739.txt](evidence/ui-tree-atlas-skill-tree-20261125-125739.txt)).
+  The tree is WorldScreen child 4 (canvas of 277 drawn groups); unlike the Atlas map, its nodes *are* the hovered
+  element, so the shipped endgame reader fires as designed ("Essence Chance, 40% increased chance of Essences.
+  Unallocated. Links: up, Imprisoned Monstrosities; down, The Ziggurat Refuge"). Node record at the main tree's
+  offset `+0x2C8`, graph `atlasskillgraph` (`AtlasGenericSmall78_`). The tree is viewable mid-quest-line; the
+  screen shows allocated counters only (0/336 overall, 0/36, 0/32… per cluster) — the unspent point count was
+  not found in its texts (an allocate attempt or R3 Inspect Mode may speak it; not tried, points are the owner's
+  to spend).
+- The mouse-side door, for the record: an unnamed 32×32 edge button at (14,111) under the search bar (the
+  depth-toggle widget class, probed fields holding `AtlasSkillTree`/`AtlasKeystones`) is focus item "1 of 3" in
+  the Bookmarks side panel, but no D-pad direction from either neighbour lands on it (live, 12:47–12:55, "It's
+  refusing to go there"); the agent cannot click it either (fullscreen Proton unreachable by the desktop tools,
+  virtual pad would seize player 1). The radial above is the controller's door.
 
 ## 7. Risks and fallbacks
 

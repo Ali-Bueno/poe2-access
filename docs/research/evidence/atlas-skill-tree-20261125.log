@@ -1,0 +1,35 @@
+2026-11-25 12:56:23.140 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond.
+2026-11-25 12:56:23.140 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond.
+2026-11-25 12:56:23.140 INFO Screen LayerOpened layer 61: Show Quests [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:56:24.289 INFO Screen TextsAppeared layer 17: Show Quests
+2026-11-25 12:56:24.289 INFO Speech interrupts: Show Quests
+2026-11-25 12:56:29.250 INFO Screen TextsAppeared layer 17: Return To Player Location
+2026-11-25 12:56:29.250 INFO Speech interrupts: Return To Player Location
+2026-11-25 12:56:30.397 INFO Screen TextsAppeared layer 17: Atlas Skill Tree
+2026-11-25 12:56:30.397 INFO Speech interrupts: Atlas Skill Tree
+2026-11-25 12:56:31.497 INFO Focus -> 0x510DB43E410 panel=1 name="" role=Panel text="Essence Chance" value="" context="Quests" group="" notes=""
+2026-11-25 12:56:31.497 INFO Speech interrupts, moved: Essence Chance, 40% increased chance of Essences. Unallocated. Links: up, Imprisoned Monstrosities; down, The Ziggurat Refuge
+2026-11-25 12:56:31.551 INFO Screen LayerOpened layer 61: Recenter [Y] | Edit Filter [left stick click] | Clear Search [hold left stick click] | Inspect Mode [right stick click] | Zoom [RT]
+2026-11-25 12:56:31.625 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | 0/336 | 0/36 | Zoom | x1.0
+2026-11-25 12:56:31.710 INFO Screen TextsAppeared layer 61: Recenter [Y]
+2026-11-25 12:56:36.966 INFO Focus -> 0x510DB3ED010 panel=1 name="" role=Panel text="Imprisoned Monstrosities" value="" context="Quests" group="" notes=""
+2026-11-25 12:56:36.966 INFO Speech interrupts, moved: Imprisoned Monstrosities, Rare Essence Monsters have a 40% increased chance of Monster Modifiers. Unallocated. Links: right, Essence Chance; down, Essence Chance; up left, Essence Chance
+2026-11-25 12:56:40.020 INFO Focus -> 0x510DB43E410 panel=1 name="" role=Panel text="Essence Chance" value="" context="Quests" group="" notes=""
+2026-11-25 12:56:40.020 INFO Speech interrupts, moved: Essence Chance, 40% increased chance of Essences. Unallocated. Links: up, Imprisoned Monstrosities; down, The Ziggurat Refuge
+2026-11-25 12:56:43.404 INFO Screen TextsAppeared layer 17: 0/36
+2026-11-25 12:56:44.664 INFO Focus -> 0x510DB43E410 panel=1 name="" role=Panel text="Essence Chance" value="" context="Quests" group="" notes=""
+2026-11-25 12:56:44.665 INFO Speech interrupts, moved: Essence Chance, 40% increased chance of Essences. Unallocated. Links: up, Imprisoned Monstrosities; down, The Ziggurat Refuge
+2026-11-25 12:56:44.991 INFO Screen TextsAppeared layer 61: Recenter [Y]
+2026-11-25 12:56:46.867 INFO Focus -> 0x510DB441610 panel=1 name="" role=Panel text="Azmeri Spirit Chance" value="" context="Quests" group="" notes=""
+2026-11-25 12:56:46.867 INFO Speech interrupts, moved: Azmeri Spirit Chance, 40% increased chance of Azmeri Spirits. Unallocated. Links: up, Spill the Sap; down, The Ziggurat Refuge
+2026-11-25 12:56:47.219 INFO Screen TextsAppeared layer 17: 0/36
+2026-11-25 12:57:39.639 INFO Atlas node: @510DB441610 "" class 1430D1468 record +0x2C8: AtlasGenericSmall78_ graph atlasskillgraph pin PrecursorMap maps  at -357,-1638 says "Azmeri Spirit Chance" | 40% increased chance of Azmeri Spirits | Unallocated | Links: up, Spill the Sap; down, The Ziggurat Refuge
+2026-11-25 12:57:39.639 INFO Speech interrupts: Dumping user interface tree.
+2026-11-25 12:58:28.653 INFO Focus -> 0x510DB3D9010 panel=1 name="" role=Panel text="Spill the Sap" value="" context="Quests" group="" notes=""
+2026-11-25 12:58:28.654 INFO Speech interrupts, moved: Spill the Sap, 50% increased Azmeri Spirit empowerment when defeating Spirit-Influenced Magic Monsters. Unallocated. Links: up right, Azmeri Spirit Chance; down, Azmeri Spirit Chance; left, Azmeri Spirit Chance
+2026-11-25 12:58:32.824 INFO Focus -> 0x510DB3D3610 panel=1 name="" role=Panel text="Azmeri Spirit Chance" value="" context="Quests" group="" notes=""
+2026-11-25 12:58:32.824 INFO Speech interrupts, moved: Azmeri Spirit Chance, 40% increased chance of Azmeri Spirits. Unallocated. Links: up, Spoils of the Hunt; right, Spill the Sap
+2026-11-25 12:58:36.318 INFO Focus -> 0x510DB3A8410 panel=1 name="" role=Panel text="Shrine Chance" value="" context="Quests" group="" notes=""
+2026-11-25 12:58:36.319 INFO Speech interrupts, moved: Shrine Chance, 40% increased chance of Shrines. Unallocated. Links: down right, The Ziggurat Refuge; up left, Favoured Disciple
+2026-11-25 12:58:39.484 INFO Focus -> 0x510DB447010 panel=1 name="" role=Panel text="Favoured Disciple" value="" context="Quests" group="" notes=""
+2026-11-25 12:58:39.484 INFO Speech interrupts, moved: Favoured Disciple, 50% increased Effect of Buffs granted by Shrines. Unallocated. Links: up, Shrine Chance; down right, Shrine Chance
