@@ -586,7 +586,7 @@ the play log saw.
 | AR | an `arena\|` state of the boss rising from 0 | "La arena arde / se derrumba / cambia", "Tormenta de arena", "El jefe se retira"; the same state no sooner than 3 s | `BossSignalTracker` |
 | MG, EL | a `progress\|` state moving; an `element\|` state value | "Progreso 3" (every 3 s at most; by quarters where a top is written, none on 0.5.5f); "Elemento: fuego", "Cambia de elemento" | `BossSignalTracker` |
 | SH | a `refuge\|` entity with its state set; a `shelter\|` buff on the player | "Refugio junto a Asala: sigue el latido, arriba", the heartbeat until "A cubierto"; "Fuera del refugio" while it is still up | pure `BossPlaces`, `BossPlayerBuffs` |
-| CL | a `clone\|` entity with its state set | "Zona segura: sigue el latido, …", the way again, "Dentro, quédate" ([Yama](#yama)) | `BossPlaces`, `ClonePaths`, `SafeSpotGuide` |
+| CL | a `clone\|` entity with its state set | "Zona segura: sigue el latido, …", the way again, "¡Quieto! Dentro, quédate", "¡Fuera!" ([Yama](#yama)) | `BossPlaces`, `ClonePaths`, `SafeSpotGuide` |
 | CV | a `cover\|` entity | "Cobertura: sigue el latido, …", to a body's width behind it as seen from the boss, until stood there once | `BossPlaces.Target` |
 | US, OB | a `use\|` / `target\|` entity that has a name and can be targeted | "Incensario, se puede romper, izquierda", once a fight per name, **not urgent and never led to** | `BossPlaces` |
 | GZ, ST | a `zone\|` buff beginning on the player; a `stack\|` buff's count held 400 ms | the buff's name and description from the `text\|` lines, the description once a fight (only the description when the harmful buffs' news already names it); "Arcada explosiva, 3" | `BossPlayerBuffs` |
@@ -778,12 +778,26 @@ half into its run, and its way turns (marked at 8934,6104, "izquierda"; it stopp
 wrong way; the line was said once, its arrival never, and an effect's way out could take the beat.
 
 Now: `clonepath|boss|stem` (the objects `YamaFutureClonePathStart`, `…Path`, `…PathEnd`, laid with running ids before the run)
-and `areas|boss|skills` in the catalog; pure `ClonePaths` takes the laid way that fits where the clone has been, whose end is the
-place (until one fits: where the clone is); pure `SafeSpotGuide` says "Zona segura: sigue el latido, arriba, 5 pasos", the way
-again once the place is settled and whenever it lies another way, and "Dentro, quédate" with the whole body in the hole (the
-skill's own area); the beat goes there before any effect or wall. All of it `Urge`d, polled each 150 ms, logged as `Boss clone:`.
-Not verified live: whether the path objects, which the game does not draw, hold a cell in `Positioned` (`EntityPlaces`); the
-log's "no way fits of N" tells (N = 0: they hold none, and the guide follows the clone until it stops).
+and `areas|boss|skills` in the catalog; pure `ClonePaths` names the end of the clone's way; pure `SafeSpotGuide`, asked each
+frame, says "Zona segura: sigue el latido, arriba, 5 pasos", the way again whenever it lies another way, "¡Quieto! Dentro,
+quédate" 250 ms before a running player is inside, and "¡Fuera! abajo, 1 paso" at once when they are out again. They are
+`Command`s: they cut even urgent news. The lead is the shelter's chord (Jamanra's barrier; the owner, 2026-11-25), silent
+inside, and the shelter's all-clear ("Peligro pasado, puedes moverte") comes as the blow is past. Logged as `Boss clone:`.
+
+The second look (2026-11-25, 17:45 to 17:48, the owner: "me dijo que me quedase dentro y aún así me wanshoteó"; four rounds):
+- The undrawn markers do hold a cell. Five ways are laid, four clones run, and the game takes a way away as its clone sets
+  off: the way wanted was never among those left ("no way fits of 1"). Clone k took way k+1 in every round, and where the log
+  holds a whole way the chosen clone was 0 to 1 world unit from it; its end is where `TimeFreezeSlamChargeUp.ao` was drawn
+  (5 of 5 rounds). So the ways are remembered and the one gone as a clone came is its own: the place is known when the clone
+  is marked, 1 to 3 s before it stops.
+- The player did stand inside when told, and was out again when the blow fell: 31 from the centre and 501 from it 0.63 s
+  later (blow 0.1 s after that), 34 and 277, 145 and 256, 47 (then a bell of the player's 350 away). They run 570 to 680 world
+  units a second, and the hole's safe part is crossed in about 0.6 s: the word came at the edge, or queued behind two other lines
+  (17:46:57, after "Yama el Blanco: Desorientación" and "Altar de ritual"), so it was heard outside.
+- "Out of it" was not said within 0.9 s of "inside" (its word gap).
+- The guide stood still for 2 s (17:46:55 to 57) while the boss was out of the watched range: it and the beat kept to where
+  the clone had been. The clones are followed now whatever the boss's record does.
+- One blow outside the hole was survived (11:50:02, 459 away, life to 25 %): it is not always a kill.
 
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 

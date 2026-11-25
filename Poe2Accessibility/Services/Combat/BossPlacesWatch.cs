@@ -44,6 +44,7 @@ namespace Poe2Accessibility.Services
         private readonly List<BossPlaceSight> sights = new();
         private readonly List<(uint Id, Vector2 At, AttackArea? Area)> helpers = new();
         private (Vector2 At, float Radius)? cloneLead;
+        private (uint Id, Vector2 Spot, bool Settled, float? Hole, float Radius)? cloneAim;
         private bool clonesAbout;
         private long lastPoll;
         private long lastCloneLog;
@@ -65,8 +66,11 @@ namespace Poe2Accessibility.Services
         /// <summary>The kind of place the heartbeat leads to; null when nowhere.</summary>
         public BossPlaceKind? LeadKind => this.places.LeadKind;
 
-        /// <summary>The lines of the last poll that leave no time to wait: the way to the true clone, and that the player is there.</summary>
-        public IReadOnlyList<string> Urgent { get; private set; } = Array.Empty<string>();
+        /// <summary>The fight's clones are about: they are followed whatever becomes of the boss meanwhile.</summary>
+        public bool ClonesAbout => this.clonesAbout;
+
+        /// <summary>A blow is coming that spares only where the true clone stops.</summary>
+        public bool SafeSpotUp => this.cloneAim is { Hole: not null };
 
         /// <summary>A shelter of the fight is up.</summary>
         public bool RefugeUp { get; private set; }
@@ -84,8 +88,8 @@ namespace Poe2Accessibility.Services
             this.safeSpot.Reset();
             this.markers.Clear();
             this.cloneLead = null;
+            this.cloneAim = null;
             this.clonesAbout = false;
-            this.Urgent = Array.Empty<string>();
             this.refugeEnd.Reset();
             this.helperWarnings.Reset();
             this.names.Clear();
@@ -104,7 +108,6 @@ namespace Poe2Accessibility.Services
         {
             this.HelperNews = Array.Empty<(Vector2, AttackArea?)>();
             this.Told = Array.Empty<string>();
-            this.Urgent = Array.Empty<string>();
             this.RefugeOver = false;
             if (fighting.Count == 0)
             {
@@ -136,9 +139,9 @@ namespace Poe2Accessibility.Services
 
             var reached = this.helperWarnings.Update(this.helpers.Select(helper => (helper.Id, helper.Area != null)).ToList(), now);
             this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
+            this.PollClones(catalog, here, now);
             this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
-            this.RefugeOver = this.refugeEnd.Update(this.RefugeUp, now) && Seats.Followed.TryGetComponent<Life>(out var life) && life.IsAlive;
-            this.Urgent = this.PollClones(catalog, here, player, heartbeat, now);
+            this.RefugeOver = this.refugeEnd.Update(this.RefugeUp || this.SafeSpotUp, now) && Seats.Followed.TryGetComponent<Life>(out var life) && life.IsAlive;
             var (lines, told) = (new List<string>(), new List<string>());
             foreach (var news in this.places.Update(this.sights, here, player.ModelBounds.X, sheltered))
             {
@@ -156,43 +159,61 @@ namespace Poe2Accessibility.Services
             return lines;
         }
 
-        /// <summary>The fight's clones: where each walks, and for the true one the lead and the lines to where it stops.</summary>
-        private IReadOnlyList<string> PollClones(BossMechanicsCatalog catalog, Vector2 here, Render player, bool heartbeat, long now)
+        /// <summary>The fight's clones: where each walks, and where the true one stops (<see cref="Follow"/> leads there).</summary>
+        private void PollClones(BossMechanicsCatalog catalog, Vector2 here, long now)
         {
             var clones = this.sights.Where(sight => sight.Kind == BossPlaceKind.Clone).ToList();
             this.clonesAbout = clones.Count > 0;
             this.clonePaths.Update(this.markers, clones.Select(sight => (sight.Id, sight.At)).ToList(), now);
-            this.cloneLead = null;
             var chosen = clones.Where(sight => sight.Active).Select(sight => (BossPlaceSight?)sight).FirstOrDefault();
             var stopped = chosen is { } seen ? this.clonePaths.StoppedMs(seen.Id, now) : 0;
             if (chosen is not { } clone || stopped >= SafeSpotGuide.StaleMs)
             {
                 this.safeSpot.Reset();
+                this.cloneAim = null;
+                this.cloneLead = null;
                 this.sights.RemoveAll(sight => sight.Kind == BossPlaceKind.Clone); // its blow is past: no more a place of the fight
-                return Array.Empty<string>();
+                return;
             }
 
             var end = this.clonePaths.EndOf(clone.Id);
-            var spot = end ?? clone.At;
+            var rested = stopped >= ClonePaths.SettledMs && (end == null || this.clonePaths.Walked(clone.Id));
+            var spot = rested ? clone.At : end ?? clone.At; // where it really stopped says more than where its way ends
             var hole = catalog.AreaSkills(clone.Monster).Select(this.AreaOf)
                 .Where(area => area is { Shape: AttackAreas.Donut, Width: > 0f }).Select(area => (float?)area!.Value.Width).FirstOrDefault();
-            var radius = player.ModelBounds.X;
-            var news = this.safeSpot.Update(clone.Id, spot, end != null || stopped >= ClonePaths.SettledMs, here, radius, hole,
-                offset => ScreenProjection.Octant(player.WorldPosition, offset), now);
-            this.cloneLead = (spot, hole is { } inner ? SafeSpotGuide.BeatRadius(inner, radius) : clone.Radius);
-            if (news != null || now - this.lastCloneLog >= CloneLogMs)
+            this.cloneAim = (clone.Id, spot, rested || end != null, hole, clone.Radius);
+            if (now - this.lastCloneLog >= CloneLogMs)
             {
                 this.lastCloneLog = now;
-                this.log.Info($"Boss clone: #{clone.Id} at {clone.At.X:0},{clone.At.Y:0}, {(end is { } to ? $"its way ends at {to.X:0},{to.Y:0}" : "no way fits")} of {this.clonePaths.Count}, " +
+                this.log.Info($"Boss clone: #{clone.Id} at {clone.At.X:0},{clone.At.Y:0}, {(end is { } to ? $"its way ends at {to.X:0},{to.Y:0}" : "no way fits")} of {this.clonePaths.Count} ({this.clonePaths.Laid} laid), " +
                               $"stopped {stopped} ms, hole {hole?.ToString("0") ?? "?"}, player {here.X:0},{here.Y:0}, {Vector2.Distance(spot, here):0} from it, inside {this.safeSpot.Inside}");
             }
+        }
 
-            return news switch
+        /// <summary>Each frame: the player's place against where the true clone stops, and the line that leaves no time to wait; null when none.</summary>
+        public string? Follow(bool heartbeat, long now)
+        {
+            if (this.cloneAim is not { } aim || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                { Kind: SafeSpotNewsKind.First } first => new[] { Announcements.BossClone(hole != null, first.Octant, first.Steps, heartbeat) },
-                { Kind: SafeSpotNewsKind.Way } way => new[] { Announcements.BossCloneWay(way.Octant, way.Steps) },
-                { Kind: SafeSpotNewsKind.Inside } => new[] { Announcements.BossCloneReached },
-                _ => Array.Empty<string>(),
+                return null;
+            }
+
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var radius = player.ModelBounds.X;
+            var news = this.safeSpot.Update(aim.Id, aim.Spot, aim.Settled, here, radius, aim.Hole, offset => ScreenProjection.Octant(player.WorldPosition, offset), now);
+            this.cloneLead = aim.Hole is not { } hole ? (aim.Spot, aim.Radius) : this.safeSpot.Inside ? null : (aim.Spot, SafeSpotGuide.LeadRadius(hole, radius));
+            if (news is not { } said)
+            {
+                return null;
+            }
+
+            this.log.Info($"Boss clone: {said.Kind}, player {here.X:0},{here.Y:0}, {Vector2.Distance(aim.Spot, here):0} from {aim.Spot.X:0},{aim.Spot.Y:0}, settled {aim.Settled}");
+            return said.Kind switch
+            {
+                SafeSpotNewsKind.First => Announcements.BossClone(aim.Hole != null, said.Octant, said.Steps, heartbeat),
+                SafeSpotNewsKind.Inside => Announcements.BossCloneReached,
+                SafeSpotNewsKind.Out => Announcements.BossCloneLeft(said.Octant, said.Steps),
+                _ => Announcements.BossCloneWay(said.Octant, said.Steps),
             };
         }
 

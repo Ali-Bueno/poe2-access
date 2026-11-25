@@ -22,11 +22,17 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int FightOverMs = 3000;
 
+        /// <summary>A word that decides the fight holds the voice this long (ms): about what its longest line takes.</summary>
+        private const int CommandHoldMs = 1500;
+
         private readonly List<(Boss Boss, BossSignal Signal)> signals = new();
         private readonly Dictionary<uint, BossSignalTracker> signalTrackers = new();
         private readonly List<string> calm = new();
         private readonly BossPlayerBuffs playerBuffs = new();
         private long lastFightAt = long.MinValue / 2;
+
+        /// <summary>The bosses last fought: a boss out of the watched range (Yama, 1400 world units from the safe place) still has its clones about.</summary>
+        private IReadOnlyList<(string Monster, Vector2 At)> lastFight = Array.Empty<(string, Vector2)>();
         private readonly HashSet<string> described = new(StringComparer.Ordinal);
         private readonly HashSet<(uint, long)> grabWorded = new();
         private readonly Dictionary<uint, string?> helpers = new();
@@ -64,16 +70,16 @@ namespace Poe2Accessibility.Services
         public Func<Vector2, bool>? HelperCue { get; set; }
 
         /// <summary>Where the heartbeat leads in a boss fight: a hiding boss, the way out of its walls, a place of its arena; null when nowhere.</summary>
-        public (Vector2 At, float Radius)? LeadTo => this.Hiding ?? this.CloneLead ?? (this.EffectLead() is { } clear ? (clear, 0f) : this.WayOut is { } wayOut ? (wayOut, 0f) : this.flood?.DryLead ?? this.places?.Lead);
+        public (Vector2 At, float Radius)? LeadTo => this.LeadsToClone ? this.places?.Lead : this.Hiding ?? (this.EffectLead() is { } clear ? (clear, 0f) : this.WayOut is { } wayOut ? (wayOut, 0f) : this.flood?.DryLead ?? this.places?.Lead);
 
-        /// <summary>Where the fight's true clone stops: the only place its blow spares, so it goes before any ground to leave.</summary>
-        private (Vector2 At, float Radius)? CloneLead => this.places is { LeadKind: BossPlaceKind.Clone } clone ? clone.Lead : null;
+        /// <summary>A true clone is followed: where it stops is the only place its blow spares, so nothing else leads meanwhile.</summary>
+        private bool LeadsToClone => this.places is { LeadKind: BossPlaceKind.Clone };
 
         /// <summary>The arena's flood, or a wave's front: its nearest edge and whether the player stands in it; null while none flows.</summary>
         public (Vector2 At, float Distance, bool Inside)? FloodEdge => this.FloodOn() ? this.EffectFront() ?? this.flood?.Edge : null;
 
-        /// <summary>The heartbeat leads to the fight's shelter (Asala's barrier): it takes the shelter's own sound.</summary>
-        public bool LeadsToRefuge => this.Hiding == null && this.EffectLead() == null && this.WayOut == null && this.flood?.DryLead == null && this.places?.LeadKind == BossPlaceKind.Refuge;
+        /// <summary>The heartbeat leads to the fight's shelter (Asala's barrier) or the one place a blow spares (Yama's clone): it takes the shelter's own sound.</summary>
+        public bool LeadsToRefuge => this.LeadsToClone ? this.places!.SafeSpotUp : this.Hiding == null && this.EffectLead() == null && this.WayOut == null && this.flood?.DryLead == null && this.places?.LeadKind == BossPlaceKind.Refuge;
 
         /// <summary>A shelter of the fight is up: the ground alarm is silent, since the shelter is the way out of the boss's storm.</summary>
         public bool RefugeUp => this.places?.RefugeUp ?? false;
@@ -200,7 +206,11 @@ namespace Poe2Accessibility.Services
             {
                 this.flood.Reset();
             }
-            if (fighting.Count == 0)
+            if (fighting.Count > 0)
+            {
+                this.lastFight = fighting.Select(boss => (boss.Monster, boss.At)).ToList();
+            }
+            else if (this.places is not { ClonesAbout: true })
             {
                 if (now - this.lastFightAt >= FightOverMs)
                 {
@@ -221,14 +231,7 @@ namespace Poe2Accessibility.Services
                 this.SayPlayerNews(news, said);
             }
 
-            said.AddRange(this.places.Poll(this.Catalog, fighting.Select(boss => (boss.Monster, boss.At)).ToList(), this.playerBuffs.Sheltered, this.Heartbeat(), now));
-            foreach (var text in this.places.Urgent)
-            {
-                this.lastWordAt = now;
-                this.output.Urge(text, WordHoldMs);
-                this.log.Info($"Boss clone: {text}");
-            }
-
+            said.AddRange(this.places.Poll(this.Catalog, this.lastFight, this.playerBuffs.Sheltered, this.Heartbeat(), now));
             if (this.places.RefugeOver)
             {
                 this.log.Info("Boss fight: the shelter is over, the player can move freely");
@@ -239,6 +242,16 @@ namespace Poe2Accessibility.Services
             foreach (var (at, area) in this.places.HelperNews)
             {
                 this.WarnOfHelper(at, area, now);
+            }
+        }
+
+        /// <summary>Each frame: the player led to the place a clone's blow spares.</summary>
+        public void Follow(long now)
+        {
+            if (this.places?.Follow(this.Heartbeat(), now) is { } text)
+            {
+                this.lastWordAt = now;
+                this.output.Command(text, CommandHoldMs);
             }
         }
 

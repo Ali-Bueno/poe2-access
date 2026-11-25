@@ -304,6 +304,17 @@ namespace Poe2Accessibility.Tests
             Equal(true, paths.EndOf(7) == null, "off every way: none is guessed");
             paths.Update(markers, Array.Empty<(uint, Vector2)>(), 1900);
             Equal(0L, paths.StoppedMs(7, 5000), "a clone that is gone is forgotten");
+
+            // The game takes a way away as its clone sets off on it (Yama, 2026-11-25).
+            paths.Update(markers.Skip(4).ToList(), new[] { (8u, Vector2.Zero) }, 2000);
+            Equal(new Vector2(600, 0), paths.EndOf(8)!.Value, "the way that went as the clone came is its own, before it takes a step");
+            paths.Update(markers.Skip(8).ToList(), new[] { (8u, new Vector2(100, 0)), (9u, Vector2.Zero) }, 2500);
+            Equal(new Vector2(200, 600), paths.EndOf(9)!.Value, "the next clone's is the next that went");
+            Equal(new Vector2(600, 0), paths.EndOf(8)!.Value, "and the first keeps its own");
+            Equal("2/0", $"{paths.Count}/{paths.Laid}", "both are remembered, none is laid");
+            Equal(true, paths.Walked(8) && !paths.Walked(9), "which have set off");
+            paths.Update(Array.Empty<ClonePathMarker>(), Array.Empty<(uint, Vector2)>(), 9000);
+            Equal(0, paths.Count, "a round that is over is forgotten");
         }
 
         private static void TheSafeSpotIsSaidUntilThePlayerIsInIt()
@@ -321,10 +332,26 @@ namespace Poe2Accessibility.Tests
             Equal(new SafeSpotNews(SafeSpotNewsKind.Way, 4, (int)MathF.Ceiling((480 - safe) / 100)), At(new Vector2(0, 600), true, new Vector2(480, 600), 6000), "another way is");
             Equal(SafeSpotNewsKind.Inside, At(new Vector2(0, 600), true, new Vector2(safe - 1, 600), 6150)!.Value.Kind, "the whole body in the hole");
             Equal(true, At(new Vector2(0, 600), true, new Vector2(0, 600), 8000) == null, "once");
-            Equal(SafeSpotNewsKind.Way, At(new Vector2(0, 600), true, new Vector2(300, 600), 8150)!.Value.Kind, "out of it: the way back");
+            Equal(SafeSpotNewsKind.Out, At(new Vector2(0, 600), true, new Vector2(300, 600), 8150)!.Value.Kind, "out of it: the way back, at once");
+
+            // A run through it at 600 world units a second (Yama, 2026-11-25: 570 to 680).
+            var run = new SafeSpotGuide();
+            var kinds = new List<(SafeSpotNewsKind Kind, float At)>();
+            for (var ms = 0; ms <= 1500; ms += 16)
+            {
+                var x = -600f + (0.6f * ms);
+                if (run.Update(5, Vector2.Zero, true, new Vector2(x, 0), 20f, Hole, Octant, 1000 + ms) is { } word)
+                {
+                    kinds.Add((word.Kind, x));
+                }
+            }
+
+            Equal("First,Inside,Out", string.Join(",", kinds.Select(kind => kind.Kind)), "running: the way, to stop, that they ran past");
+            Equal(true, kinds[1].At < -safe && kinds[1].At > -safe - 170, "to stop is said before the edge, by the pace");
+            Equal(true, kinds[2].At > safe && kinds[2].At < safe + 20, "past it is said at once");
             Equal(SafeSpotNewsKind.First, guide.Update(2, Vector2.Zero, false, new Vector2(300, 0), 20f, Hole, Octant, 8300)!.Value.Kind, "another clone starts anew");
             Equal(true, guide.Update(3, Vector2.Zero, true, Vector2.Zero, 20f, null, Octant, 8400) == null, "no hole in the files: being near promises nothing");
-            Equal(true, SafeSpotGuide.BeatRadius(Hole, 20f) + 20f + BossPlaces.AtPlaceWorld <= safe, "the beat's there is wholly inside");
+            Equal(true, SafeSpotGuide.LeadRadius(Hole, 20f) + 20f <= safe, "the lead's end is wholly inside");
             Equal("Safe spot: follow the heartbeat, up, 5 steps", Announcements.BossClone(true, 2, 5, true), "its first line");
             Equal("The true one, up, 5 steps", Announcements.BossClone(false, 2, 5, false), "without a hole or the heartbeat");
         }

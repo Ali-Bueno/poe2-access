@@ -138,8 +138,11 @@ namespace Poe2Accessibility
         /// <summary>The way left to the true clone: "up, 3 steps".</summary>
         public static string BossCloneWay(int octant, int steps) => $"{Way(octant)}, {Steps(steps)}";
 
-        /// <summary>The player stands in the hole of the blow.</summary>
-        public static string BossCloneReached => T("Inside, stay", "Dentro, quédate");
+        /// <summary>The player comes into the hole of the blow: what to do first, so it is heard while there is still hole to stop in.</summary>
+        public static string BossCloneReached => T("Stop! Inside, stay", "¡Quieto! Dentro, quédate");
+
+        /// <summary>The player left the hole of the blow or ran past it: "Out! Left, 2 steps".</summary>
+        public static string BossCloneLeft(int octant, int steps) => T($"Out! {BossCloneWay(octant, steps)}", $"¡Fuera! {BossCloneWay(octant, steps)}");
 
         /// <summary>The arena's flood starts down the hall, from where its front is: "The lava is flowing, up".</summary>
         public static string BossFloodFlows(int octant) => T($"The lava is flowing, {Way(octant)}", $"La lava avanza, {Way(octant)}");

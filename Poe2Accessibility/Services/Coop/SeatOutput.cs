@@ -38,6 +38,8 @@ namespace Poe2Accessibility.Services
 
         public void MentionNews(string text) => this.inner.MentionNews(this.Named(text));
 
+        public void Command(string text, int holdMs) => this.inner.Command(this.Named(text), holdMs);
+
         public void TakeFloor(string text) => this.inner.TakeFloor(this.Named(text));
 
         

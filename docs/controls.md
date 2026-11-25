@@ -589,7 +589,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   arriba", or with no way out on foot "Muros por todos lados: sigue el latido y rompe uno, izquierda" (the beat leads to
   the nearest wall); "Fuera de los muros" once you are out. Not heard in the game yet.
   And to where the safe clone stops when a boss freezes time (Yama): "Zona segura: sigue el latido, arriba, 5 pasos", the
-  way again when it changes ("izquierda, 3 pasos"), and "Dentro, quédate" once you are in it. Not heard in the game yet.
+  way again when it changes ("izquierda, 3 pasos"), "¡Quieto! Dentro, quédate" as you come into it and
+  "¡Fuera! abajo, 1 paso" if you run past it. It sounds as Jamanra's barrier does and is silent inside; "Peligro pasado,
+  puedes moverte" once the blow has fallen.
 - **Dodge warning:** a blade drawn over a low gong, diving into a deep bass drop on the moment to dodge (metal and
   bass, so it is not taken for the radar's breath of open floor; the drop needs headphones or speakers with some
   bass, the blade is heard anywhere), on the side of a rare or

@@ -34,8 +34,8 @@ namespace Poe2Accessibility.Services
             }
 
             this.repeats.Note(text, now);
-            if (interrupt && (delivery == Delivery.Urgent
-                    ? SpeechFloor.UrgentWaits(this.lastUrgent, now)
+            if (interrupt && delivery != Delivery.Command && (delivery == Delivery.Urgent
+                    ? now < this.commandedUntil || SpeechFloor.UrgentWaits(this.lastUrgent, now)
                     : now < this.urgedUntil || (now < this.urgedSoftlyUntil && delivery != Delivery.Move)))
             {
                 interrupt = false; // an urged phrase is still being heard: wait behind it
@@ -97,6 +97,7 @@ namespace Poe2Accessibility.Services
                         goesOut = this.floor.Move(text, interrupt, now);
                         break;
                     case Delivery.Floor:
+                    case Delivery.Command:
                         this.floor.Take(text, now);
                         break;
                     case Delivery.Urgent:

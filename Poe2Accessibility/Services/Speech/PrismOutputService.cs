@@ -50,6 +50,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Until then interrupting phrases queue (see <see cref="Urge"/>).</summary>
         private DateTime urgedUntil = DateTime.MinValue;
 
+        /// <summary>Until then a <see cref="Command"/> is being heard: not even urgent news cuts it.</summary>
+        private DateTime commandedUntil = DateTime.MinValue;
+
         /// <summary>When urgent news was last said (<see cref="SpeechFloor.UrgentWaits"/>).</summary>
         private DateTime lastUrgent = DateTime.MinValue;
 
@@ -147,6 +150,13 @@ namespace Poe2Accessibility.Services
             {
                 this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
             }
+        }
+
+        public void Command(string text, int holdMs)
+        {
+            this.mentioned = null;
+            this.Say(text, true, Delivery.Command, 0);
+            this.commandedUntil = this.urgedUntil = DateTime.UtcNow.AddMilliseconds(holdMs);
         }
 
         public void Mention(string text) => this.Mention(text, reading: true);

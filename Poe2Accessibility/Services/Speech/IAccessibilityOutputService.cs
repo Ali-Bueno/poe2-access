@@ -37,6 +37,12 @@ namespace Poe2Accessibility.Services
         void TakeFloor(string text) => this.Speak(text, true);
 
         /// <summary>
+        ///     A word that decides a fight within the second ("stop, inside"): cuts everything, urgent news too, and nothing
+        ///     cuts it for <paramref name="holdMs"/> but another one, and nothing is said before it.
+        /// </summary>
+        void Command(string text, int holdMs) => this.Urge(text, holdMs);
+
+        /// <summary>
         ///     The player's own move (the cursor to another cell, a step onto what A uses): interrupts even a message or a
         ///     page being kept; never a lesson, nor urgent news.
         /// </summary>

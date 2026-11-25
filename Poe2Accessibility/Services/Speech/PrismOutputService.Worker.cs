@@ -127,6 +127,9 @@ namespace Poe2Accessibility.Services
             KeptMessage,
             Move,
             Floor,
+
+            /// <summary>A word that decides a fight: cuts urgent news too.</summary>
+            Command,
         }
 
         private readonly record struct SpeechRequest(string? Text, bool Interrupt);

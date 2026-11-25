@@ -242,6 +242,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.Mechanics?.Follow(now);
             this.NoteStep("the monsters near and the poll's end", ref step);
             if (this.DodgeWarnings)
             {
