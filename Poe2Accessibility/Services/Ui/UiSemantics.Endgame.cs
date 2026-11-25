@@ -36,6 +36,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<IntPtr> notEndgame = new();
         private readonly HashSet<string> uncatalogued = new(StringComparer.Ordinal);
         private (IntPtr Root, string Graph, Dictionary<string, Vector2> Centres)? endgameCentres;
+        private Dictionary<string, IntPtr> endgameElements = new(StringComparer.Ordinal);
 
         /// <summary>A hovered node of an endgame graph; null for any other element.</summary>
         private AccessibleUiNode? DescribeEndgameNode(in UiElementReader.ElementInfo info, bool hovered)
@@ -50,7 +51,7 @@ namespace Poe2Accessibility.Services
             var language = Localization.Language;
             var entries = this.TooltipEntries(info);
             var popup = entries.Count > 0 ? entries[^1] : new List<string>();
-            var name = popup.Count > 0 ? popup[0] : catalog.NodeName(id, language) is { Length: > 0 } known ? known : Announcements.AtlasNode;
+            var name = popup.Count > 0 ? popup[0] : this.EndgameNodeLabel(id, info.Address, language) is { Length: > 0 } known ? known : Announcements.AtlasNode;
             var tooltip = popup.Skip(1).ToList();
             if (this.EndgameContentIcons(info, language) is { Count: > 0 } contents)
             {
@@ -63,7 +64,7 @@ namespace Poe2Accessibility.Services
             Vector2? Place(string passive) => centres != null && centres.TryGetValue(passive, out var drawn) ? drawn
                 : centres == null && catalog.Node(passive) is { } other ? new Vector2(other.X, other.Y) : null;
             var links = AtlasLinks.Describe(Place(id), (node.Links ?? new List<string>()).Where(other => catalog.SameGraph(id, other))
-                .Select(other => (Place(other), catalog.NodeName(other, language) is { Length: > 0 } label ? label : Announcements.AtlasNode)));
+                .Select(other => (Place(other), this.EndgameNodeLabel(other, this.EndgameElementOf(other), language) is { Length: > 0 } label ? label : Announcements.AtlasNode)));
             if (links.Count > 0)
             {
                 tooltip.Add(Announcements.PassiveLinks(links));
@@ -121,6 +122,11 @@ namespace Poe2Accessibility.Services
                 {
                     names.Add(name);
                 }
+                else if (this.elements.TryReadText(info.Address, out var text) && EndgameCatalog.Shared.IsContentName(text.Trim(), language) && !names.Contains(text.Trim()))
+                {
+                    // Canvas-drawn icons give no texture key; the icon element itself carries the content's name as text.
+                    names.Add(text.Trim());
+                }
 
                 foreach (var child in this.elements.ReadChildren(info))
                 {
@@ -170,7 +176,9 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            if (described.TooltipPending && !allowPending)
+            // The map's popup is no part of the node's tooltip, so it stays pending there; the rolled area names the
+            // node without it, and only an unnamed node is worth waiting for.
+            if (described.TooltipPending && !allowPending && (described.Text.Length == 0 || described.Text == Announcements.AtlasNode))
             {
                 return null;
             }
@@ -338,6 +346,7 @@ namespace Poe2Accessibility.Services
             }
 
             var centres = new Dictionary<string, Vector2>(StringComparer.Ordinal);
+            var elements = new Dictionary<string, IntPtr>(StringComparer.Ordinal);
             var pending = new Queue<UiElementReader.ElementInfo>();
             pending.Enqueue(ancestors[^1]);
             for (var seen = 0; pending.Count > 0 && seen < MaxEndgameElements; seen++)
@@ -347,6 +356,7 @@ namespace Poe2Accessibility.Services
                     EndgameCatalog.Shared.Node(id)?.Graph == graph && PluginUiElementReflection.TryGetAbsoluteRect(info.Address, out var position, out var size))
                 {
                     centres[id] = position + (size / 2);
+                    elements[id] = info.Address;
                     continue;
                 }
 
@@ -366,7 +376,40 @@ namespace Poe2Accessibility.Services
             }
 
             this.endgameCentres = (root, graph, centres);
+            this.endgameElements = elements;
             return centres;
+        }
+
+        /// <summary>The element drawing a node of the last scanned graph, zero when the scan has none cached.</summary>
+        private IntPtr EndgameElementOf(string passiveId) =>
+            this.endgameElements.TryGetValue(passiveId, out var element) ? element : IntPtr.Zero;
+
+        /// <summary>
+        ///     A node's name before its popup: an Atlas passive's name or the one map it can be (the catalog's), else
+        ///     the map the element actually rolled — its area key's name, which is how its popup titles it — else the
+        ///     catalog's biomes. On the Atlas map the popup is no part of the node's tooltip, so a random map node is
+        ///     named by its rolled area or not at all (live 2026-11-25: landed nodes read "Atlas node").
+        /// </summary>
+        private string EndgameNodeLabel(string passiveId, IntPtr element, string language)
+        {
+            var catalog = EndgameCatalog.Shared;
+            if (catalog.Text("passive/" + passiveId, language) is { Length: > 0 } passive)
+            {
+                return passive;
+            }
+
+            if (catalog.Node(passiveId)?.Maps is { Count: 1 } && catalog.NodeName(passiveId, language) is { Length: > 0 } single)
+            {
+                return single;
+            }
+
+            if (element != IntPtr.Zero && DatKey.Row(this.reader, this.elements, element + GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable) is { } row &&
+                this.AtlasRowId(row) is { Length: > 0 } areaId && areaId != "?" && catalog.Text("area/" + areaId, language) is { Length: > 0 } rolled)
+            {
+                return rolled;
+            }
+
+            return catalog.NodeName(passiveId, language);
         }
     }
 }

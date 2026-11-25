@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Services
         private readonly CatalogData data;
         private readonly Dictionary<string, string> objectiveByIcon;
         private readonly Dictionary<string, int> towerReach;
+        private readonly Dictionary<string, HashSet<string>> contentNames = new(StringComparer.Ordinal);
 
         public EndgameCatalog(CatalogData data)
         {
@@ -122,6 +123,23 @@ namespace Poe2Accessibility.Services
             var dot = file.IndexOf('.', StringComparison.Ordinal);
             file = dot > 0 ? file[..dot] : file;
             return this.data.Icons.TryGetValue(file, out var icon) ? this.Text(icon.Name, language) : string.Empty;
+        }
+
+        /// <summary>
+        ///     Whether a text is exactly a content's name in the language (an Atlas node's content icons carry their
+        ///     name as text; their art does not read on the canvas-drawn elements, live 2026-11-25).
+        /// </summary>
+        public bool IsContentName(string text, string language)
+        {
+            if (!this.contentNames.TryGetValue(language, out var names))
+            {
+                names = new HashSet<string>(
+                    this.data.Icons.Values.Select(icon => this.Text(icon.Name, language)).Where(name => name.Length > 0),
+                    StringComparer.Ordinal);
+                this.contentNames[language] = names;
+            }
+
+            return names.Contains(text);
         }
 
         /// <summary>How many nodes a tower's reach holds; 0 for a node that is no tower.</summary>

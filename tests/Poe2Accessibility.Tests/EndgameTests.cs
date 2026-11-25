@@ -182,6 +182,10 @@ namespace Poe2Accessibility.Tests
             Expect("Fisura", catalog.IconName("Art/2DArt/UIImages/InGame/AtlasScreen/AtlasIconContent/AtlasIconContentBreach.dds", "es"), "by the file, folder and extension aside");
             Expect("Breach", catalog.IconName(@"Art\2DArt\AtlasIconContentBreach|tint", "en"), "back slashes and a suffix");
             Expect(string.Empty, catalog.IconName("Art/2DArt/UIImages/InGame/Gold.dds", "en"), "other art");
+            Expect(true, catalog.IsContentName("Breach", "en"), "a content's own name as text (canvas icons carry no readable art)");
+            Expect(true, catalog.IsContentName("Fisura", "es"), "the same name in Spanish");
+            Expect(false, catalog.IsContentName("Open all Unstable Breaches", "en"), "a description is not a content name");
+            Expect(false, catalog.IsContentName("Breach", "es"), "names are per language");
         }
 
         private static void TowersCountWhatTheyReach()

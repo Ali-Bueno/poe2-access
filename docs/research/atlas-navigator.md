@@ -74,6 +74,12 @@ Built and deployed to the play copy, awaiting the owner's ear: `AtlasNarrator` w
 given up) the landing is spoken as name, state from `+0x32F` (`AtlasState.Of`, bits only), contents and links
 (`UiSemantics.AtlasNodeLine` over the shipped endgame readout; setting `AnnounceAtlasNodes`, on by default).
 Unit tests `AtlasStateReadsBitsNotEquality` / `AtlasLandingSaysStateAfterName`; whole suite green under Wine.
+First ear-test (owner, ~13:20): states correct on every landing, but random-map nodes read "Atlas node" with
+contents missing and a ~2.5 s wait — the map's popup is no part of the node's tooltip, so the name never
+arrived (pending gave up), and canvas icons yield no texture key. Fixed the same day: the name comes from the
+element's rolled area key (`EndgameNodeLabel`, neighbours via the centres scan's element map), contents from the
+icon elements' own name text (`EndgameCatalog.IsContentName`), and a named node no longer waits for its popup.
+In the play copy; hearing it waits on the next relaunch.
 Not in this build: the you-are-here anchor (unresolved, §6) — it moves to Phase 2, whose per-hop brief is what
 this landing line becomes. **Live proof still owed:** state words heard matching the popup on a locked, an
 accessible and a completed landing, at hop cadence without spam.
