@@ -148,6 +148,7 @@ namespace Poe2Accessibility.Tests
                 PanelOpeningTests.All(),
                 RoomTests.All(),
                 RoomObjectTests.All(),
+                InspectTableTests.All(),
             };
             foreach (var (name, test) in suites.SelectMany(suite => suite))
             {
