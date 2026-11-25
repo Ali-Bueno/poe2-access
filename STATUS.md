@@ -728,7 +728,12 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
 - **Second player:** a trade swapped for an item that reads the same, the trade window without the focus, whether
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
-  currency), the Atlas and the map device, Act 4's destination map.
+  currency), Act 4's destination map.
+- **The Atlas navigator's live sweep:** a character is at the Atlas now (the owner, 2026-11-25: the stick hops
+  node-to-node and the named pain is losing one's place); the plan is
+  [docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) and everything past its Phase 0 waits on that
+  sweep (`atlasnode`/`datkeys`/`hex` per node kind, `dump visible` of the Atlas and the map device) with the owner
+  hopping and the agent writing `debug/command.txt`. **Unblocks:** the owner at the Atlas for one session.
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each
@@ -746,8 +751,8 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   de armas 2: …", "Set de armas 1: Filo quimérico, raro, Égida de glifo, raro") moves no row. **Unblocks:** the owner
   levels a gem with the cursor on its row and hears "NIVEL: 9" and no more.
 - **A control with no tooltip under the free cursor, heard** (audit N1; the rule is under Decisions): none exists on
-  the panels yarkey opens. **Unblocks:** a character at the Atlas or the map device, swept with `VerboseLogging` on
-  (`Hover without tooltip` lists each one).
+  the panels yarkey opens. **Unblocks:** the Atlas navigator's Phase 0 sweep (above), which runs with
+  `VerboseLogging` on (`Hover without tooltip` lists each one).
 - **"La ruta es larga, sigo buscando" heard:** no town can run the search out: the Ardura caravan has 164,423 walkable
   cells (dev `terrain`) and the budget is 600,000 expansions (`RoutePlanner.MaxExpansions`). **Unblocks:** an area
   larger than the budget, met in play with the log kept.

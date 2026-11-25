@@ -128,9 +128,9 @@ changes or hides its icon, so it drops out by itself.
 
 | Item | Confidence | Plan |
 |---|---|---|
-| Atlas node reading (name, contents, links, needs) | code done, UNSURE live | First live hover: `atlasnode` dev command; fix the record search or the canvas walk if the Atlas draws nodes another way. |
-| Atlas node state (completed, reachable, corrupted) | UNSURE | Read from the popup's words first; then look for a MiscAnimated key on the node (EndgameMapPins Unavailable/Available/Active/Failed/Complete pins) with `datkeys`. |
-| A finder on the Atlas ("nearest tower / citadel / not completed") | LIKELY feasible | The graph and pins are in the catalog; needs node state from memory for "not completed". |
+| Atlas node reading (name, contents, links, needs) | code done, UNSURE live | First live hover: `atlasnode` dev command; fix the record search or the canvas walk if the Atlas draws nodes another way. Part of the Phase 0 sweep in [atlas-navigator.md](atlas-navigator.md) §6. |
+| Atlas node state (completed, reachable, corrupted) | UNSURE | [atlas-navigator.md](atlas-navigator.md) Phases 0–1: test GameHelper's status byte `+0x2BF` (endgame-ui.md §3) against nodes of known state via `hex` dumps; the popup's words until then; a MiscAnimated/pin-art key via `datkeys` as fallback. |
+| Orientation and a finder on the Atlas ("nearest tower / citadel / not completed") | LIKELY feasible; **the owner's priority (2026-11-25): losing one's place is the named pain** | Planned in [atlas-navigator.md](atlas-navigator.md): orientation on open and per hop (anchors in link distance, resume, breadcrumb) ships before the D-pad lists and the spoken stick route; only the "not completed" list waits for node state. |
 | Which nodes a tower reaches | code done, UNSURE live | `EndgameMapAtlasTowers` (Reach list 0x14, the tower's own node 0x34): the 8 Fortress wall towers reach 24-50 nodes each; a node says "Al alcance de una torre: arriba a la izquierda", a tower "Alcanza 26 mapas". What a slotted tablet adds is the tower's window, not read yet. |
 | Azmeri spirits in the scanner | UNSURE | Check live whether the spirit is hostile/targetable; list it by its icon if it is a friendly creature. |
 | Expedition explosive placement | gap | Needs its own reader (placement cursor, chain length, remnants' places): research when reached. |
