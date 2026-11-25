@@ -729,14 +729,13 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
-- **The Atlas navigator, Phases 2–3 unbuilt; Phase 1 live-proven 2026-11-25:** the landed node speaks name,
-  state (`+0x32F` bit0 accessible, bit1 completed), biome and contents from its popup, and links with fog
-  neighbours marked unrevealed (`AtlasNarrator`, hot-reloaded under the running game through the day's
-  ear-tests; [docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) §5–§6). One population lands
-  link-less: nodes with no EndgameMapAtlas key (Rockpools/Slash), whose edges live in an external graph keyed
-  by grid or index — Phase 2 research. The owner's unspent Atlas points are spoken nowhere found. **Unblocks:**
-  Phase 2 (orientation: you-are-here anchor unidentified, resume, breadcrumb, geometric neighbours for the
-  row-less nodes) on the owner's word; the Phase 3 finder gesture is the owner's pick.
+- **The Atlas navigator, Phase 3 unbuilt; Phases 1–2 in the owner's ear (2026-11-25):** the landed node speaks
+  name, state, biome, contents and links (fog marked unrevealed); on opening, where the last session left off
+  and the accessible frontier in links; per hop, came-from and the nearest landmark in links. Row-less nodes
+  (no EndgameMapAtlas key: Rockpools/Slash) speak name/state/biome/contents plus nearest revealed by direction;
+  their edges live in an external graph keyed by grid or index, still unfound. The owner's unspent Atlas points
+  are spoken nowhere found (allocated counters only). **Unblocks:** the owner's verdict on wording/cadence, then
+  Phase 3 (finder + spoken route; the gesture is the owner's pick, the D-pad hops nodes itself).
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each
