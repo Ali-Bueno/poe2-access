@@ -47,7 +47,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Say the landed node and its orientation; off leaves a chosen destination's guide.</summary>
         public bool AnnounceNodes { get; set; } = true;
 
-        /// <summary>The Atlas destination finder answers on L2 and guides each landing.</summary>
+        /// <summary>The Atlas destination finder answers on the shoulder buttons and guides each landing.</summary>
         public bool FinderOn { get; set; } = true;
 
         /// <summary>The character whose Atlas is open, for the resume file; set by the plugin.</summary>

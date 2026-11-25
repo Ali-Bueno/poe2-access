@@ -87,7 +87,7 @@
  "Asks for: ": "Требует: ",
  "At a dead end, say the nearest way left pending": "В тупике называть ближайший неисследованный путь",
  "At an exit of the area, say the ways left pending": "У выхода из области называть неисследованные пути",
- "Atlas destination finder on L2": "Поиск цели Атласа на L2",
+ "Atlas destination finder on the shoulder buttons": "Поиск цели Атласа на верхних кнопках",
  "Atlas node": "Узел атласа",
  "Atlas node landed on, with its state": "Узел Атласа при прибытии, с его состоянием",
  "Atlas passive point": "очко пассивного умения атласа",

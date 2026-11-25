@@ -87,7 +87,7 @@
  "Asks for: ": "Demande : ",
  "At a dead end, say the nearest way left pending": "Dans un cul-de-sac, dire le chemin à explorer le plus proche",
  "At an exit of the area, say the ways left pending": "À une sortie de la zone, dire les chemins qui restent à explorer",
- "Atlas destination finder on L2": "Recherche de destination de l'Atlas sur L2",
+ "Atlas destination finder on the shoulder buttons": "Recherche de destination de l'Atlas sur les boutons d'épaule",
  "Atlas node": "Nœud de l'Atlas",
  "Atlas node landed on, with its state": "Nœud de l'Atlas à l'arrivée, avec son état",
  "Atlas passive point": "point de passif de l'Atlas",

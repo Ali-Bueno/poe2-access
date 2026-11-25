@@ -338,9 +338,9 @@ An entry says its cluster, side and ring and how many links it lies from the cur
 right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
 popup says "Unallocated" where it stands.
 
-**Atlas map destinations** (setting "Atlas destination finder on L2", Navigation, on by default): while the Atlas
-map itself has the cursor, hold L2 and flick the right stick up or down to walk the lists Position, Accessible,
-not completed, Landmarks and Objectives; flick it left or right to walk a list nearest first. What a flick names
+**Atlas map destinations** (setting "Atlas destination finder on the shoulder buttons", Navigation, on by default):
+while the Atlas map itself has the cursor, L1/R1 (LB/RB) walk a destination list nearest first, and with L2 (LT)
+held they walk the lists instead: Position, Accessible, not completed, Landmarks and Objectives. What a press names
 becomes the destination at once, with its state and the next push ("Caldera, Accessible, 4 links away. From here:
 down right, 4 pushes"). Then hop with the left stick or D-pad as usual: each landing ends with the next push and
 links left, counting down to "Arrived at …"; a wrong hop is silently rerouted. Going back to Position, or holding

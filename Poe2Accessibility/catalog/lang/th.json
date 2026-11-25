@@ -87,7 +87,7 @@
  "Asks for: ": "ต้องการ: ",
  "At a dead end, say the nearest way left pending": "ที่ทางตัน ให้บอกทางที่ยังไม่ได้สำรวจที่ใกล้ที่สุด",
  "At an exit of the area, say the ways left pending": "ที่ทางออกของพื้นที่ ให้บอกทางที่ยังไม่ได้สำรวจ",
- "Atlas destination finder on L2": "ตัวค้นหาปลายทางแอตลาสด้วย L2",
+ "Atlas destination finder on the shoulder buttons": "ตัวค้นหาปลายทางแอตลาสด้วยปุ่มไหล่",
  "Atlas node": "โหนดแอตลาส",
  "Atlas node landed on, with its state": "โหนดแอตลาสเมื่อมาถึง พร้อมสถานะ",
  "Atlas passive point": "แต้มพาสซีฟแอตลาส",

@@ -115,9 +115,10 @@ element; the node the Atlas opens on serves as the session anchor instead.
 
 ### Phase 3 — finder and guide (built 2026-11-25; awaiting route proof live)
 
-The owner chose L2 (LT) over L3, whose click and hold are the Atlas search's own. Holding L2 and flicking the
-right stick walks the lists (up/down) and their entries (left/right), nearest first; L2 + R3, or the Position
-list, drops the choice. The lists are **Position · Accessible, not completed · Landmarks** (the Phase 2 anchor
+The owner first chose L2 (LT) + right-stick flicks, then reported the game takes the right stick on this map
+whether L2 is held or not (no finder press landed all session), so the buttons took over the same evening:
+L1/R1 walk a list's entries, and with L2 held they walk the lists instead; L2 + R3, or the Position list,
+drops the choice. The lists are **Position · Accessible, not completed · Landmarks** (the Phase 2 anchor
 kinds) · **Objectives** (nodes whose catalogue objective names what they ask; rolled contents remain a popup
 fact, so this is the honest part of the planned by-content list). A choice is spoken with its state and the
 first push; each settled landing then ends with the next push and links left, recomputed from where the cursor

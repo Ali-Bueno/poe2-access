@@ -87,7 +87,7 @@
  "Asks for: ": "必要：",
  "At a dead end, say the nearest way left pending": "行き止まりで、最も近い未探索の道を読み上げる",
  "At an exit of the area, say the ways left pending": "エリアの出口で、未探索の道を読み上げる",
- "Atlas destination finder on L2": "L2のアトラス目的地検索",
+ "Atlas destination finder on the shoulder buttons": "ショルダーボタンのアトラス目的地検索",
  "Atlas node": "アトラスのノード",
  "Atlas node landed on, with its state": "到達したアトラスノードとその状態",
  "Atlas passive point": "アトラスパッシブポイント",
