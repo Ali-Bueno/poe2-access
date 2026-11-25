@@ -32,6 +32,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ClosingInspectModeEndsTheTable), ClosingInspectModeEndsTheTable),
             (nameof(WithTheTableOffOnlyTheCrossingsAreSaid), WithTheTableOffOnlyTheCrossingsAreSaid),
             (nameof(TwoWornRingsAreToldApartBySlot), TwoWornRingsAreToldApartBySlot),
+            (nameof(TheFirstMoveAfterTheOpeningNamesItsItem), TheFirstMoveAfterTheOpeningNamesItsItem),
             (nameof(ASingleTooltipOpensWithItsName), ASingleTooltipOpensWithItsName),
             (nameof(ALineFillingInIsNotSaid), ALineFillingInIsNotSaid),
             (nameof(TheRobesReadAsTheirTooltips), TheRobesReadAsTheirTooltips),
@@ -261,6 +262,18 @@ namespace Poe2Accessibility.Tests
             Expect("Worn", watch.CrossedTo(1), "the focus starts in the worn robe's tooltip");
             Expect(null, watch.CrossedTo(1), "moving within it");
             Expect("This item", watch.CrossedTo(0), "crossing to the other robe");
+        }
+
+        // The opening no longer says where the game's cursor is (user, 2026-11-25: a flask's opening read its whole help
+        // paragraph): the first D-pad move names the item it is in, even the one the cursor started in.
+        private static void TheFirstMoveAfterTheOpeningNamesItsItem()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
+            Expect("This item", watch.CrossedTo(0), "the cursor lands in the inspected robe, its reading quieted");
+            Expect("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud", watch.Tick(200), "the opening alone");
+            Expect("This item", watch.CrossedTo(0), "the first move names its item");
+            Expect(null, watch.CrossedTo(0), "then not again within it");
         }
 
         private static void TwoWornRingsAreToldApartBySlot()

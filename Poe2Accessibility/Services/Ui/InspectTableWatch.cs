@@ -131,7 +131,10 @@ namespace Poe2Accessibility.Services
             return this.table.Rebuild(this.labels, rows) ?? (toggled ? this.table.Current : null);
         }
 
-        /// <summary>Per frame: the opening, once, when the items' titles have stayed the same for <see cref="OpeningSettleMs"/>.</summary>
+        /// <summary>
+        ///     Per frame: the opening, once, when the items' titles have stayed the same for <see cref="OpeningSettleMs"/>. It
+        ///     does not say where the game's cursor is, so the cursor's next move names the item it is in.
+        /// </summary>
         public string? Tick(long nowMs)
         {
             if (!this.openingDue || this.table == null || nowMs - this.titlesSince < OpeningSettleMs)
@@ -139,7 +142,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            this.openingDue = false;
+            (this.openingDue, this.crossed) = (false, null);
             return Announcements.InspectOpened(this.mode, this.items[0].Title, this.items.Skip(1).Select(item => item.Title).ToList());
         }
 

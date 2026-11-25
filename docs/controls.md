@@ -423,7 +423,7 @@ Cannot use: 21 Int", then the whole tooltip.
 **Comparing an item with what you wear** (setting "Comparison table in Inspect Mode, right stick", Items, on by default).
 R3 on an item in the bag, a stash or a merchant's stock opens the game's Inspect Mode. The mod says the item and what it
 is set against ("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud"),
-then where the game's focus is, then the game's legend. Flick the right stick up or down to go through the lines, one
+then the game's legend; the D-pad's first move says which item the game's cursor is in. Flick the right stick up or down to go through the lines, one
 stat a row, and left or right to switch between the item and the worn one on the same row. Each flick says one line of
 one item in the game's own words. Only the first row, the name, says which item it is ("Worn. Protective Feathered Robe of
 the Cloud, magic"), so the rows below switch fast between the items ("Energy Shield: 28", "Energy Shield: 43"). A line an item lacks

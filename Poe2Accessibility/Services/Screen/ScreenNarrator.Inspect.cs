@@ -8,10 +8,9 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Item Inspect Mode for <see cref="ScreenNarrator"/> (docs/research/ui-layers.md, "Item Inspect Mode"). The
     ///     comparison table's watch is fed on every screen or focus change. While the table is on, the readings Inspect Mode
-    ///     brought before it give way to one opening and where the focus is: the item cell's advanced lines as R3 opens it
-    ///     wait for the table and are said only when none comes, and the first link's reading of the whole worn tooltip is
-    ///     left to the opening. The game's legend follows. Whether the table is on or not, the D-pad's focus says the item it
-    ///     crosses into.
+    ///     brought before it give way to one opening: the item cell's advanced lines as R3 opens it wait for the table and
+    ///     are said only when none comes, and the first link's reading is left out, its item named on the cursor's first
+    ///     move. The game's legend follows. Whether the table is on or not, the D-pad's focus says the item it crosses into.
     /// </summary>
     public sealed partial class ScreenNarrator
     {
@@ -81,8 +80,8 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Per frame: R3's burst when no table came, the opening once the tooltips settle (with where the focus is when it
-        ///     sits in one of them), and a cell that changed under the cursor, after what the focus said of the same change.
+        ///     Per frame: R3's burst when no table came, the opening once the tooltips settle, and a cell that changed under
+        ///     the cursor, after what the focus said of the same change.
         /// </summary>
         private void TickInspect()
         {
@@ -99,9 +98,9 @@ namespace Poe2Accessibility.Services
 
             if (watch.Tick(now) is { } opening)
             {
-                var inTooltip = this.inspectFocus.Node is { } node && this.InspectItemOf?.Invoke(node) != null;
-                var focus = inTooltip ? this.lastFocusSpeech : string.Empty;
-                this.Speak("inspect opening", Announcements.Sentences(new[] { opening, focus }.Where(part => part.Length > 0)), true);
+                // The opening alone: where the game's cursor landed (a flask's whole help paragraph) is said on its first move
+                // (user, 2026-11-25).
+                this.Speak("inspect opening", opening, true);
                 this.inspectCellDue = null;
             }
 
