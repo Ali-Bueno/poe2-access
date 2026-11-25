@@ -27,6 +27,12 @@ namespace Poe2Accessibility.Tests
             (nameof(ARebuildSaysOnlyAChangedCell), ARebuildSaysOnlyAChangedCell),
             (nameof(AnItemWithoutSocketsSaysSo), AnItemWithoutSocketsSaysSo),
             (nameof(ARebuildWithoutTheRowMovesToTheNearest), ARebuildWithoutTheRowMovesToTheNearest),
+            (nameof(TheOpeningWaitsForTheTooltipsToSettle), TheOpeningWaitsForTheTooltipsToSettle),
+            (nameof(ClosingInspectModeEndsTheTable), ClosingInspectModeEndsTheTable),
+            (nameof(WithTheTableOffOnlyTheCrossingsAreSaid), WithTheTableOffOnlyTheCrossingsAreSaid),
+            (nameof(TwoWornRingsAreToldApartBySlot), TwoWornRingsAreToldApartBySlot),
+            (nameof(ASingleTooltipOpensWithItsName), ASingleTooltipOpensWithItsName),
+            (nameof(ALineFillingInIsNotSaid), ALineFillingInIsNotSaid),
         };
 
         /// <summary>The magic robe in the bag the user compared on 2026-11-24, advanced info on (Fixtures/inspect-layers.txt, "robes").</summary>
@@ -188,6 +194,63 @@ namespace Poe2Accessibility.Tests
 
             var noRequirements = WornRobe with { Lines = WornRobe.Lines.Where(line => !line.Match.StartsWith("Requires", StringComparison.Ordinal)).ToList() };
             Expect("+19(10-19) to maximum Life, T13, Prefix", table.Rebuild(labels, InspectRows.Align(new[] { Robe, noRequirements })), "the row went, the next one is said");
+        }
+
+        private static void TheOpeningWaitsForTheTooltipsToSettle()
+        {
+            var watch = new InspectTableWatch();
+            Expect(null, watch.Update(new[] { Robe }, "Inspect Mode", true, 0), "the worn tooltip isn't drawn yet");
+            Equal(true, watch.Active, "flicks go to the table from the start");
+            Expect(null, watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 50), "it arrives: the wait starts again");
+            Expect(null, watch.Tick(150), "still settling");
+            Expect("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud", watch.Tick(210), "settled");
+            Expect(null, watch.Tick(400), "said once");
+            Expect("Hale Tattered Robe of the Pupil, magic", watch.Flick(PadGesture.FlickDown), "the table");
+        }
+
+        private static void ClosingInspectModeEndsTheTable()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
+            Expect(null, watch.Update(null, "Inspect Mode", true, 300), "closed");
+            Equal(false, watch.Active, "no flicks routed");
+            Expect(string.Empty, watch.Flick(PadGesture.FlickDown), "nothing to say");
+        }
+
+        private static void WithTheTableOffOnlyTheCrossingsAreSaid()
+        {
+            var watch = new InspectTableWatch();
+            Expect(null, watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", false, 0), "no opening");
+            Expect(null, watch.Tick(300), "still none");
+            Equal(false, watch.Active, "no table");
+            Expect("Worn", watch.CrossedTo(1), "the focus starts in the worn robe's tooltip");
+            Expect(null, watch.CrossedTo(1), "moving within it");
+            Expect("This item", watch.CrossedTo(0), "crossing to the other robe");
+        }
+
+        private static void TwoWornRingsAreToldApartBySlot()
+        {
+            var watch = new InspectTableWatch();
+            var ring = new InspectItem("R", Lines("R"), false, null);
+            var left = new InspectItem("L", Lines("L"), true, "left ring");
+            var right = new InspectItem("Q", Lines("Q"), true, "right ring");
+            watch.Update(new[] { ring, left, right }, "Inspect Mode", true, 0);
+            Expect("Worn, right ring", watch.CrossedTo(2), "the second ring");
+        }
+
+        private static void ASingleTooltipOpensWithItsName()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(new[] { Robe }, "Inspect Mode", true, 0);
+            Expect("Inspect Mode. Hale Tattered Robe of the Pupil", watch.Tick(200), "nothing worn: the item alone");
+        }
+
+        private static void ALineFillingInIsNotSaid()
+        {
+            var watch = new InspectTableWatch();
+            var partial = WornRobe with { Lines = WornRobe.Lines.Take(3).ToList() };
+            watch.Update(new[] { Robe, partial }, "Inspect Mode", true, 0);
+            Expect(null, watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 20), "more lines before any flick");
         }
     }
 }
