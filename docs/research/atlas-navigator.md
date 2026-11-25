@@ -199,10 +199,16 @@ written down as still open, not guessed.
   `+0x32F` 1→3, `+0x33E` 38→34, `+0x340` 0→2 are the small-field changes (pointer bytes apart), but completing a
   map may reroll the node's contents, so none is convicted yet. There is no completion overlay element and the
   node draws no texture key the reader can see (`textures []` from the new `atlasnode`, which also proved
-  `record +0x310` and the selected-node chain live). The settling test is queued with the owner: a same-session
-  accessible and a locked sample — a state byte must equal the pre-completion Gateway on accessible and differ on
-  the completed one. Round 2's wider result stands: `+0x2BE/+0x2BF` are zero on every sampled node. Two nodes
-  are locked with the popup as witness (a Rustbowl: "Close the Northern Abyssal Wounds
+  `record +0x310` and the selected-node chain live). Then the owner rested on The Burning Monolith
+  (`AtlasYellowGate`, grid 8,40 — A on it did nothing: locked, certainly not completed). The three certified
+  points now read **`+0x32F`: locked 0, accessible 1, completed 3** — bit0 accessible, bit1 completed, the very
+  semantics upstream documented at its stale `+0x2BF` (endgame-ui.md §3); completing the Gateway flipped bit1 and
+  nothing else nearby (`+0x340` is 2 on both new-build samples, dead lead; `+0x33E` varies per node). Morning
+  samples fit the same reading where their class is independently likely (Bloodwood 3, the completed-that-morning
+  Rustbowl 3, Caldera 0), with unexplained values elsewhere (4, 16 — likely further flags: attempted, sealed,
+  special). One same-session accessible sample predicted at 1 (asked, pending) promotes this from LIKELY to the
+  Phase 1 field, to be read as bits, never as an exact enum. Round 2's wider result stands: `+0x2BE/+0x2BF` are
+  zero on every sampled node. Two further nodes are locked with the popup as witness (a Rustbowl: "Close the Northern Abyssal Wounds
   in order to access this Wound"; the Vaal Vault: "Find and activate a Vessel of Estazunti…"), found by batching
   `datkeys` over the 56 visible nodes around the owner's route and matching areas to the day's popup log. No byte
   in the element's 0x420 bytes separates those two from three not-locked samples (Pit, Bloodwood, Caldera) — weak
