@@ -18,6 +18,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, int> towerReach;
         private readonly Dictionary<string, HashSet<string>> contentNames = new(StringComparer.Ordinal);
         private readonly List<string> biomes;
+        private readonly List<string> contentIds;
 
         public EndgameCatalog(CatalogData data)
         {
@@ -29,6 +30,9 @@ namespace Poe2Accessibility.Services
                 .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
             this.biomes = data.Text.Values.SelectMany(texts => texts.Keys)
                 .Where(key => key.StartsWith("biome/", StringComparison.Ordinal)).Select(key => key["biome/".Length..])
+                .Distinct(StringComparer.Ordinal).ToList();
+            this.contentIds = data.Text.Values.SelectMany(texts => texts.Keys)
+                .Where(key => key.StartsWith("content/", StringComparison.Ordinal)).Select(key => key["content/".Length..])
                 .Distinct(StringComparer.Ordinal).ToList();
         }
 
@@ -133,17 +137,22 @@ namespace Poe2Accessibility.Services
         ///     Whether a text is exactly a content's name in the language (an Atlas node's content icons carry their
         ///     name as text; their art does not read on the canvas-drawn elements, live 2026-11-25).
         /// </summary>
-        public bool IsContentName(string text, string language)
+        public bool IsContentName(string text, string language) => this.ContentNamePool(language).Contains(text);
+
+        /// <summary>Every name a content goes by in the language: the contents' own names and their icons' words.</summary>
+        private HashSet<string> ContentNamePool(string language)
         {
             if (!this.contentNames.TryGetValue(language, out var names))
             {
                 names = new HashSet<string>(
-                    this.data.Icons.Values.Select(icon => this.Text(icon.Name, language)).Where(name => name.Length > 0),
+                    this.contentIds.Select(id => this.Text("content/" + id, language))
+                        .Concat(this.data.Icons.Values.Select(icon => this.Text(icon.Name, language)))
+                        .Where(name => name.Length > 0),
                     StringComparer.Ordinal);
                 this.contentNames[language] = names;
             }
 
-            return names.Contains(text);
+            return names;
         }
 
         /// <summary>
@@ -162,6 +171,33 @@ namespace Poe2Accessibility.Services
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        ///     The content names a text carries ("Area contains a Mirror of Delirium" on a node's popup), in the order
+        ///     they stand in it: contents are rolled from the node's stats, so the popup's own words are their only
+        ///     reliable source (live 2026-11-25: canvas icons exist only at some zooms and give no readable art).
+        ///     A match must stand free of letters on both sides, and a longer name wins its place over a shorter
+        ///     inside it ("Powerful Map Boss" over "Map Boss").
+        /// </summary>
+        public IReadOnlyList<string> ContentNamesIn(string text, string language)
+        {
+            var found = new List<(int At, string Name)>();
+            foreach (var name in this.ContentNamePool(language).OrderByDescending(name => name.Length))
+            {
+                for (var at = text.IndexOf(name, StringComparison.Ordinal); at >= 0; at = text.IndexOf(name, at + 1, StringComparison.Ordinal))
+                {
+                    var end = at + name.Length;
+                    if ((at == 0 || !char.IsLetter(text[at - 1])) && (end == text.Length || !char.IsLetter(text[end])) &&
+                        !found.Any(other => at < other.At + other.Name.Length && other.At < end))
+                    {
+                        found.Add((at, name));
+                        break;
+                    }
+                }
+            }
+
+            return found.OrderBy(match => match.At).Select(match => match.Name).ToList();
         }
 
         /// <summary>How many nodes a tower's reach holds; 0 for a node that is no tower.</summary>

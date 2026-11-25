@@ -119,7 +119,7 @@ namespace Poe2Accessibility.Tests
             },
             Text = new()
             {
-                ["en"] = new() { ["term/ContainsBreach"] = "Breach", ["passive/AtlasSmall1"] = "Essence Chance", ["area/MapUniqueInitialTower"] = "Precursor Tower",
+                ["en"] = new() { ["term/ContainsBreach"] = "Breach", ["passive/AtlasSmall1"] = "Essence Chance", ["area/MapUniqueInitialTower"] = "Precursor Tower", ["content/PowerfulMapBoss"] = "Powerful Map Boss", ["content/VaalBeacons"] = "Vaal Beacons",
                     ["biome/Forest"] = "Forest", ["biome/Swamp"] = "Swamp", ["objective/Breach"] = "Open all Unstable Breaches", ["client/NeedsTower"] = "Complete the Tower",
                     ["client/ClickBeacon"] = "Activate the Precursor Beacon" },
                 ["es"] = new() { ["term/ContainsBreach"] = "Fisura", ["biome/Forest"] = "Bosque", ["biome/Swamp"] = "Pantano" },
@@ -186,6 +186,9 @@ namespace Poe2Accessibility.Tests
             Expect(true, catalog.IsContentName("Fisura", "es"), "the same name in Spanish");
             Expect(false, catalog.IsContentName("Open all Unstable Breaches", "en"), "a description is not a content name");
             Expect(false, catalog.IsContentName("Breach", "es"), "names are per language");
+            Expect("Vaal Beacons", string.Join("|", catalog.ContentNamesIn("Area contains Vaal Beacons", "en")), "the popup's own contents line");
+            Expect("Powerful Map Boss", string.Join("|", catalog.ContentNamesIn("Area contains a Powerful Map Boss", "en")), "the full name stands free in prose");
+            Expect(string.Empty, string.Join("|", catalog.ContentNamesIn("Breaches everywhere", "en")), "no match inside a longer word");
         }
 
         private static void TowersCountWhatTheyReach()

@@ -180,18 +180,22 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            // The map's popup is no part of the node's tooltip, so it stays pending there; the rolled area names the
-            // node without it. What is worth the short wait is an unnamed node, or the popup-built biome line.
-            var biome = this.AtlasPopupBiome(info, Localization.Language);
-            if (!allowPending && (described.Text.Length == 0 || described.Text == Announcements.AtlasNode || biome.Length == 0) && described.TooltipPending)
+            // The map's popup is no part of the node's tooltip; it stands beside map_control and carries the rolled
+            // biome and contents in its own words. Until it is built there is nothing full to say.
+            var language = Localization.Language;
+            var popup = this.AtlasPopupTexts(info);
+            if (!allowPending && popup.Count == 0)
             {
                 return null;
             }
 
+            var catalog = EndgameCatalog.Shared;
+            var biome = popup.Select(text => catalog.BiomeNameIn(text, language)).FirstOrDefault(name => name.Length > 0) ?? string.Empty;
+            var held = popup.SelectMany(text => catalog.ContentNamesIn(text, language)).Distinct(StringComparer.Ordinal).ToList();
             var state = this.reader.TryRead<byte>(node + GameLayout.AtlasNode.StatusOffset, out var status)
                 ? Announcements.AtlasState(AtlasState.Of(status))
                 : string.Empty;
-            var contents = FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
+            var contents = held.Count > 0 ? Announcements.AtlasContents(held) : FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
             var links = FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
             return Announcements.AtlasLanding(described.Text, state, biome, contents, links);
 
@@ -199,17 +203,36 @@ namespace Poe2Accessibility.Services
                 lines?.FirstOrDefault(line => line.StartsWith(prefix, StringComparison.Ordinal)) ?? string.Empty;
         }
 
-        /// <summary>The biome the landed node's popup (beside map_control on the world screen) names; empty while unbuilt or none.</summary>
-        private string AtlasPopupBiome(in UiElementReader.ElementInfo info, string language)
+        /// <summary>The landed node's popup words (the world screen's shown texts beside map_control); empty while unbuilt.</summary>
+        private List<string> AtlasPopupTexts(in UiElementReader.ElementInfo info)
         {
+            var texts = new List<string>();
             var ancestors = this.elements.ReadAncestors(info, 3);
-            if (ancestors.Count < 3)
+            if (ancestors.Count < 3 || !this.elements.TryReadElement(ancestors[^1].Address, out var screen))
             {
-                return string.Empty;
+                return texts;
             }
 
-            var found = this.PopupText(ancestors[^1].Address, text => EndgameCatalog.Shared.BiomeNameIn(text, language).Length > 0);
-            return found == null ? string.Empty : EndgameCatalog.Shared.BiomeNameIn(found, language);
+            var pending = new Stack<UiElementReader.ElementInfo>();
+            pending.Push(screen);
+            for (var seen = 0; pending.Count > 0 && seen < MaxPopupNodes; seen++)
+            {
+                var current = pending.Pop();
+                if (this.elements.TryReadText(current.Address, out var text) && Plain(text) is { Length: > 0 } plain && !texts.Contains(plain))
+                {
+                    texts.Add(plain);
+                }
+
+                foreach (var child in this.elements.ReadChildren(current))
+                {
+                    if (this.elements.TryReadElement(child, out var childInfo) && childInfo.IsVisibleFlag && childInfo.Name != GameLayout.WorldMap.ControlName)
+                    {
+                        pending.Push(childInfo);
+                    }
+                }
+            }
+
+            return texts;
         }
 
         /// <summary>
