@@ -53,6 +53,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The range the game writes after a rolled value while its advanced descriptions are on: "+15(10-19)".</summary>
         private static readonly Regex RolledRange = new(@"(?<=\d)\(-?\d+(?:[.,]\d+)?[-–]-?\d+(?:[.,]\d+)?\)", RegexOptions.Compiled);
 
+        /// <summary>A line as the plain tooltip writes it, without the ranges of the advanced descriptions.</summary>
+        public static string WithoutRange(string line) => RolledRange.Replace(line, string.Empty);
+
+        /// <summary>The ranges of a line, without their parentheses ("25-34").</summary>
+        public static IEnumerable<string> RangesOf(string line) => RolledRange.Matches(line).Select(match => match.Value.Trim('(', ')'));
+
         public static ItemModComparison Compare(IReadOnlyList<ItemModLine> memory, IReadOnlyList<string> tooltip, IModTexts texts)
         {
             var shown = new bool[memory.Count];

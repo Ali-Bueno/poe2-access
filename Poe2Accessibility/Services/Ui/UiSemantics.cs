@@ -85,6 +85,11 @@ namespace Poe2Accessibility.Services
                 return endgameNode;
             }
 
+            if (this.DescribeInspectCard(info) is { } cardNode)
+            {
+                return cardNode;
+            }
+
             if (this.DescribeLink(info) is { } linkNode)
             {
                 return linkNode;

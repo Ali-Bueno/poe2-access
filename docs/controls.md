@@ -417,6 +417,16 @@ counted), "Nothing highlighted", and "Search cleared" when you hold L3 to clear 
 stays quiet there). A lit item under the cursor says "highlighted" after its name. A stash opened with a search still in
 its field says what it lights as the cursor enters the grid.
 
+**Comparing with what you wear (R3, "Compare").** The view opens with the difference, for each worn item it shows (both
+rings): "Compared with Armageddon Horn, Felt Cap, Equipped. Evasion Rating: 127, the worn one 81. +27 to maximum Mana, the
+worn one +14. +9% to Fire Resistance, the worn one +15%. Only the worn one: +56 to maximum Life; 40% increased Evasion
+Rating; …" — then "Only this one" and "The same in both" when there are such lines. Ranges and tiers are left out of it and
+a stat several modifiers give is added up. Tap L3 to walk it line by line, then the worn item whole, then this one; double
+tap goes back, hold reads it all. The D-pad moves over the game's links and modifier tiers: the item is named when the
+cursor passes to the other one ("Equipped, Armageddon Horn, Felt Cap"), and a modifier is said with its range, tier and kind
+("+9% to Fire Resistance, range 6-10, T8, Suffix"). A explains a link, B comes back, R3 closes. Hold R3 turns the advanced
+details off and on. On an item you wear, or one with nothing to set it against, R3 reads its modifiers that way.
+
 **An item you cannot use** says which requirement is missing right after its name: "Doom Chant, rare, column 3, row 3,
 Cannot use: 21 Int", then the whole tooltip.
 

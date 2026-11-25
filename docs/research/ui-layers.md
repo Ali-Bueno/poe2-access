@@ -71,6 +71,17 @@ proven on every screen; **OPEN** = unknown.
   with link-highlight children): name, "Flask: Item Level 1", stats, help text with keyword links
   `[Flask|Flasks]`, "Equipped", legend "Unequip" (X). The focus moves to the keyword link boxes (empty
   children of the text; k-th box = k-th link); A expands a definition into the same layer, B goes back.
+- MEASURED (2026-11-25, dumps at Shambrin's and Zarka's, `UiSemantics.InspectCards`): **Compare view.** The layer holds the
+  text "Modo inspección" and a holder → row → cards: the inspected item's first, then each worn one (both rings; stacked
+  on screen, siblings in the tree). A worn item inspected, or one with nothing to compare, is one card. Card: child 0 holds
+  the title, in two lines ("Cuerno de armagedón, Gorro de fieltro"), the child named `layout` the lines: the kind ("Casco: Nivel de
+  objeto 21"), defences or damage, the requirements (their markup nests values), `granted-skills-from-item`, the modifiers,
+  `cost`, "Equipado" / "Equipado: Set de armas I" last, `gamepad_popup_button_legend_layout`.
+- MEASURED: the view opens with the **advanced details** on each time; R3 held switches them. On: groups
+  `prefix-`/`suffix-`/`implicit-mods-with-reminders`, rows of [text with ranges, holder of the tier chip "T8" / "I"], last
+  row the group's label ("Prefijo") alone. One text a modifier, its stats by line ("Evasión aumentada un 20(14-20)%" over "+18(11-19)
+  a la vida máxima"). Off: one `explicit-stats` group with the stats added up. The cursor stops on links, chips and a granted
+  skill's box; an item without any gets no focus. The hovered item's own tooltip is redrawn with the ranges as the view opens.
 - MEASURED: in-game legends use glyph markup with a variant suffix (`<<xbox_button_lt;0>>`), sometimes
   combined (`<<rt;0>>+<<lstick;0>>`), in their own text element next to the label.
 

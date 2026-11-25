@@ -59,6 +59,12 @@ namespace Poe2Accessibility.Services
             return tooltip.Where(line => !said.Contains(line) && (inPlace || !focusSpeech.Contains(line, StringComparison.Ordinal))).ToList();
         }
 
+        /// <summary>The same tooltip redrawn with the advanced details (inspect mode opening over the item): the view says them itself.</summary>
+        public static bool Detailed(IReadOnlyList<string> said, IReadOnlyList<string> tooltip) =>
+            tooltip.Any(HasRange) && said.Count > 0 && !said.Any(HasRange);
+
+        private static bool HasRange(string line) => ItemModCheck.RangesOf(line).Any();
+
         /// <summary>
         ///     A line replaced by another answers a press, and the next press cuts it ("Forma de oso", "Forma de hombre lobo", Y pressed
         ///     again and again, 2026-11-06); a number ticking in a line ("Actualmente tiene 6 cargas") is no reason to cut what is said.

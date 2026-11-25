@@ -145,6 +145,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SocketedRunes.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SocketAim.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemModCheck.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemComparison.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Compare.cs" Link="Plugin\Announcements.Compare.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ComboIdentity.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\BaselineGrace.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\AreaBanner.cs" />

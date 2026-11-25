@@ -70,6 +70,12 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (focus?.InInspectCard != true && change.Kind == ScreenChangeKind.LayerOpened && this.InspectOpening?.Invoke(change.Layer.Address) is { Length: > 0 } inspect)
+            {
+                this.Speak("inspect mode without focus", inspect, true);
+                return;
+            }
+
             var tabTitle = change.Texts.FirstOrDefault(text => TabTitleNames.Contains(text.Name));
             if (tabTitle == null && change.Kind == ScreenChangeKind.TopLayerChanged)
             {
@@ -216,6 +222,31 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (focus?.InInspectCard == true && change.Layer.Address == focusLayer && this.InInspectCard is { } inspected)
+            {
+                // Inspect mode: its cards are said by the focus that opened them and walked by its cursor; what comes beside
+                // them (a link's definition, A) is news.
+                var beside = change.Texts.Where(text => !inspected(text.Address)).ToList();
+                if (change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TopLayerChanged)
+                {
+                    this.inspectAdvanced = this.InspectAdvanced?.Invoke(focus.Address);
+                    return;
+                }
+
+                if (beside.Count < change.Texts.Count && this.InspectAdvanced?.Invoke(focus.Address) is { } advanced && advanced != this.inspectAdvanced)
+                {
+                    this.inspectAdvanced = advanced;
+                    this.Speak("advanced details", Announcements.AdvancedDetails(advanced), false);
+                }
+
+                if (beside.Count == 0)
+                {
+                    return;
+                }
+
+                change = change with { Texts = beside };
+            }
+
             var justFocused = this.JustFocused();
             var focusIndex = snapshot.Layers.FirstOrDefault(layer => layer.Address == focusLayer)?.Index;
             if (change.Layer.Address != focusLayer && !justFocused && focusIndex < change.Layer.Index && !change.Layer.HasControls &&
@@ -345,7 +376,9 @@ namespace Poe2Accessibility.Services
                 var near = Describe(kept.Where(text => !IsSpeaker(text) && (focus == null || this.InSiblingRow?.Invoke(text.Address, focus.Address) != true)));
                 if (name.Length > 0 || near.Length > 0)
                 {
-                    this.Speak("appeared with focus", Announcements.Sentences(new[] { name, this.lastFocusSpeech, near }), true);
+                    // A definition is headed by its term, and the focus goes to a link of it.
+                    var parts = focus?.Role == UiRole.Link ? new[] { name, near, this.lastFocusSpeech } : new[] { name, this.lastFocusSpeech, near };
+                    this.Speak("appeared with focus", Announcements.Sentences(parts), true);
                 }
             }
             else if (change.Kind == ScreenChangeKind.TextsAppeared && (DateTime.UtcNow - this.collapsedAt).TotalMilliseconds >= FocusTextMergeMs)

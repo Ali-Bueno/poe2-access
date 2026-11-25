@@ -70,9 +70,9 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (fresh == null)
+            if (fresh == null || (this.Current.InInspectCard && !fresh.InInspectCard))
             {
-                return;
+                return; // inspect mode closing: its link read as "vacío" before the focus went back to the item (2026-11-25)
             }
 
             // A list the game focuses as one element: another row is a move, even onto a row with the same text.

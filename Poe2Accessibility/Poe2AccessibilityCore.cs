@@ -532,6 +532,9 @@ namespace Poe2Accessibility
                 this.narrator.GoldOf = this.GoldOf;
                 this.narrator.InSiblingRow = this.semantics.InSiblingRow;
                 this.narrator.InAnotherShopCard = this.semantics.InAnotherShopCard;
+                this.narrator.InInspectCard = this.semantics.InInspectCard;
+                this.narrator.InspectOpening = this.semantics.InspectOpening;
+                this.narrator.InspectAdvanced = this.semantics.InspectAdvanced;
                 this.narrator.ShopShown = () => this.ShopPage() != IntPtr.Zero;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;

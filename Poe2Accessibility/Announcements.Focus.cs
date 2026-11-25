@@ -134,7 +134,7 @@ namespace Poe2Accessibility
                 parts.Add(node.Value);
             }
 
-            parts.Add(T($"{node.Text}, link", $"{node.Text}, enlace"));
+            parts.Add(node.IsModTier ? node.Text : T($"{node.Text}, link", $"{node.Text}, enlace"));
             parts.AddRange(node.Tooltip);
             return Sentences(parts);
         }
