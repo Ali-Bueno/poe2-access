@@ -592,7 +592,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   way again when it changes ("izquierda, 3 pasos"), "¡Quieto! Dentro, quédate" as you come into it and
   "¡Fuera! abajo, 1 paso" if you run past it. It sounds as Jamanra's barrier does and is silent inside; "Peligro pasado,
   puedes moverte" once the blow has fallen.
-  Torvian's scaffolding has a sound of its own, a struck tube, while the priest by it is at work: stand between him and it,
+  The same barrier sound leads in Benedictus's fight: to the hole of the maze's first blast ("Zona segura"), then out through
+  its walls, opening by opening ("Sal del laberinto: sigue el latido, izquierda, 4 pasos"), and to the middle before the
+  pillars crush the sides ("Caen los pilares, al centro"). "Peligro pasado" ends each.
+  Torvian's scaffolding has a sound of its own, a struck sheet of metal, while the priest by it is at work: stand between him and it,
   so that his boulder, thrown at you, flies on at it, and step aside. It comes quicker while he holds the
   boulder, as two blows while you are on the line.
 - **Dodge warning:** a blade drawn over a low gong, diving into a deep bass drop on the moment to dodge (metal and

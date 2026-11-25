@@ -275,10 +275,10 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | Ketzuli | (guides: nothing) | states `sun_wall_count`, `summon_sun_wall`; objects `SunWall*`, `BlackHole/OrbitSun` (LIKELY) | todo |
 | Viper Napuatzi | invulnerable while the arena shrinks: stand where the guards' spears glow | not looked up | todo |
 | Doryani | self-destruct, the legs' laser, crystal beams, lightning cage | [Doryani](#doryani) | self-destruct and legs done (unit tests); beams blocked |
-| Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | a metal from the scaffolding ([Torvian](#torvian)); not heard |
+| Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | a struck sheet of metal from the scaffolding ([Torvian](#torvian)); not heard |
 | The Prisoner | use the ballista to stop his regeneration (50 %, 20 %) | not looked up | todo |
 | Diamora | waves from opposite sides; her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | [Diamora](#diamora) | waves done (unit tests); gaze todo |
-| Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) (LIKELY) | todo |
+| Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) | [Benedictus](#benedictus): maze, pillars, raised rocks done (unit tests and the log's places); rods todo |
 | Yama | at 75 % clones on the pillars: run to the one that does not react; at 65 % to the clone with the circle | [Yama](#yama): `chosen_one`, the clone's way, the blow's hole | the circle done (unit tests); pillars todo |
 | Tavakai | which totem the player stands nearest decides his power; the room burns | state `room_burning_progress` 0..100; `KaruiCaptainBossJadeWall` (Life); `GodTotem` state `current_phase` | todo |
 | Siora (Ogham interlude) | at 90 % the arena goes dark and hurts: run to the glowing monolith | not looked up | todo |
@@ -811,6 +811,30 @@ The boulder flies on past the player: drawn impacts (`rock_throw_impact.ao`) wer
 every 1.6 s, every 0.6 s while the boulder is up, two blows while the player is on the line from the boss to it. With the weak
 point setting, at the enemies' volume. How near the boulder must come is not in the files (the AI is not shipped) and no hit was
 measured: the line's width (110) is the scaffolding's `object_size` doubled; the `Boss throw:` lines log where the player and boss stood.
+
+## Benedictus
+
+Asked for by the owner ("no puedo pasarlo", 2026-11-25, 18:32 to 18:39; six deaths, then beaten). The fight's log and the files:
+- **The maze, first blast.** `maze_donut_blast.ao` (`GSTwilightOverlordLightningDonut`, donut 195 with a hole of 35 cells, 380 world
+  units, 5 s, unavoidable) at the arena's middle (`ArenaMiddle`), or after the pillars at an end of it (`MazeSpawnMarkerStart1`,
+  729 from it). Three deaths 4.9 to 5.1 s after it. Safe: in the hole, under him.
+- **The walls** (`TwilightOverlordMazeRock`) stand 0.4 s after that blast: rings round the middle, or four lines 250 to 360 apart, rocks
+  185 to 195 apart, one missing in each. The two beside the opening hold `right=1` and `left=1` (the files' `Idle_exit_right_01`,
+  the glow the guides speak of), which names it: no search needed. `shatter=1` as the second blast falls.
+- **Second blast.** Rings: `maze_detonation_blast.ao` (circle 65 cells round him, 5 s; not seen drawn yet). Lines:
+  `maze_detonation_blast_rect.ao`, 6.4 s after the first, a rectangle of 150 by 140 cells from behind him over the walls, 5 s: run
+  through all four, away from him.
+- **The pillars.** `break_pillar=1` on him 5 to 8 s before, then `break=1` on `PillarLeft` / `PillarRight`, and 1.35 s later
+  `GSOverlordPillarCrushDamage` (180 by 80 cells, unavoidable) on both sides of the room's sector `pillar` (245 to 332 across): the
+  middle strip is spared.
+- **The raised rocks** (`TwilightOverlordUpwardRock`) were led to as cover by the census's CV rule: they burst out 1.7 s after their
+  mark (25 cells) and are struck about 4.8 s after it (18 cells). The extractor leaves out what the fight's own GEAL detonates.
+- He is out of the watched range up to 10 s in the maze: the poll and the effects stopped after 3 s.
+
+Now: `BossMazeWatch` with pure `MazeRound` (phases from the effects), `MazeWay` (the next point through openings), `MazeExitGuide`
+(words) and `SafeSpotGuide` (hole, strip); the shelter's chord leads and the all-clear ends it; all `Command`s. Raised rocks and the
+ring he slams (`rock_donut_form.ao`, its middle at 2.05 s) are danger shapes of `BossEffectWatch`. The fight's memory is 12 s.
+Not done: the armed lightning rods (a `ControlZone`, trigger distance not in the files read), the lightning barrage's beams.
 
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 

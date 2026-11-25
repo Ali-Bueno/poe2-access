@@ -302,6 +302,11 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            if (EntityCatalog.IsScenery(entity))
+            {
+                return null; // a figure of a scene, shown or not: nothing to walk to
+            }
+
             // A friendly monster with the NPC component is a character (Mortimer); corpses and minions have none.
             return entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _) ? CueSynth.Layer.Friend : null;
         }

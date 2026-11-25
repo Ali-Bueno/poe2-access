@@ -378,7 +378,9 @@ namespace Poe2Accessibility
                 this.bossEffects = new BossEffectWatch(this.output, effectAreas, this.log)
                 {
                     Fighting = () => this.bosses?.Mechanics?.Fighting,
+                    Taken = (ao, at, turned, shapes, now) => this.bosses?.Mechanics?.Maze.Drawn(ao, at, turned, shapes, now) ?? false,
                 };
+                this.bosses.Mechanics.Maze.Danger = (shapes, at, since) => this.bossEffects?.Add(shapes, at, since);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
                 var skills = new PlayerSkills(memory, elements, this.log);

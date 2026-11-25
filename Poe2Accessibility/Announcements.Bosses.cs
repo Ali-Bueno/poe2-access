@@ -144,6 +144,16 @@ namespace Poe2Accessibility
         /// <summary>The player left the hole of the blow or ran past it: "Out! Left, 2 steps".</summary>
         public static string BossCloneLeft(int octant, int steps) => T($"Out! {BossCloneWay(octant, steps)}", $"¡Fuera! {BossCloneWay(octant, steps)}");
 
+        /// <summary>A boss's walls stand and a blast comes: the way to their first opening: "Get out of the maze: follow the heartbeat, up, 3 steps".</summary>
+        public static string BossMaze(int octant, int steps, bool heartbeat) => heartbeat
+            ? T($"Get out of the maze: follow the heartbeat, {BossCloneWay(octant, steps)}", $"Sal del laberinto: sigue el latido, {BossCloneWay(octant, steps)}")
+            : T($"Get out of the maze, {BossCloneWay(octant, steps)}", $"Sal del laberinto, {BossCloneWay(octant, steps)}");
+
+        /// <summary>The arena's pillars are about to crush its sides: the way to its middle.</summary>
+        public static string BossPillars(int octant, int steps, bool heartbeat) => heartbeat
+            ? T($"The pillars fall, to the middle: follow the heartbeat, {BossCloneWay(octant, steps)}", $"Caen los pilares, al centro: sigue el latido, {BossCloneWay(octant, steps)}")
+            : T($"The pillars fall, to the middle, {BossCloneWay(octant, steps)}", $"Caen los pilares, al centro, {BossCloneWay(octant, steps)}");
+
         /// <summary>The arena's flood starts down the hall, from where its front is: "The lava is flowing, up".</summary>
         public static string BossFloodFlows(int octant) => T($"The lava is flowing, {Way(octant)}", $"La lava avanza, {Way(octant)}");
 

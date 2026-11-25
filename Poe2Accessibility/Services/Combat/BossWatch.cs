@@ -377,6 +377,7 @@ namespace Poe2Accessibility.Services
                     this.output.Say(SpeechKind.BossLife, Announcements.BossDefeated(boss.Name), true);
                     this.log.Info($"Boss defeated: {boss.Name}");
                     this.Defeated?.Invoke(boss.Name);
+                    this.Mechanics?.FightWon();
                 }
 
                 this.bosses[id] = boss with { Step = 0, Engaged = false, Percent = 0 };

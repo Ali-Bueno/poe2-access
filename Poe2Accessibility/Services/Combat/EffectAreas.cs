@@ -94,6 +94,12 @@ namespace Poe2Accessibility.Services
 
         public EffectDanger Shape { get; }
 
+        /// <summary>Where the shape begins.</summary>
+        public Vector2 Origin => this.origin;
+
+        /// <summary>The way its length lies.</summary>
+        public Vector2 Forward => this.direction;
+
         /// <summary>Whether it is a wave that runs along its length.</summary>
         private bool Sweeps => this.Shape.SweepMs > 0 && this.Shape.Shape == AttackAreas.Rectangle;
 

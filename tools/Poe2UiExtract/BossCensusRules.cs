@@ -29,6 +29,7 @@ internal static class BossCensusRules
     private static readonly Regex ShieldWords = new("shield|shelter|sanctu|protect|safe", RegexOptions.IgnoreCase);
     private static readonly Regex BossReference = new(@"\b(this|globals|boss)\.|\w_boss\b");
 
+    private static readonly Regex Detonates = new(@"detonate|_det\b|_det\(|_blast|explode", RegexOptions.IgnoreCase);
     private static readonly Regex Empowering = new(@"\b(are empowering|empowered by|protected by)\b|\bwhile\b(?!\s+standing).{0,40}\b(live|lives|alive|remain|remains)\b", RegexOptions.IgnoreCase);
     private static readonly Regex Within = new(@"\b(you are within|while (you are )?(standing )?(in|inside|within)|gaining significant)\b", RegexOptions.IgnoreCase);
     private static readonly Regex Protecting = new(@"regenerat|less damage|immune|protect|cannot be (hit|damaged)", RegexOptions.IgnoreCase);
@@ -133,7 +134,9 @@ internal static class BossCensusRules
         }
 
         var objects = fight.Objects.ToDictionary(item => item.Path, item => item.Script, StringComparer.OrdinalIgnoreCase);
-        foreach (var path in fight.Skills.SelectMany(skill => skill.Objects))
+        // What the fight's own blows set off is no cover: Benedictus's raised rocks, led to, burst (2026-11-25).
+        var setOff = fight.Skills.SelectMany(skill => skill.Geals).Where(geal => Detonates.IsMatch(geal.Each)).SelectMany(geal => geal.Objects).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var path in fight.Skills.SelectMany(skill => skill.Objects).Where(path => !setOff.Contains(path)))
         {
             if (objects.GetValueOrDefault(path) is { } script && script.HasSection(BlockageSection) && (script.Has("start_blocked", "true") || script.Has("blocking", "true")))
             {

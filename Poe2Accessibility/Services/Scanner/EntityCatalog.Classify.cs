@@ -59,6 +59,12 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            if (IsScenery(entity) && !this.walking.Walks(entity.Id, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)))
+            {
+                this.LogLeftOutCharacter(entity, path, "scenery: no target and nothing to use");
+                return null;
+            }
+
             var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
             var kind = string.Empty;
             var plain = false;
@@ -772,6 +778,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool IsCharacter(Entity entity) =>
             entity.TryGetComponent<NPC>(out _) || (entity.EntityType == EntityTypes.Monster && entity.HasComponent(InteractionActionComponent));
+
+        /// <summary>
+        ///     A figure of a scene, with a character's name and nothing to talk to: the NPC component with neither Targetable nor
+        ///     InteractionAction (the Countess and Kanu by Benedictus, who sounded on after they had left or died, 2026-11-25;
+        ///     7 of the 401 NPC files: they extend "nothing").
+        /// </summary>
+        public static bool IsScenery(Entity entity) =>
+            entity.TryGetComponent<NPC>(out _) && !entity.TryGetComponent<Targetable>(out _) && !entity.HasComponent(InteractionActionComponent);
 
         /// <summary>The game's component that makes an entity usable; the reader has no class for it.</summary>
         private const string InteractionActionComponent = "InteractionAction";

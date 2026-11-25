@@ -32,8 +32,8 @@ namespace Poe2Accessibility.Services
         /// <summary>A visual unseen this long (ms) is forgotten: its id may come again.</summary>
         private const int ForgetMs = 5000;
 
-        /// <summary>The boss lost for less than this (ms) is the same fight.</summary>
-        private const int FightOverMs = 3000;
+        /// <summary>The boss lost for less than this (ms) is the same fight: Benedictus is out of sight 10 s in his maze, whose second blast comes then.</summary>
+        private const int FightOverMs = 12000;
 
         /// <summary>Effect models logged a fight, each once: the evidence of what the client draws.</summary>
         private const int MaxLogged = 80;
@@ -63,6 +63,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Where a boss being fought stands; null when none is.</summary>
         public Func<Vector2?> Fighting { get; set; } = () => null;
+
+        /// <summary>An effect another watch leads by (its model, place, turn, shapes and when): true when it is not guided here too.</summary>
+        public Func<string, Vector2, float, IReadOnlyList<EffectDanger>?, long, bool> Taken { get; set; } = (_, _, _, _, _) => false;
 
         /// <summary>Where to walk to out of the effect; null when the player is in none.</summary>
         public Vector2? Lead { get; private set; }
@@ -168,6 +171,11 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Boss effect drawn: {path} #{id} {ao} at {at.X:0},{at.Y:0} turned {turned:0.00}");
             }
 
+            if (this.Taken(ao, at, float.IsNaN(turned) ? 0f : turned, this.areas.Of(ao), now))
+            {
+                return;
+            }
+
             if (float.IsNaN(turned) || this.areas.Of(ao) is not { } shapes || shapes.Max(shape => shape.EndMs) < MinLeadMs)
             {
                 return;
@@ -176,6 +184,10 @@ namespace Poe2Accessibility.Services
             this.active.Add((shapes.Select(shape => new EffectZone(shape, at, turned)).ToList(), now));
             this.log.Info($"Boss effect: {ao} at {at.X:0},{at.Y:0} turned {turned:0.00}, {shapes.Count} shapes, the first in {shapes.Min(shape => shape.HitMs)} ms");
         }
+
+        /// <summary>Danger shapes known from something other than an effect (a raised rock), standing since <paramref name="since"/>.</summary>
+        public void Add(IReadOnlyList<EffectDanger> shapes, Vector2 at, long since) =>
+            this.active.Add((shapes.Select(shape => new EffectZone(shape, at, 0f)).ToList(), since));
 
         private void Guide(Render player, long now)
         {

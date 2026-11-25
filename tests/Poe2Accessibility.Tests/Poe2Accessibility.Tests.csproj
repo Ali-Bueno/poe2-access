@@ -278,6 +278,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\ClonePaths.cs" Link="Plugin\BossPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\SafeSpotGuide.cs" Link="Plugin\BossPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossThrows.cs" Link="Plugin\BossThrows.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\MazeWay.cs" Link="Plugin\MazeWay.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\MazeRound.cs" Link="Plugin\MazeRound.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\MazeExitGuide.cs" Link="Plugin\MazeExitGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\RefugeEnd.cs" Link="Plugin\RefugeEnd.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlayerBuffs.cs" Link="Plugin\BossPlayerBuffs.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />

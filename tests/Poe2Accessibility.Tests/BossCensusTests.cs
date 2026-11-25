@@ -207,6 +207,9 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, string.Join(";", Lines(Fight(skills: new[] { spawn, Skill("GSBlast", area: true, length: 59) }, objects: new[] { sword, rock }), "cover")), "no area long enough to hide from");
             Equal($"cover|{Boss}|Metadata/Monsters/Test/Sword", string.Join(";", Lines(Fight(skills: new[] { spawn, Skill("GSBlast", area: true, length: BossCensusRules.CoverSkillLength) }, objects: new[] { sword, rock }), "cover")),
                 "the blockage that starts blocked; a merely blocking rock is no cover");
+            var burst = Skill("GSBurst") with { Geals = new[] { new BossGeal("1169", new[] { sword.Path }, string.Empty, "triggerer.Call(detonate);", None) } };
+            Equal(string.Empty, string.Join(";", Lines(Fight(skills: new[] { spawn, Skill("GSBlast", area: true, length: BossCensusRules.CoverSkillLength), burst }, objects: new[] { sword, rock }), "cover")),
+                "what the fight's own blow sets off is no cover");
         }
 
         private static void ObjectsToUseOrBreakSkipWaysOutAndLoot()

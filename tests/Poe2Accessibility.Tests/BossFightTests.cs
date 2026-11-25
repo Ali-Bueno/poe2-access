@@ -31,6 +31,10 @@ namespace Poe2Accessibility.Tests
             (nameof(AClonesWayNamesWhereItStops), AClonesWayNamesWhereItStops),
             (nameof(TheSafeSpotIsSaidUntilThePlayerIsInIt), TheSafeSpotIsSaidUntilThePlayerIsInIt),
             (nameof(TheThrowsTargetIsTheNearestWithItsHelperAtWork), TheThrowsTargetIsTheNearestWithItsHelperAtWork),
+            (nameof(AMazesLinesAreWalkedThroughTheirOpenings), AMazesLinesAreWalkedThroughTheirOpenings),
+            (nameof(AMazesRingsAreLeftRoundToTheirOpenings), AMazesRingsAreLeftRoundToTheirOpenings),
+            (nameof(AMazesRoundIsToldByItsEffects), AMazesRoundIsToldByItsEffects),
+            (nameof(TheWayOutOfAMazeIsSaidAsItTurns), TheWayOutOfAMazeIsSaidAsItTurns),
             (nameof(TheShelterEndsOnceItStaysDown), TheShelterEndsOnceItStaysDown),
             (nameof(AThingToUseIsToldOfOnceAndNeverLedTo), AThingToUseIsToldOfOnceAndNeverLedTo),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
@@ -342,6 +346,135 @@ namespace Poe2Accessibility.Tests
             Equal(false, BossThrows.LinedUp(boss, new Vector2(29250, 19200), attack), "off the line");
             Equal(false, BossThrows.LinedUp(boss, new Vector2(29114, 20100), attack), "beyond it");
             Equal(false, BossThrows.LinedUp(boss, boss, attack), "upon the boss no line");
+        }
+
+        /// <summary>Benedictus's lines as the log of 2026-11-25 placed them; the fourth, past the log's cap, with one opening unmarked.</summary>
+        private static List<MazeRock> Lines()
+        {
+            var rocks = new List<MazeRock>();
+            void Wall(float x, float right, float left, params float[] plain)
+            {
+                rocks.Add(new MazeRock(new Vector2(x, right), false, true));
+                rocks.Add(new MazeRock(new Vector2(x, left), true, false));
+                rocks.AddRange(plain.Select(y => new MazeRock(new Vector2(x, y), false, false)));
+            }
+
+            Wall(23810, 21745, 21364, 22125, 21940, 21179, 20984, 20799);
+            Wall(23505, 21560, 21179, 22125, 21940, 21745, 20984, 20799);
+            Wall(23147, 21940, 21560, 22125, 21364, 21179, 20984, 20799);
+            rocks.Add(new MazeRock(new Vector2(23516, 22125), false, false)); // a rock a cell off its wall
+            rocks.AddRange(new[] { 22125f, 21940f, 21745f, 21560f, 21179f, 20984f, 20799f }.Select(y => new MazeRock(new Vector2(22897, y), false, false)));
+            return rocks;
+        }
+
+        private static void AMazesLinesAreWalkedThroughTheirOpenings()
+        {
+            var rocks = Lines();
+            var (forward, goal) = (new Vector2(-1, 0), new Vector2(22800, 21364));
+            var player = new Vector2(24071, 21364);
+            var openings = new List<float>();
+            var walls = new List<int>();
+            for (var step = 0; step < 400 && player.X > goal.X + 1; step++)
+            {
+                var next = MazeWay.Lines(rocks, player, forward, goal);
+                if (next.Wall >= 0 && (walls.Count == 0 || walls[^1] != next.Wall))
+                {
+                    walls.Add(next.Wall);
+                    openings.Add(next.At.Y);
+                }
+
+                var way = next.At - player;
+                var before = player;
+                player += way.Length() <= 10f ? way : Vector2.Normalize(way) * 10f;
+                Equal(false, rocks.Any(rock => Vector2.Distance(rock.At, player) < 80f && Vector2.Distance(rock.At, player) < Vector2.Distance(rock.At, before)), $"walks into no rock at {player.X:0},{player.Y:0}");
+                if (way.Length() < 0.5f)
+                {
+                    break;
+                }
+            }
+
+            Equal("0,1,2,3", string.Join(",", walls), "every wall in turn");
+            Equal("21554,21370,21750,21370", string.Join(",", openings.Select(y => MathF.Round(y))), "through the middle of each opening, the last its widest gap");
+            Equal(true, player.X <= goal.X + 1, "out beyond the blast");
+        }
+
+        private static void AMazesRingsAreLeftRoundToTheirOpenings()
+        {
+            var centre = new Vector2(23342, 21364);
+            var rocks = new List<MazeRock>();
+            void Ring(float radius, int count, int open)
+            {
+                for (var k = 0; k < count; k++)
+                {
+                    if (k != open)
+                    {
+                        var (sin, cos) = MathF.SinCos(2f * MathF.PI * k / count);
+                        rocks.Add(new MazeRock(centre + (new Vector2(cos, sin) * radius), k == (open + 1) % count, k == (open + count - 1) % count));
+                    }
+                }
+            }
+
+            Ring(400, 13, 3);
+            Ring(650, 21, 14);
+            var player = centre;
+            var walls = new List<int>();
+            for (var step = 0; step < 600 && MazeWay.Rings(rocks, player, centre) is { } next; step++)
+            {
+                if (walls.Count == 0 || walls[^1] != next.Wall)
+                {
+                    walls.Add(next.Wall);
+                }
+
+                var way = next.At - player;
+                if (way.Length() < 0.5f)
+                {
+                    break;
+                }
+
+                var before = player;
+                player += way.Length() <= 10f ? way : Vector2.Normalize(way) * 10f;
+                Equal(false, rocks.Any(rock => Vector2.Distance(rock.At, player) < 70f && Vector2.Distance(rock.At, player) < Vector2.Distance(rock.At, before)), $"walks into no rock at {player.X - centre.X:0},{player.Y - centre.Y:0}");
+            }
+
+            Equal("0,1", string.Join(",", walls), "one ring, then the other");
+            Equal(true, Vector2.Distance(player, centre) > 700, "past the last");
+            Equal(true, MazeWay.Rings(Array.Empty<MazeRock>(), centre, centre) == null, "no rocks: no rings to leave");
+        }
+
+        private static void AMazesRoundIsToldByItsEffects()
+        {
+            const string Ao = "Metadata/Effects/Spells/monsters_effects/Act4_FOUR/TwilightOrderOverlord/ao/";
+            var middle = new Vector2(23342, 21364);
+            var round = new MazeRound();
+            Equal(MazePhase.None, round.Phase(0), "no round yet");
+            Equal(false, round.Drawn(Ao + "snake_attack_long.ao", middle, middle, 0), "another effect");
+            Equal(true, round.Drawn(Ao + MazeRound.HoleEffect, middle, middle, 1000), "the first blast");
+            Equal(MazePhase.Hole, round.Phase(6100), "until it has fallen: the hole");
+            Equal(MazePhase.Rings, round.Phase(6400), "then out, round the middle out of rings");
+            round.Drawn(Ao + MazeRound.RingEffect, Vector2.Zero, middle, 7400);
+            Equal(middle, round.Centre, "an effect not placed yet keeps the centre");
+            Equal(MazePhase.Rings, round.Phase(12500), "until the second has fallen");
+            Equal(MazePhase.None, round.Phase(12800), "over");
+            round.Drawn(Ao + MazeRound.HoleEffect, new Vector2(24071, 21364), middle, 49010);
+            Equal(MazePhase.Lines, round.Phase(54411), "drawn at the arena's end: lines");
+            round.Drawn(Ao + MazeRound.LineEffect, new Vector2(24505, 21408), middle, 55443);
+            Equal(MazePhase.Lines, round.Phase(60400), "until it falls");
+            Equal(MazePhase.None, round.Phase(60800), "over");
+            round.Drawn(Ao + MazeRound.HoleEffect, middle, middle, 70000);
+            Equal(MazePhase.None, round.Phase(79500), "with no second blast the round ends by itself");
+        }
+
+        private static void TheWayOutOfAMazeIsSaidAsItTurns()
+        {
+            static int Octant(Vector2 offset) => MathF.Abs(offset.X) >= MathF.Abs(offset.Y) ? (offset.X >= 0 ? 0 : 4) : (offset.Y >= 0 ? 2 : 6);
+            var guide = new MazeExitGuide();
+            Equal(new MazeExitNews(MazeExitNewsKind.First, 0, 3), guide.Update(new MazeStep(new Vector2(250, 0), 0), false, Vector2.Zero, Octant, 1000), "at the start");
+            Equal(true, guide.Update(new MazeStep(new Vector2(250, 0), 0), false, new Vector2(50, 0), Octant, 1100) == null, "the same way is not said again");
+            Equal(true, guide.Update(new MazeStep(new Vector2(0, 250), 0), false, new Vector2(50, 0), Octant, 1200) == null, "a turn too soon");
+            Equal(new MazeExitNews(MazeExitNewsKind.Way, 2, 3), guide.Update(new MazeStep(new Vector2(0, 250), 0), false, Vector2.Zero, Octant, 1800), "the turn");
+            Equal(MazeExitNewsKind.Way, guide.Update(new MazeStep(new Vector2(0, 250), 1), false, Vector2.Zero, Octant, 1900)!.Value.Kind, "the next wall at once");
+            Equal(MazeExitNewsKind.Out, guide.Update(new MazeStep(Vector2.Zero, -1), true, Vector2.Zero, Octant, 2000)!.Value.Kind, "out");
+            Equal(true, guide.Update(new MazeStep(Vector2.Zero, -1), true, Vector2.Zero, Octant, 2100) == null, "once");
         }
 
         private static void TheSafeSpotIsSaidUntilThePlayerIsInIt()

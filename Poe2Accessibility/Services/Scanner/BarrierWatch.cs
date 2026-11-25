@@ -27,6 +27,8 @@ namespace Poe2Accessibility.Services
         /// <summary>A way opened just now, as its scanner entry: its sound (<see cref="ObjectSounds.WayOpened"/>).</summary>
         public Action<ScanEntry>? Opened { get; set; }
 
+        private const string FightPaths = "Metadata/Monsters/";
+
         public BarrierWatch(EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
             this.catalog = catalog;
@@ -53,7 +55,8 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
-                if (!entity.IsValid || !entity.TryGetComponent<TriggerableBlockage>(out var blockage))
+                // A fight's own walls (Benedictus's 28 rocks, each a route of 20 ms as it shattered) are its mechanics', not ways of the area.
+                if (!entity.IsValid || entity.Path.StartsWith(FightPaths, StringComparison.Ordinal) || !entity.TryGetComponent<TriggerableBlockage>(out var blockage))
                 {
                     continue;
                 }
