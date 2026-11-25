@@ -28,6 +28,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the item the cursor is on; 0, the inspected item, at the start.</summary>
         public int Item { get; private set; }
 
+        /// <summary>Gets the cursor's cell as said; null before the first flick or in an empty table.</summary>
+        public string? Current => this.Row >= 0 && this.Row < this.rows.Count && this.labels.Count > 0 ? this.Said() : null;
+
         /// <summary>What a flick of the right stick says; empty for any other gesture or an empty table.</summary>
         public string Move(PadGesture flick)
         {

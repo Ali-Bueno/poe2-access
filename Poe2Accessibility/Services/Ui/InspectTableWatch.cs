@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Takes the items item Inspect Mode shows (null when it is not open), the game's own name for the mode, and
-        ///     whether the table is switched on. Returns what to say now: a cell whose text changed under the cursor, or null.
+        ///     whether the table is switched on. Returns what to say now: the cursor's cell when it or any line changed, or null.
         /// </summary>
         public string? Update(IReadOnlyList<InspectItem>? items, string modeLabel, bool tableOn, long nowMs)
         {
@@ -114,7 +114,8 @@ namespace Poe2Accessibility.Services
             }
 
             var lines = string.Join("\n", items.SelectMany(item => item.Lines.Select(line => line.Spoken)));
-            this.linesChangedAt = this.table != null && lines != this.lines ? nowMs : this.linesChangedAt;
+            var linesChanged = this.table != null && lines != this.lines;
+            this.linesChangedAt = linesChanged ? nowMs : this.linesChangedAt;
             this.lines = lines;
             var rows = InspectRows.Align(items);
             if (this.table == null)
@@ -123,7 +124,8 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return this.table.Rebuild(this.labels, rows);
+            // Advanced info toggled: the row under the cursor is said even when it reads the same, so the toggle is heard.
+            return this.table.Rebuild(this.labels, rows) ?? (linesChanged ? this.table.Current : null);
         }
 
         /// <summary>Per frame: the opening, once, when the items' titles have stayed the same for <see cref="OpeningSettleMs"/>.</summary>

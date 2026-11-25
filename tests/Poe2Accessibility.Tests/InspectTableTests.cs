@@ -42,6 +42,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheClassLineIsOneRowAcrossItemClasses), TheClassLineIsOneRowAcrossItemClasses),
             (nameof(AdvancedInfoKeepsTheClassRow), AdvancedInfoKeepsTheClassRow),
             (nameof(ToggledLinesAreTheTables), ToggledLinesAreTheTables),
+            (nameof(AToggleSaysTheRowEvenUnchanged), AToggleSaysTheRowEvenUnchanged),
             (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
@@ -406,6 +407,22 @@ namespace Poe2Accessibility.Tests
             off.Update(Items(Tooltips("robes")), "Inspect Mode", false, 0);
             off.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", false, 50);
             Equal(false, off.TooltipsChanged(50), "with the table off, today's reading says them");
+        }
+
+        // Advanced info toggled on a row that reads the same either way was silent (user, 2026-11-25: "that wouldn't hurt, to
+        // reannounce the unchanged row"): a change of the lines says the cursor's row, changed or not.
+        private static void AToggleSaysTheRowEvenUnchanged()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 0);
+            for (var i = 0; i < 3; i++)
+            {
+                watch.Flick(PadGesture.FlickDown); // the energy shield row, the same with advanced info off
+            }
+
+            Expect("Energy Shield: 28", watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000), "advanced info off");
+            Expect(null, watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1100), "once");
+            Expect("Energy Shield: 28", watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 2000), "and on again");
         }
 
         /// <summary>A section's tooltips as the table's items: the inspected one, then the worn ones.</summary>
