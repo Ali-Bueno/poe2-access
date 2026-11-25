@@ -248,7 +248,6 @@ namespace Poe2Accessibility
                 this.narrator.FocusBehindAnswer = this.FocusOfFinderPress;
                 this.narrator.Inspect = this.inspect;
                 this.narrator.InspectItems = focus => this.semantics?.InspectItems(this.screen?.Current ?? ScreenSnapshot.Empty, focus);
-                this.narrator.InspectItemOf = node => this.semantics?.InspectItemOf(node);
                 this.narrator.InspectModeLabel = () => this.semantics?.InspectModeLabel ?? string.Empty;
                 this.narrator.InspectTableOn = () => this.Settings.InspectCompareTable && this.Settings.ControllerCommands;
                 this.narrator.SinceStickPress = () => Environment.TickCount64 - this.rightStickPressedAt;

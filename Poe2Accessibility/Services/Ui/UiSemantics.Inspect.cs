@@ -31,12 +31,6 @@ namespace Poe2Accessibility.Services
         public string InspectModeLabel { get; private set; } = string.Empty;
 
         /// <summary>
-        ///     Gets or sets whether a link in an item's tooltip is read by its own line with no group (the comparison table is
-        ///     on); off, Inspect Mode's first link reads as it always did, the whole tooltip it is in.
-        /// </summary>
-        public bool InspectOwnLines { get; set; }
-
-        /// <summary>
         ///     The items item Inspect Mode shows, the inspected one first and the worn ones after it; null when no such layer
         ///     is on the screen, it was not opened on the item last focused, or its tooltips cannot be read apart.
         /// </summary>
@@ -74,27 +68,6 @@ namespace Poe2Accessibility.Services
             }
 
             return items;
-        }
-
-        /// <summary>The index in <see cref="InspectItems"/> of the tooltip a focused element sits in; null when it is in none.</summary>
-        public int? InspectItemOf(AccessibleUiNode node)
-        {
-            var tooltips = this.inspectLayer.Tooltips;
-            if (tooltips.Count == 0 || !this.elements.TryReadElement(node.Address, out var info))
-            {
-                return null;
-            }
-
-            foreach (var ancestor in this.elements.ReadAncestors(info, MaxInspectDepth).Prepend(info))
-            {
-                var index = tooltips.ToList().IndexOf(ancestor.Address);
-                if (index >= 0)
-                {
-                    return index;
-                }
-            }
-
-            return null;
         }
 
         /// <summary>

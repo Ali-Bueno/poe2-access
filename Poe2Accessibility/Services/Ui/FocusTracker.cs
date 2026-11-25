@@ -76,8 +76,6 @@ namespace Poe2Accessibility.Services
         private long inGameRescanMs = InGameMarkerRescanMs;
         private IntPtr lastFocused;
 
-        /// <summary>The focused pointer <see cref="Current"/> was read from; another one while the game's new focus waits to be said.</summary>
-        private IntPtr currentFocused;
         private IntPtr seenCurrent;
         private IntPtr seenHovered;
         private IntPtr seenHighlighted;
@@ -268,7 +266,6 @@ namespace Poe2Accessibility.Services
             this.emptyOnArrival = IntPtr.Zero;
             this.steppedField = null;
             this.Current = node;
-            this.currentFocused = focused;
             this.CurrentSince = Environment.TickCount64;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);
             if (this.CurrentLayer != this.memoLayer)

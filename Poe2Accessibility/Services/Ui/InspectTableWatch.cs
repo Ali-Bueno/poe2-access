@@ -7,8 +7,8 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Item Inspect Mode as the player hears it (docs/research/ui-layers.md, "Item Inspect Mode"). Fed the items on
     ///     screen when the screen or the focus changes, and the clock every frame: it keeps the comparison table, says the
-    ///     opening once the tooltips stop changing, answers the right stick's flicks, and names the item the game's D-pad
-    ///     focus crosses into. With the table switched off only the crossings are said. Pure.
+    ///     opening once the tooltips stop changing, and answers the right stick's flicks. The D-pad's item names are the
+    ///     Compare view's (`UiSemantics.InspectCards`). With the table switched off nothing is said here. Pure.
     /// </summary>
     public sealed class InspectTableWatch
     {
@@ -25,7 +25,6 @@ namespace Poe2Accessibility.Services
         private string classes = string.Empty;
         private long titlesSince;
         private bool openingDue;
-        private int? crossed;
 
         /// <summary>Gets a value indicating whether the table is on and items are on screen, so the right stick's flicks are its.</summary>
         public bool Active => this.table != null;
@@ -45,14 +44,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Whether the game's cursor just moved because advanced info was toggled (it rebuilds the tooltips and puts the
-        ///     cursor on a new link): left out, as the opening leaves out where it landed, so its next move names its item.
+        ///     cursor on a new link): left out, as the opening leaves out where it landed.
         /// </summary>
-        public bool QuietsToggledFocus(long nowMs)
-        {
-            var quiet = this.AdvancedInfoToggled(nowMs);
-            this.crossed = quiet ? null : this.crossed;
-            return quiet;
-        }
+        public bool QuietsToggledFocus(long nowMs) => this.AdvancedInfoToggled(nowMs);
 
         /// <summary>Gets a value indicating whether the opening is still to be said: what would follow it (the game's legend) waits.</summary>
         public bool OpeningDue => this.openingDue && this.table != null;
@@ -79,15 +73,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Whether a reading is the inspect layer's first focus, which the opening leaves out: before the opening, or just
-        ///     after it. Its item is then named on the cursor's first move.
+        ///     after it.
         /// </summary>
-        public bool Quiets(string reason, long nowMs)
-        {
-            var quiet = OpeningReasons.Contains(reason) &&
-                        (this.OpeningDue || this.table != null && this.openedAt is { } at && nowMs - at < LateFocusMs);
-            this.crossed = quiet ? null : this.crossed;
-            return quiet;
-        }
+        public bool Quiets(string reason, long nowMs) =>
+            OpeningReasons.Contains(reason) && (this.OpeningDue || this.table != null && this.openedAt is { } at && nowMs - at < LateFocusMs);
 
         /// <summary>Keeps R3's burst of the item's advanced lines until the table comes, or does not.</summary>
         public void HoldBurst(string text, long nowMs) => this.burst = (text, nowMs);
@@ -135,8 +124,8 @@ namespace Poe2Accessibility.Services
             var sameItems = titles == this.titles;
             if (!sameItems)
             {
-                // Other items: the opening waits for them to settle, and the focus has crossed into nothing yet.
-                (this.titles, this.titlesSince, this.openingDue, this.crossed) = (titles, nowMs, true, null);
+                // Other items: the opening waits for them to settle.
+                (this.titles, this.titlesSince, this.openingDue) = (titles, nowMs, true);
             }
 
             if (!tableOn)
@@ -171,27 +160,12 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            (this.openingDue, this.crossed, this.openedAt) = (false, null, nowMs);
+            (this.openingDue, this.openedAt) = (false, nowMs);
             return Announcements.InspectOpened(this.mode, this.items[0].Title, this.items.Skip(1).Select(item => item.Title).ToList());
         }
 
         /// <summary>What a flick of the right stick says; empty when the table is not on.</summary>
         public string Flick(PadGesture flick) => this.table?.Move(flick) ?? string.Empty;
-
-        /// <summary>
-        ///     The label of the item the game's focus is now in, when that is another item than before; null when it is the
-        ///     same one, or when the focus is in no item (which forgets the last).
-        /// </summary>
-        public string? CrossedTo(int? item)
-        {
-            if (item == this.crossed)
-            {
-                return null;
-            }
-
-            this.crossed = item;
-            return item is { } index && index >= 0 && index < this.labels.Count ? this.labels[index] : null;
-        }
 
         /// <summary>Each item's label: the inspected one first, a single worn one as "Worn", several by their slots.</summary>
         private static IReadOnlyList<string> Labels(IReadOnlyList<InspectItem> items)
@@ -204,7 +178,7 @@ namespace Poe2Accessibility.Services
         private void Clear()
         {
             (this.items, this.labels, this.table) = (Array.Empty<InspectItem>(), Array.Empty<string>(), null);
-            (this.titles, this.classes, this.toggledAt, this.openingDue, this.crossed, this.openedAt) = (string.Empty, string.Empty, null, false, null, null);
+            (this.titles, this.classes, this.toggledAt, this.openingDue, this.openedAt) = (string.Empty, string.Empty, null, false, null);
         }
     }
 }

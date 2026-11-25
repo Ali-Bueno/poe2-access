@@ -17,9 +17,6 @@ namespace Poe2Accessibility.Services
         /// <summary>An item cell's tooltip this soon after the right stick's press is the burst of advanced lines R3 brings.</summary>
         private const long StickPressBurstMs = 600;
 
-        /// <summary>The focus last seen, and the item label its moving into an item's tooltip gave (empty for none).</summary>
-        private (AccessibleUiNode? Node, string Label) inspectFocus = (null, string.Empty);
-
         /// <summary>A cell whose text changed under the table's cursor, said after the focus's own reading of the same change.</summary>
         private string? inspectCellDue;
 
@@ -28,9 +25,6 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Gets or sets what reads the items item Inspect Mode shows, from the focus or the screen; null when none.</summary>
         public Func<AccessibleUiNode?, IReadOnlyList<InspectItem>?>? InspectItems { get; set; }
-
-        /// <summary>Gets or sets what tells which item's tooltip a focused element sits in.</summary>
-        public Func<AccessibleUiNode, int?>? InspectItemOf { get; set; }
 
         /// <summary>Gets or sets the game's own name for the mode, read beside the tooltips.</summary>
         public Func<string>? InspectModeLabel { get; set; }
@@ -71,13 +65,8 @@ namespace Poe2Accessibility.Services
             this.inspectCellDue = said ?? this.inspectCellDue;
         }
 
-        /// <summary>A new focus: the label of the item its tooltip is, when the focus crossed into another item's.</summary>
-        private void FocusForInspect(AccessibleUiNode node)
-        {
-            this.UpdateInspect(node);
-            var label = this.Inspect?.CrossedTo(this.InspectItemOf?.Invoke(node));
-            this.inspectFocus = (node, label ?? string.Empty);
-        }
+        /// <summary>A new focus: the table follows the tooltips it sits in.</summary>
+        private void FocusForInspect(AccessibleUiNode node) => this.UpdateInspect(node);
 
         /// <summary>
         ///     Per frame: R3's burst when no table came, the opening once the tooltips settle, and a cell that changed under
@@ -127,15 +116,21 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
-        /// <summary>A reading of the inspect layer's first focus while the table's opening is still to speak for it.</summary>
-        private bool QuietForInspect(string reason) => this.Inspect?.Quiets(reason, Environment.TickCount64) == true;
+        /// <summary>
+        ///     A reading of the inspect layer's first focus, which the table's opening leaves out. Its card (the focus's group)
+        ///     is then forgotten, so the cursor's next move names it.
+        /// </summary>
+        private bool QuietForInspect(string reason) => this.Forgets(this.Inspect?.Quiets(reason, Environment.TickCount64) == true);
 
-        /// <summary>The game's cursor put on a rebuilt tooltip by an advanced info toggle: the table says the row instead.</summary>
+        /// <summary>The game's cursor put on a rebuilt card by an advanced info toggle: the table says the row instead.</summary>
         private bool QuietForInspectToggle(AccessibleUiNode node) =>
-            this.InspectItemOf?.Invoke(node) != null && this.Inspect?.QuietsToggledFocus(Environment.TickCount64) == true;
+            node.InInspectCard && this.Forgets(this.Inspect?.QuietsToggledFocus(Environment.TickCount64) == true);
 
-        /// <summary>The focus's own words, after its item's label when it crossed into that item's tooltip.</summary>
-        private string WithInspectLabel(AccessibleUiNode node, string speech) =>
-            node.Address == this.inspectFocus.Node?.Address && this.inspectFocus.Label.Length > 0 ? Announcements.InspectCell(this.inspectFocus.Label, speech) : speech;
+        /// <summary>When a focus reading is left out, its card is no longer the one said: the next move names it.</summary>
+        private bool Forgets(bool quiet)
+        {
+            this.lastGroup = quiet ? string.Empty : this.lastGroup;
+            return quiet;
+        }
     }
 }

@@ -48,7 +48,6 @@ namespace Poe2Accessibility
             {
                 this.semantics.PassiveFinderOn = settings.PassiveFinder;
                 this.semantics.PassiveGuideBrief = settings.PassiveGuideBrief;
-                this.semantics.InspectOwnLines = settings.InspectCompareTable && settings.ControllerCommands;
             }
         }
 

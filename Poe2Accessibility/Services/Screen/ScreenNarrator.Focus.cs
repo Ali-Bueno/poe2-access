@@ -242,14 +242,14 @@ namespace Poe2Accessibility.Services
             if (node.Role != UiRole.Link)
             {
                 this.lastLinkRow = string.Empty;
-                return this.WithInspectLabel(node, Announcements.Focused(node, this.ReadTooltips));
+                return Announcements.Focused(node, this.ReadTooltips);
             }
 
             // Moving between the links of one item in inspect mode ("Cetro", "Espíritu", "Set de armas") re-read the
             // whole item each time: its text is said when the focus comes to it, then only the links.
             var newRow = node.Value != this.lastLinkRow;
             this.lastLinkRow = node.Value;
-            return this.WithInspectLabel(node, Announcements.Link(node, newRow));
+            return Announcements.Link(node, newRow);
         }
 
         /// <summary>Per frame: a focus named only by its control id is spoken once no tooltip described it in time.</summary>

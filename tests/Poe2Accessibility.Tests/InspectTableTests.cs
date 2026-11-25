@@ -30,9 +30,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ARebuildWithoutTheRowMovesToTheNearest), ARebuildWithoutTheRowMovesToTheNearest),
             (nameof(TheOpeningWaitsForTheTooltipsToSettle), TheOpeningWaitsForTheTooltipsToSettle),
             (nameof(ClosingInspectModeEndsTheTable), ClosingInspectModeEndsTheTable),
-            (nameof(WithTheTableOffOnlyTheCrossingsAreSaid), WithTheTableOffOnlyTheCrossingsAreSaid),
+            (nameof(WithTheTableOffNothingIsSaidHere), WithTheTableOffNothingIsSaidHere),
             (nameof(TwoWornRingsAreToldApartBySlot), TwoWornRingsAreToldApartBySlot),
-            (nameof(TheFirstMoveAfterTheOpeningNamesItsItem), TheFirstMoveAfterTheOpeningNamesItsItem),
             (nameof(ASingleTooltipOpensWithItsName), ASingleTooltipOpensWithItsName),
             (nameof(ALineFillingInIsNotSaid), ALineFillingInIsNotSaid),
             (nameof(TheRobesReadAsTheirTooltips), TheRobesReadAsTheirTooltips),
@@ -256,27 +255,13 @@ namespace Poe2Accessibility.Tests
             Expect(string.Empty, watch.Flick(PadGesture.FlickDown), "nothing to say");
         }
 
-        private static void WithTheTableOffOnlyTheCrossingsAreSaid()
+        private static void WithTheTableOffNothingIsSaidHere()
         {
             var watch = new InspectTableWatch();
             Expect(null, watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", false, 0), "no opening");
             Expect(null, watch.Tick(300), "still none");
             Equal(false, watch.Active, "no table");
-            Expect("Worn", watch.CrossedTo(1), "the focus starts in the worn robe's tooltip");
-            Expect(null, watch.CrossedTo(1), "moving within it");
-            Expect("This item", watch.CrossedTo(0), "crossing to the other robe");
-        }
-
-        // The opening no longer says where the game's cursor is (user, 2026-11-25: a flask's opening read its whole help
-        // paragraph): the first D-pad move names the item it is in, even the one the cursor started in.
-        private static void TheFirstMoveAfterTheOpeningNamesItsItem()
-        {
-            var watch = new InspectTableWatch();
-            watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
-            Expect("This item", watch.CrossedTo(0), "the cursor lands in the inspected robe, its reading quieted");
-            Expect("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud", watch.Tick(200), "the opening alone");
-            Expect("This item", watch.CrossedTo(0), "the first move names its item");
-            Expect(null, watch.CrossedTo(0), "then not again within it");
+            Equal(false, watch.Quiets("focus in a new layer", 300), "the Compare view's own reading is said");
         }
 
         private static void TwoWornRingsAreToldApartBySlot()
@@ -286,7 +271,8 @@ namespace Poe2Accessibility.Tests
             var left = new InspectItem("L", Lines("L"), true, "left ring");
             var right = new InspectItem("Q", Lines("Q"), true, "right ring");
             watch.Update(new[] { ring, left, right }, "Inspect Mode", true, 0);
-            Expect("Worn, right ring", watch.CrossedTo(2), "the second ring");
+            watch.Flick(PadGesture.FlickRight);
+            Expect("Worn, right ring. Q", watch.Flick(PadGesture.FlickRight), "the second ring, on the name row");
         }
 
         private static void ASingleTooltipOpensWithItsName()
@@ -482,10 +468,8 @@ namespace Poe2Accessibility.Tests
             var watch = new InspectTableWatch();
             watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 0);
             Equal(false, watch.QuietsToggledFocus(500), "no toggle yet: a cursor move is said");
-            Expect("Worn", watch.CrossedTo(1), "the cursor in the worn robe");
             watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000);
             Equal(true, watch.QuietsToggledFocus(1010), "the cursor the toggle moved");
-            Expect("Worn", watch.CrossedTo(1), "so the next move names its item");
             Equal(false, watch.QuietsToggledFocus(1000 + InspectTableWatch.ToggleWindowMs), "a move later is said");
         }
 
@@ -541,9 +525,7 @@ namespace Poe2Accessibility.Tests
             Equal(false, watch.Quiets("appeared with focus", 50), "an expanded definition is said");
             watch.Tick(200);
             // The first focus read a moment after the opening (user, 2026-11-25: "This item. Evasion Rating: 59" still said).
-            Expect("This item", watch.CrossedTo(0), "the cursor in the inspected robe");
             Equal(true, watch.Quiets("focus in a new layer", 370), "the first focus read just after the opening");
-            Expect("This item", watch.CrossedTo(0), "so the first move names its item");
             Equal(false, watch.Quiets("focus in a new layer", 200 + InspectTableWatch.LateFocusMs), "later, a focus in a new layer (Expand) is said");
         }
 
