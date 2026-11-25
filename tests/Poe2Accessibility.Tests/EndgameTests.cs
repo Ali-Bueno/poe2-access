@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasGraphWalksLinksAndSectors), AtlasGraphWalksLinksAndSectors),
             (nameof(AtlasTreeMapReadsClustersKindsAndOrdering), AtlasTreeMapReadsClustersKindsAndOrdering),
             (nameof(AtlasTreeFinderWalksListsAndCountsPushes), AtlasTreeFinderWalksListsAndCountsPushes),
+            (nameof(AtlasTreeNextHopStartsAlongTheLinks), AtlasTreeNextHopStartsAlongTheLinks),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -312,6 +313,23 @@ namespace Poe2Accessibility.Tests
             Expect(false, far, "two pushes are not far");
             Expect(0, way?.Octant ?? -1, "the first push is right, octant 0");
             Expect(2, way?.Pushes ?? -1, "start to notable through the small: 2 pushes");
+        }
+
+        private static void AtlasTreeNextHopStartsAlongTheLinks()
+        {
+            var tree = AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[]
+            {
+                ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
+                ("AtlasGenericSmall1", 10, 50, new[] { "AtlasGenericNotable1" }),
+                ("AtlasGenericNotable1", 100, 0, null),
+                ("AtlasAbyssStart", 500, 0, null),
+            });
+            var start = tree.Index["AtlasGenericStart"];
+            Expect(6, tree.NextHopOctant(tree.Places, start, tree.Index["AtlasGenericNotable1"]) ?? -1,
+                "the shortest way begins down to the small, though the notable lies right");
+            Expect(-1, tree.NextHopOctant(tree.Places, start, tree.Index["AtlasAbyssStart"]) ?? -1,
+                "no links lead to another cluster");
+            Expect(-1, tree.NextHopOctant(tree.Places, start, start) ?? -1, "already there");
         }
     }
 }

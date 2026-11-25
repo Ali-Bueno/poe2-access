@@ -111,7 +111,11 @@ namespace Poe2Accessibility.Services
             return !here && distances[at] > 0 ? $"{place}, {Announcements.AtlasLinksAway(distances[at])}" : place;
         }
 
-        /// <summary>The pushes from one node to another, the direction alone when too far to count; kept while the two stand.</summary>
+        /// <summary>
+        ///     The pushes from one node to another, the direction alone when too far to count; kept while the two
+        ///     stand. Where the drawn centres give the stick's rule no way, the files' places are tried before
+        ///     the direction alone is said (either set can lose a node the other holds).
+        /// </summary>
         private Way? AtlasTreeWayTo(AtlasTreeMap tree, Dictionary<string, Vector2>? centres, string fromId, string toId)
         {
             if (this.atlasTreeWay is { } cached && cached.From == fromId && cached.To == toId && ReferenceEquals(cached.Centres, centres))
@@ -120,11 +124,22 @@ namespace Poe2Accessibility.Services
             }
 
             Way? way = null;
-            if (tree.Index.TryGetValue(fromId, out var from) && tree.Index.TryGetValue(toId, out var to) &&
-                tree.Way(this.AtlasTreePositions(tree, centres, from), from, to, MaxFinderPushes, out _) is { } route)
+            if (tree.Index.TryGetValue(fromId, out var from) && tree.Index.TryGetValue(toId, out var to))
             {
-                way = new Way(route.Octant, route.Pushes, route.Far);
+                var positions = this.AtlasTreePositions(tree, centres, from);
+                var route = tree.Way(positions, from, to, MaxFinderPushes, out _);
+                if (route is { Pushes: null, Far: false } && positions != tree.Places &&
+                    tree.Way(tree.Places, from, to, MaxFinderPushes, out _) is { Pushes: not null } retried)
+                {
+                    route = retried;
+                }
+
+                if (route is { } found)
+                {
+                    way = new Way(found.Octant, found.Pushes, found.Far);
+                }
             }
+
             this.atlasTreeWay = (fromId, toId, centres, way);
             return way;
         }

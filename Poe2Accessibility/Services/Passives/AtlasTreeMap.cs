@@ -151,15 +151,41 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The first push toward a node and how many it takes, as the passive finder's way: the stick walked by
         ///     the game's own rule over <paramref name="positions"/> (the drawn centres where they read, else the
-        ///     files' places). Null when no push leads nearer or <paramref name="maxMoves"/> ran out
-        ///     (<paramref name="far"/>: only then is the target far).
+        ///     files' places). Where no greedy push leads nearer (dense clusters defeat the window-less rule,
+        ///     live 2026-11-25: "From here: right" with no count), the side of the next link on the shortest way
+        ///     stands in — a push that at least starts along the links. <paramref name="far"/>: only when
+        ///     <paramref name="maxMoves"/> ran out is the target far.
         /// </summary>
         public (int Octant, int? Pushes, bool Far)? Way(Vector2[] positions, int from, int to, int maxMoves, out bool far)
         {
             var pushes = PassiveStick.Route(positions, from, to, maxMoves, at => this.Links[at], null, out far);
             return pushes is { Count: > 0 }
                 ? (pushes[0], pushes.Count, false)
-                : (PassiveStick.Nearest(positions[to] - positions[from]), null, far);
+                : (this.NextHopOctant(positions, from, to) ?? PassiveStick.Nearest(positions[to] - positions[from]), null, far);
+        }
+
+        /// <summary>
+        ///     The side of the linked neighbour that begins the shortest way in links to a node; null when no
+        ///     links lead there (another cluster) or it is here already.
+        /// </summary>
+        public int? NextHopOctant(Vector2[] positions, int from, int to)
+        {
+            if (from == to)
+            {
+                return null;
+            }
+
+            var distances = this.DistancesFrom(to);
+            var best = -1;
+            foreach (var next in this.Links[from])
+            {
+                if (distances[next] >= 0 && (best < 0 || distances[next] < distances[best]))
+                {
+                    best = next;
+                }
+            }
+
+            return best < 0 ? null : PassiveStick.Nearest(positions[best] - positions[from]);
         }
     }
 
