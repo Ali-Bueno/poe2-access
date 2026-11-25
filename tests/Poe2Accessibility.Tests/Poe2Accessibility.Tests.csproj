@@ -73,6 +73,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\RadarSynth.cs" Link="Plugin\RadarSynth.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ProximityTracker.cs" Link="Plugin\ProximityTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BeaconMath.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapAreaState.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\MapContentIcons.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\WalkingCharacters.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\UnmetRequirements.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SearchHighlightNews.cs" />

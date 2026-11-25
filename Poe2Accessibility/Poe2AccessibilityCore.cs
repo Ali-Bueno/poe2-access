@@ -515,6 +515,9 @@ namespace Poe2Accessibility
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
+                this.semantics.MapLegendWord = picture => this.entities?.MapLegendWord(picture) ?? string.Empty;
+                this.semantics.AreasBehind = (area, towns) => this.entities?.QuestGoals.Behind(area, towns) ?? Array.Empty<string>();
+                this.screen.MapLegendWord = this.semantics.MapLegendWord;
                 this.semantics.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;

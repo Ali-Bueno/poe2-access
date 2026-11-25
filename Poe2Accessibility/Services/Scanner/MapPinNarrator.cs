@@ -1,6 +1,8 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     ///     The world map's pin under the cursor, told from the game's data when its popup was not heard: in a 5:4 window the
@@ -67,12 +69,15 @@ namespace Poe2Accessibility.Services
                 // The popup was heard, maybe without its level: the screen reading said Keth's words but not "Nivel de
                 // monstruos: 21" at 16:9 (2026-11-08), the level arriving after them. The missing level alone, after it.
                 var kind = this.semantics.PinParts(worldScreen, hovered).Kind;
-                if (kind.Length > 0 && !this.output.SaidSince(kind, this.since))
+                var level = this.semantics.PinLevelStart;
+                if (kind.Length > 0 && !this.output.SaidSince(kind, this.since) &&
+                    !(level.Length > 0 && kind.StartsWith(level, StringComparison.Ordinal) && this.output.SaidSince(level, this.since)))
                 {
                     this.log.Info($"Map pin heard without its kind, told from its data: {kind}");
                     this.output.Speak(kind);
                 }
 
+                this.TellArea(worldScreen, hovered, heard: true);
                 return;
             }
 
@@ -84,6 +89,38 @@ namespace Poe2Accessibility.Services
             // The first pin is the current area's, after the panel's title: queued. A pin the cursor moved to: at once.
             this.log.Info($"Map pin not heard, told from its data: {line}");
             this.output.Speak(line, !first);
+            this.TellArea(worldScreen, hovered, heard: false);
+        }
+
+        /// <summary>What the map's pictures say and no text does: whether the area was entered, and on a travel map what is within it.</summary>
+        private void TellArea(IntPtr worldScreen, IntPtr hovered, bool heard)
+        {
+            var pictures = this.semantics.PinArea(worldScreen, hovered);
+            var lines = new List<string>();
+            if (pictures.RealName.Length > 0)
+            {
+                lines.Add(Announcements.MapMisnamed(pictures.RealName));
+            }
+
+            if (Announcements.MapArea(pictures.State) is { Length: > 0 } entered)
+            {
+                lines.Add(entered);
+            }
+
+            if (heard)
+            {
+                lines.AddRange(pictures.Pending.Where(thing => !this.output.SaidSince(thing.Name, this.since)).Select(thing => thing.Line));
+                var done = pictures.Done.Where(thing => !this.output.SaidSince(thing, this.since)).ToList();
+                if (done.Count > 0)
+                {
+                    lines.Add(Announcements.MapDone(done));
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                this.output.Speak(Announcements.Sentences(lines));
+            }
         }
     }
 }

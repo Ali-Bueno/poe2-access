@@ -202,6 +202,34 @@ namespace Poe2Accessibility.Services
             return -1;
         }
 
+        /// <summary>
+        ///     The areas reached from one without passing a town or an area a town leads to: what lies behind a travel map's
+        ///     stop (Keth: the Lost City, the Buried Shrines), nearest first, itself left out.
+        /// </summary>
+        public IReadOnlyList<string> Behind(string area, IReadOnlySet<string> towns)
+        {
+            var (seen, found, next) = (new HashSet<string>(StringComparer.Ordinal) { area }, new List<string>(), new Queue<string>());
+            foreach (var stop in towns.SelectMany(town => this.connections.TryGetValue(town, out var near) ? near : Array.Empty<string>()).Concat(towns))
+            {
+                seen.Add(stop);
+            }
+
+            next.Enqueue(area);
+            while (next.Count > 0)
+            {
+                foreach (var near in this.connections.TryGetValue(next.Dequeue(), out var areas) ? areas : Array.Empty<string>())
+                {
+                    if (seen.Add(near))
+                    {
+                        found.Add(near);
+                        next.Enqueue(near);
+                    }
+                }
+            }
+
+            return found;
+        }
+
         private sealed class QuestGoalFile
         {
             [JsonProperty("goals")]

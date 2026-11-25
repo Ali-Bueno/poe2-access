@@ -36,6 +36,8 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | The shoulder icons at the ends of a tab bar | "Previous tab, LB. Next tab, RB" with the hints; never as the label of the tab or heading beside them | — | done (`TabBar`, Options heard 2026-11-10) |
 | A control under the free cursor that never gets a tooltip (in game) | its own caption, as a focus, once the cursor has rested 500 ms | yes | done (`BareHover`; no such control found to hear) |
 | Text appears in the owning layer (description, tooltip, class info) | the new text, after the control | queued; interrupt when the screen has no focus (navigation result) | done |
+| A thing within an area on the world map (popup, R3 list) | its name, then what its picture says: "completado", or the legend's word and "pendiente" | — | done (`MapContentIcons`) |
+| A pin of the world map | after its popup: whether the area was entered; on a travel map also what is left and done there | queued | done (`MapPinNarrator`) |
 | Live counters (timers, queue position) | never automatically | — | done (digit-only changes ignored) |
 | A part of a layer built again with the texts it had (a merchant's tab strip at every sale: "-2-", "Recomprar", "-1-" on new elements) | nothing: two or more texts back on new elements within three snapshots, and nothing new with them; one notice shown again alone is said again, and with a new text among them all are said as before | — | done (`ScreenDiffer.NoteRebuilt`; "Recomprar -2-" 63 times in the play log of 2026-11-13) |
 | Text field | label (row label or placeholder), "edit field", contents; echo typed characters | — | done (label; typed or deleted characters echoed by `ScreenNarrator.OnValueChanged`) |

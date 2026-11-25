@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Services
             glyphs.Clear();
             units.Clear();
             setIcons.Clear();
+            this.walkMapPictures.Clear();
             stack.Clear();
             this.walkControls.Clear();
             this.walkContainers.Clear();
@@ -121,6 +122,10 @@ namespace Poe2Accessibility.Services
                     {
                         setIcons.Add((self, set));
                     }
+                    else if (MapContentIcons.Read(key) != null)
+                    {
+                        this.walkMapPictures.Add((self, key));
+                    }
                     else if (CurrencyIcons.FromTextureKey(key) is { } unit)
                     {
                         units.Add((self, unit));
@@ -167,6 +172,7 @@ namespace Poe2Accessibility.Services
             PairGlyphs(nodes, texts, glyphs);
             PairUnits(nodes, texts, units);
             PairWeaponSets(nodes, texts, setIcons);
+            this.PairMapPictures(nodes, texts);
             MergeRows(nodes, texts);
             // A legend layer holds nothing but legends; a menu layer may carry its own hint bar (game menu).
             isHintBar = texts.Count > 0 && texts.TrueForAll(text => ScreenReadout.IsLegend(text.Text));

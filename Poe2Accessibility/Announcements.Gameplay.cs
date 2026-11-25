@@ -91,6 +91,37 @@ namespace Poe2Accessibility
         /// <summary>A town pin's kind, when the game's own word is not in the table.</summary>
         public static string PinTown => T("Town", "Pueblo");
 
+        /// <summary>After the name of something the world map draws within an area: done, or pending with the legend's word for its picture.</summary>
+        public static string MapContentState(bool done, string kind) =>
+            done ? ", " + MapContentDone : (kind.Length > 0 ? ", " + kind : string.Empty) + ", " + MapContentPending;
+
+        /// <summary>An area behind a travel map's stop with its state ("Madrigueras volcánicas, sin visitar").</summary>
+        public static string MapAreaOf(string place, Services.MapAreaState state) => place + ": " + MapArea(state);
+
+        /// <summary>What is done within an area a travel map's marker stands for.</summary>
+        public static string MapDone(System.Collections.Generic.IEnumerable<string> things)
+        {
+            var finished = string.Join(", ", things);
+            return T($"Done: {finished}", $"Completado: {finished}");
+        }
+
+        /// <summary>A travel map's marker whose name the game's tables got wrong: the place it leads to.</summary>
+        public static string MapMisnamed(string place) => T($"The game misnames it: this is {place}", $"El juego la nombra mal: es {place}");
+
+        private static string MapContentDone => T("completed", "completado");
+
+        private static string MapContentPending => T("pending", "pendiente");
+
+        /// <summary>What the world map's picture of an area says: never entered, entered, or with its waypoint active.</summary>
+        public static string MapArea(Services.MapAreaState state) => state switch
+        {
+            Services.MapAreaState.Unknown => T("Not visited", "Sin visitar"),
+            Services.MapAreaState.Visited => T("Visited, no active waypoint", "Visitada, sin transportador activo"),
+            Services.MapAreaState.Entered => T("Visited", "Visitada"),
+            Services.MapAreaState.Waypoint => T("Visited, waypoint active", "Visitada, transportador activo"),
+            _ => string.Empty,
+        };
+
         /// <summary>An exit's own hint: holding the interact button offers its options (a new instance).</summary>
         public static string HoldForOptions(string button) => T($"hold {button} for options", $"mantén {button} para opciones");
 

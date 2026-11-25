@@ -100,6 +100,7 @@
 | Character selection list (selected entry, position) | done (live) | "Yarkidius, Level 1 Witch, Act 1: The Riverbank, 2 of 2" |
 | Character panel stats as "label, value" rows | done (live) | numbers from the player's Stats (`SheetStats`, `PlayerStats`), at any resolution ([notes](docs/research/ui-layers.md)) |
 | Window independence | done (live, five sizes) | the camera's matrix for what is seen and heard, laid-out units instead of pixels ([camera view](docs/research/camera-view.md), [data sources](docs/research/data-sources.md)) |
+| World map: what is done, what is left, what was never entered | done (live) | the pictures a sighted player sees (popup, R3 list, area pins; travel maps of ship and caravan); Spanish "Marca del rey" over Isla del clan corrected ([endgame-ui §7](docs/research/endgame-ui.md), `MapContentIcons`, `UiSemantics.PinArea`) |
 | World map pins from data | done (live, 16:9, 21:9, 5:4) | MapPins/WorldAreas rows the act canvas keeps; told when the popup was not heard (`MapPinNarrator`) |
 | Area announcement on entering / changing area | done (live) | own read of AreaLoadingState+0xEA0 (GameHelper offset stale) |
 | Area banner tagline (arrival) | done (code, 2026-11-22) | `AreaBanner`: the HUD text equal to the area name whose parent holds two texts; appended to the area line once per area id ([ui-layers](docs/research/ui-layers.md)); a banner filled after the line is said on its own, queued, within 4 s (Shrike Island's texts came 40 ms after the line) |

@@ -623,6 +623,23 @@ namespace Poe2Accessibility
 
             /// <summary>A pin element keeps its MapPins row (a dat key) here, and its area's WorldAreas row right after.</summary>
             public const int ElementPinOffset = 0x2D0;
+
+            /// <summary>
+            ///     What an area's pin draws, a byte each: known (the pin is shown), entered, its waypoint active. Measured 2026-11-25
+            ///     on the 576 pins of every act (docs/research/endgame-ui.md §7): known equals the element's visible flag on each
+            ///     area, entered is 0 only on the one island with the "?" picture, waypoint 0 on the areas that have none.
+            /// </summary>
+            public const int ElementKnownOffset = 0x318;
+
+            public const int ElementVisitedOffset = 0x319;
+
+            public const int ElementWaypointOffset = 0x31E;
+
+            /// <summary>0 on the quest map, 3 on every pin of a travel map (the ship's), where the bytes above say what can be travelled to.</summary>
+            public const int ElementTravelOffset = 0x31F;
+
+            /// <summary>A row of the map's list of points of interest keeps its pin's MapPins key here (two rows, 2026-11-25).</summary>
+            public const int PointOfInterestOffset = 0x320;
         }
 
         /// <summary>

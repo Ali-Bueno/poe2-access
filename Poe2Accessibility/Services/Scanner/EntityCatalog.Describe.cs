@@ -183,6 +183,9 @@ namespace Poe2Accessibility.Services
 
         public string PinTownLabel => this.landmarks.PinTownLabel;
 
+        /// <summary>The map legend's word for a world map picture, empty for none (<see cref="LandmarkTable.MapLegendWord"/>).</summary>
+        public string MapLegendWord(string picture) => this.landmarks.MapLegendWord(picture);
+
         /// <summary>
         ///     How far the walk to each entry is, in world units (infinite with no way there), searched off the frame thread:
         ///     a search crosses a Trial floor in a third of a second. Null without a player or a grid.

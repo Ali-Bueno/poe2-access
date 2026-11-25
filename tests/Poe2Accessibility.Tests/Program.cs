@@ -73,6 +73,7 @@ namespace Poe2Accessibility.Tests
                 SpeakerTurnTests.All(),
                 CinematicTests.All(),
                 ShrineCostTests.All(),
+                MapContentTests.All(),
                 BreakablePromptTests.All(),
                 PassiveAndMenuTests.All(),
                 ReleaseAndQuestTests.All(),
