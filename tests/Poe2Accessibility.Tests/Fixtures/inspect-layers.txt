@@ -1,0 +1,651 @@
+# Item Inspect Mode, dumped read-only from the game on 2026-11-24 and 2026-11-25 (research mode, `dump visible`).
+# One section a case. Each line is a UI element under the layer's tooltip container ([layer,1,0]): two spaces a depth
+# (depth 0 is a tooltip), then the element's name, its plain text (+0x490) and its tagged text (+0x360), tab-separated.
+# "\n" in a text is a line break. docs/research/ui-layers.md, "Item Inspect Mode".
+
+== robes: bag robe against the worn robe, merchant open, advanced info on
+		
+  		
+    	Hale Tattered Robe of the Pupil	Hale Tattered Robe of the Pupil
+  layout		
+    	Body Armour: Item Level 7	Body Armour: <valuedefault>{Item Level 7}
+    	Energy Shield: 28	[EnergyShield|Energy Shield]: <valuedefault>{28}
+      		
+    		
+    prefix-mods-with-reminders		
+      		
+        	+19(10-19) to maximum Life	+19(10-19) to maximum Life
+        		
+          	T13	T13
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	+6(5-8) to Intelligence	+6(5-8) to [Intelligence|Intelligence]
+          		
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    cost		
+      		
+        		
+        	35	35
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Equip	Equip
+		
+  		
+    	Protective Feathered Robe of the Cloud	Protective Feathered Robe of the Cloud
+  layout		
+    	Body Armour: Item Level 8	Body Armour: <valuedefault>{Item Level 8}
+    	Energy Shield: 43	[EnergyShield|Energy Shield]: <augmented>{43}
+      		
+    		
+    	Requires: Level 5, 11 Int	Requires: <valuedefault>{Level <valuedefault>{5}, <valuedefault>{11} Int}
+    		
+    prefix-mods-with-reminders		
+      		
+        	23(15-26)% increased Energy Shield	23(15-26)% increased [EnergyShield|Energy Shield]
+          		
+        		
+          	T8	T8
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	+9(6-10)% to Lightning Resistance	+9(6-10)% to [Resistances|Lightning Resistance]
+          		
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    	Equipped	Equipped
+
+== robes-advanced-off: the same robes with advanced info off
+		
+  		
+    	Hale Tattered Robe of the Pupil	Hale Tattered Robe of the Pupil
+  layout		
+    	Body Armour	Body Armour
+    	Energy Shield: 28	[EnergyShield|Energy Shield]: <valuedefault>{28}
+      		
+    		
+    explicit-stats		
+      	+19 to maximum Life	+19 to maximum Life
+      	+6 to Intelligence	+6 to [Intelligence|Intelligence]
+        		
+    		
+    cost		
+      		
+        		
+        	35	35
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Equip	Equip
+		
+  		
+    	Protective Feathered Robe of the Cloud	Protective Feathered Robe of the Cloud
+  layout		
+    	Body Armour	Body Armour
+    	Energy Shield: 43	[EnergyShield|Energy Shield]: <augmented>{43}
+      		
+    		
+    	Requires: Level 5, 11 Int	Requires: <valuedefault>{Level <valuedefault>{5}, <valuedefault>{11} Int}
+    		
+    explicit-stats		
+      	23% increased Energy Shield	23% increased [EnergyShield|Energy Shield]
+        		
+      	+9% to Lightning Resistance	+9% to [Resistances|Lightning Resistance]
+        		
+    		
+    	Equipped	Equipped
+
+== merchant-vest: a vest from the merchant's stock against the worn robe
+		
+  		
+    	Thorny Quilted Vest of the Flatworm	Thorny Quilted Vest of the Flatworm
+  layout		
+    	Body Armour: Item Level 15	Body Armour: <valuedefault>{Item Level 15}
+    	Evasion Rating: 49	[Evasion|Evasion Rating]: <valuedefault>{49}
+      		
+    		
+    	Requires: Level 8, 10 Dex	Requires: <valuedefault>{Level <valuedefault>{8}, <valuedefault>{10} Dex}
+    		
+    prefix-mods-with-reminders		
+      		
+        	2(1-2) to 3(3-4) Physical Thorns damage	2(1-2) to 3(3-4) [Physical|Physical] [Thorns|Thorns] damage
+          		
+          		
+        		
+          	T7	T7
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	3.8(3.1-4) Life Regeneration per second	3.8(3.1-4) Life Regeneration per second
+        		
+          	T9	T9
+      		
+        	Suffix	Suffix
+    		
+    cost		
+      		
+        		
+        	332	332
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Buy Item	Buy Item
+		
+  		
+    	Protective Feathered Robe of the Cloud	Protective Feathered Robe of the Cloud
+  layout		
+    	Body Armour: Item Level 8	Body Armour: <valuedefault>{Item Level 8}
+    	Energy Shield: 43	[EnergyShield|Energy Shield]: <augmented>{43}
+      		
+    		
+    	Requires: Level 5, 11 Int	Requires: <valuedefault>{Level <valuedefault>{5}, <valuedefault>{11} Int}
+    		
+    prefix-mods-with-reminders		
+      		
+        	23(15-26)% increased Energy Shield	23(15-26)% increased [EnergyShield|Energy Shield]
+          		
+        		
+          	T8	T8
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	+9(6-10)% to Lightning Resistance	+9(6-10)% to [Resistances|Lightning Resistance]
+          		
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    	Equipped	Equipped
+
+== unidentified-rare: an unidentified rare against the worn magic gloves
+		
+  		
+    	Firm Bracers	Firm Bracers
+  layout		
+    	Gloves: Item Level 11	Gloves: <valuedefault>{Item Level 11}
+    	Evasion Rating: 31	[Evasion|Evasion Rating]: <valuedefault>{31}
+      		
+    		
+    	Requires: 16 Dexterity	Requires: <valuedefault>{<valuedefault>{16} [Dexterity|Dexterity]}
+      		
+    		
+    explicit-stats		
+      	Unidentified	Unidentified
+    		
+    cost		
+      		
+        		
+        	95	95
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Identify 1x 	Identify 1x<<itemvisual:CurrencyIdentification>>
+		
+  		
+    	Humming Stocky Mitts of Success	Humming Stocky Mitts of Success
+  layout		
+    	Gloves: Item Level 4	Gloves: <valuedefault>{Item Level 4}
+    	Armour: 15	[Armour]: <valuedefault>{15}
+      		
+    		
+    prefix-mods-with-reminders		
+      		
+        	Adds 1 to 4(4-6) Lightning damage to Attacks	Adds 1 to 4(4-6) [Lightning] damage to [Attack|Attacks]
+          		
+          		
+        		
+          	T9	T9
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	Gain 4(4-6) Life per enemy killed	Gain 4(4-6) Life per enemy killed
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    	Equipped	Equipped
+
+== identified-rare: the same rare identified, against the worn gloves
+		
+  		
+    	Eagle Hold\nFirm Bracers	Eagle Hold\nFirm Bracers
+  layout		
+    	Gloves: Item Level 11	Gloves: <valuedefault>{Item Level 11}
+    	Evasion Rating: 31	[Evasion|Evasion Rating]: <valuedefault>{31}
+      		
+    		
+    	Requires: Level 11, 16 Dex	Requires: <valuedefault>{Level <valuedefault>{11}, <valuedefault>{16} Dex}
+    		
+    prefix-mods-with-reminders		
+      		
+        	Adds 1 to 4(4-6) Lightning damage to Attacks	Adds 1 to 4(4-6) [Lightning] damage to [Attack|Attacks]
+          		
+          		
+        		
+          	T9	T9
+      		
+        	+16(10-19) to maximum Life	+16(10-19) to maximum Life
+        		
+          	T9	T9
+      		
+        	+23(15-24) to maximum Mana	+23(15-24) to maximum Mana
+        		
+          	T8	T8
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	+7(6-10)% to Lightning Resistance	+7(6-10)% to [Resistances|Lightning Resistance]
+          		
+        		
+          	T8	T8
+      		
+        	Gain 2 Life per Enemy Hit with Attacks	Gain 2 Life per Enemy Hit with [Attack|Attacks]
+          		
+        		
+          	T4	T4
+      		
+        	Suffix	Suffix
+    		
+    cost		
+      		
+        		
+        	248	248
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Equip	Equip
+		
+  		
+    	Humming Stocky Mitts of Success	Humming Stocky Mitts of Success
+  layout		
+    	Gloves: Item Level 4	Gloves: <valuedefault>{Item Level 4}
+    	Armour: 15	[Armour]: <valuedefault>{15}
+      		
+    		
+    prefix-mods-with-reminders		
+      		
+        	Adds 1 to 4(4-6) Lightning damage to Attacks	Adds 1 to 4(4-6) [Lightning] damage to [Attack|Attacks]
+          		
+          		
+        		
+          	T9	T9
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	Gain 4(4-6) Life per enemy killed	Gain 4(4-6) Life per enemy killed
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    	Equipped	Equipped
+
+== worn-unique-amulet: a worn unique amulet inspected from its slot (one tooltip)
+		
+  		
+    	Revered Resin\nAmber Amulet	Revered Resin\nAmber Amulet
+  layout		
+    	Amulet: Item Level 8	Amulet: <valuedefault>{Item Level 8}
+    	Requires: Level 8	Requires: <valuedefault>{Level <valuedefault>{8}}
+    		
+    implicit-mods-with-reminders		
+      		
+        	+14(10-15) to Strength	+14(10-15) to [Strength|Strength]
+          		
+        		
+          	I	I
+      		
+        	Implicit	Implicit
+    		
+    suffix-mods-with-reminders		
+      		
+        	+57(40-60) to maximum Life	+57(40-60) to maximum Life
+        		
+          	U	U
+      		
+        	26(20-30)% increased Flask Life Recovery rate	26(20-30)% increased [Flask] Life Recovery rate
+          		
+        		
+          	U	U
+      		
+        	Life Flasks gain 0.2(0.17-0.25) charges per Second	Life [Flask|Flasks] gain 0.2(0.17-0.25) charges per Second
+          		
+        		
+          	U	U
+      		
+        	Unique	Unique
+    		
+    		
+      	The sacred sap flows slowly, but surely.	The sacred sap flows slowly, but surely.
+    		
+    cost		
+      		
+        		
+        	1,215	1,215
+    		
+    	Equipped	Equipped
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Unequip	Unequip
+
+== worn-ring: a worn ring inspected from its slot (one tooltip)
+		
+  		
+    	Hale Lazuli Ring of the Mongoose	Hale Lazuli Ring of the Mongoose
+  layout		
+    	Ring: Item Level 4	Ring: <valuedefault>{Item Level 4}
+    		
+    implicit-mods-with-reminders		
+      		
+        	+20(20-30) to maximum Mana	+20(20-30) to maximum Mana
+        		
+          	I	I
+      		
+        	Implicit	Implicit
+    		
+    prefix-mods-with-reminders		
+      		
+        	+15(10-19) to maximum Life	+15(10-19) to maximum Life
+        		
+          	T8	T8
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	+5(5-8) to Dexterity	+5(5-8) to [Dexterity|Dexterity]
+          		
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    cost		
+      		
+        		
+        	192	192
+    		
+    	Equipped	Equipped
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Unequip	Unequip
+
+== merchant-shortbow: a shortbow from the merchant's stock against the worn rare bow
+		
+  		
+    	Burnished Shortbow	Burnished Shortbow
+  layout		
+    	Bow: Item Level 15	[Bow]: <valuedefault>{Item Level 15}
+      		
+    	Physical Damage: 12-24	[Physical] Damage: <augmented>{12-24}
+      		
+    	Critical Hit Chance: 5.00%	[Critical|Critical Hit] Chance: <valuedefault>{5.00%}
+      		
+    	Attacks per Second: 1.25	Attacks per Second: <valuedefault>{1.25}
+    		
+    	Requires: Level 6, 12 Dex	Requires: <valuedefault>{Level <valuedefault>{6}, <valuedefault>{12} Dex}
+    		
+    prefix-mods-with-reminders		
+      		
+        	Adds 5(4-6) to 10(7-11) Physical Damage	Adds 5(4-6) to 10(7-11) [Physical|Physical] Damage
+          		
+        		
+          	T8	T8
+      		
+        	Prefix	Prefix
+    		
+    cost		
+      		
+        		
+        	232	232
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Buy Item	Buy Item
+		
+  		
+    	Honour Horn\nCrude Bow	Honour Horn\nCrude Bow
+  layout		
+    	Bow: Item Level 5	[Bow]: <valuedefault>{Item Level 5}
+      		
+    	Physical Damage: 8-14	[Physical] Damage: <augmented>{8-14}
+      		
+    	Lightning Damage: 1-5	Lightning Damage: <lightning>{1-5}
+    	Critical Hit Chance: 6.35%	[Critical|Critical Hit] Chance: <augmented>{6.35%}
+      		
+    	Attacks per Second: 1.29	Attacks per Second: <augmented>{1.29}
+    		
+    	Requires: Level 3	Requires: <valuedefault>{Level <valuedefault>{3}}
+    		
+    prefix-mods-with-reminders		
+      		
+        	Adds 1 to 5(4-6) Lightning Damage	Adds 1 to 5(4-6) [Lightning|Lightning] Damage
+          		
+        		
+          	T10	T10
+      		
+        	Adds 2(1-2) to 5(4-5) Physical Damage	Adds 2(1-2) to 5(4-5) [Physical|Physical] Damage
+          		
+        		
+          	T9	T9
+      		
+        	31(19-35)% increased Elemental Damage with Attacks	31(19-35)% increased [ElementalDamage|Elemental] Damage with [Attack|Attacks]
+          		
+          		
+        		
+          	T6	T6
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	7(5-7)% increased Attack Speed	7(5-7)% increased [Attack] Speed
+          		
+        		
+          	T5	T5
+      		
+        	+1.35(1.01-1.5)% to Critical Hit Chance	+1.35(1.01-1.5)% to [Critical|Critical Hit] Chance
+          		
+        		
+          	T6	T6
+      		
+        	Suffix	Suffix
+    		
+    	Equipped: Weapon Set 	Equipped: [WeaponSets|Weapon Set]<<weapon_set_1>>
+      		
+
+== worn-belt: a worn rare belt inspected from its slot (one tooltip)
+		
+  		
+    	Doom Locket\nLinen Belt	Doom Locket\nLinen Belt
+  layout		
+    	Belt: Item Level 4	Belt: <valuedefault>{Item Level 4}
+    	Requires: Level 2	Requires: <valuedefault>{Level <valuedefault>{2}}
+    		
+    implicit-mods-with-reminders		
+      		
+        	23(20-30)% increased Mana Recovery from Flasks	23(20-30)% increased Mana Recovery from [Flask|Flasks]
+          		
+        		
+          	I	I
+      		
+        	Has 1 Charm Slot	Has 1 [Charm] Slot
+          		
+        		
+          	I	I
+      		
+        	Implicit	Implicit
+    		
+    prefix-mods-with-reminders		
+      		
+        	1(1-2) to 4(3-4) Physical Thorns damage	1(1-2) to 4(3-4) [Physical|Physical] [Thorns|Thorns] damage
+          		
+          		
+        		
+          	T7	T7
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	+10(6-10)% to Fire Resistance	+10(6-10)% to [Resistances|Fire Resistance]
+          		
+        		
+          	T8	T8
+      		
+        	10(10-8)% reduced Flask Charges used	10(10-8)% reduced [Flask|Flask] Charges used
+          		
+        		
+          	T6	T6
+      		
+        	+10(6-10)% to Cold Resistance	+10(6-10)% to [Resistances|Cold Resistance]
+          		
+        		
+          	T8	T8
+      		
+        	Suffix	Suffix
+    		
+    	Equipped	Equipped
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Unequip	Unequip
+
+== worn-flask: a worn mana flask inspected from its slot (one tooltip)
+		
+  		
+    	Opaque Medium Mana Flask of the Constant	Opaque Medium Mana Flask of the Constant
+  layout		
+    	Flask: Item Level 5	[Flask]: <valuedefault>{Item Level 5}
+      		
+    	Recovers 99 Mana over 3 Seconds	Recovers <augmented>{99} Mana over <valuedefault>{3} Seconds
+    	Consumes 10 of 65 Charges on use	Consumes <valuedefault>{10} of <valuedefault>{65} Charges on use
+    	Currently has 65 Charges	Currently has <valuedefault>{65} Charges
+    		
+    	Requires: Level 4	Requires: <valuedefault>{Level <valuedefault>{4}}
+    		
+    prefix-mods-with-reminders		
+      		
+        	42(41-45)% increased Amount Recovered	42(41-45)% increased Amount Recovered
+        		
+          	T8	T8
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	27(23-30)% increased Charges gained	27(23-30)% increased Charges gained
+        		
+          	T6	T6
+      		
+        	Suffix	Suffix
+    		
+    	Bind Flasks to buttons to drink during combat to replenish Life or Mana. Refill at Wells or by killing monsters.	Bind [Flask|Flasks] to buttons to drink during combat to replenish Life or Mana. Refill at [Wells|Wells] or by killing monsters.
+      		
+      		
+    		
+    	Equipped	Equipped
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Unequip	Unequip
+
+== stash-staff: an unidentified staff from the stash against the worn bow
+		
+  		
+    	Ashen Staff	Ashen Staff
+  layout		
+    	Staff: Item Level 8	[Staff]: <valuedefault>{Item Level 8}
+      		
+    		
+    granted-skills-from-item		
+      		
+        		
+        	Grants Skill: Level 3 Firebolt	Grants Skill: <underline>{Level 3 Firebolt}
+          		
+    		
+    explicit-stats		
+      	Unidentified	Unidentified
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Identify 1x 	Identify 1x<<itemvisual:CurrencyIdentification>>
+      		
+        		
+        	Unstash	Unstash
+		
+  		
+    	Honour Horn\nCrude Bow	Honour Horn\nCrude Bow
+  layout		
+    	Bow: Item Level 5	[Bow]: <valuedefault>{Item Level 5}
+      		
+    	Physical Damage: 8-14	[Physical] Damage: <augmented>{8-14}
+      		
+    	Lightning Damage: 1-5	Lightning Damage: <lightning>{1-5}
+    	Critical Hit Chance: 6.35%	[Critical|Critical Hit] Chance: <augmented>{6.35%}
+      		
+    	Attacks per Second: 1.29	Attacks per Second: <augmented>{1.29}
+    		
+    	Requires: Level 3	Requires: <valuedefault>{Level <valuedefault>{3}}
+    		
+    prefix-mods-with-reminders		
+      		
+        	Adds 1 to 5(4-6) Lightning Damage	Adds 1 to 5(4-6) [Lightning|Lightning] Damage
+          		
+        		
+          	T10	T10
+      		
+        	Adds 2(1-2) to 5(4-5) Physical Damage	Adds 2(1-2) to 5(4-5) [Physical|Physical] Damage
+          		
+        		
+          	T9	T9
+      		
+        	31(19-35)% increased Elemental Damage with Attacks	31(19-35)% increased [ElementalDamage|Elemental] Damage with [Attack|Attacks]
+          		
+          		
+        		
+          	T6	T6
+      		
+        	Prefix	Prefix
+    suffix-mods-with-reminders		
+      		
+        	7(5-7)% increased Attack Speed	7(5-7)% increased [Attack] Speed
+          		
+        		
+          	T5	T5
+      		
+        	+1.35(1.01-1.5)% to Critical Hit Chance	+1.35(1.01-1.5)% to [Critical|Critical Hit] Chance
+          		
+        		
+          	T6	T6
+      		
+        	Suffix	Suffix
+    		
+    	Equipped: Weapon Set 	Equipped: [WeaponSets|Weapon Set]<<weapon_set_1>>
+      		

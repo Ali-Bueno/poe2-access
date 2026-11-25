@@ -70,7 +70,8 @@ proven on every screen; **OPEN** = unknown.
 - MEASURED: **inspect mode** (R3 on an item) opens a tooltip layer whose texts are ordinary labels (some
   with link-highlight children): name, "Flask: Item Level 1", stats, help text with keyword links
   `[Flask|Flasks]`, "Equipped", legend "Unequip" (X). The focus moves to the keyword link boxes (empty
-  children of the text; k-th box = k-th link); A expands a definition into the same layer, B goes back.
+  children of the text; k-th box = k-th link); A expands a definition into the same layer, B goes back. The whole
+  layer, item against worn item: [Item Inspect Mode](#item-inspect-mode-055h-2026-11-24).
 - MEASURED: in-game legends use glyph markup with a variant suffix (`<<xbox_button_lt;0>>`), sometimes
   combined (`<<rt;0>>+<<lstick;0>>`), in their own text element next to the label.
 
@@ -106,6 +107,60 @@ colour to apply …"), so the
   first line is the title and the rest one paragraph. Rich tooltips (skill gem) are several labels: tags,
   level, cost, damage, description. `UiSemantics.Tooltips`.
 - OPEN: the class-skill video popup at character creation (not checked against +0x120).
+
+## Item Inspect Mode (0.5.5h, 2026-11-24)
+
+R3 ("Compare") on an item in the bag, a stash, a merchant's stock or an equipment slot opens it. MEASURED with
+`dump visible` on eleven items in one session, each opened by the user. They were body armours, gloves, a ring, an
+amulet, a belt, a flask, two bows and a staff, magic to unique, identified and not, with advanced info on and off. The
+tooltip subtrees are in `tests/Poe2Accessibility.Tests/Fixtures/inspect-layers.txt`, and what the mod said and saw is
+in `evidence/inspect-mode-2026-11-24.txt`. No new memory field. The texts are the label fields already read (+0x490
+plain, +0x360 tagged), and the element names are the ones `UiElementReader` already reads.
+
+- MEASURED: **the layer** is an unnamed top layer (index 62 in that session) with two children. Child 0 is the text
+  "Inspect Mode", in the game's language. Child 1 holds one element, the tooltip container, whose children are the
+  tooltips. The inspected item's tooltip is always the first child and a worn one follows. Where the game draws them
+  varies (the worn robe sat left of a bag robe and right of a merchant's vest), so tree order is the only order to trust.
+- MEASURED: **two tooltips** when the inspected item would replace a worn one (from the bag, a stash or a merchant's
+  stock): the worn item in its slot, for a weapon the one in weapon set I ("Equipped: Weapon Set I"). **One tooltip**
+  when the inspected item is the worn one (from an equipment slot), so a worn ring is not set beside the other ring.
+  OPEN, nothing was at hand: an item against two worn rings, and an item for an empty slot.
+- MEASURED: **a tooltip** has the title text in child 0. A rare's or a unique's base type is a second line of the same
+  text ("Eagle Hold\nFirm Bracers"), and an unidentified rare shows only the base. Child 1 is named `layout` and holds
+  the rows in order, among them unnamed 245x9 separators with no text.
+- MEASURED: **the rows** are told apart by element names that are the same in every language.
+  - Unnamed text rows hold the class line (`Body Armour: <valuedefault>{Item Level 7}`, or only "Body Armour", another
+    child, with advanced info off), the properties (`[EnergyShield|Energy Shield]: <augmented>{43}`, a weapon's damage,
+    critical chance and attacks per second, a flask's recovery and charges), the requirements (with `<unmet>{}` as in
+    the bag), a unique's story line, a flask's help paragraph and "Equipped". "Currently has 65 Charges" changes with
+    the flask's charges. "Equipped" is the last text row of every worn tooltip seen, and on a weapon it reads
+    `Equipped: [WeaponSets|Weapon Set]<<weapon_set_1>>`.
+  - `implicit-mods-with-reminders`, `prefix-mods-with-reminders` and `suffix-mods-with-reminders` appear with advanced
+    info on. Each holds one element a modifier line and then one label text ("Implicit", "Prefix", "Suffix", or "Unique"
+    for a unique's modifiers, which sit in a group named `suffix-...`). A line element holds the modifier's text in
+    child 0 and its tier badge in child 1 ("T13", "I", "U" in the badge's child 0). The label is shown once for the group.
+  - `explicit-stats` appears with advanced info off, and for "Unidentified" either way. It holds one text a modifier
+    line, with no tier and no label.
+  - `granted-skills-from-item` holds "Grants Skill: <underline>{Level 3 Firebolt}".
+  - `cost` holds the price (merchant's stock) or the sell value, as a currency picture and a number.
+  - `gamepad_popup_button_legend_layout` holds the item's buttons ("Equip", "Buy Item", "Identify 1x…", "Unstash",
+    "Unequip").
+- MEASURED: **the focus** starts on the first keyword link of one tooltip (the worn robe's for a bag item, the inspected
+  item's for a merchant's or a stash's item), and the D-pad walks the links and tier badges of both. A tier badge is
+  focusable (flags 0x546EF1). Its own tooltip holds the modifier's name, tier and tags ("Suffix Modifier "of the
+  Cloud" (Tier: 8)", "Elemental, Lightning, Resistance"). Holding R3 toggles advanced info and sends the focus back to
+  the first link.
+- MEASURED: **what the mod said** before the comparison table. R3 gave `Narrate (tooltip of focus)`, the bag cell's
+  tooltip lines not said yet and without the name. Then `focus in a new layer` or `opened with focus` gave
+  "Inspect Mode." with the focused link's row, which is the whole tooltip the link is in, and `objective after focus`
+  gave the legend. A D-pad move read the link with its group, the text above it ("Energy Shield: 28. +6(5-8) to
+  Intelligence, T8. Intelligence, link"), and a tier badge as a panel with a position ("…, column 2, row 1, —
+  Elemental, Lightning, Resistance"). When the focus started in the inspected item, the worn item was never read (a
+  stash staff against the worn bow).
+- MEASURED: **the right stick** is free there. The legend binds its press ("Close") and its hold ("Toggle Advanced
+  Info"), not its directions. Pushed in every direction with a merchant open, with the bag alone and with a stash open,
+  it moved no focus and changed nothing on screen (`Pad:` lines with no `Focus ->` or screen change after them), and the
+  user heard nothing. Pressing the stick in also registered as a push upwards (right stick 0,1 past the trace's 0.2).
 
 ## In-game panels (tabs, cursor modes)
 
