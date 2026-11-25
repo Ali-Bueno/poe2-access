@@ -128,7 +128,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A reading of the inspect layer's first focus while the table's opening is still to speak for it.</summary>
-        private bool QuietForInspect(string reason) => this.Inspect?.Quiets(reason) == true;
+        private bool QuietForInspect(string reason) => this.Inspect?.Quiets(reason, Environment.TickCount64) == true;
 
         /// <summary>The focus's own words, after its item's label when it crossed into that item's tooltip.</summary>
         private string WithInspectLabel(AccessibleUiNode node, string speech) =>

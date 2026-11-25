@@ -500,11 +500,15 @@ namespace Poe2Accessibility.Tests
         {
             var watch = new InspectTableWatch();
             watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
-            Equal(true, watch.Quiets("focus in a new layer"), "the first focus with the layer");
-            Equal(true, watch.Quiets("opened with focus"), "the layer opened with its focus");
-            Equal(false, watch.Quiets("appeared with focus"), "an expanded definition is said");
+            Equal(true, watch.Quiets("focus in a new layer", 50), "the first focus with the layer");
+            Equal(true, watch.Quiets("opened with focus", 50), "the layer opened with its focus");
+            Equal(false, watch.Quiets("appeared with focus", 50), "an expanded definition is said");
             watch.Tick(200);
-            Equal(false, watch.Quiets("focus in a new layer"), "after the opening, a focus in a new layer (Expand) is said");
+            // The first focus read a moment after the opening (user, 2026-11-25: "This item. Evasion Rating: 59" still said).
+            Expect("This item", watch.CrossedTo(0), "the cursor in the inspected robe");
+            Equal(true, watch.Quiets("focus in a new layer", 370), "the first focus read just after the opening");
+            Expect("This item", watch.CrossedTo(0), "so the first move names its item");
+            Equal(false, watch.Quiets("focus in a new layer", 200 + InspectTableWatch.LateFocusMs), "later, a focus in a new layer (Expand) is said");
         }
 
         // Review, Important 3: with the table on, R3's burst waits for the table; on a miss it is said, never lost.

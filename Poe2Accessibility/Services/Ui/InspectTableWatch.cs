@@ -57,8 +57,26 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a flick of the right stick is the table's: it is on, and the game's focus is still somewhere (a close that drops it is gameplay again).</summary>
         public bool TakesFlicks(bool hasFocus) => this.Active && hasFocus;
 
-        /// <summary>Whether a reading is the inspect layer's first focus, which the opening still to come speaks for.</summary>
-        public bool Quiets(string reason) => this.OpeningDue && OpeningReasons.Contains(reason);
+        /// <summary>
+        ///     How long after the opening the inspect layer's first focus may still be read: the narrator waits for a new
+        ///     layer to settle, and its reading came 170 ms after the opening (2026-11-25).
+        /// </summary>
+        public const long LateFocusMs = 700;
+
+        /// <summary>When the opening was said; null before it.</summary>
+        private long? openedAt;
+
+        /// <summary>
+        ///     Whether a reading is the inspect layer's first focus, which the opening leaves out: before the opening, or just
+        ///     after it. Its item is then named on the cursor's first move.
+        /// </summary>
+        public bool Quiets(string reason, long nowMs)
+        {
+            var quiet = OpeningReasons.Contains(reason) &&
+                        (this.OpeningDue || this.table != null && this.openedAt is { } at && nowMs - at < LateFocusMs);
+            this.crossed = quiet ? null : this.crossed;
+            return quiet;
+        }
 
         /// <summary>Keeps R3's burst of the item's advanced lines until the table comes, or does not.</summary>
         public void HoldBurst(string text, long nowMs) => this.burst = (text, nowMs);
@@ -142,7 +160,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            (this.openingDue, this.crossed) = (false, null);
+            (this.openingDue, this.crossed, this.openedAt) = (false, null, nowMs);
             return Announcements.InspectOpened(this.mode, this.items[0].Title, this.items.Skip(1).Select(item => item.Title).ToList());
         }
 
@@ -175,7 +193,7 @@ namespace Poe2Accessibility.Services
         private void Clear()
         {
             (this.items, this.labels, this.table) = (Array.Empty<InspectItem>(), Array.Empty<string>(), null);
-            (this.titles, this.classes, this.toggledAt, this.openingDue, this.crossed) = (string.Empty, string.Empty, null, false, null);
+            (this.titles, this.classes, this.toggledAt, this.openingDue, this.crossed, this.openedAt) = (string.Empty, string.Empty, null, false, null, null);
         }
     }
 }
