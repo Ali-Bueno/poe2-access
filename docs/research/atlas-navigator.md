@@ -154,17 +154,42 @@ written down as still open, not guessed.
 8. Map device (capture only): open it empty, `dump visible`; put a waystone in, `dump visible` again; hover the
    waystone and Activate, note what is spoken today. Do not activate for the test.
 
-**Results** _(fill in during the sweep; raw `ui-tree-*.txt` and the log stay in `debug/` + `logs/`, the decisive
-excerpts are copied here)_
+**Results** _(sweep started live 2026-11-25 with the owner on the Atlas; raw evidence:
+[evidence/ui-tree-InGameState-20261125-114220.txt](evidence/ui-tree-InGameState-20261125-114220.txt),
+[evidence/atlas-live-20261125.log](evidence/atlas-live-20261125.log))_
 
-- Model A live? Record offset learnt:
-- Panel path/name and child fingerprints:
-- Status byte `+0x2BF` vs known states (per sampled node):
-- You-are-here: element / fingerprint / other sign:
-- D-pad on the Atlas:
-- Zoom control; centres hold under pan/zoom?
-- Atlas tree node chain:
-- Map device: slots/Activate spoken as today:
+- **Model A live?** The record chain works but is never invoked. `describe 0x…` on sampled node elements produced
+  the endgame readout (`Panel "Ruins of Kingsmarch" … "Links: up left, Atlas node"`), so the record offset search
+  resolves catalog nodes on the real elements. But on the Atlas neither the focus slot nor the UI manager's
+  hovered slot ever points at a node (`atlasnode` twice: `no element @0`; `datkeys`: `scanning @0`), so
+  `DescribeEndgameNode` is dead in play: a full day's log holds zero "Holds:" / "Links:" speeches. What the owner
+  hears per hop is only the generic screen-text pass over the popup (`TextsAppeared layer 17: Pit | They scrabble
+  and dig…`). **This is the "isn't all that useful", measured.**
+- **Panel and nodes (Model B's anatomy, PROVEN):** `WorldScreen` `[0,1,17,2,3,0]` → `map_control` child 0 → canvas
+  child 6 (`flags=0x502EF3`, 1,063 children) → node elements `flags=0x542EF3` (176 visible in a visible-only dump;
+  the rest hidden), 27×27 for ordinary maps, larger for special pins, allocated 0x420 apart, each holding a
+  `content_stack_layout` child whose icon elements carry the content's own words (`str@0x2E8="Powerful Map Boss"`).
+  The popup is `WorldScreen` child 17. Both models are true at once: the B elements also carry the A record.
+- **The selected node (PROVEN):** `map_control +0x2E0` and canvas `+0x408` both point at the node element the
+  cursor rests on — validated by the popup: the pointed node's `+0x300` WorldAreas row is `MapPit` while the
+  popup read "Pit". Node fields so far (each `datkeys`-proven on four nodes): `+0x2F0` EndgameMaps row, `+0x300`
+  WorldAreas row (the map this node rolled: `MapCaldera`, `MapOrnateChambers`, `MapPit`, …), `+0x310`
+  EndgameMapAtlas row (null on one sampled node), `+0x320` two i32 that read as grid coordinates
+  ((3,−28), (12,−3), (8,−26), (14,4) — LIKELY, to confirm against the graph), canvas's parent chain holds the
+  Acts row `Endgame` at `+0x2D0`. Upstream's `+0x290`/`+0x310` are stale by +0x60/+0x10 — trust nothing upstream
+  without re-validation.
+- Status byte `+0x2BF` vs known states: **not settled.** `+0x2BE/+0x2BF` are zero on all four sampled nodes.
+  Remaining in-object candidates from a four-node diff: the u64 at `+0x328` (its low u32 is identical on two
+  nodes, `0xB6A53E6F`), the u32 at `+0x330` (1, 19, 3, 4 — an index?), a vector at `+0x360`. Next: sample
+  owner-certified completed / accessible / locked nodes through `map_control +0x2E0` and require the candidate to
+  separate the three classes; then confirm on a second node of each class.
+- You-are-here: the canvas's last child (1062, `flags=0x502EF3`, 54×54 at (60,722), pointed at by canvas
+  `+0x28/+0x60/+0x418`) is the candidate marker (LIKELY) — to validate by its grid/coincidence with a node.
+- D-pad on the Atlas: _owner to test._
+- Zoom control; centres hold under pan/zoom? _Open; node rects in the dump are canvas-space (far past 1920×1080),
+  so drawn centres need the canvas transform, or the guide works from grid/graph places alone._
+- Atlas tree node chain: _open (one `atlasnode`/`describe` once the Atlas Skill Tree is open)._
+- Map device: _open (capture only)._
 
 ## 7. Risks and fallbacks
 
