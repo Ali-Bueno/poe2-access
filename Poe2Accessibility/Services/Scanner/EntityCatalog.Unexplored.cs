@@ -151,7 +151,7 @@ namespace Poe2Accessibility.Services
                 .DistinctBy(entry => entry.Name)
                 .OrderBy(entry => Distance(player.WorldPosition, entry))
                 .Take(MaxKnownGoals)
-                .Select(entry => (new Vector2(entry.WorldX, entry.WorldY) / toWorld, Announcements.WayTo(entry.Kind == MinimapMarks.BossRoomKind ? Announcements.BossRoom(entry.Subject) : entry.Name, quest.Contains(entry.Id))))
+                .Select(entry => (new Vector2(entry.WorldX, entry.WorldY) / toWorld, Announcements.WayTo(entry.Kind == MinimapMarks.BossRoomKind ? Announcements.BossRoom(entry.Subject) : entry.Name, this.IsQuestGoal(entry, quest))))
                 .ToList();
         }
 

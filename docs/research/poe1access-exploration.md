@@ -3,8 +3,8 @@
 Asked by the owner on 2026-11-25: what that mod does for exploring in real time, with no key, that this one lacks, and
 whether PoE2 allows it showing only what a sighted player sees. Read from its source at `6c39bf4`
 (`D:\code\c#\PoE1Access\PoE1Access`); it follows this mod's design, so most is shared. **Built the same day: A, B and C of the
-verdict** ([radar](../radar.md), "Ways to known places" and "Exploring guide"); D is the exit named as the quest's
-([quest goals](quest-goals.md#a-step-done-in-another-area-2026-11-25)), its spoken route not built.
+verdict** ([radar](../radar.md), "Ways to known places" and "Exploring guide"); D was not built: the owner wants the
+quest told only by the area it happens in ([quest goals](quest-goals.md#a-step-done-in-another-area-2026-11-25)).
 
 ## What it does
 

@@ -146,9 +146,9 @@ namespace Poe2Accessibility.Services
             // "izquierda 3, luego arriba a la izquierda" for the near one, both "Sala del jefe" (owner, 2026-11-18).
             Vector2 Offset(ScanEntry entry) => new Vector2(entry.WorldX, entry.WorldY) - here;
             var quest = entries.Where(entry => entry.Category == ScanCategory.Quest).Select(entry => entry.Id).ToHashSet();
-            string Named(ScanEntry entry) => Announcements.Discovered(entry, Near(entry)) is var found && entry.Category == ScanCategory.Exits && quest.Contains(entry.Id)
-                ? Announcements.QuestLeadsThere(found)
-                : found;
+            string Named(ScanEntry entry) => entry.Category == ScanCategory.Exits && this.catalog.IsQuestGoal(entry, quest)
+                ? Announcements.QuestPlace(Announcements.Discovered(entry, Near(entry)))
+                : Announcements.Discovered(entry, Near(entry));
             string Found(ScanEntry entry) => this.catalog.Describe(entry with { Name = Named(entry) });
             // Said once, ever: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in and it was never heard (2026-11-05).
             this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(Found)), urgent: true);

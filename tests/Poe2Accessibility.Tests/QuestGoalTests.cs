@@ -71,13 +71,16 @@ namespace Poe2Accessibility.Tests
                     ["fr"] = new() { ["Le Grelwood"] = new[] { "G1_4" } },
                     ["ko"] = new() { ["그렐우드"] = new[] { "G1_4" } },
                 });
-            var goals = catalog.GoalsOf(new[] { "Viaja a Tierras de cultivo de Ogham" }, "es");
+            var goals = catalog.TravelGoalsOf(new[] { "Viaja a Tierras de cultivo de Ogham" }, "es");
             Expect("G1_6", string.Join(",", goals), "the area the HUD names");
-            Expect("G1_4", string.Join(",", catalog.StepsToward("G1_2", goals)), "two areas off: through the Grelwood's exit");
-            Expect("G1_4,G1_6", string.Join(",", catalog.GoalsOf(new[] { "Viaja a El bosque singular o Tierras de cultivo de Ogham" }, "es").Order()), "two areas");
-            Expect("G1_4", string.Join(",", catalog.GoalsOf(new[] { "Rendez-vous dans la zone « Le Grelwood »" }, "fr")), "a non-breaking blank in the sentence");
-            Expect("G1_4", string.Join(",", catalog.GoalsOf(new[] { "그렐우드(으)로 이동하기" }, "ko")), "the name first");
-            Expect(0, catalog.GoalsOf(new[] { "Viaja a un sitio sin nombre" }, "es").Count, "no area of that name");
+            Expect(0, catalog.GoalsOf(new[] { "Viaja a Tierras de cultivo de Ogham" }, "es").Count, "no goal to walk to from anywhere");
+            Expect("G1_6", string.Join(",", catalog.NextDoor("G1_4", goals)), "next door: its exit is the quest's");
+            Expect(0, catalog.NextDoor("G1_2", goals).Count, "two areas off: no exit is, a player takes the waypoint");
+            Expect(0, catalog.NextDoor("G1_6", goals).Count, "in the area itself: none");
+            Expect("G1_4,G1_6", string.Join(",", catalog.TravelGoalsOf(new[] { "Viaja a El bosque singular o Tierras de cultivo de Ogham" }, "es").Order()), "two areas");
+            Expect("G1_4", string.Join(",", catalog.TravelGoalsOf(new[] { "Rendez-vous dans la zone « Le Grelwood »" }, "fr")), "a non-breaking blank in the sentence");
+            Expect("G1_4", string.Join(",", catalog.TravelGoalsOf(new[] { "그렐우드(으)로 이동하기" }, "ko")), "the name first");
+            Expect(0, catalog.TravelGoalsOf(new[] { "Viaja a un sitio sin nombre" }, "es").Count, "no area of that name");
         }
 
         private static void AMissingFileIsAnEmptyCatalog()

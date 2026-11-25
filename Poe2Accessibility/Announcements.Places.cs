@@ -26,12 +26,11 @@ namespace Poe2Accessibility
         public static string Unexplored(Services.UnseenSize size, IReadOnlyList<string> leadsTo) =>
             string.Join(", ", leadsTo.Prepend(Unexplored(size)));
 
-        /// <summary>The known place a way leads to: "hacia El valle rojo", "hacia tu misión, El valle rojo".</summary>
-        public static string WayTo(string name, bool quest) =>
-            quest ? T($"toward your quest, {name}", $"hacia tu misión, {name}") : T($"toward {name}", $"hacia {name}");
+        /// <summary>The known place a way leads to: "hacia El valle rojo", "hacia El valle rojo, tu misión".</summary>
+        public static string WayTo(string name, bool quest) => quest ? QuestPlace(T($"toward {name}", $"hacia {name}")) : T($"toward {name}", $"hacia {name}");
 
-        /// <summary>A place found that the quest leads to: "Nueva salida: El valle rojo, tu misión lleva allí".</summary>
-        public static string QuestLeadsThere(string found) => T($"{found}, your quest leads there", $"{found}, tu misión lleva allí");
+        /// <summary>A place the quest asks for, or the exit straight to it: "Nueva salida: El valle rojo, tu misión".</summary>
+        public static string QuestPlace(string place) => T($"{place}, your quest", $"{place}, tu misión");
 
         private static string Unexplored(Services.UnseenSize size) => size switch
         {

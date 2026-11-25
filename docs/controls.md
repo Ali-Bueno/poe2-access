@@ -100,8 +100,8 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   "Unexplored nook" where one look from its edge would show it all, a dead end. The size is of the ground you would
   reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
   the wall. An exit not known yet is never told; ground that leads to a place you know of and have not reached (an exit
-  already listed, a boss room the map points to, what the quest asks) says so: "Large unexplored ground, toward your quest,
-  The Grelwood" (setting "Say which known place a fork's way or unexplored ground leads to"). Ground within about 80 cells of where you walked counts as seen, and a wall with no way through
+  already listed, a boss room the map points to, what the quest asks) says so: "Large unexplored ground, toward The
+  Grelwood", with "your quest" after it when the quest is in that very area (setting "Say which known place a fork's way or unexplored ground leads to"). Ground within about 80 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too; "Essence: Blood Cretin", a crystal holding a
@@ -657,7 +657,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   exit: Clearfell, up left", "New checkpoint, near Clearfell Encampment, down right", "Boss in sight: The Bloated
   Miller, right" (`AnnounceDiscoveries`). The direction is where it lies on the screen, in a straight line, and the
   chime comes from that side, higher above you and lower below.
-  An exit the quest leads through says it: "New exit: The Grelwood, your quest leads there".
+  An exit straight to the area the quest asks for says it: "New exit: The Grelwood, your quest".
   Said once, so it holds through a fight for a moment; other spoken news waits behind it.
 - Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
   Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on

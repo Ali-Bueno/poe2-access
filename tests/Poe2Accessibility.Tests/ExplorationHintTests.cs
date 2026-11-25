@@ -264,7 +264,7 @@ namespace Poe2Accessibility.Tests
             map.Visit(new Vector2(520, 360), width, height);
             Equal(true, map.Frontier(grid, width / 2, player, 8, new[] { new Vector2(520, 360) }).All(place => place.LeadsTo.Count == 0), "once its ground is seen nothing leads there");
 
-            Equal("Large unexplored ground, toward The Red Vale, toward your quest, Mud Burrow",
+            Equal("Large unexplored ground, toward The Red Vale, toward Mud Burrow, your quest",
                 Announcements.Unexplored(UnseenSize.Large, new[] { Announcements.WayTo("The Red Vale", false), Announcements.WayTo("Mud Burrow", true) }), "said after what it is");
         }
 

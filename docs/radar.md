@@ -159,7 +159,8 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   every way, so the way's own first cell told nothing).
 - **Ways to known places** (2026-11-25, after [PoE1Access's exploration](research/poe1access-exploration.md); setting
   `NameKnownWays`): a fork's way on and an unexplored place name the place they lead to: "Zona 1: sigue arriba, sigue a la
-  izquierda hacia Lodazal, sigue arriba a la derecha hacia tu misión, El bosque singular". Only places the scanner lists
+  izquierda hacia Lodazal, sigue arriba a la derecha hacia El bosque singular", with ", tu misión" after a place the step asks for or the exit straight to its
+  area (`EntityCatalog.IsQuestGoal`). Only places the scanner lists
   already and the player has not reached (`EntityCatalog.KnownGoals`: area exits, boss rooms the map points to, what the
   quest asks, the nearest four). A fork takes the shortest walk over the map's shape (`MapTopology.WayToward`); an
   unexplored place is the one where the walk leaves the seen ground (`ExplorationMap.WayOn`), so of several edges of one

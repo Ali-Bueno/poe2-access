@@ -313,10 +313,12 @@ namespace Poe2Accessibility.Services
             var area = this.areaId();
             if (this.leadsTo.Area != area || this.leadsTo.Language != Localization.Language || !this.leadsTo.Texts.SequenceEqual(texts))
             {
-                var names = this.QuestGoals.StepsToward(area, this.QuestGoals.GoalsOf(texts, Localization.Language))
+                var goalIds = this.QuestGoals.GoalsOf(texts, Localization.Language);
+                var names = this.QuestGoals.StepsToward(area, goalIds).Concat(this.QuestGoals.NextDoor(area, this.QuestGoals.TravelGoalsOf(texts, Localization.Language))).Distinct()
                     .Select(this.landmarks.AreaNameOf).Where(name => name.Length > 0).ToList();
                 var before = this.leadsTo.Names;
-                this.leadsTo = (area, Localization.Language, texts.ToArray(), names);
+                var goals = goalIds.Concat(this.QuestGoals.TravelGoalsOf(texts, Localization.Language)).Select(this.landmarks.AreaNameOf).Where(name => name.Length > 0).ToList();
+                this.leadsTo = (area, Localization.Language, texts.ToArray(), names, goals);
                 if (names.Count > 0 && !names.SequenceEqual(before)) // the tracker's texts hold timers: said once per change of step
                 {
                     this.log.Info($"Quest step leads through: {string.Join(", ", names)} (from {area})");
@@ -325,6 +327,11 @@ namespace Poe2Accessibility.Services
 
             return this.leadsTo.Names;
         }
+
+        /// <summary>Whether a listed place is the quest's: what it asks for, or an exit straight to the area it asks for; not an exit to an area in between.</summary>
+        public bool IsQuestGoal(ScanEntry entry, IReadOnlyCollection<uint> questIds) =>
+            questIds.Contains(entry.Id) &&
+            (entry.Category != ScanCategory.Exits || this.leadsTo.Names.Count == 0 || this.leadsTo.Goals.Contains(entry.Name, StringComparer.OrdinalIgnoreCase));
 
         /// <summary>Whether the game's own exit of a named exit tile is among the listed (<see cref="SameExit"/>).</summary>
         private static bool ListsExit(Dictionary<uint, ScanEntry>.ValueCollection listed, ScanEntry tile, float worldPerCell)

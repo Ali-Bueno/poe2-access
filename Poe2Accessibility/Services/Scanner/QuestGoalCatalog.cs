@@ -106,14 +106,22 @@ namespace Poe2Accessibility.Services
                 {
                     reached.UnionWith(areas);
                 }
-                else
-                {
-                    reached.UnionWith(this.TravelGoals(line, language));
-                }
             }
 
             return reached;
         }
+
+        /// <summary>
+        ///     The areas the HUD names for a step done elsewhere ("Viaja a Tierras de cultivo de Ogham"). Apart from
+        ///     <see cref="GoalsOf"/>: several areas off a player takes a waypoint, so only an exit straight there is the quest's.
+        /// </summary>
+        public IReadOnlyCollection<string> TravelGoalsOf(IReadOnlyList<string> trackerTexts, string language) =>
+            trackerTexts.SelectMany(text => text.Replace("\r", string.Empty).Split('\n')).Select(Normalize).Where(line => line.Length > 0)
+                .SelectMany(line => this.TravelGoals(line, language)).ToHashSet(StringComparer.Ordinal);
+
+        /// <summary>The goals one exit away from an area.</summary>
+        public IReadOnlyList<string> NextDoor(string hereId, IReadOnlyCollection<string> goalIds) =>
+            !goalIds.Contains(hereId) && this.connections.TryGetValue(hereId, out var next) ? next.Where(goalIds.Contains).Distinct(StringComparer.Ordinal).ToList() : Array.Empty<string>();
 
         /// <summary>The areas of a line the HUD makes of a step done elsewhere ("Viaja a Tierras de cultivo de Ogham"); empty for any other line.</summary>
         private IEnumerable<string> TravelGoals(string line, string language)
