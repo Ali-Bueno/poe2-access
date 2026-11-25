@@ -22,6 +22,8 @@ namespace Poe2Accessibility.Tests
             (nameof(LinksAreSaidClockwiseFromUp), LinksAreSaidClockwiseFromUp),
             (nameof(ContentIconsAreNamedByTheirArt), ContentIconsAreNamedByTheirArt),
             (nameof(TowersCountWhatTheyReach), TowersCountWhatTheyReach),
+            (nameof(AtlasStateReadsBitsNotEquality), AtlasStateReadsBitsNotEquality),
+            (nameof(AtlasLandingSaysStateAfterName), AtlasLandingSaysStateAfterName),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -190,6 +192,32 @@ namespace Poe2Accessibility.Tests
             Expect(0, catalog.TowerReach("AtlasPath1"), "no tower");
             Expect("up left", AtlasLinks.Side(new Vector2(10, 10), new Vector2(0, 0)), "the side a tower lies on, y down");
             Expect(string.Empty, AtlasLinks.Side(Vector2.One, Vector2.One), "the same place");
+        }
+
+        private static void AtlasStateReadsBitsNotEquality()
+        {
+            // The certified points of 2026-11-25, and the higher bits seen on special nodes never faking a state.
+            Expect(AtlasNodeState.Locked, AtlasState.Of(0), "locked: The Burning Monolith");
+            Expect(AtlasNodeState.Accessible, AtlasState.Of(1), "accessible: Gateway before, Steaming Springs");
+            Expect(AtlasNodeState.Completed, AtlasState.Of(3), "completed: Gateway after");
+            Expect(AtlasNodeState.Completed, AtlasState.Of(2), "the completed bit alone still reads completed");
+            Expect(AtlasNodeState.Accessible, AtlasState.Of(0x11), "a higher special bit does not mask accessible");
+            Expect(AtlasNodeState.Locked, AtlasState.Of(0x10), "special bits alone are not accessible");
+        }
+
+        private static void AtlasLandingSaysStateAfterName()
+        {
+            Localization.Set("en", new());
+            Expect(
+                "Steaming Springs. Accessible. Holds: Delirium. Links: right, Hilda's Campsite",
+                Announcements.AtlasLanding("Steaming Springs", Announcements.AtlasState(AtlasNodeState.Accessible), "Holds: Delirium", "Links: right, Hilda's Campsite"),
+                "name, state, contents, links");
+            Expect(
+                "The Burning Monolith. Locked",
+                Announcements.AtlasLanding("The Burning Monolith", Announcements.AtlasState(AtlasNodeState.Locked), string.Empty, string.Empty),
+                "no contents or links said");
+            Localization.Set("es", new());
+            Expect("Completado", Announcements.AtlasState(AtlasNodeState.Completed), "the Spanish state word");
         }
     }
 }

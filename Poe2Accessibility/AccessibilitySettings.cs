@@ -331,6 +331,9 @@ namespace Poe2Accessibility
         /// <summary>While the tree's finder or the Build Planner leads, a node on the way is its name and the way on (user 2026-11-10: "es muy verboso").</summary>
         public bool PassiveGuideBrief = true;
 
+        /// <summary>On the Atlas map, the node landed on says its name, whether it is locked, accessible or completed, what it holds and its links.</summary>
+        public bool AnnounceAtlasNodes = true;
+
         /// <summary>The Trial's honour is said as it falls past every tenth.</summary>
         public bool AnnounceHonour = true;
 

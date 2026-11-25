@@ -22,5 +22,17 @@ namespace Poe2Accessibility
             var list = string.Join(", ", names);
             return T($"Holds: {list}", $"Contiene: {list}");
         }
+
+        /// <summary>The word for an Atlas node's state, said right after its name on landing.</summary>
+        public static string AtlasState(Services.AtlasNodeState state) => state switch
+        {
+            Services.AtlasNodeState.Completed => T("Completed", "Completado"),
+            Services.AtlasNodeState.Accessible => T("Accessible", "Accesible"),
+            _ => T("Locked", "Bloqueado"),
+        };
+
+        /// <summary>"Steaming Springs. Accessible. Holds: … Links: …" — the landed Atlas node (Phase 1).</summary>
+        public static string AtlasLanding(string name, string state, string contents, string links) =>
+            Sentences(new[] { name, state, contents, links });
     }
 }

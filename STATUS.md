@@ -729,14 +729,15 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
-- **The Atlas navigator, Phases 1–3 unbuilt:** Phase 0 closed live 2026-11-25
-  ([docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) §6, evidence in docs/research/evidence/):
-  the shipped node reader never fires on the Atlas map (hover/focus empty there; it does fire in the Atlas Skill
-  Tree, reached by hold-X radial → down), the selected node is `map_control +0x2E0`, identity by dat keys, fog
-  is the visible flag, node state is byte `+0x32F` (bit0 accessible, bit1 completed, four certified points), the
-  D-pad hops nodes itself (finder needs a mod gesture), zoom RT, the map device reads through inventory speech.
-  The owner's unspent Atlas points are spoken nowhere found (allocated counters only). **Unblocks:** the owner's
-  go-ahead to build Phase 1 (selected-node speech with state) and the gesture pick for Phase 3.
+- **The Atlas navigator, Phases 2–3 unbuilt; Phase 1 awaiting the owner's ear:** Phase 0 closed live 2026-11-25
+  and Phase 1 (the landed node spoken with its state: `AtlasNarrator`, setting `AnnounceAtlasNodes`) is built,
+  tested and deployed to the play copy the same day
+  ([docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) §5–§6, evidence in docs/research/evidence/).
+  Proven: selected node `map_control +0x2E0`, state byte `+0x32F` (bit0 accessible, bit1 completed), the shipped
+  reader dead on the map but alive in the Skill Tree (hold-X radial, down), D-pad hops nodes itself (Phase 3
+  needs a mod gesture, the owner's pick), the owner's unspent Atlas points spoken nowhere found. **Unblocks:**
+  the owner hearing Phase 1 on a locked, an accessible and a completed landing; then Phase 2 (orientation:
+  anchor still unidentified, resume, breadcrumb).
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each

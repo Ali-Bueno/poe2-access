@@ -158,11 +158,40 @@ namespace Poe2Accessibility.Services
             this.SelectedAtlasNode(worldScreen) is { } selected ? this.EndgameNodeReport(selected) : $"no selected atlas node (world screen @{worldScreen:X})";
 
         /// <summary>
+        ///     The landed node's spoken line for <see cref="AtlasNarrator"/>: its name, its state from the status byte,
+        ///     what it holds and its links — the popup's flavour and blocked words are the screen reading's, already
+        ///     heard. Null while its popup is unbuilt (the name lives there for a random map) unless
+        ///     <paramref name="allowPending"/>; empty when the element is no endgame node at all.
+        /// </summary>
+        public string? AtlasNodeLine(IntPtr node, bool allowPending)
+        {
+            if (!this.elements.TryReadElement(node, out var info) || this.DescribeEndgameNode(info, true) is not { } described)
+            {
+                return string.Empty;
+            }
+
+            if (described.TooltipPending && !allowPending)
+            {
+                return null;
+            }
+
+            var state = this.reader.TryRead<byte>(node + GameLayout.AtlasNode.StatusOffset, out var status)
+                ? Announcements.AtlasState(AtlasState.Of(status))
+                : string.Empty;
+            var contents = FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
+            var links = FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
+            return Announcements.AtlasLanding(described.Text, state, contents, links);
+
+            static string FirstWith(IReadOnlyList<string>? lines, string prefix) =>
+                lines?.FirstOrDefault(line => line.StartsWith(prefix, StringComparison.Ordinal)) ?? string.Empty;
+        }
+
+        /// <summary>
         ///     The Atlas node the cursor rests on: map_control keeps it (<see cref="GameLayout.AtlasNode.SelectedNodeOffset"/>),
         ///     trusted only when the element's own atlas key reads (map_control is shared with the act maps, whose field
         ///     there is something else). Null when the Atlas is not the shown tab.
         /// </summary>
-        private IntPtr? SelectedAtlasNode(IntPtr worldScreen)
+        public IntPtr? SelectedAtlasNode(IntPtr worldScreen)
         {
             if (!this.elements.TryReadElement(worldScreen, out var screen))
             {

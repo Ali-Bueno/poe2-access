@@ -101,6 +101,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.GuideTimed)),
                 Switch(nameof(AccessibilitySettings.PassiveFinder)),
                 Switch(nameof(AccessibilitySettings.PassiveGuideBrief)),
+                Switch(nameof(AccessibilitySettings.AnnounceAtlasNodes)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlaces)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlacesAhead)),
                 Switch(nameof(AccessibilitySettings.AnnounceForks)),

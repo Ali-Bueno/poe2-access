@@ -67,13 +67,16 @@ Settles: A vs B; the status byte against nodes of known state; where "you are he
 free on the Atlas; how pan/zoom move drawn centres (`EndgameCentres` cache validity); one Atlas-tree node; the map
 device window's tree (capture only). Output: this file's §6 results filled in, raw dumps/log kept (AGENTS 16–17).
 
-### Phase 1 — node state and the anchor
+### Phase 1 — node state and the anchor (state speech BUILT 2026-11-25; anchor still open)
 
-Port the validated fields (provenance + validation method documented per AGENTS 7). The readout gains state first —
-name, then completed / accessible / locked with the catalog's blocked text — and the you-are-here node is
-identified as the orientation anchor. Fallback if B's fields moved: the pin's art or a `MiscAnimated` key
-(`EndgameMapPins` Available / Active / Failed / Complete), found with `datkeys` in Phase 0.
-**Proof:** spoken state matches the popup on every sampled node kind.
+Built and deployed to the play copy, awaiting the owner's ear: `AtlasNarrator` watches the selected node
+(`map_control +0x2E0` via `UiSemantics.SelectedAtlasNode`); when it settles (~700 ms, popup built or 2.5 s
+given up) the landing is spoken as name, state from `+0x32F` (`AtlasState.Of`, bits only), contents and links
+(`UiSemantics.AtlasNodeLine` over the shipped endgame readout; setting `AnnounceAtlasNodes`, on by default).
+Unit tests `AtlasStateReadsBitsNotEquality` / `AtlasLandingSaysStateAfterName`; whole suite green under Wine.
+Not in this build: the you-are-here anchor (unresolved, §6) — it moves to Phase 2, whose per-hop brief is what
+this landing line becomes. **Live proof still owed:** state words heard matching the popup on a locked, an
+accessible and a completed landing, at hop cadence without spam.
 
 ### Phase 2 — orientation (the owner's pain; ships before any list)
 
