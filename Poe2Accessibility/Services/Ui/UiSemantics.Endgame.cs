@@ -149,8 +149,88 @@ namespace Poe2Accessibility.Services
             var described = this.DescribeEndgameNode(info, true);
             return $"@{hovered:X} \"{info.Name}\" class {nodeClass:X} record {offset}: {id ?? "no endgame node"}" +
                    (node == null ? string.Empty : $" graph {node.Graph} pin {node.Pin} maps {string.Join(",", node.Maps ?? new List<string>())} at {node.X},{node.Y}") +
-                   (described == null ? string.Empty : $" says \"{described.Text}\" | {string.Join(" | ", described.Tooltip ?? Array.Empty<string>())}");
+                   (described == null ? string.Empty : $" says \"{described.Text}\" | {string.Join(" | ", described.Tooltip ?? Array.Empty<string>())}") +
+                   this.AtlasNodeDetails(hovered);
         }
+
+        /// <summary>Research (dev command "atlasnode"): the node the Atlas cursor rests on, as <see cref="EndgameNodeReport"/> tells it.</summary>
+        public string AtlasSelectedReport(IntPtr worldScreen) =>
+            this.SelectedAtlasNode(worldScreen) is { } selected ? this.EndgameNodeReport(selected) : $"no selected atlas node (world screen @{worldScreen:X})";
+
+        /// <summary>
+        ///     The Atlas node the cursor rests on: map_control keeps it (<see cref="GameLayout.AtlasNode.SelectedNodeOffset"/>),
+        ///     trusted only when the element's own atlas key reads (map_control is shared with the act maps, whose field
+        ///     there is something else). Null when the Atlas is not the shown tab.
+        /// </summary>
+        private IntPtr? SelectedAtlasNode(IntPtr worldScreen)
+        {
+            if (!this.elements.TryReadElement(worldScreen, out var screen))
+            {
+                return null;
+            }
+
+            foreach (var child in this.elements.ReadChildren(screen))
+            {
+                if (this.elements.TryReadElement(child, out var control) && control.Name == GameLayout.WorldMap.ControlName &&
+                    this.reader.TryRead<IntPtr>(child + GameLayout.AtlasNode.SelectedNodeOffset, out var node) && node != IntPtr.Zero &&
+                    DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable) != null)
+                {
+                    return node;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Research: an Atlas node's own fields for the state hunt (docs/research/atlas-navigator.md §6): its identity
+        ///     by its dat keys (no record search), its grid place, the unidentified fields after it, and every texture key
+        ///     it and its children draw — state art is the remaining on-element candidate for completed/accessible.
+        ///     Empty for an element without an atlas key.
+        /// </summary>
+        private string AtlasNodeDetails(IntPtr node)
+        {
+            if (DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable) is not { } atlasRow)
+            {
+                return string.Empty;
+            }
+
+            var passive = DatKey.Row(this.reader, this.elements, atlasRow + GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
+            var area = DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable);
+            var bytes = this.reader.ReadBytes(node + GameLayout.AtlasNode.GridOffset, 0x20);
+            var fields = bytes.Length == 0x20
+                ? $" grid {BitConverter.ToInt32(bytes, 0)},{BitConverter.ToInt32(bytes, 4)} +328 {BitConverter.ToUInt64(bytes, 8):X16} +330 {BitConverter.ToUInt32(bytes, 0x10)} +338 {Convert.ToHexString(bytes, 0x18, 8)}"
+                : string.Empty;
+            var textures = new List<string>();
+            if (this.elements.TryReadElement(node, out var info))
+            {
+                var pending = new Queue<UiElementReader.ElementInfo>();
+                pending.Enqueue(info);
+                for (var seen = 0; pending.Count > 0 && seen < MaxContentIconElements; seen++)
+                {
+                    var current = pending.Dequeue();
+                    if (this.elements.ReadTextureKey(current) is { } key && !textures.Contains(key))
+                    {
+                        textures.Add(key);
+                    }
+
+                    foreach (var child in this.elements.ReadChildren(current))
+                    {
+                        if (this.elements.TryReadElement(child, out var childInfo))
+                        {
+                            pending.Enqueue(childInfo);
+                        }
+                    }
+                }
+            }
+
+            return $" atlas {AtlasRowId(passive)} area {AtlasRowId(area)}{fields} textures [{string.Join(", ", textures)}]";
+        }
+
+        /// <summary>A dat row's id (the text at its first field), or "?" when the row did not read.</summary>
+        private string AtlasRowId(IntPtr? row) =>
+            row is { } at && this.reader.TryRead<IntPtr>(at, out var text) && text != IntPtr.Zero &&
+            this.elements.ReadUtf16BufferAt(text, MaxPassiveNameChars) is { Length: > 0 } id ? id : "?";
 
         /// <summary>
         ///     The PassiveSkills id of an element that draws an endgame graph's node, else null: its record is a pointer whose

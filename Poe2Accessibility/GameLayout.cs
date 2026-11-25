@@ -609,6 +609,35 @@ namespace Poe2Accessibility
             public const string AreaTable = "Data/Balance/WorldAreas.dat";
         }
 
+        /// <summary>
+        ///     A node of the Atlas map (the WorldScreen's map_control, its canvas child 6 in the dump, node elements
+        ///     flags 0x542EF3 — docs/research/atlas-navigator.md §6, live 2026-11-25). The node the cursor rests on is
+        ///     kept by map_control and by the canvas; neither the focus nor the UI manager's hovered slot ever points
+        ///     at a node there. Provenance: SelectedNodeOffset held the node whose area is MapPit while its popup read
+        ///     "Pit"; the three keys and the grid pair are datkeys-proven on eight nodes (the EndgameMapAtlas row's
+        ///     first key names the catalog node, e.g. Pit = AtlasOutsideFortressPath5).
+        /// </summary>
+        public static class AtlasNode
+        {
+            /// <summary>On map_control: the node element the cursor rests on.</summary>
+            public const int SelectedNodeOffset = 0x2E0;
+
+            /// <summary>On the Atlas canvas: the same node element.</summary>
+            public const int CanvasSelectedNodeOffset = 0x408;
+
+            /// <summary>On a node element: dat keys (row, file) to its EndgameMaps, WorldAreas and EndgameMapAtlas rows.</summary>
+            public const int EndgameMapsKeyOffset = 0x2F0;
+
+            public const int AreaKeyOffset = 0x300;
+
+            public const int AtlasKeyOffset = 0x310;
+
+            /// <summary>On a node element: its place as two i32, the catalog graph's place scaled by about 1/173, y flipped.</summary>
+            public const int GridOffset = 0x320;
+
+            public const string AtlasTable = "Data/Balance/EndgameMapAtlas.dat";
+        }
+
         /// <summary>A MapPins row (dat columns followed by DatColumns): its area key, name and description, as its popup shows them.</summary>
         public static class MapPinRow
         {

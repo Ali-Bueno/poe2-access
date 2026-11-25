@@ -202,10 +202,12 @@ written down as still open, not guessed.
   u32 (all distinct: 1…20); the vector at `+0x360` is populated on both classes. **Conclusion so far: state is
   likely not on the element** — it is external progress data, surfaced on the element only as art/colour and in
   the popup. The popup's own lexicon today: the catalog's blocked text (locked), "Map Attempted", and no
-  completed wording (the "Map Completed" line was an in-map banner). Next tool, before more sampling: teach the
-  `atlasnode` dev command to read the selected node from `map_control +0x2E0` (not the empty hover slot) and log
-  its texture keys — state art (`EndgameMapPins` variants) is the remaining on-element candidate, and
-  owner-certified completed/accessible samples through that command settle it.
+  completed wording (the "Map Completed" line was an in-map banner). The sampling tool now exists: `atlasnode`
+  reads the selected node from `map_control +0x2E0` (`UiSemantics.AtlasSelectedReport`, fields in
+  `GameLayout.AtlasNode` with this section as provenance) and logs its dat-key identity, grid, the candidate
+  fields and every texture key it draws; `atlasnode 0x…` samples a named element. It lands on the owner's next
+  relaunch (the running copy predates it). Owner-certified completed/accessible/locked samples through it —
+  texture keys first — settle where state lives.
 - You-are-here: **unresolved.** The canvas's last child (1062, 54×54 at (60,722)) is a button (its kid carries
   click sounds), not the marker. Next lead: whatever element shares the selected node's centre when the Atlas
   opens on the player's position, or a node whose content/art differs in a full-canvas scan.
