@@ -420,7 +420,7 @@ its field says what it lights as the cursor enters the grid.
 **An item you cannot use** says which requirement is missing right after its name: "Doom Chant, rare, column 3, row 3,
 Cannot use: 21 Int", then the whole tooltip.
 
-**Comparing an item with what you wear** (setting "Comparison table in Inspect Mode, right stick", Items, on by default).
+**Comparing an item with what you wear** (setting "Read Inspect Mode with the right stick", Items, on by default).
 R3 on an item in the bag, a stash or a merchant's stock opens the game's Inspect Mode. The mod says the item and what it
 is set against ("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud"),
 then the game's legend; the D-pad's first move says which item the game's cursor is in. Flick the right stick up or down to go through the lines, one
