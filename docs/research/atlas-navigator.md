@@ -191,11 +191,21 @@ written down as still open, not guessed.
   fog/unrevealed is the element's own visible flag. The catalog graph holds 610 nodes, so elements outnumber graph
   nodes (connection/region elements share the flags, or nodes come in pairs — unsettled, and it does not matter
   until a scan walks them).
-- Status byte `+0x2BF` vs known states: **not settled.** `+0x2BE/+0x2BF` are zero on all five sampled nodes.
-  Remaining in-object candidates from a five-node diff: the u64 at `+0x328`, the u32 at `+0x330`
-  (1, 19, 3, 4, 10 — an index?), a vector at `+0x360` (empty on Bloodwood, populated on Pit). Next: sample
-  owner-certified completed / accessible / locked nodes through `map_control +0x2E0` and require the candidate to
-  separate the three classes; then confirm on a second node of each class.
+- Status byte `+0x2BF` vs known states: **not settled; round 2 is negative.** `+0x2BE/+0x2BF` are zero on all
+  sampled nodes. Two nodes are locked with the popup as witness (a Rustbowl: "Close the Northern Abyssal Wounds
+  in order to access this Wound"; the Vaal Vault: "Find and activate a Vessel of Estazunti…"), found by batching
+  `datkeys` over the 56 visible nodes around the owner's route and matching areas to the day's popup log. No byte
+  in the element's 0x420 bytes separates those two from three not-locked samples (Pit, Bloodwood, Caldera) — weak
+  evidence only, since "not locked" mixes accessible with possibly completed, and areas repeat across nodes so an
+  area name never certifies a node. The u64 at `+0x328` decomposes as a repeated low u32 (shared by node pairs —
+  a hash, not state), a constant `0x06` at `+0x32C`, and small varying bytes; `+0x330` holds a per-node index-like
+  u32 (all distinct: 1…20); the vector at `+0x360` is populated on both classes. **Conclusion so far: state is
+  likely not on the element** — it is external progress data, surfaced on the element only as art/colour and in
+  the popup. The popup's own lexicon today: the catalog's blocked text (locked), "Map Attempted", and no
+  completed wording (the "Map Completed" line was an in-map banner). Next tool, before more sampling: teach the
+  `atlasnode` dev command to read the selected node from `map_control +0x2E0` (not the empty hover slot) and log
+  its texture keys — state art (`EndgameMapPins` variants) is the remaining on-element candidate, and
+  owner-certified completed/accessible samples through that command settle it.
 - You-are-here: **unresolved.** The canvas's last child (1062, 54×54 at (60,722)) is a button (its kid carries
   click sounds), not the marker. Next lead: whatever element shares the selected node's centre when the Atlas
   opens on the player's position, or a node whose content/art differs in a full-canvas scan.
