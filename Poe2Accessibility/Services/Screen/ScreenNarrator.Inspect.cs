@@ -126,10 +126,13 @@ namespace Poe2Accessibility.Services
         private bool QuietForInspectToggle(AccessibleUiNode node) =>
             node.InInspectCard && this.Forgets(this.Inspect?.QuietsToggledFocus(Environment.TickCount64) == true);
 
-        /// <summary>When a focus reading is left out, its card is no longer the one said: the next move names it.</summary>
+        /// <summary>
+        ///     When a focus reading is left out, its card and its line are not the ones said: the next move names the card and
+        ///     says its line, even on the same line ("Thorns, link" alone after a toggle, 2026-11-25).
+        /// </summary>
         private bool Forgets(bool quiet)
         {
-            this.lastGroup = quiet ? string.Empty : this.lastGroup;
+            (this.lastGroup, this.lastLinkRow) = quiet ? (string.Empty, string.Empty) : (this.lastGroup, this.lastLinkRow);
             return quiet;
         }
     }
