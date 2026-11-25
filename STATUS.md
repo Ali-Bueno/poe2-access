@@ -287,7 +287,7 @@
 | Endgame data from the game files | done (code) | `endgame` step → catalog/endgame.json; docs/research/endgame.md |
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
-| Atlas skill tree finder (D-pad: Position, Notables, Clusters; spoken stick route) | done (code, unit tests; not heard live) | `AtlasTreeMap`/`AtlasTreeFinder` over the catalog's atlasskillgraph, `PassiveMap.Steps` + `PassiveStick.Route` borrowed; the passive machinery's state judge is the main tree's graph file, so it cannot run there ([atlas-navigator §5](docs/research/atlas-navigator.md)); allocation/point costs unread |
+| Atlas skill tree finder (D-pad: Position, Notables, Clusters; spoken stick route) | done (code, unit tests; deployed 2026-11-25, not heard live) | `AtlasTreeMap`/`AtlasTreeFinder` over the catalog's atlasskillgraph, `PassiveMap.Steps` + `PassiveStick.Route` borrowed; the passive machinery's state judge is the main tree's graph file, so it cannot run there ([atlas-navigator §5](docs/research/atlas-navigator.md)); allocation/point costs unread |
 | Yama's frozen time: the safe clone | done (unit tests; not heard) | the shelter's chord and the line lead to where the marked clone will stop, "¡Quieto! Dentro, quédate" before the edge, "¡Fuera!" past it, the all-clear after the blow ([Yama](docs/research/boss-mechanics.md#yama)) |
 | Boss fight turns (vanish/back, invulnerable+adds, phase/form, enrage) | done (unit) | `BossMechanicsWatch` + `BossPhaseTracker`, catalog/boss-mechanics.txt; docs/research/boss-mechanics.md; a boss back at full life after the player's death starts over (`BossLifeSteps.FightRestarted`, unit); a boss that hides to be found (Balbala's fog) is said with its direction and the heartbeat leads to it ([§11](docs/research/boss-mechanics.md#11-hide-and-seek-balbala-2026-11-11); live 2026-11-12, the user found her three times in 6-7 s) |
 | Way out of a boss's danger area | done (unit) | `BossCounterplay`: "¡Sal!", "¡Al centro!", "¡Detrás!", "¡Muévete!", stick way, at the wind-up |
@@ -737,8 +737,8 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   their edges live in an external graph keyed by grid or index, still unfound. The **Atlas skill tree's finder
   is built** (D-pad lists + spoken stick route over the catalog graph; unit tests; [§5](docs/research/atlas-navigator.md));
   its allocation state, point costs and the owner's unspent Atlas points are spoken nowhere found (allocated
-  counters only). **Unblocks:** the owner's ear on the tree finder (built, not yet deployed under the running
-  game), then the map's Phase 3 (finder + spoken route; the gesture is the owner's pick, the D-pad hops the
+  counters only). **Unblocks:** the owner's ear on the tree finder (hot-reloaded into the running game
+  2026-11-25 17:40), then the map's Phase 3 (finder + spoken route; the gesture is the owner's pick, the D-pad hops the
   map's nodes itself).
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
