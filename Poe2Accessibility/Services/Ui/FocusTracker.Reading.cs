@@ -75,6 +75,14 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.currentFocused != this.lastFocused)
+            {
+                // The game has moved its focus on and the new one waits to be said (an item's tooltip filling): the old
+                // element's changes are no news. Inspect Mode's link, emptied as R3 closed it, was said "empty" before the
+                // bag's item (2026-11-25).
+                return;
+            }
+
             // A list the game focuses as one element: another row is a move, even onto a row with the same text.
             var sameRow = !FocusNews.RowChanged(this.Current.Position, fresh.Position);
             if (sameRow && fresh.Value == this.Current.Value && fresh.Text == this.Current.Text && fresh.IsExpanded == this.Current.IsExpanded)
