@@ -108,7 +108,7 @@ namespace Poe2Accessibility.Services
             if (this.inspectCellDue is { } cell && !watch.OpeningDue)
             {
                 this.inspectCellDue = null;
-                this.Speak("inspect table", cell, false);
+                this.Speak("inspect table", cell, false, repeat: true); // a toggle twice in a row says the same row twice
             }
         }
 

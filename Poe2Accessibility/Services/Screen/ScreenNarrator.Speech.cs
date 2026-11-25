@@ -101,7 +101,8 @@ namespace Poe2Accessibility.Services
             Floor,
         }
 
-        private void Speak(string reason, string text, bool interrupt, Hold hold = Hold.None)
+        /// <param name="repeat">Said even when the same was just said: it answers the player's own press (Inspect Mode's table after a toggle).</param>
+        private void Speak(string reason, string text, bool interrupt, Hold hold = Hold.None, bool repeat = false)
         {
             if (text.Length == 0)
             {
@@ -128,7 +129,7 @@ namespace Poe2Accessibility.Services
                 this.recentNarrations.Remove(old);
             }
 
-            if ((parts == this.lastNarrated.Parts && (now - this.lastNarrated.At).TotalMilliseconds < RecentTextsMs) || this.recentNarrations.ContainsKey(parts))
+            if (!repeat && ((parts == this.lastNarrated.Parts && (now - this.lastNarrated.At).TotalMilliseconds < RecentTextsMs) || this.recentNarrations.ContainsKey(parts)))
             {
                 this.log.Debug($"Narrate ({reason}) skipped: same as just said");
                 return;
