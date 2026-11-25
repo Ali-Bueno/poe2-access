@@ -47,6 +47,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AToggleSaysTheRowEvenUnchanged), AToggleSaysTheRowEvenUnchanged),
             (nameof(TheCursorPutOnTheRebuiltTooltipIsLeftOut), TheCursorPutOnTheRebuiltTooltipIsLeftOut),
             (nameof(AFlasksChargesAreNoToggle), AFlasksChargesAreNoToggle),
+            (nameof(AToggleBeforeAnyFlickSaysTheNameRow), AToggleBeforeAnyFlickSaysTheNameRow),
             (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
@@ -449,6 +450,15 @@ namespace Poe2Accessibility.Tests
             Expect("Energy Shield: 28", watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000), "advanced info off");
             Expect(null, watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1100), "once");
             Expect("Energy Shield: 28", watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 2000), "and on again");
+        }
+
+        // A toggle before any flick had no row to say, and the cursor's reading and the new lines were left out: silent.
+        private static void AToggleBeforeAnyFlickSaysTheNameRow()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 0);
+            Expect("This item. Hale Tattered Robe of the Pupil", watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000), "the name row (the fixture's titles carry no rarity)");
+            Expect("Body Armour", watch.Flick(PadGesture.FlickDown), "the cursor is on it: the next flick goes on");
         }
 
         // A flask's "Currently has 65 Charges" changes on its own (docs/research/ui-layers.md): no toggle, and nothing said

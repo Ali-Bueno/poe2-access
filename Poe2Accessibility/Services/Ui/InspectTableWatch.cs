@@ -157,7 +157,7 @@ namespace Poe2Accessibility.Services
             }
 
             // Advanced info toggled: the row under the cursor is said even when it reads the same, so the toggle is heard.
-            return this.table.Rebuild(this.labels, rows) ?? (toggled ? this.table.Current : null);
+            return this.table.Rebuild(this.labels, rows) ?? (toggled ? this.table.Again() : null);
         }
 
         /// <summary>
