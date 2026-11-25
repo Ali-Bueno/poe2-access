@@ -34,5 +34,8 @@ namespace Poe2Accessibility
         /// <summary>"Steaming Springs. Accessible. Biome: Forest. Holds: … Links: …" — the landed Atlas node (Phase 1).</summary>
         public static string AtlasLanding(string name, string state, string biome, string contents, string links) =>
             Sentences(new[] { name, state, biome.Length > 0 ? T($"Biome: {biome}", $"Bioma: {biome}") : string.Empty, contents, links });
+
+        /// <summary>"Bastille, unrevealed": a linked node still in the fog — named and placed, but no hop lands there yet.</summary>
+        public static string AtlasUnrevealed(string name) => T($"{name}, unrevealed", $"{name}, sin revelar");
     }
 }

@@ -77,7 +77,19 @@ namespace Poe2Accessibility.Services
                     ? centres[id] + ((graphThere - graphOrigin) * factor)
                     : GraphPlace(passive);
             var links = AtlasLinks.Describe(Place(id), linked
-                .Select(other => (Place(other), this.EndgameNodeLabel(other, this.EndgameElementOf(other), language) is { Length: > 0 } label ? label : Announcements.AtlasNode)));
+                .Select(other => (Place(other), Label(other))));
+
+            string Label(string other)
+            {
+                var element = this.EndgameElementOf(other);
+                var label = this.EndgameNodeLabel(other, element, language) is { Length: > 0 } named ? named : Announcements.AtlasNode;
+
+                // A fog neighbour is named from its rolled area, but no hop lands there until it is revealed
+                // (Bastille at Mineshaft's left, live 2026-11-25): say so instead of promising a direction.
+                return element != IntPtr.Zero && this.elements.TryReadElement(element, out var elementInfo) && !elementInfo.IsVisibleFlag
+                    ? Announcements.AtlasUnrevealed(label)
+                    : label;
+            }
             if (links.Count > 0)
             {
                 tooltip.Add(Announcements.PassiveLinks(links));
