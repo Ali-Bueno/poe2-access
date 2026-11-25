@@ -85,8 +85,10 @@ namespace Poe2Accessibility.Services
                 var label = this.EndgameNodeLabel(other, element, language) is { Length: > 0 } named ? named : Announcements.AtlasNode;
 
                 // A fog neighbour is named from its rolled area, but no hop lands there until it is revealed
-                // (Bastille at Mineshaft's left, live 2026-11-25): say so instead of promising a direction.
-                return element != IntPtr.Zero && this.elements.TryReadElement(element, out var elementInfo) && !elementInfo.IsVisibleFlag
+                // (Bastille at Mineshaft's left, live 2026-11-25): say so instead of promising a direction. Revealed
+                // reads as drawn in the scan (a fog element has no rect); the visible flag also drops on drawn
+                // neighbours, which marked landed nodes unrevealed in the first ear-test.
+                return element != IntPtr.Zero && centres != null && !centres.ContainsKey(other)
                     ? Announcements.AtlasUnrevealed(label)
                     : label;
             }
