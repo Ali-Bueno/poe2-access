@@ -210,6 +210,12 @@ rasgado" did not say what was done; "if a sighted player sees it, I want it". A 
   nombra mal: es Isla del clan" whenever a marker has another area's name.
 - Act 4's islands take the level of the order they are played in: the popup said 50 and the table 46, which the mod said after
   it. The level now comes from the popup, the table only without one.
+- **"Done" is the game's flag, which is often not the kill**: of the boss pictures' done rows, about 35 wait for the reward
+  (`MapPins` +0x38): picked up (`BalbalaSkillGemPickedUp`), used (`CrowbellSkillBookUsed`, `CroneDropUsed`) or delivered.
+  La bestia ciega waits for `GreaterRuneBlankQuestUsed`, the blank rune exchanged at Dannig: killed 13:31, the map drew it
+  pending at 13:34 on the island and done at 13:53 after Dannig (owner's log, 2026-11-25). A sighted player sees the same, so
+  the mod adds nothing. Torn pieces need only the piece held (`Act4MapFragment1Held` or `…Used`), Krutog and Yama the kill.
+  UNSURE: whether a kill flag redraws the picture without leaving the area (no opening of the map in that state logged).
 - The four torn map pieces (El buscador de runas): Isla del clan, Bahía de las anclas, Isla Whakapanu, Isla de los alcaudones.
 - Heard live the same day: popups and list of points of interest, the ship's and the caravan's maps, the quest map of acts 2
   and 4. UNSURE: an area whose waypoint exists and is not active (the legend's fourth picture) reads "Visitada, sin
