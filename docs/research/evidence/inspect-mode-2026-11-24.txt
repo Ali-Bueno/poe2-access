@@ -1,0 +1,140 @@
+# Item Inspect Mode: what the mod said and saw, 2026-11-24/25 (0.5.5h), before the comparison table.
+# Excerpts of the plugin log (research mode, verbose) from the session the layer dumps come from
+# (tests/Poe2Accessibility.Tests/Fixtures/inspect-layers.txt). Pad lines show the buttons as a bit mask and each
+# stick's side (-1, 0, 1) past a 0.2 deflection; 0x80 is the right stick's press. docs/research/ui-layers.md,
+# "Item Inspect Mode".
+
+== R3 on the bag robe with a merchant open, then the D-pad down, right, right
+23:46:11.250 INFO Pad: buttons 0x80, left stick 0,0, right stick 0,0
+23:46:11.266 INFO Pad: buttons 0x80, left stick 0,0, right stick 0,1
+23:46:11.303 DEBUG Narrate (tooltip of focus)
+23:46:11.303 INFO Speech queued: Body Armour: Item Level 7. +19(10-19) to maximum Life. T13. Prefix. +6(5-8) to Intelligence. T8. Suffix
+23:46:11.350 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,1
+23:46:11.354 INFO Focus -> 0x5AFE165CA30 panel=1 name="" role=Link text="Energy Shield" value="Protective Feathered Robe of the Cloud, Body Armour: Item Level 8, Energy Shield: 43, Requires: Level 5, 11 Int, Equipped" context="" group="Inspect Mode" notes=""
+23:46:11.367 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:46:11.533 INFO Screen TextsAppeared layer 61: Expand [Cross] | Back [Circle] | Close [R3] | Toggle Advanced Info [hold R3] | Navigate [left stick]
+23:46:11.533 INFO Screen LayerOpened layer 62: Inspect Mode | Hale Tattered Robe of the Pupil | Body Armour: Item Level 7 | Energy Shield: 28 | +19(10-19) to maximum Life, T13 | Prefix | +6(5-8) to Intelligence, T8 | Suffix | 35 gold | Equip [Square] | Protective Feathered Robe of the Cloud | Body Armour: Item Level 8 | Energy Shield: 43 | Requires: Level 5, 11 Int | 23(15-26)% increased Energy Shield, T8 | Prefix | +9(6-10)% to Lightning Resistance, T8 | Suffix | Equipped
+23:46:11.666 DEBUG Narrate (focus in a new layer)
+23:46:11.666 INFO Speech interrupts: Inspect Mode. Protective Feathered Robe of the Cloud, Body Armour: Item Level 8, Energy Shield: 43, Requires: Level 5, 11 Int, Equipped. Energy Shield, link
+23:46:11.666 DEBUG Narrate (objective after focus)
+23:46:11.666 INFO Speech queued: Expand, Cross. Back, Circle. Close, R3. Toggle Advanced Info, hold R3. Navigate, left stick
+23:46:14.716 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+23:46:14.717 INFO Focus -> 0x5AFEB5D2330 panel=1 name="" role=Link text="Lightning Resistance" value="+9(6-10)% to Lightning Resistance, T8" context="" group="Requires: Level 5, 11 Int" notes=""
+23:46:14.717 INFO Speech interrupts, moved: Requires: Level 5, 11 Int. +9(6-10)% to Lightning Resistance, T8. Lightning Resistance, link
+23:46:14.849 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:46:15.899 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+23:46:15.904 INFO Focus -> 0x5AF3804E930 panel=1 name="" role=Panel text="Suffix Modifier "of the Cloud" (Tier: 8)" value="" context="" group="" notes=""
+23:46:15.904 INFO Speech interrupts, moved: Suffix Modifier "of the Cloud" (Tier: 8), column 2, row 1, — Elemental, Lightning, Resistance
+23:46:16.033 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:46:16.900 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+23:46:16.900 INFO Focus -> 0x5AFE1656730 panel=1 name="" role=Link text="Intelligence" value="+6(5-8) to Intelligence, T8" context="" group="Energy Shield: 28" notes=""
+23:46:16.900 INFO Speech interrupts, moved: Energy Shield: 28. +6(5-8) to Intelligence, T8. Intelligence, link
+23:46:17.066 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+
+== The D-pad onto the worn robe's tier badge
+23:48:13.595 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+23:48:13.596 INFO Focus -> 0x5AFEB601430 panel=1 name="" role=Link text="Lightning Resistance" value="+9(6-10)% to Lightning Resistance, T8" context="" group="Requires: Level 5, 11 Int" notes=""
+23:48:13.596 INFO Speech interrupts, moved: Requires: Level 5, 11 Int. +9(6-10)% to Lightning Resistance, T8. Lightning Resistance, link
+23:48:13.712 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:48:16.862 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+23:48:16.863 INFO Focus -> 0x5AF3804D430 panel=1 name="" role=Panel text="Suffix Modifier "of the Cloud" (Tier: 8)" value="" context="" group="" notes=""
+23:48:16.863 INFO Speech interrupts, moved: Suffix Modifier "of the Cloud" (Tier: 8), column 2, row 1, — Elemental, Lightning, Resistance
+23:48:16.962 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+
+== Advanced info toggled off by holding R3
+23:49:10.928 INFO Focus -> 0x5AF3804D430 panel=1 name="" role=Panel text="Suffix Modifier "of the Cloud" (Tier: 8)" value="" context="" group="" notes=""
+23:49:10.928 INFO Speech interrupts: Suffix Modifier "of the Cloud" (Tier: 8), column 2, row 1, — Elemental, Lightning, Resistance
+23:49:11.177 INFO Screen TextsAppeared layer 61: Expand [Cross]
+23:49:12.794 INFO Pad: buttons 0x80, left stick 0,0, right stick 0,0
+23:49:13.094 INFO Focus -> 0x5AFE165CA30 panel=1 name="" role=Link text="Energy Shield" value="Body Armour, Energy Shield: 43, Requires: Level 5, 11 Int, 23% increased Energy Shield, +9% to Lightning Resistance, Equipped" context="" group="" notes=""
+23:49:13.094 INFO Speech interrupts: Body Armour, Energy Shield: 43, Requires: Level 5, 11 Int, 23% increased Energy Shield, +9% to Lightning Resistance, Equipped. Energy Shield, link
+23:49:13.310 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:49:13.360 INFO Screen TextsAppeared layer 62: Body Armour | +19 to maximum Life | +6 to Intelligence | Body Armour | 23% increased Energy Shield | +9% to Lightning Resistance
+
+== R3 on an unidentified rare in the bag (the 'opened with focus' path)
+23:52:20.138 INFO Pad: buttons 0x80, left stick 0,0, right stick 0,0
+23:52:20.238 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:52:20.256 INFO Focus -> 0x5AFEB64B530 panel=1 name="" role=Link text="Armour" value="Humming Stocky Mitts of Success, Gloves: Item Level 4, Armour: 15, Equipped" context="" group="Inspect Mode" notes=""
+23:52:20.554 INFO Screen TextsAppeared layer 61: Expand [Cross] | Back [Circle] | Close [R3] | Toggle Advanced Info [hold R3] | Navigate [left stick]
+23:52:20.555 INFO Screen LayerOpened layer 62: Inspect Mode | Firm Bracers | Gloves: Item Level 11 | Evasion Rating: 31 | Requires: 16 Dexterity | Unidentified | 95 gold | Identify 1x Scroll of Wisdom [Square] | Humming Stocky Mitts of Success | Gloves: Item Level 4 | Armour: 15 | Adds 1 to 4(4-6) Lightning damage to Attacks, T9 | Prefix | Gain 4(4-6) Life per enemy killed, T8 | Suffix | Equipped
+23:52:20.556 DEBUG Narrate (opened with focus)
+23:52:20.556 INFO Speech interrupts: Gloves: Item Level 4. Armour: 15. Equipped. Inspect Mode. Humming Stocky Mitts of Success, Gloves: Item Level 4, Armour: 15, Equipped. Armour, link
+23:52:20.571 DEBUG Narrate (objective after focus)
+23:52:20.571 INFO Speech queued: Expand, Cross. Back, Circle. Close, R3. Toggle Advanced Info, hold R3. Navigate, left stick
+
+== The right stick pushed in every direction, bag alone
+23:58:45.560 DEBUG Narrate (focus in a new layer)
+23:58:45.560 INFO Speech interrupts: Inspect Mode. Protective Feathered Robe of the Cloud, Body Armour: Item Level 8, Energy Shield: 43, Requires: Level 5, 11 Int, Equipped. Energy Shield, link
+23:58:45.560 DEBUG Narrate (objective after focus)
+23:58:45.560 INFO Speech queued: Expand, Cross. Back, Circle. Close, R3. Toggle Advanced Info, hold R3. Navigate, left stick
+23:58:47.093 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,1
+23:58:47.193 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:47.626 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,-1
+23:58:47.759 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:48.159 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,1
+23:58:48.276 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:48.576 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,0
+23:58:48.610 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,-1
+23:58:48.676 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:49.326 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,0
+23:58:49.359 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,1
+23:58:49.460 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,0
+23:58:49.510 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:49.943 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,0
+23:58:49.976 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,1
+23:58:50.109 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:50.660 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,0
+23:58:50.693 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,-1
+23:58:50.809 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:51.060 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,-1
+23:58:51.193 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,-1
+23:58:51.210 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:51.426 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,1
+23:58:51.610 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:51.876 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,0
+23:58:52.026 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:52.276 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,0
+23:58:52.293 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,1
+23:58:52.493 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:52.726 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,1
+23:58:52.876 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:53.026 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,0
+23:58:53.226 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:53.426 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,-1
+23:58:53.576 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+23:58:53.776 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,-1
+23:58:53.909 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+
+== R3 on a staff in the stash, then the right stick pushed in every direction
+00:02:15.354 INFO Pad: buttons 0x80, left stick 0,0, right stick 0,0
+00:02:15.356 DEBUG Narrate (tooltip of focus)
+00:02:15.356 INFO Speech interrupts: Staff: Item Level 8
+00:02:15.455 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:15.455 INFO Focus -> 0x5AFEB6A1C30 panel=1 name="" role=Link text="Staff" value="Staff: Item Level 8, Grants Skill: Level 3 Firebolt, Unidentified, Identify 1x Scroll of Wisdom, Unstash" context="" group="" notes=""
+00:02:15.671 INFO Screen TextsAppeared layer 61: Expand [Cross] | Back [Circle] | Close [R3] | Toggle Advanced Info [hold R3] | Navigate [left stick]
+00:02:15.671 INFO Screen LayerOpened layer 62: Inspect Mode | Ashen Staff | Staff: Item Level 8 | Grants Skill: Level 3 Firebolt | Unidentified | Identify 1x Scroll of Wisdom [Square] | Unstash [Triangle] | Honour Horn. Crude Bow | Bow: Item Level 5 | Physical Damage: 8-14 | Lightning Damage: 1-5 | Critical Hit Chance: 6.35% | Attacks per Second: 1.29 | Requires: Level 3 | Adds 1 to 5(4-6) Lightning Damage, T10 | Adds 2(1-2) to 5(4-5) Physical Damage, T9 | 31(19-35)% increased Elemental Damage with Attacks, T6 | Prefix | 7(5-7)% increased Attack Speed, T5 | +1.35(1.01-1.5)% to Critical Hit Chance, T6 | Suffix | Equipped: [WeaponSets|Weapon Set] I
+00:02:15.771 DEBUG Narrate (focus in a new layer)
+00:02:15.771 INFO Speech interrupts: Staff: Item Level 8, Grants Skill: Level 3 Firebolt, Unidentified, Identify 1x Scroll of Wisdom, Unstash. Staff, link
+00:02:15.771 DEBUG Narrate (objective after focus)
+00:02:15.771 INFO Speech queued: Expand, Cross. Back, Circle. Close, R3. Toggle Advanced Info, hold R3. Navigate, left stick
+00:02:19.371 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,-1
+00:02:19.487 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:19.937 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,1
+00:02:20.087 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,1
+00:02:20.104 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:20.371 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,0
+00:02:20.404 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,1
+00:02:20.487 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:20.971 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,0
+00:02:20.987 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,-1
+00:02:21.137 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,-1
+00:02:21.154 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:21.554 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,1
+00:02:21.788 INFO Pad: buttons 0x0, left stick 0,0, right stick -1,0
+00:02:21.804 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:22.004 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,1
+00:02:22.221 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:22.421 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,0
+00:02:22.438 INFO Pad: buttons 0x0, left stick 0,0, right stick 1,1
+00:02:22.637 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,0
+00:02:22.871 INFO Pad: buttons 0x0, left stick 0,0, right stick 0,-1

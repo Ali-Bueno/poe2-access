@@ -81,6 +81,9 @@ namespace Poe2Accessibility.Services
         }
 
         private static readonly Regex OtherPlayerToken = new(@"<<\w+;[1-9]>>", RegexOptions.Compiled);
+
+        /// <summary>Keyword link markup: "[Flask|Flasks]" shows "Flasks", "[Wells]" shows "Wells".</summary>
+        internal static readonly Regex KeywordLink = new(@"\[([^\[\]|]+)(?:\|([^\[\]]+))?\]", RegexOptions.Compiled);
         private static readonly Regex Tag = new(@"<[^<>]*>", RegexOptions.Compiled);
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
         private static readonly Regex SpaceBeforeStop = new(@"\s+([.,;:!?])", RegexOptions.Compiled);
@@ -161,11 +164,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The plain text as the game strips it, the item art named in place ("Identificar Pergamino de sabiduría x 1"):
-        ///     buttons and other art dropped, tags and braces gone, line breaks kept.
+        ///     buttons and other art dropped, tags and braces gone, a keyword link's shown words kept, line breaks kept.
         /// </summary>
         public static string Plain(string tagged)
         {
             var plain = Tag.Replace(MarkupToken.Replace(NameItemArt(InlineIcons.MarkNamed(tagged)), DropToken), string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
+            plain = KeywordLink.Replace(plain, link => link.Groups[2].Success ? link.Groups[2].Value : link.Groups[1].Value);
             return InlineIcons.Place(SpaceBeforeStop.Replace(HorizontalSpaces.Replace(plain, " "), "$1").Trim());
         }
 

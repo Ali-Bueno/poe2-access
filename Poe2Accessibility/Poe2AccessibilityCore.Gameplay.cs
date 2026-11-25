@@ -73,6 +73,7 @@ namespace Poe2Accessibility
             this.Isolated("target", playing, static (core, playing) =>
             {
                 var aiming = !core.padState.IsDown(GameLayout.PadButtons.LeftStick) && !(core.commands?.InSettingsMenu ?? false) &&
+                             !(core.commands?.InInspectTable ?? false) &&
                              MathF.Max(MathF.Abs(core.padState.RightX), MathF.Abs(core.padState.RightY)) >= AimDeflection;
                 if (core.targets != null)
                 {

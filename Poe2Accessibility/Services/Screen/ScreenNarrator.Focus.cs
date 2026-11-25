@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Services
 
         public void OnFocusChanged(AccessibleUiNode node)
         {
+            this.FocusForInspect(node);
             this.focusBehindAnswer = this.FocusBehindAnswer?.Invoke(node) == true;
             this.lastFocusAt = DateTime.UtcNow;
             this.pieceSaidAt = Environment.TickCount64;
@@ -130,6 +131,14 @@ namespace Poe2Accessibility.Services
             text = Announcements.InContext(this.speaker.Say(speaks, DateTime.UtcNow), text);
             this.notesContext = node.Context;
             this.deferredFocus = null;
+            if (this.QuietForInspectToggle(node))
+            {
+                // Advanced info toggled in Inspect Mode: the game put its cursor on the rebuilt tooltip, and the table says
+                // the row instead (user, 2026-11-25).
+                this.log.Debug($"Focus left to Inspect Mode's table: {text}");
+                return;
+            }
+
             this.NoteNarrated(text);
             this.SayMove(this.WithPendingPage(text));
             this.SayShortcuts(node, afterDeferredFocus: false);
@@ -209,6 +218,10 @@ namespace Poe2Accessibility.Services
                 var said = this.tooltipSaid;
                 this.tooltipSaid = node.Tooltip;
                 var fresh = FocusDetails.NewTooltipLines(said, node.Tooltip, this.lastFocusSpeech);
+                if (fresh.Count > 0 && this.HoldInspectBurst(node, fresh))
+                {
+                    return; // R3's advanced lines as Inspect Mode opens: they wait for the table's opening
+                }
                 if (node.TooltipNews.Count > 0)
                 {
                     // The tree's count of unconfirmed changes joins the node's lines (UiSemantics.TreeNews): where the
@@ -244,6 +257,7 @@ namespace Poe2Accessibility.Services
         {
             this.TickBackToPlay();
             this.TickTabKey();
+            this.TickInspect();
             if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs && !this.AwaitsTribute(deferred.At))
             {
                 this.deferredFocus = null;
@@ -275,7 +289,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (this.deferredFocus == null && this.hintAfterFocus.Length > 0)
+            if (this.deferredFocus == null && this.hintAfterFocus.Length > 0 && this.Inspect?.OpeningDue != true)
             {
                 // The waiting focus was said (here or with a popup's message): the hint now.
                 this.Speak("objective after focus", this.hintAfterFocus, false);

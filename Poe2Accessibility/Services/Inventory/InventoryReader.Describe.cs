@@ -204,6 +204,14 @@ namespace Poe2Accessibility.Services
             this.titles[entity] = title;
         }
 
+        /// <summary>An item entity's rarity (its Mods component, as <see cref="Describe"/> reads it); null if unreadable.</summary>
+        public Rarity? ItemRarity(IntPtr entity) =>
+            entity != IntPtr.Zero && this.IsItemEntity(entity) &&
+            ((Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!)
+                .TryGetComponent<Mods>(out var mods)
+                ? mods.Rarity
+                : null;
+
         /// <summary>The base display name of an item entity ("Broquel de cuero"); empty if unreadable.</summary>
         public string ItemBaseName(IntPtr entity) =>
             entity != IntPtr.Zero && this.IsItemEntity(entity) &&

@@ -425,7 +425,8 @@ counted), "Nothing highlighted", and "Search cleared" when you hold L3 to clear 
 stays quiet there). A lit item under the cursor says "highlighted" after its name. A stash opened with a search still in
 its field says what it lights as the cursor enters the grid.
 
-**Comparing with what you wear (R3, "Compare").** The view opens with the difference, for each worn item it shows (both
+**Comparing with what you wear (R3, "Compare"), with the setting "Read Inspect Mode with the right stick" off.** The
+view opens with the difference, for each worn item it shows (both
 rings): "Compared with Armageddon Horn, Felt Cap, Equipped. Evasion Rating: 127, the worn one 81. +27 to maximum Mana, the
 worn one +14. +9% to Fire Resistance, the worn one +15%. Only the worn one: +56 to maximum Life; 40% increased Evasion
 Rating; …" — then "Only this one" and "The same in both" when there are such lines. Ranges and tiers are left out of it and
@@ -437,6 +438,20 @@ details off and on. On an item you wear, or one with nothing to set it against, 
 
 **An item you cannot use** says which requirement is missing right after its name: "Doom Chant, rare, column 3, row 3,
 Cannot use: 21 Int", then the whole tooltip.
+
+**Comparing an item with what you wear, line by line** (setting "Read Inspect Mode with the right stick", Items, on by
+default; the difference above is then not said).
+R3 on an item in the bag, a stash or a merchant's stock opens the game's Inspect Mode. The mod says the item and what it
+is set against ("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud"),
+then the game's legend; the D-pad's first move names the item the game's cursor is in. Flick the right stick up or down to go through the lines, one
+stat a row, and left or right to switch between the item and the worn one on the same row. Each flick says one line of
+one item in the game's own words. Only the first row, the name, says which item it is ("Worn. Protective Feathered Robe of
+the Cloud, magic"), so the rows below switch fast between the items ("Energy Shield: 28", "Energy Shield: 43"). A line an item lacks
+is said as missing ("to maximum Life, none"), so a row means the same stat on every item. The first row is the name with
+the rarity, sockets have a row of their own, and an unmet requirement is named on the requirements row. Holding R3
+toggles the game's advanced info (ranges, tiers, prefix and suffix); the rows follow it, and the row you are on is said
+again. Nothing is compared for you.
+With two worn items (rings) each is named by its slot on the name row. The D-pad, L3 and A work as above either way.
 
 ## Other panels
 

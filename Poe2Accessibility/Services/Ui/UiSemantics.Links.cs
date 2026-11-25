@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Services
         private const int LinkRowHops = 2;
 
         /// <summary>Keyword link markup: "[Flask|Flasks]" shows "Flasks", "[Wells]" shows "Wells".</summary>
-        private static readonly System.Text.RegularExpressions.Regex KeywordLink = new(@"\[([^\[\]|]+)(?:\|([^\[\]]+))?\]", System.Text.RegularExpressions.RegexOptions.Compiled);
+        private static readonly System.Text.RegularExpressions.Regex KeywordLink = ControllerGlyphs.KeywordLink;
 
         /// <summary>
         ///     A keyword link is an empty box child of the text holding it; the k-th box is the k-th "[key|shown]"
@@ -37,6 +37,7 @@ namespace Poe2Accessibility.Services
             var link = links[index];
             var keyword = ShownText(link);
             var row = this.LinkRow(parent, sentence, keyword, out var rowElement);
+            var group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty;
             return new AccessibleUiNode
             {
                 Address = info.Address,
@@ -45,7 +46,7 @@ namespace Poe2Accessibility.Services
                 Text = keyword,
                 Value = row,
                 // The stat list's section ("Escudo de energía" over its rows): said as the links move into it.
-                Group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty,
+                Group = group,
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.InGame && this.PanelTitle(info) is { Length: > 0 } title ? title : this.InspectViewAround(info),
                 Tooltip = this.Definition(info),

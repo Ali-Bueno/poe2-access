@@ -52,6 +52,9 @@ namespace Poe2Accessibility
         /// <summary>Say the focused control again when a D-pad press moves nothing (a page's only control, the end of a list).</summary>
         public bool RepeatOnBlockedMove = true;
 
+        /// <summary>Item Inspect Mode: the right stick walks the item and the worn one line by line, and opening it says only who is compared.</summary>
+        public bool InspectCompareTable = true;
+
         /// <summary>L3 is the mod button: tap, double tap and hold read lines, details, hints and the screen.</summary>
         public bool ControllerCommands = true;
 

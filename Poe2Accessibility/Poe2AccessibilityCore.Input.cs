@@ -68,6 +68,13 @@ namespace Poe2Accessibility
 
             this.padState = state;
             this.TracePad(state);
+            var stickDown = state.IsDown(GameLayout.PadButtons.RightStick);
+            if (stickDown && !this.rightStickDown)
+            {
+                this.rightStickPressedAt = Environment.TickCount64; // R3: Inspect Mode opens on the item under the cursor
+            }
+
+            this.rightStickDown = stickDown;
             // In the passive tree the triggers zoom and Y centres the view.
             var viewMoved = state.IsDown(GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightTrigger | GameLayout.PadButtons.Y);
             this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, viewMoved, Environment.TickCount64);
@@ -97,7 +104,7 @@ namespace Poe2Accessibility
             }
 
             this.FindOnTree(state);
-            this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu;
+            this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu || this.commands.InInspectTable;
             this.commands.PressedAt ??= () => this.gestures.PressedAt;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
             {
@@ -130,6 +137,11 @@ namespace Poe2Accessibility
         private const float TraceDeflection = 0.2f;
 
         private (uint Buttons, int X, int Y, int RightX, int RightY) tracedPad;
+
+        /// <summary>Whether the right stick was pressed in at the last pad reading, and when it last went down (R3).</summary>
+        private bool rightStickDown;
+
+        private long rightStickPressedAt = long.MinValue / 2;
 
         /// <summary>Research mode: the buttons and the left stick's side as they change, to set a focus the game moved against its press.</summary>
         private void TracePad(GamepadReader.PadState state)
