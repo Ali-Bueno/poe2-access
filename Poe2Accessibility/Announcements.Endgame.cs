@@ -31,8 +31,8 @@ namespace Poe2Accessibility
             _ => T("Locked", "Bloqueado"),
         };
 
-        /// <summary>"Steaming Springs. Accessible. Holds: … Links: …" — the landed Atlas node (Phase 1).</summary>
-        public static string AtlasLanding(string name, string state, string contents, string links) =>
-            Sentences(new[] { name, state, contents, links });
+        /// <summary>"Steaming Springs. Accessible. Biome: Forest. Holds: … Links: …" — the landed Atlas node (Phase 1).</summary>
+        public static string AtlasLanding(string name, string state, string biome, string contents, string links) =>
+            Sentences(new[] { name, state, biome.Length > 0 ? T($"Biome: {biome}", $"Bioma: {biome}") : string.Empty, contents, links });
     }
 }

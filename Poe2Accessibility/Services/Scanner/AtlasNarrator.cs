@@ -14,7 +14,7 @@ namespace Poe2Accessibility.Services
         private const int SettleMs = 700;
 
         /// <summary>A popup still unbuilt this long after landing is composed without (catalog name and words).</summary>
-        private const int GiveUpMs = 2500;
+        private const int GiveUpMs = 1600;
 
         private readonly UiSemantics semantics;
         private readonly IAccessibilityOutputService output;

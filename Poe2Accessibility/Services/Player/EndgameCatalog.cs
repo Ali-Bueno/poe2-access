@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> objectiveByIcon;
         private readonly Dictionary<string, int> towerReach;
         private readonly Dictionary<string, HashSet<string>> contentNames = new(StringComparer.Ordinal);
+        private readonly List<string> biomes;
 
         public EndgameCatalog(CatalogData data)
         {
@@ -26,6 +27,9 @@ namespace Poe2Accessibility.Services
                 .ToDictionary(group => group.Key, group => group.First().Key, StringComparer.Ordinal);
             this.towerReach = data.Nodes.Values.SelectMany(node => node.Towers ?? new List<string>()).GroupBy(tower => tower, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+            this.biomes = data.Text.Values.SelectMany(texts => texts.Keys)
+                .Where(key => key.StartsWith("biome/", StringComparison.Ordinal)).Select(key => key["biome/".Length..])
+                .Distinct(StringComparer.Ordinal).ToList();
         }
 
         /// <summary>The catalog the plugin loaded; empty until then, so every lookup finds nothing.</summary>
@@ -140,6 +144,24 @@ namespace Poe2Accessibility.Services
             }
 
             return names.Contains(text);
+        }
+
+        /// <summary>
+        ///     The biome a text ends in ("Biome: Forest" on a node's popup), in the language; empty when it ends in no
+        ///     known biome. A node's rolled biome is only on its popup: 410 of 610 map nodes list none, and one area
+        ///     rolls several (Port at Water and at Grass, live 2026-11-25).
+        /// </summary>
+        public string BiomeNameIn(string text, string language)
+        {
+            foreach (var id in this.biomes)
+            {
+                if (this.Text("biome/" + id, language) is { Length: > 0 } name && text.EndsWith(name, StringComparison.Ordinal))
+                {
+                    return name;
+                }
+            }
+
+            return string.Empty;
         }
 
         /// <summary>How many nodes a tower's reach holds; 0 for a node that is no tower.</summary>

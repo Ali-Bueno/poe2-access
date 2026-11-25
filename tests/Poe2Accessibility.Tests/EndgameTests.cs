@@ -212,14 +212,18 @@ namespace Poe2Accessibility.Tests
         private static void AtlasLandingSaysStateAfterName()
         {
             Localization.Set("en", new());
+            var catalog = Catalog();
             Expect(
-                "Steaming Springs. Accessible. Holds: Delirium. Links: right, Hilda's Campsite",
-                Announcements.AtlasLanding("Steaming Springs", Announcements.AtlasState(AtlasNodeState.Accessible), "Holds: Delirium", "Links: right, Hilda's Campsite"),
-                "name, state, contents, links");
+                "Steaming Springs. Accessible. Biome: Forest. Holds: Delirium. Links: right, Hilda's Campsite",
+                Announcements.AtlasLanding("Steaming Springs", Announcements.AtlasState(AtlasNodeState.Accessible), "Forest", "Holds: Delirium", "Links: right, Hilda's Campsite"),
+                "name, state, biome, contents, links");
             Expect(
                 "The Burning Monolith. Locked",
-                Announcements.AtlasLanding("The Burning Monolith", Announcements.AtlasState(AtlasNodeState.Locked), string.Empty, string.Empty),
-                "no contents or links said");
+                Announcements.AtlasLanding("The Burning Monolith", Announcements.AtlasState(AtlasNodeState.Locked), string.Empty, string.Empty, string.Empty),
+                "no biome, contents or links said");
+            Expect("Forest", catalog.BiomeNameIn("Biome: Forest", "en"), "the popup's biome line");
+            Expect("Bosque", catalog.BiomeNameIn("Bioma: Bosque", "es"), "the same line in Spanish");
+            Expect(string.Empty, catalog.BiomeNameIn("Long lost secrets lie buried beyond.", "en"), "flavour ends in no biome");
             Localization.Set("es", new());
             Expect("Completado", Announcements.AtlasState(AtlasNodeState.Completed), "the Spanish state word");
         }

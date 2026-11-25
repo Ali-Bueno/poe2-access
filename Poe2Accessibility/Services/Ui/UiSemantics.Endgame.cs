@@ -61,9 +61,13 @@ namespace Poe2Accessibility.Services
             tooltip.AddRange(catalog.NodeDetails(id, language).Where(detail => !popup.Contains(detail)));
 
             var centres = this.EndgameCentres(info, node.Graph);
-            Vector2? Place(string passive) => centres != null && centres.TryGetValue(passive, out var drawn) ? drawn
-                : centres == null && catalog.Node(passive) is { } other ? new Vector2(other.X, other.Y) : null;
-            var links = AtlasLinks.Describe(Place(id), (node.Links ?? new List<string>()).Where(other => catalog.SameGraph(id, other))
+            var linked = (node.Links ?? new List<string>()).Where(other => catalog.SameGraph(id, other)).ToList();
+
+            // Drawn centres only while every linked node is drawn: a fog neighbour has none, and mixing frames would
+            // lie about its side, so the whole fan then reads in the graph's own places.
+            var drawnCentres = centres != null && centres.ContainsKey(id) && linked.All(other => centres.ContainsKey(other)) ? centres : null;
+            Vector2? Place(string passive) => drawnCentres != null ? drawnCentres[passive] : catalog.Node(passive) is { } other ? new Vector2(other.X, other.Y) : null;
+            var links = AtlasLinks.Describe(Place(id), linked
                 .Select(other => (Place(other), this.EndgameNodeLabel(other, this.EndgameElementOf(other), language) is { Length: > 0 } label ? label : Announcements.AtlasNode)));
             if (links.Count > 0)
             {
@@ -177,8 +181,9 @@ namespace Poe2Accessibility.Services
             }
 
             // The map's popup is no part of the node's tooltip, so it stays pending there; the rolled area names the
-            // node without it, and only an unnamed node is worth waiting for.
-            if (described.TooltipPending && !allowPending && (described.Text.Length == 0 || described.Text == Announcements.AtlasNode))
+            // node without it. What is worth the short wait is an unnamed node, or the popup-built biome line.
+            var biome = this.AtlasPopupBiome(info, Localization.Language);
+            if (!allowPending && (described.Text.Length == 0 || described.Text == Announcements.AtlasNode || biome.Length == 0) && described.TooltipPending)
             {
                 return null;
             }
@@ -188,10 +193,23 @@ namespace Poe2Accessibility.Services
                 : string.Empty;
             var contents = FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
             var links = FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
-            return Announcements.AtlasLanding(described.Text, state, contents, links);
+            return Announcements.AtlasLanding(described.Text, state, biome, contents, links);
 
             static string FirstWith(IReadOnlyList<string>? lines, string prefix) =>
                 lines?.FirstOrDefault(line => line.StartsWith(prefix, StringComparison.Ordinal)) ?? string.Empty;
+        }
+
+        /// <summary>The biome the landed node's popup (beside map_control on the world screen) names; empty while unbuilt or none.</summary>
+        private string AtlasPopupBiome(in UiElementReader.ElementInfo info, string language)
+        {
+            var ancestors = this.elements.ReadAncestors(info, 3);
+            if (ancestors.Count < 3)
+            {
+                return string.Empty;
+            }
+
+            var found = this.PopupText(ancestors[^1].Address, text => EndgameCatalog.Shared.BiomeNameIn(text, language).Length > 0);
+            return found == null ? string.Empty : EndgameCatalog.Shared.BiomeNameIn(found, language);
         }
 
         /// <summary>
@@ -353,10 +371,15 @@ namespace Poe2Accessibility.Services
             {
                 var info = pending.Dequeue();
                 if (this.reader.TryRead<IntPtr>(info.Address, out var itsClass) && itsClass == nodeClass && this.EndgameIdAt(info.Address, offset) is { } id &&
-                    EndgameCatalog.Shared.Node(id)?.Graph == graph && PluginUiElementReflection.TryGetAbsoluteRect(info.Address, out var position, out var size))
+                    EndgameCatalog.Shared.Node(id)?.Graph == graph)
                 {
-                    centres[id] = position + (size / 2);
+                    // A fog node has no rect to centre on; its element still names the map it rolled.
                     elements[id] = info.Address;
+                    if (PluginUiElementReflection.TryGetAbsoluteRect(info.Address, out var position, out var size))
+                    {
+                        centres[id] = position + (size / 2);
+                    }
+
                     continue;
                 }
 
