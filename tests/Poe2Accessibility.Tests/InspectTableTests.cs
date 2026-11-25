@@ -33,6 +33,15 @@ namespace Poe2Accessibility.Tests
             (nameof(TwoWornRingsAreToldApartBySlot), TwoWornRingsAreToldApartBySlot),
             (nameof(ASingleTooltipOpensWithItsName), ASingleTooltipOpensWithItsName),
             (nameof(ALineFillingInIsNotSaid), ALineFillingInIsNotSaid),
+            (nameof(TheRobesReadAsTheirTooltips), TheRobesReadAsTheirTooltips),
+            (nameof(AdvancedInfoOffReadsThePlainLines), AdvancedInfoOffReadsThePlainLines),
+            (nameof(ARaresTitleHoldsItsBase), ARaresTitleHoldsItsBase),
+            (nameof(AUniquesGroupsAndStoryAreRows), AUniquesGroupsAndStoryAreRows),
+            (nameof(AGrantedSkillAndUnidentifiedAreRows), AGrantedSkillAndUnidentifiedAreRows),
+            (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
+            (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
+            (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
+            (nameof(WornTooltipsTakeSlotsByTitleInOrder), WornTooltipsTakeSlotsByTitleInOrder),
         };
 
         /// <summary>The magic robe in the bag the user compared on 2026-11-24, advanced info on (Fixtures/inspect-layers.txt, "robes").</summary>
@@ -251,6 +260,133 @@ namespace Poe2Accessibility.Tests
             var partial = WornRobe with { Lines = WornRobe.Lines.Take(3).ToList() };
             watch.Update(new[] { Robe, partial }, "Inspect Mode", true, 0);
             Expect(null, watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 20), "more lines before any flick");
+        }
+
+        /// <summary>
+        ///     A section of Fixtures/inspect-layers.txt as one node a tooltip: a line is an element, two spaces a depth, then
+        ///     its name, plain text and tagged text separated by tabs; "\n" in a text is a line break.
+        /// </summary>
+        private static IReadOnlyList<InspectNode> Tooltips(string section)
+        {
+            var path = RoomTests.Find(System.IO.Path.Join("tests", "Poe2Accessibility.Tests", "Fixtures", "inspect-layers.txt"))
+                       ?? throw new System.IO.FileNotFoundException("inspect-layers.txt");
+            var lines = System.IO.File.ReadAllLines(path);
+            var start = Array.FindIndex(lines, line => line.StartsWith($"== {section}:", StringComparison.Ordinal));
+            if (start < 0)
+            {
+                throw new InvalidOperationException($"no section {section}");
+            }
+
+            var roots = new List<FixtureNode>();
+            var open = new List<FixtureNode>();
+            foreach (var line in lines.Skip(start + 1).TakeWhile(line => line.Length > 0 && !line.StartsWith("==", StringComparison.Ordinal)))
+            {
+                var indent = line.TakeWhile(character => character == ' ').Count();
+                var parts = line[indent..].Split('\t');
+                var node = new FixtureNode(parts[0], parts[1].Replace("\\n", "\n"), parts[2].Replace("\\n", "\n"));
+                var depth = indent / 2;
+                if (depth == 0)
+                {
+                    roots.Add(node);
+                }
+                else
+                {
+                    open[depth - 1].Children.Add(node);
+                }
+
+                open.RemoveRange(depth, open.Count - depth);
+                open.Add(node);
+            }
+
+            return roots.Select(root => root.Build()).ToList();
+        }
+
+        private static string Spoken((string Title, IReadOnlyList<InspectLine> Lines)? read) =>
+            read is { } tooltip ? string.Join(" | ", tooltip.Lines.Select(line => line.Spoken)) : "no tooltip";
+
+        private static void TheRobesReadAsTheirTooltips()
+        {
+            var robes = Tooltips("robes");
+            var bag = InspectLayout.Read(robes[0], false);
+            Expect("Hale Tattered Robe of the Pupil", bag?.Title, "the title");
+            Expect("Hale Tattered Robe of the Pupil | Body Armour: Item Level 7 | Energy Shield: 28 | +19(10-19) to maximum Life, T13, Prefix | +6(5-8) to Intelligence, T8, Suffix",
+                Spoken(bag), "the bag robe's lines, no price nor Equip");
+            Expect("+19(10-19) to maximum Life", bag?.Lines[3].Match, "a modifier is matched by its text alone");
+            Expect("Protective Feathered Robe of the Cloud | Body Armour: Item Level 8 | Energy Shield: 43 | Requires: Level 5, 11 Int | 23(15-26)% increased Energy Shield, T8, Prefix | +9(6-10)% to Lightning Resistance, T8, Suffix",
+                Spoken(InspectLayout.Read(robes[1], true)), "the worn robe's lines, no Equipped");
+        }
+
+        private static void AdvancedInfoOffReadsThePlainLines() =>
+            Expect("Hale Tattered Robe of the Pupil | Body Armour | Energy Shield: 28 | +19 to maximum Life | +6 to Intelligence",
+                Spoken(InspectLayout.Read(Tooltips("robes-advanced-off")[0], false)), "one line a modifier, no tier or label");
+
+        private static void ARaresTitleHoldsItsBase()
+        {
+            var rare = InspectLayout.Read(Tooltips("identified-rare")[0], false);
+            Expect("Eagle Hold, Firm Bracers", rare?.Title, "name and base");
+            Expect("Eagle Hold, Firm Bracers", rare?.Lines[0].Spoken, "the title row");
+            Equal(3, rare?.Lines.Count(line => line.Spoken.EndsWith(", Prefix", StringComparison.Ordinal)), "each prefix line carries the group's label");
+            Equal(true, rare?.Lines.Any(line => line.Spoken == "+16(10-19) to maximum Life, T9, Prefix"), "a prefix line");
+        }
+
+        private static void AUniquesGroupsAndStoryAreRows()
+        {
+            var said = Spoken(InspectLayout.Read(Tooltips("worn-unique-amulet")[0], true));
+            Equal(true, said.Contains("+14(10-15) to Strength, I, Implicit", StringComparison.Ordinal), "the implicit");
+            Equal(true, said.Contains("+57(40-60) to maximum Life, U, Unique", StringComparison.Ordinal), "a unique modifier");
+            Equal(true, said.EndsWith("The sacred sap flows slowly, but surely.", StringComparison.Ordinal), "the story line, last once Equipped is gone");
+            Equal(false, said.Contains("Equipped", StringComparison.Ordinal) || said.Contains("Unequip", StringComparison.Ordinal) || said.Contains("1,215", StringComparison.Ordinal),
+                "no Equipped, button or sell value");
+        }
+
+        private static void AGrantedSkillAndUnidentifiedAreRows()
+        {
+            var said = Spoken(InspectLayout.Read(Tooltips("stash-staff")[0], false));
+            Expect("Ashen Staff | Staff: Item Level 8 | Grants Skill: Level 3 Firebolt | Unidentified", said, "the staff's rows, no buttons");
+        }
+
+        private static void AWornWeaponsEquippedLineIsNoRow() =>
+            Expect("+1.35(1.01-1.5)% to Critical Hit Chance, T6, Suffix", InspectLayout.Read(Tooltips("merchant-shortbow")[1], true)?.Lines[^1].Spoken,
+                "the last suffix, not Equipped: Weapon Set");
+
+        private static void AnUnmetRequirementIsSaidOnItsRow()
+        {
+            var requirement = new InspectNode(string.Empty, "Requires: Level 30, 40 Dex", "Requires: <valuedefault>{Level <unmet>{30}, <unmet>{40} Dex}", Array.Empty<InspectNode>());
+            var tooltip = new InspectNode(string.Empty, string.Empty, string.Empty, new[]
+            {
+                new InspectNode(string.Empty, string.Empty, string.Empty, new[] { new InspectNode(string.Empty, "Doom Chant", "Doom Chant", Array.Empty<InspectNode>()) }),
+                new InspectNode("layout", string.Empty, string.Empty, new[] { requirement }),
+            });
+            var read = InspectLayout.Read(tooltip, false);
+            Expect("Requires: Level 30, 40 Dex. Cannot use: Level 30, 40 Dex", read?.Lines[1].Spoken, "the game paints them red; the mod names them");
+            Expect("Requires: Level 30, 40 Dex", read?.Lines[1].Match, "matched by the game's line");
+        }
+
+        private static void ANodeWithoutLayoutIsNoTooltip() =>
+            Expect(null, InspectLayout.Read(new InspectNode(string.Empty, "Inspect Mode", "Inspect Mode", Array.Empty<InspectNode>()), false), "the layer's label");
+
+        private static void WornTooltipsTakeSlotsByTitleInOrder()
+        {
+            Expect("left ring|right ring", string.Join("|", InspectLayout.MatchSlots(new[] { "Iron Ring", "Iron Ring" }, new[] { ("left ring", "Iron Ring"), ("right ring", "Iron Ring") })),
+                "two alike take the slots in order");
+            Expect("right ring", string.Join("|", InspectLayout.MatchSlots(new[] { "Gold Ring" }, new[] { ("left ring", "Iron Ring"), ("right ring", "Gold Ring") })), "by title");
+            Expect(string.Empty, string.Join("|", InspectLayout.MatchSlots(new[] { "Topaz Ring" }, new[] { ("left ring", "Iron Ring") })), "no slot has it");
+        }
+
+        /// <summary>A fixture element while its children are read.</summary>
+        private sealed class FixtureNode
+        {
+            public FixtureNode(string name, string text, string tagged) => (this.Name, this.Text, this.Tagged) = (name, text, tagged);
+
+            public string Name { get; }
+
+            public string Text { get; }
+
+            public string Tagged { get; }
+
+            public List<FixtureNode> Children { get; } = new();
+
+            public InspectNode Build() => new(this.Name, this.Text, this.Tagged, this.Children.Select(child => child.Build()).ToList());
         }
     }
 }

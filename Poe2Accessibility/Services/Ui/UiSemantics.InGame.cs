@@ -111,6 +111,7 @@ namespace Poe2Accessibility.Services
             }
 
             var entity = this.inventory.ItemEntity(role == UiRole.GridCell ? hovered : this.inventory.FindItemElement(info.Address));
+            this.inspectSource = (entity, role == UiRole.ItemSlot || this.inventory.InventoryOf(info.Address) is { } held && IsEquipment(held));
             details = this.WithSockets(entity, details);
 
             // A gem: its place in the Build Planner's active build, before what it does.
