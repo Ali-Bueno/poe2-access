@@ -777,9 +777,6 @@ Taken on 2026-11-10 where the audit had left "the owner's call"; each is one con
   controls never. Left aside: only the pad buttons of a panel.
 
 ### Notes
-- Expand (Cross on a link) in Inspect Mode reads the definition twice, the link's row (the whole paragraph) and then
-  the appeared text with its title, with the comparison table on or off (2026-11-25): the narrator's "appeared with
-  focus" adds what the focus already said. Left for its own change, since every expanded definition goes through it.
 - yarkey (Mercenary 23, Act 2 town) follows "Campaign Progression - [0.5.5] Twister G" (16 of 60 taken, 13 points
   outside it, the earlier guide's route); his gear was set for the build on 2026-11-10 (unique ruby ring and movement
   boots from the stash, a Ridged Buckler in the second set's off hand). Taking a flask off the belt empties it.
