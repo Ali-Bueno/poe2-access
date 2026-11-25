@@ -183,7 +183,7 @@ namespace Poe2Accessibility.Services
             // The map's popup is no part of the node's tooltip; it stands beside map_control and carries the rolled
             // biome and contents in its own words. Until it is built there is nothing full to say.
             var language = Localization.Language;
-            var popup = this.AtlasPopupTexts(info);
+            var popup = this.AtlasPopupTexts(info, described.Text, Localization.Language);
             if (!allowPending && popup.Count == 0)
             {
                 return null;
@@ -203,36 +203,61 @@ namespace Poe2Accessibility.Services
                 lines?.FirstOrDefault(line => line.StartsWith(prefix, StringComparison.Ordinal)) ?? string.Empty;
         }
 
-        /// <summary>The landed node's popup words (the world screen's shown texts beside map_control); empty while unbuilt.</summary>
-        private List<string> AtlasPopupTexts(in UiElementReader.ElementInfo info)
+        /// <summary>
+        ///     The landed node's popup words: only its own subtree of the world screen — the one holding the node's
+        ///     title, else the first beside map_control holding a biome line. The whole screen also carries the quest
+        ///     panel, whose "The Grand Expedition" quest read as a content on every landing (live 2026-11-25).
+        /// </summary>
+        private List<string> AtlasPopupTexts(in UiElementReader.ElementInfo info, string title, string language)
         {
-            var texts = new List<string>();
             var ancestors = this.elements.ReadAncestors(info, 3);
             if (ancestors.Count < 3 || !this.elements.TryReadElement(ancestors[^1].Address, out var screen))
             {
-                return texts;
+                return new List<string>();
             }
 
-            var pending = new Stack<UiElementReader.ElementInfo>();
-            pending.Push(screen);
-            for (var seen = 0; pending.Count > 0 && seen < MaxPopupNodes; seen++)
+            List<string>? byBiome = null;
+            var seen = 0;
+            foreach (var child in this.elements.ReadChildren(screen))
             {
-                var current = pending.Pop();
-                if (this.elements.TryReadText(current.Address, out var text) && Plain(text) is { Length: > 0 } plain && !texts.Contains(plain))
+                if (!this.elements.TryReadElement(child, out var subtree) || !subtree.IsVisibleFlag || subtree.Name == GameLayout.WorldMap.ControlName)
                 {
-                    texts.Add(plain);
+                    continue;
                 }
 
-                foreach (var child in this.elements.ReadChildren(current))
+                var texts = new List<string>();
+                var pending = new Stack<UiElementReader.ElementInfo>();
+                pending.Push(subtree);
+                while (pending.Count > 0 && seen < MaxPopupNodes)
                 {
-                    if (this.elements.TryReadElement(child, out var childInfo) && childInfo.IsVisibleFlag && childInfo.Name != GameLayout.WorldMap.ControlName)
+                    seen++;
+                    var current = pending.Pop();
+                    if (this.elements.TryReadText(current.Address, out var text) && Plain(text) is { Length: > 0 } plain && !texts.Contains(plain))
                     {
-                        pending.Push(childInfo);
+                        texts.Add(plain);
+                    }
+
+                    foreach (var inner in this.elements.ReadChildren(current))
+                    {
+                        if (this.elements.TryReadElement(inner, out var innerInfo) && innerInfo.IsVisibleFlag)
+                        {
+                            pending.Push(innerInfo);
+                        }
                     }
                 }
+
+                if (title.Length > 0 && texts.Contains(title))
+                {
+                    return texts;
+                }
+
+                if (byBiome == null && subtree.Name != "quest_selector" && texts.Any(text => EndgameCatalog.Shared.BiomeNameIn(text, language).Length > 0))
+                {
+                    byBiome = texts;
+                }
             }
 
-            return texts;
+            return byBiome ?? new List<string>();
         }
 
         /// <summary>
