@@ -729,15 +729,14 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
-- **The Atlas navigator, Phases 2–3 unbuilt; Phase 1 awaiting the owner's ear:** Phase 0 closed live 2026-11-25
-  and Phase 1 (the landed node spoken with its state: `AtlasNarrator`, setting `AnnounceAtlasNodes`) is built,
-  tested and deployed to the play copy the same day
-  ([docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) §5–§6, evidence in docs/research/evidence/).
-  Proven: selected node `map_control +0x2E0`, state byte `+0x32F` (bit0 accessible, bit1 completed), the shipped
-  reader dead on the map but alive in the Skill Tree (hold-X radial, down), D-pad hops nodes itself (Phase 3
-  needs a mod gesture, the owner's pick), the owner's unspent Atlas points spoken nowhere found. **Unblocks:**
-  the owner hearing Phase 1 on a locked, an accessible and a completed landing; then Phase 2 (orientation:
-  anchor still unidentified, resume, breadcrumb).
+- **The Atlas navigator, Phases 2–3 unbuilt; Phase 1 live-proven 2026-11-25:** the landed node speaks name,
+  state (`+0x32F` bit0 accessible, bit1 completed), biome and contents from its popup, and links with fog
+  neighbours marked unrevealed (`AtlasNarrator`, hot-reloaded under the running game through the day's
+  ear-tests; [docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) §5–§6). One population lands
+  link-less: nodes with no EndgameMapAtlas key (Rockpools/Slash), whose edges live in an external graph keyed
+  by grid or index — Phase 2 research. The owner's unspent Atlas points are spoken nowhere found. **Unblocks:**
+  Phase 2 (orientation: you-are-here anchor unidentified, resume, breadcrumb, geometric neighbours for the
+  row-less nodes) on the owner's word; the Phase 3 finder gesture is the owner's pick.
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each

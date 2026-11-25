@@ -80,9 +80,18 @@ arrived (pending gave up), and canvas icons yield no texture key. Fixed the same
 element's rolled area key (`EndgameNodeLabel`, neighbours via the centres scan's element map), contents from the
 icon elements' own name text (`EndgameCatalog.IsContentName`), and a named node no longer waits for its popup.
 In the play copy; hearing it waits on the next relaunch.
+Ear-test rounds after hot reloads (same day) closed the rest: biome and contents read from the popup's own
+subtree only (a whole-screen walk read the quest panel's "The Grand Expedition" as a content on every landing),
+fog neighbours say "unrevealed" (revealed = drawn in the scan, not the visible flag, which also drops on drawn
+nodes), and state words matched across two walks. **Phase 1's live proof is done.**
+One population stays partly mute: nodes with no EndgameMapAtlas key (Rockpools, Oasis, Slash — the census gap,
+1,035 canvas elements vs 610 catalog graph nodes). Grid, status, rolled area and popup words all read off the
+element, so they land named and stated, but no identity or connection list is on the element (record search and
+a full `datkeys` scan find no PassiveSkills key): their hops are real (Rockpools (13,18) ⇄ Slash (17,17) in one
+hop, owner-walked), so their edges live in an external graph keyed by grid or the `+0x330` index. Phase 2 must
+either find that graph or speak geometric nearest neighbours for them; until then they land link-less.
 Not in this build: the you-are-here anchor (unresolved, §6) — it moves to Phase 2, whose per-hop brief is what
-this landing line becomes. **Live proof still owed:** state words heard matching the popup on a locked, an
-accessible and a completed landing, at hop cadence without spam.
+this landing line becomes.
 
 ### Phase 2 — orientation (the owner's pain; ships before any list)
 
