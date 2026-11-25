@@ -41,6 +41,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AGrantedSkillAndUnidentifiedAreRows), AGrantedSkillAndUnidentifiedAreRows),
             (nameof(TheClassLineIsOneRowAcrossItemClasses), TheClassLineIsOneRowAcrossItemClasses),
             (nameof(AdvancedInfoKeepsTheClassRow), AdvancedInfoKeepsTheClassRow),
+            (nameof(ToggledLinesAreTheTables), ToggledLinesAreTheTables),
             (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
@@ -384,6 +385,27 @@ namespace Poe2Accessibility.Tests
             table.Move(PadGesture.FlickDown);
             Expect("Body Armour", table.Rebuild(labels, InspectRows.Align(Items(Tooltips("robes-advanced-off")))), "the class line without its item level, on the same row");
             Equal(1, table.Row, "still the class row");
+        }
+
+        // Advanced info turned on read every new line of both tooltips before the row (user, 2026-11-25): lines that changed
+        // under an open table are the table's to say.
+        private static void ToggledLinesAreTheTables()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 0);
+            Equal(false, watch.TooltipsChanged(0), "the table's first items are no change");
+            watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 50);
+            Equal(false, watch.TooltipsChanged(50), "the same lines again");
+            watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000);
+            Equal(true, watch.TooltipsChanged(1000), "advanced info off");
+            watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1100);
+            Equal(true, watch.TooltipsChanged(1100), "the screen can show it a poll later");
+            Equal(false, watch.TooltipsChanged(1000 + InspectTableWatch.LinesChangeWindowMs), "then it is over");
+
+            var off = new InspectTableWatch();
+            off.Update(Items(Tooltips("robes")), "Inspect Mode", false, 0);
+            off.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", false, 50);
+            Equal(false, off.TooltipsChanged(50), "with the table off, today's reading says them");
         }
 
         /// <summary>A section's tooltips as the table's items: the inspected one, then the worn ones.</summary>

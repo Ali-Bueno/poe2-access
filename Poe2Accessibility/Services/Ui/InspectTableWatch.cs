@@ -20,12 +20,27 @@ namespace Poe2Accessibility.Services
         private InspectTable? table;
         private string mode = string.Empty;
         private string titles = string.Empty;
+
+        /// <summary>Every line of the items, as said, at the last update.</summary>
+        private string lines = string.Empty;
         private long titlesSince;
         private bool openingDue;
         private int? crossed;
 
         /// <summary>Gets a value indicating whether the table is on and items are on screen, so the right stick's flicks are its.</summary>
         public bool Active => this.table != null;
+
+        /// <summary>How long after the items' lines changed under the table what appears on screen is still theirs: the screen can show it a poll later.</summary>
+        public const long LinesChangeWindowMs = 500;
+
+        /// <summary>When the items' lines last changed under the table; null since it opened.</summary>
+        private long? linesChangedAt;
+
+        /// <summary>
+        ///     Whether the items' lines changed under the table a moment ago (advanced info toggled): what appeared on screen
+        ///     is the table's to say, which says the row under its cursor.
+        /// </summary>
+        public bool TooltipsChanged(long nowMs) => this.table != null && this.linesChangedAt is { } at && nowMs - at < LinesChangeWindowMs;
 
         /// <summary>Gets a value indicating whether the opening is still to be said: what would follow it (the game's legend) waits.</summary>
         public bool OpeningDue => this.openingDue && this.table != null;
@@ -98,6 +113,9 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            var lines = string.Join("\n", items.SelectMany(item => item.Lines.Select(line => line.Spoken)));
+            this.linesChangedAt = this.table != null && lines != this.lines ? nowMs : this.linesChangedAt;
+            this.lines = lines;
             var rows = InspectRows.Align(items);
             if (this.table == null)
             {
@@ -149,7 +167,7 @@ namespace Poe2Accessibility.Services
         private void Clear()
         {
             (this.items, this.labels, this.table) = (Array.Empty<InspectItem>(), Array.Empty<string>(), null);
-            (this.titles, this.openingDue, this.crossed) = (string.Empty, false, null);
+            (this.titles, this.lines, this.linesChangedAt, this.openingDue, this.crossed) = (string.Empty, string.Empty, null, false, null);
         }
     }
 }
