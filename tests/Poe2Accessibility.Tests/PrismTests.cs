@@ -166,7 +166,7 @@ namespace Poe2Accessibility.Tests
         private static void TheProtonScriptShipsForSh()
         {
             var package = Path.Join(PrismFolder(), "..", "..", "tools", "package");
-            foreach (var name in new[] { PrismLibrary.ProtonScript, "poe2access-stop.sh", "install-linux.sh" })
+            foreach (var name in new[] { PrismLibrary.ProtonScript, "poe2access-stop.sh", "poe2access-restart.sh", "install-linux.sh" })
             {
                 var text = File.ReadAllText(Path.Join(package, name));
                 Equal(false, text.Contains('\r'), $"{name}: no carriage returns");
@@ -176,6 +176,8 @@ namespace Poe2Accessibility.Tests
             var script = File.ReadAllText(Path.Join(package, PrismLibrary.ProtonScript));
             Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
             Equal(true, File.ReadAllText(Path.Join(package, "poe2access-stop.sh")).Contains("poe2access-proton.env", StringComparison.Ordinal), "the stop script reads the session the launch script records");
+            var restart = File.ReadAllText(Path.Join(package, "poe2access-restart.sh"));
+            Equal(true, restart.Contains("poe2access-proton.env", StringComparison.Ordinal) && restart.Contains("WINEDLLPATH", StringComparison.Ordinal), "the restart script reads the session and carries the bridges (a restart without them is mute)");
         }
 
         /// <summary>

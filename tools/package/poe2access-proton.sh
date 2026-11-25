@@ -99,7 +99,7 @@ if [ "$scope" -ge 2 ] 2>/dev/null; then
 	say "The kernel forbids reading the game's memory (kernel.yama.ptrace_scope is $scope): the mod cannot follow the game. Set it to 1 with: sudo sysctl kernel.yama.ptrace_scope=1"
 fi
 
-# What poe2access-stop.sh needs to reach this Wine session.
+# What poe2access-stop.sh needs to reach this Wine session, and poe2access-restart.sh beside it.
 {
 	printf 'here=%s\n' "$(quote "$here")"
 	printf 'proton=%s\n' "$(quote "$proton")"
@@ -107,6 +107,7 @@ fi
 	printf 'STEAM_COMPAT_DATA_PATH=%s\n' "$(quote "$STEAM_COMPAT_DATA_PATH")"
 	printf 'SteamAppId=%s\n' "$(quote "$SteamAppId")"
 	printf 'SteamGameId=%s\n' "$(quote "$SteamGameId")"
+	printf 'WINEDLLPATH=%s\n' "$(quote "$WINEDLLPATH")"
 } >"$state" 2>/dev/null
 # A session Steam ends by signal leaves no record behind: the next stop would be sent to a prefix no longer running.
 trap 'rm -f "$state"' EXIT

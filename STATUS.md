@@ -42,7 +42,9 @@
   Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
 - **Play copy:** the owner plays from `dist/Poe2Access`, which `tools/build.ps1` does NOT update: `Poe2Access.exe stop`,
   robocopy the built `Plugins/Poe2Accessibility` over `app/Plugins/Poe2Accessibility` (`/E /XD config logs`), then
-  `Poe2Access.exe restart` (the game stays open).
+  `Poe2Access.exe restart` (the game stays open). Under Proton the same loop is `poe2access-stop.sh`, rsync,
+  `poe2access-restart.sh` detached — never a bare `runinprefix … restart`: without the launch's `WINEDLLPATH` the
+  bridges do not load and the mod runs mute (2026-11-25, three times; the log's PRISM error names it).
 - **Releases:** public repo (2026-10-26); `pwsh tools/package/Publish-Release.ps1` (`-DryRun` first) refuses off `main`, dirty or unpushed, then builds, tests, packages and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z` + `release.json`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
 - **Test package:** `pwsh tools/package/New-TestPackage.ps1` (build and tests first) → `dist/package/Poe2Access-test-<date>.zip` and `.7z` (zip ~47 MB, 7z ~33 MB since the recorded item sounds; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
