@@ -89,11 +89,11 @@ identified as the orientation anchor. Fallback if B's fields moved: the pin's ar
 
 ### Phase 3 — finder and guide
 
-D-pad lists (Phase 0 must confirm the D-pad is free; `UiSemantics.AtlasFinder`, routing as in
+Finder lists on a mod gesture (Phase 0 settled it: the game hops nodes with the D-pad itself, §6; the chord is the owner's pick. `UiSemantics.AtlasFinder`, routing as in
 `Poe2AccessibilityCore.Input` / `ModCommands` for the passive finder), each ordered by link distance from the
 cursor's node: **Position** (Phase 2's summary, the home list) · **Accessible, not completed** · **By content**
 (the content-icon catalog) · **Towers, citadels, hubs, uniques** (pin kinds) · **Objective nodes** (corrupted
-nexus and kin). Left/right steps entries, up/down steps lists, as the passive finder does.
+nexus and kin). One gesture pair steps lists, another steps entries (exact chords the owner's pick), as the passive finder's D-pad does on the tree.
 
 Selecting an entry sets a guide target: the shortest link route is computed over the catalog graph; every hop then
 says the next stick direction and the links left; leaving the route re-routes silently; arrival speaks the full
@@ -211,9 +211,18 @@ written down as still open, not guessed.
 - You-are-here: **unresolved.** The canvas's last child (1062, 54×54 at (60,722)) is a button (its kid carries
   click sounds), not the marker. Next lead: whatever element shares the selected node's centre when the Atlas
   opens on the player's position, or a node whose content/art differs in a full-canvas scan.
-- D-pad on the Atlas: _owner to test._
-- Zoom control; centres hold under pan/zoom? _Open; node rects in the dump are canvas-space (far past 1920×1080),
-  so drawn centres need the canvas transform, or the guide works from grid/graph places alone._
+- **Inputs (SETTLED live, the owner's test 11:50–11:59): the D-pad hops node-to-node on the Atlas** — each press
+  (0x1/0x2/0x4/0x8 in the pad log) moved the selection to another node and its popup followed (Gateway, Steppe,
+  Bloodwood, Rockpools, Sanctuary, Ravine). Unlike the passive tree, the game does not leave the D-pad free here,
+  so Phase 3's finder cannot take it; it needs a mod gesture (the `ModCommands` chord system) or another input
+  the game ignores on this screen — the owner's pick at Phase 3. **Zoom is RT** (the game's hint bar, layer 61:
+  "Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit
+  Search [left stick click] | Zoom [RT]"). The side panel (Bookmarks, Edge Display) is ordinary focus and
+  already reads. Node rects in dumps are canvas-space (far past 1920×1080), so drawn centres need the canvas
+  transform, or the guide works from grid/graph places alone. One more sample meanwhile: the Ancient Gateway the
+  owner rests on is `AtlasWhiteGate`, grid (8,24), sampled at 11:58; its catalog words are "Activate the
+  Precursor Relay | Complete a Tower Map to access", its quest popup "Travel to the Ancient Gateway" — its class
+  awaits the owner's word.
 - Atlas tree node chain: _open (one `atlasnode`/`describe` once the Atlas Skill Tree is open)._
 - Map device: _open (capture only)._
 
