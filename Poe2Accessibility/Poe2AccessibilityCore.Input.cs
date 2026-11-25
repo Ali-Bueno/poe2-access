@@ -13,6 +13,11 @@ namespace Poe2Accessibility
         /// <summary>Whether the trigger stood in for the mod button last frame: a change forgets the press in flight.</summary>
         private bool triggerStoodIn;
 
+        /// <summary>L2 and the right stick read as their own gestures only on the Atlas map, where L3 is the game's search.</summary>
+        private L3Gestures atlasGestures = new();
+
+        private bool atlasTriggerDown;
+
         /// <summary>A stick pushed this far counts as a direction (our threshold: well past rest, before a full push).</summary>
         private const float DirectionDeflection = 0.5f;
 
@@ -59,6 +64,8 @@ namespace Poe2Accessibility
                 Seats.Input = seat;
                 this.focus.Seat = seat;
                 this.gestures = new L3Gestures(); // a hold on the other controller is not this one's tap
+                this.atlasGestures = new L3Gestures();
+                this.atlasTriggerDown = false;
             }
 
             if ((seat == 2 ? second : first) is not { } state)
@@ -104,6 +111,7 @@ namespace Poe2Accessibility
             }
 
             this.FindOnTree(state);
+            var atlasInput = this.FindOnAtlas(state);
             this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu || this.commands.InInspectTable;
             this.commands.PressedAt ??= () => this.gestures.PressedAt;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
@@ -127,7 +135,7 @@ namespace Poe2Accessibility
             }
 
             this.commands.TriggerFed = triggerButton;
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, modButton, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), !triggerButton && state.IsDown(GameLayout.PadButtons.LeftTrigger)))
+            foreach (var gesture in this.gestures.Update(Environment.TickCount64, modButton, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), !triggerButton && !atlasInput && state.IsDown(GameLayout.PadButtons.LeftTrigger)))
             {
                 this.commands.OnGesture(gesture);
             }
@@ -174,6 +182,64 @@ namespace Poe2Accessibility
             {
                 this.lastFinderAt = Environment.TickCount64;
             }
+        }
+
+        /// <summary>
+        ///     The Atlas destination finder on L2: holding it and flicking the right stick walks destination
+        ///     lists (up/down) and entries (left/right); R3 during the hold drops the destination. The D-pad and
+        ///     left stick remain the game's node movement, and L3 remains its search.
+        /// </summary>
+        /// <returns>Whether this L2 hold belongs to the Atlas finder, so its R3 is not also the map glance.</returns>
+        private bool FindOnAtlas(GamepadReader.PadState state)
+        {
+            var trigger = state.IsDown(GameLayout.PadButtons.LeftTrigger);
+            if (!trigger && !this.atlasTriggerDown)
+            {
+                return false;
+            }
+
+            var screen = this.InGame && this.Settings.AtlasFinder ? this.WorldScreen() : IntPtr.Zero;
+            var onMap = screen != IntPtr.Zero && this.focus?.Current == null && this.semantics?.SelectedAtlasNode(screen) != null;
+            if (!onMap)
+            {
+                if (trigger)
+                {
+                    this.atlasGestures.ForgetPress(true);
+                }
+                else
+                {
+                    this.atlasTriggerDown = false;
+                }
+
+                return false;
+            }
+
+            if (this.atlasNodes != null)
+            {
+                this.atlasNodes.AnnounceNodes = this.Settings.AnnounceAtlasNodes;
+                this.atlasNodes.FinderOn = true;
+            }
+
+            foreach (var gesture in this.atlasGestures.Update(
+                Environment.TickCount64, trigger, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick)))
+            {
+                var said = gesture switch
+                {
+                    PadGesture.FlickUp => this.atlasNodes?.DestinationMove(screen, -1, 0),
+                    PadGesture.FlickDown => this.atlasNodes?.DestinationMove(screen, 1, 0),
+                    PadGesture.FlickLeft => this.atlasNodes?.DestinationMove(screen, 0, -1),
+                    PadGesture.FlickRight => this.atlasNodes?.DestinationMove(screen, 0, 1),
+                    PadGesture.StickClick => this.atlasNodes?.DropDestination(),
+                    _ => null,
+                };
+                if (said is { Length: > 0 })
+                {
+                    this.output?.Speak(said, true);
+                }
+            }
+
+            this.atlasTriggerDown = trigger;
+            return trigger;
         }
 
         /// <summary>

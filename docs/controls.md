@@ -338,6 +338,16 @@ An entry says its cluster, side and ring and how many links it lies from the cur
 right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
 popup says "Unallocated" where it stands.
 
+**Atlas map destinations** (setting "Atlas destination finder on L2", Navigation, on by default): while the Atlas
+map itself has the cursor, hold L2 and flick the right stick up or down to walk the lists Position, Accessible,
+not completed, Landmarks and Objectives; flick it left or right to walk a list nearest first. What a flick names
+becomes the destination at once, with its state and the next push ("Caldera, Accessible, 4 links away. From here:
+down right, 4 pushes"). Then hop with the left stick or D-pad as usual: each landing ends with the next push and
+links left, counting down to "Arrived at …"; a wrong hop is silently rerouted. Going back to Position, or holding
+L2 and pressing R3, drops the destination. The guide keeps to revealed links where the game's graph knows them;
+for a place whose links are not known it says its side alone. The game's own Bookmarks still work beside it:
+hold Y on an area to save one of up to 16, then use Y's panel to pan straight back there instead of walking.
+
 The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it
 is read, and on release the view settles on the node in the middle. The links and the finder's ways count
 left-stick pushes: after the right stick, the first left push may land elsewhere than said, and

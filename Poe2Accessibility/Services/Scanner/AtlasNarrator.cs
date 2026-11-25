@@ -2,16 +2,17 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-
+    using System.Linq;
     /// <summary>
     ///     The Atlas node the cursor rests on, told with its state first, and where it sits (atlas-navigator
-    ///     Phases 1–2): on the Atlas map neither the focus nor the hovered slot ever points at a node, so the
+    ///     Phases 1–3): on the Atlas map neither the focus nor the hovered slot ever points at a node, so the
     ///     endgame reader never fired and only the popup's flavour was heard (live 2026-11-25,
     ///     docs/research/atlas-navigator.md §6). map_control keeps the selected node; once it settles, its name,
     ///     state, contents and links are said (<see cref="UiSemantics.AtlasNodeLine"/>), then where the player
     ///     stands: on opening, where the last session left off and the accessible frontier; per hop, where they
     ///     came from and the nearest landmark (nearest revealed neighbours for a row-less node, whose edges no
-    ///     catalog holds). The scan behind the orientation lines is read once per opening
+    ///     catalog holds). The destination finder chooses from the same opening scan and replaces the anchor
+    ///     with the next push and how many links remain. The scan is read once per opening
     ///     (<see cref="UiSemantics.AtlasScan"/>).
     /// </summary>
     public sealed class AtlasNarrator
@@ -25,6 +26,7 @@ namespace Poe2Accessibility.Services
         private readonly UiSemantics semantics;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
+        private readonly AtlasDestinationFinder destinations = new();
         private PassiveResume resume = new(null);
         private IntPtr node;
         private DateTime since;
@@ -33,6 +35,7 @@ namespace Poe2Accessibility.Services
         private IReadOnlyList<AtlasScanEntry>? scan;
         private AtlasScanEntry? opened;
         private AtlasScanEntry? previous;
+        private string destinationName = string.Empty;
 
         public AtlasNarrator(UiSemantics semantics, IAccessibilityOutputService output, PluginLog log)
         {
@@ -41,6 +44,12 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>Say the landed node and its orientation; off leaves a chosen destination's guide.</summary>
+        public bool AnnounceNodes { get; set; } = true;
+
+        /// <summary>The Atlas destination finder answers on L2 and guides each landing.</summary>
+        public bool FinderOn { get; set; } = true;
+
         /// <summary>The character whose Atlas is open, for the resume file; set by the plugin.</summary>
         public Func<string>? CharacterName { get; set; }
 
@@ -48,6 +57,86 @@ namespace Poe2Accessibility.Services
         public string? ResumeFile
         {
             set => this.resume = new PassiveResume(value);
+        }
+
+        /// <summary>
+        ///     One finder move on the Atlas map: a list or entry step, answered with the destination and its way;
+        ///     Position says where the cursor stands and lets any destination go. Null when no Atlas node is selected.
+        /// </summary>
+        public string? DestinationMove(IntPtr worldScreen, int listStep, int entryStep)
+        {
+            if (!this.FinderOn || !this.Current(worldScreen, out var scan, out var here))
+            {
+                return null;
+            }
+
+            IReadOnlyList<string> Members(AtlasDestinationCategory category) => this.semantics.AtlasDestinationEntries(scan, here, category);
+            var hadDestination = this.destinations.Target.Length > 0;
+            if (listStep != 0)
+            {
+                this.destinations.ChangeCategory(listStep, Members);
+            }
+            else
+            {
+                this.destinations.ChangeEntry(entryStep, Members(this.destinations.Category));
+            }
+
+            var target = scan.FirstOrDefault(entry => entry.Key == this.destinations.Target);
+            if (this.destinations.Category == AtlasDestinationCategory.Position || target == null)
+            {
+                this.destinationName = string.Empty;
+                var position = this.semantics.AtlasDestinationPosition(scan, here, this.opened);
+                return hadDestination && this.destinations.Target.Length == 0 ? $"{position}. {Announcements.BeaconOff}" : position;
+            }
+
+            this.destinationName = target.Name;
+            var found = this.semantics.AtlasDestinationFound(scan, here, target);
+            this.log.Info($"Atlas destination: {found}");
+            return listStep == 0
+                ? found
+                : Announcements.InContext(Announcements.AtlasDestinationCategoryName(this.destinations.Category), found);
+        }
+
+        /// <summary>Drops a chosen destination, saying so only when there was one.</summary>
+        public string? DropDestination()
+        {
+            if (!this.FinderOn || this.destinations.Target.Length == 0)
+            {
+                return null;
+            }
+
+            this.destinations.Drop();
+            this.destinationName = string.Empty;
+            return Announcements.BeaconOff;
+        }
+
+        /// <summary>The selected node and a scan holding it, read now when a finder press precedes the opening landing.</summary>
+        private bool Current(IntPtr worldScreen, out IReadOnlyList<AtlasScanEntry> scan, out AtlasScanEntry here)
+        {
+            scan = Array.Empty<AtlasScanEntry>();
+            here = null!;
+            if (worldScreen == IntPtr.Zero || this.semantics.SelectedAtlasNode(worldScreen) is not { } selected)
+            {
+                return false;
+            }
+
+            this.scan ??= this.semantics.AtlasScan(selected, fresh: true);
+            var found = this.semantics.AtlasEntryOf(this.scan, selected);
+            if (found == null)
+            {
+                this.scan = this.semantics.AtlasScan(selected, fresh: true);
+                found = this.semantics.AtlasEntryOf(this.scan, selected);
+            }
+
+            if (found == null)
+            {
+                return false;
+            }
+
+            this.semantics.AtlasRefresh(this.scan, found);
+            scan = this.scan;
+            here = found;
+            return true;
         }
 
         /// <param name="worldScreen">The shown world map, zero while none is (<see cref="UiSemantics.WorldScreen"/>).</param>
@@ -79,7 +168,8 @@ namespace Poe2Accessibility.Services
             }
 
             this.settled = true;
-            if (line.Length == 0)
+            var guiding = this.FinderOn && this.destinations.Target.Length > 0;
+            if (line.Length == 0 && !guiding)
             {
                 return;
             }
@@ -88,12 +178,16 @@ namespace Poe2Accessibility.Services
             // which has had the settle time to say its name.
             var first = this.opening;
             this.opening = false;
-            this.log.Info($"Atlas node landed: {line}");
-            this.output.Speak(line, !first);
+            if (this.AnnounceNodes && line.Length > 0)
+            {
+                this.log.Info($"Atlas node landed: {line}");
+                this.output.Speak(line, !first);
+            }
+
             this.Orient(selected, first);
         }
 
-        /// <summary>Where this landing sits: on opening the last session and the frontier; per hop the way back and an anchor.</summary>
+        /// <summary>Where this landing sits: on opening the last session and the frontier; per hop the way back and an anchor or the guide.</summary>
         private void Orient(IntPtr selected, bool first)
         {
             this.scan ??= this.semantics.AtlasScan(selected, fresh: true);
@@ -108,17 +202,25 @@ namespace Poe2Accessibility.Services
             if (first)
             {
                 this.opened = here;
-                var character = this.CharacterName?.Invoke() ?? string.Empty;
-                extras.Add(this.semantics.AtlasResumeLine(this.scan, here, character.Length > 0 ? this.resume.Get(character) : null));
-                extras.Add(this.semantics.AtlasFrontierLine(this.scan, here));
-            }
-            else
-            {
-                if (this.previous is { Name.Length: > 0 } came && came.Element != here.Element)
+                if (this.AnnounceNodes)
                 {
-                    extras.Add(Announcements.AtlasCameFrom(came.Name));
+                    var character = this.CharacterName?.Invoke() ?? string.Empty;
+                    extras.Add(this.semantics.AtlasResumeLine(this.scan, here, character.Length > 0 ? this.resume.Get(character) : null));
+                    extras.Add(this.semantics.AtlasFrontierLine(this.scan, here));
                 }
+            }
+            else if (this.AnnounceNodes && this.previous is { Name.Length: > 0 } came && came.Element != here.Element)
+            {
+                extras.Add(Announcements.AtlasCameFrom(came.Name));
+            }
 
+            var guide = this.Guidance(this.scan, here);
+            if (guide.Length > 0)
+            {
+                extras.Add(guide);
+            }
+            else if (this.AnnounceNodes && !first)
+            {
                 extras.Add(this.semantics.AtlasAnchorLine(this.scan, here, this.opened));
                 if (here.Id == null)
                 {
@@ -137,6 +239,33 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Atlas orientation: {lines}");
                 this.output.Speak(lines);
             }
+        }
+
+        /// <summary>The next push toward a chosen destination, its arrival, or the guide going off when it left the scan.</summary>
+        private string Guidance(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here)
+        {
+            if (!this.FinderOn || this.destinations.Target.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            if (this.destinations.Arrive(here.Key))
+            {
+                var arrived = Announcements.BeaconArrived(this.destinationName.Length > 0 ? this.destinationName : here.Name);
+                this.destinationName = string.Empty;
+                return arrived;
+            }
+
+            var target = scan.FirstOrDefault(entry => entry.Key == this.destinations.Target);
+            if (target == null)
+            {
+                this.destinations.Drop();
+                this.destinationName = string.Empty;
+                return Announcements.BeaconOff;
+            }
+
+            this.destinationName = target.Name;
+            return this.semantics.AtlasDestinationGuide(scan, here, target);
         }
     }
 }

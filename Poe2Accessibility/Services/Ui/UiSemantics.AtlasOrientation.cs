@@ -166,17 +166,21 @@ namespace Poe2Accessibility.Services
             return Announcements.AtlasFrontier(string.Join("; ", named), open.Count);
         }
 
+        /// <summary>A place to steer by: a tower those around it are in reach of, a gate, Kingsmarch, a waypoint pin.</summary>
+        public bool AtlasIsLandmark(AtlasScanEntry entry)
+        {
+            var catalog = EndgameCatalog.Shared;
+            return entry.Id is { } id && (catalog.TowerReach(id) > 0 || LandmarkPins.Contains(catalog.Node(id)?.Pin ?? string.Empty));
+        }
+
         /// <summary>
         ///     The nearest landmark to steer by: where the Atlas was opened, a tower, a gate, Kingsmarch — in links
         ///     when both ends are catalogued, else in grid steps. Empty when none is revealed or here is one itself.
         /// </summary>
         public string AtlasAnchorLine(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here, AtlasScanEntry? opened)
         {
-            var catalog = EndgameCatalog.Shared;
-            bool IsLandmark(AtlasScanEntry entry) =>
-                entry.Element == opened?.Element ||
-                (entry.Id is { } id && (catalog.TowerReach(id) > 0 || LandmarkPins.Contains(catalog.Node(id)?.Pin ?? string.Empty)));
-            var distances = here.Id is { } from ? AtlasGraph.Distances(from, id => catalog.Node(id)?.Links) : null;
+            bool IsLandmark(AtlasScanEntry entry) => entry.Element == opened?.Element || this.AtlasIsLandmark(entry);
+            var distances = here.Id is { } from ? AtlasGraph.Distances(from, id => EndgameCatalog.Shared.Node(id)?.Links) : null;
             var best = scan
                 .Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && IsLandmark(entry))
                 .Select(entry => (Entry: entry, Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links) ? links : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY), Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id)))

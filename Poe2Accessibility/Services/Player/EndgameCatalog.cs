@@ -67,6 +67,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The objective an icon's object is for, empty for none.</summary>
         public string ObjectiveOf(string icon) => this.objectiveByIcon.TryGetValue(icon, out var objective) ? objective : string.Empty;
 
+        /// <summary>An objective's own short word ("Ritual", from the keyword its description links), for lists of places.</summary>
+        public string ObjectiveWord(string? objective, string language) =>
+            objective != null && this.data.Objectives.TryGetValue(objective, out var named) && !string.IsNullOrEmpty(named.Keyword)
+                ? this.Text("term/" + named.Keyword, language)
+                : string.Empty;
+
         /// <summary>
         ///     The game's own word for an objective icon's object, singular ("Fisura" for the Breach icon, from the keyword its
         ///     objective links); empty when the catalog has none.

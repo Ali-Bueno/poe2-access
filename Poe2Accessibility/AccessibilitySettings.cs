@@ -334,6 +334,9 @@ namespace Poe2Accessibility
         /// <summary>On the Atlas map, the node landed on says its name, whether it is locked, accessible or completed, what it holds and its links.</summary>
         public bool AnnounceAtlasNodes = true;
 
+        /// <summary>On the Atlas map, hold L2 and flick the right stick to choose a destination; each landing says the next push toward it.</summary>
+        public bool AtlasFinder = true;
+
         /// <summary>The Trial's honour is said as it falls past every tenth.</summary>
         public bool AnnounceHonour = true;
 

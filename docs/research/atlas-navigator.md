@@ -113,20 +113,21 @@ element; the node the Atlas opens on serves as the session anchor instead.
 - **Resume:** last hovered node per character (a `PassiveResume` sibling file); on reopen it is named, with its
   link distance and side from the cursor.
 
-### Phase 3 — finder and guide
+### Phase 3 — finder and guide (built 2026-11-25; awaiting route proof live)
 
-Finder lists on a mod gesture (Phase 0 settled it: the game hops nodes with the D-pad itself, §6; the chord is the owner's pick. `UiSemantics.AtlasFinder`, routing as in
-`Poe2AccessibilityCore.Input` / `ModCommands` for the passive finder), each ordered by link distance from the
-cursor's node: **Position** (Phase 2's summary, the home list) · **Accessible, not completed** · **By content**
-(the content-icon catalog) · **Towers, citadels, hubs, uniques** (pin kinds) · **Objective nodes** (corrupted
-nexus and kin). One gesture pair steps lists, another steps entries (exact chords the owner's pick), as the passive finder's D-pad does on the tree.
-
-Selecting an entry sets a guide target: the shortest link route is computed over the catalog graph; every hop then
-says the next stick direction and the links left; leaving the route re-routes silently; arrival speaks the full
-node readout. The target survives opening the node's device window, so the device inherits its name even before
-any device work.
-**Proof:** endgame.md §6.3 over a whole route — push the stick the way each said link lies; the cursor must walk
-the spoken route to the target, at two zoom levels.
+The owner chose L2 (LT) over L3, whose click and hold are the Atlas search's own. Holding L2 and flicking the
+right stick walks the lists (up/down) and their entries (left/right), nearest first; L2 + R3, or the Position
+list, drops the choice. The lists are **Position · Accessible, not completed · Landmarks** (the Phase 2 anchor
+kinds) · **Objectives** (nodes whose catalogue objective names what they ask; rolled contents remain a popup
+fact, so this is the honest part of the planned by-content list). A choice is spoken with its state and the
+first push; each settled landing then ends with the next push and links left, recomputed from where the cursor
+actually landed, and arrival clears it. The route keeps to revealed links (`AtlasGraph.Route` over the
+opening scan's revealed catalogued nodes); a row-less end gets its side and grid steps. The target is kept by
+scan key across closing (the device window included), as designed. Bookmarks were checked as an alternative:
+they are the game's own saved pan targets (hold Y on an area, up to 16; the panel also pans to the player, the
+Refuge and the Monolith), so they shortcut returning to a found place but do not find a new one; reading a
+created bookmark's panel entry is not captured yet (the owner's panel read 0/16 through the day).
+**Proof still owed:** endgame.md §6.3 over a whole route at two zoom levels; a created bookmark's panel capture.
 
 ### Phase 4 — reopen diff
 
@@ -150,8 +151,7 @@ drawn centres, the finder's D-pad scheme and words (`UiSemantics.AtlasTree.cs`, 
 Clusters; `IsAtlasTreeNode` routes the D-pad). No new offsets. Still open here: allocation state and point costs
 (this canvas's allocated list is unread — never guessed; a live sweep with `passivenear`/`atlasnode` on the tree
 settles whether the main tree's state layout serves), a resume of the last node, and the unspent-points count.
-Phase 2's wording was accepted by the owner the same day ("good enough" over the maps run since). The Atlas
-**map's** Phase 3 finder still waits on its gesture (the D-pad hops the map's nodes itself).
+Phase 2's wording was accepted by the owner the same day ("good enough" over the maps run since).
 
 ## 6. Phase 0 capture checklist
 

@@ -13,9 +13,19 @@ namespace Poe2Accessibility.Services
     public static class AtlasGraph
     {
         /// <summary>Link distances from a node over the graph the lookup walks; unreached nodes are absent.</summary>
-        public static Dictionary<string, int> Distances(string from, Func<string, IEnumerable<string>?> links)
+        public static Dictionary<string, int> Distances(string from, Func<string, IEnumerable<string>?> links) =>
+            Distances(from, links, static _ => true);
+
+        /// <summary>Link distances through the nodes <paramref name="allowed"/> admits (the revealed ones, for a route).</summary>
+        public static Dictionary<string, int> Distances(string from, Func<string, IEnumerable<string>?> links, Func<string, bool> allowed)
         {
-            var distances = new Dictionary<string, int>(StringComparer.Ordinal) { [from] = 0 };
+            var distances = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (!allowed(from))
+            {
+                return distances;
+            }
+
+            distances[from] = 0;
             var pending = new Queue<string>();
             pending.Enqueue(from);
             while (pending.Count > 0)
@@ -23,7 +33,7 @@ namespace Poe2Accessibility.Services
                 var here = pending.Dequeue();
                 foreach (var other in links(here) ?? Enumerable.Empty<string>())
                 {
-                    if (distances.TryAdd(other, distances[here] + 1))
+                    if (allowed(other) && distances.TryAdd(other, distances[here] + 1))
                     {
                         pending.Enqueue(other);
                     }
@@ -31,6 +41,56 @@ namespace Poe2Accessibility.Services
             }
 
             return distances;
+        }
+
+        /// <summary>
+        ///     The shortest way in links from one node to another through admitted nodes, both ends included;
+        ///     empty when no admitted way joins them.
+        /// </summary>
+        public static IReadOnlyList<string> Route(string from, string to, Func<string, IEnumerable<string>?> links, Func<string, bool> allowed)
+        {
+            if (!allowed(from) || !allowed(to))
+            {
+                return Array.Empty<string>();
+            }
+
+            var parent = new Dictionary<string, string>(StringComparer.Ordinal) { [from] = from };
+            var pending = new Queue<string>();
+            pending.Enqueue(from);
+            while (pending.Count > 0)
+            {
+                var here = pending.Dequeue();
+                if (here == to)
+                {
+                    break;
+                }
+
+                foreach (var other in links(here) ?? Enumerable.Empty<string>())
+                {
+                    if (allowed(other) && parent.TryAdd(other, here))
+                    {
+                        pending.Enqueue(other);
+                    }
+                }
+            }
+
+            if (!parent.ContainsKey(to))
+            {
+                return Array.Empty<string>();
+            }
+
+            var route = new List<string>();
+            for (var at = to; ; at = parent[at])
+            {
+                route.Add(at);
+                if (at == from)
+                {
+                    break;
+                }
+            }
+
+            route.Reverse();
+            return route;
         }
 
         /// <summary>A grid place as the stick's sides read it: y flipped to screen-down.</summary>

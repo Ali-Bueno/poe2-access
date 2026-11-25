@@ -78,5 +78,18 @@ namespace Poe2Accessibility
         /// <summary>How many links a node lies from the cursor on a graph ("3 links away").</summary>
         public static string AtlasLinksAway(int links) =>
             links == 1 ? T("1 link away", "a 1 enlace") : T($"{links} links away", $"a {links} enlaces");
+
+        /// <summary>How far a node with no catalogued way lies, in atlas-grid steps.</summary>
+        public static string AtlasStepsAway(int steps) =>
+            steps == 1 ? T("1 step away", "a 1 paso") : T($"{steps} steps away", $"a {steps} pasos");
+
+        /// <summary>The Atlas map destination finder's lists, said on entering one.</summary>
+        public static string AtlasDestinationCategoryName(Services.AtlasDestinationCategory category) => category switch
+        {
+            Services.AtlasDestinationCategory.Accessible => T("Accessible, not completed", "Accesibles sin completar"),
+            Services.AtlasDestinationCategory.Landmarks => T("Landmarks", "Lugares de referencia"),
+            Services.AtlasDestinationCategory.Objectives => T("Objectives", "Objetivos"),
+            _ => T("Position", "Posición"),
+        };
     }
 }

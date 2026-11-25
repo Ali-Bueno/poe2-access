@@ -290,6 +290,7 @@
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
 | Atlas skill tree finder (D-pad: Position, Notables, Clusters; spoken stick route) | done (live 2026-11-25: lists, routes and arrival heard; the guide's threefold echo on a press fixed the same hour by freezing the line per node) | `AtlasTreeMap`/`AtlasTreeFinder` over the catalog's atlasskillgraph, `PassiveMap.Steps` + `PassiveStick.Route` borrowed; the passive machinery's state judge is the main tree's graph file, so it cannot run there ([atlas-navigator §5](docs/research/atlas-navigator.md)); allocation/point costs unread |
+| Atlas map destination finder (hold L2 + right-stick flicks: Position, Accessible, Landmarks, Objectives; spoken route) | done (code + unit tests 2026-11-25; route proof live still owed) | `AtlasDestinationFinder`, revealed-link BFS (`AtlasGraph.Route`), guide in `AtlasNarrator`; L2 because L3 is the Atlas search and the D-pad hops nodes; bookmarks are the game's own pan jumps, left manual |
 | Yama's frozen time: the safe clone | done (unit tests; not heard) | the shelter's chord and the line lead to where the marked clone will stop, "¡Quieto! Dentro, quédate" before the edge, "¡Fuera!" past it, the all-clear after the blow ([Yama](docs/research/boss-mechanics.md#yama)) |
 | Boss fight turns (vanish/back, invulnerable+adds, phase/form, enrage) | done (unit) | `BossMechanicsWatch` + `BossPhaseTracker`, catalog/boss-mechanics.txt; docs/research/boss-mechanics.md; a boss back at full life after the player's death starts over (`BossLifeSteps.FightRestarted`, unit); a boss that hides to be found (Balbala's fog) is said with its direction and the heartbeat leads to it ([§11](docs/research/boss-mechanics.md#11-hide-and-seek-balbala-2026-11-11); live 2026-11-12, the user found her three times in 6-7 s) |
 | Way out of a boss's danger area | done (unit) | `BossCounterplay`: "¡Sal!", "¡Al centro!", "¡Detrás!", "¡Muévete!", stick way, at the wind-up |
@@ -732,16 +733,17 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
-- **The Atlas navigator, map Phase 3 unbuilt; Phases 1–2 accepted by the owner (2026-11-25, "good enough" over the maps run since):** the landed node speaks
+- **The Atlas navigator, Phases 1–2 accepted and Phase 3 built (2026-11-25):** the landed node speaks
   name, state, biome, contents and links (fog marked unrevealed); on opening, where the last session left off
-  and the accessible frontier in links; per hop, came-from and the nearest landmark in links. Row-less nodes
+  and the accessible frontier in links; per hop, came-from and the nearest landmark in links. Hold L2 and flick
+  the right stick to choose a destination (Position, Accessible, Landmarks, Objectives); each landing then says
+  the next push and links left over revealed links. Row-less nodes
   (no EndgameMapAtlas key: Rockpools/Slash) speak name/state/biome/contents plus nearest revealed by direction;
-  their edges live in an external graph keyed by grid or index, still unfound. The **Atlas skill tree's finder
-  is built** (D-pad lists + spoken stick route over the catalog graph; unit tests; [§5](docs/research/atlas-navigator.md));
-  its allocation state, point costs and the owner's unspent Atlas points are spoken nowhere found (allocated
-  counters only). **Unblocks:** the owner's ear on the tree finder (hot-reloaded into the running game
-  2026-11-25 17:40), then the map's Phase 3 (finder + spoken route; the gesture is the owner's pick, the D-pad hops the
-  map's nodes itself).
+  their edges live in an external graph keyed by grid or index, still unfound, so a destination at one is guided
+  by side and grid steps. The **Atlas skill tree's finder is live**; its allocation state, point costs and the
+  owner's unspent Atlas points are spoken nowhere found (allocated counters only). **Unblocks:** the owner's
+  route proof over a whole Atlas destination route at two zoom levels, and a created bookmark's side-panel
+  capture (the panel read 0/16 all day; bookmarks are pan jumps, not a finder).
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each

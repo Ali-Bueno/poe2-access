@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasTreeMapReadsClustersKindsAndOrdering), AtlasTreeMapReadsClustersKindsAndOrdering),
             (nameof(AtlasTreeFinderWalksListsAndCountsPushes), AtlasTreeFinderWalksListsAndCountsPushes),
             (nameof(AtlasTreeNextHopStartsAlongTheLinks), AtlasTreeNextHopStartsAlongTheLinks),
+            (nameof(AtlasDestinationFinderSkipsEmptyListsAndArrives), AtlasDestinationFinderSkipsEmptyListsAndArrives),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -239,13 +240,18 @@ namespace Poe2Accessibility.Tests
         {
             var links = new Dictionary<string, string[]>
             {
-                ["A"] = new[] { "B", "C" }, ["B"] = new[] { "A", "D" }, ["C"] = new[] { "A" }, ["D"] = new[] { "B", "E" }, ["E"] = new[] { "D" }, ["Z"] = new string[0],
+                ["A"] = new[] { "B", "C" }, ["B"] = new[] { "A", "D" }, ["C"] = new[] { "A", "E" }, ["D"] = new[] { "B", "E" }, ["E"] = new[] { "D", "C" }, ["Z"] = new string[0],
             };
             var distances = AtlasGraph.Distances("A", id => links.GetValueOrDefault(id));
             Expect(0, distances["A"], "here itself");
             Expect(2, distances["D"], "two links on");
-            Expect(3, distances["E"], "three links on");
+            Expect(2, distances["E"], "the shortest of two ways");
             Expect(false, distances.ContainsKey("Z"), "an unlinked node is unreached");
+            var revealed = AtlasGraph.Distances("A", id => links.GetValueOrDefault(id), id => id != "B");
+            Expect(false, revealed.ContainsKey("B"), "an unrevealed node is not walked through");
+            Expect(3, revealed["D"], "the admitted way goes around it");
+            Expect("A|C|E", string.Join("|", AtlasGraph.Route("A", "E", id => links.GetValueOrDefault(id), id => id != "B")), "the admitted shortest way");
+            Expect(0, AtlasGraph.Route("A", "Z", id => links.GetValueOrDefault(id), _ => true).Count, "no way to an unlinked node");
             Expect(4, AtlasGraph.GridSteps(13, 18, 17, 17), "Rockpools to Slash in king steps");
             var nearest = AtlasGraph.NearestPerDirection(Vector2.Zero, new (Vector2, string)[]
             {
@@ -330,6 +336,31 @@ namespace Poe2Accessibility.Tests
             Expect(-1, tree.NextHopOctant(tree.Places, start, tree.Index["AtlasAbyssStart"]) ?? -1,
                 "no links lead to another cluster");
             Expect(-1, tree.NextHopOctant(tree.Places, start, start) ?? -1, "already there");
+        }
+
+        private static void AtlasDestinationFinderSkipsEmptyListsAndArrives()
+        {
+            IReadOnlyList<string> Members(AtlasDestinationCategory category) => category switch
+            {
+                AtlasDestinationCategory.Accessible => new[] { "near", "far" },
+                AtlasDestinationCategory.Objectives => new[] { "objective" },
+                _ => Array.Empty<string>(),
+            };
+            var finder = new AtlasDestinationFinder();
+            finder.ChangeCategory(1, Members);
+            Expect("Accessible", finder.Category.ToString(), "the first list with destinations");
+            Expect("near", finder.Target, "its nearest destination is chosen at once");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("far", finder.Target, "entries walk");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("near", finder.Target, "entries wrap");
+            finder.ChangeCategory(1, Members);
+            Expect("objective", finder.Target, "the empty landmarks list is passed over");
+            Expect(true, finder.Arrive("objective"), "landing there arrives");
+            Expect(string.Empty, finder.Target, "arrival drops the destination");
+            Expect(false, finder.Arrive("objective"), "arrival fires once");
+            finder.ChangeCategory(1, Members);
+            Expect("Position", finder.Category.ToString(), "lists wrap home");
         }
     }
 }

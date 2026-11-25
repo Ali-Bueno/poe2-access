@@ -902,8 +902,14 @@ namespace Poe2Accessibility
                 this.Isolated("map pins", static core => core.mapPins?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
             }
 
-            if (this.Settings.AnnounceAtlasNodes)
+            if (this.Settings.AnnounceAtlasNodes || this.Settings.AtlasFinder)
             {
+                if (this.atlasNodes != null)
+                {
+                    this.atlasNodes.AnnounceNodes = this.Settings.AnnounceAtlasNodes;
+                    this.atlasNodes.FinderOn = this.Settings.AtlasFinder;
+                }
+
                 this.Isolated("atlas node", static core => core.atlasNodes?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
             }
 
