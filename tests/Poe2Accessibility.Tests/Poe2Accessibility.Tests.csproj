@@ -146,6 +146,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SocketAim.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemModCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\InspectRows.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\InspectTable.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Inspect.cs" Link="Plugin\Announcements.Inspect.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ComboIdentity.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\BaselineGrace.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\AreaBanner.cs" />

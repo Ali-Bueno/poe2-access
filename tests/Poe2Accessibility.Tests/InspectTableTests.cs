@@ -20,6 +20,13 @@ namespace Poe2Accessibility.Tests
             (nameof(TheRobesAlignByStat), TheRobesAlignByStat),
             (nameof(ARepeatedLinePairsInOrder), ARepeatedLinePairsInOrder),
             (nameof(ARingAgainstBothRings), ARingAgainstBothRings),
+            (nameof(FlicksWalkTheRobesOneLineAtATime), FlicksWalkTheRobesOneLineAtATime),
+            (nameof(EdgesSayTheCellAgain), EdgesSayTheCellAgain),
+            (nameof(TheFirstFlickSidewaysEntersTheFirstRow), TheFirstFlickSidewaysEntersTheFirstRow),
+            (nameof(OneTooltipIsOneColumn), OneTooltipIsOneColumn),
+            (nameof(ARebuildSaysOnlyAChangedCell), ARebuildSaysOnlyAChangedCell),
+            (nameof(AnItemWithoutSocketsSaysSo), AnItemWithoutSocketsSaysSo),
+            (nameof(ARebuildWithoutTheRowMovesToTheNearest), ARebuildWithoutTheRowMovesToTheNearest),
         };
 
         /// <summary>The magic robe in the bag the user compared on 2026-11-24, advanced info on (Fixtures/inspect-layers.txt, "robes").</summary>
@@ -102,6 +109,85 @@ namespace Poe2Accessibility.Tests
             Expect("title|+# to maximum Life|+# to maximum Mana", string.Join("|", rows.Select(row => row.Key)), "rows");
             Expect("IW-", Cells(rows[1]), "life");
             Expect("-WW", Cells(rows[2]), "mana");
+        }
+
+        // The robes' rows: 0 title, 1 item level, 2 energy shield, 3 requirements, 4 life, 5 intelligence,
+        // 6 increased energy shield, 7 lightning resistance.
+        private static void FlicksWalkTheRobesOneLineAtATime()
+        {
+            var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
+            Expect("Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickDown), "the first flick down reads the first row");
+            Expect("Body Armour: Item Level 7", table.Move(PadGesture.FlickDown), "row 2");
+            Expect("Energy Shield: 28", table.Move(PadGesture.FlickDown), "row 3");
+            Expect("Worn. Energy Shield: 43", table.Move(PadGesture.FlickRight), "switching items says the label first");
+            Expect("Requires: Level 5, 11 Int", table.Move(PadGesture.FlickDown), "up and down don't repeat the label");
+            Expect("This item. Requires, none", table.Move(PadGesture.FlickLeft), "an absent cell names the row");
+            Expect("+19(10-19) to maximum Life, T13, Prefix", table.Move(PadGesture.FlickDown), "this robe's life");
+            Expect("Worn. to maximum Life, none", table.Move(PadGesture.FlickRight), "the worn robe has none");
+            Expect("Worn. to maximum Life, none", table.Move(PadGesture.FlickRight), "past the last item the cell is said again");
+        }
+
+        private static void EdgesSayTheCellAgain()
+        {
+            var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
+            table.Move(PadGesture.FlickDown);
+            Expect("Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickUp), "above the first row");
+            for (var i = 0; i < 10; i++)
+            {
+                table.Move(PadGesture.FlickDown);
+            }
+
+            Expect("to Lightning Resistance, none", table.Move(PadGesture.FlickDown), "below the last row (lightning resistance, which this robe lacks)");
+        }
+
+        private static void TheFirstFlickSidewaysEntersTheFirstRow()
+        {
+            var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
+            Expect("Worn. Protective Feathered Robe of the Cloud, magic", table.Move(PadGesture.FlickRight), "right from the start");
+        }
+
+        private static void OneTooltipIsOneColumn()
+        {
+            var table = new InspectTable(new[] { "This item" }, InspectRows.Align(new[] { Robe }));
+            table.Move(PadGesture.FlickDown);
+            Expect("This item. Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickRight), "no other item to go to");
+        }
+
+        private static void ARebuildSaysOnlyAChangedCell()
+        {
+            var labels = new[] { "This item", "Worn" };
+            var table = new InspectTable(labels, InspectRows.Align(new[] { Robe, WornRobe }));
+            for (var i = 0; i < 5; i++)
+            {
+                table.Move(PadGesture.FlickDown); // five flicks down end on this robe's life row (row 4)
+            }
+
+            Expect(null, table.Rebuild(labels, InspectRows.Align(new[] { Robe, WornRobe })), "same text, nothing said");
+            var plain = Robe with { Lines = Robe.Lines.Select(line => line.Match.Contains("Life", StringComparison.Ordinal) ? new InspectLine("+19 to maximum Life", "+19 to maximum Life") : line).ToList() };
+            Expect("+19 to maximum Life", table.Rebuild(labels, InspectRows.Align(new[] { plain, WornRobe })), "advanced info off: the row's new text");
+        }
+
+        private static void AnItemWithoutSocketsSaysSo()
+        {
+            var socketed = new InspectItem("A", new[] { new InspectLine("A", "A"), new InspectLine("2 sockets: Lesser Iron Rune, empty", InspectRows.SocketsMatch) }, false, null);
+            var plain = new InspectItem("B", Lines("B"), true, null);
+            var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { socketed, plain }));
+            table.Move(PadGesture.FlickDown);
+            Expect("2 sockets: Lesser Iron Rune, empty", table.Move(PadGesture.FlickDown), "the sockets row");
+            Expect("Worn. no sockets", table.Move(PadGesture.FlickRight), "the other item has none");
+        }
+
+        private static void ARebuildWithoutTheRowMovesToTheNearest()
+        {
+            var labels = new[] { "This item", "Worn" };
+            var table = new InspectTable(labels, InspectRows.Align(new[] { Robe, WornRobe }));
+            for (var i = 0; i < 4; i++)
+            {
+                table.Move(PadGesture.FlickDown); // four flicks end on the requirements row, "Requires, none" on this robe
+            }
+
+            var noRequirements = WornRobe with { Lines = WornRobe.Lines.Where(line => !line.Match.StartsWith("Requires", StringComparison.Ordinal)).ToList() };
+            Expect("+19(10-19) to maximum Life, T13, Prefix", table.Rebuild(labels, InspectRows.Align(new[] { Robe, noRequirements })), "the row went, the next one is said");
         }
     }
 }
