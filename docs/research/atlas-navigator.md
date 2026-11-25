@@ -140,6 +140,19 @@ surfacing, post-activation confirmation), the tower tablet window's slotted effe
 allocation state and finder. Each re-enters when the owner names the pain or Phase 0's dump shows the generic
 reader failing there.
 
+**The Atlas passive tree's finder re-entered and is built (2026-11-25, the owner's word: the D-pad does not walk
+its nodes, only the stick — as on the passive tree).** The passive finder's machinery itself cannot run there:
+its tree state is judged by the main tree's graph file name (`Metadata/PassiveSkillGraph…`; this tree's file is
+`metadata/atlasskillgraphs/atlasskillgraph.psg`), and its allocated list, points and build marks are the main tree's. So the finder
+borrows its pure logic instead: `AtlasTreeMap` over the catalog's 575 atlasskillgraph nodes (kinds and clusters
+from the ids, masteries left out), link distances by `PassiveMap.Steps`, pushes by `PassiveStick.Route` over the
+drawn centres, the finder's D-pad scheme and words (`UiSemantics.AtlasTree.cs`, lists Position / Notables /
+Clusters; `IsAtlasTreeNode` routes the D-pad). No new offsets. Still open here: allocation state and point costs
+(this canvas's allocated list is unread — never guessed; a live sweep with `passivenear`/`atlasnode` on the tree
+settles whether the main tree's state layout serves), a resume of the last node, and the unspent-points count.
+Phase 2's wording was accepted by the owner the same day ("good enough" over the maps run since). The Atlas
+**map's** Phase 3 finder still waits on its gesture (the D-pad hops the map's nodes itself).
+
 ## 6. Phase 0 capture checklist
 
 Roles: the owner stands at the Atlas and hops; the agent writes `Plugins/Poe2Accessibility/debug/command.txt`

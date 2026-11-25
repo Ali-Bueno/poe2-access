@@ -66,5 +66,17 @@ namespace Poe2Accessibility
 
         /// <summary>"Nearest: right, Slash": the closest revealed nodes by direction around a row-less landing.</summary>
         public static string AtlasNearest(string parts) => T($"Nearest: {parts}", $"Cercanos: {parts}");
+
+        /// <summary>The Atlas skill tree finder's lists, said on entering one.</summary>
+        public static string AtlasTreeCategoryName(Services.AtlasTreeCategory category) => category switch
+        {
+            Services.AtlasTreeCategory.Notables => T("Notables", "Notables"),
+            Services.AtlasTreeCategory.Clusters => T("Clusters", "Grupos"),
+            _ => T("Position", "Posición"),
+        };
+
+        /// <summary>How many links a node lies from the cursor on a graph ("3 links away").</summary>
+        public static string AtlasLinksAway(int links) =>
+            links == 1 ? T("1 link away", "a 1 enlace") : T($"{links} links away", $"a {links} enlaces");
     }
 }

@@ -114,6 +114,14 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            // The Atlas skill tree's finder (UiSemantics.AtlasTree.cs): the way to its chosen node, as the
+            // passive tree's guide says it at the end of every node.
+            var atlasTreeNode = node.Graph == AtlasTreeMap.GraphName;
+            if (atlasTreeNode && this.AtlasTreeGuide(id, centres) is { Length: > 0 } guide)
+            {
+                tooltip.Add(guide);
+            }
+
             return new AccessibleUiNode
             {
                 Address = info.Address,
@@ -122,6 +130,7 @@ namespace Poe2Accessibility.Services
                 Text = name,
                 IsVisible = this.elements.IsVisible(info),
                 IsHovered = hovered,
+                IsAtlasTreeNode = atlasTreeNode,
                 Context = this.PanelTitle(info),
                 Tooltip = tooltip,
                 TooltipPending = popup.Count == 0,

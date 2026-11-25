@@ -81,6 +81,12 @@ namespace Poe2Accessibility.Services
 
         public CatalogNode? Node(string passiveId) => this.data.Nodes.TryGetValue(passiveId, out var node) ? node : null;
 
+        /// <summary>Every node of one graph, for a walk over the whole of it (the Atlas tree's finder).</summary>
+        public IReadOnlyList<(string Id, int X, int Y, IReadOnlyList<string>? Links)> GraphNodes(string graph) =>
+            this.data.Nodes.Where(pair => pair.Value.Graph == graph)
+                .Select(pair => (pair.Key, pair.Value.X, pair.Value.Y, (IReadOnlyList<string>?)pair.Value.Links))
+                .ToList();
+
         /// <summary>
         ///     A node by what is known before it is hovered: an Atlas passive's name, the one map an Atlas map node can be, or the
         ///     biomes it can be in ("Bosque o Pantano"); empty when the data holds none of these (the map is drawn at random).

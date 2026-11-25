@@ -25,6 +25,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasStateReadsBitsNotEquality), AtlasStateReadsBitsNotEquality),
             (nameof(AtlasLandingSaysStateAfterName), AtlasLandingSaysStateAfterName),
             (nameof(AtlasGraphWalksLinksAndSectors), AtlasGraphWalksLinksAndSectors),
+            (nameof(AtlasTreeMapReadsClustersKindsAndOrdering), AtlasTreeMapReadsClustersKindsAndOrdering),
+            (nameof(AtlasTreeFinderWalksListsAndCountsPushes), AtlasTreeFinderWalksListsAndCountsPushes),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -250,6 +252,66 @@ namespace Poe2Accessibility.Tests
             });
             Expect("NearEast|North", string.Join("|", nearest), "one nearest per direction, itself left out, nearest first");
             Expect(new Vector2(13, -18), AtlasGraph.ScreenPlace(13, 18), "the grid's y flips to the screen's");
+        }
+
+        /// <summary>Two clusters in a line: the generic tree's start, a small, a notable; the Abyss cluster the same, unlinked.</summary>
+        private static AtlasTreeMap AtlasTreeFixture() => AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[]
+        {
+            ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
+            ("AtlasGenericSmall1", 100, 0, new[] { "AtlasGenericNotable1" }),
+            ("AtlasGenericNotable1", 200, 0, null),
+            ("AtlasGenericMastery1", 100, 50, null),
+            ("AtlasAbyssStart", 500, 0, new[] { "AtlasAbyssSmall1" }),
+            ("AtlasAbyssSmall1", 600, 0, new[] { "AtlasAbyssNotable1" }),
+            ("AtlasAbyssNotable1", 700, 0, null),
+        });
+
+        private static void AtlasTreeMapReadsClustersKindsAndOrdering()
+        {
+            Expect("Abyss", AtlasTreeMap.ClusterOf("AtlasAbyssNotable1"), "the kind ends the cluster");
+            Expect("Generic", AtlasTreeMap.ClusterOf("AtlasGenericSmall78_"), "a small of the generic tree");
+            Expect("AzmeriSpirit", AtlasTreeMap.ClusterOf("AtlasAzmeriSpiritEssenceChance"), "a named small with no kind word");
+            Expect("BiomeCity", AtlasTreeMap.ClusterOf("AtlasBiomeCity1"), "a bare number ends the cluster");
+            Expect("Azmeri Spirit", AtlasTreeMap.SaidCluster("AzmeriSpirit"), "a cluster as said");
+            var tree = AtlasTreeFixture();
+            Expect(6, tree.Ids.Length, "the mastery icon is left out");
+            var small = tree.Index["AtlasGenericSmall1"];
+            var distances = tree.DistancesFrom(small);
+            Expect(1, distances[tree.Index["AtlasGenericNotable1"]], "its notable one link on, the link read back the other way");
+            Expect(PassiveMap.NoPath, distances[tree.Index["AtlasAbyssNotable1"]], "no links join the clusters");
+            Expect("AtlasGenericNotable1|AtlasAbyssNotable1", string.Join("|", tree.Members(AtlasTreeCategory.Notables, small, distances)),
+                "notables: linked first in links, the other cluster's after");
+            Expect("AtlasGenericStart|AtlasAbyssStart", string.Join("|", tree.Members(AtlasTreeCategory.Clusters, small, distances)),
+                "cluster starts by drawn distance");
+        }
+
+        private static void AtlasTreeFinderWalksListsAndCountsPushes()
+        {
+            var tree = AtlasTreeFixture();
+            var small = tree.Index["AtlasGenericSmall1"];
+            var distances = tree.DistancesFrom(small);
+            IReadOnlyList<string> Members(AtlasTreeCategory category) => tree.Members(category, small, distances);
+            var finder = new AtlasTreeFinder();
+            finder.ChangeCategory(1, Members);
+            Expect("Notables", finder.Category.ToString(), "down once from Position");
+            Expect("AtlasGenericNotable1", finder.Target, "the nearest notable is the target, nothing to confirm");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("AtlasAbyssNotable1", finder.Target, "right walks the entries");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("AtlasGenericNotable1", finder.Target, "entries wrap");
+            finder.ChangeCategory(1, Members);
+            Expect("AtlasGenericStart", finder.Target, "the clusters' nearest start");
+            finder.ChangeCategory(1, Members);
+            Expect("Position", finder.Category.ToString(), "lists wrap back to Position");
+            Expect(string.Empty, finder.Target, "Position lets the target go");
+            finder.ChangeCategory(1, Members);
+            Expect(true, finder.Arrive("AtlasGenericNotable1"), "landing on the target arrives");
+            Expect(string.Empty, finder.Target, "arrival ends the guide");
+            Expect(false, finder.Arrive("AtlasGenericNotable1"), "arrival fires once");
+            var way = tree.Way(tree.Places, tree.Index["AtlasGenericStart"], tree.Index["AtlasGenericNotable1"], 60, out var far);
+            Expect(false, far, "two pushes are not far");
+            Expect(0, way?.Octant ?? -1, "the first push is right, octant 0");
+            Expect(2, way?.Pushes ?? -1, "start to notable through the small: 2 pushes");
         }
     }
 }

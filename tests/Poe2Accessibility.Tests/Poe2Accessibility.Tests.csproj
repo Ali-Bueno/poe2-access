@@ -256,6 +256,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\AtlasLinks.cs" Link="Plugin\AtlasLinks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasState.cs" Link="Plugin\AtlasState.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasGraph.cs" Link="Plugin\AtlasGraph.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\AtlasTreeMap.cs" Link="Plugin\AtlasTreeMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Endgame.cs" Link="Plugin\Announcements.Endgame.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\ClassMechanics.cs" Link="Extract\ClassMechanics.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ClassMechanicCatalog.cs" Link="Plugin\ClassMechanicCatalog.cs" />

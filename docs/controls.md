@@ -329,6 +329,15 @@ build's next node is where you left off then), the guide leads back there: "Wher
 12", every node counting down to "Back where you left off". Allocating a node elsewhere first, or choosing another target
 with the D-pad, drops it. Ways are counted up to 60 pushes; beyond, the direction is said ("far, up").
 
+**The Atlas skill tree** (from the Atlas: hold X, point the stick down to "Atlas Skill Tree", release) works the
+same way: the stick hops node to node, each node is read with what it does and its links, and the D-pad is a
+finder over it — down and up walk the lists Position, Notables and Clusters (the start of the generic tree and of
+each league's cluster, to travel between them), left and right walk a list nearest first, what it names is the
+target, and every node then ends with the way ("Toward Stir the Swarm: up, 3"), counting down to "Arrived at …".
+An entry says its cluster, side and ring and how many links it lies from the cursor ("Stir the Swarm, Abyss, down
+right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
+popup says "Unallocated" where it stands.
+
 The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it
 is read, and on release the view settles on the node in the middle. The links and the finder's ways count
 left-stick pushes: after the right stick, the first left push may land elsewhere than said, and
