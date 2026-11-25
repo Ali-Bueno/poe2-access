@@ -45,6 +45,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What a layer of inspect mode says when nothing in it takes the cursor; empty for another layer. Set by the plugin.</summary>
         public Func<IntPtr, string>? InspectOpening { get; set; }
 
+        /// <summary>Whether a layer is the one Inspect Mode's table reads. Set by the plugin.</summary>
+        public Func<IntPtr, bool>? IsInspectLayer { get; set; }
+
         private bool? inspectAdvanced;
 
         /// <summary>Whether the microtransaction shop is the panel shown. Set by the plugin.</summary>

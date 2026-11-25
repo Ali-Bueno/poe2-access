@@ -59,8 +59,8 @@ namespace Poe2Accessibility.Services
 
         private (string Text, long At)? burst;
 
-        /// <summary>Whether a flick of the right stick is the table's: it is on, and the game's focus is still somewhere (a close that drops it is gameplay again).</summary>
-        public bool TakesFlicks(bool hasFocus) => this.Active && hasFocus;
+        /// <summary>Whether a flick of the right stick is the table's: it is on, and Inspect Mode still shows (a close not yet noticed is gameplay again).</summary>
+        public bool TakesFlicks(bool shown) => this.Active && shown;
 
         /// <summary>
         ///     How long after the opening the inspect layer's first focus may still be read: the narrator waits for a new
@@ -167,11 +167,11 @@ namespace Poe2Accessibility.Services
         /// <summary>What a flick of the right stick says; empty when the table is not on.</summary>
         public string Flick(PadGesture flick) => this.table?.Move(flick) ?? string.Empty;
 
-        /// <summary>Each item's label: the inspected one first, a single worn one as "Worn", several by their slots.</summary>
+        /// <summary>Each item's label: the inspected one first, a single worn one as "Worn", several by their slots where known.</summary>
         private static IReadOnlyList<string> Labels(IReadOnlyList<InspectItem> items)
         {
             var labels = new List<string> { Announcements.InspectThisItem };
-            labels.AddRange(items.Skip(1).Select(item => items.Count == 2 ? Announcements.InspectWorn : Announcements.InspectWornIn(item.Slot ?? string.Empty)));
+            labels.AddRange(items.Skip(1).Select(item => items.Count > 2 && item.Slot is { Length: > 0 } slot ? Announcements.InspectWornIn(slot) : Announcements.InspectWorn));
             return labels;
         }
 

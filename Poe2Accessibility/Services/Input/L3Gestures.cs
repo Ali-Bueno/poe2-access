@@ -135,21 +135,16 @@ namespace Poe2Accessibility.Services
 
             if (r3)
             {
-                // A press of the stick pushes it too, also the press that opens Inspect Mode before its table takes the
-                // stick: whenever flicks are read, none comes from it until the stick is back at the centre.
+                // The stick pressed in is the game's button (Inspect Mode's Close, held its Toggle Advanced Info), and pressing
+                // it pushes the stick too, also the press that opens the mode before its table takes the stick: none of it is
+                // a flick until the stick is back at the centre.
                 this.freeStickOut = true;
             }
 
             if (this.FlicksWithoutL3 && !l3)
             {
                 var free = Math.Max(Math.Abs(rightX), Math.Abs(rightY));
-                if (r3)
-                {
-                    // The stick pressed in is the game's button (Inspect Mode's Close, held its Toggle Advanced Info), and
-                    // pressing it pushes the stick too: no flick until the stick is back at the centre after the press.
-                    this.freeStickOut = true;
-                }
-                else if (!this.freeStickOut && free >= FlickPress)
+                if (!this.freeStickOut && free >= FlickPress)
                 {
                     this.freeStickOut = true;
                     gestures.Add(Math.Abs(rightY) >= Math.Abs(rightX)

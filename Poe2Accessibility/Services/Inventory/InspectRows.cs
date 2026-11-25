@@ -76,8 +76,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The items' lines as rows: the titles first, then each item folded into the rows in turn. The longest run of
-        ///     lines two lists have in common, in order, shares rows; between those, the lines of only one side keep their
-        ///     own order, property lines first, so that a requirement one item has stays near the top.
+        ///     lines two lists have in common, in order, shares rows; a line both have elsewhere joins its row too, whatever
+        ///     its place. Between those, the lines of only one side keep their own order, property lines first, so that a
+        ///     requirement one item has stays near the top.
         /// </summary>
         public static IReadOnlyList<InspectRow> Align(IReadOnlyList<InspectItem> items)
         {
@@ -96,6 +97,17 @@ namespace Poe2Accessibility.Services
                 {
                     body = lines;
                     continue;
+                }
+
+                // Two items can list the same stats in another order: one row all the same, or each would be said to lack it.
+                var ordered = CommonRun(body, lines).Select(pair => pair.Line).ToHashSet();
+                foreach (var crossed in lines.Where((_, index) => !ordered.Contains(index)).ToList())
+                {
+                    if (body.Find(crossed.SameAs) is { } shared)
+                    {
+                        shared.Cells[item] = crossed.Cells[item];
+                        lines.Remove(crossed);
+                    }
                 }
 
                 var merged = new List<Row>();

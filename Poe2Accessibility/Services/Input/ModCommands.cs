@@ -76,7 +76,7 @@ namespace Poe2Accessibility.Services
         public InspectTableWatch? Inspect { get; set; }
 
         /// <summary>The table is on in item Inspect Mode: the right stick's flicks are its, with no need to hold L3.</summary>
-        public bool InInspectTable => this.Inspect?.TakesFlicks(this.focus.Current != null) == true;
+        public bool InInspectTable => this.Inspect is { Active: true } table && table.TakesFlicks(this.semantics.InspectLayerShown);
 
         /// <summary>A panel opened over the settings menu: close it quietly (saved).</summary>
         public void CloseSettingsMenu()

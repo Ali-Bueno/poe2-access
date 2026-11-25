@@ -70,32 +70,22 @@ namespace Poe2Accessibility.Services
             return items;
         }
 
+        /// <summary>Whether the inspect layer last found still shows its tooltips.</summary>
+        public bool InspectLayerShown =>
+            this.inspectLayer.Tooltips.Count > 0 && this.elements.TryReadElement(this.inspectLayer.Layer, out var layer) &&
+            this.elements.IsVisible(layer) && this.HoldsLayout(this.inspectLayer.Tooltips[0]);
+
+        /// <summary>Whether a layer is the inspect layer last found.</summary>
+        public bool IsInspectLayer(IntPtr layer) => layer != IntPtr.Zero && layer == this.inspectLayer.Layer;
+
         /// <summary>
-        ///     The Inspect Mode tooltip an element sits in: its layer, the tooltip, the child of `layout` the element is under
-        ///     (a row), and the line element when that row is a modifier group. Null outside one. The focus comes before the
-        ///     screen's snapshot holds the new layer, so the layer is found from the focus up.
+        ///     The screen's layer holding the card an element is part of; null outside one. The focus comes before the screen's
+        ///     snapshot holds the new layer, so the layer is found from the focus up.
         /// </summary>
-        private (IntPtr Layer, IntPtr Tooltip, UiElementReader.ElementInfo Row, UiElementReader.ElementInfo? Line)? ItemTooltipOf(in UiElementReader.ElementInfo info)
-        {
-            var path = new List<UiElementReader.ElementInfo> { info };
-            path.AddRange(this.elements.ReadAncestors(info, MaxInspectDepth));
-            for (var level = 1; level + 4 < path.Count; level++)
-            {
-                // layout -> tooltip -> container -> holder -> layer, the holder being the layer's second child and the layer one
-                // of the screen's layers (a tutorial article's "layout" is in no such place).
-                if (path[level].Name != InspectLayout.LayoutName || path[level + 4].Raw.ParentPtr != this.LayerContainer ||
-                    this.elements.ReadChildren(path[level + 4]) is not { Length: >= 2 } parts || parts[1] != path[level + 3].Address)
-                {
-                    continue;
-                }
-
-                var row = path[level - 1];
-                var line = InspectLayout.IsModGroup(row.Name) && level >= 2 ? path[level - 2] : (UiElementReader.ElementInfo?)null;
-                return (path[level + 4].Address, path[level + 1].Address, row, line);
-            }
-
-            return null;
-        }
+        private IntPtr? InspectLayerOf(in UiElementReader.ElementInfo info) =>
+            this.InspectCardOf(info) == null
+                ? null
+                : this.elements.ReadAncestors(info, MaxCardDepth + MaxCardHopsToLayer).Find(ancestor => ancestor.Raw.ParentPtr == this.LayerContainer).Address;
 
         /// <summary>
         ///     The inspect layer: a top layer whose second child holds one element whose children are item tooltips (each
@@ -103,7 +93,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private (IntPtr Layer, string Label, List<(IntPtr Address, InspectNode Node)> Tooltips)? FindInspectLayer(ScreenSnapshot screen, AccessibleUiNode? focus)
         {
-            var fromFocus = focus != null && this.elements.TryReadElement(focus.Address, out var focusInfo) && this.ItemTooltipOf(focusInfo) is { } focused ? focused.Layer : IntPtr.Zero;
+            var fromFocus = focus != null && this.elements.TryReadElement(focus.Address, out var focusInfo) && this.InspectLayerOf(focusInfo) is { } focused ? focused : IntPtr.Zero;
             var layers = new[] { fromFocus, this.inspectLayer.Layer }.Where(address => address != IntPtr.Zero)
                 .Concat(screen.Layers.OrderByDescending(layer => layer.Index).Select(layer => layer.Address)).Distinct();
             foreach (var address in layers)

@@ -37,7 +37,6 @@ namespace Poe2Accessibility.Services
             var link = links[index];
             var keyword = ShownText(link);
             var row = this.LinkRow(parent, sentence, keyword, out var rowElement);
-            var group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty;
             return new AccessibleUiNode
             {
                 Address = info.Address,
@@ -46,7 +45,7 @@ namespace Poe2Accessibility.Services
                 Text = keyword,
                 Value = row,
                 // The stat list's section ("Escudo de energía" over its rows): said as the links move into it.
-                Group = group,
+                Group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty,
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.InGame && this.PanelTitle(info) is { Length: > 0 } title ? title : this.InspectViewAround(info),
                 Tooltip = this.Definition(info),

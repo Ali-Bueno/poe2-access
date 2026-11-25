@@ -23,7 +23,7 @@ namespace Poe2Accessibility
         public static string InspectWornIn(string slot) => T($"Worn, {slot}", $"Equipado, {slot}");
 
         /// <summary>A row an item lacks, in the row's words without numbers: "to maximum Life, none".</summary>
-        public static string InspectNone(string words) => T($"{words}, none", $"{words}, ninguno");
+        public static string InspectNone(string words) => T($"{words}, none", $"{words}, no tiene");
 
         /// <summary>The sockets row of an item without sockets.</summary>
         public static string InspectNoSockets => T("no sockets", "sin engarces");

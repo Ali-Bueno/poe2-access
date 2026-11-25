@@ -109,8 +109,7 @@ namespace Poe2Accessibility.Services
                     Name = info.Name,
                     Role = UiRole.Panel,
                     Text = held,
-                    // A modifier's tier badge in Inspect Mode is no cell of a grid: its name, tier and tags without a place.
-                    Position = this.ItemTooltipOf(info) == null ? this.PickerPosition(info) : string.Empty,
+                    Position = this.PickerPosition(info),
                     IsVisible = this.elements.IsVisible(info),
                     Context = this.PanelTitle(info),
                     Tooltip = details,

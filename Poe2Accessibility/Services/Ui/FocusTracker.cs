@@ -75,7 +75,6 @@ namespace Poe2Accessibility.Services
         private IntPtr markersRoot;
         private long inGameRescanMs = InGameMarkerRescanMs;
         private IntPtr lastFocused;
-
         private IntPtr seenCurrent;
         private IntPtr seenHovered;
         private IntPtr seenHighlighted;

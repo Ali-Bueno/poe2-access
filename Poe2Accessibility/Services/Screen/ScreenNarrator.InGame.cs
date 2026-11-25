@@ -70,6 +70,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (focus?.InInspectCard != true && change.Kind == ScreenChangeKind.LayerOpened && this.Inspect?.Active == true && this.IsInspectLayer?.Invoke(change.Layer.Address) == true)
+            {
+                return; // nothing in its cards takes the cursor: the table's opening speaks for the layer
+            }
+
             if (focus?.InInspectCard != true && change.Kind == ScreenChangeKind.LayerOpened && this.InspectOpening?.Invoke(change.Layer.Address) is { Length: > 0 } inspect)
             {
                 this.Speak("inspect mode without focus", inspect, true);

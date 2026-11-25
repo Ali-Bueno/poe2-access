@@ -51,7 +51,9 @@ namespace Poe2Accessibility.Tests
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
             (nameof(WornTooltipsTakeSlotsByTitleInOrder), WornTooltipsTakeSlotsByTitleInOrder),
-            (nameof(TheTableTakesFlicksOnlyWithAFocus), TheTableTakesFlicksOnlyWithAFocus),
+            (nameof(TheTableTakesFlicksOnlyWhileShown), TheTableTakesFlicksOnlyWhileShown),
+            (nameof(LinesInAnotherOrderShareTheirRows), LinesInAnotherOrderShareTheirRows),
+            (nameof(AWornItemOfNoKnownSlotIsWorn), AWornItemOfNoKnownSlotIsWorn),
             (nameof(OnlyTheOpeningsReadingIsQuieted), OnlyTheOpeningsReadingIsQuieted),
             (nameof(AHeldBurstIsSaidWhenNoTableComes), AHeldBurstIsSaidWhenNoTableComes),
             (nameof(AHeldBurstGivesWayToTheTable), AHeldBurstGivesWayToTheTable),
@@ -118,6 +120,25 @@ namespace Poe2Accessibility.Tests
             Expect("-W", Cells(rows[3]), "only the worn robe has requirements");
             Expect("I-", Cells(rows[4]), "only this robe has life");
             Expect("IW", Cells(rows[2]), "both have energy shield");
+        }
+
+        // The same stats in another order: a row of its own for each would say "none" of a stat the item has.
+        private static void LinesInAnotherOrderShareTheirRows()
+        {
+            var a = new InspectItem("A", Lines("A", "+10 to maximum Life", "+9% to Cold Resistance", "+5 to Dexterity"), false, null);
+            var b = new InspectItem("B", Lines("B", "+5% to Cold Resistance", "+4 to Spirit", "+7 to maximum Life", "+3 to Dexterity"), true, null);
+            var rows = InspectRows.Align(new[] { a, b });
+            Expect("title:IW|+# to maximum Life:IW|+#% to Cold Resistance:IW|+# to Spirit:-W|+# to Dexterity:IW",
+                string.Join("|", rows.Select(row => $"{row.Key}:{Cells(row)}")), "crossed lines");
+        }
+
+        private static void AWornItemOfNoKnownSlotIsWorn()
+        {
+            var watch = new InspectTableWatch();
+            var ring = new InspectItem("R", Lines("R"), false, null);
+            watch.Update(new[] { ring, ring with { Title = "L", Worn = true, Slot = "left ring" }, ring with { Title = "U", Worn = true } }, "Inspect Mode", true, 0);
+            watch.Flick(PadGesture.FlickRight);
+            Expect("Worn. R", watch.Flick(PadGesture.FlickRight), "no slot known");
         }
 
         private static void ARepeatedLinePairsInOrder()
@@ -506,13 +527,13 @@ namespace Poe2Accessibility.Tests
             Expect(string.Empty, string.Join("|", InspectLayout.MatchSlots(new[] { "Topaz Ring" }, new[] { ("left ring", "Iron Ring", string.Empty) })), "no slot has it");
         }
 
-        // Review, Important 1: a close that drops the focus must not leave the right stick to the table in gameplay.
-        private static void TheTableTakesFlicksOnlyWithAFocus()
+        // Review, Important 1: a close not yet noticed must not leave the right stick to the table in gameplay.
+        private static void TheTableTakesFlicksOnlyWhileShown()
         {
             var watch = new InspectTableWatch();
             watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
-            Equal(true, watch.TakesFlicks(hasFocus: true), "in Inspect Mode");
-            Equal(false, watch.TakesFlicks(hasFocus: false), "the focus went away: gameplay aims again");
+            Equal(true, watch.TakesFlicks(shown: true), "in Inspect Mode");
+            Equal(false, watch.TakesFlicks(shown: false), "the layer went away: gameplay aims again");
         }
 
         // Review, Important 2: only the opening's own reading gives way; Expand and a popup over Inspect Mode are said.

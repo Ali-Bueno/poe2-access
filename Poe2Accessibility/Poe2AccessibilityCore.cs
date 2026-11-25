@@ -546,6 +546,7 @@ namespace Poe2Accessibility
                 this.narrator.InAnotherShopCard = this.semantics.InAnotherShopCard;
                 this.narrator.InInspectCard = this.semantics.InInspectCard;
                 this.narrator.InspectOpening = this.semantics.InspectOpening;
+                this.narrator.IsInspectLayer = this.semantics.IsInspectLayer;
                 this.narrator.InspectAdvanced = this.semantics.InspectAdvanced;
                 this.narrator.ShopShown = () => this.ShopPage() != IntPtr.Zero;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
