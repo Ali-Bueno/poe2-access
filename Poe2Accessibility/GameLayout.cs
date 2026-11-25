@@ -635,6 +635,18 @@ namespace Poe2Accessibility
             /// <summary>On a node element: its place as two i32, the catalog graph's place scaled by about 1/173, y flipped.</summary>
             public const int GridOffset = 0x320;
 
+            /// <summary>
+            ///     On a node element: its state as bits — bit0 the node can be opened, bit1 its map is completed (live
+            ///     2026-11-25, docs/research/atlas-navigator.md §6: locked 0, accessible 1 twice, and the Ancient Gateway
+            ///     1 → 3 across its completion; higher bits occur on special nodes, so read the two bits, never equality).
+            ///     Upstream GameHelper documented the same bits at its stale +0x2BF.
+            /// </summary>
+            public const int StatusOffset = 0x32F;
+
+            public const int StatusAccessibleBit = 1 << 0;
+
+            public const int StatusCompletedBit = 1 << 1;
+
             public const string AtlasTable = "Data/Balance/EndgameMapAtlas.dat";
         }
 

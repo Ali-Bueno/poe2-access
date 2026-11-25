@@ -729,14 +729,14 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
-- **The Atlas navigator's live sweep:** mostly done live 2026-11-25 ([docs/research/atlas-navigator.md](docs/research/atlas-navigator.md)
-  §6, evidence in docs/research/evidence/): the shipped node reader never fires on the Atlas (hover/focus slots
-  empty there), the selected node is `map_control +0x2E0`, identity by dat keys, fog is the element's visible flag,
-  the D-pad hops nodes itself (so the finder needs a mod gesture), zoom is RT, the map device reads through the
-  inventory speech, and the Ancient Gateway is owner-certified accessible/not completed. Node state is not a byte
-  on the element. **Still open:** one owner-certified *completed* node sampled the same way (texture keys across
-  classes, via the new `atlasnode` after a relaunch) and one Atlas Skill Tree node. **Unblocks:** the owner
-  hopping to a completed node and opening the Atlas tree, names said in chat.
+- **The Atlas navigator, Phases 1–3 unbuilt:** Phase 0 closed live 2026-11-25
+  ([docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) §6, evidence in docs/research/evidence/):
+  the shipped node reader never fires on the Atlas map (hover/focus empty there; it does fire in the Atlas Skill
+  Tree, reached by hold-X radial → down), the selected node is `map_control +0x2E0`, identity by dat keys, fog
+  is the visible flag, node state is byte `+0x32F` (bit0 accessible, bit1 completed, four certified points), the
+  D-pad hops nodes itself (finder needs a mod gesture), zoom RT, the map device reads through inventory speech.
+  The owner's unspent Atlas points are spoken nowhere found (allocated counters only). **Unblocks:** the owner's
+  go-ahead to build Phase 1 (selected-node speech with state) and the gesture pick for Phase 3.
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each

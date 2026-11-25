@@ -191,39 +191,19 @@ written down as still open, not guessed.
   fog/unrevealed is the element's own visible flag. The catalog graph holds 610 nodes, so elements outnumber graph
   nodes (connection/region elements share the flags, or nodes come in pairs — unsettled, and it does not matter
   until a scan walks them).
-- Status byte `+0x2BF` vs known states: **not settled; round 3 narrows it to three bytes.** The owner completed
-  the Ancient Gateway (relaunch on the new build, "Map Completed | Ancient Gateway" 12:34) and the same node was
-  sampled before (accessible) and after (completed)
+- **Node state (PROVEN): byte `+0x32F`, bit0 accessible, bit1 completed** — the semantics upstream documented at
+  its stale `+0x2BF` (endgame-ui.md §3), at the live offset in `GameLayout.AtlasNode`. Four certified points over
+  two sessions: locked **0** (The Burning Monolith, `AtlasYellowGate` — A on it did nothing); accessible **1**
+  (the Ancient Gateway before completion, and Steaming Springs `AtlasNormalMapsWithDelirium7___` grid −3,11 —
+  predicted 1 before sampling, A opened its Traverse); completed **3** (the same Gateway after the owner
+  completed it, "Map Completed | Ancient Gateway" 12:34 — bit1 flipped on the completion event and nothing else
+  nearby moved). The replicating accessible sample was the last Phase 0 unknown; it read 1 as predicted
   ([evidence/atlas-completed-gateway-20261125.log](evidence/atlas-completed-gateway-20261125.log),
-  [evidence/ui-tree-atlas-after-gateway-20261125-123742.txt](evidence/ui-tree-atlas-after-gateway-20261125-123742.txt)):
-  `+0x32F` 1→3, `+0x33E` 38→34, `+0x340` 0→2 are the small-field changes (pointer bytes apart), but completing a
-  map may reroll the node's contents, so none is convicted yet. There is no completion overlay element and the
-  node draws no texture key the reader can see (`textures []` from the new `atlasnode`, which also proved
-  `record +0x310` and the selected-node chain live). Then the owner rested on The Burning Monolith
-  (`AtlasYellowGate`, grid 8,40 — A on it did nothing: locked, certainly not completed). The three certified
-  points now read **`+0x32F`: locked 0, accessible 1, completed 3** — bit0 accessible, bit1 completed, the very
-  semantics upstream documented at its stale `+0x2BF` (endgame-ui.md §3); completing the Gateway flipped bit1 and
-  nothing else nearby (`+0x340` is 2 on both new-build samples, dead lead; `+0x33E` varies per node). Morning
-  samples fit the same reading where their class is independently likely (Bloodwood 3, the completed-that-morning
-  Rustbowl 3, Caldera 0), with unexplained values elsewhere (4, 16 — likely further flags: attempted, sealed,
-  special). One same-session accessible sample predicted at 1 (asked, pending) promotes this from LIKELY to the
-  Phase 1 field, to be read as bits, never as an exact enum. Round 2's wider result stands: `+0x2BE/+0x2BF` are
-  zero on every sampled node. Two further nodes are locked with the popup as witness (a Rustbowl: "Close the Northern Abyssal Wounds
-  in order to access this Wound"; the Vaal Vault: "Find and activate a Vessel of Estazunti…"), found by batching
-  `datkeys` over the 56 visible nodes around the owner's route and matching areas to the day's popup log. No byte
-  in the element's 0x420 bytes separates those two from three not-locked samples (Pit, Bloodwood, Caldera) — weak
-  evidence only, since "not locked" mixes accessible with possibly completed, and areas repeat across nodes so an
-  area name never certifies a node. The u64 at `+0x328` decomposes as a repeated low u32 (shared by node pairs —
-  a hash, not state), a constant `0x06` at `+0x32C`, and small varying bytes; `+0x330` holds a per-node index-like
-  u32 (all distinct: 1…20); the vector at `+0x360` is populated on both classes. **Conclusion so far: state is
-  likely not on the element** — it is external progress data, surfaced on the element only as art/colour and in
-  the popup. The popup's own lexicon today: the catalog's blocked text (locked), "Map Attempted", and no
-  completed wording (the "Map Completed" line was an in-map banner). The sampling tool now exists: `atlasnode`
-  reads the selected node from `map_control +0x2E0` (`UiSemantics.AtlasSelectedReport`, fields in
-  `GameLayout.AtlasNode` with this section as provenance) and logs its dat-key identity, grid, the candidate
-  fields and every texture key it draws; `atlasnode 0x…` samples a named element. It lands on the owner's next
-  relaunch (the running copy predates it). Owner-certified completed/accessible/locked samples through it —
-  texture keys first — settle where state lives.
+  [evidence/ui-tree-atlas-after-gateway-20261125-123742.txt](evidence/ui-tree-atlas-after-gateway-20261125-123742.txt)).
+  Higher bits occur on morning samples (4, 16 — attempted/sealed/special candidates), so Phase 1 reads bits 0/1
+  only, never equality. Dead ends kept honest: `+0x340` is 2 on both new-build samples, `+0x33E` is per-node
+  noise, there is no completion overlay element, and nodes draw no texture key the reader can see (`textures []`).
+  Re-validation after a patch = this protocol (owner-certified hop + `atlasnode`), never a blind shift.
 - You-are-here: **unresolved.** The canvas's last child (1062, 54×54 at (60,722)) is a button (its kid carries
   click sounds), not the marker. Next lead: whatever element shares the selected node's centre when the Atlas
   opens on the player's position, or a node whose content/art differs in a full-canvas scan.
