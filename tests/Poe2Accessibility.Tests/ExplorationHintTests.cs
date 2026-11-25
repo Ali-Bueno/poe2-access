@@ -26,10 +26,14 @@ namespace Poe2Accessibility.Tests
 
         private static void AFarCharacterIsDrawnOnlyInTown()
         {
-            Equal(false, MinimapPointer.Drawn(false, true, 2000, 250), "the Water Goddess 2,000 cells off in a boss room: not drawn");
-            Equal(true, MinimapPointer.Drawn(false, true, 200, 250), "within the NPC icon's reach the minimap shows her");
-            Equal(true, MinimapPointer.Drawn(true, true, 2000, 0), "in a town every character the game knows of");
-            Equal(true, MinimapPointer.Drawn(false, false, 2000, 0), "an exit or a waypoint keeps its icon wherever the game has it");
+            Equal(false, MinimapPointer.Drawn(false, true, false, 2000, 250), "the Water Goddess 2,000 cells off in a boss room: not drawn");
+            Equal(true, MinimapPointer.Drawn(false, true, false, 200, 250), "within the NPC icon's reach the minimap shows her");
+            Equal(true, MinimapPointer.Drawn(true, true, false, 2000, 0), "in a town every character the game knows of");
+            Equal(false, MinimapPointer.Drawn(false, false, true, 3950, 250), "an exit the client has across the whole map (Halls of the Dead): not drawn");
+            Equal(true, MinimapPointer.Drawn(false, false, true, 150, 250), "an exit at the bubble's edge is");
+            Equal(false, MinimapPointer.Drawn(false, false, true, 3950, 0), "a reach not read is the usual one for a thing");
+            Equal(true, MinimapPointer.Drawn(false, false, false, 2000, 250), "a Trial's crystal, against its clock, at any distance");
+            Equal(true, MinimapPointer.Drawn(false, false, true, 3950, 100000), "a mark the game shows map-wide");
         }
 
         private static void GoingRoundInCirclesCountsSinceTheLastNewGround()

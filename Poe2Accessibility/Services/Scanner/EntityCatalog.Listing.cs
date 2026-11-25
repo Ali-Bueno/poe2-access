@@ -450,11 +450,13 @@ namespace Poe2Accessibility.Services
             }
 
             var character = entry.Category == ScanCategory.Npcs;
+            var exit = entry.Category == ScanCategory.Exits && entry.Kind == QuestMatcher.ExitKind && !this.RoomsApart();
             return MinimapPointer.Drawn(
                 town,
                 character,
+                exit,
                 Vector2.Distance(new Vector2(player.GridPosition.X, player.GridPosition.Y), new Vector2(render.GridPosition.X, render.GridPosition.Y)),
-                town || !character ? 0 : MinimapIconLabel.PointerCells(this.memory, icon));
+                town || !(character || exit) ? 0 : MinimapIconLabel.PointerCells(this.memory, icon));
         }
 
         private static float Distance(StdTuple3D<float> origin, ScanEntry entry) =>

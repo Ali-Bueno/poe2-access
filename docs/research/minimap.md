@@ -60,8 +60,12 @@ bubble, and the unit of the pointer distance.
 
 ## Scanner rule
 - Enemies: while on screen (the minimap draws no campaign monsters).
-- Things with a minimap icon (exits, waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the
-  client has them; the game draws their icon or the edge pointer.
+- Things with a minimap icon (waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the client has them;
+  the game draws their icon or the edge pointer. An exit to another area (not on a Trial's floor): within its icon's pointer
+  reach (`MinimapPointer.Drawn`), on screen or on explored ground. Until 2026-11-25 at any distance: in the Halls of the Dead (G4_4_2) the client had the exit "La prueba de los ancestros" 429 steps off (about
+  3,950 cells) three seconds after arriving and "Nueva salida: …, tu misión" was said (the owner: "¿está el minimapa mostrando
+  esto o es el mod que se ha vuelto loco?"). `Entrance` reaches 250 cells, as 1,011 of the 1,050 rows; only eight reach map-wide
+  (100000) and none is an exit. What the quest's own icon marks is still in the Quest category at any distance.
 - Characters (NPCs) out of a town or hideout: only within their icon's pointer reach (+0x12; "NPC" 250 cells), on screen or
   on explored ground (`MinimapPointer.Drawn`). The client knows some quest characters map-wide from the arrival: in
   Santuarios enterrados (Act 2, 2026-11-17) the Water Goddess (`Metadata/NPC/Four_Act2/WaterGoddessUnnamed`) was listed the
