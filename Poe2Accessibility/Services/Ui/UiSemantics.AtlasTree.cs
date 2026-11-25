@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         private AtlasTreeMap? atlasTree;
         private (string From, string To, Dictionary<string, Vector2>? Centres, Way? Way)? atlasTreeWay;
 
+        /// <summary>The guide line said on the node under the cursor, kept while it stays (as the passive guide's).</summary>
+        private (string Node, string Line)? atlasTreeGuideSaid;
+
         /// <summary>The Atlas tree's graph from the files, built once; null while the catalog holds none of it.</summary>
         private AtlasTreeMap? AtlasTree =>
             this.atlasTree ??= EndgameCatalog.Shared.GraphNodes(AtlasTreeMap.GraphName) is { Count: > 0 } nodes ? AtlasTreeMap.Build(nodes) : null;
@@ -66,23 +69,30 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What the guide says on a hovered Atlas tree node ("Toward Stir the Swarm: up, 3"), the arrival on
-        ///     the target itself; empty while no target is chosen.
+        ///     the target itself; empty while no target is chosen. Worked out once per node and kept while the
+        ///     cursor stays, as the passive guide's is (<see cref="GuideAt"/>): a choice made on this node with
+        ///     the D-pad is said by the finder itself, and a guide line changing under it here would be spoken
+        ///     over that answer, then again in its brief form (live 2026-11-25: three speeches per press).
         /// </summary>
         private string AtlasTreeGuide(string id, Dictionary<string, Vector2>? centres)
         {
-            if (this.AtlasTree is not { } tree || !tree.Index.TryGetValue(id, out _) || this.atlasTreeFinder.Target.Length == 0)
+            if (this.atlasTreeGuideSaid is { } said && said.Node == id)
             {
-                return string.Empty;
+                return said.Line;
             }
 
-            var target = this.atlasTreeFinder.Target;
-            var name = tree.Index.TryGetValue(target, out var at) ? this.AtlasTreeName(tree, at) : target;
-            if (this.atlasTreeFinder.Arrive(id))
+            var line = string.Empty;
+            if (this.AtlasTree is { } tree && tree.Index.TryGetValue(id, out _) && this.atlasTreeFinder.Target.Length > 0)
             {
-                return Announcements.BeaconArrived(name);
+                var target = this.atlasTreeFinder.Target;
+                var name = tree.Index.TryGetValue(target, out var at) ? this.AtlasTreeName(tree, at) : target;
+                line = this.atlasTreeFinder.Arrive(id)
+                    ? Announcements.BeaconArrived(name)
+                    : this.GoalAndWay($"atlas tree {target}", Announcements.PassiveToward(name), this.AtlasTreeWayTo(tree, centres, id, target));
             }
 
-            return this.GoalAndWay($"atlas tree {target}", Announcements.PassiveToward(name), this.AtlasTreeWayTo(tree, centres, id, target));
+            this.atlasTreeGuideSaid = (id, line);
+            return line;
         }
 
         /// <summary>A node's spoken name: the catalog's for a passive, its cluster's start word for a start.</summary>
@@ -91,11 +101,13 @@ namespace Poe2Accessibility.Services
             : tree.Start[at] ? Announcements.PassiveStartLink(AtlasTreeMap.SaidCluster(tree.Clusters[at]), false)
             : Announcements.AtlasNode;
 
-        /// <summary>"Abyss, down right, outer ring, 3 links away": a node's cluster, its side and ring of the tree, and its links from the cursor.</summary>
+        /// <summary>"Abyss, down right, outer ring, 3 links away": a node's cluster, its side and ring of the tree, and its links from the cursor. A start's name already says its cluster.</summary>
         private string AtlasTreeWhere(AtlasTreeMap tree, int at, int[] distances, bool here)
         {
             var (octant, ring) = PassiveMap.Zone(tree.Places, at);
-            var place = $"{AtlasTreeMap.SaidCluster(tree.Clusters[at])}, {Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}";
+            var place = tree.Start[at] && !here
+                ? $"{Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}"
+                : $"{AtlasTreeMap.SaidCluster(tree.Clusters[at])}, {Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}";
             return !here && distances[at] > 0 ? $"{place}, {Announcements.AtlasLinksAway(distances[at])}" : place;
         }
 
