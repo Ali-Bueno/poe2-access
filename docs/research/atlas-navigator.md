@@ -191,8 +191,18 @@ written down as still open, not guessed.
   fog/unrevealed is the element's own visible flag. The catalog graph holds 610 nodes, so elements outnumber graph
   nodes (connection/region elements share the flags, or nodes come in pairs — unsettled, and it does not matter
   until a scan walks them).
-- Status byte `+0x2BF` vs known states: **not settled; round 2 is negative.** `+0x2BE/+0x2BF` are zero on all
-  sampled nodes. Two nodes are locked with the popup as witness (a Rustbowl: "Close the Northern Abyssal Wounds
+- Status byte `+0x2BF` vs known states: **not settled; round 3 narrows it to three bytes.** The owner completed
+  the Ancient Gateway (relaunch on the new build, "Map Completed | Ancient Gateway" 12:34) and the same node was
+  sampled before (accessible) and after (completed)
+  ([evidence/atlas-completed-gateway-20261125.log](evidence/atlas-completed-gateway-20261125.log),
+  [evidence/ui-tree-atlas-after-gateway-20261125-123742.txt](evidence/ui-tree-atlas-after-gateway-20261125-123742.txt)):
+  `+0x32F` 1→3, `+0x33E` 38→34, `+0x340` 0→2 are the small-field changes (pointer bytes apart), but completing a
+  map may reroll the node's contents, so none is convicted yet. There is no completion overlay element and the
+  node draws no texture key the reader can see (`textures []` from the new `atlasnode`, which also proved
+  `record +0x310` and the selected-node chain live). The settling test is queued with the owner: a same-session
+  accessible and a locked sample — a state byte must equal the pre-completion Gateway on accessible and differ on
+  the completed one. Round 2's wider result stands: `+0x2BE/+0x2BF` are zero on every sampled node. Two nodes
+  are locked with the popup as witness (a Rustbowl: "Close the Northern Abyssal Wounds
   in order to access this Wound"; the Vaal Vault: "Find and activate a Vessel of Estazunti…"), found by batching
   `datkeys` over the 56 visible nodes around the owner's route and matching areas to the day's popup log. No byte
   in the element's 0x420 bytes separates those two from three not-locked samples (Pit, Bloodwood, Caldera) — weak
