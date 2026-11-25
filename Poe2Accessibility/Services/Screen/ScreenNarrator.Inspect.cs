@@ -8,23 +8,21 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Item Inspect Mode for <see cref="ScreenNarrator"/> (docs/research/ui-layers.md, "Item Inspect Mode"). The
     ///     comparison table's watch is fed on every screen or focus change. While the table is on, the readings Inspect Mode
-    ///     brought before it (the item cell's advanced lines as R3 opens it, the whole worn tooltip with the first link) give
-    ///     way to one opening and where the focus is; the game's legend follows. Whether the table is on or not, the D-pad's
-    ///     focus says the item it crosses into.
+    ///     brought before it give way to one opening and where the focus is: the item cell's advanced lines as R3 opens it
+    ///     wait for the table and are said only when none comes, and the first link's reading of the whole worn tooltip is
+    ///     left to the opening. The game's legend follows. Whether the table is on or not, the D-pad's focus says the item it
+    ///     crosses into.
     /// </summary>
     public sealed partial class ScreenNarrator
     {
         /// <summary>An item cell's tooltip this soon after the right stick's press is the burst of advanced lines R3 brings.</summary>
         private const long StickPressBurstMs = 600;
 
-        /// <summary>The readings of the inspect layer's opening and first focus, which the table's opening replaces.</summary>
-        private static readonly HashSet<string> InspectOpeningReasons = new(StringComparer.Ordinal)
-        {
-            "focus in a new layer", "opened with focus", "appeared with focus", "appeared in focus layer",
-        };
-
         /// <summary>The focus last seen, and the item label its moving into an item's tooltip gave (empty for none).</summary>
-        private (IntPtr Address, string Label) inspectFocus;
+        private (AccessibleUiNode? Node, string Label) inspectFocus = (null, string.Empty);
+
+        /// <summary>A cell whose text changed under the table's cursor, said after the focus's own reading of the same change.</summary>
+        private string? inspectCellDue;
 
         /// <summary>Gets or sets the comparison table's watch; null without one.</summary>
         public InspectTableWatch? Inspect { get; set; }
@@ -38,13 +36,19 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets the game's own name for the mode, read beside the tooltips.</summary>
         public Func<string>? InspectModeLabel { get; set; }
 
-        /// <summary>Gets or sets whether the table is switched on (the setting).</summary>
+        /// <summary>Gets or sets whether the table is switched on (its setting, and the mod's controller commands).</summary>
         public Func<bool>? InspectTableOn { get; set; }
 
         /// <summary>Gets or sets how long ago the right stick was last pressed in, in ms.</summary>
         public Func<long>? SinceStickPress { get; set; }
 
-        /// <summary>Feeds the watch the items on screen; a cell whose text changed under the table's cursor is said.</summary>
+        /// <summary>
+        ///     A change of the screen, every one the core takes from the watcher, whether or not it is spoken: the table follows
+        ///     the tooltips (advanced info toggled, Inspect Mode closed) even with appearing texts not announced.
+        /// </summary>
+        public void ObserveInspect(AccessibleUiNode? focus) => this.UpdateInspect(focus);
+
+        /// <summary>Feeds the watch the items on screen; a cell whose text changed under the table's cursor is due.</summary>
         private void UpdateInspect(AccessibleUiNode? focus)
         {
             if (this.Inspect is not { } watch || this.InspectItems is not { } read)
@@ -52,11 +56,20 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var said = watch.Update(read(focus), this.InspectModeLabel?.Invoke() ?? string.Empty, this.InspectTableOn?.Invoke() == true, Environment.TickCount64);
-            if (said != null)
+            IReadOnlyList<InspectItem>? items;
+            try
             {
-                this.Speak("inspect table", said, true);
+                items = read(focus);
             }
+            catch (Exception error) when (error is InvalidOperationException or ArgumentException or IndexOutOfRangeException or NullReferenceException)
+            {
+                // A layer read halfway through its rebuild: today's reading, not a lost focus or frame.
+                this.log.Debug($"Inspect Mode not read: {error.Message}");
+                items = null;
+            }
+
+            var said = watch.Update(items, this.InspectModeLabel?.Invoke() ?? string.Empty, this.InspectTableOn?.Invoke() == true, Environment.TickCount64);
+            this.inspectCellDue = said ?? this.inspectCellDue;
         }
 
         /// <summary>A new focus: the label of the item its tooltip is, when the focus crossed into another item's.</summary>
@@ -64,31 +77,62 @@ namespace Poe2Accessibility.Services
         {
             this.UpdateInspect(node);
             var label = this.Inspect?.CrossedTo(this.InspectItemOf?.Invoke(node));
-            this.inspectFocus = (node.Address, label ?? string.Empty);
+            this.inspectFocus = (node, label ?? string.Empty);
         }
 
-        /// <summary>Per frame: the opening once the tooltips settle, with where the focus is when it sits in one of them.</summary>
+        /// <summary>
+        ///     Per frame: R3's burst when no table came, the opening once the tooltips settle (with where the focus is when it
+        ///     sits in one of them), and a cell that changed under the cursor, after what the focus said of the same change.
+        /// </summary>
         private void TickInspect()
         {
-            if (this.Inspect?.Tick(Environment.TickCount64) is not { } opening)
+            if (this.Inspect is not { } watch)
             {
                 return;
             }
 
-            var focus = this.inspectFocus.Address != IntPtr.Zero && this.lastFocusSpeech.Length > 0 ? this.lastFocusSpeech : string.Empty;
-            this.Speak("inspect opening", Announcements.Sentences(new[] { opening, focus }.Where(part => part.Length > 0)), true);
+            var now = Environment.TickCount64;
+            if (watch.HeldBurst(now) is { } burst)
+            {
+                this.Speak("tooltip of focus", burst, false);
+            }
+
+            if (watch.Tick(now) is { } opening)
+            {
+                var inTooltip = this.inspectFocus.Node is { } node && this.InspectItemOf?.Invoke(node) != null;
+                var focus = inTooltip ? this.lastFocusSpeech : string.Empty;
+                this.Speak("inspect opening", Announcements.Sentences(new[] { opening, focus }.Where(part => part.Length > 0)), true);
+                this.inspectCellDue = null;
+            }
+
+            if (this.inspectCellDue is { } cell && !watch.OpeningDue)
+            {
+                this.inspectCellDue = null;
+                this.Speak("inspect table", cell, false);
+            }
         }
 
-        /// <summary>A focused item's tooltip right after R3, with the table on: the burst its advanced lines were, not said.</summary>
-        private bool InspectBurst(AccessibleUiNode node) =>
-            this.InspectTableOn?.Invoke() == true && node.Role is UiRole.GridCell or UiRole.ItemSlot &&
-            (this.SinceStickPress?.Invoke() ?? long.MaxValue) < StickPressBurstMs;
+        /// <summary>
+        ///     A focused item's tooltip right after R3 with the table on: the burst of its advanced lines waits for the table,
+        ///     whose opening speaks for the item; said after all when no table comes.
+        /// </summary>
+        private bool HoldInspectBurst(AccessibleUiNode node, IReadOnlyList<string> fresh)
+        {
+            if (this.Inspect is not { } watch || this.InspectTableOn?.Invoke() != true || node.Role is not (UiRole.GridCell or UiRole.ItemSlot) ||
+                (this.SinceStickPress?.Invoke() ?? long.MaxValue) >= StickPressBurstMs)
+            {
+                return false;
+            }
 
-        /// <summary>A reading of the inspect layer's opening while the table speaks for it.</summary>
-        private bool QuietForInspect(string reason) => this.Inspect?.Active == true && InspectOpeningReasons.Contains(reason);
+            watch.HoldBurst(Announcements.Sentences(fresh), Environment.TickCount64);
+            return true;
+        }
+
+        /// <summary>A reading of the inspect layer's first focus while the table's opening is still to speak for it.</summary>
+        private bool QuietForInspect(string reason) => this.Inspect?.Quiets(reason) == true;
 
         /// <summary>The focus's own words, after its item's label when it crossed into that item's tooltip.</summary>
         private string WithInspectLabel(AccessibleUiNode node, string speech) =>
-            node.Address == this.inspectFocus.Address && this.inspectFocus.Label.Length > 0 ? Announcements.InspectCell(this.inspectFocus.Label, speech) : speech;
+            node.Address == this.inspectFocus.Node?.Address && this.inspectFocus.Label.Length > 0 ? Announcements.InspectCell(this.inspectFocus.Label, speech) : speech;
     }
 }

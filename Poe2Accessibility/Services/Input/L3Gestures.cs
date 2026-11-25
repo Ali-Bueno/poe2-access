@@ -133,6 +133,13 @@ namespace Poe2Accessibility.Services
                 gestures.Add(PadGesture.TriggerClick);
             }
 
+            if (r3)
+            {
+                // A press of the stick pushes it too, also the press that opens Inspect Mode before its table takes the
+                // stick: whenever flicks are read, none comes from it until the stick is back at the centre.
+                this.freeStickOut = true;
+            }
+
             if (this.FlicksWithoutL3 && !l3)
             {
                 var free = Math.Max(Math.Abs(rightX), Math.Abs(rightY));

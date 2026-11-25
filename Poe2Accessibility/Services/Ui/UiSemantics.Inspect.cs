@@ -30,6 +30,12 @@ namespace Poe2Accessibility.Services
         public string InspectModeLabel { get; private set; } = string.Empty;
 
         /// <summary>
+        ///     Gets or sets whether a link in an item's tooltip is read by its own line with no group (the comparison table is
+        ///     on); off, Inspect Mode's first link reads as it always did, the whole tooltip it is in.
+        /// </summary>
+        public bool InspectOwnLines { get; set; }
+
+        /// <summary>
         ///     The items item Inspect Mode shows, the inspected one first and the worn ones after it; null when no such layer
         ///     is on the screen, it was not opened on the item last focused, or its tooltips cannot be read apart.
         /// </summary>
@@ -46,7 +52,8 @@ namespace Poe2Accessibility.Services
             var single = tooltips.Count == 1;
             var reads = tooltips.Select((tooltip, index) => InspectLayout.Read(tooltip.Node, worn: index > 0 || (single && sourceWorn))).ToList();
             var baseName = this.inventory.ItemBaseName(source);
-            if (reads.Any(read => read == null) || (baseName.Length > 0 && !reads[0]!.Value.Title.Contains(baseName, StringComparison.Ordinal)))
+            if (reads.Any(read => read == null) || (baseName.Length == 0 && layer != this.inspectLayer.Layer) ||
+                (baseName.Length > 0 && !reads[0]!.Value.Title.Contains(baseName, StringComparison.Ordinal)))
             {
                 // Not the item last focused: another inspect mode (the passive tree's), or the layer of an item gone.
                 this.inspectLayer = (IntPtr.Zero, Array.Empty<IntPtr>());
@@ -56,7 +63,8 @@ namespace Poe2Accessibility.Services
             this.inspectLayer = (layer, tooltips.Select(tooltip => tooltip.Address).ToList());
             this.InspectModeLabel = label;
             var worn = this.WornForInspect();
-            var slots = InspectLayout.MatchSlots(reads.Skip(1).Select(read => read!.Value.Title).ToList(), worn.Select(piece => (piece.Key, piece.BaseName)).ToList());
+            var slots = InspectLayout.MatchSlots(reads.Skip(1).Select(read => read!.Value.Title).ToList(),
+                worn.Select(piece => (piece.Key, piece.BaseName, this.inventory.TitleOf(piece.Entity))).ToList());
             var items = new List<InspectItem> { this.InspectItem(reads[0]!.Value, source, sourceWorn && single, null) };
             for (var index = 1; index < reads.Count; index++)
             {
@@ -99,8 +107,9 @@ namespace Poe2Accessibility.Services
             path.AddRange(this.elements.ReadAncestors(info, MaxInspectDepth));
             for (var level = 1; level + 4 < path.Count; level++)
             {
-                // layout -> tooltip -> container -> holder -> layer, the holder being the layer's second child.
-                if (path[level].Name != InspectLayout.LayoutName ||
+                // layout -> tooltip -> container -> holder -> layer, the holder being the layer's second child and the layer one
+                // of the screen's layers (a tutorial article's "layout" is in no such place).
+                if (path[level].Name != InspectLayout.LayoutName || path[level + 4].Raw.ParentPtr != this.LayerContainer ||
                     this.elements.ReadChildren(path[level + 4]) is not { Length: >= 2 } parts || parts[1] != path[level + 3].Address)
                 {
                     continue;
@@ -137,8 +146,16 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                // A cheap look first: every shown child of the container holds a `layout`; only then is each read whole.
+                var shown = this.elements.ReadChildren(container)
+                    .Where(child => this.elements.TryReadElement(child, out var childInfo) && childInfo.IsVisibleFlag).ToList();
+                if (shown.Count == 0 || !shown.All(this.HoldsLayout))
+                {
+                    continue;
+                }
+
                 var tooltips = new List<(IntPtr Address, InspectNode Node)>();
-                foreach (var tooltip in this.elements.ReadChildren(container))
+                foreach (var tooltip in shown)
                 {
                     var budget = MaxInspectNodes;
                     if (this.InspectNodeAt(tooltip, 0, ref budget) is { } node)
@@ -156,6 +173,11 @@ namespace Poe2Accessibility.Services
 
             return null;
         }
+
+        /// <summary>Whether an element has a child named `layout`, read by name alone.</summary>
+        private bool HoldsLayout(IntPtr element) =>
+            this.elements.TryReadElement(element, out var info) &&
+            this.elements.ReadChildren(info).Any(child => this.elements.TryReadElement(child, out var childInfo) && childInfo.Name == InspectLayout.LayoutName);
 
         /// <summary>A shown element and its shown children, as <see cref="InspectLayout"/> reads them; null when hidden or unreadable.</summary>
         private InspectNode? InspectNodeAt(IntPtr address, int depth, ref int budget)

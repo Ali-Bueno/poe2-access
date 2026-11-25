@@ -205,18 +205,15 @@ namespace Poe2Accessibility.Services
 
             if ((this.ReadTooltips || node.IsHovered) && node.Tooltip.Count > 0 && node.Address == this.valueOwner)
             {
-                if (this.InspectBurst(node))
-                {
-                    // R3 shows the item's advanced lines as Inspect Mode opens: the table's opening speaks for the item.
-                    this.tooltipSaid = node.Tooltip;
-                    return;
-                }
-
                 // Only what was not said yet: a passive node is named before its tooltip is built, its stats and
                 // links follow; a title the focus announcement already holds is not news either.
                 var said = this.tooltipSaid;
                 this.tooltipSaid = node.Tooltip;
                 var fresh = FocusDetails.NewTooltipLines(said, node.Tooltip, this.lastFocusSpeech);
+                if (fresh.Count > 0 && this.HoldInspectBurst(node, fresh))
+                {
+                    return; // R3's advanced lines as Inspect Mode opens: they wait for the table's opening
+                }
                 if (node.TooltipNews.Count > 0)
                 {
                     // The tree's count of unconfirmed changes joins the node's lines (UiSemantics.TreeNews): where the

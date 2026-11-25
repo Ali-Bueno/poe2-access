@@ -250,7 +250,7 @@ namespace Poe2Accessibility
                 this.narrator.InspectItems = focus => this.semantics?.InspectItems(this.screen?.Current ?? ScreenSnapshot.Empty, focus);
                 this.narrator.InspectItemOf = node => this.semantics?.InspectItemOf(node);
                 this.narrator.InspectModeLabel = () => this.semantics?.InspectModeLabel ?? string.Empty;
-                this.narrator.InspectTableOn = () => this.Settings.InspectCompareTable;
+                this.narrator.InspectTableOn = () => this.Settings.InspectCompareTable && this.Settings.ControllerCommands;
                 this.narrator.SinceStickPress = () => Environment.TickCount64 - this.rightStickPressedAt;
                 this.focus.HoverOverFocus = (focused, hovered) =>
                     this.PreviewTree is var tree && tree != IntPtr.Zero && this.semantics?.NodeUnderPlannerButton(tree, hovered, focused) == true;
@@ -831,6 +831,12 @@ namespace Poe2Accessibility
                 }
 
                 this.deaths?.Saw(change.Layer.Address);
+                if (watching && change.Kind != ScreenChangeKind.NumbersChanged)
+                {
+                    // Inspect Mode's table follows every change, said or not (a counter ticking is none of its).
+                    this.narrator.ObserveInspect(this.focus.Current);
+                }
+
                 if (watching && (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText))
                 {
                     this.narrator.OnScreenChange(change, this.screen.Current, this.focus.Current, this.focus.CurrentLayer);

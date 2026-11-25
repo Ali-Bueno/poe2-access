@@ -343,6 +343,13 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, Names(pressed.Update(50, false, 0f, 0.9f, false)), "nor once the press ends with the stick still out");
             Equal(string.Empty, Names(pressed.Update(100, false, 0f, 0f, false)), "back to the centre");
             Equal("FlickDown", Names(pressed.Update(150, false, 0f, -0.9f, false)), "the next push is a flick");
+            // The press that opens Inspect Mode comes before the table takes the stick: still no flick from it.
+            var opening = new L3Gestures();
+            Equal(string.Empty, Names(opening.Update(0, false, 0f, 0.9f, true)), "R3 pressed with no table yet");
+            opening.FlicksWithoutL3 = true;
+            Equal(string.Empty, Names(opening.Update(50, false, 0f, 0.9f, false)), "the table came while the stick was still out from the press");
+            Equal(string.Empty, Names(opening.Update(100, false, 0f, 0f, false)), "back to the centre");
+            Equal("FlickDown", Names(opening.Update(150, false, 0f, -0.9f, false)), "the player's first flick");
             Equal(true, AreaKind.IsHideout("HideoutShoreline"), "one's own hideout");
             Equal(true, AreaKind.IsHideout("GuildHideout__"), "a guild hideout");
             Equal(true, AreaKind.IsHideout("hideoutshoreline"), "the row's casing is not the rule's");

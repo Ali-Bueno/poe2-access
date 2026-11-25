@@ -236,7 +236,6 @@ namespace Poe2Accessibility.Services
 
         public void OnScreenChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)
         {
-            this.UpdateInspect(focus);
             if (change.Kind == ScreenChangeKind.NumbersChanged)
             {
                 this.OnNumbersChanged(change, focus, focusLayer);

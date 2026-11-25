@@ -42,6 +42,12 @@ namespace Poe2Accessibility.Tests
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
             (nameof(WornTooltipsTakeSlotsByTitleInOrder), WornTooltipsTakeSlotsByTitleInOrder),
+            (nameof(TheTableTakesFlicksOnlyWithAFocus), TheTableTakesFlicksOnlyWithAFocus),
+            (nameof(OnlyTheOpeningsReadingIsQuieted), OnlyTheOpeningsReadingIsQuieted),
+            (nameof(AHeldBurstIsSaidWhenNoTableComes), AHeldBurstIsSaidWhenNoTableComes),
+            (nameof(AHeldBurstGivesWayToTheTable), AHeldBurstGivesWayToTheTable),
+            (nameof(ARememberedTitleBeatsTheBaseName), ARememberedTitleBeatsTheBaseName),
+            (nameof(PlusAndMinusShareARow), PlusAndMinusShareARow),
         };
 
         /// <summary>The magic robe in the bag the user compared on 2026-11-24, advanced info on (Fixtures/inspect-layers.txt, "robes").</summary>
@@ -369,11 +375,61 @@ namespace Poe2Accessibility.Tests
 
         private static void WornTooltipsTakeSlotsByTitleInOrder()
         {
-            Expect("left ring|right ring", string.Join("|", InspectLayout.MatchSlots(new[] { "Iron Ring", "Iron Ring" }, new[] { ("left ring", "Iron Ring"), ("right ring", "Iron Ring") })),
+            Expect("left ring|right ring", string.Join("|", InspectLayout.MatchSlots(new[] { "Iron Ring", "Iron Ring" }, new[] { ("left ring", "Iron Ring", string.Empty), ("right ring", "Iron Ring", string.Empty) })),
                 "two alike take the slots in order");
-            Expect("right ring", string.Join("|", InspectLayout.MatchSlots(new[] { "Gold Ring" }, new[] { ("left ring", "Iron Ring"), ("right ring", "Gold Ring") })), "by title");
-            Expect(string.Empty, string.Join("|", InspectLayout.MatchSlots(new[] { "Topaz Ring" }, new[] { ("left ring", "Iron Ring") })), "no slot has it");
+            Expect("right ring", string.Join("|", InspectLayout.MatchSlots(new[] { "Gold Ring" }, new[] { ("left ring", "Iron Ring", string.Empty), ("right ring", "Gold Ring", string.Empty) })), "by base");
+            Expect(string.Empty, string.Join("|", InspectLayout.MatchSlots(new[] { "Topaz Ring" }, new[] { ("left ring", "Iron Ring", string.Empty) })), "no slot has it");
         }
+
+        // Review, Important 1: a close that drops the focus must not leave the right stick to the table in gameplay.
+        private static void TheTableTakesFlicksOnlyWithAFocus()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
+            Equal(true, watch.TakesFlicks(hasFocus: true), "in Inspect Mode");
+            Equal(false, watch.TakesFlicks(hasFocus: false), "the focus went away: gameplay aims again");
+        }
+
+        // Review, Important 2: only the opening's own reading gives way; Expand and a popup over Inspect Mode are said.
+        private static void OnlyTheOpeningsReadingIsQuieted()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 0);
+            Equal(true, watch.Quiets("focus in a new layer"), "the first focus with the layer");
+            Equal(true, watch.Quiets("opened with focus"), "the layer opened with its focus");
+            Equal(false, watch.Quiets("appeared with focus"), "an expanded definition is said");
+            watch.Tick(200);
+            Equal(false, watch.Quiets("focus in a new layer"), "after the opening, a focus in a new layer (Expand) is said");
+        }
+
+        // Review, Important 3: with the table on, R3's burst waits for the table; on a miss it is said, never lost.
+        private static void AHeldBurstIsSaidWhenNoTableComes()
+        {
+            var watch = new InspectTableWatch();
+            watch.HoldBurst("Body Armour: Item Level 7. +19(10-19) to maximum Life", 0);
+            Expect(null, watch.HeldBurst(100), "still waiting for the layer");
+            Expect("Body Armour: Item Level 7. +19(10-19) to maximum Life", watch.HeldBurst(InspectTableWatch.BurstWaitMs), "no table came: said");
+            Expect(null, watch.HeldBurst(InspectTableWatch.BurstWaitMs + 100), "once");
+        }
+
+        private static void AHeldBurstGivesWayToTheTable()
+        {
+            var watch = new InspectTableWatch();
+            watch.HoldBurst("Body Armour: Item Level 7", 0);
+            watch.Update(new[] { Robe, WornRobe }, "Inspect Mode", true, 50);
+            Expect(null, watch.HeldBurst(InspectTableWatch.BurstWaitMs + 50), "the table's opening speaks for the item");
+        }
+
+        // Review, Important 7: two worn rings of one base: the title the tooltip gave each, before the base name.
+        private static void ARememberedTitleBeatsTheBaseName() =>
+            Expect("right ring|left ring", string.Join("|", InspectLayout.MatchSlots(
+                    new[] { "Hale Lazuli Ring of the Mongoose", "Bold Lazuli Ring" },
+                    new[] { ("left ring", "Lazuli Ring", "Bold Lazuli Ring"), ("right ring", "Lazuli Ring", "Hale Lazuli Ring of the Mongoose") })),
+                "each ring by its own title");
+
+        // Review: a negative roll of a stat is the same stat ("-10% to Cold Resistance" on a corrupted item).
+        private static void PlusAndMinusShareARow() =>
+            Expect(InspectRows.Key("+10% to Cold Resistance"), InspectRows.Key("-10% to Cold Resistance"), "one row");
 
         /// <summary>A fixture element while its children are read.</summary>
         private sealed class FixtureNode

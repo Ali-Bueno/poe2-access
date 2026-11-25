@@ -30,6 +30,46 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets a value indicating whether the opening is still to be said: what would follow it (the game's legend) waits.</summary>
         public bool OpeningDue => this.openingDue && this.table != null;
 
+        /// <summary>How long R3's burst of the item's advanced lines waits for the table before it is said after all.</summary>
+        public const long BurstWaitMs = 400;
+
+        /// <summary>The readings of the inspect layer's first focus, which the opening replaces while it is due.</summary>
+        private static readonly HashSet<string> OpeningReasons = new(StringComparer.Ordinal) { "focus in a new layer", "opened with focus" };
+
+        private (string Text, long At)? burst;
+
+        /// <summary>Whether a flick of the right stick is the table's: it is on, and the game's focus is still somewhere (a close that drops it is gameplay again).</summary>
+        public bool TakesFlicks(bool hasFocus) => this.Active && hasFocus;
+
+        /// <summary>Whether a reading is the inspect layer's first focus, which the opening still to come speaks for.</summary>
+        public bool Quiets(string reason) => this.OpeningDue && OpeningReasons.Contains(reason);
+
+        /// <summary>Keeps R3's burst of the item's advanced lines until the table comes, or does not.</summary>
+        public void HoldBurst(string text, long nowMs) => this.burst = (text, nowMs);
+
+        /// <summary>The burst held, once, when no table came within <see cref="BurstWaitMs"/>; dropped when one came (its opening speaks for the item).</summary>
+        public string? HeldBurst(long nowMs)
+        {
+            if (this.burst is not { } held)
+            {
+                return null;
+            }
+
+            if (this.Active)
+            {
+                this.burst = null;
+                return null;
+            }
+
+            if (nowMs - held.At < BurstWaitMs)
+            {
+                return null;
+            }
+
+            this.burst = null;
+            return held.Text;
+        }
+
         /// <summary>
         ///     Takes the items item Inspect Mode shows (null when it is not open), the game's own name for the mode, and
         ///     whether the table is switched on. Returns what to say now: a cell whose text changed under the cursor, or null.

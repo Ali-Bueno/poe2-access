@@ -111,7 +111,8 @@ namespace Poe2Accessibility.Services
             }
 
             var entity = this.inventory.ItemEntity(role == UiRole.GridCell ? hovered : this.inventory.FindItemElement(info.Address));
-            this.inspectSource = (entity, role == UiRole.ItemSlot || this.inventory.InventoryOf(info.Address) is { } held && IsEquipment(held));
+            // The item R3 inspects; a gem's inspect layer is a non-goal of the comparison table, and worn means an equipment slot.
+            this.inspectSource = this.inventory.IsGem(entity) ? default : (entity, this.inventory.InventoryOf(info.Address) is { } held && IsEquipment(held));
             details = this.WithSockets(entity, details);
 
             // A gem: its place in the Build Planner's active build, before what it does.

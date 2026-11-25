@@ -38,7 +38,7 @@ namespace Poe2Accessibility.Services
             var keyword = ShownText(link);
             var row = this.LinkRow(parent, sentence, keyword, out var rowElement);
             var group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty;
-            if (this.ItemTooltipOf(info) is { } item)
+            if (this.InspectOwnLines && this.ItemTooltipOf(info) is { } item)
             {
                 // An item's tooltip in Inspect Mode: its rows have no heading (the "group" was the line above, so "Energy
                 // Shield: 28" came before "+6 to Intelligence"), and the row two levels up was the whole tooltip. The row

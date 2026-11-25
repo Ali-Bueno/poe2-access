@@ -83,20 +83,26 @@ namespace Poe2Accessibility.Services
         ///     the base name for sure where it does not the magic name). Two alike take the slots in order. Null for a tooltip
         ///     no worn item fits.
         /// </summary>
-        public static IReadOnlyList<string?> MatchSlots(IReadOnlyList<string> tooltipTitles, IReadOnlyList<(string Slot, string BaseName)> worn)
+        public static IReadOnlyList<string?> MatchSlots(IReadOnlyList<string> tooltipTitles, IReadOnlyList<(string Slot, string BaseName, string Title)> worn)
         {
+            // First the title a tooltip of the worn item gave it this session (two rings of one base told apart), then the base.
             var taken = new bool[worn.Count];
-            var slots = new List<string?>();
-            foreach (var title in tooltipTitles)
+            var slots = new string?[tooltipTitles.Count];
+            foreach (var byTitle in new[] { true, false })
             {
-                var index = Enumerable.Range(0, worn.Count)
-                    .FirstOrDefault(i => !taken[i] && worn[i].BaseName.Length > 0 && title.Contains(worn[i].BaseName, StringComparison.Ordinal), -1);
-                if (index >= 0)
+                for (var tooltip = 0; tooltip < tooltipTitles.Count; tooltip++)
                 {
-                    taken[index] = true;
+                    var title = tooltipTitles[tooltip];
+                    var index = slots[tooltip] != null ? -1 : Enumerable.Range(0, worn.Count).FirstOrDefault(
+                        i => !taken[i] && (byTitle
+                            ? worn[i].Title.Length > 0 && title.StartsWith(worn[i].Title, StringComparison.Ordinal)
+                            : worn[i].BaseName.Length > 0 && title.Contains(worn[i].BaseName, StringComparison.Ordinal)),
+                        -1);
+                    if (index >= 0)
+                    {
+                        (taken[index], slots[tooltip]) = (true, worn[index].Slot);
+                    }
                 }
-
-                slots.Add(index >= 0 ? worn[index].Slot : null);
             }
 
             return slots;

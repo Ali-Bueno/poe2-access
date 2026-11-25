@@ -32,6 +32,9 @@ namespace Poe2Accessibility.Services
         public const string SocketsMatch = "\u0001sockets";
 
         private static readonly Regex Number = new(@"-?\d+(?:[.,]\d+)?", RegexOptions.Compiled);
+
+        /// <summary>A minus sign before a number: a negative roll of a stat is the same stat ("-10% to Cold Resistance").</summary>
+        private static readonly Regex MinusSign = new(@"(?<![\w)])-(?=\d)", RegexOptions.Compiled);
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
 
         /// <summary>What a line is matched by: a property line's label with its colon, else the text with every number a '#'.</summary>
@@ -44,7 +47,7 @@ namespace Poe2Accessibility.Services
                 return text[..(colon + 1)].Trim();
             }
 
-            text = Number.Replace(ItemModCheck.RolledRange.Replace(text, string.Empty), "#");
+            text = Number.Replace(MinusSign.Replace(ItemModCheck.RolledRange.Replace(text, string.Empty), "+"), "#");
             return Spaces.Replace(text, " ").Trim();
         }
 
