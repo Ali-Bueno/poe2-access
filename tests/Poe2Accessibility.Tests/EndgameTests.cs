@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TowersCountWhatTheyReach), TowersCountWhatTheyReach),
             (nameof(AtlasStateReadsBitsNotEquality), AtlasStateReadsBitsNotEquality),
             (nameof(AtlasLandingSaysStateAfterName), AtlasLandingSaysStateAfterName),
+            (nameof(AtlasGraphWalksLinksAndSectors), AtlasGraphWalksLinksAndSectors),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -229,6 +230,26 @@ namespace Poe2Accessibility.Tests
             Expect(string.Empty, catalog.BiomeNameIn("Long lost secrets lie buried beyond.", "en"), "flavour ends in no biome");
             Localization.Set("es", new());
             Expect("Completado", Announcements.AtlasState(AtlasNodeState.Completed), "the Spanish state word");
+        }
+
+        private static void AtlasGraphWalksLinksAndSectors()
+        {
+            var links = new Dictionary<string, string[]>
+            {
+                ["A"] = new[] { "B", "C" }, ["B"] = new[] { "A", "D" }, ["C"] = new[] { "A" }, ["D"] = new[] { "B", "E" }, ["E"] = new[] { "D" }, ["Z"] = new string[0],
+            };
+            var distances = AtlasGraph.Distances("A", id => links.GetValueOrDefault(id));
+            Expect(0, distances["A"], "here itself");
+            Expect(2, distances["D"], "two links on");
+            Expect(3, distances["E"], "three links on");
+            Expect(false, distances.ContainsKey("Z"), "an unlinked node is unreached");
+            Expect(4, AtlasGraph.GridSteps(13, 18, 17, 17), "Rockpools to Slash in king steps");
+            var nearest = AtlasGraph.NearestPerDirection(Vector2.Zero, new (Vector2, string)[]
+            {
+                (new Vector2(10, 0), "FarEast"), (new Vector2(2, 0), "NearEast"), (new Vector2(0, -3), "North"), (Vector2.Zero, "Here"),
+            });
+            Expect("NearEast|North", string.Join("|", nearest), "one nearest per direction, itself left out, nearest first");
+            Expect(new Vector2(13, -18), AtlasGraph.ScreenPlace(13, 18), "the grid's y flips to the screen's");
         }
     }
 }

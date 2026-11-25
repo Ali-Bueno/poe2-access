@@ -94,6 +94,14 @@ Not in this build: the you-are-here anchor (unresolved, §6) — it moves to Pha
 this landing line becomes.
 
 ### Phase 2 — orientation (the owner's pain; ships before any list)
+**Orientation built and hot-reloaded in (2026-11-25, awaiting the owner's verdict):** one canvas scan per
+opening (`UiSemantics.AtlasScan`: every node's grid, status, rolled area, revealed; identity where catalogued —
+the record offset is learnt from any catalogued sibling, since a row-less selected node teaches nothing). On
+open: the landing, then where the last session left off (`config/atlas-resume.txt` per character) and the
+frontier ("From here: Caldera, 2 links down… 15 accessible, not completed in sight"). Per hop: came-from, the
+nearest landmark in links (opened node, towers, gates, Kingsmarch, waypoint pins), and for a row-less landing
+the nearest revealed nodes by direction (drawn centres first). The you-are-here marker was never found as an
+element; the node the Atlas opens on serves as the session anchor instead.
 
 - **On Atlas open, once:** "You are at X" plus the reachable frontier in links ("Accessible, not completed: A,
   2 links up-right; B, 3 links left"). Needs Phase 1; without state it degrades to the you-are-here name and its

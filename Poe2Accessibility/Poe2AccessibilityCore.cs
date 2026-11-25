@@ -535,6 +535,8 @@ namespace Poe2Accessibility
                 this.semantics.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.atlasNodes = new AtlasNarrator(this.semantics, this.output, this.log);
+                this.atlasNodes.CharacterName = () => this.semantics.CharacterName?.Invoke() ?? string.Empty;
+                this.atlasNodes.ResumeFile = Path.Join(this.DllDirectory, "config", "atlas-resume.txt");
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.InTown = this.InTownOrHideout;
                 this.entities.LayoutRevealed = () => this.rulesets?.MinimapRevealed == true;
