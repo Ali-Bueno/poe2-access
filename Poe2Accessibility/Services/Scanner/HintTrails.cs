@@ -34,7 +34,7 @@ namespace Poe2Accessibility.Services
         private const int GoalMs = 5000;
 
         /// <summary>This near where a swarm flew, it has led there: half of what the player sees.</summary>
-        private const float ArrivedCells = ExplorationMap.SeenRadiusCells / 2;
+        private const float ArrivedCells = ExplorationMap.LookCells / 2;
 
         /// <summary>The walks are worked out again no sooner, when the player stands on ground they do not reach (a door opened).</summary>
         private const int RebuildMs = 10000;
@@ -138,7 +138,7 @@ namespace Poe2Accessibility.Services
         private void Follow(Trail trail, Vector2 here, long now, bool quiet)
         {
             var nearest = trail.Spots.Count == 0 ? 0f : trail.Spots.Min(spot => Vector2.Distance(spot, here));
-            var sees = nearest <= ExplorationMap.SeenRadiusCells;
+            var sees = nearest <= ExplorationMap.LookCells;
             if (trail.Over || (!trail.Follower.Known && !sees) || !this.FindGoal(trail, now))
             {
                 return;

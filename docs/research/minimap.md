@@ -46,6 +46,18 @@ bubble, and the unit of the pointer distance.
   seen (fair-play rule). Sighting it by any piece of its building was offered and declined by the owner ("si está bien
   así déjalo").
 
+## The fog (measured 2026-11-25, a Mercenary with no light radius, screenshots of the large map)
+
+- The map clears a **disc of 80 cells** around the player (146 pixels of its edge, scale fitted from the checkpoint and the
+  exit's icons and a walk between two shots: mean 79-82, spread 1). The mod took 60 (half the screen's height) until then;
+  `ExplorationMap.SeenRadiusCells` is 80 and the screen's look, for dead ends, places and cues, stays 60 (`LookCells`).
+- **The game draws the edge of unexplored ground itself:** a blue line along the walkable ground's border with the fog, on
+  the large map and the minimap. The scanner's unexplored places, the radar's pips and the exploring guide are that line.
+- Light radius widens the disc (poe2db: "the radius within which terrain and points of interest are revealed on the map");
+  the stat is `light_radius_+%` (Stats row 1210), its effect on the radius not measured, not read by the mod.
+- Two quest objects known to the client 177 to 321 cells off in the fog drew nothing (out of play, so their icons may have
+  been hidden). Icons in play over fog: still UNSURE.
+
 ## Scanner rule
 - Enemies: while on screen (the minimap draws no campaign monsters).
 - Things with a minimap icon (exits, waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the

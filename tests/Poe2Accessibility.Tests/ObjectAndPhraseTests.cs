@@ -371,6 +371,10 @@ namespace Poe2Accessibility.Tests
             Equal("GoesOn up+right; DeadEnd left; Explored down", string.Join("; ", told.Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "the way on first, sides grouped");
             Equal("Fork 2: goes on up and right, dead end left, explored down", Announcements.Fork("Fork 2", false, told), "said in one line");
             Equal("GoesOn up right", string.Join("; ", ForkTracker.Tell(new[] { ("up right", ForkWay.GoesOn), ("up right", ForkWay.Explored) }).Select(group => $"{group.State} {string.Join("+", group.Sides)}")), "a side that goes on is not also explored");
+            var leads = new[] { ("up", Announcements.WayTo("The Red Vale", false)), ("left", Announcements.WayTo("Mud Burrow", true)), ("down", Announcements.WayTo("Grelwood", true)) }
+                .ToLookup(lead => lead.Item1, lead => lead.Item2);
+            var leading = ForkTracker.Tell(new[] { ("left", ForkWay.DeadEnd), ("up", ForkWay.GoesOn), ("right", ForkWay.GoesOn), ("down", ForkWay.Explored) }, leads);
+            Equal("Fork 2: goes on right, goes on up toward The Red Vale, dead end left, explored down toward your quest, Grelwood", Announcements.Fork("Fork 2", false, leading), "a way names the known place it leads to, a dead end none");
             Equal("Fork 2, you've been here", Announcements.Fork("Fork 2", true, Array.Empty<(ForkWay, IReadOnlyList<string>)>()), "a place come back to");
             Equal(("Area with fireplace", false), Announcements.ForkName(true, "fireplace"), "named after its furniture");
             Equal(("Ballroom", false), Announcements.ForkName(true, "ballroom"), "a ballroom is a room by itself");

@@ -58,7 +58,7 @@ namespace Poe2Accessibility.Services
         private PlaceTracker tracker = NewTracker();
 
         /// <summary>Pieces said as they come in sight, before they are reached (docs/research/map-topology.md).</summary>
-        private readonly LandmarkAhead ahead = new(ExplorationMap.SeenRadiusCells, AheadUnderfootCells, 2 * ExplorationMap.SeenRadiusCells);
+        private readonly LandmarkAhead ahead = new(ExplorationMap.LookCells, AheadUnderfootCells, 2 * ExplorationMap.LookCells);
         private PlaceMap? map;
         private (int Count, IntPtr First, IntPtr Last) builtFor;
         private long lastPoll = long.MinValue / 2;

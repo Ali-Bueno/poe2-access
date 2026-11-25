@@ -359,7 +359,7 @@
 - Game element layout hints (ExileCore2): `Text`, `TextNoTags`, `Tooltip`, `isHighlighted`, `Type` ushort;
   `IngameState.UIHover/UIHoverElement/FocusedInputElement`: `docs/research/exilecore2-study.md`.
 - Terrain/entities/landmarks (for later): `docs/research/poe2radar-study.md`.
-- PoE1Access's exploration compared, what to take and what would be a map hack (2026-11-25, nothing built): `docs/research/poe1access-exploration.md`.
+- PoE1Access's exploration compared, what to take and what would be a map hack (2026-11-25): `docs/research/poe1access-exploration.md`.
 - Local players (couch co-op): std::vector at GameHelper's `LocalPlayerStruct`+0x08, entry 0 = `AreaInstance.Player`,
   entry 1 = player 2; J2's pad and menu cursor never reach the mod; co-op HUD has one `skill_bar` per player
   (`docs/research/local-coop.md`).
@@ -522,6 +522,8 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-25 (the owner, of PoE1Access's exploration: what it has in real time, with no key, that a sighted player sees; "que no haga las cosas fáciles de mano besada"; 1057 tests, deployed, not released):** the exploring guide, forks and unexplored ground naming the known place they lead to, "tu misión lleva allí" on a new exit ([radar](docs/radar.md)), the HUD's own "Viaja a X" read as the quest's goal ([quest goals](docs/research/quest-goals.md)), the fog measured at 80 cells, not 60 ([minimap](docs/research/minimap.md)). Live in Clearfell and the Grelwood with yarkey, who died once there (level 12, left among monsters while a build ran) and was brought back at the checkpoint. **Next:** the owner plays with it; "tu misión lleva allí" on a new exit is unheard. The tutorial is for later.
+
 **2026-11-24, 23:20 (the owner: "no se lee el hueco que ya está ocupado por una runa y el hueco que está vacío cuando tengo una runa en la mano"; 1052 tests, deployed, released at the owner's word as v2026.11.24-5):** the socket the cursor is on is said ([the socket under the cursor](docs/research/item-mods.md#the-socket-under-the-cursor-055h-2026-11-24)); heard live on malgdhler, left in the Act 2 caravan, on the stash mace's one empty socket. The owner's trace proves filled sockets of a two-socket piece; that and "Organizar engarces" with runes in it are unheard. **Next:** hear a two-socket piece.
 **2026-11-24, 15:35 (the owner fighting Diamora, the siren: "no suena, ni el lector dice su estado de vida"; 1046 tests, deployed with the exe, not released):** her entity carries TriggerableBlockage, which the host took for a wall with a life and never typed Monster; a creature (Monster component) with it is one now (`Entity.TryCalculateEntityType`). Seen in the dump: she stands under two ids sharing every component, as El azote de los cielos under eight (its lines are held back as duplicates). **Next:** hear her fight.
 

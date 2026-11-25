@@ -105,6 +105,11 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   ground, and the `sounds` dev command heard the `unexplored_room` bed while it played; at 10 and 30 s it never came in
   Clearfell, since every monster within 1300 units stops the count and the explored stretches between packs were short.
   The radar's mark (`radar_unexplored`) played 41 times on the way in.
+- **Exploring guide** (2026-11-25, setting `GuideExplores`): the guide locked on an unexplored place goes on once the player
+  is within half a look of it and it is seen (`Beacon.ExploreOn`): the unseen ground nearest the last within two looks,
+  silently; else the nearest by the walk (`EntityCatalog.NextUnexplored`), said. Frontier places lie at the edge of the seen
+  ground, so re-aiming as each is seen changed target at every step; half a look makes legs. A turn prompt of the same
+  direction as the last is not said again. It ends when only nooks are left. Live in Clearfell and the Grelwood.
 - **Pockets:** unseen ground under half the reveal disc (88 blocks), joined to nothing else, is a nook with no way on:
   the scanner says "Unexplored nook" and lists it after the ground that goes on (`FrontierPlace.Pocket`). A frontier of
   one block is kept when ground goes on behind it: a narrow gap can be the way.
@@ -152,6 +157,13 @@ walked, as anyone would. The owner turned down help levels and a rush mode: the 
   a step out to a path's edge said "Sala 1, ya estuviste aquí", the owner 2026-11-16). A way counts as explored
   once the next place along it and the first stretch of each of its ways were seen (a look from the fork reveals 60 cells of
   every way, so the way's own first cell told nothing).
+- **Ways to known places** (2026-11-25, after [PoE1Access's exploration](research/poe1access-exploration.md); setting
+  `NameKnownWays`): a fork's way on and an unexplored place name the place they lead to: "Zona 1: sigue arriba, sigue a la
+  izquierda hacia Lodazal, sigue arriba a la derecha hacia tu misión, El bosque singular". Only places the scanner lists
+  already and the player has not reached (`EntityCatalog.KnownGoals`: area exits, boss rooms the map points to, what the
+  quest asks, the nearest four). A fork takes the shortest walk over the map's shape (`MapTopology.WayToward`); an
+  unexplored place is the one where the walk leaves the seen ground (`ExplorationMap.WayOn`), so of several edges of one
+  unseen ground only that one says it. Live in Clearfell (known from earlier instances).
 - **Going round in circles** (the owner, 2026-11-18: "cuando estoy dando muchas vueltas… que diga zona más cercana sin
   explorar, a distancia tal en dirección tal"): a "ya estuviste aquí" said after `UnexploredHintSeconds` of walking without one
   new block of ground (`LostWatch.SinceNewGroundMs`, which the hints do not reset; `LostHint.Circling`, so it needs the lost

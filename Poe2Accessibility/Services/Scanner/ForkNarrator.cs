@@ -141,7 +141,9 @@ namespace Poe2Accessibility.Services
 
             var back = ForkTracker.WayBack(ways.Select(way => way.Direction).ToList(), this.cameFrom + (here - centre));
             var told = new List<(string Side, ForkWay State)>();
+            var leads = new List<(string Side, string Place)>();
             var onward = new List<Way>();
+            var goals = this.catalog.KnownGoals().Select(goal => (goal.Name, Way: topology.WayToward(entered.Node, goal.Cell))).ToList();
             for (var i = 0; i < ways.Count; i++)
             {
                 if (i == back)
@@ -151,7 +153,9 @@ namespace Poe2Accessibility.Services
 
                 var way = ways[i];
                 var state = this.StateOf(topology, entered.Node, way);
-                told.Add((Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld)], state));
+                var side = Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld)];
+                told.Add((side, state));
+                leads.AddRange(goals.Where(goal => goal.Way == way).Select(goal => (side, goal.Name)));
                 if (state == ForkWay.GoesOn)
                 {
                     onward.Add(way);
@@ -163,7 +167,7 @@ namespace Poe2Accessibility.Services
                 this.pending.Note(entered.Node, entered.Name, topology.Nodes[entered.Node].Centre, topology.Nodes[entered.Node].Radius, onward);
             }
 
-            IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> line = ways.Count >= 3 ? ForkTracker.Tell(told) : Array.Empty<(ForkWay, IReadOnlyList<string>)>();
+            IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> line = ways.Count >= 3 ? ForkTracker.Tell(told, leads.ToLookup(lead => lead.Side, lead => lead.Place)) : Array.Empty<(ForkWay, IReadOnlyList<string>)>();
             return (entered.Name, entered.Again, line);
         }
 

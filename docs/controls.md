@@ -99,7 +99,9 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   where it goes on, nearest first; then "Small unexplored ground", a room or a short branch that soon ends; then
   "Unexplored nook" where one look from its edge would show it all, a dead end. The size is of the ground you would
   reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
-  the wall. It never says where the exit is; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  the wall. An exit not known yet is never told; ground that leads to a place you know of and have not reached (an exit
+  already listed, a boss room the map points to, what the quest asks) says so: "Large unexplored ground, toward your quest,
+  The Grelwood" (setting "Say which known place a fork's way or unexplored ground leads to"). Ground within about 80 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too; "Essence: Blood Cretin", a crystal holding a
@@ -148,6 +150,12 @@ closed"; the ping goes on by itself once the barrier opens.
 **Guide without confirming** (setting "Guide to the scanner's choice without confirming", Navigation, off by default): the
 ping starts on whatever the scanner names, as in the D2R mod, and the next flick moves it to the next choice. Nothing extra
 is said. The same gesture turns it off.
+
+**Exploring** (setting "Guide to unexplored ground goes on to the next", Navigation, on by default): guiding to an unexplored
+entry does not end there. Near the ground it led to, once you have seen it, the guide takes the unseen ground beside it
+without a word, the ping going on; when that way is done it says the next, "Next: Unexplored ground, 40 steps, down left".
+It ends with "Nothing left to explore within reach but nooks"; the same gesture turns it off. It knows only what you have
+seen: which way to take at a fork is still yours.
 
 ## Glance at the map (gameplay)
 
@@ -649,6 +657,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   exit: Clearfell, up left", "New checkpoint, near Clearfell Encampment, down right", "Boss in sight: The Bloated
   Miller, right" (`AnnounceDiscoveries`). The direction is where it lies on the screen, in a straight line, and the
   chime comes from that side, higher above you and lower below.
+  An exit the quest leads through says it: "New exit: The Grelwood, your quest leads there".
   Said once, so it holds through a fight for a moment; other spoken news waits behind it.
 - Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
   Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on

@@ -99,7 +99,7 @@ namespace Poe2Accessibility.Services
         /// <summary>An exit of the area the player has just reached and was not told of since coming near it; null otherwise.</summary>
         private ScanEntry? ExitReached()
         {
-            var awayWorld = 2 * ExplorationMap.SeenRadiusCells * Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            var awayWorld = 2 * ExplorationMap.LookCells * Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
             foreach (var (id, told) in this.exitsTold.ToList())
             {
                 if (this.catalog.DistanceTo(told) is not { } distance || distance > awayWorld)

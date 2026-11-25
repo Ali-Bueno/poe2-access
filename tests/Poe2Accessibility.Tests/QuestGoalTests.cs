@@ -13,6 +13,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(GoalsComeByLineAndLanguageWithEnglishAsFallback), GoalsComeByLineAndLanguageWithEnglishAsFallback),
             (nameof(ALineIsMatchedWhateverTheHudDoesToIt), ALineIsMatchedWhateverTheHudDoesToIt),
+            (nameof(ALineTheHudMakesOfAStepElsewhereNamesItsArea), ALineTheHudMakesOfAStepElsewhereNamesItsArea),
             (nameof(AMissingFileIsAnEmptyCatalog), AMissingFileIsAnEmptyCatalog),
             (nameof(NextDoorTheGoalItselfIsTheStep), NextDoorTheGoalItselfIsTheStep),
             (nameof(TwoHopsGiveTheFirstExitOfAShortestWay), TwoHopsGiveTheFirstExitOfAShortestWay),
@@ -53,6 +54,30 @@ namespace Poe2Accessibility.Tests
             Expect(1, catalog.GoalsOf(new[] { "<white>{Find the Sanctum}" }, "en").Count, "colour");
             Expect(1, catalog.GoalsOf(new[] { "[Find|Find] the Sanctum" }, "en").Count, "a link");
             Expect(2, catalog.GoalsOf(new[] { "Find the Sanctum\r\nReach the Grelwood" }, "en").Count, "a text of two lines");
+        }
+
+        private static void ALineTheHudMakesOfAStepElsewhereNamesItsArea()
+        {
+            var catalog = new QuestGoalCatalog(
+                new Dictionary<string, Dictionary<string, string[]>> { ["es"] = new() { ["Viaja a las Tierras de cultivo de Ogham"] = new[] { "G1_6" } } },
+                new Dictionary<string, string[]> { ["G1_2"] = new[] { "G1_town", "G1_3", "G1_4" }, ["G1_4"] = new[] { "G1_2", "G1_6" }, ["G1_6"] = new[] { "G1_4" } },
+                travel: new Dictionary<string, string[]>
+                {
+                    ["es"] = new[] { "Viaja a {0}", "Viaja a {0} o {1}" }, ["fr"] = new[] { "Rendez-vous dans la zone «\u00a0{0}\u00a0»" }, ["ko"] = new[] { "{0}(으)로 이동하기" },
+                },
+                areas: new Dictionary<string, Dictionary<string, string[]>>
+                {
+                    ["es"] = new() { ["Tierras de cultivo de Ogham"] = new[] { "G1_6" }, ["El bosque singular"] = new[] { "G1_4" } },
+                    ["fr"] = new() { ["Le Grelwood"] = new[] { "G1_4" } },
+                    ["ko"] = new() { ["그렐우드"] = new[] { "G1_4" } },
+                });
+            var goals = catalog.GoalsOf(new[] { "Viaja a Tierras de cultivo de Ogham" }, "es");
+            Expect("G1_6", string.Join(",", goals), "the area the HUD names");
+            Expect("G1_4", string.Join(",", catalog.StepsToward("G1_2", goals)), "two areas off: through the Grelwood's exit");
+            Expect("G1_4,G1_6", string.Join(",", catalog.GoalsOf(new[] { "Viaja a El bosque singular o Tierras de cultivo de Ogham" }, "es").Order()), "two areas");
+            Expect("G1_4", string.Join(",", catalog.GoalsOf(new[] { "Rendez-vous dans la zone « Le Grelwood »" }, "fr")), "a non-breaking blank in the sentence");
+            Expect("G1_4", string.Join(",", catalog.GoalsOf(new[] { "그렐우드(으)로 이동하기" }, "ko")), "the name first");
+            Expect(0, catalog.GoalsOf(new[] { "Viaja a un sitio sin nombre" }, "es").Count, "no area of that name");
         }
 
         private static void AMissingFileIsAnEmptyCatalog()

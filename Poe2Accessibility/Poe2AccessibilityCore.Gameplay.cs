@@ -65,6 +65,7 @@ namespace Poe2Accessibility
                 if (core.beacon != null)
                 {
                     core.beacon.TurnPrompts = core.Settings.RoutePrompts;
+                    core.beacon.Explores = core.Settings.GuideExplores;
                     core.GuideToTimed(playing);
                     core.beacon.Tick(playing);
                 }

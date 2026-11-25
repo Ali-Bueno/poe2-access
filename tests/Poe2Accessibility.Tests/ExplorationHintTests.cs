@@ -14,6 +14,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(ADeadEndBesideUnseenGroundIsNoGroundThatGoesOn), ADeadEndBesideUnseenGroundIsNoGroundThatGoesOn),
             (nameof(UnseenGroundIsSizedAndTheRadarMarksWhatGoesOnFirst), UnseenGroundIsSizedAndTheRadarMarksWhatGoesOnFirst),
+            (nameof(TheWayToAKnownPlaceIsNamedOnItsOwnEdgeAlone), TheWayToAKnownPlaceIsNamedOnItsOwnEdgeAlone),
             (nameof(ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround), ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround),
             (nameof(ADoorNotOpenedIsAWayStillToTry), ADoorNotOpenedIsAWayStillToTry),
             (nameof(TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions), TheQuestStepsOwnExitIsTheTargetNotOneTheTextMentions),
@@ -242,6 +243,29 @@ namespace Poe2Accessibility.Tests
             Equal(true, onePip > 100 && onePip < twoPips, "the one-pip mark is the cue and one pip, shorter than the two");
             Equal(0, ExplorationMap.Rank(string.Empty), "ground that goes on stands first among the scanner's entries");
             Equal(true, ExplorationMap.Rank(ExplorationMap.SmallKind) < ExplorationMap.Rank(ExplorationMap.PocketKind), "then what soon ends, then nooks");
+        }
+
+        private static void TheWayToAKnownPlaceIsNamedOnItsOwnEdgeAlone()
+        {
+            const int width = 900, height = 400;
+            var player = new Vector2(60, 200);
+            // A hall; corridors east and north into one hall apart, and west of it a nook holding a known place.
+            var grid = MapRadarTests.Carved(width, height, (20, 180, 100, 220), (100, 196, 500, 204), (56, 20, 64, 180), (56, 20, 500, 28), (500, 10, 880, 380));
+            var map = new ExplorationMap();
+            map.Visit(player, width, height);
+            Equal(true, map.Frontier(grid, width / 2, player, 8).All(place => place.LeadsTo.Count == 0), "nothing known: no place leads anywhere");
+            var places = map.Frontier(grid, width / 2, player, 8, new[] { new Vector2(520, 360) });
+            Equal(2, places.Count, "north and east, one unseen ground behind both");
+            var leading = places.Where(place => place.LeadsTo.Count > 0).ToList();
+            Equal(1, leading.Count, "only the edge the walk passes leads there, though both open on the same ground");
+            Equal(true, leading[0].Cell.X > 100 && leading[0].Cell.Y > 190, "by the east corridor, the shorter walk");
+            Equal(true, places.All(place => place.Steps is > 40 and < 130), "each place with its walk");
+            Equal(1, map.Frontier(grid, width / 2, player, 1, new[] { new Vector2(520, 30) }).Count(place => place.LeadsTo.Contains(0)), "a place that leads somewhere is kept past the listing's size");
+            map.Visit(new Vector2(520, 360), width, height);
+            Equal(true, map.Frontier(grid, width / 2, player, 8, new[] { new Vector2(520, 360) }).All(place => place.LeadsTo.Count == 0), "once its ground is seen nothing leads there");
+
+            Equal("Large unexplored ground, toward The Red Vale, toward your quest, Mud Burrow",
+                Announcements.Unexplored(UnseenSize.Large, new[] { Announcements.WayTo("The Red Vale", false), Announcements.WayTo("Mud Burrow", true) }), "said after what it is");
         }
 
         private static void ALongWalkThroughAnAreaBringsTheHintEvenOverNewGround()

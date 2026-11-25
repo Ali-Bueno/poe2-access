@@ -38,6 +38,13 @@ namespace Poe2Accessibility
             return ways.Count == 0 ? head : $"{head}: {string.Join(", ", ways.Select(way => ForkWayLine(way.State, Both(way.Sides))))}";
         }
 
+        /// <summary>A way's side with the known places it leads to: "arriba hacia El valle rojo".</summary>
+        public static string SideToward(string side, IEnumerable<string> places)
+        {
+            var toward = Both(places.ToList());
+            return toward.Length == 0 ? side : $"{side} {toward}";
+        }
+
         private static string ForkWayLine(ForkWay state, string sides) => state switch
         {
             ForkWay.DeadEnd => T($"dead end {sides}", $"sin salida {sides}"),

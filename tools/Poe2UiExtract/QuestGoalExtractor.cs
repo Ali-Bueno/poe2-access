@@ -6,7 +6,9 @@ using Index = LibBundle3.Index;
 ///     "connections": { area id: [area ids] } }. A quest's states are ordered by Order and a step ends when the state of the
 ///     next lower Order of the same quest becomes true, so a state's goals are the areas whose FlagOnEntered is one of that
 ///     state's FlagsPresent. Every column is found by what it holds and judged on the rows named below (0.5.5f); the step
-///     fails, and writes nothing, when a known line does not lead where the game's data says. Read-only on the game.
+///     fails, and writes nothing, when a known line does not lead where the game's data says. Also "travel", per language the
+///     sentences the HUD makes of a step done in another area ("Travel to {0}"), and "areas", the connected areas by name.
+///     Read-only on the game.
 /// </summary>
 internal static class QuestGoalExtractor
 {
@@ -45,6 +47,9 @@ internal static class QuestGoalExtractor
     private const string KnownLinkedArea = "G2_4_2";
     private static readonly string[] KnownNeighbours = { "G2_4_1", "G2_4_3" };
 
+    /// <summary>The HUD's own line for a step done elsewhere, with one, two or three areas.</summary>
+    private static readonly string[] TravelKeys = { "QuestTrackingGoTo1", "QuestTrackingGoTo2", "QuestTrackingGoTo3" };
+
     private static readonly Regex Colour = new(@"<\w+>\{([^{}]*)\}", RegexOptions.Compiled);
     private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
 
@@ -66,7 +71,11 @@ internal static class QuestGoalExtractor
         var (states, flags, quests, areas) = (tables.States, tables.Flags, tables.Quests, tables.Areas);
         var search = new DatColumnSearch();
         var columns = Find(states, flags, quests, areas, search);
-        if (!search.Report(Step) || columns == null)
+        var anchor = NameAnchor.Areas;
+        var areaName = search.Text(areas, anchor.Column, anchor.Measured, known: (DatColumnSearch.RowOf(areas, anchor.Id), text => text == anchor.Name));
+        var strings = DatTable.Open(index, ClientStringColumns.Table);
+        var stringColumns = strings == null ? null : ClientStringColumns.Find(strings, search);
+        if (!search.Report(Step) || columns == null || strings == null || stringColumns is not { } texts)
         {
             return 1;
         }
@@ -81,6 +90,8 @@ internal static class QuestGoalExtractor
 
         var result = new SortedDictionary<string, SortedDictionary<string, string[]>>(StringComparer.Ordinal);
         var questLines = new SortedDictionary<string, List<string[]>>(StringComparer.Ordinal);
+        var travel = new SortedDictionary<string, string[]>(StringComparer.Ordinal);
+        var names = new SortedDictionary<string, SortedDictionary<string, string[]>>(StringComparer.Ordinal);
         foreach (var (code, folder) in AreaExtractor.Languages)
         {
             var table = folder == null ? states : DatTable.OpenTranslated(index, StatesTable, folder);
@@ -100,6 +111,15 @@ internal static class QuestGoalExtractor
             Say.Out.WriteLine($"  {code}: {lines.Count} lines, {dropped} ambiguous dropped");
             result[code] = lines;
             questLines[code] = LinesByQuest(table, columns);
+            var localStrings = folder == null ? strings : DatTable.OpenTranslated(index, ClientStringColumns.Table, folder);
+            var localAreas = folder == null ? areas : DatTable.OpenTranslated(index, AreasTable, folder);
+            if (localStrings != null && localAreas != null && ClientStringColumns.SameShape(strings, localStrings) && ClientStringColumns.SameShape(areas, localAreas))
+            {
+                travel[code] = TravelKeys.Select(key => DatAnchors.RowWith(strings, texts.Key, key)).Where(row => row >= 0)
+                    .Select(row => Normalize(localStrings.String(row, texts.Text))).Where(line => line.Contains("{0}", StringComparison.Ordinal)).ToArray();
+                names[code] = AreasByName(areas, localAreas, areaName, connections.Keys);
+                Say.Out.WriteLine($"  {code}: {travel[code].Length} travel lines, {names[code].Count} area names");
+            }
         }
 
         if (!result.TryGetValue("en", out var english) || !KnownLinesHold(english))
@@ -108,7 +128,7 @@ internal static class QuestGoalExtractor
         }
 
         Say.Out.WriteLine($"  {connections.Count} areas with connections; {goals.Count} states with goals");
-        AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["connections"] = connections, ["goals"] = result, ["quests"] = questLines });
+        AreaExtractor.WriteJson(outFile, new SortedDictionary<string, object>(StringComparer.Ordinal) { ["connections"] = connections, ["goals"] = result, ["quests"] = questLines, ["travel"] = travel, ["areas"] = names });
         Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
@@ -169,6 +189,11 @@ internal static class QuestGoalExtractor
 
         return result;
     }
+
+    /// <summary>The areas with connections by their name in a language: a name the campaign's halves share holds both.</summary>
+    private static SortedDictionary<string, string[]> AreasByName(DatTable english, DatTable local, int nameColumn, IEnumerable<string> ids) =>
+        new(ids.Select(id => (Id: id, Name: Normalize(local.String(DatColumnSearch.RowOf(english, id), nameColumn)))).Where(area => area.Name.Length > 0)
+            .GroupBy(area => area.Name, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.Select(area => area.Id).ToArray()), StringComparer.Ordinal);
 
     /// <summary>The areas each flag (a QuestFlags row) is set by entering, for the flags a few areas set.</summary>
     private static Dictionary<long, List<string>> ReadFlagAreas(DatTable areas, DatTable flags, int column)

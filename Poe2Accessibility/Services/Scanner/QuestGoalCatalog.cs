@@ -26,16 +26,32 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, Dictionary<string, string[]>> goals = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string[]> connections;
 
+        private readonly Dictionary<string, Regex[]> travel = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Dictionary<string, string[]>> areas = new(StringComparer.Ordinal);
+
         /// <summary>Per language, each tracker line that belongs to one quest alone, to all that quest's lines.</summary>
         private readonly Dictionary<string, Dictionary<string, string[]>> questOf = new(StringComparer.Ordinal);
 
         /// <param name="goals">Per language, a tracker line to the areas its step ends on.</param>
         /// <param name="connections">An area to the areas one exit leads to.</param>
         /// <param name="quests">Per language, each quest's tracker lines.</param>
+        /// <param name="travel">Per language, the lines the HUD makes of a step done in another area ("Travel to {0}").</param>
+        /// <param name="areas">Per language, the areas by name.</param>
         public QuestGoalCatalog(
             IReadOnlyDictionary<string, Dictionary<string, string[]>> goals, IReadOnlyDictionary<string, string[]> connections,
-            IReadOnlyDictionary<string, List<string[]>>? quests = null)
+            IReadOnlyDictionary<string, List<string[]>>? quests = null, IReadOnlyDictionary<string, string[]>? travel = null,
+            IReadOnlyDictionary<string, Dictionary<string, string[]>>? areas = null)
         {
+            foreach (var (language, lines) in travel ?? new Dictionary<string, string[]>())
+            {
+                this.travel[language] = lines.Select(TravelPattern).ToArray();
+            }
+
+            foreach (var (language, names) in areas ?? new Dictionary<string, Dictionary<string, string[]>>())
+            {
+                this.areas[language] = new Dictionary<string, string[]>(names, StringComparer.Ordinal);
+            }
+
             foreach (var (language, list) in quests ?? new Dictionary<string, List<string[]>>())
             {
                 var normalized = list.Select(lines => lines.Select(Normalize).Where(line => line.Length > 0).Distinct(StringComparer.Ordinal).ToArray()).ToList();
@@ -66,7 +82,7 @@ namespace Poe2Accessibility.Services
             {
                 var parsed = JsonConvert.DeserializeObject<QuestGoalFile>(File.ReadAllText(file)) ?? new QuestGoalFile();
                 log.Info($"Quest goals: {parsed.Goals.Count} languages, {parsed.Connections.Count} areas with connections");
-                return new QuestGoalCatalog(parsed.Goals, parsed.Connections, parsed.Quests);
+                return new QuestGoalCatalog(parsed.Goals, parsed.Connections, parsed.Quests, parsed.Travel, parsed.Areas);
             }
             catch (Exception ex) when (ex is IOException or JsonException)
             {
@@ -90,10 +106,40 @@ namespace Poe2Accessibility.Services
                 {
                     reached.UnionWith(areas);
                 }
+                else
+                {
+                    reached.UnionWith(this.TravelGoals(line, language));
+                }
             }
 
             return reached;
         }
+
+        /// <summary>The areas of a line the HUD makes of a step done elsewhere ("Viaja a Tierras de cultivo de Ogham"); empty for any other line.</summary>
+        private IEnumerable<string> TravelGoals(string line, string language)
+        {
+            foreach (var code in new[] { language, FallbackLanguage })
+            {
+                if (!this.travel.TryGetValue(code, out var patterns) || !this.areas.TryGetValue(code, out var names))
+                {
+                    continue;
+                }
+
+                foreach (var match in patterns.Select(pattern => pattern.Match(line)).Where(match => match.Success))
+                {
+                    var found = match.Groups.Values.Skip(1).Select(group => names.GetValueOrDefault(group.Value.Trim())).ToList();
+                    if (found.All(ids => ids != null))
+                    {
+                        return found.SelectMany(ids => ids!);
+                    }
+                }
+            }
+
+            return Enumerable.Empty<string>();
+        }
+
+        private static Regex TravelPattern(string line) =>
+            new("^" + Regex.Replace(Regex.Escape(Normalize(line)), @"\\\{\d\}", "(.+?)") + "$", RegexOptions.Compiled);
 
         /// <summary>
         ///     The areas one exit from <paramref name="hereId"/> on a shortest way to a goal (the goal itself when it is next
@@ -158,6 +204,12 @@ namespace Poe2Accessibility.Services
 
             [JsonProperty("quests")]
             public Dictionary<string, List<string[]>> Quests { get; set; } = new();
+
+            [JsonProperty("travel")]
+            public Dictionary<string, string[]> Travel { get; set; } = new();
+
+            [JsonProperty("areas")]
+            public Dictionary<string, Dictionary<string, string[]>> Areas { get; set; } = new();
         }
     }
 }

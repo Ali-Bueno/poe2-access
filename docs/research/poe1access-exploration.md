@@ -2,7 +2,9 @@
 
 Asked by the owner on 2026-11-25: what that mod does for exploring in real time, with no key, that this one lacks, and
 whether PoE2 allows it showing only what a sighted player sees. Read from its source at `6c39bf4`
-(`D:\code\c#\PoE1Access\PoE1Access`); it follows this mod's design, so most is shared. Nothing is built yet.
+(`D:\code\c#\PoE1Access\PoE1Access`); it follows this mod's design, so most is shared. **Built the same day: A, B and C of the
+verdict** ([radar](../radar.md), "Ways to known places" and "Exploring guide"); D is the exit named as the quest's
+([quest goals](quest-goals.md#a-step-done-in-another-area-2026-11-25)), its spoken route not built.
 
 ## What it does
 
@@ -38,7 +40,7 @@ On 2026-11-05 the owner found "Way to ..." from that table too easy and had it t
 - Not found in any source: a path or arrow to an objective across unexplored ground beyond that reach.
 - **Light radius** widens the fog cleared and the distance at which doors and points of interest appear on the minimap,
   and Blind cuts it (poe2wiki "Light radius" and Mobalytics, search excerpts only; the wiki refuses automated reads). The
-  mod's 60 cells are fixed. The stat is `light_radius_positive_percentage` (`GameStats`); the unit is not measured.
+  mod's 60 cells are fixed. Measured since: 80 ([minimap](minimap.md), "The fog").
 - UNSURE: whether an icon is drawn over fog inside the bubble. If it is not, "New exit" comes early.
 - UNSURE: whether the world map draws areas not visited and the lines between them.
 

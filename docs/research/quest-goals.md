@@ -35,6 +35,16 @@ while (the user: "el sonidito sí sonó en el sitio correcto"); only the Quest c
 Unit tests (`QuestGoalTests`, `ExplorationHintTests`); not heard in a game. UNSURE: a quest whose states branch may have a
 next state that is not the one the player reaches; the log line above tells which exits were taken.
 
+## A step done in another area (2026-11-25)
+
+Away from the step's area the HUD shows a sentence of its own, not the quest's: ClientStrings `QuestTrackingGoTo1..3`,
+"Viaja a {0}", "Viaja a {0} o {1}", "Viaja a {0}, {1} o {2}" (German "Reist nach: {0}", Korean "{0}(으)로 이동하기"). In Clearfell,
+with the Farmlands' step, the tracker read "Viaja a Tierras de cultivo de Ogham" (the table's line has "las"), no table knew
+it and the Quest category had no exit: 100 such lines in one log. `quest-goals.json` now holds `travel` (the sentences per
+language) and `areas` (the connected areas by name); `QuestGoalCatalog.TravelGoals` reads the areas out of the sentence and
+`StepsToward` gives the exit. Live: "Quest step leads through: El bosque singular (from G1_2)", then "El enredo sombrío (from
+G1_4)". The committed file was of 2026-11-14, without the `quests` part the code reads since 2026-11-19; regenerated (step v3).
+
 ## An exit whose path says "Portal" (Mawdun Quarry, 2026-11-16)
 
 The owner, by the way down to the Mawdun Mine: the reader named it "Portal: Mina Mawdun" and the scanner's quest goal led

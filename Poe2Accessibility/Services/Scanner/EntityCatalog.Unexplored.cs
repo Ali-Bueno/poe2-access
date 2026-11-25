@@ -31,6 +31,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The frontier scans the whole grid: recomputed at most this often (the many Entries() callers share it).</summary>
         private const int UnexploredRefreshMs = 2000;
 
+        /// <summary>Two walks of the whole grid a goal: the nearest few tell where their ways go.</summary>
+        private const int MaxKnownGoals = 4;
+
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
 
@@ -41,10 +44,16 @@ namespace Poe2Accessibility.Services
         private long slowestFrontierMs = 250;
 
         /// <summary>The frontier being worked out, with the map it reads and what its places need to become entries.</summary>
-        private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height)? frontierSearch;
+        private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height, IReadOnlyList<string> Goals, long At)? frontierSearch;
 
-        /// <summary>What the last frontier search read: the same grid, seen ground and player's block again find the same places.</summary>
-        private (byte[] Grid, int Seen, int X, int Y)? frontierFor;
+        /// <summary>What the last frontier search read: the same grid, seen ground, player's block and goals again find the same places.</summary>
+        private (byte[] Grid, int Seen, int X, int Y, string Goals)? frontierFor;
+
+        /// <summary>When what the unexplored places were worked out from was last current.</summary>
+        private long unexploredAsOf;
+
+        /// <summary>The walk to each unexplored place (cells), by its id.</summary>
+        private Dictionary<uint, int> unexploredWalks = new();
 
         /// <summary>How much of the ground the player can reach has been seen, in percent; null outside gameplay or without a grid.</summary>
         public int? ExploredPercent()
@@ -82,6 +91,72 @@ namespace Poe2Accessibility.Services
             var nearest = this.BestUnexplored(area, player).OrderBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault();
             return nearest is null ? null : this.Describe(nearest with { Name = Announcements.NearestUnexplored });
         }
+
+        /// <summary>The unexplored ground is worked out again at once: the guide has seen the ground it led to.</summary>
+        public void HurryUnexplored() => this.unexploredAt = long.MinValue / 2;
+
+        /// <summary>
+        ///     The unseen ground to go on to from <paramref name="last"/> (grid cells): the nearest to it within
+        ///     <paramref name="beside"/> cells, else the nearest by the walk, among the best rank left, nooks left out. Known as of
+        ///     <paramref name="since"/> or later, else Known is false and it is being worked out.
+        /// </summary>
+        public (bool Known, ScanEntry? Entry) NextUnexplored(long since, Vector2 last, float beside)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var toWorld = area.WorldToGridConvertor;
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return (false, null);
+            }
+
+            this.Unexplored(area, player);
+            if (this.unexploredAsOf < since)
+            {
+                return (false, null);
+            }
+
+            float FromLast(ScanEntry entry) => Vector2.Distance(new Vector2(entry.WorldX, entry.WorldY) / toWorld, last);
+            var found = this.BestUnexplored(area, player).Where(entry => entry.Kind != ExplorationMap.PocketKind).ToList();
+            var left = found.Where(entry => !this.IsSeen(new Vector2(entry.WorldX, entry.WorldY) / toWorld)).ToList();
+            if (left.Count == 0 && found.Count > 0)
+            {
+                this.HurryUnexplored(); // all of it seen since it was worked out: not the end, only old
+                return (false, null);
+            }
+
+            var next = left.Where(entry => FromLast(entry) <= beside).OrderBy(FromLast).FirstOrDefault() ??
+                       left.OrderBy(entry => this.unexploredWalks.GetValueOrDefault(entry.Id, int.MaxValue)).ThenBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault();
+            return (true, next);
+        }
+
+        /// <summary>
+        ///     The places the player knows of and has not reached (exits listed, boss rooms, what the quest asks), nearest first,
+        ///     with how to name each as the end of a way; never what the scanner does not list (docs/radar.md "Ways to known places").
+        /// </summary>
+        public IReadOnlyList<(Vector2 Cell, string Name)> KnownGoals()
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (!this.NameKnownWays || toWorld <= 0 || this.listed is not { } last || last.Instance != this.instance ||
+                !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return Array.Empty<(Vector2, string)>();
+            }
+
+            var quest = last.List.Where(entry => entry.Category == ScanCategory.Quest).Select(entry => entry.Id).ToHashSet();
+            return last.List
+                .Where(entry => (entry.Category == ScanCategory.Exits && entry.Kind == QuestMatcher.ExitKind) ||
+                                (entry.Kind == MinimapMarks.BossRoomKind && entry.Category != ScanCategory.Quest) ||
+                                (entry.Category is ScanCategory.Objects or ScanCategory.Npcs or ScanCategory.PointsOfInterest && quest.Contains(entry.Id)))
+                .Where(entry => !this.IsSeen(new Vector2(entry.WorldX, entry.WorldY) / toWorld))
+                .DistinctBy(entry => entry.Name)
+                .OrderBy(entry => Distance(player.WorldPosition, entry))
+                .Take(MaxKnownGoals)
+                .Select(entry => (new Vector2(entry.WorldX, entry.WorldY) / toWorld, Announcements.WayTo(entry.Kind == MinimapMarks.BossRoomKind ? Announcements.BossRoom(entry.Subject) : entry.Name, quest.Contains(entry.Id))))
+                .ToList();
+        }
+
+        /// <summary>Whether unexplored ground and the forks' ways name the known places they lead to (setting).</summary>
+        public bool NameKnownWays { get; set; } = true;
 
         /// <summary>The unseen ground of the best rank left: ground that goes on while any is left, then what soon ends, pockets last.</summary>
         private List<ScanEntry> BestUnexplored(AreaInstance area, Render player)
@@ -152,11 +227,15 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
+                    uint IdOf(FrontierPlace place) =>
+                        UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells);
+                    this.unexploredAsOf = found.At;
+                    this.unexploredWalks = found.Places.Result.GroupBy(IdOf).ToDictionary(group => group.Key, group => group.Min(place => place.Steps));
                     this.unexplored = found.Places.Result
                         .Select(place => new ScanEntry(
-                            UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells),
+                            IdOf(place),
                             ScanCategory.Unexplored,
-                            Announcements.Unexplored(place.Size),
+                            Announcements.Unexplored(place.Size, place.LeadsTo.Select(goal => found.Goals[goal]).ToList()),
                             place.Cell.X * found.ToWorld,
                             place.Cell.Y * found.ToWorld,
                             found.Height,
@@ -173,22 +252,27 @@ namespace Poe2Accessibility.Services
             // Off the frame thread: every two seconds it held a frame for 30 ms, 140 ms on a Trial's floor (docs/research/performance.md).
             this.unexploredAt = now;
             var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            (byte[] Grid, int Seen, int X, int Y) reads = (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells));
-            if (this.frontierFor is { } last && ReferenceEquals(last.Grid, grid) && (last.Seen, last.X, last.Y) == (reads.Seen, reads.X, reads.Y))
+            var goals = this.KnownGoals();
+            var goalCells = goals.Select(goal => goal.Cell).ToList();
+            var goalNames = goals.Select(goal => goal.Name).ToList();
+            (byte[] Grid, int Seen, int X, int Y, string Goals) reads =
+                (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells), string.Join("|", goalNames));
+            if (this.frontierFor is { } last && ReferenceEquals(last.Grid, grid) && (last.Seen, last.X, last.Y, last.Goals) == (reads.Seen, reads.X, reads.Y, reads.Goals))
             {
+                this.unexploredAsOf = now;
                 return this.unexplored;
             }
 
             this.frontierFor = reads;
             var map = this.explored.Snapshot();
-            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from)), map, area.WorldToGridConvertor, player.WorldPosition.Z);
+            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from, goalCells)), map, area.WorldToGridConvertor, player.WorldPosition.Z, goalNames, now);
             return this.unexplored;
         }
 
-        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from)
+        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from, IReadOnlyList<Vector2> goals)
         {
             var started = Environment.TickCount64;
-            var places = map.Frontier(grid, row, from, MaxUnexplored);
+            var places = map.Frontier(grid, row, from, MaxUnexplored, goals);
             var took = Environment.TickCount64 - started;
             if (took > this.slowestFrontierMs)
             {

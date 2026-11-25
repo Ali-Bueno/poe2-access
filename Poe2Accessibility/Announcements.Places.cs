@@ -23,7 +23,17 @@ namespace Poe2Accessibility
         ///     soon ends, what goes on, a great part of the area. A walk to "unexplored ground" that was a dead end cost an hour
         ///     in an area of Act 2 (user 2026-11-12).
         /// </summary>
-        public static string Unexplored(Services.UnseenSize size) => size switch
+        public static string Unexplored(Services.UnseenSize size, IReadOnlyList<string> leadsTo) =>
+            string.Join(", ", leadsTo.Prepend(Unexplored(size)));
+
+        /// <summary>The known place a way leads to: "hacia El valle rojo", "hacia tu misión, El valle rojo".</summary>
+        public static string WayTo(string name, bool quest) =>
+            quest ? T($"toward your quest, {name}", $"hacia tu misión, {name}") : T($"toward {name}", $"hacia {name}");
+
+        /// <summary>A place found that the quest leads to: "Nueva salida: El valle rojo, tu misión lleva allí".</summary>
+        public static string QuestLeadsThere(string found) => T($"{found}, your quest leads there", $"{found}, tu misión lleva allí");
+
+        private static string Unexplored(Services.UnseenSize size) => size switch
         {
             Services.UnseenSize.Pocket => UnexploredPocket,
             Services.UnseenSize.Small => T("Small unexplored ground", "Zona pequeña sin explorar"),

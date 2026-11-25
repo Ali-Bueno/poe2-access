@@ -36,7 +36,7 @@ namespace Poe2Accessibility.Services
         private int? inside;
 
         /// <param name="awayCells">Coming back to a place is news once the player went this far from where they last stood in it.</param>
-        public ForkTracker(float awayCells = 2 * ExplorationMap.SeenRadiusCells) => this.awayCells = awayCells;
+        public ForkTracker(float awayCells = 2 * ExplorationMap.LookCells) => this.awayCells = awayCells;
 
         /// <summary>A new area, or a new map shape: every place is news again and names start over.</summary>
         public void Reset()
@@ -122,6 +122,22 @@ namespace Poe2Accessibility.Services
                    Telling.Where(kinds.Contains).OrderBy(kind => inArea.GetValueOrDefault(kind)).ThenBy(kind => System.Array.IndexOf(Telling, kind)).FirstOrDefault();
         }
 
+        /// <summary>A state's sides, those leading to a known place each told apart after the plain ones.</summary>
+        private static IEnumerable<(ForkWay State, IReadOnlyList<string> Sides)> WithLeads(ForkWay state, IReadOnlyList<string> sides, ILookup<string, string>? leads)
+        {
+            var leading = leads == null || state == ForkWay.DeadEnd ? new List<string>() : sides.Where(leads.Contains).ToList();
+            var plain = sides.Except(leading).ToList();
+            if (plain.Count > 0)
+            {
+                yield return (state, plain);
+            }
+
+            foreach (var side in leading)
+            {
+                yield return (state, new[] { Announcements.SideToward(side, leads![side].Distinct()) });
+            }
+        }
+
         /// <summary>The index of the way the player came by (the one nearest <paramref name="cameFrom"/>), or null when none is near it.</summary>
         public static int? WayBack(IReadOnlyList<Vector2> directions, Vector2 cameFrom)
         {
@@ -140,7 +156,8 @@ namespace Poe2Accessibility.Services
         ///     What to tell of a place's ways (side words, state): grouped by state, the way on first; empty when no way is new,
         ///     since ways all walked or dead ends tell nothing a player needs.
         /// </summary>
-        public static IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> Tell(IEnumerable<(string Side, ForkWay State)> ways)
+        /// <param name="leads">The known places each side leads to, as they are said; a dead end leads to none.</param>
+        public static IReadOnlyList<(ForkWay State, IReadOnlyList<string> Sides)> Tell(IEnumerable<(string Side, ForkWay State)> ways, ILookup<string, string>? leads = null)
         {
             // Two ways on one side: the one that goes on is what the side means ("sigue arriba… explorado arriba" told nothing).
             var all = ways.ToList();
@@ -148,7 +165,12 @@ namespace Poe2Accessibility.Services
             var groups = all.Where(way => way.State == ForkWay.GoesOn || !onward.Contains(way.Side))
                 .GroupBy(way => way.State).OrderBy(group => group.Key)
                 .Select(group => (group.Key, (IReadOnlyList<string>)group.Select(way => way.Side).Distinct().ToList())).ToList();
-            return groups.Any(group => group.Key == ForkWay.GoesOn) ? groups : new List<(ForkWay, IReadOnlyList<string>)>();
+            if (groups.All(group => group.Key != ForkWay.GoesOn))
+            {
+                return new List<(ForkWay, IReadOnlyList<string>)>();
+            }
+
+            return groups.SelectMany(group => WithLeads(group.Key, group.Item2, leads)).ToList();
         }
     }
 }
