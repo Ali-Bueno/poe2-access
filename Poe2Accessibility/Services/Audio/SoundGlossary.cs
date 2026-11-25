@@ -77,6 +77,7 @@ namespace Poe2Accessibility.Services
 
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add(BossRefugeSounds.Lead, CueSynth.Refuge(rate));
+            this.Add(BossThrowCue.Sound, CueSynth.ScaffoldTwice(rate));
             this.Add(FloodCue.Sound, CueSynth.Flood(rate));
             this.Add(CueSynth.BlastSound, CueSynth.Blast(rate));
             this.AddGame(gameSounds, rate, BossRefugeSounds.Over);
@@ -194,7 +195,7 @@ namespace Poe2Accessibility.Services
         {
             "beacon" => nameof(AccessibilitySettings.BeaconVolume),
             "dodge" or "parry" or "unblockable" or TrapWatch.StatueOpenSound or CueSynth.GazeSound => nameof(AccessibilitySettings.DodgeVolume),
-            "hazard" or "cull" or "crosshair" or "weak_point" or BossRefugeSounds.Lead or "reach" or "enemy" or "elite" or "boss" or "friend" or "player" or "player_down" =>
+            "hazard" or "cull" or "crosshair" or "weak_point" or BossThrowCue.Sound or BossRefugeSounds.Lead or "reach" or "enemy" or "elite" or "boss" or "friend" or "player" or "player_down" =>
                 nameof(AccessibilitySettings.EnemyVolume),
             _ when key.StartsWith("state_", StringComparison.Ordinal) => nameof(AccessibilitySettings.EnemyVolume),
             "bump" or "wall_tone" => nameof(AccessibilitySettings.RadarVolume),

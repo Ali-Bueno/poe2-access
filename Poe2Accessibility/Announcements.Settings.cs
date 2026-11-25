@@ -155,6 +155,7 @@ namespace Poe2Accessibility
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             Services.BossRefugeSounds.Lead => T("Boss fight shelter", "Refugio en un combate de jefe"),
+            Services.BossThrowCue.Sound => T("Where to make a boss throw", "A dónde hacer que el jefe lance"),
             Services.FloodCue.Sound => T("Lava flooding the arena", "Lava u ola que inunda la arena"),
             Services.CueSynth.BlastSound => T("Boss self-destruct countdown", "Cuenta atrás de la autodestrucción del jefe"),
             Services.BossRefugeSounds.Over => T("Shelter no longer needed", "Ya no hace falta el refugio"),
@@ -287,6 +288,9 @@ namespace Poe2Accessibility
             Services.CueSynth.BlastSound => T(
                 "from where a boss about to blow up is (Doryani's Triumph's self-destruct), while you are in its reach; faster as the blow nears",
                 "desde donde está un jefe a punto de estallar (la autodestrucción del Triunfo de Doryani), mientras estás a su alcance; más rápido según se acerca el golpe"),
+            Services.BossThrowCue.Sound => T(
+                "from the scaffolding a boss's boulder should hit (Torvian's, while its priest is at work); quicker while he holds the boulder, struck twice while you stand between him and it",
+                "desde el andamio al que debe dar la roca del jefe (el de Torvian, mientras su sacerdote actúa); más seguido mientras sostiene la roca, dos golpes cuando estás entre él y el andamio"),
             Services.FloodCue.Sound => T(
                 "from the side of the nearest edge of the lava flooding a boss's arena (Mektul's molten gold); faster as it nears, from 10 steps; the heartbeat leads to dry ground",
                 "del lado del borde más cercano de la lava que inunda la arena (el oro fundido de Mektul); más rápido al acercarse, desde 10 pasos; también desde el frente de las olas de un jefe (Diamora) mientras estás en su franja; el latido lleva a suelo seco"),

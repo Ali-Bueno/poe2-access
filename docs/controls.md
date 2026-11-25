@@ -592,6 +592,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   way again when it changes ("izquierda, 3 pasos"), "¡Quieto! Dentro, quédate" as you come into it and
   "¡Fuera! abajo, 1 paso" if you run past it. It sounds as Jamanra's barrier does and is silent inside; "Peligro pasado,
   puedes moverte" once the blow has fallen.
+  Torvian's scaffolding has a sound of its own, a struck tube, while the priest by it is at work: stand between him and it,
+  so that his boulder, thrown at you, flies on at it, and step aside. It comes quicker while he holds the
+  boulder, as two blows while you are on the line.
 - **Dodge warning:** a blade drawn over a low gong, diving into a deep bass drop on the moment to dodge (metal and
   bass, so it is not taken for the radar's breath of open floor; the drop needs headphones or speakers with some
   bass, the blade is heard anywhere), on the side of a rare or

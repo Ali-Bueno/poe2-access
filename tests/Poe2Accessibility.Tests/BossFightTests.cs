@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheMostPressingPlaceLeads), TheMostPressingPlaceLeads),
             (nameof(AClonesWayNamesWhereItStops), AClonesWayNamesWhereItStops),
             (nameof(TheSafeSpotIsSaidUntilThePlayerIsInIt), TheSafeSpotIsSaidUntilThePlayerIsInIt),
+            (nameof(TheThrowsTargetIsTheNearestWithItsHelperAtWork), TheThrowsTargetIsTheNearestWithItsHelperAtWork),
             (nameof(TheShelterEndsOnceItStaysDown), TheShelterEndsOnceItStaysDown),
             (nameof(AThingToUseIsToldOfOnceAndNeverLedTo), AThingToUseIsToldOfOnceAndNeverLedTo),
             (nameof(PlaceLinesNameThePlaceAndTheWay), PlaceLinesNameThePlaceAndTheWay),
@@ -315,6 +316,32 @@ namespace Poe2Accessibility.Tests
             Equal(true, paths.Walked(8) && !paths.Walked(9), "which have set off");
             paths.Update(Array.Empty<ClonePathMarker>(), Array.Empty<(uint, Vector2)>(), 9000);
             Equal(0, paths.Count, "a round that is over is forgotten");
+        }
+
+        private static void TheThrowsTargetIsTheNearestWithItsHelperAtWork()
+        {
+            // Torvian's arena, 2026-11-25: the scaffoldings and the priest by each.
+            var (agility, attack, defence) = (new Vector2(28234, 19364), new Vector2(29114, 19592), new Vector2(29408, 18060));
+            var targets = new[] { agility, attack, defence };
+            (Vector2, bool)[] Priests(bool agilityBusy, bool attackBusy, bool defenceBusy) => new[]
+            {
+                (new Vector2(28212, 19408), agilityBusy), (new Vector2(29103, 19625), attackBusy), (new Vector2(29495, 18071), defenceBusy),
+            };
+            var throws = new BossThrows();
+            var player = new Vector2(29000, 19100);
+            Equal(true, throws.Pick(Priests(false, false, false), targets, player) == null, "no priest at work: nothing to hit");
+            Equal(defence, throws.Pick(Priests(false, false, true), targets, player)!.Value, "the one at work, however far");
+            Equal(attack, throws.Pick(Priests(true, true, true), targets, player)!.Value, "the nearest of those at work");
+            Equal(attack, throws.Pick(Priests(true, true, true), targets, new Vector2(28650, 19450))!.Value, "kept while the other is hardly nearer");
+            Equal(agility, throws.Pick(Priests(true, true, true), targets, new Vector2(28400, 19400))!.Value, "another that is clearly nearer");
+            Equal(attack, throws.Pick(Priests(false, true, true), targets, new Vector2(28400, 19400))!.Value, "its priest stopped: the next");
+
+            var boss = new Vector2(29114, 18900);
+            Equal(true, BossThrows.LinedUp(boss, new Vector2(29114, 19200), attack), "between the boss and it");
+            Equal(false, BossThrows.LinedUp(boss, new Vector2(29114, 18600), attack), "on the boss's other side");
+            Equal(false, BossThrows.LinedUp(boss, new Vector2(29250, 19200), attack), "off the line");
+            Equal(false, BossThrows.LinedUp(boss, new Vector2(29114, 20100), attack), "beyond it");
+            Equal(false, BossThrows.LinedUp(boss, boss, attack), "upon the boss no line");
         }
 
         private static void TheSafeSpotIsSaidUntilThePlayerIsInIt()

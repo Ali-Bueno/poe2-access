@@ -110,6 +110,11 @@ namespace Poe2Accessibility
                 this.floodCue.Gain = Fraction(settings.EnemyVolume);
             }
 
+            if (this.throwCue != null)
+            {
+                this.throwCue.Gain = Fraction(settings.EnemyVolume);
+            }
+
             if (this.blastCue != null)
             {
                 this.blastCue.Gain = Fraction(settings.EnemyVolume);

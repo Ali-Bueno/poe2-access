@@ -275,7 +275,7 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | Ketzuli | (guides: nothing) | states `sun_wall_count`, `summon_sun_wall`; objects `SunWall*`, `BlackHole/OrbitSun` (LIKELY) | todo |
 | Viper Napuatzi | invulnerable while the arena shrinks: stand where the guards' spears glow | not looked up | todo |
 | Doryani | self-destruct, the legs' laser, crystal beams, lightning cage | [Doryani](#doryani) | self-destruct and legs done (unit tests); beams blocked |
-| Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | todo: the only buffs whose text is an instruction |
+| Torvian (Act 4) | make him throw his boulder at the scaffolding to stop the priests' buffs | boss buffs `guard_boss_offensive/defensive/utility_buff`, whose text says exactly that; state `boulder`=1 while he carries one | a metal from the scaffolding ([Torvian](#torvian)); not heard |
 | The Prisoner | use the ballista to stop his regeneration (50 %, 20 %) | not looked up | todo |
 | Diamora | waves from opposite sides; her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | [Diamora](#diamora) | waves done (unit tests); gaze todo |
 | Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) (LIKELY) | todo |
@@ -798,6 +798,19 @@ The second look (2026-11-25, 17:45 to 17:48, the owner: "me dijo que me quedase 
 - The guide stood still for 2 s (17:46:55 to 57) while the boss was out of the watched range: it and the beat kept to where
   the clone had been. The clones are followed now whatever the boss's record does.
 - One blow outside the hole was survived (11:50:02, 459 away, life to 25 %): it is not always a kill.
+
+## Torvian
+
+Asked for by the owner after the fight of 2026-11-25 (a sound on the scaffolding, "un metal o algo"). Three priests
+(`TwilightOrderSorcererGuardBossAttack`, `…Defence_`, `…Utility`) stand by one `BossRoomScaffolding/Scaffolding` each (35 to 88
+world units); their state `active` is 0 at rest, 1 as one begins, 2 about 6 s later, as the boss gains its buff (`powered_beam.ao`),
+3 for the sky beam, 4 the end; a priest stopped by the boulder goes back to 0. The boss's `boulder` is 1 while he holds one, 1.5 to 2 s.
+The boulder flies on past the player: drawn impacts (`rock_throw_impact.ao`) were 700 to 900 world units from him.
+
+`BossThrows` (pure, the game's ids in it) picks the nearest scaffolding whose priest is at work; `BossThrowCue` sounds from it
+every 1.6 s, every 0.6 s while the boulder is up, two blows while the player is on the line from the boss to it. With the weak
+point setting, at the enemies' volume. How near the boulder must come is not in the files (the AI is not shipped) and no hit was
+measured: the line's width (110) is the scaffolding's `object_size` doubled; the `Boss throw:` lines log where the player and boss stood.
 
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 

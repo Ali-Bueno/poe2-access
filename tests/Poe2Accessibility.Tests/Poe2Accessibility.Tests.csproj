@@ -62,6 +62,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.States.cs" Link="Plugin\CueSynth.States.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Refuge.cs" Link="Plugin\CueSynth.Refuge.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Flood.cs" Link="Plugin\CueSynth.Flood.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.Scaffold.cs" Link="Plugin\CueSynth.Scaffold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.LeftBehind.cs" Link="Plugin\CueSynth.LeftBehind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\StereoSound.cs" Link="Plugin\StereoSound.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\PeakLimiter.cs" Link="Plugin\PeakLimiter.cs" />
@@ -276,6 +277,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlaces.cs" Link="Plugin\BossPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\ClonePaths.cs" Link="Plugin\BossPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\SafeSpotGuide.cs" Link="Plugin\BossPlaces.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossThrows.cs" Link="Plugin\BossThrows.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\RefugeEnd.cs" Link="Plugin\RefugeEnd.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlayerBuffs.cs" Link="Plugin\BossPlayerBuffs.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />

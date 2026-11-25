@@ -39,6 +39,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<uint> feedersSeen = new();
         private long feedersSaidAt = long.MinValue / 2;
         private BossPlacesWatch? places;
+        private BossThrowWatch? throws;
         private BossFloodWatch? flood;
         private EntityPlaces? positions;
 
@@ -74,6 +75,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A true clone is followed: where it stops is the only place its blow spares, so nothing else leads meanwhile.</summary>
         private bool LeadsToClone => this.places is { LeadKind: BossPlaceKind.Clone };
+
+        /// <summary>What the fought boss must be made to throw at now (Torvian's scaffolding); null when nothing.</summary>
+        public BossThrowAim? ThrowAim => this.throws?.Aim;
 
         /// <summary>The arena's flood, or a wave's front: its nearest edge and whether the player stands in it; null while none flows.</summary>
         public (Vector2 At, float Distance, bool Inside)? FloodEdge => this.FloodOn() ? this.EffectFront() ?? this.flood?.Edge : null;
@@ -157,6 +161,7 @@ namespace Poe2Accessibility.Services
             this.helpers.Clear();
             this.feedersSeen.Clear();
             this.places?.Reset();
+            this.throws?.Reset();
             this.flood?.Reset();
         }
 
@@ -216,6 +221,7 @@ namespace Poe2Accessibility.Services
                 {
                     this.playerBuffs.Reset();
                     this.places?.Reset();
+                    this.throws?.Reset();
                 }
 
                 return;
@@ -223,6 +229,8 @@ namespace Poe2Accessibility.Services
 
             this.lastFightAt = now;
             this.NoteFeeders(fighting, now, said);
+            this.throws ??= new BossThrowWatch(this.Positions, this.log);
+            this.throws.Poll(this.lastFight.Select(boss => boss.Monster).ToList(), now);
             this.places ??= new BossPlacesWatch(this.elements, this.memory, this.Positions, this.log);
             this.places.AreaOf = this.AreaOf;
             foreach (var news in this.playerBuffs.Update(this.Catalog, PlayerBuffs(), this.places.RefugeUp, now))
