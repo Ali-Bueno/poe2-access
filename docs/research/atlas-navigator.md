@@ -178,13 +178,27 @@ written down as still open, not guessed.
   ((3,−28), (12,−3), (8,−26), (14,4) — LIKELY, to confirm against the graph), canvas's parent chain holds the
   Acts row `Endgame` at `+0x2D0`. Upstream's `+0x290`/`+0x310` are stale by +0x60/+0x10 — trust nothing upstream
   without re-validation.
-- Status byte `+0x2BF` vs known states: **not settled.** `+0x2BE/+0x2BF` are zero on all four sampled nodes.
-  Remaining in-object candidates from a four-node diff: the u64 at `+0x328` (its low u32 is identical on two
-  nodes, `0xB6A53E6F`), the u32 at `+0x330` (1, 19, 3, 4 — an index?), a vector at `+0x360`. Next: sample
+- **Identity without the record search (PROVEN):** node `+0x310` → EndgameMapAtlas row, row `+0x0` → PassiveSkills
+  id, row `+0x68` → EndgameMapPins (the extractor's column, validated live). Pit = `AtlasOutsideFortressPath5`,
+  the Caldera sample = `AtlasOutsideFortressPath71_`, the big 108×108 sample = `AtlasKingsmarch` (its `+0x300`
+  area `MapUberBoss_FallenStar` matches the catalog node's maps, its one catalog link matches the readout's one
+  link), the owner's current Bloodwood = `AtlasOutsideFortressPath36_` (catalog link `AtlasWhiteGate` is the
+  readout's named neighbour "Ancient Gateway"). The `+0x320` i32 pair tracks the catalog place scaled ≈1/173 with
+  y flipped (x exact on 3 of 4 with `round(x/173)+16`, y off by one once) — a grid coordinate to read directly,
+  not a formula to trust.
+- **Canvas census (full dump, [evidence/ui-tree-canvas-20261125-114731.txt](evidence/ui-tree-canvas-20261125-114731.txt)):**
+  1,035 node-flagged children: 168 visible (`0x542EF3`) and 867 hidden (`0x5426F3`, the visible flag bit cleared) —
+  fog/unrevealed is the element's own visible flag. The catalog graph holds 610 nodes, so elements outnumber graph
+  nodes (connection/region elements share the flags, or nodes come in pairs — unsettled, and it does not matter
+  until a scan walks them).
+- Status byte `+0x2BF` vs known states: **not settled.** `+0x2BE/+0x2BF` are zero on all five sampled nodes.
+  Remaining in-object candidates from a five-node diff: the u64 at `+0x328`, the u32 at `+0x330`
+  (1, 19, 3, 4, 10 — an index?), a vector at `+0x360` (empty on Bloodwood, populated on Pit). Next: sample
   owner-certified completed / accessible / locked nodes through `map_control +0x2E0` and require the candidate to
   separate the three classes; then confirm on a second node of each class.
-- You-are-here: the canvas's last child (1062, `flags=0x502EF3`, 54×54 at (60,722), pointed at by canvas
-  `+0x28/+0x60/+0x418`) is the candidate marker (LIKELY) — to validate by its grid/coincidence with a node.
+- You-are-here: **unresolved.** The canvas's last child (1062, 54×54 at (60,722)) is a button (its kid carries
+  click sounds), not the marker. Next lead: whatever element shares the selected node's centre when the Atlas
+  opens on the player's position, or a node whose content/art differs in a full-canvas scan.
 - D-pad on the Atlas: _owner to test._
 - Zoom control; centres hold under pan/zoom? _Open; node rects in the dump are canvas-space (far past 1920×1080),
   so drawn centres need the canvas transform, or the guide works from grid/graph places alone._
