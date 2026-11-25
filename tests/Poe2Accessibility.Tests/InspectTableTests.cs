@@ -45,6 +45,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AdvancedInfoKeepsTheClassRow), AdvancedInfoKeepsTheClassRow),
             (nameof(ToggledLinesAreTheTables), ToggledLinesAreTheTables),
             (nameof(AToggleSaysTheRowEvenUnchanged), AToggleSaysTheRowEvenUnchanged),
+            (nameof(TheCursorPutOnTheRebuiltTooltipIsLeftOut), TheCursorPutOnTheRebuiltTooltipIsLeftOut),
             (nameof(AFlasksChargesAreNoToggle), AFlasksChargesAreNoToggle),
             (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
@@ -462,6 +463,20 @@ namespace Poe2Accessibility.Tests
             var used = flask.Select(item => item with { Lines = item.Lines.Select(line => line.Match.StartsWith("Currently has", StringComparison.Ordinal) ? new InspectLine("Currently has 55 Charges", "Currently has 55 Charges") : line).ToList() }).ToList();
             Expect(null, watch.Update(used, "Inspect Mode", true, 1000), "the charges changed under another row");
             Equal(false, watch.AdvancedInfoToggled(1000), "no toggle");
+        }
+
+        // Advanced info toggled off put the game's cursor on a new link, read as "Worn. 1 to 4 Physical Thorns damage.
+        // Physical, link" (user, 2026-11-25): left out like the opening's, so the next move names its item.
+        private static void TheCursorPutOnTheRebuiltTooltipIsLeftOut()
+        {
+            var watch = new InspectTableWatch();
+            watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 0);
+            Equal(false, watch.QuietsToggledFocus(500), "no toggle yet: a cursor move is said");
+            Expect("Worn", watch.CrossedTo(1), "the cursor in the worn robe");
+            watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000);
+            Equal(true, watch.QuietsToggledFocus(1010), "the cursor the toggle moved");
+            Expect("Worn", watch.CrossedTo(1), "so the next move names its item");
+            Equal(false, watch.QuietsToggledFocus(1000 + InspectTableWatch.ToggleWindowMs), "a move later is said");
         }
 
         /// <summary>A section's tooltips as the table's items: the inspected one, then the worn ones.</summary>

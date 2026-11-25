@@ -131,6 +131,14 @@ namespace Poe2Accessibility.Services
             text = Announcements.InContext(this.speaker.Say(speaks, DateTime.UtcNow), text);
             this.notesContext = node.Context;
             this.deferredFocus = null;
+            if (this.QuietForInspectToggle(node))
+            {
+                // Advanced info toggled in Inspect Mode: the game put its cursor on the rebuilt tooltip, and the table says
+                // the row instead (user, 2026-11-25).
+                this.log.Debug($"Focus left to Inspect Mode's table: {text}");
+                return;
+            }
+
             this.NoteNarrated(text);
             this.SayMove(this.WithPendingPage(text));
             this.SayShortcuts(node, afterDeferredFocus: false);

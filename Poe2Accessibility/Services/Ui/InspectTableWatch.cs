@@ -43,6 +43,17 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool AdvancedInfoToggled(long nowMs) => this.table != null && this.toggledAt is { } at && nowMs - at < ToggleWindowMs;
 
+        /// <summary>
+        ///     Whether the game's cursor just moved because advanced info was toggled (it rebuilds the tooltips and puts the
+        ///     cursor on a new link): left out, as the opening leaves out where it landed, so its next move names its item.
+        /// </summary>
+        public bool QuietsToggledFocus(long nowMs)
+        {
+            var quiet = this.AdvancedInfoToggled(nowMs);
+            this.crossed = quiet ? null : this.crossed;
+            return quiet;
+        }
+
         /// <summary>Gets a value indicating whether the opening is still to be said: what would follow it (the game's legend) waits.</summary>
         public bool OpeningDue => this.openingDue && this.table != null;
 

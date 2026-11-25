@@ -130,6 +130,10 @@ namespace Poe2Accessibility.Services
         /// <summary>A reading of the inspect layer's first focus while the table's opening is still to speak for it.</summary>
         private bool QuietForInspect(string reason) => this.Inspect?.Quiets(reason, Environment.TickCount64) == true;
 
+        /// <summary>The game's cursor put on a rebuilt tooltip by an advanced info toggle: the table says the row instead.</summary>
+        private bool QuietForInspectToggle(AccessibleUiNode node) =>
+            this.InspectItemOf?.Invoke(node) != null && this.Inspect?.QuietsToggledFocus(Environment.TickCount64) == true;
+
         /// <summary>The focus's own words, after its item's label when it crossed into that item's tooltip.</summary>
         private string WithInspectLabel(AccessibleUiNode node, string speech) =>
             node.Address == this.inspectFocus.Node?.Address && this.inspectFocus.Label.Length > 0 ? Announcements.InspectCell(this.inspectFocus.Label, speech) : speech;
