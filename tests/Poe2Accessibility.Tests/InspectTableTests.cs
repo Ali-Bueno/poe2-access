@@ -39,6 +39,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ARaresTitleHoldsItsBase), ARaresTitleHoldsItsBase),
             (nameof(AUniquesGroupsAndStoryAreRows), AUniquesGroupsAndStoryAreRows),
             (nameof(AGrantedSkillAndUnidentifiedAreRows), AGrantedSkillAndUnidentifiedAreRows),
+            (nameof(TheClassLineIsOneRowAcrossItemClasses), TheClassLineIsOneRowAcrossItemClasses),
+            (nameof(AdvancedInfoKeepsTheClassRow), AdvancedInfoKeepsTheClassRow),
             (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
@@ -365,6 +367,29 @@ namespace Poe2Accessibility.Tests
             var said = Spoken(InspectLayout.Read(Tooltips("stash-staff")[0], false));
             Expect("Ashen Staff | Staff: Item Level 8 | Grants Skill: Level 3 Firebolt | Unidentified", said, "the staff's rows, no buttons");
         }
+
+        // A quarterstaff against the worn bow gave "Quarterstaff: Item Level 9" and "Bow: Item Level 5" a row each, each said
+        // "none" on the other item (user, 2026-11-25): the layout's first line, the item's class, is one row on every item.
+        private static void TheClassLineIsOneRowAcrossItemClasses()
+        {
+            var rows = InspectRows.Align(Items(Tooltips("stash-staff")));
+            Expect("Staff: Item Level 8 | Bow: Item Level 5", string.Join(" | ", rows[1].Cells.Select(cell => cell?.Spoken ?? "-")), "one row, each item's class line");
+        }
+
+        private static void AdvancedInfoKeepsTheClassRow()
+        {
+            var labels = new[] { "This item", "Worn" };
+            var table = new InspectTable(labels, InspectRows.Align(Items(Tooltips("robes"))));
+            table.Move(PadGesture.FlickDown);
+            table.Move(PadGesture.FlickDown);
+            Expect("Body Armour", table.Rebuild(labels, InspectRows.Align(Items(Tooltips("robes-advanced-off")))), "the class line without its item level, on the same row");
+            Equal(1, table.Row, "still the class row");
+        }
+
+        /// <summary>A section's tooltips as the table's items: the inspected one, then the worn ones.</summary>
+        private static IReadOnlyList<InspectItem> Items(IReadOnlyList<InspectNode> tooltips) =>
+            tooltips.Select((tooltip, index) => InspectLayout.Read(tooltip, index > 0) is { } read ? new InspectItem(read.Title, read.Lines, index > 0, null) : null)
+                .OfType<InspectItem>().ToList();
 
         private static void AWornWeaponsEquippedLineIsNoRow() =>
             Expect("+1.35(1.01-1.5)% to Critical Hit Chance, T6, Suffix", InspectLayout.Read(Tooltips("merchant-shortbow")[1], true)?.Lines[^1].Spoken,

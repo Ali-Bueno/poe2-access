@@ -7,7 +7,8 @@ namespace Poe2Accessibility.Services
     /// <summary>One line of one item in Inspect Mode's table: what is said, and the game's main text it is matched by.</summary>
     /// <param name="Spoken">The line as said: the game's text, with a modifier's tier and group label ("+19(10-19) to maximum Life, T13, Prefix").</param>
     /// <param name="Match">The game's main text alone ("+19(10-19) to maximum Life"), which <see cref="InspectRows.Key"/> reads.</param>
-    public sealed record InspectLine(string Spoken, string Match);
+    /// <param name="Key">The row's key when the line's place says what it is, not its text (<see cref="InspectRows.ClassKey"/>); null to key by Match.</param>
+    public sealed record InspectLine(string Spoken, string Match, string? Key = null);
 
     /// <summary>An item Inspect Mode shows: its title, its lines (the first is the title row), and for a worn item its slot.</summary>
     /// <param name="Slot">The worn slot's spoken name, which tells two worn items apart; null for the inspected item.</param>
@@ -27,6 +28,12 @@ namespace Poe2Accessibility.Services
     {
         /// <summary>The key of the first row, every item's title.</summary>
         public const string TitleKey = "title";
+
+        /// <summary>
+        ///     The key of every item's class line, the first under the title ("Quarterstaff: Item Level 9", "Bow: Item Level 5",
+        ///     or "Body Armour" with advanced info off): one row whatever the classes are.
+        /// </summary>
+        public const string ClassKey = "\u0001class";
 
         /// <summary>The match text of an item's sockets line, which no tooltip line has (the sockets are art in the game).</summary>
         public const string SocketsMatch = "\u0001sockets";
@@ -119,7 +126,7 @@ namespace Poe2Accessibility.Services
             var seen = new Dictionary<string, int>();
             foreach (var line in lines)
             {
-                var key = Key(line.Match);
+                var key = line.Key ?? Key(line.Match);
                 seen[key] = seen.GetValueOrDefault(key) + 1;
                 yield return (key, seen[key], line);
             }

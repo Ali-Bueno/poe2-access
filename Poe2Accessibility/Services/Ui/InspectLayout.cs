@@ -63,8 +63,10 @@ namespace Poe2Accessibility.Services
                 }
                 else if (TextOf(row) is { Length: > 0 } text)
                 {
+                    // The layout's first row is the item's class line in every tooltip seen (Fixtures/inspect-layers.txt).
+                    var key = ReferenceEquals(row, layout.Children[0]) ? InspectRows.ClassKey : null;
                     var unmet = UnmetRequirements.Of(row.Tagged);
-                    lines.Add(new InspectLine(unmet.Count > 0 ? $"{text}. {Announcements.Unmet(string.Join(", ", unmet))}" : text, text));
+                    lines.Add(new InspectLine(unmet.Count > 0 ? $"{text}. {Announcements.Unmet(string.Join(", ", unmet))}" : text, text, key));
                     lastText = lines.Count - 1;
                 }
             }
