@@ -221,8 +221,9 @@ written down as still open, not guessed.
   already reads. Node rects in dumps are canvas-space (far past 1920×1080), so drawn centres need the canvas
   transform, or the guide works from grid/graph places alone. One more sample meanwhile: the Ancient Gateway the
   owner rests on is `AtlasWhiteGate`, grid (8,24), sampled at 11:58; its catalog words are "Activate the
-  Precursor Relay | Complete a Tower Map to access", its quest popup "Travel to the Ancient Gateway" — its class
-  awaits the owner's word.
+  Precursor Relay | Complete a Tower Map to access", its quest popup "Travel to the Ancient Gateway". **The
+  owner certifies it not completed** ("still in my quest journal", 2026-11-25) — the first certified sample;
+  accessible vs locked is settled by what A does on it (asked, pending).
 - Atlas tree node chain: _open (one `atlasnode`/`describe` once the Atlas Skill Tree is open)._
 - Map device: _open (capture only)._
 
