@@ -41,6 +41,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AUniquesGroupsAndStoryAreRows), AUniquesGroupsAndStoryAreRows),
             (nameof(AGrantedSkillAndUnidentifiedAreRows), AGrantedSkillAndUnidentifiedAreRows),
             (nameof(TheClassLineIsOneRowAcrossItemClasses), TheClassLineIsOneRowAcrossItemClasses),
+            (nameof(ALineBreakInARowMakesTwoLines), ALineBreakInARowMakesTwoLines),
             (nameof(AdvancedInfoKeepsTheClassRow), AdvancedInfoKeepsTheClassRow),
             (nameof(ToggledLinesAreTheTables), ToggledLinesAreTheTables),
             (nameof(AToggleSaysTheRowEvenUnchanged), AToggleSaysTheRowEvenUnchanged),
@@ -390,6 +391,16 @@ namespace Poe2Accessibility.Tests
         {
             var rows = InspectRows.Align(Items(Tooltips("stash-staff")));
             Expect("Staff: Item Level 8 | Bow: Item Level 5", string.Join(" | ", rows[1].Cells.Select(cell => cell?.Spoken ?? "-")), "one row, each item's class line");
+        }
+
+        // With advanced info off a belt's implicits are one text with a line break (user, 2026-11-25: "25% increased Mana
+        // Recovery from Flasks Has 1 Charm Slot" was one row): a line each, sharing rows with the worn belt's.
+        private static void ALineBreakInARowMakesTwoLines()
+        {
+            var belts = Tooltips("belt-advanced-off");
+            Expect("Linen Belt | Belt | 25% increased Mana Recovery from Flasks | Has 1 Charm Slot", Spoken(InspectLayout.Read(belts[0], false)), "the bag belt's lines");
+            var charm = InspectRows.Align(Items(belts)).Single(row => row.Key.Contains("Charm", StringComparison.Ordinal));
+            Expect("Has 1 Charm Slot | Has 1 Charm Slot", string.Join(" | ", charm.Cells.Select(cell => cell?.Spoken ?? "-")), "one row, both belts");
         }
 
         private static void AdvancedInfoKeepsTheClassRow()

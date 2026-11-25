@@ -61,6 +61,14 @@ namespace Poe2Accessibility.Services
                 {
                     lines.AddRange(row.Children.Select(child => TextOf(child)).Where(text => text.Length > 0).Select(text => new InspectLine(text, text)));
                 }
+                else if (row.Text.Trim() is var own && own.Contains('\n'))
+                {
+                    // One text holding several lines: a belt's implicits with advanced info off (Fixtures/inspect-layers.txt,
+                    // "belt-advanced-off"), a line each, as advanced info on gives them. A unique's story sits in a child of
+                    // its row and stays one line.
+                    lines.AddRange(own.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(part => new InspectLine(part, part)));
+                    lastText = lines.Count - 1;
+                }
                 else if (TextOf(row) is { Length: > 0 } text)
                 {
                     // The layout's first row is the item's class line in every tooltip seen (Fixtures/inspect-layers.txt).

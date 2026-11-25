@@ -649,3 +649,42 @@
     		
     	Equipped: Weapon Set 	Equipped: [WeaponSets|Weapon Set]<<weapon_set_1>>
       		
+
+== belt-advanced-off: the bag belt against the worn rare belt, advanced info off: the implicits are one text, a line each (2026-11-25)
+		
+  		
+    	Linen Belt	Linen Belt
+  layout		
+    	Belt	Belt
+    		
+    	25% increased Mana Recovery from Flasks\nHas 1 Charm Slot	25% increased Mana Recovery from [Flask|Flasks]\nHas 1 [Charm] Slot
+      		
+      		
+    		
+    gamepad_popup_button_legend_layout		
+      		
+        		
+        	Equip	Equip
+		
+  		
+    	Doom Locket\nLinen Belt	Doom Locket\nLinen Belt
+  layout		
+    	Belt	Belt
+    	Requires: Level 2	Requires: <valuedefault>{Level <valuedefault>{2}}
+    		
+    	23% increased Mana Recovery from Flasks\nHas 1 Charm Slot	23% increased Mana Recovery from [Flask|Flasks]\nHas 1 [Charm] Slot
+      		
+      		
+    		
+    explicit-stats		
+      	+10% to Fire Resistance	+10% to [Resistances|Fire Resistance]
+        		
+      	+10% to Cold Resistance	+10% to [Resistances|Cold Resistance]
+        		
+      	10% reduced Flask Charges used	10% reduced [Flask|Flask] Charges used
+        		
+      	1 to 4 Physical Thorns damage	1 to 4 [Physical|Physical] [Thorns|Thorns] damage
+        		
+        		
+    		
+    	Equipped	Equipped

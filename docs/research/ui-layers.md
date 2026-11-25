@@ -140,7 +140,9 @@ plain, +0x360 tagged), and the element names are the ones `UiElementReader` alre
     for a unique's modifiers, which sit in a group named `suffix-...`). A line element holds the modifier's text in
     child 0 and its tier badge in child 1 ("T13", "I", "U" in the badge's child 0). The label is shown once for the group.
   - `explicit-stats` appears with advanced info off, and for "Unidentified" either way. It holds one text a modifier
-    line, with no tier and no label.
+    line, with no tier and no label. The implicits are not in it: with advanced info off they are one unnamed text row
+    holding a line each, "25% increased Mana Recovery from Flasks\nHas 1 Charm Slot" on a Linen Belt (2026-11-25,
+    Fixtures/inspect-layers.txt, "belt-advanced-off").
   - `granted-skills-from-item` holds "Grants Skill: <underline>{Level 3 Firebolt}".
   - `cost` holds the price (merchant's stock) or the sell value, as a currency picture and a number.
   - `gamepad_popup_button_legend_layout` holds the item's buttons ("Equip", "Buy Item", "Identify 1x…", "Unstash",
