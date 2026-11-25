@@ -222,10 +222,18 @@ written down as still open, not guessed.
   transform, or the guide works from grid/graph places alone. One more sample meanwhile: the Ancient Gateway the
   owner rests on is `AtlasWhiteGate`, grid (8,24), sampled at 11:58; its catalog words are "Activate the
   Precursor Relay | Complete a Tower Map to access", its quest popup "Travel to the Ancient Gateway". **The
-  owner certifies it not completed** ("still in my quest journal", 2026-11-25) — the first certified sample;
-  accessible vs locked is settled by what A does on it (asked, pending).
-- Atlas tree node chain: _open (one `atlasnode`/`describe` once the Atlas Skill Tree is open)._
-- Map device: _open (capture only)._
+  owner certifies it not completed** ("still in my quest journal", 2026-11-25), and A on it opened the device:
+  **accessible, not completed** — the first fully certified sample.
+- **Map device (CAPTURED live, [evidence/ui-tree-map-device-20261125-120343.txt](evidence/ui-tree-map-device-20261125-120343.txt)):**
+  A on an accessible node opens the device window over the Atlas with the inventory; the dump was taken with a
+  waystone slotted (the device grid's row 1). What the mod says today, from the session's speech: "Moved to Map
+  Device: Waystone (Tier 1) of Evasion, magic", the waystone's own lines in the slot ("Revives Available: 5.
+  Pack Size: +6%…"), "Traverse, button", "Monster level: 65", the game's tablet tutorial ("Using Tablets"),
+  and "Taken from Map Device" on removal. So the generic inventory reading carries the device better than §2
+  feared; the one wrinkle on record is its focus context reading "Quests". An empty-device dump is still
+  uncaptured but no longer needed to judge readability.
+- Atlas tree node chain: _open (one sample once the Atlas Skill Tree is open; the owner browsed its side panel —
+  quests, quick access, search filters — without entering the tree)._
 
 ## 7. Risks and fallbacks
 

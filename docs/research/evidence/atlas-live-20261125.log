@@ -1,41 +1,75 @@
 2026-11-25 11:40:46.918 INFO Screen TextsAppeared layer 17: Forge | Biome: Mountain | No living hands ever stoked these flames.
+2026-11-25 11:40:46.918 INFO Speech interrupts: Forge. Biome: Mountain. No living hands ever stoked these flames.
 2026-11-25 11:40:48.408 INFO Screen TextsAppeared layer 17: Steaming Springs | Biome: Grass | The tears of a ravaged earth.
+2026-11-25 11:40:48.408 INFO Speech interrupts: Steaming Springs. Biome: Grass. The tears of a ravaged earth.
 2026-11-25 11:40:51.084 INFO Screen TextsAppeared layer 17: Vaal City | Biome: Vaal City | Area contains Vaal Beacons | Hubris convinces men they can survive the mistakes of their forebears. | 1
+2026-11-25 11:40:51.084 INFO Speech interrupts: Vaal City. Biome: Vaal City. Area contains Vaal Beacons. Hubris convinces men they can survive the mistakes of their forebears.
 2026-11-25 11:40:58.346 INFO Screen TextsAppeared layer 17: Slick | Biome: Grass | Stagnant oils mix to form a deadly concoction.
+2026-11-25 11:40:58.346 INFO Speech interrupts: Slick. Biome: Grass. Stagnant oils mix to form a deadly concoction.
 2026-11-25 11:41:00.852 INFO Screen TextsAppeared layer 17: The Reliquary Vault | Ancient treasures await.
+2026-11-25 11:41:00.852 INFO Speech interrupts: The Reliquary Vault. Ancient treasures await.
 2026-11-25 11:41:04.098 INFO Screen TextsAppeared layer 17: Forge | Biome: Mountain | No living hands ever stoked these flames.
+2026-11-25 11:41:04.099 INFO Speech interrupts: Forge. Biome: Mountain. No living hands ever stoked these flames.
 2026-11-25 11:41:06.240 INFO Screen TextsAppeared layer 17: Razed Fields | Biome: Grass | Strife and terror rule the night.
+2026-11-25 11:41:06.241 INFO Speech interrupts: Razed Fields. Biome: Grass. Strife and terror rule the night.
 2026-11-25 11:41:07.194 INFO Screen TextsAppeared layer 17: Oasis | Biome: Desert | Hidden amongst sunbleached wastes lies a mockery of paradise.
+2026-11-25 11:41:07.194 INFO Speech interrupts: Oasis. Biome: Desert. Hidden amongst sunbleached wastes lies a mockery of paradise.
 2026-11-25 11:41:08.889 INFO Screen TextsAppeared layer 17: Spring | In these lands, a pure water source is the most valuable treasure.
+2026-11-25 11:41:08.890 INFO Speech interrupts: Spring. In these lands, a pure water source is the most valuable treasure.
 2026-11-25 11:41:12.510 INFO Screen TextsAppeared layer 17: Rockpools | Biome: Water | Life abounds on the shells of its dead ancestors.
+2026-11-25 11:41:12.510 INFO Speech interrupts: Rockpools. Biome: Water. Life abounds on the shells of its dead ancestors.
 2026-11-25 11:41:14.039 INFO Screen TextsAppeared layer 17: Steppe | Biome: Grass | Even the sparse vegetation does not linger here long.
+2026-11-25 11:41:14.039 INFO Speech interrupts: Steppe. Biome: Grass. Even the sparse vegetation does not linger here long.
 2026-11-25 11:41:14.996 INFO Screen TextsAppeared layer 17: Bloodwood | Biome: Forest | Poisoned trees bear pestilent fruits.
+2026-11-25 11:41:14.996 INFO Speech interrupts: Bloodwood. Biome: Forest. Poisoned trees bear pestilent fruits.
 2026-11-25 11:41:17.097 INFO Screen TextsAppeared layer 17: Port | Biome: Water | The sea returns everything eventually. Even the dead. | Complete the Ancient Gateway to access | 1
+2026-11-25 11:41:17.097 INFO Speech interrupts: Port. Biome: Water. The sea returns everything eventually. Even the dead. Complete the Ancient Gateway to access
 2026-11-25 11:41:18.436 INFO Screen TextsAppeared layer 17: Estazunti's Vault | Biome: Mountain | Closed and forgotten to time, the Vault holds living secrets. | Find and activate a Vessel of Estazunti in one of the connected Maps to access the Sealed Vault. | Requires: Waystone (Tier 6) or higher | Jado's Spycraft | Investigate the Sealed Vault
+2026-11-25 11:41:18.437 INFO Speech interrupts: Estazunti's Vault. Biome: Mountain. Closed and forgotten to time, the Vault holds living secrets. Find and activate a Vessel of Estazunti in one of the connected Maps to access the Sealed Vault. Requires: Waystone (Tier 6) or higher. Jado's Spycraft. Investigate the Sealed Vault
 2026-11-25 11:41:22.987 INFO Screen TextsAppeared layer 17: Cenotes | Biome: Swamp | The ground shifts underfoot with disturbing ease.
+2026-11-25 11:41:22.987 INFO Speech interrupts: Cenotes. Biome: Swamp. The ground shifts underfoot with disturbing ease.
 2026-11-25 11:41:24.718 INFO Screen TextsAppeared layer 17: Bazaar | Biome: Vaal City | Area contains Vaal Beacons | Live by the power of Corruption... die by madness. | Defeat Xipocado, Royal Architect in the Temple to access this District | Requires: Waystone (Tier 6) or higher | 1
+2026-11-25 11:41:24.718 INFO Speech interrupts: Bazaar. Biome: Vaal City. Area contains Vaal Beacons. Live by the power of Corruption... die by madness. Defeat Xipocado, Royal Architect in the Temple to access this District. Requires: Waystone (Tier 6) or higher
 2026-11-25 11:41:28.168 INFO Screen TextsAppeared layer 17: Augury | Biome: Grass | They watched the birds to foretell what any fool could see.
+2026-11-25 11:41:28.169 INFO Speech interrupts: Augury. Biome: Grass. They watched the birds to foretell what any fool could see.
 2026-11-25 11:41:29.323 INFO Screen TextsAppeared layer 17: Steaming Springs | The tears of a ravaged earth.
+2026-11-25 11:41:29.323 INFO Speech interrupts: Steaming Springs. The tears of a ravaged earth.
 2026-11-25 11:41:30.456 INFO Screen TextsAppeared layer 17: The Reliquary Vault | Ancient treasures await.
+2026-11-25 11:41:30.456 INFO Speech interrupts: The Reliquary Vault. Ancient treasures await.
 2026-11-25 11:41:31.781 INFO Screen TextsAppeared layer 17: Deserted | Biome: Desert | Area contains Abysses | A city ravaged by time and sands. | 1
+2026-11-25 11:41:31.782 INFO Speech interrupts: Deserted. Biome: Desert. Area contains Abysses. A city ravaged by time and sands.
 2026-11-25 11:41:33.680 INFO Screen TextsAppeared layer 17: Sinter Rift | The air is acrid. The skin burns. No doubt... sulphite.
+2026-11-25 11:41:33.680 INFO Speech interrupts: Sinter Rift. The air is acrid. The skin burns. No doubt... sulphite.
 2026-11-25 11:41:34.834 INFO Screen TextsAppeared layer 17: Digsite | They dig not to discover, but to escape.
+2026-11-25 11:41:34.834 INFO Speech interrupts: Digsite. They dig not to discover, but to escape.
 2026-11-25 11:41:36.349 INFO Screen TextsAppeared layer 17: Cenotes | The ground shifts underfoot with disturbing ease.
+2026-11-25 11:41:36.349 INFO Speech interrupts: Cenotes. The ground shifts underfoot with disturbing ease.
 2026-11-25 11:41:37.497 INFO Screen TextsAppeared layer 17: Sinter Rift | The air is acrid. The skin burns. No doubt... sulphite. | Close the Northern Abyssal Wounds in order to access this Wound | Requires: Waystone (Tier 6) or higher
+2026-11-25 11:41:37.498 INFO Speech interrupts: Sinter Rift. The air is acrid. The skin burns. No doubt... sulphite. Close the Northern Abyssal Wounds in order to access this Wound. Requires: Waystone (Tier 6) or higher
 2026-11-25 11:41:38.678 INFO Screen TextsAppeared layer 17: Oasis | Hidden amongst sunbleached wastes lies a mockery of paradise. | Close the Southern Abyssal Wounds in order to access this Wound
+2026-11-25 11:41:38.678 INFO Speech interrupts: Oasis. Hidden amongst sunbleached wastes lies a mockery of paradise. Close the Southern Abyssal Wounds in order to access this Wound
 2026-11-25 11:41:42.283 INFO Screen TextsAppeared layer 17: Marrow | Darkness enshrouds these endless chasms.
+2026-11-25 11:41:42.283 INFO Speech interrupts: Marrow. Darkness enshrouds these endless chasms.
 2026-11-25 11:41:43.596 INFO Screen TextsAppeared layer 17: Rustbowl | Aeons of wear have rotted steel to its core. | Close the Northern Abyssal Wounds in order to access this Wound
+2026-11-25 11:41:43.596 INFO Speech interrupts: Rustbowl. Aeons of wear have rotted steel to its core. Close the Northern Abyssal Wounds in order to access this Wound
 2026-11-25 11:41:44.743 INFO Screen TextsAppeared layer 17: Slick | Stagnant oils mix to form a deadly concoction.
+2026-11-25 11:41:44.744 INFO Speech interrupts: Slick. Stagnant oils mix to form a deadly concoction.
 2026-11-25 11:41:45.512 INFO Screen TextsAppeared layer 17: Arid Plains | Cruel time and change, now plains only in name.
+2026-11-25 11:41:45.512 INFO Speech interrupts: Arid Plains. Cruel time and change, now plains only in name.
 2026-11-25 11:41:46.476 INFO Screen TextsAppeared layer 17: Ornate Chambers | Amalgamations of Corruption always spawn with stronger varieties | A sanctuary for the unsanctified.
+2026-11-25 11:41:46.476 INFO Speech interrupts: Ornate Chambers. Amalgamations of Corruption always spawn with stronger varieties. A sanctuary for the unsanctified.
 2026-11-25 11:41:48.019 INFO Screen TextsAppeared layer 17: Canyon | These gates have facilitated many trades. Silks, spices, and now horrors.
+2026-11-25 11:41:48.019 INFO Speech interrupts: Canyon. These gates have facilitated many trades. Silks, spices, and now horrors.
 2026-11-25 11:41:49.152 INFO Screen TextsAppeared layer 17: Pit | They scrabble and dig; they know not why...
+2026-11-25 11:41:49.152 INFO Speech interrupts: Pit. They scrabble and dig; they know not why...
 2026-11-25 11:41:53.378 INFO Dev commands: atlasnode
 2026-11-25 11:41:53.386 INFO Atlas node: no element @0
 2026-11-25 11:42:09.857 INFO Dev commands: atlasnode, datkeys, uilayout
 2026-11-25 11:42:09.857 INFO Atlas node: no element @0
 2026-11-25 11:42:09.858 INFO Dat key: scanning @0 "" with 0 more
 2026-11-25 11:42:20.687 INFO Dev commands: dump visible
+2026-11-25 11:42:20.688 INFO Speech interrupts: Dumping user interface tree.
+2026-11-25 11:42:21.687 INFO Speech queued: User interface dump written.
 2026-11-25 11:42:53.126 INFO Dev commands: describe 0x2436aed35d0, datkeys 0x2436aed35d0, hex 0x2436aed35d0 0x400, describe 0x2436aee39b0, datkeys 0x2436aee39b0, hex 0x2436aee39b0 0x400, describe 0x2436aed3e10, datkeys 0x2436aed3e10, hex 0x2436aed3e10 0x400
 2026-11-25 11:42:53.512 INFO Describe 0x2436aed35d0: Panel "Atlas node" value "" tooltip "Links: up left, Atlas node; Atlas node; The Jade Isles"
 2026-11-25 11:42:53.514 INFO Dat key: scanning @2436AED35D0 "" with 2 more
@@ -483,59 +517,92 @@
 2026-11-25 11:44:39.009 INFO hex 0x2436AEF9850+03E0: 300F791A440200003012791A4402000000000000000000000000000000000000
 2026-11-25 11:46:50.437 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:46:50.688 INFO Screen TextsAppeared layer 17: Decay | Biome: Grass | Spores dance through the air in search of new hosts.
+2026-11-25 11:46:50.688 INFO Speech interrupts: Decay. Biome: Grass. Spores dance through the air in search of new hosts.
 2026-11-25 11:46:51.422 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:46:51.662 INFO Screen TextsAppeared layer 17: Razed Fields | Strife and terror rule the night.
+2026-11-25 11:46:51.663 INFO Speech interrupts: Razed Fields. Strife and terror rule the night.
 2026-11-25 11:46:52.686 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:46:53.001 INFO Screen TextsAppeared layer 17: Forge | Biome: Mountain | No living hands ever stoked these flames.
+2026-11-25 11:46:53.001 INFO Speech interrupts: Forge. Biome: Mountain. No living hands ever stoked these flames.
 2026-11-25 11:46:53.590 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:46:53.786 INFO Screen TextsAppeared layer 17: Sinkhole | Biome: Water | Spirits gather where the world falls away.
+2026-11-25 11:46:53.786 INFO Speech interrupts: Sinkhole. Biome: Water. Spirits gather where the world falls away.
 2026-11-25 11:46:54.338 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:46:54.553 INFO Screen TextsAppeared layer 17: Deserted | Biome: Desert | Area contains Abysses | A city ravaged by time and sands. | 1
+2026-11-25 11:46:54.553 INFO Speech interrupts: Deserted. Biome: Desert. Area contains Abysses. A city ravaged by time and sands.
 2026-11-25 11:46:56.027 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:46:56.290 INFO Screen TextsAppeared layer 17: Fortress | Time overwhelms even the sturdiest walls.
+2026-11-25 11:46:56.291 INFO Speech interrupts: Fortress. Time overwhelms even the sturdiest walls.
 2026-11-25 11:46:57.233 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:46:57.451 INFO Screen TextsAppeared layer 17: Hive | The work of an invisible empire.
+2026-11-25 11:46:57.451 INFO Speech interrupts: Hive. The work of an invisible empire.
 2026-11-25 11:46:58.516 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:46:59.048 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:46:59.387 INFO Screen TextsAppeared layer 17: Cenotes | The ground shifts underfoot with disturbing ease.
+2026-11-25 11:46:59.387 INFO Speech interrupts: Cenotes. The ground shifts underfoot with disturbing ease.
 2026-11-25 11:47:00.382 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:47:00.730 INFO Screen TextsAppeared layer 17: Sinter Rift | The air is acrid. The skin burns. No doubt... sulphite. | Close the Northern Abyssal Wounds in order to access this Wound | Requires: Waystone (Tier 6) or higher
+2026-11-25 11:47:00.731 INFO Speech interrupts: Sinter Rift. The air is acrid. The skin burns. No doubt... sulphite. Close the Northern Abyssal Wounds in order to access this Wound. Requires: Waystone (Tier 6) or higher
 2026-11-25 11:47:03.315 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:03.603 INFO Screen TextsAppeared layer 17: The Well of Souls | From anywhere, and everywhere, it is... down. | Abyssal Power | Reach the Well of Souls
+2026-11-25 11:47:03.603 INFO Speech interrupts: The Well of Souls. From anywhere, and everywhere, it is... down. Abyssal Power. Reach the Well of Souls
 2026-11-25 11:47:05.233 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:05.503 INFO Screen TextsAppeared layer 17: Sinter Rift | Biome: Desert | Area contains Abysses | The air is acrid. The skin burns. No doubt... sulphite. | 1
+2026-11-25 11:47:05.503 INFO Speech interrupts: Sinter Rift. Biome: Desert. Area contains Abysses. The air is acrid. The skin burns. No doubt... sulphite.
+2026-11-25 11:47:05.503 INFO Screen TextsAppeared layer 61: Add to Bookmarks [hold Y]
+2026-11-25 11:47:05.503 INFO Speech queued: Add to Bookmarks, hold Y
 2026-11-25 11:47:06.464 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:07.181 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:07.655 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:47:08.033 INFO Screen TextsAppeared layer 17: Arid Plains | Cruel time and change, now plains only in name. | Speak to the Lurking Creature in the Well of Souls in order to access this Wound
+2026-11-25 11:47:08.033 INFO Speech interrupts: Arid Plains. Cruel time and change, now plains only in name. Speak to the Lurking Creature in the Well of Souls in order to access this Wound
 2026-11-25 11:47:08.500 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:09.041 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:09.292 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:09.508 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:09.772 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:09.772 INFO Screen TextsAppeared layer 17: Fortress | Time overwhelms even the sturdiest walls.
+2026-11-25 11:47:09.772 INFO Speech interrupts: Fortress. Time overwhelms even the sturdiest walls.
 2026-11-25 11:47:10.165 INFO Screen TextsAppeared layer 17: Sinkhole | Biome: Water | Spirits gather where the world falls away.
+2026-11-25 11:47:10.166 INFO Speech interrupts: Sinkhole. Biome: Water. Spirits gather where the world falls away.
 2026-11-25 11:47:10.251 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:10.547 INFO Screen TextsAppeared layer 17: Forge | Biome: Mountain | No living hands ever stoked these flames.
+2026-11-25 11:47:10.547 INFO Speech interrupts: Forge. Biome: Mountain. No living hands ever stoked these flames.
 2026-11-25 11:47:11.249 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:11.562 INFO Screen TextsAppeared layer 17: The Reliquary Vault | Ancient treasures await.
+2026-11-25 11:47:11.562 INFO Speech interrupts: The Reliquary Vault. Ancient treasures await.
 2026-11-25 11:47:12.455 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:12.720 INFO Screen TextsAppeared layer 17: Slick | Biome: Grass | Area contains Vaal Beacons | Stagnant oils mix to form a deadly concoction.
+2026-11-25 11:47:12.720 INFO Speech interrupts: Slick. Biome: Grass. Area contains Vaal Beacons. Stagnant oils mix to form a deadly concoction.
 2026-11-25 11:47:13.456 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:13.692 INFO Screen TextsAppeared layer 17: Vaal City | Biome: Vaal City | Hubris convinces men they can survive the mistakes of their forebears. | 1
+2026-11-25 11:47:13.692 INFO Speech interrupts: Vaal City. Biome: Vaal City. Hubris convinces men they can survive the mistakes of their forebears.
 2026-11-25 11:47:14.792 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:47:15.049 INFO Screen TextsAppeared layer 17: Sun Temple | Wet stone emanates an inner warmth. Vaal brilliance lies in wait. | Defeat Xipocado, Royal Architect in the Temple to access this District | Requires: Waystone (Tier 6) or higher
+2026-11-25 11:47:15.050 INFO Speech interrupts: Sun Temple. Wet stone emanates an inner warmth. Vaal brilliance lies in wait. Defeat Xipocado, Royal Architect in the Temple to access this District. Requires: Waystone (Tier 6) or higher
 2026-11-25 11:47:17.754 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:17.970 INFO Screen TextsAppeared layer 17: Slash | Biome: Forest | Calm, bleak twilight holds only despair.
+2026-11-25 11:47:17.970 INFO Speech interrupts: Slash. Biome: Forest. Calm, bleak twilight holds only despair.
 2026-11-25 11:47:18.667 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:18.930 INFO Screen TextsAppeared layer 17: Rockpools | Biome: Water | Life abounds on the shells of its dead ancestors.
+2026-11-25 11:47:18.930 INFO Speech interrupts: Rockpools. Biome: Water. Life abounds on the shells of its dead ancestors.
 2026-11-25 11:47:19.548 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:19.879 INFO Screen TextsAppeared layer 17: Sanctuary | Biome: Desert | When does protection become a prison?
+2026-11-25 11:47:19.879 INFO Speech interrupts: Sanctuary. Biome: Desert. When does protection become a prison?
 2026-11-25 11:47:20.474 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:47:20.829 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 11:47:20.829 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
+2026-11-25 11:47:23.706 INFO Screen LayerOpened layer 65: 
+2026-11-25 11:47:23.907 INFO Focus -> 0x24369B96010 panel=1 name="" role=GridCell text="Yoon's Barya" value="column 1, row 1" context="Inventory" group="" notes="Build: 1 of 6 pieces on its base, 0 of 4 modifiers, read on 5 of 6 pieces. Furthest from the build: Helmet"
 2026-11-25 11:47:23.917 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway | traverse | 3, 1 | I | I | I | I | 16 | V, I | 1 | I | 1, 1, 17 | 1 | II | 6 | I | II | 1 | 10 | 3 | I | I | I | 1 | 232,011 gold | Gold
+2026-11-25 11:47:23.963 INFO Screen TextsAppeared layer 61: Pick Up [A] | Quick Move [Y] | Inspect [right stick click]
+2026-11-25 11:47:24.216 INFO Speech interrupts: Inventory. Build: 1 of 6 pieces on its base, 0 of 4 modifiers, read on 5 of 6 pieces. Furthest from the build: Helmet. Yoon's Barya, column 1, row 1, Quest Item. "Weep not for me. This punishment is my own doing."
+2026-11-25 11:47:24.216 INFO Speech queued: Pick Up, A. Quick Move, Y. Inspect, right stick click
+2026-11-25 11:47:25.082 INFO Screen TextsAppeared layer 61: Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 11:47:25.788 INFO Speech queued: Select, A. Add to Bookmarks, hold Y
 2026-11-25 11:47:26.111 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:47:26.425 INFO Screen TextsAppeared layer 17: Steppe | Biome: Grass | Even the sparse vegetation does not linger here long.
+2026-11-25 11:47:26.425 INFO Speech interrupts: Steppe. Biome: Grass. Even the sparse vegetation does not linger here long.
 2026-11-25 11:47:31.594 INFO Dev commands: datkeys 0x243e7700cbe, hex 0x243e7700cbe 0x40, datkeys 0x243e7705740, hex 0x243e7705740 0x40, dump 0x243af4b4910
 2026-11-25 11:47:31.594 INFO Dat key: scanning @243E7700CBE "" with 0 more
 2026-11-25 11:47:31.594 INFO Dat key: self @243E7700CBE +0x0: Data/Balance/PassiveSkills.dat row AtlasOutsideFortressPath5
@@ -549,11 +616,18 @@
 2026-11-25 11:47:31.610 INFO Dat key: self @243E7705740 +0x970: Data/Balance/EndgameMapPins.dat row PrecursorMap
 2026-11-25 11:47:31.614 INFO hex 0x243E7705740+0000: ACE7215543020000103C08624302000000000000000000000000000000000000
 2026-11-25 11:47:31.614 INFO hex 0x243E7705740+0020: 0000000000000000000000000000000000000000000000000000000000000000
+2026-11-25 11:47:31.614 INFO Speech interrupts: Dumping user interface tree.
+2026-11-25 11:47:36.818 INFO Speech queued: User interface dump written.
 2026-11-25 11:47:36.903 INFO Screen TextsAppeared layer 17: Bloodwood | Biome: Forest | Poisoned trees bear pestilent fruits.
+2026-11-25 11:47:36.903 INFO Speech interrupts: Bloodwood. Biome: Forest. Poisoned trees bear pestilent fruits.
 2026-11-25 11:47:36.903 INFO Screen TextsAppeared layer 17: Port | Biome: Water | The sea returns everything eventually. Even the dead. | Complete the Ancient Gateway to access | 1
+2026-11-25 11:47:36.903 INFO Speech interrupts: Port. Biome: Water. The sea returns everything eventually. Even the dead. Complete the Ancient Gateway to access
 2026-11-25 11:47:36.903 INFO Screen TextsAppeared layer 17: Caldera | An undrinkable lagoon girt in unbreathable air.
+2026-11-25 11:47:36.903 INFO Speech interrupts: Caldera. An undrinkable lagoon girt in unbreathable air.
 2026-11-25 11:47:36.903 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 11:47:36.903 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
 2026-11-25 11:47:36.903 INFO Screen TextsAppeared layer 17: Bloodwood | Poisoned trees bear pestilent fruits.
+2026-11-25 11:47:36.903 INFO Speech interrupts: Bloodwood. Poisoned trees bear pestilent fruits.
 2026-11-25 11:48:32.106 INFO Dev commands: datkeys 0x243e772188e
 2026-11-25 11:48:32.106 INFO Dat key: scanning @243E772188E "" with 0 more
 2026-11-25 11:48:32.107 INFO Dat key: self @243E772188E +0x0: Data/Balance/PassiveSkills.dat row AtlasKingsmarch
@@ -646,16 +720,22 @@
 2026-11-25 11:49:23.977 INFO Dat key: self @243E7702FBD +0x908: Data/Balance/PassiveSkills.dat row AtlasOutsideFortressPath44
 2026-11-25 11:50:46.631 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:50:46.867 INFO Screen TextsAppeared layer 17: Ancient Gateway | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 11:50:46.867 INFO Speech interrupts: Ancient Gateway. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
 2026-11-25 11:50:47.349 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:50:47.619 INFO Screen TextsAppeared layer 17: Steppe | Biome: Grass | Even the sparse vegetation does not linger here long.
+2026-11-25 11:50:47.620 INFO Speech interrupts: Steppe. Biome: Grass. Even the sparse vegetation does not linger here long.
 2026-11-25 11:50:48.322 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:50:48.598 INFO Screen TextsAppeared layer 17: Bloodwood | Biome: Forest | Poisoned trees bear pestilent fruits.
+2026-11-25 11:50:48.598 INFO Speech interrupts: Bloodwood. Biome: Forest. Poisoned trees bear pestilent fruits.
 2026-11-25 11:50:49.345 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:50:49.554 INFO Screen TextsAppeared layer 17: Rockpools | Biome: Water | Life abounds on the shells of its dead ancestors.
+2026-11-25 11:50:49.554 INFO Speech interrupts: Rockpools. Biome: Water. Life abounds on the shells of its dead ancestors.
 2026-11-25 11:50:50.122 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:50:50.321 INFO Screen TextsAppeared layer 17: Sanctuary | Biome: Desert | When does protection become a prison?
+2026-11-25 11:50:50.321 INFO Speech interrupts: Sanctuary. Biome: Desert. When does protection become a prison?
 2026-11-25 11:50:51.052 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:50:51.291 INFO Screen TextsAppeared layer 17: Ravine | Biome: Forest | A wound carved into the world, never to heal.
+2026-11-25 11:50:51.291 INFO Speech interrupts: Ravine. Biome: Forest. A wound carved into the world, never to heal.
 2026-11-25 11:50:52.377 INFO Dev commands: datkeys 0x2436aee3590, datkeys 0x2436aee39b0, datkeys 0x2436aee41f0, datkeys 0x2436aee4610, datkeys 0x2436aeea910, datkeys 0x2436aeebdb0, datkeys 0x2436aeec5f0, datkeys 0x2436aeeca10, datkeys 0x2436aeece30, datkeys 0x2436aeed250, datkeys 0x2436aeed670, datkeys 0x2436aeeda90, datkeys 0x2436aeedeb0, datkeys 0x2436aeee2d0, datkeys 0x2436aeee6f0, datkeys 0x2436aeeef30, datkeys 0x2436aeef350, datkeys 0x2436aeef770, datkeys 0x2436aeefb90, datkeys 0x2436aeeffb0, datkeys 0x2436aef03d0, datkeys 0x2436aef0c10, datkeys 0x2436aef1030, datkeys 0x2436aef1450, datkeys 0x2436aef1870, datkeys 0x2436aef7b70, datkeys 0x2436aef7f90, datkeys 0x2436aef83b0
 2026-11-25 11:50:52.377 INFO Dat key: scanning @2436AEE3590 "" with 2 more
 2026-11-25 11:50:52.379 INFO Dat key: self @2436AEE3590 +0x2F0: Data/Balance/EndgameMaps.dat row ʺ爴Ƀ
@@ -1015,9 +1095,13 @@
 2026-11-25 11:50:53.445 INFO Dat key: self @2436AEF83B0 +0xF70: Data/Balance/EndgameMapAtlas.dat row 軆唾Ƀ
 2026-11-25 11:50:53.448 INFO Dat key: parent @243AF4B4910 +0x2D0: Data/Balance/Acts.dat row Endgame
 2026-11-25 11:50:53.538 INFO Screen TextsAppeared layer 17: Forge | Biome: Mountain | No living hands ever stoked these flames.
+2026-11-25 11:50:53.538 INFO Speech interrupts: Forge. Biome: Mountain. No living hands ever stoked these flames.
 2026-11-25 11:50:55.323 INFO Screen TextsAppeared layer 17: Rockpools | Biome: Water | Life abounds on the shells of its dead ancestors.
+2026-11-25 11:50:55.324 INFO Speech interrupts: Rockpools. Biome: Water. Life abounds on the shells of its dead ancestors.
 2026-11-25 11:50:57.050 INFO Screen TextsAppeared layer 17: Sanctuary | Biome: Desert | When does protection become a prison?
+2026-11-25 11:50:57.050 INFO Speech interrupts: Sanctuary. Biome: Desert. When does protection become a prison?
 2026-11-25 11:50:57.806 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 11:50:57.806 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
 2026-11-25 11:51:16.840 INFO Dev commands: datkeys 0x2436aef87d0, datkeys 0x2436aef8bf0, datkeys 0x2436aef9010, datkeys 0x2436aef9430, datkeys 0x2436aef9850, datkeys 0x2436aef9c70, datkeys 0x2436aefa090, datkeys 0x2436aefa4b0, datkeys 0x2436aefa8d0, datkeys 0x2436aefacf0, datkeys 0x2436aefb110, datkeys 0x2436aefb950, datkeys 0x2436aefbd70, datkeys 0x2436aefc5b0, datkeys 0x2436aefc9d0, datkeys 0x2436af0eeb0, datkeys 0x2436af0f2d0, datkeys 0x2436af0f6f0, datkeys 0x2436af10770, datkeys 0x2436af10b90, datkeys 0x2436af117f0, datkeys 0x2436af11c10, datkeys 0x2436af12030, datkeys 0x2436af3e5b0, datkeys 0x2436af3e9d0, datkeys 0x2436af3edf0, datkeys 0x2436af3fe70, datkeys 0x2436af40290
 2026-11-25 11:51:16.840 INFO Dat key: scanning @2436AEF87D0 "" with 2 more
 2026-11-25 11:51:16.842 INFO Dat key: self @2436AEF87D0 +0x2F0: Data/Balance/EndgameMaps.dat row 퉌爳Ƀ
@@ -1484,6 +1568,7 @@
 2026-11-25 11:51:47.500 INFO hex 0x2436AEF1870+03E0: 3055781A440200003058781A4402000000000000000000000000000000000000
 2026-11-25 11:51:47.500 INFO hex 0x2436AEF1870+0400: 7059CB644302000000000000000000001000ED6A430200000000000000000000
 2026-11-25 11:52:58.269 INFO Dev commands: hex 0x142ef9038 0x80
+2026-11-25 11:54:05.106 INFO Screen TextsAppeared layer 61: Clear Search [hold left stick click]
 2026-11-25 11:58:40.380 INFO Dev commands: hex 0x2436aed0870 0x400
 2026-11-25 11:58:40.380 INFO hex 0x2436AED0870+0000: F8520F43010000007008ED6A43020000B0E2E27E43020000E8E2E27E43020000
 2026-11-25 11:58:40.380 INFO hex 0x2436AED0870+0020: F8E2E27E430200001098FAED4302000010A652AF4302000010B459AF43020000
@@ -1574,20 +1659,220 @@
 2026-11-25 11:59:03.719 INFO Dat key: self @243E770AACA +0x698: Data/Balance/Quest.dat row EndgameQuestInvestigateTower
 2026-11-25 11:59:03.722 INFO Dat key: self @243E770AACA +0x908: Data/Balance/PassiveSkills.dat row AtlasRedLock2
 2026-11-25 11:59:03.722 INFO Dat key: self @243E770AACA +0x970: Data/Balance/EndgameMapPins.dat row PrecursorNotable
+2026-11-25 11:59:24.628 INFO Focus -> 0x243AF4B9D10 panel=1 name="" role=CheckBox text="Edge Display" value="checked" context="Quests" group="" notes="Bookmarks. Press-Hold Y on an Area to create a new bookmark."
+2026-11-25 11:59:24.629 INFO Speech interrupts: Quests. Bookmarks. Press-Hold Y on an Area to create a new bookmark. Edge Display, checked, check box, 3 of 3
 2026-11-25 11:59:24.771 INFO Screen TextsAppeared layer 17: Edge Display | Bookmarks | 0/16 | Press-Hold Y on an Area to create a new bookmark.
+2026-11-25 11:59:24.773 INFO Speech interrupts: Edge Display, checked, check box, 3 of 3. Press-Hold Y on an Area to create a new bookmark.
 2026-11-25 11:59:26.477 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:59:26.897 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 11:59:26.907 INFO Focus -> 0x2437FE29630 panel=1 name="" role=Button text="Bookmarks" value="" context="Quests" group="" notes="Bookmarks. Press-Hold Y on an Area to create a new bookmark."
+2026-11-25 11:59:26.907 INFO Speech interrupts, moved: Bookmarks, button, 2 of 3, Player
 2026-11-25 11:59:27.720 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:59:28.128 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 11:59:28.153 INFO Focus -> 0x243AF4B9D10 panel=1 name="" role=CheckBox text="Edge Display" value="checked" context="Quests" group="" notes="Bookmarks. Press-Hold Y on an Area to create a new bookmark."
+2026-11-25 11:59:28.154 INFO Speech interrupts, moved: Edge Display, checked, check box, 3 of 3
 2026-11-25 11:59:29.313 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:59:29.658 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:59:30.188 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 11:59:30.193 INFO Focus -> 0x2437FE29630 panel=1 name="" role=Button text="Bookmarks" value="" context="Quests" group="" notes="Bookmarks. Press-Hold Y on an Area to create a new bookmark."
+2026-11-25 11:59:30.193 INFO Speech interrupts, moved: Bookmarks, button, 2 of 3, Player
 2026-11-25 11:59:31.217 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:59:31.639 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
 2026-11-25 11:59:32.015 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 11:59:32.617 INFO Speech interrupts, moved: Bookmarks, button, 2 of 3, Player
 2026-11-25 11:59:33.623 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
 2026-11-25 11:59:34.294 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
 2026-11-25 11:59:34.669 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 11:59:34.694 INFO Focus -> 0x243AF4B9D10 panel=1 name="" role=CheckBox text="Edge Display" value="checked" context="Quests" group="" notes="Bookmarks. Press-Hold Y on an Area to create a new bookmark."
+2026-11-25 11:59:34.694 INFO Speech interrupts, moved: Edge Display, checked, check box, 3 of 3
 2026-11-25 11:59:35.605 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
 2026-11-25 11:59:36.410 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 11:59:36.410 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
 2026-11-25 11:59:36.410 INFO Screen LayerOpened layer 61: Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:03:27.523 INFO Focus -> 0x24369B96010 panel=1 name="" role=GridCell text="Yoon's Barya" value="column 1, row 1" context="Inventory" group="" notes="Build: 1 of 6 pieces on its base, 0 of 4 modifiers, read on 5 of 6 pieces. Furthest from the build: Helmet"
+2026-11-25 12:03:27.570 INFO Screen TextsAppeared layer 61: Pick Up [A] | Quick Move [Y] | Inspect [right stick click]
+2026-11-25 12:03:27.570 INFO Screen LayerOpened layer 65: 
+2026-11-25 12:03:27.774 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway | traverse | 3, 1 | I | I | I | I | 16 | V, I | 1 | I | 1, 1, 17 | 1 | II | 6 | I | II | 1 | 10 | 3 | I | I | I | 1 | 232,011 gold | Gold
+2026-11-25 12:03:27.835 INFO Speech interrupts: Inventory. Yoon's Barya, column 1, row 1, Quest Item. "Weep not for me. This punishment is my own doing."
+2026-11-25 12:03:29.638 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 12:03:29.642 INFO Value -> 0x24369B96010 "Uncut Support Gem (Level 5)" = "column 2, row 1"
+2026-11-25 12:03:29.644 INFO Speech interrupts, moved: Uncut Support Gem (Level 5), column 2, row 1, Creates a Support Gem. Use to engrave a Support Gem. Engrave Support Gem, X
+2026-11-25 12:03:30.493 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 12:03:30.596 INFO Value -> 0x24369B96010 "Delirium Tablet" = "column 3, row 1"
+2026-11-25 12:03:30.596 INFO Speech interrupts, moved: Delirium Tablet, column 3, row 1, Tablet. Adds a Mirror of Delirium to a Map. 10 uses remaining. Can be used in a personal Map Device to add modifiers to a Map.
+2026-11-25 12:03:30.889 INFO Screen TextsAppeared layer 61: Price Check [hold Y]
+2026-11-25 12:03:30.889 INFO Speech queued: Price Check, hold Y
+2026-11-25 12:03:33.374 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:03:33.464 INFO Value -> 0x24369B96010 "Waystone (Tier 1), magic" = "column 3, row 2"
+2026-11-25 12:03:33.464 INFO Speech interrupts, moved: Waystone (Tier 1), magic, column 3, row 2, Unidentified. Can be used in a Map Device, allowing you to enter a Map. Waystones can only be used once. Identify 1x Scroll of Wisdom, X
+2026-11-25 12:03:35.394 INFO Value -> 0x24369B96010 "Waystone (Tier 1) of Evasion, magic" = "column 3, row 2"
+2026-11-25 12:03:35.394 INFO Speech interrupts: Waystone (Tier 1) of Evasion, magic, column 3, row 2, Revives Available: 5. Pack Size: +6%. Waystone Drop Chance: +15%. Monsters are Evasive. Can be used in a Map Device, allowing you to enter a Map. Waystones can only be used once. Place in Map Device, X
+2026-11-25 12:03:35.635 INFO Screen TextsAppeared layer 17: 1, 1 | I | 16
+2026-11-25 12:03:40.055 INFO Value -> 0x24369B96010 "empty" = "column 3, row 2"
+2026-11-25 12:03:40.056 INFO Speech interrupts: Empty, column 3, row 2
+2026-11-25 12:03:40.141 INFO Screen TextsAppeared layer 17: Monster level: 65 | I
+2026-11-25 12:03:40.142 INFO Speech queued: Monster level: 65
+2026-11-25 12:03:40.142 INFO Screen LayerOpened layer 66: Using Tablets | Pick up the Tablet
+2026-11-25 12:03:40.145 INFO Speech interrupts, kept: Using Tablets. Pick up the Tablet
+2026-11-25 12:03:40.648 INFO Speech queued, kept: Moved to Map Device: Waystone (Tier 1) of Evasion, magic
+2026-11-25 12:03:43.034 INFO Dev commands: dump visible
+2026-11-25 12:03:43.034 INFO Speech waits for the kept line, replacing what waited: Dumping user interface tree.
+2026-11-25 12:03:44.106 INFO Speech waits for the kept line: User interface dump written.
+2026-11-25 12:03:44.130 INFO Speech after the kept line: Dumping user interface tree.
+2026-11-25 12:03:44.130 INFO Speech after the kept line: User interface dump written.
+2026-11-25 12:03:44.148 INFO Screen LayerOpened layer 64: 
+2026-11-25 12:03:45.581 INFO Screen LayerOpened layer 64: 
+2026-11-25 12:04:13.242 INFO Screen LayerOpened layer 64: 
+2026-11-25 12:04:32.023 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 12:04:32.027 INFO Value -> 0x24369B96010 "Greater Essence of Insulation" = "column 2, row 2"
+2026-11-25 12:04:32.027 INFO Speech interrupts, moved: Greater Essence of Insulation, column 2, row 2, Stack Size: 1/10. Upgrades a Magic item to a Rare item, adding a guaranteed modifier. Armour, Belt or Jewellery: +(31-35)% to Fire Resistance. X to use, then A on a Magic item to apply it. Use, X
+2026-11-25 12:04:32.245 INFO Screen TextsAppeared layer 60: Pick Up [A] | Quick Move [Y] | Inspect [right stick click]
+2026-11-25 12:04:32.577 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 12:04:32.667 INFO Value -> 0x24369B96010 "Scroll of Wisdom, 16" = "column 1, row 2"
+2026-11-25 12:04:32.667 INFO Speech interrupts, moved: Scroll of Wisdom, 16, column 1, row 2, Stack Size: 16/40. Identifies an item. X to use, then A on an unidentified item to apply it. Use, X
+2026-11-25 12:04:32.810 INFO Screen TextsAppeared layer 60: Unstack [hold A]
+2026-11-25 12:04:32.810 INFO Speech queued: Unstack, hold A
+2026-11-25 12:04:32.878 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 12:04:32.930 INFO Focus -> 0x243683D1810 panel=1 name="" role=Button text="traverse" value="" context="Quests" group="" notes=""
+2026-11-25 12:04:32.931 INFO Speech interrupts, moved: Quests. Traverse, button
+2026-11-25 12:04:33.132 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 12:04:33.936 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:04:34.148 INFO Focus -> 0x244697DB810 panel=1 name="" role=GridCell text="empty" value="column 1, row 2" context="Quests" group="" notes=""
+2026-11-25 12:04:34.148 INFO Speech interrupts, moved: Empty, column 1, row 2
+2026-11-25 12:04:35.163 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:04:35.257 INFO Value -> 0x244697DB810 "Waystone (Tier 1) of Evasion, magic" = "column 1, row 1"
+2026-11-25 12:04:35.257 INFO Speech interrupts, moved: Waystone (Tier 1) of Evasion, magic, column 1, row 1, Revives Available: 5. Pack Size: +6%. Waystone Drop Chance: +15%. Monsters are Evasive. Can be used in a Map Device, allowing you to enter a Map. Waystones can only be used once. Store in Inventory, X
+2026-11-25 12:04:35.520 INFO Screen TextsAppeared layer 60: Pick Up [A] | Quick Move [Y] | Price Check [hold Y] | Inspect [right stick click]
+2026-11-25 12:04:40.228 INFO Value -> 0x244697DB810 "empty" = "column 1, row 1"
+2026-11-25 12:04:40.228 INFO Speech interrupts: Empty, column 1, row 1
+2026-11-25 12:04:40.439 INFO Screen TextsAppeared layer 17: I
+2026-11-25 12:04:40.804 INFO Speech interrupts, kept: Taken from Map Device: Waystone (Tier 1), magic
+2026-11-25 12:04:45.113 INFO Screen TextsAppeared layer 60: Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:04:49.931 INFO Focus -> 0x24369B96010 panel=1 name="" role=GridCell text="Yoon's Barya" value="column 1, row 1" context="Inventory" group="" notes=""
+2026-11-25 12:04:49.933 INFO Speech interrupts: Inventory. Yoon's Barya, column 1, row 1, Quest Item. "Weep not for me. This punishment is my own doing."
+2026-11-25 12:04:50.149 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway | traverse | 3, 1 | I | I | I | I | 16 | V, I | 1 | 1, 1 | 1 | II | 6 | I | II | 1 | 10 | 3 | I | I | I | 1 | 16 | I | 232,011 gold | Gold
+2026-11-25 12:04:50.188 INFO Screen TextsAppeared layer 60: Pick Up [A] | Quick Move [Y] | Inspect [right stick click]
+2026-11-25 12:04:50.188 INFO Screen LayerOpened layer 65: 
+2026-11-25 12:04:51.249 INFO Screen TextsAppeared layer 60: Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:04:56.183 INFO Screen TextsAppeared layer 17: Quick Access Buttons
+2026-11-25 12:04:56.183 INFO Speech interrupts: Quick Access Buttons
+2026-11-25 12:04:57.235 INFO Focus -> 0x243AF4B5E10 panel=1 name="" role=Button text="Select to pan to The Ziggurat Refuge" value="below ground" context="Quests" group="" notes=""
+2026-11-25 12:04:57.236 INFO Speech interrupts: Quests. Select to pan to The Ziggurat Refuge, below ground, button, 4 of 4
+2026-11-25 12:04:57.485 INFO Screen TextsAppeared layer 17: Legacy of the Precursors | Travel to the Ancient Gateway | Abyssal Power | Reach the Well of Souls | Keepers of the Flame | Travel to the Monastery of the Keepers | Strange Reflection | Travel to The Withered Willow | Legacy of the Maji | Travel to Caer Tarth | The Grand Expedition | Travel to Ruins of Kingsmarch | Jado's Spycraft | Investigate the Sealed Vault | Quests | Active
+2026-11-25 12:04:57.527 INFO Screen LayerOpened layer 60: Select [A] | Quick Access [hold A] | Close [B]
+2026-11-25 12:04:57.527 INFO Speech queued: Quick Access, hold A. Close, B
+2026-11-25 12:04:59.398 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:04:59.405 INFO Focus -> 0x2441BDD75D0 panel=1 name="" role=Button text="The Grand Expedition" value="" context="Quests" group="" notes=""
+2026-11-25 12:04:59.405 INFO Speech interrupts, moved: The Grand Expedition, button, 6 of 8, Travel to Ruins of Kingsmarch.
+2026-11-25 12:04:59.783 INFO Screen TextsAppeared layer 17: Hilda's Hunting | Reach Hilda's Campsite
+2026-11-25 12:04:59.784 INFO Screen TextsAppeared layer 60: More Info [A]
+2026-11-25 12:04:59.784 INFO Speech queued: More Info, A
+2026-11-25 12:05:01.291 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:05:01.299 INFO Focus -> 0x2441BDD6DB0 panel=1 name="" role=Button text="Legacy of the Maji" value="" context="Quests" group="" notes=""
+2026-11-25 12:05:01.299 INFO Speech interrupts, moved: Legacy of the Maji, button, 5 of 8, Travel to Caer Tarth.
+2026-11-25 12:05:02.708 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:05:02.717 INFO Focus -> 0x2441BDD6590 panel=1 name="" role=Button text="Strange Reflection" value="" context="Quests" group="" notes=""
+2026-11-25 12:05:02.719 INFO Speech interrupts, moved: Strange Reflection, button, 4 of 8, Travel to The Withered Willow.
+2026-11-25 12:05:03.949 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:05:03.958 INFO Focus -> 0x2441BDD5D70 panel=1 name="" role=Button text="Keepers of the Flame" value="" context="Quests" group="" notes=""
+2026-11-25 12:05:03.958 INFO Speech interrupts, moved: Keepers of the Flame, button, 3 of 8, Travel to the Monastery of the Keepers.
+2026-11-25 12:05:04.318 INFO Screen TextsAppeared layer 17: Travel to the Ancient Gateway
+2026-11-25 12:05:05.326 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:05:05.335 INFO Focus -> 0x2441BDD5550 panel=1 name="" role=Button text="Abyssal Power" value="" context="Quests" group="" notes=""
+2026-11-25 12:05:05.335 INFO Speech interrupts, moved: Abyssal Power, button, 2 of 8, Reach the Well of Souls.
+2026-11-25 12:05:05.636 INFO Screen TextsAppeared layer 17: Legacy of the Precursors
+2026-11-25 12:05:06.450 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:05:06.461 INFO Focus -> 0x2441BDD4D30 panel=1 name="" role=Button text="Legacy of the Precursors" value="" context="Quests" group="" notes=""
+2026-11-25 12:05:06.462 INFO Speech interrupts, moved: Legacy of the Precursors, button, 1 of 8, Travel to the Ancient Gateway.
+2026-11-25 12:06:01.685 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:01.697 INFO Focus -> 0x2441BDD5550 panel=1 name="" role=Button text="Abyssal Power" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:01.698 INFO Speech interrupts, moved: Abyssal Power, button, 2 of 8, Reach the Well of Souls.
+2026-11-25 12:06:03.069 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:03.075 INFO Focus -> 0x2441BDD5D70 panel=1 name="" role=Button text="Keepers of the Flame" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:03.076 INFO Speech interrupts, moved: Keepers of the Flame, button, 3 of 8, Travel to the Monastery of the Keepers.
+2026-11-25 12:06:04.317 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:04.326 INFO Focus -> 0x2441BDD6590 panel=1 name="" role=Button text="Strange Reflection" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:04.326 INFO Speech interrupts, moved: Strange Reflection, button, 4 of 8, Travel to The Withered Willow.
+2026-11-25 12:06:05.471 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:05.479 INFO Focus -> 0x2441BDD6DB0 panel=1 name="" role=Button text="Legacy of the Maji" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:05.479 INFO Speech interrupts, moved: Legacy of the Maji, button, 5 of 8, Travel to Caer Tarth.
+2026-11-25 12:06:06.639 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:06.647 INFO Focus -> 0x2441BDD75D0 panel=1 name="" role=Button text="The Grand Expedition" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:06.647 INFO Speech interrupts, moved: The Grand Expedition, button, 6 of 8, Travel to Ruins of Kingsmarch.
+2026-11-25 12:06:06.908 INFO Screen TextsAppeared layer 17: Hilda's Hunting
+2026-11-25 12:06:07.109 INFO Screen TextsAppeared layer 17: Reach Hilda's Campsite
+2026-11-25 12:06:07.829 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:07.838 INFO Focus -> 0x2441BDD7DF0 panel=1 name="" role=Button text="Jado's Spycraft" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:07.838 INFO Speech interrupts, moved: Jado's Spycraft, button, 7 of 8, Investigate the Sealed Vault.
+2026-11-25 12:06:09.200 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:09.208 INFO Focus -> 0x2441BDD8610 panel=1 name="" role=Button text="Hilda's Hunting" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:09.208 INFO Speech interrupts, moved: Hilda's Hunting, button, 8 of 8, Reach Hilda's Campsite.
+2026-11-25 12:06:10.528 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:13.155 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 12:06:13.155 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
+2026-11-25 12:06:13.155 INFO Screen TextsAppeared layer 60: Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:06:13.155 INFO Speech queued: Select, A. Open Side Panel, X. Action Menu, hold X. Bookmarks, Y. Add to Bookmarks, hold Y. Edit Search, left stick click. Clear Search, hold left stick click. Zoom, RT
+2026-11-25 12:06:22.037 INFO Focus -> 0x243AF4B5E10 panel=1 name="" role=Button text="Select to pan to The Ziggurat Refuge" value="below ground" context="Quests" group="" notes=""
+2026-11-25 12:06:22.037 INFO Speech interrupts: Select to pan to The Ziggurat Refuge, below ground, button, 4 of 4
+2026-11-25 12:06:22.177 INFO Screen TextsAppeared layer 17: Reach the Well of Souls | Keepers of the Flame | Travel to the Monastery of the Keepers | Strange Reflection | Travel to The Withered Willow | Legacy of the Maji | Travel to Caer Tarth | The Grand Expedition | Travel to Ruins of Kingsmarch | Jado's Spycraft | Investigate the Sealed Vault | Quests | Active
+2026-11-25 12:06:22.215 INFO Screen TextsAppeared layer 60: Quick Access [hold A] | Close [B]
+2026-11-25 12:06:22.392 INFO Screen TextsAppeared layer 17: Legacy of the Precursors | Travel to the Ancient Gateway | Abyssal Power
+2026-11-25 12:06:23.712 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 12:06:23.712 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
+2026-11-25 12:06:23.712 INFO Screen TextsAppeared layer 60: Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:06:23.712 INFO Speech queued: Open Side Panel, X. Action Menu, hold X. Bookmarks, Y. Add to Bookmarks, hold Y. Edit Search, left stick click. Clear Search, hold left stick click. Zoom, RT
+2026-11-25 12:06:28.020 INFO Focus -> 0x2436B387410 panel=1 name="" role=TextField text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:28.021 INFO Speech interrupts: Name: edit field, 1 of 3
+2026-11-25 12:06:28.424 INFO Screen TextsAppeared layer 17: Bookmark | Name: | save
+2026-11-25 12:06:29.832 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:30.375 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 12:06:30.430 INFO Focus -> 0x243EC5F2610 panel=1 name="" role=ComboBox text="empty" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:30.430 INFO Speech interrupts, moved: Empty, combo box, 1 of 3
+2026-11-25 12:06:31.692 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 12:06:32.294 INFO Speech interrupts, moved: Empty, combo box, 1 of 3
+2026-11-25 12:06:33.330 INFO Focus -> 0x243EC5F2C10 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:33.657 INFO Speech interrupts: Name: button, 1 of 12
+2026-11-25 12:06:34.284 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:34.293 INFO Focus -> 0x243EC5F3810 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:34.293 INFO Speech interrupts, moved: Name: button, 3 of 12
+2026-11-25 12:06:34.825 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:34.834 INFO Focus -> 0x243EC5F4410 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:34.834 INFO Speech interrupts, moved: Name: button, 5 of 12
+2026-11-25 12:06:35.216 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:35.223 INFO Focus -> 0x243EC5F5010 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:35.224 INFO Speech interrupts, moved: Name: button, 7 of 12
+2026-11-25 12:06:35.662 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:35.718 INFO Focus -> 0x243EC5F5C10 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:35.718 INFO Speech interrupts, moved: Name: button, 9 of 12
+2026-11-25 12:06:36.141 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:36.152 INFO Focus -> 0x243EC5F6810 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:36.152 INFO Speech interrupts, moved: Name: button, 11 of 12
+2026-11-25 12:06:36.621 INFO Pad: buttons 0x2, left stick 0,0, right stick 0,0
+2026-11-25 12:06:37.278 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 12:06:37.288 INFO Focus -> 0x243EC5F6E10 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:37.289 INFO Speech interrupts, moved: Name: button, 12 of 12
+2026-11-25 12:06:37.885 INFO Pad: buttons 0x8, left stick 0,0, right stick 0,0
+2026-11-25 12:06:38.346 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:06:38.355 INFO Focus -> 0x243EC5F6210 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:38.355 INFO Speech interrupts, moved: Name: button, 10 of 12
+2026-11-25 12:06:38.844 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:06:38.851 INFO Focus -> 0x243EC5F5610 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:38.852 INFO Speech interrupts, moved: Name: button, 8 of 12
+2026-11-25 12:06:39.476 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:06:39.484 INFO Focus -> 0x243EC5F4A10 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:39.484 INFO Speech interrupts, moved: Name: button, 6 of 12
+2026-11-25 12:06:40.384 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:06:40.391 INFO Focus -> 0x243EC5F3E10 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:40.392 INFO Speech interrupts, moved: Name: button, 4 of 12
+2026-11-25 12:06:42.197 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 12:06:42.206 INFO Focus -> 0x243EC5F3810 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:42.207 INFO Speech interrupts, moved: Name: button, 3 of 12
+2026-11-25 12:06:42.544 INFO Pad: buttons 0x4, left stick 0,0, right stick 0,0
+2026-11-25 12:06:43.233 INFO Pad: buttons 0x1, left stick 0,0, right stick 0,0
+2026-11-25 12:06:43.241 INFO Focus -> 0x243EC5F2C10 panel=1 name="" role=Button text="Name:" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:43.241 INFO Speech interrupts, moved: Name: button, 1 of 12
+2026-11-25 12:06:44.074 INFO Focus -> 0x243EC5F2610 panel=1 name="" role=ComboBox text="empty" value="" context="Quests" group="" notes=""
+2026-11-25 12:06:44.075 INFO Speech interrupts: Empty, combo box, 1 of 3
+2026-11-25 12:06:45.499 INFO Screen LayerOpened layer 60: Select [A] | Open Side Panel [X] | Action Menu [hold X] | Bookmarks [Y] | Add to Bookmarks [hold Y] | Edit Search [left stick click] | Clear Search [hold left stick click] | Zoom [RT]
+2026-11-25 12:06:45.694 INFO Screen TextsAppeared layer 17: Ancient Gateway | Biome: Forest | Long lost secrets lie buried beyond. | Legacy of the Precursors | Travel to the Ancient Gateway
+2026-11-25 12:06:45.694 INFO Speech interrupts: Ancient Gateway. Biome: Forest. Long lost secrets lie buried beyond. Legacy of the Precursors. Travel to the Ancient Gateway
