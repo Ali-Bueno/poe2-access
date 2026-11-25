@@ -21,8 +21,8 @@ namespace Poe2Accessibility.Services
         private string mode = string.Empty;
         private string titles = string.Empty;
 
-        /// <summary>Every line of the items, as said, at the last update.</summary>
-        private string lines = string.Empty;
+        /// <summary>Each item's class line, as said, at the last update: advanced info adds or takes away its item level.</summary>
+        private string classes = string.Empty;
         private long titlesSince;
         private bool openingDue;
         private int? crossed;
@@ -30,17 +30,18 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets a value indicating whether the table is on and items are on screen, so the right stick's flicks are its.</summary>
         public bool Active => this.table != null;
 
-        /// <summary>How long after the items' lines changed under the table what appears on screen is still theirs: the screen can show it a poll later.</summary>
-        public const long LinesChangeWindowMs = 500;
+        /// <summary>How long after advanced info was toggled what appears on screen is still the toggle's: the screen can show it a poll later.</summary>
+        public const long ToggleWindowMs = 500;
 
-        /// <summary>When the items' lines last changed under the table; null since it opened.</summary>
-        private long? linesChangedAt;
+        /// <summary>When advanced info was last toggled under the table; null since it opened.</summary>
+        private long? toggledAt;
 
         /// <summary>
-        ///     Whether the items' lines changed under the table a moment ago (advanced info toggled): what appeared on screen
-        ///     is the table's to say, which says the row under its cursor.
+        ///     Whether advanced info was toggled under the table a moment ago (the same items, each class line changed: "Bow:
+        ///     Item Level 5" and "Bow"): what appeared on screen is the table's to say, which says the row under its cursor. A
+        ///     line changing on its own (a flask's charges) is no toggle.
         /// </summary>
-        public bool TooltipsChanged(long nowMs) => this.table != null && this.linesChangedAt is { } at && nowMs - at < LinesChangeWindowMs;
+        public bool AdvancedInfoToggled(long nowMs) => this.table != null && this.toggledAt is { } at && nowMs - at < ToggleWindowMs;
 
         /// <summary>Gets a value indicating whether the opening is still to be said: what would follow it (the game's legend) waits.</summary>
         public bool OpeningDue => this.openingDue && this.table != null;
@@ -87,7 +88,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Takes the items item Inspect Mode shows (null when it is not open), the game's own name for the mode, and
-        ///     whether the table is switched on. Returns what to say now: the cursor's cell when it or any line changed, or null.
+        ///     whether the table is switched on. Returns what to say now: the cursor's cell when it changed or advanced info was
+        ///     toggled, or null.
         /// </summary>
         public string? Update(IReadOnlyList<InspectItem>? items, string modeLabel, bool tableOn, long nowMs)
         {
@@ -101,7 +103,8 @@ namespace Poe2Accessibility.Services
             this.mode = modeLabel;
             this.labels = Labels(items);
             var titles = string.Join("\n", items.Select(item => item.Title));
-            if (titles != this.titles)
+            var sameItems = titles == this.titles;
+            if (!sameItems)
             {
                 // Other items: the opening waits for them to settle, and the focus has crossed into nothing yet.
                 (this.titles, this.titlesSince, this.openingDue, this.crossed) = (titles, nowMs, true, null);
@@ -113,10 +116,10 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var lines = string.Join("\n", items.SelectMany(item => item.Lines.Select(line => line.Spoken)));
-            var linesChanged = this.table != null && lines != this.lines;
-            this.linesChangedAt = linesChanged ? nowMs : this.linesChangedAt;
-            this.lines = lines;
+            var classes = string.Join("\n", items.Select(item => item.Lines.FirstOrDefault(line => line.Key == InspectRows.ClassKey)?.Spoken ?? string.Empty));
+            var toggled = this.table != null && sameItems && classes != this.classes;
+            this.toggledAt = toggled ? nowMs : this.toggledAt;
+            this.classes = classes;
             var rows = InspectRows.Align(items);
             if (this.table == null)
             {
@@ -125,7 +128,7 @@ namespace Poe2Accessibility.Services
             }
 
             // Advanced info toggled: the row under the cursor is said even when it reads the same, so the toggle is heard.
-            return this.table.Rebuild(this.labels, rows) ?? (linesChanged ? this.table.Current : null);
+            return this.table.Rebuild(this.labels, rows) ?? (toggled ? this.table.Current : null);
         }
 
         /// <summary>Per frame: the opening, once, when the items' titles have stayed the same for <see cref="OpeningSettleMs"/>.</summary>
@@ -169,7 +172,7 @@ namespace Poe2Accessibility.Services
         private void Clear()
         {
             (this.items, this.labels, this.table) = (Array.Empty<InspectItem>(), Array.Empty<string>(), null);
-            (this.titles, this.lines, this.linesChangedAt, this.openingDue, this.crossed) = (string.Empty, string.Empty, null, false, null);
+            (this.titles, this.classes, this.toggledAt, this.openingDue, this.crossed) = (string.Empty, string.Empty, null, false, null);
         }
     }
 }

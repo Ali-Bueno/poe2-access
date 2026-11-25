@@ -352,7 +352,7 @@ namespace Poe2Accessibility.Services
             {
                 // Cards of the same list drawn a moment after a scroll (the shop's "¡NUEVO!" flags) are read when reached.
                 var news = focus == null || this.InAnotherShopCard is not { } other ? texts : Describe(kept.Where(text => !other(text.Address, focus.Address)));
-                if (this.Inspect?.TooltipsChanged(Environment.TickCount64) == true)
+                if (this.Inspect?.AdvancedInfoToggled(Environment.TickCount64) == true)
                 {
                     // Advanced info toggled in Inspect Mode: the tooltips' new lines are the table's, which says the row under
                     // its cursor. Read here, every line of both items came before it (user, 2026-11-25).

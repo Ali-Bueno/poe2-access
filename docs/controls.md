@@ -429,7 +429,8 @@ one item in the game's own words. Only the first row, the name, says which item 
 the Cloud, magic"), so the rows below switch fast between the items ("Energy Shield: 28", "Energy Shield: 43"). A line an item lacks
 is said as missing ("to maximum Life, none"), so a row means the same stat on every item. The first row is the name with
 the rarity, sockets have a row of their own, and an unmet requirement is named on the requirements row. Holding R3
-toggles the game's advanced info (ranges, tiers, prefix and suffix), and the rows follow it. Nothing is compared for you.
+toggles the game's advanced info (ranges, tiers, prefix and suffix); the rows follow it, and the row you are on is said
+again. Nothing is compared for you.
 With two worn items (rings) each is named by its slot. The D-pad still walks the game's links and names the item it
 crosses into, with the table on or off; with the setting off, R3 reads the item as before.
 

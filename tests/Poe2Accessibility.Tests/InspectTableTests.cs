@@ -43,6 +43,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AdvancedInfoKeepsTheClassRow), AdvancedInfoKeepsTheClassRow),
             (nameof(ToggledLinesAreTheTables), ToggledLinesAreTheTables),
             (nameof(AToggleSaysTheRowEvenUnchanged), AToggleSaysTheRowEvenUnchanged),
+            (nameof(AFlasksChargesAreNoToggle), AFlasksChargesAreNoToggle),
             (nameof(AWornWeaponsEquippedLineIsNoRow), AWornWeaponsEquippedLineIsNoRow),
             (nameof(AnUnmetRequirementIsSaidOnItsRow), AnUnmetRequirementIsSaidOnItsRow),
             (nameof(ANodeWithoutLayoutIsNoTooltip), ANodeWithoutLayoutIsNoTooltip),
@@ -394,19 +395,19 @@ namespace Poe2Accessibility.Tests
         {
             var watch = new InspectTableWatch();
             watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 0);
-            Equal(false, watch.TooltipsChanged(0), "the table's first items are no change");
+            Equal(false, watch.AdvancedInfoToggled(0), "the table's first items are no change");
             watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 50);
-            Equal(false, watch.TooltipsChanged(50), "the same lines again");
+            Equal(false, watch.AdvancedInfoToggled(50), "the same lines again");
             watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000);
-            Equal(true, watch.TooltipsChanged(1000), "advanced info off");
+            Equal(true, watch.AdvancedInfoToggled(1000), "advanced info off");
             watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1100);
-            Equal(true, watch.TooltipsChanged(1100), "the screen can show it a poll later");
-            Equal(false, watch.TooltipsChanged(1000 + InspectTableWatch.LinesChangeWindowMs), "then it is over");
+            Equal(true, watch.AdvancedInfoToggled(1100), "the screen can show it a poll later");
+            Equal(false, watch.AdvancedInfoToggled(1000 + InspectTableWatch.ToggleWindowMs), "then it is over");
 
             var off = new InspectTableWatch();
             off.Update(Items(Tooltips("robes")), "Inspect Mode", false, 0);
             off.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", false, 50);
-            Equal(false, off.TooltipsChanged(50), "with the table off, today's reading says them");
+            Equal(false, off.AdvancedInfoToggled(50), "with the table off, today's reading says them");
         }
 
         // Advanced info toggled on a row that reads the same either way was silent (user, 2026-11-25: "that wouldn't hurt, to
@@ -423,6 +424,20 @@ namespace Poe2Accessibility.Tests
             Expect("Energy Shield: 28", watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1000), "advanced info off");
             Expect(null, watch.Update(Items(Tooltips("robes-advanced-off")), "Inspect Mode", true, 1100), "once");
             Expect("Energy Shield: 28", watch.Update(Items(Tooltips("robes")), "Inspect Mode", true, 2000), "and on again");
+        }
+
+        // A flask's "Currently has 65 Charges" changes on its own (docs/research/ui-layers.md): no toggle, and nothing said
+        // of a row it is not on.
+        private static void AFlasksChargesAreNoToggle()
+        {
+            var watch = new InspectTableWatch();
+            var flask = Items(Tooltips("worn-flask"));
+            watch.Update(flask, "Inspect Mode", true, 0);
+            watch.Flick(PadGesture.FlickDown);
+            watch.Flick(PadGesture.FlickDown); // the class row
+            var used = flask.Select(item => item with { Lines = item.Lines.Select(line => line.Match.StartsWith("Currently has", StringComparison.Ordinal) ? new InspectLine("Currently has 55 Charges", "Currently has 55 Charges") : line).ToList() }).ToList();
+            Expect(null, watch.Update(used, "Inspect Mode", true, 1000), "the charges changed under another row");
+            Equal(false, watch.AdvancedInfoToggled(1000), "no toggle");
         }
 
         /// <summary>A section's tooltips as the table's items: the inspected one, then the worn ones.</summary>
