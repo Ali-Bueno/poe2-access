@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Tests
             "checkbox_on\tArt/2DArt/UIImages/Common/CheckBoxChecked",
             "checkbox_off\tArt/2DArt/UIImages/Common/CheckBoxUnchecked",
             "map_portal_icon\tArt/2DArt/UIImages/InGame/PartyMenu/PartyPortalIcon",
+            "weapon_set_1\tArt/2DArt/UIImages/InGame/SkillPanel/InventoryPanelWeaponSwap1Hover",
             "weapon_set_2\tArt/2DArt/UIImages/InGame/SkillPanel/InventoryPanelWeaponSwap2Hover",
             "RitualTribute\tArt/2DArt/UIImages/InGame/Ritual/killpointicon",
             "malformed line without a tab",
@@ -166,8 +167,11 @@ namespace Poe2Accessibility.Tests
             English();
             Expect("6 portals", ControllerGlyphs.Plain("<<map_portal_icon>> 6"), "map portals left");
             Expect("weapon set II: 30 spirit", ControllerGlyphs.Plain("<<weapon_set_2>>: 30 <<spirit_resource_icon>>"), "a set's numeral where it stands");
+            // A worn bow's last line in Inspect Mode said "Equipped: [WeaponSets|Weapon Set] I" (user, 2026-11-25): the keyword
+            // link is its shown words, as in the game's stripped copy.
+            Expect("Equipped: Weapon Set I", ControllerGlyphs.Plain("Equipped: [WeaponSets|Weapon Set]<<weapon_set_1>>"), "a keyword link says its shown words");
             Localization.Set("es", new());
-            Expect("Equipado: [WeaponSets|Set de armas] II", ControllerGlyphs.Plain("Equipado: [WeaponSets|Set de armas]<<weapon_set_2>>"), "the picture adds only its numeral to the words before it");
+            Expect("Equipado: Set de armas II", ControllerGlyphs.Plain("Equipado: [WeaponSets|Set de armas]<<weapon_set_2>>"), "the picture adds only its numeral to the words before it");
         }
 
         /// <summary>A pad token the mod's own list lacks is named from the game's table ("Controller/Button2" = Y).</summary>

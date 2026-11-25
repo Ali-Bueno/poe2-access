@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Services
         private const int LinkRowHops = 2;
 
         /// <summary>Keyword link markup: "[Flask|Flasks]" shows "Flasks", "[Wells]" shows "Wells".</summary>
-        private static readonly System.Text.RegularExpressions.Regex KeywordLink = new(@"\[([^\[\]|]+)(?:\|([^\[\]]+))?\]", System.Text.RegularExpressions.RegexOptions.Compiled);
+        private static readonly System.Text.RegularExpressions.Regex KeywordLink = ControllerGlyphs.KeywordLink;
 
         /// <summary>
         ///     A keyword link is an empty box child of the text holding it; the k-th box is the k-th "[key|shown]"
