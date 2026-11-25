@@ -28,7 +28,7 @@ namespace Poe2Accessibility
         /// <summary>The sockets row of an item without sockets.</summary>
         public static string InspectNoSockets => T("no sockets", "sin engarces");
 
-        /// <summary>A cell said with the item it belongs to, when the table switches item: "Worn. Energy Shield: 43".</summary>
+        /// <summary>The name row's cell, said with the item it belongs to: "Worn. Protective Feathered Robe of the Cloud, magic".</summary>
         public static string InspectCell(string label, string cell) => $"{label}. {cell}";
 
         /// <summary>

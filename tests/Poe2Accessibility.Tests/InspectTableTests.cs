@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Tests
             (nameof(FlicksWalkTheRobesOneLineAtATime), FlicksWalkTheRobesOneLineAtATime),
             (nameof(EdgesSayTheCellAgain), EdgesSayTheCellAgain),
             (nameof(TheFirstFlickSidewaysEntersTheFirstRow), TheFirstFlickSidewaysEntersTheFirstRow),
+            (nameof(TheNameRowAlwaysSaysWhichItem), TheNameRowAlwaysSaysWhichItem),
             (nameof(OneTooltipIsOneColumn), OneTooltipIsOneColumn),
             (nameof(ARebuildSaysOnlyAChangedCell), ARebuildSaysOnlyAChangedCell),
             (nameof(AnItemWithoutSocketsSaysSo), AnItemWithoutSocketsSaysSo),
@@ -137,22 +138,22 @@ namespace Poe2Accessibility.Tests
         private static void FlicksWalkTheRobesOneLineAtATime()
         {
             var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
-            Expect("Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickDown), "the first flick down reads the first row");
+            Expect("This item. Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickDown), "the first flick down reads the name row, with its label");
             Expect("Body Armour: Item Level 7", table.Move(PadGesture.FlickDown), "row 2");
             Expect("Energy Shield: 28", table.Move(PadGesture.FlickDown), "row 3");
-            Expect("Worn. Energy Shield: 43", table.Move(PadGesture.FlickRight), "switching items says the label first");
-            Expect("Requires: Level 5, 11 Int", table.Move(PadGesture.FlickDown), "up and down don't repeat the label");
-            Expect("This item. Requires, none", table.Move(PadGesture.FlickLeft), "an absent cell names the row");
+            Expect("Energy Shield: 43", table.Move(PadGesture.FlickRight), "below the name row, switching items says only the cell");
+            Expect("Requires: Level 5, 11 Int", table.Move(PadGesture.FlickDown), "up and down say only the cell");
+            Expect("Requires, none", table.Move(PadGesture.FlickLeft), "an absent cell names the row");
             Expect("+19(10-19) to maximum Life, T13, Prefix", table.Move(PadGesture.FlickDown), "this robe's life");
-            Expect("Worn. to maximum Life, none", table.Move(PadGesture.FlickRight), "the worn robe has none");
-            Expect("Worn. to maximum Life, none", table.Move(PadGesture.FlickRight), "past the last item the cell is said again");
+            Expect("to maximum Life, none", table.Move(PadGesture.FlickRight), "the worn robe has none");
+            Expect("to maximum Life, none", table.Move(PadGesture.FlickRight), "past the last item the cell is said again");
         }
 
         private static void EdgesSayTheCellAgain()
         {
             var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
             table.Move(PadGesture.FlickDown);
-            Expect("Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickUp), "above the first row");
+            Expect("This item. Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickUp), "above the first row");
             for (var i = 0; i < 10; i++)
             {
                 table.Move(PadGesture.FlickDown);
@@ -165,6 +166,18 @@ namespace Poe2Accessibility.Tests
         {
             var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
             Expect("Worn. Protective Feathered Robe of the Cloud, magic", table.Move(PadGesture.FlickRight), "right from the start");
+        }
+
+        // The user asked for the labels at the top only (2026-11-25): the name row says which item, the rows below only the line.
+        private static void TheNameRowAlwaysSaysWhichItem()
+        {
+            var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { Robe, WornRobe }));
+            table.Move(PadGesture.FlickDown);
+            table.Move(PadGesture.FlickDown);
+            Expect("Body Armour: Item Level 8", table.Move(PadGesture.FlickRight), "the item level row, on the worn robe");
+            Expect("Worn. Protective Feathered Robe of the Cloud, magic", table.Move(PadGesture.FlickUp), "back up to the name row");
+            Expect("This item. Hale Tattered Robe of the Pupil, magic", table.Move(PadGesture.FlickLeft), "across the name row");
+            Expect("Body Armour: Item Level 7", table.Move(PadGesture.FlickDown), "down again, no label");
         }
 
         private static void OneTooltipIsOneColumn()
@@ -195,7 +208,7 @@ namespace Poe2Accessibility.Tests
             var table = new InspectTable(new[] { "This item", "Worn" }, InspectRows.Align(new[] { socketed, plain }));
             table.Move(PadGesture.FlickDown);
             Expect("2 sockets: Lesser Iron Rune, empty", table.Move(PadGesture.FlickDown), "the sockets row");
-            Expect("Worn. no sockets", table.Move(PadGesture.FlickRight), "the other item has none");
+            Expect("no sockets", table.Move(PadGesture.FlickRight), "the other item has none");
         }
 
         private static void ARebuildWithoutTheRowMovesToTheNearest()
@@ -222,7 +235,7 @@ namespace Poe2Accessibility.Tests
             Expect("Inspect Mode. Hale Tattered Robe of the Pupil, against worn Protective Feathered Robe of the Cloud", watch.Tick(210), "settled");
             Equal(false, watch.OpeningDue, "said");
             Expect(null, watch.Tick(400), "said once");
-            Expect("Hale Tattered Robe of the Pupil, magic", watch.Flick(PadGesture.FlickDown), "the table");
+            Expect("This item. Hale Tattered Robe of the Pupil, magic", watch.Flick(PadGesture.FlickDown), "the table's name row");
         }
 
         private static void ClosingInspectModeEndsTheTable()

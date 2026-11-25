@@ -6,8 +6,10 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The cursor of Inspect Mode's comparison table: up and down change the row (one stat), left and right the item.
-    ///     Each move says one line of one item, the item's label first when the item changed. A move past an edge says the
-    ///     same thing again, so silence never means nothing happened. Nothing is compared or computed. Pure.
+    ///     Each move says one line of one item. Only the first row, the item's name, says the item's label first ("Worn.
+    ///     Protective Feathered Robe of the Cloud, magic"), so the rows below go fast left and right (user, 2026-11-25). A
+    ///     move past an edge says the same thing again, so silence never means nothing happened. Nothing is compared or
+    ///     computed. Pure.
     /// </summary>
     public sealed class InspectTable
     {
@@ -40,7 +42,7 @@ namespace Poe2Accessibility.Services
                     if (this.Row == -1)
                     {
                         this.Row = 0;
-                        return this.Cell();
+                        return this.Said();
                     }
 
                     var row = this.Row + (flick == PadGesture.FlickDown ? 1 : -1);
@@ -49,7 +51,7 @@ namespace Poe2Accessibility.Services
                         this.Row = row;
                     }
 
-                    return this.Cell();
+                    return this.Said();
                 case PadGesture.FlickLeft or PadGesture.FlickRight:
                     this.Row = Math.Max(this.Row, 0);
                     var item = this.Item + (flick == PadGesture.FlickRight ? 1 : -1);
@@ -58,7 +60,7 @@ namespace Poe2Accessibility.Services
                         this.Item = item;
                     }
 
-                    return Announcements.InspectCell(this.labels[this.Item], this.Cell());
+                    return this.Said();
                 default:
                     return string.Empty;
             }
@@ -70,7 +72,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string? Rebuild(IReadOnlyList<string> labels, IReadOnlyList<InspectRow> rows)
         {
-            var before = this.Row >= 0 ? this.Cell() : null;
+            var before = this.Row >= 0 ? this.Said() : null;
             var on = this.Row >= 0 ? this.rows[this.Row] : null;
             (this.labels, this.rows) = (labels, rows);
             this.Item = Math.Clamp(this.Item, 0, Math.Max(labels.Count - 1, 0));
@@ -82,9 +84,12 @@ namespace Poe2Accessibility.Services
 
             var same = on == null ? -1 : rows.ToList().FindIndex(row => row.Key == on.Key && row.Occurrence == on.Occurrence);
             this.Row = same >= 0 ? same : Math.Min(this.Row, rows.Count - 1);
-            var now = this.Cell();
+            var now = this.Said();
             return now == before ? null : now;
         }
+
+        /// <summary>The cursor's cell as said: on the name row with the item's label first.</summary>
+        private string Said() => this.Row == 0 ? Announcements.InspectCell(this.labels[this.Item], this.Cell()) : this.Cell();
 
         /// <summary>The cursor's cell: the item's line, or what the item lacks in the row's own words.</summary>
         private string Cell()
