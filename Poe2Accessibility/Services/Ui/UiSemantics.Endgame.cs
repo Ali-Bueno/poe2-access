@@ -63,10 +63,19 @@ namespace Poe2Accessibility.Services
             var centres = this.EndgameCentres(info, node.Graph);
             var linked = (node.Links ?? new List<string>()).Where(other => catalog.SameGraph(id, other)).ToList();
 
-            // Drawn centres only while every linked node is drawn: a fog neighbour has none, and mixing frames would
-            // lie about its side, so the whole fan then reads in the graph's own places.
-            var drawnCentres = centres != null && centres.ContainsKey(id) && linked.All(other => centres.ContainsKey(other)) ? centres : null;
-            Vector2? Place(string passive) => drawnCentres != null ? drawnCentres[passive] : catalog.Node(passive) is { } other ? new Vector2(other.X, other.Y) : null;
+            // An undrawn (fog) neighbour's place is estimated from a drawn one's local scale, so its side reads as
+            // the stick finds it; the graph's own places alone put Epitaph at Marrow's left, where no hop lands.
+            Vector2? GraphPlace(string passive) => catalog.Node(passive) is { } at ? new Vector2(at.X, at.Y) : null;
+            var scale = centres != null && centres.TryGetValue(id, out var hereCentre) && GraphPlace(id) is { } graphHere
+                ? linked.Where(other => centres.ContainsKey(other) && GraphPlace(other) is { } there && Vector2.Distance(graphHere, there) > 1)
+                    .Select(other => Vector2.Distance(hereCentre, centres[other]) / Vector2.Distance(graphHere, GraphPlace(other)!.Value))
+                    .Cast<float?>().FirstOrDefault()
+                : null;
+            Vector2? Place(string passive) =>
+                centres != null && centres.TryGetValue(passive, out var drawn) ? drawn
+                : scale is { } factor && centres != null && GraphPlace(passive) is { } graphThere && GraphPlace(id) is { } graphOrigin
+                    ? centres[id] + ((graphThere - graphOrigin) * factor)
+                    : GraphPlace(passive);
             var links = AtlasLinks.Describe(Place(id), linked
                 .Select(other => (Place(other), this.EndgameNodeLabel(other, this.EndgameElementOf(other), language) is { Length: > 0 } label ? label : Announcements.AtlasNode)));
             if (links.Count > 0)
@@ -175,29 +184,38 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string? AtlasNodeLine(IntPtr node, bool allowPending)
         {
-            if (!this.elements.TryReadElement(node, out var info) || this.DescribeEndgameNode(info, true) is not { } described)
+            if (!this.elements.TryReadElement(node, out var info))
+            {
+                return string.Empty;
+            }
+
+            // Some landed nodes hold no EndgameMapAtlas key (a Rockpools and an Oasis went silent, live 2026-11-25):
+            // no catalog identity and no links, but their rolled area, state and popup words still read.
+            var described = this.DescribeEndgameNode(info, true);
+            var language = Localization.Language;
+            var name = described?.Text ?? this.AtlasAreaName(node, language);
+            if (name.Length == 0)
             {
                 return string.Empty;
             }
 
             // The map's popup is no part of the node's tooltip; it stands beside map_control and carries the rolled
             // biome and contents in its own words. Until it is built there is nothing full to say.
-            var language = Localization.Language;
-            var popup = this.AtlasPopupTexts(info, described.Text, Localization.Language);
+            var popup = this.AtlasPopupTexts(info, name, language);
             if (!allowPending && popup.Count == 0)
             {
                 return null;
             }
 
             var catalog = EndgameCatalog.Shared;
-            var biome = popup.Select(text => catalog.BiomeNameIn(text, language)).FirstOrDefault(name => name.Length > 0) ?? string.Empty;
+            var biome = popup.Select(text => catalog.BiomeNameIn(text, language)).FirstOrDefault(found => found.Length > 0) ?? string.Empty;
             var held = popup.SelectMany(text => catalog.ContentNamesIn(text, language)).Distinct(StringComparer.Ordinal).ToList();
             var state = this.reader.TryRead<byte>(node + GameLayout.AtlasNode.StatusOffset, out var status)
                 ? Announcements.AtlasState(AtlasState.Of(status))
                 : string.Empty;
-            var contents = held.Count > 0 ? Announcements.AtlasContents(held) : FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
-            var links = FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
-            return Announcements.AtlasLanding(described.Text, state, biome, contents, links);
+            var contents = held.Count > 0 ? Announcements.AtlasContents(held) : described == null ? string.Empty : FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
+            var links = described == null ? string.Empty : FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
+            return Announcements.AtlasLanding(name, state, biome, contents, links);
 
             static string FirstWith(IReadOnlyList<string>? lines, string prefix) =>
                 lines?.FirstOrDefault(line => line.StartsWith(prefix, StringComparison.Ordinal)) ?? string.Empty;
@@ -276,7 +294,8 @@ namespace Poe2Accessibility.Services
             {
                 if (this.elements.TryReadElement(child, out var control) && control.Name == GameLayout.WorldMap.ControlName &&
                     this.reader.TryRead<IntPtr>(child + GameLayout.AtlasNode.SelectedNodeOffset, out var node) && node != IntPtr.Zero &&
-                    DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable) != null)
+                    (DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable) != null ||
+                     DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.EndgameMapsKeyOffset, GameLayout.AtlasNode.EndgameMapsTable) != null))
                 {
                     return node;
                 }
@@ -474,13 +493,19 @@ namespace Poe2Accessibility.Services
                 return single;
             }
 
-            if (element != IntPtr.Zero && DatKey.Row(this.reader, this.elements, element + GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable) is { } row &&
-                this.AtlasRowId(row) is { Length: > 0 } areaId && areaId != "?" && catalog.Text("area/" + areaId, language) is { Length: > 0 } rolled)
+            if (this.AtlasAreaName(element, language) is { Length: > 0 } rolled)
             {
                 return rolled;
             }
 
             return catalog.NodeName(passiveId, language);
         }
+
+        /// <summary>The name of the map a node element rolled, by its area key; empty when the key or its name does not read.</summary>
+        private string AtlasAreaName(IntPtr element, string language) =>
+            element != IntPtr.Zero && DatKey.Row(this.reader, this.elements, element + GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable) is { } row &&
+            this.AtlasRowId(row) is { Length: > 0 } areaId && areaId != "?"
+                ? EndgameCatalog.Shared.Text("area/" + areaId, language)
+                : string.Empty;
     }
 }

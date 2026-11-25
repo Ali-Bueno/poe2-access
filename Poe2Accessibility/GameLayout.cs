@@ -648,6 +648,8 @@ namespace Poe2Accessibility
             public const int StatusCompletedBit = 1 << 1;
 
             public const string AtlasTable = "Data/Balance/EndgameMapAtlas.dat";
+
+            public const string EndgameMapsTable = "Data/Balance/EndgameMaps.dat";
         }
 
         /// <summary>A MapPins row (dat columns followed by DatColumns): its area key, name and description, as its popup shows them.</summary>
