@@ -102,6 +102,8 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.semantics.AtlasRefresh(this.scan, here);
+
             var extras = new List<string>();
             if (first)
             {

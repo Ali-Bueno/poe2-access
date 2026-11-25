@@ -21,9 +21,10 @@ namespace Poe2Accessibility.Services
 
         public required string Name { get; init; }
 
-        public required bool Revealed { get; init; }
+        /// <summary>Drawn when scanned (fog has no rect); refreshed per landing as fog lifts.</summary>
+        public required bool Revealed { get; set; }
 
-        public Vector2? Centre { get; init; }
+        public Vector2? Centre { get; set; }
 
         /// <summary>The key the resume file keeps: the catalog id, or the grid place for a row-less node.</summary>
         public string Key => this.Id ?? $"grid:{this.GridX},{this.GridY}";
@@ -125,6 +126,24 @@ namespace Poe2Accessibility.Services
         /// <summary>The scan entry of an element, when a scan holds it.</summary>
         public AtlasScanEntry? AtlasEntryOf(IReadOnlyList<AtlasScanEntry> scan, IntPtr element) =>
             scan.FirstOrDefault(entry => entry.Element == element);
+
+        /// <summary>
+        ///     Re-reads whether the landed node and its linked neighbours are drawn now: fog lifts as the owner walks,
+        ///     and a scan taken at opening would call just-revealed neighbours unrevealed for the rest of the session
+        ///     (live 2026-11-25). A handful of rect reads per landing keeps the scan honest where it is spoken from.
+        /// </summary>
+        public void AtlasRefresh(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here)
+        {
+            var linked = here.Id != null ? EndgameCatalog.Shared.Node(here.Id)?.Links : null;
+            foreach (var entry in scan.Where(entry => !entry.Revealed && (entry.Element == here.Element || (entry.Id != null && linked != null && linked.Contains(entry.Id)))))
+            {
+                if (PluginUiElementReflection.TryGetAbsoluteRect(entry.Element, out var position, out var size))
+                {
+                    entry.Revealed = true;
+                    entry.Centre = position + (size / 2);
+                }
+            }
+        }
 
         /// <summary>
         ///     The frontier from here: the nearest accessible, uncompleted nodes in links (grid steps when here is
