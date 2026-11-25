@@ -729,11 +729,14 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
-- **The Atlas navigator's live sweep:** a character is at the Atlas now (the owner, 2026-11-25: the stick hops
-  node-to-node and the named pain is losing one's place); the plan is
-  [docs/research/atlas-navigator.md](docs/research/atlas-navigator.md) and everything past its Phase 0 waits on that
-  sweep (`atlasnode`/`datkeys`/`hex` per node kind, `dump visible` of the Atlas and the map device) with the owner
-  hopping and the agent writing `debug/command.txt`. **Unblocks:** the owner at the Atlas for one session.
+- **The Atlas navigator's live sweep:** mostly done live 2026-11-25 ([docs/research/atlas-navigator.md](docs/research/atlas-navigator.md)
+  §6, evidence in docs/research/evidence/): the shipped node reader never fires on the Atlas (hover/focus slots
+  empty there), the selected node is `map_control +0x2E0`, identity by dat keys, fog is the element's visible flag,
+  the D-pad hops nodes itself (so the finder needs a mod gesture), zoom is RT, the map device reads through the
+  inventory speech, and the Ancient Gateway is owner-certified accessible/not completed. Node state is not a byte
+  on the element. **Still open:** one owner-certified *completed* node sampled the same way (texture keys across
+  classes, via the new `atlasnode` after a relaunch) and one Atlas Skill Tree node. **Unblocks:** the owner
+  hopping to a completed node and opening the Atlas tree, names said in chat.
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each
