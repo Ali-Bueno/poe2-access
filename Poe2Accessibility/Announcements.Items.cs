@@ -33,6 +33,13 @@ namespace Poe2Accessibility
             return gives.Count == 0 ? head : head + T(". Effect: ", ". Efecto: ") + string.Join(". ", gives);
         }
 
+        /// <summary>The one socket of a piece the cursor is on: "engarce 2 de 2: vacío"; a piece's only socket, "engarce: vacío".</summary>
+        public static string SocketAt(int index, int count, string? socketed)
+        {
+            var held = socketed ?? EmptyCell;
+            return count == 1 ? T($"socket: {held}", $"engarce: {held}") : T($"socket {index + 1} of {count}: {held}", $"engarce {index + 1} de {count}: {held}");
+        }
+
         /// <summary>
         ///     Item text and position for a grid cell: equipment slots name the slot ("Gloves, empty") and have no
         ///     position, flasks say their slot number, the main inventory and other grids (stash, vendor) column and row.

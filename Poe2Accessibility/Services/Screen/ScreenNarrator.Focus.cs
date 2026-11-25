@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Services
         {
             this.focusBehindAnswer = this.FocusBehindAnswer?.Invoke(node) == true;
             this.lastFocusAt = DateTime.UtcNow;
+            this.pieceSaidAt = Environment.TickCount64;
             if (node.Name == EngraveChoiceName && node.Text.Length > 0)
             {
                 this.Engraving = (node.Text, this.Engraving.Category);
@@ -45,6 +46,7 @@ namespace Poe2Accessibility.Services
             this.lastValue = node.Value;
             this.lastText = node.Text;
             this.lastRow = node.Position;
+            this.lastSocket = node.Socket;
             this.lastExpanded = node.IsExpanded;
             this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
             var focused = this.Focused(node);
@@ -391,6 +393,7 @@ namespace Poe2Accessibility.Services
         private void MovedWithin(AccessibleUiNode node, string whole)
         {
             this.lastFocusSpeech = whole;
+            this.pieceSaidAt = Environment.TickCount64;
             this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
             this.SayMove(whole);
         }
@@ -420,6 +423,8 @@ namespace Poe2Accessibility.Services
             this.lastValue = node.Value;
             this.lastText = node.Text;
             this.lastRow = node.Position;
+            var socketBefore = sameOwner ? this.lastSocket : string.Empty;
+            this.lastSocket = node.Socket;
             if (this.deferredFocus is { } waiting && waiting.Node.Address == node.Address)
             {
                 // The focus moved before its new layer settled (a vendor opening: the cursor jumps from an empty cell
@@ -480,6 +485,20 @@ namespace Poe2Accessibility.Services
                 {
                     // The item under a resting cursor changed its own number (a stack used, a gem levelled): that part alone.
                     this.output.Speak(number, true);
+                    return;
+                }
+
+                var pieceCut = node.Socket.Length > 0 && Environment.TickCount64 - this.pieceSaidAt < LateValueMs;
+                if (sameOwner && node.Text == textBefore && node.Socket != socketBefore && !pieceCut && (node.Socket.Length > 0 || node.Value.Length == 0))
+                {
+                    // Another socket of the same piece, or the piece without its sockets (the hand emptied over it): the
+                    // piece was said as the cursor came to it. A socket read a moment after the piece (the cursor's frame
+                    // lags it) goes with the piece again instead, or its name would be cut.
+                    if (node.Socket.Length > 0)
+                    {
+                        this.SayMove(Announcements.Capitalised(node.Socket));
+                    }
+
                     return;
                 }
 

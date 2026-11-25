@@ -361,8 +361,31 @@ nothing to tell it apart ("Daño físico aumentado un 14%" on Chainsting, said, 
   hierro menor. Efecto: Daño físico aumentado un 14%"; with an empty socket "2 engarces: Runa de hierro menor, vacío";
   without a rune line, before the item's first modifier line, else at the end. A skill gem's sockets are its supports,
   said by the build's lines, and are left alone.
-- **Not seen yet:** an empty socket on gear (only a gem's), a piece with two runes, a soul core, a talisman. The game
+- **Not seen yet:** a soul core, a talisman (an empty socket and pieces of two sockets were, 2026-11-24). The game
   keeps one byte a socket (1 on the spear): what other values mean is not known, so it is not read.
+
+## The socket under the cursor (0.5.5h, 2026-11-24)
+
+The owner: with a rune in the hand, nothing said which socket of a piece is filled and which is empty. The D-pad walks a
+piece's sockets while the focus (manager +0x748) stays on the piece's grid, and only the hint changed ("Reemplazar runa"
+/ "Engarzar runa"). Traced read-only on the owner's play, then heard live on malgdhler:
+
+- **The tree:** item element → a holder (shown while the piece is hovered or a rune is held) → one element a socket, all
+  of one class, in the component's order, each 1x1; they fill the holder (two in a 144x64 holder at x 0 and 80). The
+  socket element also holds the socketed entity (+0x298) and its number (+0x2C8); not read, the order tells.
+- **A filled socket** is the manager's hovered element (+0x760) while the cursor is on it. An **empty** one is not: it
+  has no tooltip to own, and the slot then names the piece or nothing.
+- **The cursor's frame** is the last child of the layer container: its place (+0x100) jumps at once to what A acts on and
+  its size is the grid's cell; its own +0x108 is the slide towards it. On a socket it is centred on the socket, filled or
+  empty (gloves in the bag: socket centre 2189,1298, frame centre 2188.8,1297.8), elsewhere on the cell. A currency
+  shrinks it (56x56) and stays on the cell.
+- **What is said** (`UiSemantics.SocketCursor`, pure `SocketAim`): "engarce 2 de 2: vacío", "engarce 1 de 2: Runa de
+  hierro", a piece's only socket "engarce: vacío", in the cell's place. The hovered socket tells; else, with a rune, soul
+  core or talisman in the hand (all 305 are under `Metadata/Items/SoulCores/`), the socket the frame is centred on.
+  Another socket of the same piece is said alone; one read within 0.4 s of the piece is said with the piece again, since
+  the frame can lag the focus by a tick.
+- **"Organizar engarces"** (A held) keeps the focus on the piece; with one empty socket the D-pad moves nothing. With
+  runes in it, unheard: a filled socket is said if the game hovers it, as with a rune in the hand.
 
 ## Not done
 

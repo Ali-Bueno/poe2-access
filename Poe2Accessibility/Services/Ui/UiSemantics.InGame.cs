@@ -32,6 +32,7 @@ namespace Poe2Accessibility.Services
             string text;
             var value = string.Empty;
             var emptyCell = false;
+            var socket = string.Empty;
             var position = string.Empty;
             List<string> details;
             var gear = (First: new List<string>(), Last: new List<string>(), Headed: false);
@@ -50,6 +51,7 @@ namespace Poe2Accessibility.Services
                 details = new List<string>();
                 text = Announcements.UnderHand(under.Select(item => this.inventory.DescribeItem(item) ?? Announcements.UnknownItem).ToList());
                 value = Announcements.GridPosition(column, row);
+                socket = under.Count == 1 ? this.SocketUnderCursor(under[0]) : string.Empty;
             }
             else if (this.inventory.TryReadGrid(info.Address, out column, out row, out hovered))
             {
@@ -73,6 +75,7 @@ namespace Poe2Accessibility.Services
                 item = this.inventory.HighlightOf(hovered) == ItemHighlight.Match ? Announcements.HighlightedItem(item) : item;
                 var inventoryName = this.inventory.InventoryOf(info.Address);
                 (text, value) = Announcements.InventoryCell(inventoryName, item, column, row);
+                socket = this.SocketUnderCursor(hovered);
                 gear = this.BuildGearLines(info.Address, inventoryName, column, this.inventory.ItemEntity(hovered), details.ToList());
                 if (!filling)
                 {
@@ -81,15 +84,21 @@ namespace Poe2Accessibility.Services
             }
             else if (this.inventory.FindItemElement(info.Address) is var item && item != IntPtr.Zero)
             {
-                if (this.SocketOfItem(item, underCursor) is { } socket)
+                if (this.SocketOfItem(item, underCursor) is { } treeSocket)
                 {
-                    return socket; // a jewel in the passive tree: its node, allocated, linked and guided, says what it holds
+                    return treeSocket; // a jewel in the passive tree: its node, allocated, linked and guided, says what it holds
                 }
 
                 role = UiRole.ItemSlot;
                 position = this.SlotSiblings(info).Position;
                 details = this.ItemTooltip(item);
                 text = this.inventory.DescribeItem(item, Title(details)) ?? Announcements.UnknownItem;
+            }
+            else if (this.SocketOf(info.Address) is { } own)
+            {
+                role = UiRole.ItemSlot;
+                text = own.Line;
+                details = this.TooltipLines(info);
             }
             else
             {
@@ -124,7 +133,8 @@ namespace Poe2Accessibility.Services
                 Name = info.Name,
                 Role = role,
                 Text = text,
-                Value = value,
+                Value = socket.Length > 0 ? socket : value,
+                Socket = socket,
                 Position = position,
                 IsVisible = this.elements.IsVisible(info),
                 Context = role == UiRole.GridCell ? Announcements.InContext(this.PanelTitle(info), this.GridTab(info)) : this.PanelTitle(info),

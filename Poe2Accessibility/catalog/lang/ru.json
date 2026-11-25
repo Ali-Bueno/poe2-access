@@ -1297,6 +1297,8 @@
  "skills": "умения",
  "slider": "ползунок",
  "small node": "малый узел",
+ "socket {0} of {1}: {2}": "гнездо {0} из {1}: {2}",
+ "socket: {0}": "гнездо: {0}",
  "some": "часть",
  "some effects by their name, so they stay silent": "некоторые эффекты по названию, поэтому они не прозвучат",
  "some of the game's data, so some readings may be wrong": "часть данных игры, поэтому некоторые показания могут быть неверными",

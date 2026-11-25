@@ -1297,6 +1297,8 @@
  "skills": "habilidades",
  "slider": "controle deslizante",
  "small node": "nó pequeno",
+ "socket {0} of {1}: {2}": "engaste {0} de {1}: {2}",
+ "socket: {0}": "engaste: {0}",
  "some": "parte",
  "some effects by their name, so they stay silent": "alguns efeitos pelo nome, então eles não vão soar",
  "some of the game's data, so some readings may be wrong": "parte dos dados do jogo, por isso algumas leituras podem estar erradas",

@@ -172,6 +172,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The focused control's place in its list as last said ("3 de 10").</summary>
         private string lastRow = string.Empty;
+
+        /// <summary>The socket the last focus was on (<see cref="AccessibleUiNode.Socket"/>).</summary>
+        private string lastSocket = string.Empty;
+
+        /// <summary>When the focused control was last said whole, as the cursor came to it (Environment.TickCount64).</summary>
+        private long pieceSaidAt = long.MinValue / 2;
+
         private bool lastExpanded;
 
         /// <summary>The panel whose notes were said with the focus last (<see cref="AccessibleUiNode.PanelNotes"/>).</summary>

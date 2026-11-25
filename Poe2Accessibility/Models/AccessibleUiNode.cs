@@ -120,6 +120,9 @@ namespace Poe2Accessibility.Models
         /// <summary>An item's tooltip, shown for the first time, may lack lines the game is still adding: not said until it holds still.</summary>
         public bool TooltipFilling { get; init; }
 
+        /// <summary>The socket of the item the cursor is on ("engarce 2 de 2: vacío"), in <see cref="Value"/> too; empty elsewhere.</summary>
+        public string Socket { get; init; } = string.Empty;
+
         /// <summary>A grid cell with no item on it.</summary>
         public bool IsEmptyCell { get; init; }
 

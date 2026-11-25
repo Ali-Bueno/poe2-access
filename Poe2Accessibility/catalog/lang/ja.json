@@ -1297,6 +1297,8 @@
  "skills": "スキル",
  "slider": "スライダー",
  "small node": "小ノード",
+ "socket {0} of {1}: {2}": "ソケット、{1}個中{0}個目: {2}",
+ "socket: {0}": "ソケット: {0}",
  "some": "一部",
  "some effects by their name, so they stay silent": "一部の効果の名前。それらの音は鳴りません",
  "some of the game's data, so some readings may be wrong": "ゲームのデータの一部。読み上げの一部が誤っている可能性があります",

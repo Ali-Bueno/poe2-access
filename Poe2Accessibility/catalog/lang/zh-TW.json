@@ -1297,6 +1297,8 @@
  "skills": "技能",
  "slider": "滑桿",
  "small node": "小型天賦",
+ "socket {0} of {1}: {2}": "插槽，第 {0} 個，共 {1} 個：{2}",
+ "socket: {0}": "插槽：{0}",
  "some": "部分",
  "some effects by their name, so they stay silent": "部分效果的名稱，因此它們不會發聲",
  "some of the game's data, so some readings may be wrong": "部分遊戲資料，因此部分讀取內容可能有誤",

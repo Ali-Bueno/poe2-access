@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Numerics;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -30,6 +31,8 @@ namespace Poe2Accessibility.Tests
             (nameof(TwoAlikeRunesShowTheirSum), TwoAlikeRunesShowTheirSum),
             (nameof(AModifiersLineEqualToARunesIsNotTaken), AModifiersLineEqualToARunesIsNotTaken),
             (nameof(TheSocketsAreSaidWithWhatFillsThem), TheSocketsAreSaidWithWhatFillsThem),
+            (nameof(TheCursorFrameTellsItsSocket), TheCursorFrameTellsItsSocket),
+            (nameof(TheSocketUnderTheCursorIsSaid), TheSocketUnderTheCursorIsSaid),
         };
 
         private static (ModStatCatalog Stats, ModTextCatalog Texts)? Shipped() =>
@@ -104,6 +107,38 @@ namespace Poe2Accessibility.Tests
             }
 
             Equal("1 socket: empty", Announcements.Sockets(new string?[] { null }, Array.Empty<string>()), "in English");
+        }
+
+        private static void TheCursorFrameTellsItsSocket()
+        {
+            // As traced live on 2026-11-24: gloves in the bag with one socket over the four cells, the frame's cell size 80.
+            var (cell, socket) = (new Vector2(80, 80), new Vector2(64, 64));
+            var one = new[] { new Vector2(2189, 1298) };
+            Equal(0, SocketAim.Socket(new Vector2(2188.8f, 1297.8f), cell, one, socket), "the frame on the piece's only socket");
+            Equal(-1, SocketAim.Socket(new Vector2(2229, 1258), cell, one, socket), "the frame on a cell of the piece, off its socket");
+
+            var two = new[] { new Vector2(40, 120), new Vector2(120, 120) };
+            Equal(1, SocketAim.Socket(new Vector2(120, 120), cell, two, socket), "the second of two");
+            Equal(-1, SocketAim.Socket(new Vector2(120, 40), cell, two, socket), "the row over the sockets");
+            Equal(-1, SocketAim.Socket(new Vector2(120, 120), new Vector2(2560, 1600), two, socket), "a layer as large as the screen is no frame");
+            Equal(-1, SocketAim.Socket(new Vector2(120, 120), cell, two, Vector2.Zero), "sockets not laid out");
+            Equal(true, SocketAim.IsSocketable(IronRune), "a rune goes into a socket");
+            Equal(false, SocketAim.IsSocketable("Metadata/Items/Currency/CurrencyAddEquipmentSocket"), "a currency does not");
+        }
+
+        private static void TheSocketUnderTheCursorIsSaid()
+        {
+            Localization.Set("es", new());
+            try
+            {
+                Equal("engarce 1 de 2: Runa de hierro", Announcements.SocketAt(0, 2, "Runa de hierro"), "a filled one of two");
+                Equal("engarce 2 de 2: vacío", Announcements.SocketAt(1, 2, null), "an empty one of two");
+                Equal("engarce: vacío", Announcements.SocketAt(0, 1, null), "the only one");
+            }
+            finally
+            {
+                Localization.Set("en", new());
+            }
         }
     }
 }

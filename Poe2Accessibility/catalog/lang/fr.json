@@ -1297,6 +1297,8 @@
  "skills": "compétences",
  "slider": "curseur",
  "small node": "petit nœud",
+ "socket {0} of {1}: {2}": "châsse {0} sur {1} : {2}",
+ "socket: {0}": "châsse : {0}",
  "some": "une partie",
  "some effects by their name, so they stay silent": "certains effets par leur nom, ils resteront donc silencieux",
  "some of the game's data, so some readings may be wrong": "une partie des données du jeu, certaines lectures peuvent donc être fausses",

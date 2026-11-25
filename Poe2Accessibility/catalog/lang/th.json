@@ -1297,6 +1297,8 @@
  "skills": "สกิล",
  "slider": "แถบเลื่อน",
  "small node": "โหนดเล็ก",
+ "socket {0} of {1}: {2}": "ช่อง {0} จาก {1}: {2}",
+ "socket: {0}": "ช่อง: {0}",
  "some": "บางส่วน",
  "some effects by their name, so they stay silent": "เอฟเฟกต์บางอย่างตามชื่อ จึงจะไม่มีเสียง",
  "some of the game's data, so some readings may be wrong": "ข้อมูลบางส่วนของเกม ดังนั้นบางค่าที่อ่านอาจผิด",

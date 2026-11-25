@@ -1297,6 +1297,8 @@
  "skills": "스킬",
  "slider": "슬라이더",
  "small node": "작은 노드",
+ "socket {0} of {1}: {2}": "홈 {1}개 중 {0}번째: {2}",
+ "socket: {0}": "홈: {0}",
  "some": "일부",
  "some effects by their name, so they stay silent": "일부 효과의 이름, 해당 소리가 나지 않습니다",
  "some of the game's data, so some readings may be wrong": "게임 데이터의 일부. 일부 정보가 틀릴 수 있습니다",
