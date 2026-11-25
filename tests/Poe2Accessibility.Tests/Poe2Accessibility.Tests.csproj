@@ -267,6 +267,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PositionedGridSearch.cs" Link="Plugin\PositionedGridSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossSignals.cs" Link="Plugin\BossSignals.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlaces.cs" Link="Plugin\BossPlaces.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\ClonePaths.cs" Link="Plugin\BossPlaces.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\SafeSpotGuide.cs" Link="Plugin\BossPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\RefugeEnd.cs" Link="Plugin\RefugeEnd.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossPlayerBuffs.cs" Link="Plugin\BossPlayerBuffs.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />

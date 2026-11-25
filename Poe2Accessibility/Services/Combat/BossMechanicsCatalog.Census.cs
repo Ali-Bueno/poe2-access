@@ -50,6 +50,8 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> elements = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, List<BossPlaceRule>> places = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, Dictionary<string, (string Name, string Description)>> texts = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, (string Stem, ClonePathRole Role)> clonePaths = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IReadOnlyList<string>> areaSkills = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, FloodRule> floods = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>How many place rules the catalog holds, for the log.</summary>
@@ -114,6 +116,12 @@ namespace Poe2Accessibility.Services
         /// <summary>What entities of this path are in a boss's arena; empty for most.</summary>
         public IReadOnlyList<BossPlaceRule> PlaceRules(string path) =>
             this.places.TryGetValue(path, out var rules) ? rules : Array.Empty<BossPlaceRule>();
+
+        /// <summary>A marker of the way a boss's clones walk; null for any other entity.</summary>
+        public (string Stem, ClonePathRole Role)? ClonePath(string path) => this.clonePaths.TryGetValue(path, out var marker) ? marker : null;
+
+        /// <summary>The area skills (GrantedEffects ids) of a boss whose fight has clones; empty for any other.</summary>
+        public IReadOnlyList<string> AreaSkills(string boss) => this.areaSkills.TryGetValue(boss, out var skills) ? skills : Array.Empty<string>();
 
         /// <summary>A buff's name and description as the game writes them, in the language or else in English; null when the catalog has neither.</summary>
         public (string Name, string Description)? BuffText(string buff, string language)
@@ -192,6 +200,14 @@ namespace Poe2Accessibility.Services
                     return true;
                 case "clone" when c.Length > 3:
                     this.AddPlace(c[2], new BossPlaceRule(BossPlaceKind.Clone, c[1], c[3]));
+                    return true;
+                case "clonepath":
+                    this.clonePaths[c[2]] = (c[2], ClonePathRole.Way);
+                    this.clonePaths[c[2] + ClonePaths.StartSuffix] = (c[2], ClonePathRole.Start);
+                    this.clonePaths[c[2] + ClonePaths.EndSuffix] = (c[2], ClonePathRole.End);
+                    return true;
+                case "areas":
+                    this.areaSkills[c[1]] = c[2].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     return true;
                 case "cover":
                     this.AddPlace(c[2], new BossPlaceRule(BossPlaceKind.Cover, c[1], null));

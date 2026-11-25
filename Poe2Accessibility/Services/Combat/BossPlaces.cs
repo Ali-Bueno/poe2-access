@@ -8,7 +8,11 @@ namespace Poe2Accessibility.Services
     /// <summary>One entity of a boss's arena that is a place of the fight this poll.</summary>
     /// <param name="Active">A refuge or clone: its state is set. A cover: it stands. A thing to use or break: it can be targeted.</param>
     /// <param name="Boss">Where the boss whose place it is stands (world).</param>
-    public readonly record struct BossPlaceSight(uint Id, BossPlaceKind Kind, string Path, string Name, Vector2 At, float Radius, bool Active, Vector2 Boss);
+    public readonly record struct BossPlaceSight(uint Id, BossPlaceKind Kind, string Path, string Name, Vector2 At, float Radius, bool Active, Vector2 Boss)
+    {
+        /// <summary>The boss whose place it is (its path), empty when not told.</summary>
+        public string Monster { get; init; } = string.Empty;
+    }
 
     /// <summary>A place worth a line: what it is, its name when it has one, and where it is.</summary>
     public readonly record struct BossPlaceNews(BossPlaceKind Kind, string Name, Vector2 To)

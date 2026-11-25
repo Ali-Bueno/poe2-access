@@ -128,6 +128,19 @@ namespace Poe2Accessibility
             return heartbeat ? $"{what}: {T("follow the heartbeat", "sigue el latido")}, {way}" : $"{what}, {way}";
         }
 
+        /// <summary>The true clone of a fight and the way to where it stops: "Safe spot: follow the heartbeat, up, 5 steps"; <paramref name="safe"/> when the files show the blow's hole is there.</summary>
+        public static string BossClone(bool safe, int octant, int steps, bool heartbeat)
+        {
+            var what = safe ? T("Safe spot", "Zona segura") : T("The true one", "El verdadero");
+            return heartbeat ? $"{what}: {T("follow the heartbeat", "sigue el latido")}, {BossCloneWay(octant, steps)}" : $"{what}, {BossCloneWay(octant, steps)}";
+        }
+
+        /// <summary>The way left to the true clone: "up, 3 steps".</summary>
+        public static string BossCloneWay(int octant, int steps) => $"{Way(octant)}, {Steps(steps)}";
+
+        /// <summary>The player stands in the hole of the blow.</summary>
+        public static string BossCloneReached => T("Inside, stay", "Dentro, quédate");
+
         /// <summary>The arena's flood starts down the hall, from where its front is: "The lava is flowing, up".</summary>
         public static string BossFloodFlows(int octant) => T($"The lava is flowing, {Way(octant)}", $"La lava avanza, {Way(octant)}");
 

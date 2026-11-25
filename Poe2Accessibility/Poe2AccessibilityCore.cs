@@ -363,7 +363,7 @@ namespace Poe2Accessibility
                     Hiding = () => this.bosses?.Mechanics?.LeadTo,
                     LeadsToRefuge = () => this.bosses?.Mechanics?.LeadsToRefuge ?? false,
                 };
-                this.arenaLog = new BossArenaLog(this.log) { Fighting = () => this.bosses?.Mechanics?.Fighting };
+                this.arenaLog = new BossArenaLog(this.log) { Fighting = () => this.bosses?.Mechanics?.Fighting, PlaceOf = entity => this.bosses?.Mechanics?.Positions.Of(entity) };
                 var effectAreas = EffectAreas.Load(Path.Join(this.DllDirectory, "catalog", EffectAreas.File));
                 this.log.Info($"Boss effects: {effectAreas.Count} with shapes from the game files");
                 this.bossEffects = new BossEffectWatch(this.output, effectAreas, this.log)

@@ -286,6 +286,7 @@
 | Endgame data from the game files | done (code) | `endgame` step → catalog/endgame.json; docs/research/endgame.md |
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
+| Yama's frozen time: the safe clone | done (unit tests; not heard) | the beat and the line lead to where the marked clone stops, with steps and "Dentro, quédate" ([Yama](docs/research/boss-mechanics.md#yama)); whether the undrawn path markers have a place: the log's `Boss clone:` lines |
 | Boss fight turns (vanish/back, invulnerable+adds, phase/form, enrage) | done (unit) | `BossMechanicsWatch` + `BossPhaseTracker`, catalog/boss-mechanics.txt; docs/research/boss-mechanics.md; a boss back at full life after the player's death starts over (`BossLifeSteps.FightRestarted`, unit); a boss that hides to be found (Balbala's fog) is said with its direction and the heartbeat leads to it ([§11](docs/research/boss-mechanics.md#11-hide-and-seek-balbala-2026-11-11); live 2026-11-12, the user found her three times in 6-7 s) |
 | Way out of a boss's danger area | done (unit) | `BossCounterplay`: "¡Sal!", "¡Al centro!", "¡Detrás!", "¡Muévete!", stick way, at the wind-up |
 | Boss mechanic lines through the fight mute; movement rules from buff texts | done (unit) | 41 line groups, 10 languages; 15 stop/keep-moving buffs |

@@ -279,7 +279,7 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | The Prisoner | use the ballista to stop his regeneration (50 %, 20 %) | not looked up | todo |
 | Diamora | waves from opposite sides; her gaze sweeps half the ring at 65 % and 35 %; 5 looks petrify | [Diamora](#diamora) | waves done (unit tests); gaze todo |
 | Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) (LIKELY) | todo |
-| Yama | at 75 % clones on the pillars: run to the one that does not react; at 65 % to the clone with the circle | `chosen_one` clone state, not read | todo |
+| Yama | at 75 % clones on the pillars: run to the one that does not react; at 65 % to the clone with the circle | [Yama](#yama): `chosen_one`, the clone's way, the blow's hole | the circle done (unit tests); pillars todo |
 | Tavakai | which totem the player stands nearest decides his power; the room burns | state `room_burning_progress` 0..100; `KaruiCaptainBossJadeWall` (Life); `GodTotem` state `current_phase` | todo |
 | Siora (Ogham interlude) | at 90 % the arena goes dark and hurts: run to the glowing monolith | not looked up | todo |
 | Zarokh (Sekhemas) | at 60 % and 30 %: enter the centre, collect every hourglass before the clock turns | state `timetrialprogress`; entities `TimeTrialCollectable`, `Hourglass`, `ArenaCentreButton` (`readytoactivate`); player buff `sanctum_chronomancer` | todo |
@@ -586,7 +586,7 @@ the play log saw.
 | AR | an `arena\|` state of the boss rising from 0 | "La arena arde / se derrumba / cambia", "Tormenta de arena", "El jefe se retira"; the same state no sooner than 3 s | `BossSignalTracker` |
 | MG, EL | a `progress\|` state moving; an `element\|` state value | "Progreso 3" (every 3 s at most; by quarters where a top is written, none on 0.5.5f); "Elemento: fuego", "Cambia de elemento" | `BossSignalTracker` |
 | SH | a `refuge\|` entity with its state set; a `shelter\|` buff on the player | "Refugio junto a Asala: sigue el latido, arriba", the heartbeat until "A cubierto"; "Fuera del refugio" while it is still up | pure `BossPlaces`, `BossPlayerBuffs` |
-| CL | a `clone\|` entity with its state set | "El verdadero: sigue el latido, …", the heartbeat while it is | `BossPlaces` |
+| CL | a `clone\|` entity with its state set | "Zona segura: sigue el latido, …", the way again, "Dentro, quédate" ([Yama](#yama)) | `BossPlaces`, `ClonePaths`, `SafeSpotGuide` |
 | CV | a `cover\|` entity | "Cobertura: sigue el latido, …", to a body's width behind it as seen from the boss, until stood there once | `BossPlaces.Target` |
 | US, OB | a `use\|` / `target\|` entity that has a name and can be targeted | "Incensario, se puede romper, izquierda", once a fight per name, **not urgent and never led to** | `BossPlaces` |
 | GZ, ST | a `zone\|` buff beginning on the player; a `stack\|` buff's count held 400 ms | the buff's name and description from the `text\|` lines, the description once a fight (only the description when the harmful buffs' news already names it); "Arcada explosiva, 3" | `BossPlayerBuffs` |
@@ -764,6 +764,26 @@ player stands in one that strikes 0.7 s or more ahead: the way out in one word, 
 nearest ground walked to straight that no shape holds; a wave's front sounds as the flood's hiss, turn about from each side,
 faster as it nears; "Fuera de su alcance" once out. Setting: the flood warnings'. This is every boss's AOSHAPE class (§17), not
 Diamora's alone. Dev command `visuals` lists the visuals by model.
+
+## Yama
+
+The frozen time (`YamaTimestopFutureKill`, at 26 to 36 % of the boss's life in the play log of 2026-11-25, 0.5.5f): the game's clones of
+the player run from the arena's middle, one each half second; the one whose state `chosen_one` is set is the safe one (its
+script's function is `correcto`). Where it stops, `TimeFreezeSlamChargeUp.ao` is drawn, and 2.3 to 3.2 s later
+`GSYamaTimeFreezeSlam`, a donut of 200 cells with a hole of 21 (228 world units), kills whoever is outside the hole. The player
+cannot move until about when it stops. Nothing else about the mechanic needs reading.
+
+What was wrong (five deaths in the log): the line and the beat named where the clone was as it was marked, about a second and a
+half into its run, and its way turns (marked at 8934,6104, "izquierda"; it stopped at 9125,6560), so the player set off the
+wrong way; the line was said once, its arrival never, and an effect's way out could take the beat.
+
+Now: `clonepath|boss|stem` (the objects `YamaFutureClonePathStart`, `…Path`, `…PathEnd`, laid with running ids before the run)
+and `areas|boss|skills` in the catalog; pure `ClonePaths` takes the laid way that fits where the clone has been, whose end is the
+place (until one fits: where the clone is); pure `SafeSpotGuide` says "Zona segura: sigue el latido, arriba, 5 pasos", the way
+again once the place is settled and whenever it lies another way, and "Dentro, quédate" with the whole body in the hole (the
+skill's own area); the beat goes there before any effect or wall. All of it `Urge`d, polled each 150 ms, logged as `Boss clone:`.
+Not verified live: whether the path objects, which the game does not draw, hold a cell in `Positioned` (`EntityPlaces`); the
+log's "no way fits of N" tells (N = 0: they hold none, and the guide follows the clone until it stops).
 
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 
