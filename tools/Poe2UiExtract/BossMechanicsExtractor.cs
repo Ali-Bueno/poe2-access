@@ -39,7 +39,8 @@ internal static class BossMechanicsExtractor
         "# progress|monster|state[|maximum]   element|monster|state=value|element (fire, cold, lightning, chaos, physical), or element|monster|state|- when no handler names it",
         "# stack|buff|monster (its count on the player)   grab|monster|skill that holds the player   grabbed|monster|buff on the held player   zone|monster|buff of an area",
         "# unavoidable|monster|skill (cannot be dodged, evaded or blocked)   text|language|buff|name|description (the census's buffs' own words)",
-        "# child|skill|skill it sets off (GeometryTrigger: the area its hits cover, for a skill that draws none of its own)",
+        "# child|skill|skill it sets off[|ms from its clip's start] (GeometryTrigger: the area its hits cover, for a skill that draws none of its own; or the",
+        "#   skill an event of its clip fires: its effect art shares the clip's, the ms when a named event of the clip names it)",
         "# flood|monster|arena object|clip ms|behind:half width;… (its tongue)|x:y;… (its front each second)|object@x:y;… (anchors), offsets in the room's frame (world units)",
     };
 
@@ -145,6 +146,8 @@ internal static class BossMechanicsExtractor
         var census = BossCensus.Build(index, monsters, skills, kinds, stats, buffs, c, buffColumns, TextOf, files);
         var written = output.ToHashSet(StringComparer.Ordinal);
         output.AddRange((census?.Lines ?? Array.Empty<string>()).Where(written.Add));
+        var bossRows = Enumerable.Range(0, monsters.RowCount).Where(row => monsters.Byte(row, c.BossBar) == 1).ToList();
+        output.AddRange(BossEventChildLines.Of(index, monsters, skills, bossRows, census?.Lines ?? Array.Empty<string>()).Where(written.Add));
         var (buffLines, rules) = Buffs(buffs, stats, c, buffColumns);
         output.AddRange(buffLines);
         var voiced = Lines(index, lines, c, played);

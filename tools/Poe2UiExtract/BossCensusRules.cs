@@ -69,9 +69,43 @@ internal static class BossCensusRules
     /// <summary>Whether an add is an invisible helper: by its name or a helper's word in its path, or a skill's move-daemon.</summary>
     public static bool IsHelper(BossAdd add) => add.Daemon || HelperNames.Contains(add.Name) || HelperWord.IsMatch(add.Id);
 
-    /// <summary>D: a helper carrying an area skill attacks for the boss; its own skills follow.</summary>
-    private static IEnumerable<string> Daemons(BossFight fight) =>
-        fight.Adds.Where(add => !add.BossBar && IsHelper(add) && add.Skills.Any(skill => skill.Area)).Select(add => $"daemon|{fight.Boss}|{add.Id}|{string.Join(',', add.SkillIds)}");
+    /// <summary>D: a helper carrying an area skill attacks for the boss; its own skills follow. Then the helpers struck around by the boss's skills (<see cref="StruckAround"/>).</summary>
+    private static IEnumerable<string> Daemons(BossFight fight)
+    {
+        var own = fight.Adds.Where(add => !add.BossBar && IsHelper(add) && add.Skills.Any(skill => skill.Area)).ToList();
+        var armed = own.Select(add => add.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return own.Select(add => $"daemon|{fight.Boss}|{add.Id}|{string.Join(',', add.SkillIds)}")
+            .Concat(StruckAround(fight).Where(helper => !armed.Contains(helper.Entity)).Select(helper => $"daemon|{fight.Boss}|{helper.Entity}|{string.Join(',', helper.Skills)}"));
+    }
+
+    /// <summary>
+    ///     D by name: an object or move-daemon a boss skill brings, and the fight's area skills named after that skill
+    ///     (<see cref="Poe2Accessibility.Services.SkillIds.Stem"/>: SOAzmerianViperWhirlingSlash spawns WhirlingSlash,
+    ///     GSAzmerianViperWhirlingSlash and …Appear strike around it; docs/research/boss-mechanics.md, Lythara).
+    /// </summary>
+    internal static IEnumerable<(string Entity, IReadOnlyList<string> Skills)> StruckAround(BossFight fight)
+    {
+        foreach (var bringer in fight.Skills.Where(skill => skill.Objects.Count + skill.Daemons.Count > 0))
+        {
+            if (Poe2Accessibility.Services.SkillIds.Stem(bringer.Id) is not { } stem)
+            {
+                continue;
+            }
+
+            var hits = fight.Skills.Where(skill => skill.Area && skill.Id != bringer.Id && !skill.Kind.StartsWith("geometry_trigger", StringComparison.Ordinal) &&
+                                                  Poe2Accessibility.Services.SkillIds.Stem(skill.Id) is { } other && other.StartsWith(stem, StringComparison.Ordinal))
+                .Select(skill => skill.Id).Distinct(StringComparer.Ordinal).ToList();
+            if (hits.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var entity in bringer.Objects.Concat(bringer.Daemons).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                yield return (entity, hits);
+            }
+        }
+    }
 
     /// <summary>GZ, SH and EM: an area putting a buff on whoever stands in it (a shelter when the buff shields), and adds the boss consumes.</summary>
     private static IEnumerable<string> Geals(BossFight fight)

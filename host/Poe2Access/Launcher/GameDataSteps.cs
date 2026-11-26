@@ -33,7 +33,7 @@ internal static class GameDataSteps
         new Step("action types", 1, "action-types.txt", "action-types", true),
         new Step("telegraph skills", 1, "telegraph-skills.txt", "telegraph-skills", true),
         new Step("telegraph effects", 2, "telegraph-effects.txt", "telegraph-effects", true),
-        new Step("boss mechanics", 10, "boss-mechanics.txt", "boss-mechanics", true), // 10: the ways clones walk and the area skills beside them (clonepath|, areas|); 9: the skills a boss skill sets off (child|), adds with an area of 60 cells or more as the boss's pieces; 8: a boss's pieces (part|: Doryani's Triumph's legs); 7: an arena's flood (Mektul's lava); 6: the census's classes and their buffs' words
+        new Step("boss mechanics", 11, "boss-mechanics.txt", "boss-mechanics", true), // 11: the skills a clip fires by an event (child|…|ms), the helpers a boss's skills strike around (daemon|: Lythara's Whirling Slash); 10: the ways clones walk and the area skills beside them (clonepath|, areas|); 9: the skills a boss skill sets off (child|), adds with an area of 60 cells or more as the boss's pieces; 8: a boss's pieces (part|: Doryani's Triumph's legs); 7: an arena's flood (Mektul's lava); 6: the census's classes and their buffs' words
         new Step("buff names", 2, "buff-names.json", "buff-names", true), // 2: without the names the game never shows ("[DNT…")
         new Step("passive overrides", 1, "passive-overrides.txt", "passive-overrides", true),
         new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),

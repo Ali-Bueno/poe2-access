@@ -38,6 +38,7 @@ namespace Poe2Accessibility.Services
 
         private readonly HashSet<string> daemons = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, List<string>> children = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> childMs = new(StringComparer.Ordinal);
         private readonly HashSet<string> daemonMonsters = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> daemonBosses = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, IReadOnlyList<string>> daemonSkills = new(StringComparer.OrdinalIgnoreCase);
@@ -103,8 +104,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A skill (GrantedEffects id) the files mark as impossible to dodge-roll, evade or block.</summary>
         public bool IsUnavoidable(string skill) => this.unavoidable.Contains(skill);
 
-        /// <summary>The skills a boss skill sets off (<c>child|skill|skill</c>, its GeometryTrigger's): their areas are its hits'.</summary>
+        /// <summary>The skills a boss skill sets off (<c>child|skill|skill</c>: its GeometryTrigger's, or its clip's by an event): their areas are its hits'.</summary>
         public IReadOnlyList<string> ChildrenOf(string skill) => this.children.TryGetValue(skill, out var list) ? list : Array.Empty<string>();
+
+        /// <summary>When a named event of the skill's clip fires the child (ms from the clip's start, <c>child|skill|child|ms</c>); null when the files do not say.</summary>
+        public int? ChildFireMs(string skill, string child) => this.childMs.TryGetValue($"{skill}|{child}", out var ms) ? ms : null;
 
         /// <summary>Whether a state of the boss counts a progress, and its top value when the files give one.</summary>
         public (bool Counts, int? Max) Progress(string boss, string state) =>
@@ -196,6 +200,11 @@ namespace Poe2Accessibility.Services
                     }
 
                     list.Add(c[2]);
+                    if (c.Length > 3 && int.TryParse(c[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out var fire) && fire >= 0)
+                    {
+                        this.childMs[$"{c[1]}|{c[2]}"] = fire;
+                    }
+
                     return true;
                 case "progress":
                     this.progress[$"{c[1]}|{c[2]}"] = c.Length > 3 && int.TryParse(c[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out var max) && max > 0 ? max : null;

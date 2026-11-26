@@ -874,6 +874,39 @@ sigue atacando: no te pares" (`BossGoneStriking`); a rock that lights then inter
 warned one by one: the helper is warned by its distance only (§17's audit, HELPER), and `Boss effect drawn` logs each
 `.ao` only now and then, so where each bolt lands is not known from this log.
 
+## Lythara
+
+Lythara, the Wayward Spear (`ViperNapuatzi/ViperNapuatziAzmeri`, Kriar Village; Morwyn and the Queen in the Mists share her
+skills). A blind player met her on 2026-11-26: the dodge cue sounded on her wind-ups and no way out was ever said, because her
+big attacks are melee skills with no area of their own whose areas are children fired by clip events (§17 EVENT). From the
+files (0.5.5), the play log of that fight confirming only:
+
+| Parent (clip) | Child | Evidence | Confidence |
+|---|---|---|---|
+| `MAASViperNapuatziSerpentStrike` (`spear_serpent_strike_01`) | `GAViperNapuatziSnakeWave`, rectangle 100 × 16 cells from her toward her target, dodge-roll avoidable, cannot be blocked, `base_multiplier` 15000 | the clip's client art is all in `…/ViperNapuatzi/{ao,pet,epk}/serpent_strike/` (`windup_01/02.ao` at 0 s, `smoke_buildup.pet`, `weapon_glow.epk`) and plays `unblockable_marker/epk/unblockable.epk` at 0.22 s; the wave's drawn effect (GeometryAttack.Animation → MiscAnimated `ViperNapuatziSerpentStrikeSnake`) is `…/ao/serpent_strike/serpentstrike_main.ao`; no other clip of hers plays that folder. Timed by the clip's `contact`, 2221 ms. Log: `serpentstrike_main.ao` drawn ~2.2 s after each strike began | LIKELY (no file names the firing) |
+| `MAASViperNapuatziCombo` (`spear_combo_01`, Flurry) | `GAViperComboEndSlam`, circle 10 | the clip's only named server event `combo_slam` at 2003 ms (with a screen shake at 2037 ms); its art in `…/spear_combo/`, the slam's `…/ao/spear_combo/spear_impact.ao`. Log: `spear_impact.ao` ~2.1 s after a Flurry began. **Not Combo2**: `spear_cyclone_start_01` has only `pick_end` (2481 ms); the cyclone's damage is its own melee shapes (`.ao` Melee: 200 × 65 rectangles, then a circle of 220 world units at 0.86-0.94 of 2.8 s), and its end clips carry footsteps only | LIKELY |
+| `EASViperNapuatziCrissCrossCascade`, `…CommandSoliders` (`caster_rain_02`) | `GTViperNapuatziFireRain` (5 marks, 1.35 s apart) at 3100 ms, `GTViperNapuatziChaosRain` at 8500 ms | named events `fire_rain`, `chaos_rain` (and `extra_*_rain` each second) in the clip; the rains' markers in `…/ao/fire_chaos_rain/`, the clip's `raindance*.ao` beside them | LIKELY |
+| Whirling Slash (`SOAzmerianViperWhirlingSlash` → object `ViperNapuatzi/Objects/WhirlingSlash`) | `GSAzmerianViperWhirlingSlashAppear` and `GSAzmerianViperWhirlingSlash`, circles of 27 cells around it | the object's `.ot` animates `Act_Interlude/AzmerianViper/whirlingSlashLightning.ao`, the Appear skill draws `…/AzmerianViper/whirlingSlashDetonation.ao` beside it; both skills have no clip and are named after the spawning skill (the plugin's `Stem` rule). Log: the detonation drawn at the object's own place as it appears; `make_walk=1` then walks it | LIKELY |
+
+**The rule (extractor `BossEventChildren`, pure, tests in `BossCensusTests`):** per boss variety, its skills a clip plays (`.act`)
+and its skills no clip plays that the telegraph tables draw an effect for (a trigger's hits stand for the trigger). A child is
+tied to the one clip whose own art (the `.ao` client section's effect files) lies in the child's attack family (the folder above
+the type folder `ao`/`pet`/`epk`/`trl` plus the attack folder below it); when several clips share it, to the one whose named
+server event's words (two or more, not `contact`, an impact, `pick_end`) are all in the child's id, at that event's time. A flat
+effect folder alone ties nothing (it held every attack of a monster: the first run tied 123 children, many wrong). On 0.5.5: 22
+links (the Executioner's mega slam, the Dredge Fiend's mortar, `EAAAoDP1_WingFlapCombo`'s wing flaps, the Karui captain's
+three unhinged slams, the Blood Priestess's gorilla slam, the Fire Beast's final slam, the Demon Claw's seed stab…).
+**Helpers struck around (census rule D, `StruckAround`):** an object or move-daemon a boss skill brings, with no area skill of its
+own, and the fight's area skills whose stem starts with the bringer's: `daemon|` lines, 61 more on 0.5.5 (Whirling Slash, her
+tornado, Balbala's clone runes, the Baron's icicles, Kulemak's mines, Jamanra's sword fence, the Crone's wave…).
+
+**Plugin:** `child|parent|child|ms` gives `ChildFireMs`; `BossWatch.Dodge` times the child's area by that event on the clip's clock
+(`AttackClock.MsToEvent`) and drops it once fired; without ms the parent's own blow times it. `BossCounterplay` already lays a
+rectangle from the boss toward her target, so the wave says the nearer side ("¡Derecha!"). The Whirling Slashes warn as the
+helpers do: the existing dodge cue from their side and "¡Sal!" when their circle holds the player (no new sound). Not heard in a
+fight. **Left:** her poison spray and gas (a projectile and a ground effect: the hazard watch), the Lightning Spear, and the
+melee shapes of the `.ao` Melee section as an area for melee skills (Combo2's cyclone), which would give every boss swing a word.
+
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 
 The owner, after Doryani: "haz una búsqueda exhaustiva del resto de jefes… sea jefe secundario, de campaña, endgame". Two
@@ -887,7 +920,7 @@ damaging skills of the 183 census fights, 2,727 miss at least one warning path. 
 | CHILD | 142 / 725 (224 skills of 89 fights with a known parent) | an area set off by the playing skill, never read: the word looked only at the playing skill's own area | the known parents: the census writes `child|skill|skill` from GeometryTrigger (122 lines, boss mechanics v9); a skill with no area of its own takes its widest child's (`AttackData.WidestOf`) |
 | LONG | 22 / 33 | timed 4 s or more, a cone or a line: one word at the wind-up | yes: the long blast takes any one-shape area aimed at its target (`BlastGuide.Guided`): the seconds left, the way out every 1.5 s (`BossCounterplay`), the countdown beep; Zalmarath's 5.8 s beam, Phya's 4.8 s cascade |
 | ADD | 42 / 127 | an add's attacks warned only if the server makes it rare | adds with an area of 60 cells or more are the boss's pieces (`part|`): the King in the Mists' effigy, Xesht's floor hand portals, Kulemak's pale elite |
-| EVENT | 159 / 739 | a child fired by a clip event the files do not tie to it | no: which event fires which child is in the `.ais` (not shipped); guessing by name risks wrong words |
+| EVENT | 159 / 739 | a child fired by a clip event the files do not tie to it | in part ([Lythara](#lythara)): a clip whose effect art shares the child's attack folder, or whose named event's words are all in the child's id, ties it (`child|…[|ms]`, boss mechanics v11): 22 links; the rest stays with the `.ais` |
 | UNTIMED | 135 / 627 | the cue at the wind-up only (`empty_action_*` clips without contact or impact) | in part: `impact` events (v6); the trigger's own delay and the effect files' shape times are next |
 | SEQUENCE | 80 / 151 | trigger count × delay ≥ 1 s | no: each landing point's marker (a ServerEffect `.ao` of role `marker`) would be warned where it lands; the reader's ServerEffect path has to be checked live first |
 | BEAM | 60 / 143 | lasers and beams | no: a ServerBeamEffect's two ends are not read (Doryani's blocker); where a `MD*LaserTarget` helper exists (Zalmarath, Menmek) the line boss → helper could be built from two read positions |
@@ -895,6 +928,6 @@ damaging skills of the 183 census fights, 2,727 miss at least one warning path. 
 | AOSHAPE | 21 / 38 | effect-driven shapes with times in `telegraph-effects.txt` | yes for those that strike 0.7 s or more ahead (`BossEffectWatch`, [Diamora](#diamora); unit tests) |
 | HELPER, GROUND, NOAREA | 22 / 38, 14 / 30, 19 / 37 | helpers warned by distance only; lasting ground alarmed only once inside; sized skills without an area line | no |
 
-Not knowable from the files alone: which clip event fires which child, phase thresholds (the `.ais`), an add's rarity (the
+Not knowable from the files alone: which clip event fires most children, phase thresholds (the `.ais`), an add's rarity (the
 server's), where trigger points land beyond count and spread, server-only objects that may never reach the client, a beam's
 ends. All of the done rows are unit tests only: none was heard in a fight.

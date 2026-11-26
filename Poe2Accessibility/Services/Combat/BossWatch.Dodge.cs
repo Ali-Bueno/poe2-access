@@ -86,9 +86,21 @@ namespace Poe2Accessibility.Services
             return news;
         }
 
-        /// <summary>A skill's danger area: its own, else the widest of the skills it sets off (the census's <c>child|</c> lines).</summary>
-        private AttackArea? AreaOfSkill(string skill) =>
-            this.attackData.Area(skill) ?? (this.Mechanics is { } mechanics ? this.attackData.WidestOf(mechanics.Catalog.ChildrenOf(skill)) : null);
+        /// <summary>
+        ///     A skill's danger area: its own, else the widest of the skills it sets off (the census's <c>child|</c> lines), with when
+        ///     its clip's event fires that one (ms from the clip's start) where the files say.
+        /// </summary>
+        private (AttackArea? Area, int? FireMs) AreaOfSkill(string skill)
+        {
+            if (this.attackData.Area(skill) is { } own)
+            {
+                return (own, null);
+            }
+
+            return this.Mechanics is { } mechanics && this.attackData.WidestChildOf(mechanics.Catalog.ChildrenOf(skill)) is { } child
+                ? (child.Area, mechanics.Catalog.ChildFireMs(skill, child.Skill))
+                : (null, null);
+        }
 
         /// <summary>
         ///     A long blast's circle around its boss: the circles its name's kin draw (<see cref="AttackData.BlastRadius"/>); a circle it
@@ -182,10 +194,18 @@ namespace Poe2Accessibility.Services
             var decision = DodgeGate.Decide(facts, LeadMs);
             if (this.DodgeWarnings)
             {
-                var skillArea = snapshot?.SkillId is { } skillId ? this.AreaOfSkill(skillId) : null;
+                var (skillArea, fireMs) = snapshot?.SkillId is { } skillId ? this.AreaOfSkill(skillId) : (null, null);
+                var areaIn = blowIn;
+                if (fireMs is { } fire)
+                {
+                    // The area is a child an event of the clip fires: timed by that event, and gone once it has fired.
+                    areaIn = AttackClock.MsToEvent(snapshot?.Clock, attack.StartedAt, now, fire);
+                    skillArea = areaIn is > 0 ? skillArea : null;
+                }
+
                 this.Mechanics?.Attack(id, attack.Unique, attack.StartedAt, decision, skillArea,
-                    monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, blowIn, now, snapshot?.SkillId);
-                this.Mechanics?.Blast(id, attack.Unique, attack.StartedAt, blowIn, snapshot?.SkillId is { } blastSkill ? this.BlastRadiusOf(blastSkill, skillArea) : null,
+                    monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, areaIn, now, snapshot?.SkillId);
+                this.Mechanics?.Blast(id, attack.Unique, attack.StartedAt, areaIn, snapshot?.SkillId is { } blastSkill ? this.BlastRadiusOf(blastSkill, skillArea) : null,
                     skillArea, monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, snapshot?.SkillId, now);
             }
 

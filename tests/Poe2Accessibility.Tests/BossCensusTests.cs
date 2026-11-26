@@ -18,6 +18,9 @@ namespace Poe2Accessibility.Tests
             (nameof(TheArenaIsTheRoomHoldingTheFightsObjects), TheArenaIsTheRoomHoldingTheFightsObjects),
             (nameof(ASkillFamilyIsItsFirstTwoWords), ASkillFamilyIsItsFirstTwoWords),
             (nameof(AHelperWithAnAreaSkillIsADaemon), AHelperWithAnAreaSkillIsADaemon),
+            (nameof(AnObjectStruckAroundByTheSkillsNamedAfterItsSpawnIsADaemon), AnObjectStruckAroundByTheSkillsNamedAfterItsSpawnIsADaemon),
+            (nameof(AClipFiresTheChildItsArtOrItsEventNames), AClipFiresTheChildItsArtOrItsEventNames),
+            (nameof(AClipsEffectsAndNamedEventsAreRead), AClipsEffectsAndNamedEventsAreRead),
             (nameof(AnAreaBuffShieldsOrMarksAZone), AnAreaBuffShieldsOrMarksAZone),
             (nameof(AnAddReachingBackToTheBossIsConsumed), AnAddReachingBackToTheBossIsConsumed),
             (nameof(ABuffsOwnWordsSayEmpoweredShelteredStackedOrHeld), ABuffsOwnWordsSayEmpoweredShelteredStackedOrHeld),
@@ -158,6 +161,113 @@ namespace Poe2Accessibility.Tests
             });
             Equal($"daemon|{Boss}|Metadata/Monsters/InvisibleFire/MDStorm|GSStormContact,MPSStormBolt;daemon|{Boss}|Metadata/Monsters/Test/Wave|GSStormContact",
                 string.Join(";", Lines(fight, "daemon")), "invisible or move-daemon helpers with an area skill, their skills listed; not a named add, not one without an area");
+        }
+
+        /// <summary>
+        ///     Lythara's Whirling Slash (0.5.5): SOAzmerianViperWhirlingSlash spawns the object, GSAzmerianViperWhirlingSlash and …Appear
+        ///     (circles of 27, no clip of their own) strike around it; the move-daemon's tornado likewise. A trigger, an armed
+        ///     helper and a skill of another name are left out.
+        /// </summary>
+        private static void AnObjectStruckAroundByTheSkillsNamedAfterItsSpawnIsADaemon()
+        {
+            const string Slash = "Metadata/Monsters/VaalMonsters/ViperNapuatzi/Objects/WhirlingSlash";
+            const string Tornado = "Metadata/Monsters/InvisibleFire/AzmerianViperTornado";
+            var spawn = new BossSkill("SOAzmerianViperWhirlingSlash", "spawn_object", false, 0, Array.Empty<BossGeal>(), new[] { Slash }, None, None, None, None, false);
+            var daemon = new BossSkill("MDAzmerianViperTornado", "move_daemon", false, 0, Array.Empty<BossGeal>(), None, new[] { Tornado }, None, None, None, false);
+            var trigger = new BossSkill("GTAzmerianViperWhirlingSlashRain", "geometry_trigger", true, 0, Array.Empty<BossGeal>(), None, None, None, None, None, false);
+            var fight = Fight(skills: new[]
+            {
+                spawn, daemon, trigger, Skill("GSAzmerianViperWhirlingSlash", area: true, length: 27), Skill("GSAzmerianViperWhirlingSlashAppear", area: true, length: 27),
+                Skill("GSAzmerianViperTornado", area: true, length: 10), Skill("GAViperNapuatziSnakeWave", area: true, length: 100),
+            });
+            Equal($"daemon|{Boss}|{Slash}|GSAzmerianViperWhirlingSlash,GSAzmerianViperWhirlingSlashAppear;daemon|{Boss}|{Tornado}|GSAzmerianViperTornado",
+                string.Join(";", Lines(fight, "daemon")), "the object and the daemon, each with the area skills named after the skill that brings it");
+            var armed = Fight(skills: new[] { daemon, Skill("GSAzmerianViperTornado", area: true) },
+                adds: new[] { Add(Tornado, "Invisible", new[] { Skill("GSTornadoOwn", area: true) }, daemon: true) });
+            Equal($"daemon|{Boss}|{Tornado}|GSTornadoOwn", string.Join(";", Lines(armed, "daemon")), "a helper with an area skill of its own keeps its own line");
+        }
+
+        /// <summary>
+        ///     Lythara's clips (vipernapuatziazmeri.ao, 0.5.5): spear_serpent_strike_01 plays …/ViperNapuatzi/ao/serpent_strike/windup_01.ao,
+        ///     the snake wave draws …/ao/serpent_strike/serpentstrike_main.ao; spear_combo_01's event combo_slam (2003 ms) names
+        ///     GAViperComboEndSlam, whose spear_combo art three clips share; caster_rain_02's fire_rain (3100 ms) names the rain a
+        ///     trigger scatters. A flat effect folder ties nothing.
+        /// </summary>
+        private static void AClipFiresTheChildItsArtOrItsEventNames()
+        {
+            const string Viper = "Metadata/Effects/Spells/monsters_effects/Act3_FOUR/ViperNapuatzi/";
+            var clips = new ClipEffects(new Dictionary<string, HashSet<string>>
+            {
+                ["spear_serpent_strike_01"] = new() { Viper + "ao/serpent_strike/windup_01.ao", Viper + "ao/spear_combo/ground_splash.ao" },
+                ["spear_combo_01"] = new() { Viper + "pet/spear_combo/combo_01/poison_spew.pet" },
+                ["spear_cyclone_start_01"] = new() { Viper + "ao/spear_combo/sweep.ao" },
+                ["caster_rain_02"] = new() { Viper + "ao/fire_chaos_rain/raindance.ao" },
+                ["flat_01"] = new() { "Metadata/Effects/Spells/monsters_effects/Flat/a.ao" },
+            }, new Dictionary<string, List<ClipEvent>>
+            {
+                ["spear_serpent_strike_01"] = new() { new ClipEvent("contact", 2221) },
+                ["spear_combo_01"] = new() { new ClipEvent("combo_slam", 2003) },
+                ["spear_cyclone_start_01"] = new() { new ClipEvent("pick_end", 2481) },
+                ["caster_rain_02"] = new() { new ClipEvent("fire_rain", 3100) },
+            });
+            var parents = new[]
+            {
+                new ClipSkill("MAASViperNapuatziSerpentStrike", new[] { "spear_serpent_strike_01" }), new ClipSkill("MAASViperNapuatziCombo", new[] { "spear_combo_01" }),
+                new ClipSkill("MAASViperNapuatziCombo2", new[] { "spear_cyclone_start_01" }), new ClipSkill("EASViperNapuatziCrissCrossCascade", new[] { "caster_rain_02" }),
+                new ClipSkill("FlatSlam", new[] { "flat_01" }),
+            };
+            var children = new[]
+            {
+                new ClipChild("GAViperNapuatziSnakeWave", new[] { Viper + "ao/serpent_strike/serpentstrike_main.ao" }, null),
+                new ClipChild("GAViperComboEndSlam", new[] { Viper + "ao/spear_combo/spear_impact.ao" }, null),
+                new ClipChild("GSViperNapuatziFireRain", new[] { Viper + "ao/fire_chaos_rain/fire_rain_marker.ao" }, "GTViperNapuatziFireRain"),
+                new ClipChild("GSFlatBlast", new[] { "Metadata/Effects/Spells/monsters_effects/Flat/b.ao" }, null),
+            };
+            var lines = BossEventChildren.Links(parents, children, clips).Select(BossEventChildren.Line).ToList();
+            Equal("child|MAASViperNapuatziSerpentStrike|GAViperNapuatziSnakeWave;child|MAASViperNapuatziCombo|GAViperComboEndSlam|2003;child|EASViperNapuatziCrissCrossCascade|GTViperNapuatziFireRain|3100",
+                string.Join(";", lines), "the one clip of the wave's art; the named event among three clips of the slam's; the trigger for its rain; nothing from a flat folder");
+            Equal(Viper.ToLowerInvariant() + "serpent_strike", BossEventChildren.Family(Viper + "pet/serpent_strike/smoke_buildup.pet"), "the type folder dropped, the attack folder kept");
+            Equal<string?>(null, BossEventChildren.Family(Viper + "ao/viperassembleaudio.ao"), "a file in no attack folder has no family");
+            Equal("combo,slam", string.Join(",", BossEventChildren.EventWords("combo_slam")), "an event's words");
+            Equal(0, BossEventChildren.EventWords("contact").Count + BossEventChildren.EventWords("phys_impact").Count, "a contact or an impact names no child");
+        }
+
+        /// <summary>An .ao's named server events and its client section's effect files, per clip, as Lythara's .ao writes them.</summary>
+        private static void AClipsEffectsAndNamedEventsAreRead()
+        {
+            const string Ao = """
+                version 3
+                extends "Metadata/Parent"
+
+                AnimationController
+                {
+                	metadata = "Art/rig.amd"
+                	animations = '[
+                		{ "name": "spear_combo_01", "events": [
+                			{ "type": "MoveEventType", "time": 0.0, "name": "move" },
+                			{ "type": "StandardEventType", "time": 2.0025999546051025, "name": "combo_slam", "position": [ -4.0, -126.0, 0.0 ] } ] }
+                	]'
+                }
+
+                client
+                {
+                	ParticleEffects
+                	{
+                		animations = '[ { "name": "spear_combo_01", "events": [
+                			{ "type": "ParticleEffectEventType", "time": 0.58, "filename": "Metadata/Effects/x/pet/spear_combo/poison_spew.pet" },
+                			{ "type": "SoundEventType", "time": 0.1, "filename": "Audio/Sound Effects/Foley/Footstep" } ] } ]'
+                	}
+                	AttachedAnimatedObject
+                	{
+                		animations = '[ { "name": "spear_combo_01", "events": [
+                			{ "type": "AnimatedObjectEventType", "time": 0.26, "ao_type": "Metadata/Effects/x/ao/spear_combo/ground_splash.ao" } ] } ]'
+                	}
+                }
+                """;
+            var clips = ClipEffects.Read("a.ao", path => path == "a.ao" ? "\n" + Ao.Replace("\r", string.Empty) : null);
+            Equal("combo_slam@2003", string.Join(",", clips.Events["spear_combo_01"].Select(e => $"{e.Name}@{e.Ms}")), "the named server event and its ms; the move event is no standard event");
+            Equal("Metadata/Effects/x/ao/spear_combo/ground_splash.ao,Metadata/Effects/x/pet/spear_combo/poison_spew.pet", string.Join(",", clips.Effects["spear_combo_01"].Order(StringComparer.Ordinal)),
+                "the effect files of every client block, no sound");
         }
 
         private static void AnAreaBuffShieldsOrMarksAZone()

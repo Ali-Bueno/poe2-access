@@ -295,6 +295,9 @@
     <Compile Include="..\..\tools\Poe2UiExtract\BossScriptFacts.cs" Link="Extract\BossScriptFacts.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossFight.cs" Link="Extract\BossFight.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossCensusRules.cs" Link="Extract\BossCensusRules.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\MonsterAnimationFiles.cs" Link="Extract\MonsterAnimationFiles.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\AoClipEffects.cs" Link="Extract\AoClipEffects.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\BossEventChildren.cs" Link="Extract\BossEventChildren.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossStateRules.cs" Link="Extract\BossStateRules.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossArenaRooms.cs" Link="Extract\BossArenaRooms.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossFloods.cs" Link="Extract\BossFloods.cs" />
@@ -361,6 +364,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDodgeScope.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\AttackArea.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\AttackData.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\SkillIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\OffsetSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\DatKeySearch.cs" />

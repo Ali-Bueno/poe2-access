@@ -118,6 +118,13 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     Real milliseconds until an event at <paramref name="nominalMs"/> of the clip fires (a skill the clip sets off): from the
+        ///     clip's reading when there is one, else from when the attack began; null once it is behind.
+        /// </summary>
+        public static int? MsToEvent(AnimationReading? reading, long startedAt, long now, int nominalMs) =>
+            reading is { } clock ? MsToNominal(clock, nominalMs) : startedAt + nominalMs >= now ? (int)(startedAt + nominalMs - now) : null;
+
+        /// <summary>
         ///     Where in its clip a moment falls, as the files count it (milliseconds from the clip's start at speed 1): the
         ///     clip's place at its reading, moved on at the rate it plays for the real time since. A blow is learnt so: kept
         ///     as real time since the attack began it was replayed as clip time (<see cref="MsToNominal"/>), early or late by

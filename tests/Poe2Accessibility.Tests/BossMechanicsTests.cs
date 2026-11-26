@@ -42,7 +42,38 @@ namespace Poe2Accessibility.Tests
             (nameof(OnlyAFarBlowIsALongBlast), OnlyAFarBlowIsALongBlast),
             (nameof(ABossPieceIsKnownByItsBoss), ABossPieceIsKnownByItsBoss),
             (nameof(ATriggerTakesTheAreaOfWhatItSetsOff), ATriggerTakesTheAreaOfWhatItSetsOff),
+            (nameof(AStrikeTakesTheWaveItsClipFiresAndItsTime), AStrikeTakesTheWaveItsClipFiresAndItsTime),
         };
+
+        /// <summary>
+        ///     Lythara's Serpent Strike draws no area; the wave its clip fires (child|, boss mechanics v11) is a rectangle of 100 × 16
+        ///     cells from her toward her target: a player on its line steps off the nearer side, one behind her is not in it. Her
+        ///     combo's slam fires at 2003 ms of its clip, timed from the clip or, unread, from the attack's start, and none once passed.
+        /// </summary>
+        private static void AStrikeTakesTheWaveItsClipFiresAndItsTime()
+        {
+            var catalog = new BossMechanicsCatalog();
+            catalog.Add(new[] { "child|MAASViperNapuatziSerpentStrike|GAViperNapuatziSnakeWave", "child|MAASViperNapuatziCombo|GAViperComboEndSlam|2003" });
+            Equal(null, catalog.ChildFireMs("MAASViperNapuatziSerpentStrike", "GAViperNapuatziSnakeWave"), "no event names the wave: timed by the strike's own blow");
+            Equal(2003, catalog.ChildFireMs("MAASViperNapuatziCombo", "GAViperComboEndSlam"), "the slam's event");
+            var data = new AttackData();
+            data.AddTelegraphSkills(new[] { "GAViperNapuatziSnakeWave|geometry|shape=rectangle;length=100;width=16;delay=33;range=600|x.ao|" });
+            var child = data.WidestChildOf(catalog.ChildrenOf("MAASViperNapuatziSerpentStrike"));
+            Equal("GAViperNapuatziSnakeWave", child?.Skill, "the wave is the strike's area");
+            var wave = child!.Value.Area;
+            var (boss, target) = (new Vector2(0f, 0f), new Vector2(300f, 0f));
+            var onTheLine = BossCounterplay.Of(wave, boss, target, new Vector2(500f, 30f), 40f, 0f);
+            Equal(CounterplayKind.Step, onTheLine?.Kind, "on the line, far down it");
+            Near(1f, onTheLine?.Way.Y, "off the nearer long side, not along the line");
+            Equal(null, BossCounterplay.Of(wave, boss, target, new Vector2(-300f, 0f), 40f, 0f), "behind her: out of it");
+            Equal(null, BossCounterplay.Of(wave, boss, target, new Vector2(500f, 200f), 40f, 0f), "beside it: out of it");
+            var turned = BossCounterplay.Of(wave, boss, new Vector2(0f, 300f), new Vector2(-30f, 500f), 40f, 0f);
+            Near(-1f, turned?.Way.X, "aimed another way, the line turns with her target");
+            var clip = new AnimationReading(1, 0.5f, 1f, 1f, false, 0f, 3.066f);
+            Equal(1503, AttackClock.MsToEvent(clip, 0, 0, 2003), "from the clip's place");
+            Equal(1003, AttackClock.MsToEvent(null, 1000, 2000, 2003), "unread, from the attack's start");
+            Equal(null, AttackClock.MsToEvent(null, 1000, 3100, 2003), "passed");
+        }
 
         /// <summary>
         ///     A trigger's hits are its children's (census <c>child|</c> lines): the widest is the area said; a long blow of one

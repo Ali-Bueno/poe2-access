@@ -18,11 +18,8 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class HitTimeExtractor
 {
-    // MonsterVarieties: Id, ACTFiles, AOFiles, GrantedEffects (found with dat-strings; the community dat-schema's names).
+    // MonsterVarieties: Id (the animation columns: MonsterAnimationColumns).
     private const int MonsterIdOffset = 0x00;
-    private const int ActFilesOffset = 0x28;
-    private const int AoFilesOffset = 0x38;
-    private const int GrantedEffectsOffset = 0xD0;
 
     // MonsterVarieties: the main hand's ItemClasses row (the schema's MainHand_ItemClass; measured 2026-11-08: every archer and
     // crossbow monster of the campaign reads "Bow", MeleeUrchin1 none). Its basic attack shoots with that weapon.
@@ -31,12 +28,7 @@ internal static class HitTimeExtractor
     /// <summary>ItemClasses ids of the weapons whose basic attack is a shot (crossbow monsters hold a "Bow" in 0.5.5f).</summary>
     private static readonly HashSet<string> ShootingClasses = new(StringComparer.Ordinal) { "Bow", "Crossbow" };
 
-    // GrantedEffects: the skill's Animation row (inferred from 8 rows).
-    private const int SkillAnimationOffset = 0x71;
-
     private const string MeleeAction = "Melee";
-    private const string ActExtension = ".act";
-    private const string AoExtension = ".ao";
 
     private enum Source
     {
@@ -60,21 +52,11 @@ internal static class HitTimeExtractor
             return 1;
         }
 
-        // Found by what they hold, and by what a known monster's row holds there (DatAnchors): this table has no row size
-        // to guard it, and a shifted list would read as an empty one.
-        var urchin = DatAnchors.Row(monsters, DatAnchors.Monster, "MonsterVarieties' file and skill lists");
-        var sling = DatAnchors.Row(skills, DatAnchors.MonsterSkill, "GrantedEffects' animation and MonsterVarieties' skills");
         var archer = DatAnchors.Row(monsters, DatAnchors.Archer, "MonsterVarieties' main hand");
-        var actFiles = DatContentColumns.Nearest(monsters, ActFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(ActExtension, StringComparison.OrdinalIgnoreCase)) &&
-                                                                                    DatAnchors.ListsOwnFile(monsters, offset, urchin));
-        var aoFiles = DatContentColumns.Nearest(monsters, AoFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)) &&
-                                                                                  DatAnchors.ListsOwnFile(monsters, offset, urchin));
-        var grantedEffects = DatContentColumns.Nearest(monsters, GrantedEffectsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount) && DatAnchors.GrantsOwnSkill(monsters, offset, urchin, sling));
-        var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount) &&
-                                                                                              (sling < 0 || DatAnchors.IdOf(animations, skills.Key(sling, offset)) == DatAnchors.MonsterSkillAnimation));
+        var columns = MonsterAnimationColumns.Find(monsters, skills, animations);
         var mainHand = DatContentColumns.Nearest(monsters, MainHandClassOffset, offset => monsters.IsKeyColumn(offset, itemClasses.RowCount) &&
                                                                                           (archer < 0 || DatAnchors.IdOf(itemClasses, monsters.Key(archer, offset)) == DatAnchors.ArcherWeapon));
-        if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null || mainHand == null)
+        if (columns == null || mainHand == null)
         {
             Say.Out.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
             return 1;
@@ -103,8 +85,8 @@ internal static class HitTimeExtractor
         for (var row = 0; row < monsters.RowCount; row++)
         {
             var id = monsters.StringOrNull(row, MonsterIdOffset);
-            var act = monsters.StringList(row, actFiles.Value).FirstOrDefault();
-            var ao = monsters.StringList(row, aoFiles.Value).FirstOrDefault();
+            var act = monsters.StringList(row, columns.ActFiles).FirstOrDefault();
+            var ao = monsters.StringList(row, columns.AoFiles).FirstOrDefault();
             if (id == null || act == null || ao == null)
             {
                 continue;
@@ -123,9 +105,9 @@ internal static class HitTimeExtractor
                 skillsOf[melee] = new List<int>();
             }
 
-            foreach (var skill in monsters.KeyList(row, grantedEffects.Value).Where(key => key >= 0 && key < skills.RowCount))
+            foreach (var skill in monsters.KeyList(row, columns.Skills).Where(key => key >= 0 && key < skills.RowCount))
             {
-                var animation = skills.Int64((int)skill, skillAnimation.Value);
+                var animation = skills.Int64((int)skill, columns.SkillAnimation);
                 if (animation >= 0 && animation < animations.RowCount)
                 {
                     if (!skillsOf.TryGetValue((int)animation, out var list))

@@ -129,34 +129,25 @@ namespace Poe2Accessibility.Services
         ///     The widest area (by length or radius) among the skills a skill sets off (<see cref="BossMechanicsCatalog.ChildrenOf"/>),
         ///     for a skill that draws none of its own (Kulemak's mega beam: the trigger draws 2 cells, its beam 220); null when none draws one.
         /// </summary>
-        public AttackArea? WidestOf(IEnumerable<string> skills)
+        public AttackArea? WidestOf(IEnumerable<string> skills) => this.WidestChildOf(skills)?.Area;
+
+        /// <summary>The skill <see cref="WidestOf"/> chooses, with its area.</summary>
+        public (string Skill, AttackArea Area)? WidestChildOf(IEnumerable<string> skills)
         {
-            AttackArea? widest = null;
+            (string Skill, AttackArea Area)? widest = null;
             foreach (var skill in skills)
             {
-                if (this.Area(skill) is { } area && (widest is not { } best || area.Length > best.Length))
+                if (this.Area(skill) is { } area && (widest is not { } best || area.Length > best.Area.Length))
                 {
-                    widest = area;
+                    widest = (skill, area);
                 }
             }
 
             return widest;
         }
 
-        /// <summary>
-        ///     A skill id past its kind's capitals ("EAS", "GA", "GS", "MPA"…): the name from the last capital before the first
-        ///     lower-case letter; null when the id starts with a word (no kind prefix).
-        /// </summary>
-        internal static string? Stem(string skillId)
-        {
-            var lower = 0;
-            while (lower < skillId.Length && !char.IsLower(skillId[lower]))
-            {
-                lower++;
-            }
-
-            return lower >= 2 && lower < skillId.Length ? skillId[(lower - 1)..] : null;
-        }
+        /// <summary>A skill id past its kind's capitals (<see cref="SkillIds.Stem"/>).</summary>
+        internal static string? Stem(string skillId) => SkillIds.Stem(skillId);
 
         /// <summary>An action type's name ("GroundSlam"), for the log; null when the files do not list it.</summary>
         public string? ActionName(ushort id) => this.actionTypes.TryGetValue(id, out var name) ? name : null;
