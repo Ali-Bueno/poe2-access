@@ -2,7 +2,6 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     ///     The league encounter tracker on the HUD (<see cref="GameLayout.EncounterTracker"/>), for the vitals readout:
@@ -14,6 +13,8 @@ namespace Poe2Accessibility.Services
         private const int MaxNodes = 200;
 
         private readonly UiElementReader elements;
+        private readonly List<EncounterLines.Node> nodes = new();
+        private readonly Stack<(IntPtr Address, int Parent, int Depth)> stack = new();
 
         public EncounterReader(UiElementReader elements)
         {
@@ -23,33 +24,51 @@ namespace Poe2Accessibility.Services
         /// <summary>The tracker's visible lines in screen order; empty when the HUD shows none.</summary>
         public IReadOnlyList<string> Lines(IntPtr hudLayer)
         {
-            var lines = new List<string>();
             if (hudLayer == IntPtr.Zero || this.elements.FindNamed(hudLayer, GameLayout.EncounterTracker.ColumnName, GameLayout.EncounterTracker.SearchDepth) is not { } column || !this.elements.IsVisible(column))
             {
-                return lines;
+                return Array.Empty<string>();
             }
 
-            var stack = new Stack<IntPtr>(Enumerable.Reverse(this.elements.ReadChildren(column)));
-            for (var visited = 0; stack.Count > 0 && visited < MaxNodes; visited++)
+            // The whole visible tree, not only its texts: a legend's buttons are pictures beside a bare "+" ("Colocar explosivos"
+            // under "Encuentro de expedición", live 2026-11-26, where only the "+" was said).
+            var (nodes, stack) = (this.nodes, this.stack);
+            nodes.Clear();
+            stack.Clear();
+            var children = this.elements.ReadChildren(column);
+            for (var i = children.Length - 1; i >= 0; i--)
             {
-                if (!this.elements.TryReadElement(stack.Pop(), out var info) || !info.IsVisibleFlag ||
+                stack.Push((children[i], -1, 0));
+            }
+
+            while (stack.Count > 0 && nodes.Count < MaxNodes)
+            {
+                var (address, parent, depth) = stack.Pop();
+                if (!this.elements.TryReadElement(address, out var info) || !info.IsVisibleFlag ||
                     GameLayout.EncounterTracker.SkippedNames.Contains(info.Name))
                 {
                     continue;
                 }
 
-                if (this.elements.TryReadText(info.Address, out var text, out var tagged))
+                var (text, tagged, glyph) = (string.Empty, string.Empty, string.Empty);
+                if (this.elements.TryReadText(info, out var read, out var readTagged) && read.Trim().Length > 0)
                 {
-                    EncounterLines.Add(lines, text, tagged);
+                    (text, tagged) = (read, readTagged);
+                }
+                else if (this.elements.ReadTextureKey(info) is { } key && ControllerGlyphs.FromTextureKey(key) is { } button)
+                {
+                    glyph = button;
                 }
 
-                foreach (var child in Enumerable.Reverse(this.elements.ReadChildren(info)))
+                var self = nodes.Count;
+                nodes.Add(new EncounterLines.Node(parent, depth, text, tagged, glyph));
+                var below = this.elements.ReadChildren(info);
+                for (var i = below.Length - 1; i >= 0; i--)
                 {
-                    stack.Push(child);
+                    stack.Push((below[i], self, depth + 1));
                 }
             }
 
-            return lines;
+            return EncounterLines.Build(nodes);
         }
     }
 }

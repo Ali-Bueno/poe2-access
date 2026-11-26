@@ -76,7 +76,9 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   they happen: the remnant's steps, the detonator ready and the blast, the Simulacrum's waves, a Breach opening, stabilised and collapsing,
   a strongbox's ambush, a rogue exile engaging, a monster possessed by an Azmeri spirit, a Vaal Beacon ready and done, a ritual won, an
   Abyss pit closing, a shrine's name and effect as you use it, and inside or out of the Delirium fog ("Out of the fog" urgent). Placing
-  Expedition charges, what the charge would blow is said as you move it ("Covers 2 chests, 1 elite") if the game lets the mod read it.
+  Expedition charges (LT plus D-pad up starts placing), what the charge would blow is said as you move it ("Covers 2 chests, 1 elite")
+  and, once it stands still, the nearest find it would not reach ("Next: Expedition chest, 6 steps, up left"), if the game lets the mod
+  read it. Chest markers are named by what they hold ("Expedition unique chest").
   Built from the game's files and not yet played ([what is known](research/league-mechanics.md) §13).
 - In the Trial of the Sekhemas an affliction or boon is said by name and effect as you gain it; the vitals (double tap L3) say your honour, sacred water, keys and
   every affliction and boon you carry, and with the Trial's map open the water, the keys and what you carry. The sacred water monsters drop is named as such.

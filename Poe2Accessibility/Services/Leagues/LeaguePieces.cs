@@ -35,6 +35,24 @@ namespace Poe2Accessibility.Services
         EssenceCrystal,
     }
 
+    /// <summary>
+    ///     What an Expedition chest marker holds, by the model ExpeditionMarkersCommon gives its kind (0.5.5f: ArmourChest
+    ///     ChestMarkers/ChestArmour.ao … TreasureDestinationChest ChestMetamorph.ao; GenericChest1-3 the signpost and chestmarker2/3 sets).
+    /// </summary>
+    public enum ExpeditionChest
+    {
+        Generic,
+        Armour,
+        Currency,
+        Gems,
+        League,
+        Maps,
+        Trinkets,
+        Uniques,
+        Weapons,
+        Treasure,
+    }
+
     /// <summary>What an Expedition charge can dig up, as its marker's minimap icon tells.</summary>
     public enum ExpeditionFind
     {
@@ -218,6 +236,69 @@ namespace Poe2Accessibility.Services
             ["ExpeditionBoss"] = ExpeditionFind.Boss,
             ["ExpeditionPOI"] = ExpeditionFind.Relic,
         };
+
+        /// <summary>
+        ///     A marker's model (lower case, a part of the path) → the icon its kind stands for: ExpeditionMarkersCommon's 14 rows name
+        ///     only a model each (dumped 2026-11-26: RegularMonster monstermarker_set.ao, EliteMonster elitemarker_set.ao, the chests
+        ///     ChestMarkers/*.ao and the chestmarker sets), and in play the markers carry no minimap icon (live 2026-11-26), so the
+        ///     model is what tells them apart, as the ExpeditionIcons plugin does. A set's model loads as one of its variants
+        ///     (chestmarker3_02.ao): matched by part.
+        /// </summary>
+        private static readonly (string Part, string Icon)[] MarkerModels =
+        {
+            ("elitemarker", "ExpeditionEliteMonster"),
+            ("monstermarker", "ExpeditionRegularMonster"),
+            ("chestmarker", "ExpeditionChest1"),
+        };
+
+        private static readonly (string Part, ExpeditionChest Chest)[] ChestModels =
+        {
+            ("chestmarkers/chestarmour", ExpeditionChest.Armour),
+            ("chestmarkers/chestcurrency", ExpeditionChest.Currency),
+            ("chestmarkers/chestgems", ExpeditionChest.Gems),
+            ("chestmarkers/chestleague", ExpeditionChest.League),
+            ("chestmarkers/chestmaps", ExpeditionChest.Maps),
+            ("chestmarkers/chesttrinkets", ExpeditionChest.Trinkets),
+            ("chestmarkers/chestuniques", ExpeditionChest.Uniques),
+            ("chestmarkers/chestweapon", ExpeditionChest.Weapons),
+            ("chestmarkers/chestmetamorph", ExpeditionChest.Treasure),
+            ("chestmarker", ExpeditionChest.Generic),
+        };
+
+        /// <summary>The icon a marker stands for: its own when the minimap shows one, else the one its model's kind stands for.</summary>
+        public static string MarkerIcon(string icon, string model)
+        {
+            if (icon.Length > 0 || model.Length == 0)
+            {
+                return icon;
+            }
+
+            var lower = model.ToLowerInvariant();
+            foreach (var (part, kind) in MarkerModels)
+            {
+                if (lower.Contains(part, StringComparison.Ordinal))
+                {
+                    return kind;
+                }
+            }
+
+            return lower.Contains("chestmarkers/", StringComparison.Ordinal) ? "ExpeditionChest1" : icon;
+        }
+
+        /// <summary>What a chest marker's model says it holds; null for a model that is no chest's.</summary>
+        public static ExpeditionChest? ChestOf(string model)
+        {
+            var lower = model.ToLowerInvariant();
+            foreach (var (part, chest) in ChestModels)
+            {
+                if (lower.Contains(part, StringComparison.Ordinal))
+                {
+                    return chest;
+                }
+            }
+
+            return null;
+        }
 
         private static readonly string[] MarkerIcons = FindIcons.Where(pair => pair.Value != ExpeditionFind.Relic).Select(pair => pair.Key).ToArray();
 

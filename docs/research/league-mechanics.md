@@ -718,3 +718,27 @@ left silent. What it found, all fixed and under test:
 the stat still says in or out); the four seconds outside the fog (the server's); the Trial's ring centre and radius and its timer's
 source (server events); the Ritual's circle (a wall of the server's). Each of those is now either said from the game's own stat or text,
 or logged for the first session to show.
+
+## 17. First live Expedition (2026-11-26, the owner in Las piedras de Serle, map level 54)
+
+What the owner's log showed (`accessibility.log`, 11:12-11:23) and what was changed for it:
+
+- **The HUD tracker's legend is pictures.** "Encuentro de expedición", "Explosivos colocados: 0/5" and "Colocar explosivos" with
+  the buttons drawn as two images and a bare "+" text between them; the screen reader paired them ("Colocar explosivos [LT más cruceta
+  arriba]") but the tracker reader took only texts and said "+". `EncounterReader` now walks the tracker's whole visible tree and
+  `EncounterLines.Build` pairs each button picture with the label fewest levels away (as the screen reader does, at most 3), a bare "+"
+  between two pictures making a chord: "Colocar explosivos, LT más cruceta arriba". **Entering placement is LT + D-pad up** on the pad.
+- **The markers carry no minimap icon** (`ExpeditionMarker: …` logged with no icon), so none was listed or counted. Their kind is in
+  the model: `ExpeditionMarkersCommon` (dumped 2026-11-26 with `tools/research/gamedata/dumper`, 14 rows of an id and a model, no icon
+  column) gives RegularMonster `monstermarker_set.ao`, EliteMonster `elitemarker_set.ao`, Armour/Currency/Gem/League/Map/Trinket/
+  Unique/WeaponChest `ChestMarkers/Chest*.ao`, GenericChest1-3 `chestmarker_signpost_set.ao`, `chestmarker2_set.ao`,
+  `chestmarker3_set.ao`, TreasureDestinationChest `ChestMarkers/ChestMetamorph.ao` (all under
+  `Metadata/Terrain/Doodads/Leagues/Expedition/`). A set loads as one of its variants (`chestmarker3_02.ao`), so the match is by part;
+  the ExpeditionIcons plugin classifies the same way (its `ExpeditionIcons.cs` ~1002: "elitemarker", "monstermarker", else chest; it calls
+  chestmarker3 a runes chest, not taken). `LeaguePieces.MarkerIcon` turns the model (the host's `Animated.ModelPath` and animated path)
+  into the icon the kind stands for; `ChestOf` names a chest by what it holds ("Cofre de únicos de expedición"). No row exists for the
+  league-specific monster or the boss marker. **First log line to read:** "League piece seen: …ExpeditionMarker: model …".
+- **Where to take the charge** (`PlacementGuide`): while the placement indicator is in the entity list and has stood still 600 ms at a
+  new spot (4 cells from the last said, or the nearest changed), "Siguiente: <find>, N pasos, <direction>" for the nearest find no
+  placed charge reaches and this one would not. Whether the indicator reaches the host is still unconfirmed: the owner had not entered
+  placement in the log.

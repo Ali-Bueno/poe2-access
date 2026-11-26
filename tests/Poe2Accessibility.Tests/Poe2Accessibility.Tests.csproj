@@ -96,6 +96,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\PetrifyingStatues.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeaguePieces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\LeagueNews.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\PlacementGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\EssencePrison.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\EncounterNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\ExpeditionReach.cs" />

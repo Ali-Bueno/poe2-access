@@ -188,10 +188,14 @@ namespace Poe2Accessibility.Services
                 // §12); an Expedition marker by what its icon says it buries, whatever its own name.
                 var leagueStates = TransitionState.With(this.memory, entity);
                 // The one creature here is an Azmeri spirit, a wisp nothing can hit: not listed, it is nothing, never an enemy.
-                category = LeaguePieces.IsListed(league, leagueStates, icon) ? ScanCategory.Encounters : null;
-                var find = LeaguePieces.FindOf(league.Piece, icon);
+                var model = league.Piece == LeaguePiece.ExpeditionMarker ? ModelOf(entity) : string.Empty;
+                var markerIcon = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerIcon(icon, model) : icon;
+                category = LeaguePieces.IsListed(league, leagueStates, markerIcon) ? ScanCategory.Encounters : null;
+                var find = LeaguePieces.FindOf(league.Piece, markerIcon);
                 name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
-                name = name.Length > 0 ? name : Announcements.LeaguePieceName(league.Piece, find);
+                name = name.Length > 0 ? name
+                    : find == ExpeditionFind.Chest && LeaguePieces.ChestOf(model) is { } chest ? Announcements.ExpeditionChestName(chest)
+                    : Announcements.LeaguePieceName(league.Piece, find);
                 if (find != null && (ExpeditionReach.IsCovered(entity.Id) || leagueStates.Any(state => state.Name == LeaguePieces.CoveredState && state.Value > 0)))
                 {
                     name = Announcements.ExpeditionCovered(name); // the charges placed already reach it: the next goes elsewhere
@@ -694,6 +698,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The scanner's kind of a Trial's trap.</summary>
         private const string TrapKind = "trap";
+
+        /// <summary>The loaded model (.ao) of an entity and its animated object's path, which tell apart objects sharing one file (Expedition markers).</summary>
+        internal static string ModelOf(Entity entity) =>
+            entity.TryGetComponent<Animated>(out var animated) ? $"{animated.ModelPath} {animated.Path}".Trim() : string.Empty;
 
         /// <summary>
         ///     The minimap icon of a league device (the Ritual altar, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable,

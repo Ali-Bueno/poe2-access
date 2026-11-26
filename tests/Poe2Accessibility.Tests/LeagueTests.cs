@@ -37,7 +37,46 @@ namespace Poe2Accessibility.Tests
             (nameof(TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear), TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear),
             (nameof(TheFogsFrontAndRearMoveAsTheGameMovesThem), TheFogsFrontAndRearMoveAsTheGameMovesThem),
             (nameof(TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame), TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame),
+            (nameof(AMarkerWithoutAnIconIsToldByItsModel), AMarkerWithoutAnIconIsToldByItsModel),
+            (nameof(TheChargeBeingPlacedPointsToTheNearestOpenFindOnceStill), TheChargeBeingPlacedPointsToTheNearestOpenFindOnceStill),
         };
+
+        private static void AMarkerWithoutAnIconIsToldByItsModel()
+        {
+            // Live 2026-11-26: an ExpeditionMarker read with no minimap icon; ExpeditionMarkersCommon names only a model per kind.
+            const string Folder = "Metadata/Terrain/Doodads/Leagues/Expedition/";
+            Equal("ExpeditionRegularMonster", LeaguePieces.MarkerIcon(string.Empty, Folder + "monstermarker_02.ao"), "a monster marker");
+            Equal("ExpeditionEliteMonster", LeaguePieces.MarkerIcon(string.Empty, Folder + "elitemarker.ao"), "an elite marker, not taken for a monster one");
+            Equal("ExpeditionChest1", LeaguePieces.MarkerIcon(string.Empty, Folder + "chestmarker3_02.ao"), "a set's variant");
+            Equal("ExpeditionChest1", LeaguePieces.MarkerIcon(string.Empty, Folder + "ChestMarkers/ChestUniques.ao"), "a typed chest");
+            Equal("ExpeditionBoss", LeaguePieces.MarkerIcon("ExpeditionBoss", Folder + "monstermarker.ao"), "the game's own icon wins");
+            Equal(string.Empty, LeaguePieces.MarkerIcon(string.Empty, string.Empty), "no model, nothing");
+            Equal(ExpeditionChest.Uniques, LeaguePieces.ChestOf(Folder + "ChestMarkers/ChestUniques.ao"), "its kind");
+            Equal(ExpeditionChest.Treasure, LeaguePieces.ChestOf(Folder + "ChestMarkers/ChestMetamorph.ao"), "the treasure destination");
+            Equal(ExpeditionChest.Generic, LeaguePieces.ChestOf(Folder + "chestmarker_signpost_01.ao"), "a generic one");
+            Equal(null, LeaguePieces.ChestOf(Folder + "monstermarker.ao"), "a monster's is no chest");
+            var rule = LeaguePieces.RuleOf(Marker)!;
+            Equal(ExpeditionFind.Elite, LeaguePieces.FindOf(rule.Piece, LeaguePieces.MarkerIcon(string.Empty, Folder + "elitemarker_03.ao")), "found as what it buries");
+            Equal(true, LeaguePieces.IsListed(rule, Array.Empty<(string, long)>(), LeaguePieces.MarkerIcon(string.Empty, Folder + "chestmarker2.ao")), "and listed");
+        }
+
+        private static void TheChargeBeingPlacedPointsToTheNearestOpenFindOnceStill()
+        {
+            var guide = new PlacementGuide();
+            var open = new List<(uint Id, ExpeditionFind Find, Vector2 Place)> { (1, ExpeditionFind.Chest, new Vector2(40, 0)), (2, ExpeditionFind.Elite, new Vector2(0, 20)) };
+            Equal(null, guide.Next(new Vector2(0, 0), open, 0), "the charge just appeared");
+            Equal(null, guide.Next(new Vector2(0, 0), open, PlacementGuide.SettleMs - 1), "not still long enough");
+            var next = guide.Next(new Vector2(0, 0), open, PlacementGuide.SettleMs);
+            Equal(ExpeditionFind.Elite, next?.Find, "the nearest open find");
+            Equal(new Vector2(0, 20), next?.Offset, "from the charge");
+            Equal(null, guide.Next(new Vector2(0, 0), open, PlacementGuide.SettleMs * 3), "said once while it stands");
+            Equal(null, guide.Next(new Vector2(10, 0), open, 5000), "moved: waits again");
+            Equal(null, guide.Next(new Vector2(10, 0), open, 5000 + PlacementGuide.SettleMs - 1), "still waiting");
+            Equal(new Vector2(-10, 20), guide.Next(new Vector2(10, 0), open, 5000 + PlacementGuide.SettleMs)?.Offset, "a new spot: said again");
+            Equal(null, guide.Next(null, open, 7000), "placing ended");
+            Equal(null, guide.Next(new Vector2(10, 0), Array.Empty<(uint, ExpeditionFind, Vector2)>(), 9000), "nothing left open");
+            Equal(null, guide.Next(new Vector2(10, 0), Array.Empty<(uint, ExpeditionFind, Vector2)>(), 9000 + PlacementGuide.SettleMs), "nothing to say");
+        }
 
         // Row 0 of AfflictionBalancePerLevel (area level 1): the front starts at 150 cells a second and slows to 30 over 100 s;
         // the rear starts 10 s in at 1 cell a second and gains 0.38 a second each second.
@@ -280,6 +319,24 @@ namespace Poe2Accessibility.Tests
             var legend = new List<string> { "Return to Ship" };
             EncounterLines.Add(legend, " +  Return to Ship", "<<xbox_button_lt>>+<<xbox_button_dpad_up>> Return to Ship");
             Equal(ship[0], string.Join(" | ", legend), "the same from a legend repeating the title");
+            var chord = Announcements.ButtonName("TriggerLeft", false) + Announcements.ButtonCombination + Announcements.ButtonName("DPadUp", false);
+            var pictured = EncounterLines.Build(new EncounterLines.Node[]
+            {
+                new(-1, 0, "Expedition Encounter", "Expedition Encounter", string.Empty),
+                new(-1, 0, string.Empty, string.Empty, string.Empty),
+                new(1, 1, string.Empty, string.Empty, Announcements.ButtonName("TriggerLeft", false)),
+                new(1, 1, "+", "+", string.Empty),
+                new(1, 1, string.Empty, string.Empty, Announcements.ButtonName("DPadUp", false)),
+                new(1, 1, "Place Explosives", "Place Explosives", string.Empty),
+            });
+            Equal($"Expedition Encounter | Place Explosives, {chord}", string.Join(" | ", pictured), "button pictures beside a bare plus are one chord with their label (live 2026-11-26: only the plus was said)");
+            var apart = EncounterLines.Build(new EncounterLines.Node[]
+            {
+                new(-1, 0, "Detonate", "Detonate", string.Empty),
+                new(-1, 0, string.Empty, string.Empty, Announcements.ButtonName("Button4", false)),
+                new(-1, 0, string.Empty, string.Empty, Announcements.ButtonName("Button3", false)),
+            });
+            Equal($"Detonate, {Announcements.ButtonName("Button4", false)}{Announcements.ButtonSeparator}{Announcements.ButtonName("Button3", false)}", string.Join(" | ", apart), "two pictures with no plus are either button");
             var action = new EncounterNews();
             Equal(0, action.Heard(Array.Empty<string>(), 0).Count, "not offered yet");
             Equal("Return to Ship, L2 plus D-pad up", string.Join(" | ", action.Heard(new[] { "Return to Ship, L2 plus D-pad up" }, 1000)), "a button's own number is no count");

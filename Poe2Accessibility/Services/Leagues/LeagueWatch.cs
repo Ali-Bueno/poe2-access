@@ -17,6 +17,9 @@ namespace Poe2Accessibility.Services
     {
         private const int PollMs = 500;
 
+        /// <summary>A scanner step (world units), as the scanner counts them.</summary>
+        private const float StepWorldUnits = 100f;
+
         /// <summary>While a charge is being placed: what it would blow follows the stick.</summary>
         private const int PlacingPollMs = 150;
 
@@ -29,6 +32,7 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly LeagueNews news = new();
         private readonly PlacementNews placement = new();
+        private readonly PlacementGuide guide = new();
         private readonly EncounterNews tracker = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private readonly HashSet<string> loggedMonsters = new(StringComparer.Ordinal);
@@ -70,6 +74,7 @@ namespace Poe2Accessibility.Services
             ExpeditionReach.Publish(new HashSet<uint>());
             this.news.Reset();
             this.placement.Reset();
+            this.guide.Reset();
             this.tracker.Reset();
             (this.placing, this.fogLogged) = (false, FogNotLogged);
         }
@@ -111,6 +116,13 @@ namespace Poe2Accessibility.Services
 
                 var states = TransitionState.With(this.memory, entity);
                 var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
+                if (rule.Piece == LeaguePiece.ExpeditionMarker)
+                {
+                    var model = EntityCatalog.ModelOf(entity);
+                    icon = LeaguePieces.MarkerIcon(icon, model);
+                    this.LogOnce(path, new List<(string Name, long Value)> { ("model " + model, 0) }, icon, null, null);
+                }
+
                 this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null,
                     rule.Piece == LeaguePiece.RitualAltar ? this.Sacrifice(entity) : null);
                 var place = entity.TryGetComponent<Render>(out var render) ? new Vector2(render.GridPosition.X, render.GridPosition.Y) : (Vector2?)null;
@@ -150,6 +162,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.Placement(indicator, blocked, now);
+            this.Guide(indicator ? cursor : null, now);
             this.Player();
         }
 
@@ -230,6 +243,30 @@ namespace Poe2Accessibility.Services
             }
 
             this.placing = placingNow;
+        }
+
+        /// <summary>While a charge is being placed: where the nearest find it would not blow lies from it, once it stands still.</summary>
+        private void Guide(Vector2? charge, long now)
+        {
+            var open = new List<(uint Id, ExpeditionFind Find, Vector2 Place)>();
+            for (var i = 0; i < this.finds.Count && i < this.findsCovered.Count; i++)
+            {
+                var find = this.finds[i];
+                if (!this.findsCovered[i] && !this.covered.Any(piece => piece.Id == find.Id))
+                {
+                    open.Add((find.Id, find.Find, find.Place));
+                }
+            }
+
+            if (this.guide.Next(charge, open, now) is not { } next || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return;
+            }
+
+            var steps = (int)Math.Round(next.Offset.Length() * Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor / StepWorldUnits);
+            var (alongX, alongY) = ScreenProjection.Axes(player.WorldPosition);
+            var direction = Announcements.StickDirections[StickDirection.Octant(alongX, alongY, next.Offset.X, next.Offset.Y)];
+            this.output.Say(SpeechKind.Quest, Announcements.ExplosiveNextFind(Announcements.LeaguePieceName(LeaguePiece.ExpeditionMarker, next.Find), steps, direction));
         }
 
         /// <summary>The player's own signals: a shrine's buff as it comes on, the Delirium fog while its encounter runs.</summary>

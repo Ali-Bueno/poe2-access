@@ -164,6 +164,25 @@ namespace Poe2Accessibility
             return name.Length == 0 ? effect : effect.Length == 0 ? name : $"{name}. {effect}";
         }
 
+        /// <summary>An Expedition chest marker by what its model says it holds.</summary>
+        public static string ExpeditionChestName(ExpeditionChest chest) => chest switch
+        {
+            ExpeditionChest.Armour => T("Expedition armour chest", "Cofre de armaduras de expedición"),
+            ExpeditionChest.Currency => T("Expedition currency chest", "Cofre de objetos monetarios de expedición"),
+            ExpeditionChest.Gems => T("Expedition gem chest", "Cofre de gemas de expedición"),
+            ExpeditionChest.League => T("Expedition league chest", "Cofre de liga de expedición"),
+            ExpeditionChest.Maps => T("Expedition map chest", "Cofre de mapas de expedición"),
+            ExpeditionChest.Trinkets => T("Expedition jewellery chest", "Cofre de joyería de expedición"),
+            ExpeditionChest.Uniques => T("Expedition unique chest", "Cofre de únicos de expedición"),
+            ExpeditionChest.Weapons => T("Expedition weapon chest", "Cofre de armas de expedición"),
+            ExpeditionChest.Treasure => T("Expedition treasure chest", "Cofre del tesoro de expedición"),
+            _ => LeaguePieceName(LeaguePiece.ExpeditionMarker, ExpeditionFind.Chest),
+        };
+
+        /// <summary>While placing a charge: the nearest find it would not blow, from the charge ("Next: Expedition chest, 6 steps, up left").</summary>
+        public static string ExplosiveNextFind(string find, int steps, string direction) =>
+            steps < 1 ? T($"Next: {find}, here", $"Siguiente: {find}, aquí") : T($"Next: {find}, {Steps(steps)}, {direction}", $"Siguiente: {find}, {Steps(steps)}, {direction}");
+
         /// <summary>"Covers 2 chests, 1 elite": what the Expedition charge being placed would blow.</summary>
         public static string ExpeditionCovers(IReadOnlyList<(ExpeditionFind Find, int Count)> finds)
         {
