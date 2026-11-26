@@ -534,6 +534,11 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 15:30 (the owner, El cruce de Khari: the "Sello de señalización" did not sound as the quest; "sigue la guía hasta el
+templo"):** area-own objects count as quest objects; a used seal starts a trail to the next seal, else the quest's exit
+([signal seals](docs/research/map-hints.md#the-signal-seals-of-el-cruce-de-khari-2026-11-26)). **First to hear:** "Rastro: Guía
+del sello, hacia Estanques de Khatal" by the seal just used, and the trail sound on the way.
+
 **2026-11-26, 14:40 (the owner: inside the desert tombs, the Sekhemas and the Trial of Chaos the radar cites ways outside):**
 a tomb is ground apart in the same area. Built (`GroundPieces`, `EntityCatalog.Pieces`; 1152 tests): after a carry the
 listing, pending ways and landmarks ahead tell only the player's piece, a goal outside is "antes, pasa por …", map parts

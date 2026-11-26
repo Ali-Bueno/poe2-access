@@ -183,6 +183,7 @@ namespace Poe2Accessibility
             "coast" => T("Coast", "Costa"),
             "cliff" => T("Cliff by the sea", "Acantilado junto al mar"),
             "swarm" => T("Locust swarm", "Enjambre de langostas"),
+            "wayfinder" => T("Signal seal's guide", "Guía del sello"),
             _ => hint,
         };
 
@@ -205,6 +206,9 @@ namespace Poe2Accessibility
             var noun = TrailNoun(hint);
             return T($"Trail: {noun}, toward {goal}", $"Rastro: {noun}, hacia {goal}");
         }
+
+        /// <summary>A signal seal still to use when the game's name for it is not known yet.</summary>
+        public static string WayfinderName => T("Signal seal", "Sello de señalización");
 
         public static string TrailWrongWay(string line) => T($"Wrong way. {line}", $"Vas al revés. {line}");
 

@@ -15,7 +15,7 @@ namespace Poe2Accessibility.Services
     ///     when the mod knows where it leads, what a sighted player reads off the ground. That side is the mod's own working out
     ///     by the walk (<see cref="EntityCatalog.SideToward"/>): the game's files hold no direction.
     /// </summary>
-    public sealed class MapHintNarrator
+    public sealed partial class MapHintNarrator
     {
         /// <summary>A second of running is 37 cells, well inside <see cref="PassingCells"/>.</summary>
         private const int PollMs = 1000;
@@ -92,6 +92,7 @@ namespace Poe2Accessibility.Services
                 (this.spots, this.blockers, this.altars, this.rituals) = (new(), new(), new(), new());
                 (this.scanned, this.trailsAdded, this.scan, this.arrivedAt) = (false, false, null, now);
                 this.trails.Reset(this.instance);
+                this.pointersUsed.Clear();
             }
 
             if (now - this.arrivedAt < ArrivalMs)
@@ -139,6 +140,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.WatchRituals(map, here);
+            this.WatchWayfinders(map, here);
             if (lines.Count > 0)
             {
                 this.output.Say(SpeechKind.Places, string.Join(". ", lines), urgent: true); // through a fight, as discoveries

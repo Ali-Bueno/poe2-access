@@ -221,3 +221,20 @@ Anything else with several graphs "may change". At run time "the same as last ti
 (`AreaLayouts.Exits`: the landmark table's tiles named by an area and the transition tiles) with the instances kept in
 `config/area-exits.txt`, twelve an area, whatever the character. What lies in the rooms is drawn anew in a fixed map too, and
 another league's map may be a turned one.
+
+## The signal seals of El cruce de Khari (2026-11-26)
+
+Asked by the owner in P2_1 ("había un sello… y no sonaba como quest"; "sigue la guía hasta el templo"). From the game's files
+(0.5.5f bundles; poe2db "Recruit the Maraketh"):
+- **Only P2_1 has them** (no other `Wayfinder*` object in the bundles; the blood trail, river and Ogham road are other cues).
+  `Objects/Wayfinder{2,3}Pointer` stand in the fixed rooms `landmark_02`/`landmark_03`; `Wayfinder1Proxy` in `entrance_01`;
+  `Wayfinder4` (invisible, no pointer) in `exit_01`, the room of the exit to the Pools of Khatal (`exit_oasis`, placed per layout).
+- **The guide** is no entity: using a seal (`StateMachine` `active` 0 → 1, which also disables Targetable) makes the server call
+  `UpdatePlayerPointer(angle)` (`wayfinder1.ot`), which turns `Town/WayfinderPlayer.ao`, a compass effect attached to the player.
+  The angle is not in the seal's data. The Water Guard's temple is not in P2_1: it is reached through the Pools of Khatal (P2_2).
+- **The tracker's words differ from the object's** in Spanish ("roca de señalización" against "Sello de señalización").
+
+What the mod does: a named object of the area's own `…/<area id>/Objects/` folder counts as the quest's
+(`EntityCatalog.IsAreaOwnObject`), whatever the tracker says; a seal seen used within a look of the player starts a trail
+("Rastro: Guía del sello, hacia …", the trail sound) to the nearest seal still unused, else to the quest's exit
+(`MapHintNarrator.Wayfinders`).

@@ -288,6 +288,9 @@ namespace Poe2Accessibility.Services
                 // A named object to use under an area's own lit mark is the quest's: the Red Vale's obelisks rang only while
                 // the tracker named them, and "Consigue las dos runas de poder restantes" does not (user 2026-11-13).
                 questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && MinimapMarks.IsLitMark(icon) && !iconHidden;
+                // A named object made for this area alone, its file in the area's own Objects folder, is the story's: El cruce de
+                // Khari's "Sello de señalización" had no quest icon, and its tracker step spoke of a "roca" (owner, 2026-11-26).
+                questMarked |= category == ScanCategory.Objects && name.Length > 0 && kind.Length == 0 && IsAreaOwnObject(path, this.areaId());
                 questMarked |= category == ScanCategory.Objects && KeyPedestals.Is(path) && this.QuestItemsCarried().Count > 0;
                 questMarked |= category == ScanCategory.Objects && KeyPedestals.TakesCarried(name, this.QuestItemsCarried());
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
@@ -696,6 +699,11 @@ namespace Poe2Accessibility.Services
         ///     another player's was "Objeto sin nombre, Gray Otter" in town.
         /// </summary>
         public static bool IsPet(string path) => path.StartsWith("Metadata/Pet/", StringComparison.Ordinal);
+
+        /// <summary>A terrain object of this area's own folder ("Metadata/Terrain/…/P2_1/Objects/Wayfinder3Pointer" in P2_1).</summary>
+        public static bool IsAreaOwnObject(string path, string areaId) =>
+            areaId.Length > 0 && path.StartsWith("Metadata/Terrain/", StringComparison.Ordinal) &&
+            path.Contains($"/{areaId}/Objects/", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>The scanner's kind of a Trial's trap.</summary>
         private const string TrapKind = "trap";
