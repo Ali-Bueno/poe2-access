@@ -244,7 +244,7 @@ namespace Poe2Accessibility.Services
             public int[] Steps = Array.Empty<int>();
 
             /// <summary>Per cell, the barrier a walk past barriers reached it through (0: none); sized on first use.</summary>
-            public int[] Labels = Array.Empty<int>();
+            public ushort[] Labels = Array.Empty<ushort>();
 
             /// <summary>The cells to walk from next: as long as the walk's widest front, not the grid.</summary>
             public readonly Queue<int> Queue = new();
@@ -270,7 +270,7 @@ namespace Poe2Accessibility.Services
             }
 
             /// <summary>Labels for <paramref name="cells"/>, all cleared.</summary>
-            public int[] FitLabels(int cells)
+            public ushort[] FitLabels(int cells)
             {
                 if (this.Labels.Length == cells)
                 {
@@ -278,7 +278,7 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
-                    this.Labels = new int[cells];
+                    this.Labels = new ushort[cells];
                 }
 
                 return this.Labels;

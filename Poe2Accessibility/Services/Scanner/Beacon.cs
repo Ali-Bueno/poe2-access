@@ -539,7 +539,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool TurnToGate()
         {
-            var gate = this.Exploring && this.cutByBarrier && this.target?.Kind != ExplorationMap.BarrierGroundKind ? this.catalog.GateToTry() : null;
+            var gate = this.Exploring && this.cutByBarrier && this.target?.Kind != ExplorationMap.BarrierGroundKind ? this.catalog.GateToTry(this.route is { Count: > 0 } way ? way[^1] : null) : null;
             if (this.target is not { } goal || !BarrierGround.TurnsToGate(this.Exploring, this.cutByBarrier, goal.Kind, gate != null))
             {
                 return false;

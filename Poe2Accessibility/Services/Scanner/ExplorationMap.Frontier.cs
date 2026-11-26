@@ -86,10 +86,27 @@ namespace Poe2Accessibility.Services
             }
 
             var groups = frontier.GroupBy(block => (run[block], Octant(this.Centre(block) - from)));
-            var leads = this.BlocksLeadingTo(grid, bytesPerRow, from, goals ?? Array.Empty<Vector2>(), inFrontier);
+            var goalCells = goals ?? Array.Empty<Vector2>();
+            var leads = this.BlocksLeadingTo(grid, bytesPerRow, from, goalCells, inFrontier);
             // The unseen ground on the walk to an exit the area's tiles place goes somewhere, however small: no nook, and
             // not named (Hunting Grounds, 2026-11-26: Freythorn's road ended at the map's edge and was passed by as a nook).
-            var toExits = this.BlocksLeadingTo(grid, bytesPerRow, from, exits ?? Array.Empty<Vector2>(), inFrontier).Select(lead => lead.Block).ToHashSet();
+            // An exit that is also a known goal (a quest's exit) keeps that goal's walk: two whole-grid walks each.
+            var toExits = new HashSet<int>();
+            var exitsToWalk = new List<Vector2>();
+            foreach (var exit in exits ?? Array.Empty<Vector2>())
+            {
+                var same = Enumerable.Range(0, goalCells.Count).Where(goal => Vector2.DistanceSquared(goalCells[goal], exit) <= BlockCells * BlockCells).ToList();
+                if (same.Count == 0)
+                {
+                    exitsToWalk.Add(exit);
+                }
+                else
+                {
+                    toExits.UnionWith(leads.Where(lead => same.Contains(lead.Goal)).Select(lead => lead.Block));
+                }
+            }
+
+            toExits.UnionWith(this.BlocksLeadingTo(grid, bytesPerRow, from, exitsToWalk, inFrontier).Select(lead => lead.Block));
             var targets = new List<(FrontierPlace Place, float Distance)>();
             foreach (var group in groups)
             {

@@ -72,6 +72,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, places.Any(place => place.Cell.X > 270 && place.Size == UnseenSize.Small), "the road to the exit: small ground, no nook");
             Equal(true, places.Where(place => place.Cell.X < 130).All(place => place.Size == UnseenSize.Pocket), "the nook away from it stays a nook");
             Equal(true, places.All(place => place.LeadsTo.Count == 0), "and the exit is not named");
+            var asGoal = map.Frontier(grid, width / 2, player, 8, new[] { exit }, null, new[] { exit });
+            Equal(true, asGoal.Any(place => place.Cell.X > 270 && place.Size == UnseenSize.Small && place.LeadsTo.Count == 1),
+                "an exit that is also a known goal (a quest's exit) reuses the goal's walk: still small ground, and named");
         }
 
         /// <summary>

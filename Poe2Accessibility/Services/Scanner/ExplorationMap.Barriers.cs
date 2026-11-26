@@ -43,7 +43,7 @@ namespace Poe2Accessibility.Services
 
                 // The pieces of the mask that touch the player's ground: each with its outline, its first cell and its gate,
                 // the reached cell beside it with the shortest walk.
-                for (var i = 0; i < closedMask.Length; i++)
+                for (var i = 0; i < closedMask.Length && pieces.Count < ushort.MaxValue; i++) // labels are ushort: half the walk's steps
                 {
                     if (closedMask[i] == 0)
                     {
@@ -66,7 +66,7 @@ namespace Poe2Accessibility.Services
 
                         var label = pieces.Count;
                         var piece = new Piece(x, y, x, y, seed, -1, int.MaxValue);
-                        labels[seed] = label;
+                        labels[seed] = (ushort)label;
                         stack.Push(seed);
                         while (stack.TryPop(out var cell))
                         {
@@ -95,7 +95,7 @@ namespace Poe2Accessibility.Services
                                     var next = (ny * width) + nx;
                                     if (labels[next] == 0 && marks[next] == 0)
                                     {
-                                        labels[next] = label;
+                                        labels[next] = (ushort)label;
                                         stack.Push(next);
                                     }
                                 }
@@ -222,7 +222,7 @@ namespace Poe2Accessibility.Services
                     var next = (y * width) + x;
                     if (marks[next] == 0 && labels[next] == 0 && Walkable(grid, closedMask, bytesPerRow, x, y))
                     {
-                        labels[next] = label;
+                        labels[next] = (ushort)label;
                         queue.Enqueue(next);
                     }
                 }

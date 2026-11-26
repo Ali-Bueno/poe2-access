@@ -96,7 +96,27 @@ namespace Poe2Accessibility.Services
         public void TriedBarrier(uint id) => this.tried.Tried(id);
 
         /// <summary>The nearest gate still shut that the guide has not found shut since something changed; null when none.</summary>
-        public ScanEntry? GateToTry() => this.NearestBarrierGround() is { } gate && !this.tried.Contains(gate.Id) ? gate : null;
+        /// <remarks>
+        ///     With <paramref name="wayEnd"/> (grid cells, the last cell of a way a shut gate cut), the untried gate nearest that
+        ///     cell, so the guide turns to the gate across its way, not to a nearer one elsewhere; a gate already found shut never
+        ///     hides the next one (review of PR #14).
+        /// </remarks>
+        public ScanEntry? GateToTry(Vector2? wayEnd = null)
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return null;
+            }
+
+            var untried = BarrierGround.ShutGates(this.unexplored, entry => this.BarrierClosedNear(new Vector2(entry.WorldX, entry.WorldY) / toWorld))
+                .Where(entry => !this.tried.Contains(entry.Id));
+            return (wayEnd is { } end
+                    ? untried.OrderBy(entry => Vector2.Distance(new Vector2(entry.WorldX, entry.WorldY) / toWorld, end))
+                    : untried.OrderBy(entry => this.unexploredWalks.GetValueOrDefault(entry.Id, int.MaxValue)))
+                .ThenBy(entry => Distance(player.WorldPosition, entry))
+                .FirstOrDefault();
+        }
 
         /// <summary>
         ///     A boss fell: every barrier may be tried again, and the line naming the nearest one still listed ("The closed
