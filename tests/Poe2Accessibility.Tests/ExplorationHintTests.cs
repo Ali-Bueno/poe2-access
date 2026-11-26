@@ -26,7 +26,43 @@ namespace Poe2Accessibility.Tests
             (nameof(ANookBehindAGateIsNoPlace), ANookBehindAGateIsNoPlace),
             (nameof(GroundAlsoReachedRoundTheGateIsNotBehindIt), GroundAlsoReachedRoundTheGateIsNotBehindIt),
             (nameof(AGateRememberedInTwoPiecesIsOnePlace), AGateRememberedInTwoPiecesIsOnePlace),
+            (nameof(ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges), ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges),
+            (nameof(GroundBehindADoorIsTheDoorsEntry), GroundBehindADoorIsTheDoorsEntry),
         };
+
+        private static void ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges()
+        {
+            static string Ids(IEnumerable<ScanEntry> entries) => string.Join(" ", entries.Select(entry => entry.Id));
+            var gate = new ScanEntry(1, ScanCategory.Unexplored, "Large unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var ground = new ScanEntry(2, ScanCategory.Unexplored, "Unexplored ground", 0, 0, 0);
+            var tried = new TriedBarriers();
+            Equal("1", Ids(BarrierGround.StillToTry(new[] { gate }, _ => true, tried)), "a gate on seen ground is still offered");
+            Equal(string.Empty, Ids(BarrierGround.StillToTry(new[] { ground }, _ => true, tried)), "seen open ground is not");
+            tried.Tried(1);
+            Equal(string.Empty, Ids(BarrierGround.StillToTry(new[] { gate }, _ => true, tried)), "found shut: not offered");
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            Equal(string.Empty, Ids(BarrierGround.StillToTry(new[] { gate }, _ => true, tried)), "the first quest reading changes nothing");
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            Equal(true, tried.Contains(1), "the same step: still tried");
+            tried.NoteQuest(new[] { "Kill the King in the Mists" });
+            Equal(false, tried.Contains(1), "a new quest step: offered again");
+            tried.Tried(1);
+            tried.Retry();
+            Equal(false, tried.Contains(1), "a boss died: offered again");
+        }
+
+        private static void GroundBehindADoorIsTheDoorsEntry()
+        {
+            var places = new[]
+            {
+                new FrontierPlace(new Vector2(100, 100), UnseenSize.Large, 50, Array.Empty<int>(), true),
+                new FrontierPlace(new Vector2(400, 100), UnseenSize.Large, 80, Array.Empty<int>(), true),
+                new FrontierPlace(new Vector2(105, 100), UnseenSize.Small, 55, Array.Empty<int>()),
+            };
+            var kept = BarrierGround.AwayFromDoors(places, new[] { new Vector2(108, 100) });
+            Equal(2, kept.Count, "the gate at the door goes, open ground beside it stays");
+            Equal(true, kept.Any(place => place.BehindBarrier && place.Cell.X == 400), "a gate away from doors stays");
+        }
 
         private const int PenWidth = 900, PenHeight = 400, PenRow = PenWidth / 2;
         private static readonly Vector2 PenPlayer = new(60, 200);
