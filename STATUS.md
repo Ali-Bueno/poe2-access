@@ -533,6 +533,11 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26 (PR #13 merged, the Atlas navigator; the owner reaches the Atlas soon, after Act 4's last boss and the
+interludes; 1125 tests, released at the owner's word as v2026.11.25-5):** [atlas-navigator](docs/research/atlas-navigator.md)
+Phases 1–4, tree kinds from the game's marks, the D-pad finder only on `AtlasTreeMap.FinderFolders`. **Next:** the
+owner's first Atlas session heard: landing lines, "Since last time" after a map, the tree finder's lists.
+
 **2026-11-25, 19:00 (the owner, fighting: Yama's "me dijo que me quedase dentro y aún así me wanshoteó", Torvian's scaffolding, Benedictus, the Countess and Kanu sounding on; 1113 tests, deployed, released at the owner's word as v2026.11.25-4):** [Yama](docs/research/boss-mechanics.md#yama), [Torvian](docs/research/boss-mechanics.md#torvian), [Benedictus](docs/research/boss-mechanics.md#benedictus); scene figures without a target are left out (`EntityCatalog.IsScenery`). **Next:** Benedictus's armed rods and barrage; what the `Boss clone:`, `Boss throw:` and `Boss maze:` lines of a later fight confirm.
 
 **2026-11-25, 15:40 (PR #12, the owner: "sí, está bien lo que sugeriste", then release; 1108 tests, deployed, released at the owner's word as v2026.11.25-3):** Inspect Mode's table by the right stick, merged and fixed (see *Item comparison*); the spoken difference stays with the setting off. **Next:** when the PC and the game are free, hear the table in Spanish, against two rings, and on an item with nothing to focus.
