@@ -179,11 +179,16 @@ namespace Poe2Accessibility.Services
             return ((x & 1) == 0 ? value & 0xF : value >> 4) != 0;
         }
 
+        /// <summary>Walkable in the grid, or held closed in <paramref name="open"/> (a barrier mask, the grid's layout) when one is given.</summary>
+        private static bool Walkable(byte[] grid, byte[]? open, int bytesPerRow, int x, int y) =>
+            Walkable(grid, bytesPerRow, x, y) || (open != null && Walkable(open, bytesPerRow, x, y));
+
         /// <summary>
         ///     Marks every walkable cell joined to <paramref name="start"/> (four neighbours) <see cref="Reached"/> in the
-        ///     buffers' marks and, when <paramref name="counted"/>, its steps from there (read only where marked).
+        ///     buffers' marks and, when <paramref name="counted"/>, its steps from there (read only where marked). With
+        ///     <paramref name="open"/>, the cells a barrier mask holds closed are walked as open.
         /// </summary>
-        private static void Walk(byte[] grid, int bytesPerRow, int width, int height, Vector2 start, GridWalks walks, bool counted)
+        private static void Walk(byte[] grid, int bytesPerRow, int width, int height, Vector2 start, GridWalks walks, bool counted, byte[]? open = null)
         {
             var marks = walks.Fit(width * height, counted);
             var steps = walks.Steps;
@@ -216,7 +221,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var index = (y * width) + x;
-                if (marks[index] == 0 && Walkable(grid, bytesPerRow, x, y))
+                if (marks[index] == 0 && Walkable(grid, open, bytesPerRow, x, y))
                 {
                     marks[index] = Reached;
                     if (counted)
@@ -237,6 +242,9 @@ namespace Poe2Accessibility.Services
         {
             public byte[] Marks = Array.Empty<byte>();
             public int[] Steps = Array.Empty<int>();
+
+            /// <summary>Per cell, the barrier a walk past barriers reached it through (0: none); sized on first use.</summary>
+            public int[] Labels = Array.Empty<int>();
 
             /// <summary>The cells to walk from next: as long as the walk's widest front, not the grid.</summary>
             public readonly Queue<int> Queue = new();
@@ -259,6 +267,21 @@ namespace Poe2Accessibility.Services
                 }
 
                 return this.Marks;
+            }
+
+            /// <summary>Labels for <paramref name="cells"/>, all cleared.</summary>
+            public int[] FitLabels(int cells)
+            {
+                if (this.Labels.Length == cells)
+                {
+                    Array.Clear(this.Labels);
+                }
+                else
+                {
+                    this.Labels = new int[cells];
+                }
+
+                return this.Labels;
             }
         }
 

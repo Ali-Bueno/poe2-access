@@ -315,6 +315,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Walks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Parts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.LeftBehind.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Barriers.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LeftBehindWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TrailField.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaLayouts.cs" />

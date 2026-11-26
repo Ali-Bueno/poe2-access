@@ -22,7 +22,84 @@ namespace Poe2Accessibility.Tests
             (nameof(EachLeagueRingsWithItsOwnSound), EachLeagueRingsWithItsOwnSound),
             (nameof(GoingRoundInCirclesCountsSinceTheLastNewGround), GoingRoundInCirclesCountsSinceTheLastNewGround),
             (nameof(AFarCharacterIsDrawnOnlyInTown), AFarCharacterIsDrawnOnlyInTown),
+            (nameof(GroundPastAClosedGateIsOnePlaceAtTheGate), GroundPastAClosedGateIsOnePlaceAtTheGate),
+            (nameof(ANookBehindAGateIsNoPlace), ANookBehindAGateIsNoPlace),
+            (nameof(GroundAlsoReachedRoundTheGateIsNotBehindIt), GroundAlsoReachedRoundTheGateIsNotBehindIt),
+            (nameof(AGateRememberedInTwoPiecesIsOnePlace), AGateRememberedInTwoPiecesIsOnePlace),
         };
+
+        private const int PenWidth = 900, PenHeight = 400, PenRow = PenWidth / 2;
+        private static readonly Vector2 PenPlayer = new(60, 200);
+
+        /// <summary>
+        ///     The Crowbell's pen in small (Hunting Grounds, 2026-11-26): a pen, a corridor east, and past a gate the barrier
+        ///     memory holds closed at x 120-127, whatever the rooms beyond. The gate is wall in the routed grid and set in
+        ///     the mask on <paramref name="maskRows"/> (all its rows when none are given).
+        /// </summary>
+        private static (byte[] Grid, byte[] Mask) Pen(int gateTop, int gateBottom, IEnumerable<int>? maskRows, params (int Left, int Top, int Right, int Bottom)[] rooms)
+        {
+            var grid = MapRadarTests.Carved(PenWidth, PenHeight, rooms);
+            var mask = new byte[grid.Length];
+            var masked = (maskRows ?? Enumerable.Range(gateTop, gateBottom - gateTop)).ToHashSet();
+            for (var y = gateTop; y < gateBottom; y++)
+            {
+                for (var b = 60; b < 64; b++)
+                {
+                    grid[(y * PenRow) + b] = 0;
+                    mask[(y * PenRow) + b] = masked.Contains(y) ? (byte)0xFF : (byte)0;
+                }
+            }
+
+            return (grid, mask);
+        }
+
+        private static void GroundPastAClosedGateIsOnePlaceAtTheGate()
+        {
+            var (grid, mask) = Pen(196, 204, null, (20, 180, 100, 220), (100, 196, 200, 204), (200, 0, 880, 390));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            Equal(0, map.Frontier(grid, PenRow, PenPlayer, 8).Count, "without the mask: nothing left, as today");
+            Equal(100, map.ExploredPercent(grid, PenRow, PenPlayer), "and all of it seen, as today");
+            var places = map.Frontier(grid, PenRow, PenPlayer, 8, null, mask);
+            Equal(1, places.Count, "one place");
+            Equal(true, places[0].BehindBarrier && places[0].Size == UnseenSize.Large, "large ground behind the gate");
+            Equal(true, places[0].Cell.X is > 110 and < 120 && places[0].Cell.Y is > 196 and < 204, "on the near side of the gate");
+            Equal(true, places[0].Steps is > 50 and < 70, "with the walk to it");
+            Equal(true, map.ExploredPercent(grid, PenRow, PenPlayer, mask) < 20, "the share counts the hall behind");
+            var frame = MapCorner.Frame(grid, PenRow, new Vector2(1, 0), new Vector2(0, 1))!.Value;
+            Equal(true, map.Parts(frame).Any(part => !part.Explored), "a part still has ground that goes on");
+            Equal(true, ExplorationMap.Rank(ExplorationMap.SmallKind) < ExplorationMap.Rank(ExplorationMap.BarrierGroundKind) &&
+                        ExplorationMap.Rank(ExplorationMap.BarrierGroundKind) < ExplorationMap.Rank(ExplorationMap.PocketKind),
+                "after what soon ends, before nooks");
+        }
+
+        private static void ANookBehindAGateIsNoPlace()
+        {
+            var (grid, mask) = Pen(196, 204, null, (20, 180, 100, 220), (100, 196, 200, 204), (200, 190, 216, 210));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            Equal(0, map.Frontier(grid, PenRow, PenPlayer, 8, null, mask).Count, "a nook behind a gate is no place");
+            var frame = MapCorner.Frame(grid, PenRow, new Vector2(1, 0), new Vector2(0, 1))!.Value;
+            Equal(true, map.Parts(frame).All(part => part.Explored), "and leaves no part to explore");
+        }
+
+        private static void GroundAlsoReachedRoundTheGateIsNotBehindIt()
+        {
+            var (grid, mask) = Pen(196, 204, null, (20, 180, 100, 220), (100, 196, 200, 204), (200, 0, 880, 390), (56, 52, 64, 180), (56, 52, 210, 60));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            var places = map.Frontier(grid, PenRow, PenPlayer, 8, null, mask);
+            Equal(true, places.Count >= 1, "the way round is unexplored ground");
+            Equal(true, places.All(place => !place.BehindBarrier), "nothing is behind the gate");
+        }
+
+        private static void AGateRememberedInTwoPiecesIsOnePlace()
+        {
+            var (grid, mask) = Pen(194, 208, Enumerable.Range(194, 6).Concat(Enumerable.Range(203, 5)), (20, 180, 100, 220), (100, 194, 200, 208), (200, 0, 880, 390));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            Equal(1, map.Frontier(grid, PenRow, PenPlayer, 8, null, mask).Count(place => place.BehindBarrier), "one gate, one place");
+        }
 
         private static void AFarCharacterIsDrawnOnlyInTown()
         {
