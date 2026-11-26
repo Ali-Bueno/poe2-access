@@ -37,8 +37,34 @@ namespace Poe2Accessibility.Services
             this.sampleMs = sampleMs;
         }
 
+        /// <summary>The closed cells last lent, with the grid for routes they were read from.</summary>
+        private (byte[] Grid, byte[]? Mask)? lent;
+
         /// <summary>Gets how many cells the barrier memory holds closed.</summary>
         public int ClosedCells => this.barriers.ClosedCount;
+
+        /// <summary>
+        ///     The cells the grid for routes holds closed that were once walkable (<see cref="BarrierMemory.ClosedOf"/>): the
+        ///     barriers for the exploration map to look past. Read again only when that grid changed: the same array while it
+        ///     did not. Shared, and not to be written to; null before a sample or while none is closed.
+        /// </summary>
+        public byte[]? ClosedMask()
+        {
+            if (this.stable is not { } routes)
+            {
+                return null;
+            }
+
+            if (this.lent is not { } kept || !ReferenceEquals(kept.Grid, routes.Grid))
+            {
+                this.lent = (routes.Grid, this.barriers.ClosedOf(routes.Grid));
+            }
+
+            return this.lent.Value.Mask;
+        }
+
+        /// <summary>Whether a barrier routes hold closed (<see cref="ClosedMask"/>) lies within <paramref name="radius"/> cells of a grid cell.</summary>
+        public bool ClosedNear(int x, int y, int radius, int bytesPerRow) => BarrierMemory.AnyNear(this.ClosedMask(), x, y, radius, bytesPerRow);
 
         /// <summary>
         ///     The grid to answer with without reading the game: the one combined last, while it has <paramref name="cells"/>
@@ -64,6 +90,7 @@ namespace Poe2Accessibility.Services
         {
             this.Forget();
             this.barriers.Reset();
+            this.lent = null;
         }
 
         /// <summary>

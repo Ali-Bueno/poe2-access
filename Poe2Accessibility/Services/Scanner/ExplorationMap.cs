@@ -23,11 +23,16 @@ namespace Poe2Accessibility.Services
         /// <summary>A scanner entry's kind for unseen ground that soon ends (<see cref="UnseenSize.Small"/>).</summary>
         public const string SmallKind = "small_unexplored";
 
+        /// <summary>A scanner entry's kind for unseen ground past a closed barrier (<see cref="FrontierPlace.BehindBarrier"/>).</summary>
+        public const string BarrierGroundKind = "barrier_ground";
+
         /// <summary>
         ///     Where a scanner entry of the unexplored category stands among them by its kind: ground that goes on, then a door
-        ///     not opened yet (<see cref="ClosedDoors"/>: it may be the way on), then what soon ends, then nooks.
+        ///     not opened yet (<see cref="ClosedDoors"/>: it may be the way on), then what soon ends, then ground behind a closed
+        ///     barrier (the player cannot open it: only once nothing open is left), then nooks.
         /// </summary>
-        public static int Rank(string kind) => kind == PocketKind ? 3 : kind == SmallKind ? 2 : kind == ClosedDoors.Kind ? 1 : 0;
+        public static int Rank(string kind) =>
+            kind == PocketKind ? 4 : kind == BarrierGroundKind ? 3 : kind == SmallKind ? 2 : kind == ClosedDoors.Kind ? 1 : 0;
 
 
         /// <summary>The fog the game clears around a character with no light radius, measured on its map (docs/research/minimap.md "The fog").</summary>
@@ -86,6 +91,15 @@ namespace Poe2Accessibility.Services
 
         private static readonly (bool[], int[], int) NoGround = (Array.Empty<bool>(), Array.Empty<int>(), 0);
 
+        /// <summary>
+        ///     What the last <see cref="Frontier"/> found past closed barriers: the blocks reached only through one, and the
+        ///     unseen ground behind that barrier; empty without a barrier mask. The map's parts count it, the player's
+        ///     ground (<see cref="OnPlayersGround"/>) and the radar's marks do not.
+        /// </summary>
+        private (bool[] Behind, int[] BehindGround) behind = NoBehind;
+
+        private static readonly (bool[], int[]) NoBehind = (Array.Empty<bool>(), Array.Empty<int>());
+
         /// <summary>The buffers of this map's own walks, and those lent to its snapshots (one frontier at a time).</summary>
         private GridWalks walks = new();
         private GridWalks? lent;
@@ -99,6 +113,7 @@ namespace Poe2Accessibility.Services
             this.seen = Array.Empty<bool>();
             this.blocksX = this.blocksY = 0;
             this.ground = NoGround;
+            this.behind = NoBehind;
             this.SeenBlocks = 0;
             this.walks = new GridWalks();
             this.lent = null;
@@ -119,6 +134,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.ground = snapshot.ground;
+            this.behind = snapshot.behind;
             return true;
         }
 
@@ -162,6 +178,7 @@ namespace Poe2Accessibility.Services
 
             (this.blocksX, this.blocksY, this.seen) = (bx, by, seen);
             this.ground = NoGround;
+            this.behind = NoBehind;
             this.SeenBlocks = seen.Count(block => block);
             return true;
         }
@@ -180,6 +197,7 @@ namespace Poe2Accessibility.Services
             {
                 (this.blocksX, this.blocksY, this.seen) = (bx, by, new bool[bx * by]);
                 this.ground = NoGround;
+                this.behind = NoBehind;
                 this.SeenBlocks = 0;
             }
 
@@ -221,9 +239,16 @@ namespace Poe2Accessibility.Services
         Large,
     }
 
-    /// <summary>An unexplored place: where unseen ground begins, how much of it there is, the walk to it (cells) and the known goals the walk to which passes it.</summary>
-    public readonly record struct FrontierPlace(Vector2 Cell, UnseenSize Size, int Steps, IReadOnlyList<int> LeadsTo)
+    /// <summary>
+    ///     An unexplored place: where unseen ground begins, how much of it there is, the walk to it (cells) and the known goals
+    ///     the walk to which passes it. <paramref name="BehindBarrier"/>: the ground lies past a closed barrier, and the place
+    ///     is the barrier's near side.
+    /// </summary>
+    public readonly record struct FrontierPlace(Vector2 Cell, UnseenSize Size, int Steps, IReadOnlyList<int> LeadsTo, bool BehindBarrier = false)
     {
+        /// <summary>For a place behind a barrier, the barrier's own first cell: the same wherever the player stands, so the gate keeps one identity.</summary>
+        public Vector2 Barrier { get; init; }
+
         public bool Pocket => this.Size == UnseenSize.Pocket;
     }
 }

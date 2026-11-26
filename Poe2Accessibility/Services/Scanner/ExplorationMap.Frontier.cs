@@ -8,15 +8,19 @@ namespace Poe2Accessibility.Services
     /// <summary>The frontier of <see cref="ExplorationMap"/>: the explored share, the unexplored places and how much ground lies behind each, from the survey of reachable blocks.</summary>
     public sealed partial class ExplorationMap
     {
-        /// <summary>Whole percent of the ground reachable from <paramref name="from"/> that has been seen (D2R explored share); null without a grid.</summary>
-        public int? ExploredPercent(byte[] grid, int bytesPerRow, Vector2 from)
+        /// <summary>
+        ///     Whole percent of the ground reachable from <paramref name="from"/> that has been seen (D2R explored share); null
+        ///     without a grid. With <paramref name="closedMask"/>, the ground past the barriers it holds closed counts too: a
+        ///     player penned in by a gate has not explored the map (Hunting Grounds, 2026-11-26).
+        /// </summary>
+        public int? ExploredPercent(byte[] grid, int bytesPerRow, Vector2 from, byte[]? closedMask = null)
         {
             if (!this.Fits(grid, bytesPerRow, out var width, out var height))
             {
                 return null;
             }
 
-            var reachable = this.Reachable(grid, bytesPerRow, width, height, from);
+            var reachable = this.Reachable(grid, bytesPerRow, width, height, from, closedMask?.Length == grid.Length ? closedMask : null);
             int total = 0, seenBlocks = 0;
             for (var i = 0; i < reachable.Length; i++)
             {
@@ -31,8 +35,11 @@ namespace Poe2Accessibility.Services
         ///     Places to head for, one per unexplored group and direction, each with the size of the unseen ground behind it:
         ///     ground that goes on first, then what soon ends, then pockets, nearest first. A place the walk to one of
         ///     <paramref name="goals"/> (grid cells) passes carries its index, and is kept past <paramref name="maxEntries"/>.
+        ///     With <paramref name="closedMask"/> (the cells the barrier memory holds closed), then one place per barrier with
+        ///     unseen ground past it, at its near side, also kept past <paramref name="maxEntries"/>. Unseen ground on the walk to
+        ///     one of <paramref name="exits"/> (grid cells the area's tiles place exits at) is no pocket, and is not named.
         /// </summary>
-        public IReadOnlyList<FrontierPlace> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries, IReadOnlyList<Vector2>? goals = null)
+        public IReadOnlyList<FrontierPlace> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries, IReadOnlyList<Vector2>? goals = null, byte[]? closedMask = null, IReadOnlyList<Vector2>? exits = null)
         {
             if (!this.Fits(grid, bytesPerRow, out var width, out var height))
             {
@@ -79,27 +86,60 @@ namespace Poe2Accessibility.Services
             }
 
             var groups = frontier.GroupBy(block => (run[block], Octant(this.Centre(block) - from)));
-            var leads = this.BlocksLeadingTo(grid, bytesPerRow, from, goals ?? Array.Empty<Vector2>(), inFrontier);
+            var goalCells = goals ?? Array.Empty<Vector2>();
+            var leads = this.BlocksLeadingTo(grid, bytesPerRow, from, goalCells, inFrontier);
+            // The unseen ground on the walk to an exit the area's tiles place goes somewhere, however small: no nook, and
+            // not named (Hunting Grounds, 2026-11-26: Freythorn's road ended at the map's edge and was passed by as a nook).
+            // An exit that is also a known goal (a quest's exit) keeps that goal's walk: two whole-grid walks each.
+            var toExits = new HashSet<int>();
+            var exitsToWalk = new List<Vector2>();
+            foreach (var exit in exits ?? Array.Empty<Vector2>())
+            {
+                var same = Enumerable.Range(0, goalCells.Count).Where(goal => Vector2.DistanceSquared(goalCells[goal], exit) <= BlockCells * BlockCells).ToList();
+                if (same.Count == 0)
+                {
+                    exitsToWalk.Add(exit);
+                }
+                else
+                {
+                    toExits.UnionWith(leads.Where(lead => same.Contains(lead.Goal)).Select(lead => lead.Block));
+                }
+            }
+
+            toExits.UnionWith(this.BlocksLeadingTo(grid, bytesPerRow, from, exitsToWalk, inFrontier).Select(lead => lead.Block));
             var targets = new List<(FrontierPlace Place, float Distance)>();
             foreach (var group in groups)
             {
                 var nearest = group.OrderBy(block => Vector2.DistanceSquared(this.Centre(block), from)).First();
                 var leadsTo = leads.Where(lead => group.Contains(lead.Block)).Select(lead => lead.Goal).ToList();
-                if (leadsTo.Count == 0 && group.Count() < MinGroupBlocks && unseenGround[nearest] < PocketBlocks)
+                var toExit = group.Any(toExits.Contains);
+                if (leadsTo.Count == 0 && !toExit && group.Count() < MinGroupBlocks && unseenGround[nearest] < PocketBlocks)
                 {
                     continue; // a narrow gap counts when ground goes on behind it
                 }
 
+                var size = SizeOf(unseenGround[nearest]);
                 if (NearestWalkable(grid, bytesPerRow, width, height, this.Centre(nearest)) is { } cell)
                 {
-                    targets.Add((new FrontierPlace(cell, SizeOf(unseenGround[nearest]), walk[nearest], leadsTo), Vector2.Distance(cell, from)));
+                    targets.Add((new FrontierPlace(cell, toExit && size == UnseenSize.Pocket ? UnseenSize.Small : size, walk[nearest], leadsTo), Vector2.Distance(cell, from)));
                 }
             }
 
             var best = targets.Count == 0 ? UnseenSize.Pocket : targets.Max(target => target.Place.Size);
             this.ground = (reachable, unseenGround, best == UnseenSize.Pocket ? 0 : PocketBlocks);
-            return targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Select(target => target.Place)
+            var places = targets.OrderBy(target => RankOf(target.Place.Size)).ThenBy(target => target.Distance).Select(target => target.Place)
                 .Where((place, index) => index < maxEntries || place.LeadsTo.Count > 0).ToList();
+            if (closedMask?.Length != grid.Length)
+            {
+                this.behind = NoBehind;
+                return places;
+            }
+
+            var behind = new bool[reachable.Length];
+            var behindGround = new int[reachable.Length];
+            places.AddRange(this.BarrierPlaces(grid, bytesPerRow, width, height, from, closedMask, behind, behindGround));
+            this.behind = (behind, behindGround);
+            return places;
         }
 
         /// <summary>Per goal, the frontier block where the walk to it leaves the seen ground (<see cref="WayOn"/>), or the frontier block beside it.</summary>
@@ -166,7 +206,7 @@ namespace Poe2Accessibility.Services
         ///     Blocks holding a walkable cell joined to the player's cell through walkable cells (four neighbours, cell
         ///     level: a wall two cells thick inside a block still separates its sides).
         /// </summary>
-        private bool[] Reachable(byte[] grid, int bytesPerRow, int width, int height, Vector2 from)
+        private bool[] Reachable(byte[] grid, int bytesPerRow, int width, int height, Vector2 from, byte[]? open = null)
         {
             var reachable = new bool[this.blocksX * this.blocksY];
             if (NearestWalkable(grid, bytesPerRow, width, height, from) is not { } start)
@@ -176,7 +216,7 @@ namespace Poe2Accessibility.Services
 
             lock (this.walks)
             {
-                Walk(grid, bytesPerRow, width, height, start, this.walks, false);
+                Walk(grid, bytesPerRow, width, height, start, this.walks, false, open);
                 var marks = this.walks.Marks;
                 for (var cell = 0; cell < width * height; cell++)
                 {

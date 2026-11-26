@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(ADoorThatOpensIsOpenOnceFourSamplesAgree), ADoorThatOpensIsOpenOnceFourSamplesAgree),
+            (nameof(TheMaskHoldsAGateWhileRoutesDo), TheMaskHoldsAGateWhileRoutesDo),
             (nameof(AFlickeringBarrierStaysClosed), AFlickeringBarrierStaysClosed),
             (nameof(ABarrierTheMemoryForgetsOpensThoughTheSamplesAreTheSame), ABarrierTheMemoryForgetsOpensThoughTheSamplesAreTheSame),
             (nameof(AGridOfAnotherLengthStartsOver), AGridOfAnotherLengthStartsOver),
@@ -133,6 +134,43 @@ namespace Poe2Accessibility.Tests
                 this.Memory.Apply(grid);
                 return grid;
             }
+        }
+
+        /// <summary>
+        ///     The cells the exploration map looks past are those routes hold shut and that were once open: a gate that opens
+        ///     by the player leaves the mask with the fourth open sample, as routes open, never before (review, 2026-11-26: the
+        ///     map said "explored" for the two seconds between).
+        /// </summary>
+        private static void TheMaskHoldsAGateWhileRoutesDo()
+        {
+            var samples = new GridSamples(MaxSamples, SampleMs);
+            var closed = Grid(doorOpen: false);
+            var open = Grid(doorOpen: true);
+            long now = 0;
+            Expect(true, samples.ClosedMask() == null, "nothing sampled: no mask");
+            for (var sample = 0; sample < 4; sample++)
+            {
+                samples.Add(now += SampleMs, closed, open, Row, Near);
+            }
+
+            Expect(true, samples.ClosedMask() is { } shut && shut[Door] == 0xFF, "open as the area loaded, shut now: in the mask");
+            Expect(true, samples.ClosedNear((Door * 2) + 3, 0, 4, Row), "and shut by its cell");
+            Expect(false, samples.ClosedNear(10, 0, 4, Row), "nothing shut far from it");
+            for (var sample = 1; sample <= 3; sample++)
+            {
+                Expect(false, IsOpen(samples.Add(now += SampleMs, open, open, Row, Near)), $"open sample {sample} of four: routes still shut");
+                Expect(true, samples.ClosedMask() is { } held && held[Door] == 0xFF, $"open sample {sample} of four: still in the mask");
+                Expect(true, samples.ClosedNear(Door * 2, 0, 4, Row), $"open sample {sample} of four: still shut by its cell");
+            }
+
+            Expect(true, IsOpen(samples.Add(now += SampleMs, open, open, Row, Near)), "the fourth open sample opens routes");
+            Expect(true, samples.ClosedMask() == null, "and empties the mask");
+            Expect(false, samples.ClosedNear(Door * 2, 0, 4, Row), "and the gate is no longer shut");
+
+            // Shut at load and never seen open: a wall, not a barrier to look past.
+            var walled = new GridSamples(MaxSamples, SampleMs);
+            walled.Add(SampleMs, closed, closed, Row, Near);
+            Expect(true, walled.ClosedMask() == null, "never open: no mask");
         }
 
         private static void ADoorThatOpensIsOpenOnceFourSamplesAgree()

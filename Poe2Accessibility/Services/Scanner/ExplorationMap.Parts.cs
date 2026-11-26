@@ -21,13 +21,16 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<MapPart>();
             }
 
+            // Ground past a closed barrier is ground of the map still to explore (Hunting Grounds, 2026-11-26).
+            var (behind, behindGround) = this.behind.Behind.Length == reachable.Length ? this.behind : (new bool[reachable.Length], new int[reachable.Length]);
+
             var total = new int[PartsAcross * PartsAcross];
             var seenBlocks = new int[total.Length];
             var goesOn = new int[total.Length];
             var splits = frame.Splits(SeenRadiusCells);
             for (var block = 0; block < reachable.Length; block++)
             {
-                if (!reachable[block])
+                if (!reachable[block] && !behind[block])
                 {
                     continue;
                 }
@@ -39,7 +42,7 @@ namespace Poe2Accessibility.Services
                 {
                     seenBlocks[part]++;
                 }
-                else if (unseenGround[block] >= PocketBlocks)
+                else if (Math.Max(unseenGround[block], behindGround[block]) >= PocketBlocks)
                 {
                     goesOn[part]++;
                 }

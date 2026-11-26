@@ -296,6 +296,7 @@ namespace Poe2Accessibility.Services
             // with the lost hint for a last resort (user 2026-11-05, over the marker of 2026-10-24; docs/radar.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
             var tracker = this.QuestTexts();
+            this.tried.NoteQuest(this.QuestObjectives()); // a new quest step may have opened a barrier found shut
             var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => this.QuestGoals.QuestLinesOf(tracker, Localization.Language));
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
             sorted.InsertRange(0, this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>());

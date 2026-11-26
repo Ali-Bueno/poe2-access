@@ -1,0 +1,150 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Numerics;
+
+    /// <summary>
+    ///     How the unseen ground past a closed barrier (<see cref="ExplorationMap.BarrierGroundKind"/>) is chosen: what the
+    ///     exploring guide may still take, and which barriers are a door's. Pure.
+    ///     docs/superpowers/specs/2026-11-26-ground-behind-closed-barriers-design.md.
+    /// </summary>
+    public static class BarrierGround
+    {
+        /// <summary>A barrier this near a door the player opens is that door: its ground is the door's entry (cells).</summary>
+        public const float DoorCells = 12f;
+
+        /// <summary>
+        ///     The entries the exploring guide may still go on to: ground not seen yet, and the ground behind a barrier not
+        ///     found shut since something changed. Its place is the barrier's near side, seen ground, so seen says nothing of it.
+        /// </summary>
+        public static List<ScanEntry> StillToTry(IEnumerable<ScanEntry> found, Func<ScanEntry, bool> seen, TriedBarriers tried) =>
+            found.Where(entry => entry.Kind == ExplorationMap.BarrierGroundKind ? !tried.Contains(entry.Id) : !seen(entry)).ToList();
+
+        /// <summary>
+        ///     Whether the exploring guide names the ground it turns to: ground apart from the last as before, and a gate
+        ///     always, however near, so "Still closed" never comes of a target the player was not told of (review, 2026-11-26).
+        /// </summary>
+        public static bool SaysNext(bool apart, string kind) => apart || kind == ExplorationMap.BarrierGroundKind;
+
+        /// <summary>
+        ///     The unexplored places of the best rank left (<see cref="ExplorationMap.Rank"/>). Without barriers for the lost hint
+        ///     and the circling line, which point at ground the player can walk onto: a gate in a pen would be pointed at every
+        ///     thirty seconds, shut or not (review, 2026-11-26).
+        /// </summary>
+        public static List<ScanEntry> Best(IEnumerable<ScanEntry> places, bool withBarriers)
+        {
+            var kept = places.Where(entry => withBarriers || entry.Kind != ExplorationMap.BarrierGroundKind).ToList();
+            var best = kept.Count == 0 ? 0 : kept.Min(entry => ExplorationMap.Rank(entry.Kind));
+            return kept.Where(entry => ExplorationMap.Rank(entry.Kind) == best).ToList();
+        }
+
+        /// <summary>
+        ///     The entries of ground behind a barrier whose gate is shut now: the list is up to two seconds old, and a gate that
+        ///     opened since is never named as closed (live, 2026-11-26: "The way opened", then "The closed barrier is 10 steps away").
+        /// </summary>
+        public static List<ScanEntry> ShutGates(IEnumerable<ScanEntry> entries, Func<ScanEntry, bool> shut) =>
+            entries.Where(entry => entry.Kind == ExplorationMap.BarrierGroundKind && shut(entry)).ToList();
+
+        /// <summary>
+        ///     Whether the exploring guide, its way cut by a shut gate, turns to that gate's entry ("Next: … behind a closed
+        ///     barrier") instead of waiting quietly where the way stops: then through the gate if it opens, "Still closed" if not
+        ///     (user, 2026-11-26). A plain guide keeps its target, as before; a gate found shut is not taken again.
+        /// </summary>
+        public static bool TurnsToGate(bool exploring, bool cutByBarrier, string targetKind, bool gateToTry) =>
+            exploring && cutByBarrier && targetKind != ExplorationMap.BarrierGroundKind && gateToTry;
+
+        /// <summary>The places without the barriers that stand at a door (grid cells): a shut door has its own "Unopened door" entry.</summary>
+        public static List<FrontierPlace> AwayFromDoors(IEnumerable<FrontierPlace> places, IReadOnlyCollection<Vector2> doorCells) =>
+            places.Where(place => !place.BehindBarrier || !doorCells.Any(door => Vector2.Distance(door, place.Cell) <= DoorCells)).ToList();
+    }
+
+    /// <summary>
+    ///     The barriers the guide found still shut, by entry id: the exploring guide does not lead to them again until
+    ///     something changes, a boss's defeat or the quest's next step (<see cref="Retry"/>, <see cref="NoteQuest"/>). Pure.
+    /// </summary>
+    public sealed class TriedBarriers
+    {
+        private readonly HashSet<uint> tried = new();
+        private string? quest;
+
+        /// <summary>The guide found this barrier shut.</summary>
+        public void Tried(uint id) => this.tried.Add(id);
+
+        public bool Contains(uint id) => this.tried.Contains(id);
+
+        /// <summary>Forgets the barriers no longer listed: a gate seen open leaves the list, and is tried afresh if it shuts again.</summary>
+        public void KeepOnly(IReadOnlyCollection<uint> listed) => this.tried.IntersectWith(listed);
+
+        /// <summary>Something changed (a boss fell): every barrier may be tried again.</summary>
+        public void Retry() => this.tried.Clear();
+
+        /// <summary>A new area: nothing tried, no quest step known.</summary>
+        public void Clear()
+        {
+            this.tried.Clear();
+            this.quest = null;
+        }
+
+        /// <summary>
+        ///     The quest's objective lines now: a step that changed may have opened a barrier. The first reading only records,
+        ///     and an empty one (the tracker hidden or not read) is no step at all.
+        /// </summary>
+        public void NoteQuest(IReadOnlyList<string> texts)
+        {
+            if (texts.Count == 0)
+            {
+                return;
+            }
+
+            var now = string.Join("\n", texts);
+            if (this.quest != null && this.quest != now)
+            {
+                this.Retry();
+            }
+
+            this.quest = now;
+        }
+    }
+}
+
+namespace Poe2Accessibility.Services
+{
+    /// <summary>
+    ///     The guide's moment at a shut gate before it says "Still closed": a trap gate opened as the player came within two
+    ///     steps, and the guide arrives at a step and a half (Hunting Grounds, live, 2026-11-26). Pure; times in ms.
+    /// </summary>
+    public sealed class GateWait
+    {
+        /// <summary>How long a gate must stay shut with the player at it.</summary>
+        public const long GraceMs = 3000;
+
+        /// <summary>Asked less often than this, the player was not at the gate in between: the wait starts over.</summary>
+        private const long GapMs = 500;
+
+        private long? since;
+        private long last;
+
+        /// <summary>True once the gate stayed shut for the whole grace, false when it is open, null while waiting.</summary>
+        public bool? Verdict(bool shut, long now)
+        {
+            if (!shut)
+            {
+                this.since = null;
+                return false;
+            }
+
+            if (this.since == null || now - this.last > GapMs)
+            {
+                this.since = now;
+            }
+
+            this.last = now;
+            return now - this.since >= GraceMs ? true : null;
+        }
+
+        /// <summary>Another target: no wait under way.</summary>
+        public void Reset() => this.since = null;
+    }
+}

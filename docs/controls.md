@@ -97,7 +97,14 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   ground never seen begins, one entry per stretch and direction, named by how much lies behind it, as a look at the
   map tells a sighted player: "Large unexplored ground" (a good part of the area) and "Unexplored ground, 7 steps, left"
   where it goes on, nearest first; then "Small unexplored ground", a room or a short branch that soon ends; then
-  "Unexplored nook" where one look from its edge would show it all, a dead end. The size is of the ground you would
+  "Unexplored nook" where one look from its edge would show it all, a dead end. Ground on the way to an exit the map's
+  tiles place is never a nook, however short (the road to Freythorn ends at the map's edge); the exit itself is named only
+  once seen. Unseen ground past a closed barrier you
+  have seen shut is one entry per barrier, "Large unexplored ground behind a closed barrier", standing at the near side
+  of the gate, after all the ground you can reach and before nooks. Guided there, the guide goes on through the gate if it
+  opens as you come up to it (it waits a few seconds there), and otherwise says "Still closed", with "The Crowbell is alive
+  in here" when a boss is alive on your side, and turns off, and the entry
+  stays listed. The size is of the ground you would
   reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
   the wall. An exit not known yet is never told; ground that leads to a place you know of and have not reached (an exit
   already listed, a boss room the map points to, what the quest asks) says so: "Large unexplored ground, toward The
@@ -154,14 +161,20 @@ is said. The same gesture turns it off.
 **Exploring** (setting "Guide to unexplored ground goes on to the next", Navigation, on by default): guiding to an unexplored
 entry does not end there. Near the ground it led to, once you have seen it, the guide takes the unseen ground beside it
 without a word, the ping going on; when that way is done it says the next, "Next: Unexplored ground, 40 steps, down left".
-It ends with "Nothing left to explore within reach but nooks"; the same gesture turns it off. It knows only what you have
-seen: which way to take at a fork is still yours.
+It ends with "Nothing left to explore within reach but nooks", followed by the nearest ground behind a closed barrier when
+one is left ("Large unexplored ground behind a closed barrier, 42 steps, left"); the same gesture turns it off. It goes on
+to ground behind a barrier only once nothing open is left, and not again to a gate it found shut until a boss falls or
+the quest moves on. When the way to the ground it leads to turns out to pass a shut gate, it says so as the next ground
+("Next: Unexplored ground behind a closed barrier, 10 steps, left") and leads to the gate instead of waiting where the
+way stops. When a boss falls while ground behind a barrier is listed, "The closed barrier is 42 steps away"
+follows the boss's "defeated". It knows only what you have seen: which way to take at a fork is still yours.
 
 ## Glance at the map (gameplay)
 
 Hold the left trigger (L2, LT) and press the right stick (R3), without L3: "Explored 60 percent. You are at: Middle of
 the map. Left to explore: Top right corner, 4 percent; Right edge, 30 percent. Large unexplored ground, 40 steps, left
-3, then up". It is what a look at the large map tells: how much of the ground you can reach you have seen, the part of
+3, then up". It is what a look at the large map tells: how much of the ground you can reach you have seen (ground past a
+closed barrier counts too, so being shut in by a gate is never "explored"), the part of
 the map you are in (thirds across and down, as on entering the area), the parts where ground that goes on is left with
 how much of each you have seen, and the three nearest unexplored stretches with their way. A small map has no parts and
 says the share and the stretches alone. After the share comes whether the map changes (below). The left trigger alone only shows the second skill set, as ever.

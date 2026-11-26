@@ -367,7 +367,14 @@ namespace Poe2Accessibility
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
-                this.bosses.Defeated = name => this.entities?.BossDefeated(name);
+                this.bosses.Defeated = name =>
+                {
+                    this.entities?.BossDefeated(name);
+                    if (this.entities?.BarrierAfterDefeat() is { } line)
+                    {
+                        this.output?.Say(SpeechKind.Arrivals, line); // after the boss watch's own "defeated"
+                    }
+                };
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log)
                 {
                     Hiding = () => this.bosses?.Mechanics?.LeadTo,
@@ -510,6 +517,7 @@ namespace Poe2Accessibility
                 this.commands.Inspect = this.inspect;
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.entities.QuestObjectives = this.QuestObjectives;
                 this.entities.QuestItemsCarried = () => this.pickups?.QuestItems ?? (System.Collections.Generic.IReadOnlyCollection<string>)Array.Empty<string>();
                 this.entities.CrystalsCounted = () => this.narrator != null && this.screen != null && this.narrator.CrystalsCounted(this.screen.Current);
                 this.entities.RoomsApart = () => this.trialScope.InTrial(Environment.TickCount64);

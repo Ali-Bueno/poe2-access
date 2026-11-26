@@ -22,7 +22,273 @@ namespace Poe2Accessibility.Tests
             (nameof(EachLeagueRingsWithItsOwnSound), EachLeagueRingsWithItsOwnSound),
             (nameof(GoingRoundInCirclesCountsSinceTheLastNewGround), GoingRoundInCirclesCountsSinceTheLastNewGround),
             (nameof(AFarCharacterIsDrawnOnlyInTown), AFarCharacterIsDrawnOnlyInTown),
+            (nameof(GroundPastAClosedGateIsOnePlaceAtTheGate), GroundPastAClosedGateIsOnePlaceAtTheGate),
+            (nameof(ANookBehindAGateIsNoPlace), ANookBehindAGateIsNoPlace),
+            (nameof(GroundAlsoReachedRoundTheGateIsNotBehindIt), GroundAlsoReachedRoundTheGateIsNotBehindIt),
+            (nameof(AGateRememberedInTwoPiecesIsOnePlace), AGateRememberedInTwoPiecesIsOnePlace),
+            (nameof(ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges), ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges),
+            (nameof(GroundBehindADoorIsTheDoorsEntry), GroundBehindADoorIsTheDoorsEntry),
+            (nameof(TheGateIsSaidAsShutWithTheBossWhenOneIsInside), TheGateIsSaidAsShutWithTheBossWhenOneIsInside),
+            (nameof(ATallGateInTwoPiecesIsOneGateFromEitherEnd), ATallGateInTwoPiecesIsOneGateFromEitherEnd),
+            (nameof(OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain), OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain),
+            (nameof(TheExploringGuideNamesAGateItTurnsTo), TheExploringGuideNamesAGateItTurnsTo),
+            (nameof(TheLostHintNeverPointsAtAGate), TheLostHintNeverPointsAtAGate),
+            (nameof(AGateThatOpenedIsNeverNamedAsClosed), AGateThatOpenedIsNeverNamedAsClosed),
+            (nameof(TheGuideWaitsAMomentAtAShutGate), TheGuideWaitsAMomentAtAShutGate),
+            (nameof(GroundHoldingAnExitIsNoNook), GroundHoldingAnExitIsNoNook),
+            (nameof(AnExploringGuideCutByAGateTurnsToIt), AnExploringGuideCutByAGateTurnsToIt),
         };
+
+        /// <summary>
+        ///     Live, 2026-11-26 03:06 and 03:08: the exploring guide's ground lay past a shut gate, and it said "A closed barrier
+        ///     cuts the way…" and waited quietly. The user: it should take the player to the gate, through it if it opens.
+        /// </summary>
+        private static void AnExploringGuideCutByAGateTurnsToIt()
+        {
+            Equal(true, BarrierGround.TurnsToGate(true, true, ExplorationMap.SmallKind, true), "exploring, cut by a gate with an entry to try: to the gate");
+            Equal(false, BarrierGround.TurnsToGate(false, true, ExplorationMap.SmallKind, true), "a plain guide keeps its target, as before");
+            Equal(false, BarrierGround.TurnsToGate(true, false, ExplorationMap.SmallKind, true), "a way not cut by a gate goes on");
+            Equal(false, BarrierGround.TurnsToGate(true, true, ExplorationMap.BarrierGroundKind, true), "already at a gate's entry");
+            Equal(false, BarrierGround.TurnsToGate(true, true, ExplorationMap.SmallKind, false), "no gate to try (none listed, or found shut)");
+        }
+
+        /// <summary>
+        ///     Hunting Grounds, live, 2026-11-26: the road to Freythorn's exit ends at the map's edge, so its unseen ground was
+        ///     a nook, the exploring guide passed it by, and the quest's exit was never found. Ground that holds an exit the
+        ///     area's tiles place (not named until seen) soon ends, but is no nook.
+        /// </summary>
+        private static void GroundHoldingAnExitIsNoNook()
+        {
+            const int width = 900, height = 400;
+            var player = new Vector2(200, 200);
+            // A hall the player stands in, a short road east from it ending at x 360, and a nook west of the hall.
+            var grid = MapRadarTests.Carved(width, height, (100, 150, 300, 250), (300, 196, 360, 204));
+            var map = new ExplorationMap();
+            map.Visit(player, width, height);
+            var plain = map.Frontier(grid, width / 2, player, 8);
+            Equal(true, plain.Count > 0 && plain.All(place => place.Size == UnseenSize.Pocket), "without the exit: all nooks, as before");
+            var exit = new Vector2(355, 200);
+            var places = map.Frontier(grid, width / 2, player, 8, null, null, new[] { exit });
+            Equal(true, places.Any(place => place.Cell.X > 270 && place.Size == UnseenSize.Small), "the road to the exit: small ground, no nook");
+            Equal(true, places.Where(place => place.Cell.X < 130).All(place => place.Size == UnseenSize.Pocket), "the nook away from it stays a nook");
+            Equal(true, places.All(place => place.LeadsTo.Count == 0), "and the exit is not named");
+            var asGoal = map.Frontier(grid, width / 2, player, 8, new[] { exit }, null, new[] { exit });
+            Equal(true, asGoal.Any(place => place.Cell.X > 270 && place.Size == UnseenSize.Small && place.LeadsTo.Count == 1),
+                "an exit that is also a known goal (a quest's exit) reuses the goal's walk: still small ground, and named");
+        }
+
+        /// <summary>
+        ///     Live, 2026-11-26 03:08: the boss's root door opened, then "The Crowbell defeated", then "The closed barrier is 10
+        ///     steps away" for that same door, from a list two seconds old. Only gates still shut now are named.
+        /// </summary>
+        private static void AGateThatOpenedIsNeverNamedAsClosed()
+        {
+            var opened = new ScanEntry(1, ScanCategory.Unexplored, "Unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var shut = new ScanEntry(2, ScanCategory.Unexplored, "Large unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var ground = new ScanEntry(3, ScanCategory.Unexplored, "Small unexplored ground", 0, 0, 0, ExplorationMap.SmallKind);
+            var gates = BarrierGround.ShutGates(new[] { opened, shut, ground }, entry => entry.Id == 2);
+            Equal("2", string.Join(" ", gates.Select(entry => entry.Id)), "the shut gate alone: not the opened one, not open ground");
+        }
+
+        /// <summary>Live, 2026-11-26: a trap gate opened as the player came within two steps, and arrival is a step and a half.</summary>
+        private static void TheGuideWaitsAMomentAtAShutGate()
+        {
+            // The guide asks every frame while the player stands at the gate: a tenth of a second here.
+            var wait = new GateWait();
+            bool? Frames(long from, long to, bool shut)
+            {
+                bool? said = null;
+                for (var now = from; now <= to; now += 100)
+                {
+                    said = wait.Verdict(shut, now);
+                }
+
+                return said;
+            }
+
+            Equal<bool?>(null, wait.Verdict(true, 1000), "shut on arrival: wait");
+            Equal<bool?>(null, Frames(1100, 3900, true), "still waiting");
+            Equal<bool?>(true, wait.Verdict(true, 4000), "shut for the whole grace: still closed");
+            Equal<bool?>(false, wait.Verdict(false, 4100), "open: go on");
+            Equal<bool?>(null, Frames(4200, 6000, true), "shut again: a new wait");
+            Equal<bool?>(null, wait.Verdict(true, 9000), "a gap (the player walked off) starts it over");
+            Equal<bool?>(null, Frames(9100, 11900, true), "waiting again");
+            Equal<bool?>(true, wait.Verdict(true, 12000), "then the grace runs out");
+        }
+
+        /// <summary>
+        ///     The lost hint and the circling line point at ground the player can walk onto, as before: a gate in a pen would
+        ///     be pointed at every thirty seconds, shut or not (review, 2026-11-26; the user asked not to be steered at a shut gate).
+        /// </summary>
+        private static void TheLostHintNeverPointsAtAGate()
+        {
+            var gate = new ScanEntry(1, ScanCategory.Unexplored, "Large unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var nook = new ScanEntry(2, ScanCategory.Unexplored, "Unexplored nook", 0, 0, 0, ExplorationMap.PocketKind);
+            var small = new ScanEntry(3, ScanCategory.Unexplored, "Small unexplored ground", 0, 0, 0, ExplorationMap.SmallKind);
+            Equal("1", string.Join(" ", BarrierGround.Best(new[] { nook, gate }, true).Select(entry => entry.Id)), "the guide's best: the gate before nooks");
+            Equal("2", string.Join(" ", BarrierGround.Best(new[] { nook, gate }, false).Select(entry => entry.Id)), "the hint's best: the nook, as before");
+            Equal("3", string.Join(" ", BarrierGround.Best(new[] { nook, gate, small }, true).Select(entry => entry.Id)), "open ground before either");
+            Equal(0, BarrierGround.Best(Array.Empty<ScanEntry>(), true).Count, "nothing left");
+        }
+
+        /// <summary>
+        ///     A gate 50 rows tall remembered in two pieces (rows 236-275 and 279-285) is one gate, with one place and one
+        ///     identity, whichever end of the pen the player stands at (review, 2026-11-26: two places from one end, and an
+        ///     id that moved with the player, so a gate found shut was offered again).
+        /// </summary>
+        private static void ATallGateInTwoPiecesIsOneGateFromEitherEnd()
+        {
+            var (grid, mask) = Pen(236, 286, Enumerable.Range(236, 40).Concat(Enumerable.Range(279, 7)), (20, 200, 100, 320), (100, 236, 200, 286), (200, 0, 880, 390));
+            var barriers = new List<Vector2>();
+            foreach (var player in new[] { new Vector2(60, 212), new Vector2(60, 308) })
+            {
+                var map = new ExplorationMap();
+                map.Visit(player, PenWidth, PenHeight);
+                var places = map.Frontier(grid, PenRow, player, 8, null, mask).Where(place => place.BehindBarrier).ToList();
+                Equal(1, places.Count, $"one place from {player.Y}");
+                Equal(UnseenSize.Large, places[0].Size, $"large from {player.Y}");
+                barriers.Add(places[0].Barrier);
+            }
+
+            Equal(barriers[0], barriers[1], "the same gate from both ends");
+        }
+
+        private static void OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain()
+        {
+            var tried = new TriedBarriers();
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            tried.Tried(1);
+            tried.NoteQuest(Array.Empty<string>());
+            Equal(true, tried.Contains(1), "an empty reading is no new step");
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            Equal(true, tried.Contains(1), "nor is the same step read again after it");
+            tried.Tried(2);
+            tried.KeepOnly(new uint[] { 2 });
+            Equal(false, tried.Contains(1), "a gate no longer listed (seen open) is forgotten");
+            Equal(true, tried.Contains(2), "one still listed stays tried");
+        }
+
+        private static void TheExploringGuideNamesAGateItTurnsTo()
+        {
+            Equal(false, BarrierGround.SaysNext(false, string.Empty), "ground beside the last goes on silently, as before");
+            Equal(true, BarrierGround.SaysNext(true, string.Empty), "ground apart is named, as before");
+            Equal(true, BarrierGround.SaysNext(false, ExplorationMap.BarrierGroundKind), "a gate is always named, however near");
+        }
+
+        private static void TheGateIsSaidAsShutWithTheBossWhenOneIsInside()
+        {
+            Equal("Large unexplored ground behind a closed barrier", Announcements.UnexploredBehindBarrier(UnseenSize.Large), "the entry");
+            Equal("Still closed", Announcements.StillClosed(null), "no boss: no reason");
+            Equal("Still closed. The Crowbell is alive in here", Announcements.StillClosed("The Crowbell"), "the boss inside");
+            Equal("The closed barrier is 42 steps away", Announcements.BarrierAfterDefeat(42), "after a defeat");
+        }
+
+        private static void ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges()
+        {
+            static string Ids(IEnumerable<ScanEntry> entries) => string.Join(" ", entries.Select(entry => entry.Id));
+            var gate = new ScanEntry(1, ScanCategory.Unexplored, "Large unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var ground = new ScanEntry(2, ScanCategory.Unexplored, "Unexplored ground", 0, 0, 0);
+            var tried = new TriedBarriers();
+            Equal("1", Ids(BarrierGround.StillToTry(new[] { gate }, _ => true, tried)), "a gate on seen ground is still offered");
+            Equal(string.Empty, Ids(BarrierGround.StillToTry(new[] { ground }, _ => true, tried)), "seen open ground is not");
+            tried.Tried(1);
+            Equal(string.Empty, Ids(BarrierGround.StillToTry(new[] { gate }, _ => true, tried)), "found shut: not offered");
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            Equal(string.Empty, Ids(BarrierGround.StillToTry(new[] { gate }, _ => true, tried)), "the first quest reading changes nothing");
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            Equal(true, tried.Contains(1), "the same step: still tried");
+            tried.NoteQuest(new[] { "Kill the King in the Mists" });
+            Equal(false, tried.Contains(1), "a new quest step: offered again");
+            tried.Tried(1);
+            tried.Retry();
+            Equal(false, tried.Contains(1), "a boss died: offered again");
+        }
+
+        private static void GroundBehindADoorIsTheDoorsEntry()
+        {
+            var places = new[]
+            {
+                new FrontierPlace(new Vector2(100, 100), UnseenSize.Large, 50, Array.Empty<int>(), true),
+                new FrontierPlace(new Vector2(400, 100), UnseenSize.Large, 80, Array.Empty<int>(), true),
+                new FrontierPlace(new Vector2(105, 100), UnseenSize.Small, 55, Array.Empty<int>()),
+            };
+            var kept = BarrierGround.AwayFromDoors(places, new[] { new Vector2(108, 100) });
+            Equal(2, kept.Count, "the gate at the door goes, open ground beside it stays");
+            Equal(true, kept.Any(place => place.BehindBarrier && place.Cell.X == 400), "a gate away from doors stays");
+        }
+
+        private const int PenWidth = 900, PenHeight = 400, PenRow = PenWidth / 2;
+        private static readonly Vector2 PenPlayer = new(60, 200);
+
+        /// <summary>
+        ///     The Crowbell's pen in small (Hunting Grounds, 2026-11-26): a pen, a corridor east, and past a gate the barrier
+        ///     memory holds closed at x 120-127, whatever the rooms beyond. The gate is wall in the routed grid and set in
+        ///     the mask on <paramref name="maskRows"/> (all its rows when none are given).
+        /// </summary>
+        private static (byte[] Grid, byte[] Mask) Pen(int gateTop, int gateBottom, IEnumerable<int>? maskRows, params (int Left, int Top, int Right, int Bottom)[] rooms)
+        {
+            var grid = MapRadarTests.Carved(PenWidth, PenHeight, rooms);
+            var mask = new byte[grid.Length];
+            var masked = (maskRows ?? Enumerable.Range(gateTop, gateBottom - gateTop)).ToHashSet();
+            for (var y = gateTop; y < gateBottom; y++)
+            {
+                for (var b = 60; b < 64; b++)
+                {
+                    grid[(y * PenRow) + b] = 0;
+                    mask[(y * PenRow) + b] = masked.Contains(y) ? (byte)0xFF : (byte)0;
+                }
+            }
+
+            return (grid, mask);
+        }
+
+        private static void GroundPastAClosedGateIsOnePlaceAtTheGate()
+        {
+            var (grid, mask) = Pen(196, 204, null, (20, 180, 100, 220), (100, 196, 200, 204), (200, 0, 880, 390));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            Equal(0, map.Frontier(grid, PenRow, PenPlayer, 8).Count, "without the mask: nothing left, as today");
+            Equal(100, map.ExploredPercent(grid, PenRow, PenPlayer), "and all of it seen, as today");
+            var places = map.Frontier(grid, PenRow, PenPlayer, 8, null, mask);
+            Equal(1, places.Count, "one place");
+            Equal(true, places[0].BehindBarrier && places[0].Size == UnseenSize.Large, "large ground behind the gate");
+            Equal(true, places[0].Cell.X is > 110 and < 120 && places[0].Cell.Y is > 196 and < 204, "on the near side of the gate");
+            Equal(true, places[0].Steps is > 50 and < 70, "with the walk to it");
+            Equal(true, map.ExploredPercent(grid, PenRow, PenPlayer, mask) < 20, "the share counts the hall behind");
+            var frame = MapCorner.Frame(grid, PenRow, new Vector2(1, 0), new Vector2(0, 1))!.Value;
+            Equal(true, map.Parts(frame).Any(part => !part.Explored), "a part still has ground that goes on");
+            Equal(true, ExplorationMap.Rank(ExplorationMap.SmallKind) < ExplorationMap.Rank(ExplorationMap.BarrierGroundKind) &&
+                        ExplorationMap.Rank(ExplorationMap.BarrierGroundKind) < ExplorationMap.Rank(ExplorationMap.PocketKind),
+                "after what soon ends, before nooks");
+        }
+
+        private static void ANookBehindAGateIsNoPlace()
+        {
+            var (grid, mask) = Pen(196, 204, null, (20, 180, 100, 220), (100, 196, 200, 204), (200, 190, 216, 210));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            Equal(0, map.Frontier(grid, PenRow, PenPlayer, 8, null, mask).Count, "a nook behind a gate is no place");
+            var frame = MapCorner.Frame(grid, PenRow, new Vector2(1, 0), new Vector2(0, 1))!.Value;
+            Equal(true, map.Parts(frame).All(part => part.Explored), "and leaves no part to explore");
+        }
+
+        private static void GroundAlsoReachedRoundTheGateIsNotBehindIt()
+        {
+            var (grid, mask) = Pen(196, 204, null, (20, 180, 100, 220), (100, 196, 200, 204), (200, 0, 880, 390), (56, 52, 64, 180), (56, 52, 210, 60));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            var places = map.Frontier(grid, PenRow, PenPlayer, 8, null, mask);
+            Equal(true, places.Count >= 1, "the way round is unexplored ground");
+            Equal(true, places.All(place => !place.BehindBarrier), "nothing is behind the gate");
+        }
+
+        private static void AGateRememberedInTwoPiecesIsOnePlace()
+        {
+            var (grid, mask) = Pen(194, 208, Enumerable.Range(194, 6).Concat(Enumerable.Range(203, 5)), (20, 180, 100, 220), (100, 194, 200, 208), (200, 0, 880, 390));
+            var map = new ExplorationMap();
+            map.Visit(PenPlayer, PenWidth, PenHeight);
+            Equal(1, map.Frontier(grid, PenRow, PenPlayer, 8, null, mask).Count(place => place.BehindBarrier), "one gate, one place");
+        }
 
         private static void AFarCharacterIsDrawnOnlyInTown()
         {

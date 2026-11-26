@@ -315,6 +315,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Walks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Parts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.LeftBehind.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.Barriers.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LeftBehindWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TrailField.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaLayouts.cs" />
@@ -339,6 +340,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapIconIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ClosedDoors.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierGround.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PowderBarrels.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\OpenedWays.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GridSamples.cs" />

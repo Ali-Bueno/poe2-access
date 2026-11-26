@@ -140,6 +140,30 @@ namespace Poe2Accessibility
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
 
+        /// <summary>Unseen ground past a closed barrier, among the scanner's unexplored: "Large unexplored ground behind a closed barrier".</summary>
+        public static string UnexploredBehindBarrier(Services.UnseenSize size)
+        {
+            var ground = Unexplored(size);
+            return T($"{ground} behind a closed barrier", $"{ground} tras una barrera cerrada");
+        }
+
+        /// <summary>
+        ///     The guide at a barrier still shut, with the boss alive on the player's side when there is one (it may be what
+        ///     keeps the gate shut): "Still closed. The Crowbell is alive in here".
+        /// </summary>
+        public static string StillClosed(string? boss) => Sentences(new[]
+        {
+            T("Still closed", "Sigue cerrada"),
+            boss is { Length: > 0 } ? T($"{boss} is alive in here", $"{boss} sigue con vida aquí dentro") : string.Empty,
+        });
+
+        /// <summary>After a boss's defeat, the barrier whose ground is still to explore: "The closed barrier is 42 steps away".</summary>
+        public static string BarrierAfterDefeat(int steps)
+        {
+            var away = StepsAway(steps);
+            return T($"The closed barrier is {away}", $"La barrera cerrada está {away}");
+        }
+
         /// <summary>A room of the Trial's map not revealed yet: the map shows only a few rooms ahead.</summary>
         public static string HiddenRoom => T("Hidden room", "Sala oculta");
 
