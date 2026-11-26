@@ -26,15 +26,18 @@ namespace Poe2Accessibility.Services
         private (string Area, byte[] Grid, long At, System.Threading.Tasks.Task<WalkableRegions> Work)? regionsWork;
         private (string Area, WalkableRegions Regions)? regionsReady;
 
+        /// <summary>Whether something stands on ground the player's ground does not join (<see cref="WalkableRegions"/>); false while not known yet.</summary>
+        private bool OnGroundApart(Vector2 thing, Vector2 playerCell) => this.Regions()?.Apart(thing, playerCell) == true;
+
         /// <summary>
-        ///     Whether something stands on ground the player's ground does not join (<see cref="WalkableRegions"/>); false while
-        ///     not known yet. Worked out off the game's thread, once per grid that changed.
+        ///     The pieces of ground of the live grid; null while not known yet. Worked out off the game's thread, once per grid
+        ///     that changed.
         /// </summary>
-        private bool OnGroundApart(Vector2 thing, Vector2 playerCell)
+        private WalkableRegions? Regions()
         {
             if (!this.TryLiveGrid(out var grid, out var row))
             {
-                return false;
+                return null;
             }
 
             var now = Environment.TickCount64;
@@ -50,7 +53,7 @@ namespace Poe2Accessibility.Services
                 this.regionsWork = (this.instance, grid, now, System.Threading.Tasks.Task.Run(() => WalkableRegions.Of(grid, row)));
             }
 
-            return this.regionsReady is { } ready && ready.Area == this.instance && ready.Regions.Apart(thing, playerCell);
+            return this.regionsReady is { } ready && ready.Area == this.instance ? ready.Regions : null;
         }
 
         /// <summary>

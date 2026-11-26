@@ -31,21 +31,19 @@ the same happens in the Trial of the Sekhemas and the Trial of Chaos. Investigat
 - The map parts' frame (`MapFrame`, all walkable ground's box): inside a tomb the thirds are the whole area's.
 - The local transition is an ordinary exit: `ExitEntities` has no local/other-area kind and no "where it leads".
 
-## The plan proposed
+## Built (2026-11-26, unit tests; not heard yet)
 
-1. **The player's piece:** the `WalkableRegions` region the player stands on, but treated as apart only when the player
-   was *carried* there (a generalised `CarriedWatch`), never by a split the grid shows otherwise: a closed gate must not
-   hide what lies behind it (the reason the map frame uses all ground, [radar](../radar.md#where-the-map-starts)).
-2. **Scope every source to the piece** while in a piece apart: listings, forks, dead ends, landmarks ahead, room names,
-   pending ways, map parts with the piece's own frame ("Borde superior" of the tomb). The outside's memory stays and comes
-   back on return.
-3. **Outside goals through the way out:** a quest target or exit on other ground is said through the transition that
-   leads back ("Fuera de aquí: …, sal por …"), not by a straight line through the wall.
-4. **Say the change:** "Entras en …" / "Sales a …" on the jump, named by the transition taken or the piece's room label.
-5. **Pair the transitions:** the one beside the player before the jump and the one beside the player after are the two ends;
-   kept per area, so the entrance can be said as "Entrada a tumba" (or the room label) once used, and before use if the
-   `AreaTransition` component's kind (normal vs local, by the exe) can be read.
-6. Trials: Sekhemas falls out of 1-2 with `RoomsApart` kept; Chaos by the same jump if the lift teleports, else by the
-   room bounds of the `.arm` (rooms done drop out).
+- `GroundPieces` (pure): the first ground stood on is the main one; a carry (`CarriedWatch.CarriedFrom`, now looked at in
+  every area) onto another `WalkableRegions` piece sets that piece apart and keeps the pair of cells as the way between.
+  Ground a closed gate cuts off is never apart (no carry reached it), so the map frame's worry does not apply.
+- `EntityCatalog.OffPlayersPiece`: on a piece apart everything off it is hidden; on the main ground only the pieces apart.
+  Applied to the listing (exits, places, NPCs, loot, remembered landmarks, trails, quest targets: so the beacon, the
+  lost hint and the forks' named goals too), the pending ways (count, nearest, a fork "left" by a carry is let go
+  unsaid) and the landmarks ahead.
+- A quest goal on other ground becomes "Misión. Antes, pasa por <exit>": the exit by the cell a carry joined the two
+  grounds at, else on a piece apart its nearest exit.
+- Map parts and their glance are off on a piece apart (as on a Sekhemas floor); "Zona aparte: solo se dice lo que hay
+  aquí" / "De vuelta al mapa principal" on the carry (setting `AnnounceMapParts`; log `Ground: EnteredApart at cell …`).
 
-Open: the `AreaTransition` component's layout (local kind, target), from the exe's code reader, not from play.
+Open: the `AreaTransition` component's layout (local kind, target), from the exe's code reader, to name a way in before
+it is used; the Trial of Chaos lifts, if they move the player along walkable ground, set nothing apart.

@@ -26,10 +26,20 @@ namespace Poe2Accessibility
             }
 
             this.trialRoomPolledAt = now;
-            var arrived = this.carried.Update(new Vector2(player.GridPosition.X, player.GridPosition.Y), this.entities.OnPlayersGround);
-            if (arrived && this.trialScope.InTrial(now) && this.Settings.AnnounceTrialProgress && this.semantics?.TakeTrialRoomChosen() is { Length: > 0 } room)
+            var cell = new Vector2(player.GridPosition.X, player.GridPosition.Y);
+            var arrived = this.carried.Update(cell, this.entities.OnPlayersGround);
+            var news = this.entities.NoteGround(cell, this.carried.CarriedFrom);
+            if (this.trialScope.InTrial(now))
             {
-                this.output?.Say(SpeechKind.Places, Announcements.TrialRoomEntered(room));
+                if (arrived && this.Settings.AnnounceTrialProgress && this.semantics?.TakeTrialRoomChosen() is { Length: > 0 } room)
+                {
+                    this.output?.Say(SpeechKind.Places, Announcements.TrialRoomEntered(room));
+                }
+            }
+            else if (news != PieceNews.None && this.Settings.AnnounceMapParts && !this.InTownOrHideout())
+            {
+                this.log?.Info($"Ground: {news} at cell {cell.X:0},{cell.Y:0}");
+                this.output?.Say(SpeechKind.Places, news == PieceNews.EnteredApart ? Announcements.EnteredGroundApart : Announcements.BackToMainGround);
             }
         }
     }

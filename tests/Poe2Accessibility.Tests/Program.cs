@@ -65,6 +65,7 @@ namespace Poe2Accessibility.Tests
                 LeftBehindTests.All(),
                 TrailTests.All(),
                 PendingWayTests.All(),
+                GroundPiecesTests.All(),
                 MapTopologyTests.All(),
                 LeagueTests.All(),
                 ShrineCatalogTests.All(),

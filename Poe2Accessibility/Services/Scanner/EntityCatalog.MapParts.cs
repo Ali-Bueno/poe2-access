@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
         public Func<bool> RoomsApart { get; set; } = () => false;
 
         /// <summary>How the parts of the map stand (<see cref="ExplorationMap.Parts"/>): it reads every block, so on a part entered or a glance asked.</summary>
-        public IReadOnlyList<MapPart> MapParts(MapFrame frame) => this.RoomsApart() ? Array.Empty<MapPart>() : this.explored.Parts(frame);
+        public IReadOnlyList<MapPart> MapParts(MapFrame frame) => this.RoomsApart() || this.InPieceApart() ? Array.Empty<MapPart>() : this.explored.Parts(frame);
 
         /// <summary>Whether an entity stands on the ground the player can walk to (<see cref="ExplorationMap.OnPlayersGround"/>); null while not known.</summary>
         private bool? OnPlayersGround(Render render) => this.OnPlayersGround(new Vector2(render.GridPosition.X, render.GridPosition.Y));

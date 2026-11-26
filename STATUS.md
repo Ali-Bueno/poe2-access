@@ -535,9 +535,10 @@
 
 ## Next step
 **2026-11-26, 14:40 (the owner: inside the desert tombs, the Sekhemas and the Trial of Chaos the radar cites ways outside):**
-investigated, no code: a tomb is ground apart in the same area; most sources already follow the reachable ground, but the
-listings, forks, landmarks, room names, pending ways and the parts' frame use the whole map. Plan in
-[map pieces](docs/research/map-pieces.md); waiting for the owner's go.
+a tomb is ground apart in the same area. Built (`GroundPieces`, `EntityCatalog.Pieces`; 1152 tests): after a carry the
+listing, pending ways and landmarks ahead tell only the player's piece, a goal outside is "antes, pasa por …", map parts
+are off inside ([map pieces](docs/research/map-pieces.md)). **First to hear:** "Zona aparte…" down a tomb's stairs in
+El cruce de Khari, and nothing from outside while in it.
 
 **2026-11-26, 14:10 (the owner in Holten Estate: "no puedo pasar de manera alguna, hasta se me acabaron las zonas sin explorar"):**
 the arena is reached from the upper floor (foyer stairs up, then the boss stairs down; [route-walking](docs/research/route-walking.md)).

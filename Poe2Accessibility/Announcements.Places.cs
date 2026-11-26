@@ -57,6 +57,18 @@ namespace Poe2Accessibility
         /// <summary>The room of a Trial's floor the player arrives in, by the kind its map gave it: "Room: Escape Trial".</summary>
         public static string TrialRoomEntered(string kind) => T($"Room: {kind}", $"Sala: {kind}");
 
+        /// <summary>Carried to ground of the same area no walk joins, as down a tomb's stairs: only what lies here is told now.</summary>
+        public static string EnteredGroundApart => T("Separate zone: only what is here is told", "Zona aparte: solo se dice lo que hay aquí");
+
+        /// <summary>Carried back from ground apart to the area's main ground.</summary>
+        public static string BackToMainGround => T("Back on the main map", "De vuelta al mapa principal");
+
+        /// <summary>A quest goal on other ground of the area, under the quest: "Misión. Antes, pasa por Escaleras, 26 pasos…".</summary>
+        public static string GoThroughFirst(string way) => T($"first go through {way}", $"antes, pasa por {way}");
+
+        /// <summary>The way between two grounds of the area when its exit is not listed: where the player was carried from.</summary>
+        public static string WhereCarried => T("the passage you came by", "el paso por el que viniste");
+
         /// <summary>The part of the map just walked into and how it stands: "Top right corner. Explored 4 percent".</summary>
         public static string MapPartEntered(int across, int down, Services.MapPart? standing) => Sentences(new[]
         {

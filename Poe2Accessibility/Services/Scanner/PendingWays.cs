@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
 
         public int Count => this.ways.Count;
 
+        /// <summary>The pending ways but those standing where <paramref name="hidden"/> says (ground apart, docs/research/map-pieces.md).</summary>
+        public int CountShown(Func<Vector2, bool>? hidden) => hidden == null ? this.ways.Count : this.ways.Count(way => !hidden(way.Way.Ahead));
+
         public IReadOnlyList<PendingWay> All => this.ways;
 
         /// <summary>A new area or map shape: nothing is pending.</summary>
@@ -49,8 +52,15 @@ namespace Poe2Accessibility.Services
         ///     Once per fork walked through, as the player gets past it: the ways still pending there but the one taken (it stays
         ///     pending until explored); null while still at the fork, and when nothing else is left there.
         /// </summary>
-        public IReadOnlyList<PendingWay>? Leave(Vector2 player)
+        /// <param name="player">The player's cell.</param>
+        /// <param name="hidden">Ground not told now: a fork there was left by a carry, not a walk, and is let go unsaid.</param>
+        public IReadOnlyList<PendingWay>? Leave(Vector2 player, Func<Vector2, bool>? hidden = null)
         {
+            if (hidden != null)
+            {
+                this.leaving.RemoveAll(fork => hidden(fork.Centre));
+            }
+
             var passed = this.leaving.FindIndex(fork => Vector2.Distance(player, fork.Centre) > fork.Radius + this.leaveCells);
             if (passed < 0)
             {
@@ -71,7 +81,7 @@ namespace Poe2Accessibility.Services
         public void Drop(Func<PendingWay, bool> done) => this.ways.RemoveAll(way => done(way));
 
         /// <summary>The pending way whose start is nearest the player, leaving out <paramref name="exceptNode"/>'s; null for none.</summary>
-        public PendingWay? Nearest(Vector2 player, int? exceptNode = null) =>
-            this.ways.Where(way => way.Node != exceptNode).OrderBy(way => Vector2.Distance(player, way.Way.Ahead)).FirstOrDefault();
+        public PendingWay? Nearest(Vector2 player, int? exceptNode = null, Func<Vector2, bool>? hidden = null) =>
+            this.ways.Where(way => way.Node != exceptNode && hidden?.Invoke(way.Way.Ahead) != true).OrderBy(way => Vector2.Distance(player, way.Way.Ahead)).FirstOrDefault();
     }
 }

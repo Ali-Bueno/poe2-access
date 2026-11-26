@@ -118,6 +118,9 @@ namespace Poe2Accessibility.Services
         /// <summary>More places to say ahead than the tiles name, in grid cells: the narrow passages of the map's shape.</summary>
         public Func<IEnumerable<(Vector2 Grid, string Kind)>>? MorePlaces { get; set; }
 
+        /// <summary>Ground not told now, a piece apart (<see cref="EntityCatalog.OffPlayersPiece"/>); null when nothing is apart.</summary>
+        public Func<Func<Vector2, bool>?>? HiddenGround { get; set; }
+
         /// <summary>
         ///     Per frame: keeps the area's map current and, while playing with the option on, names new places; with
         ///     <paramref name="sayAhead"/>, also the pieces that come in sight, with their side.
@@ -148,7 +151,9 @@ namespace Poe2Accessibility.Services
             if (sayAhead && area.WorldToGridConvertor is > 0 and var toWorld)
             {
                 var more = this.MorePlaces?.Invoke() ?? Enumerable.Empty<(Vector2 Grid, string Kind)>();
-                foreach (var (grid, kind) in this.ahead.Update(here, places.Pieces.Concat(more)))
+                var hidden = this.HiddenGround?.Invoke();
+                var seen = places.Pieces.Concat(more).Where(place => hidden?.Invoke(place.Grid) != true);
+                foreach (var (grid, kind) in this.ahead.Update(here, seen))
                 {
                     var offset = (grid - here) * toWorld;
                     var side = Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, offset)];

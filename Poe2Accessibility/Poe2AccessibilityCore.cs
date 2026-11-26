@@ -500,6 +500,7 @@ namespace Poe2Accessibility
                     this.places.MoreKindAt = this.entities.NarrowAt;
                     this.places.Seen = this.entities.LayoutShown;
                     this.places.MorePlaces = this.entities.NarrowPlaces;
+                    this.places.HiddenGround = this.entities.OffPlayersPiece;
                 }
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);

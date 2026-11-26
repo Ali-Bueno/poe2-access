@@ -44,20 +44,22 @@ namespace Poe2Accessibility.Services
                 this.pending.Drop(way => this.StateOf(topology, way.Node, way.Way) != ForkWay.GoesOn);
             }
 
-            if (this.pending.Leave(here) is { } left && lines.Leaving)
+            var hidden = this.catalog.OffPlayersPiece();
+            if (this.pending.Leave(here, hidden) is { } left && lines.Leaving)
             {
                 var sides = left.Select(way => Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, (way.Way.Ahead - here) * toWorld)]).Distinct().ToList();
                 this.output.Say(SpeechKind.Places, Announcements.PendingLeft(left.Count, sides));
             }
 
-            if (this.pending.Count == 0 || now - this.lastReminder < ReminderGapMs)
+            var shown = this.pending.CountShown(hidden);
+            if (shown == 0 || now - this.lastReminder < ReminderGapMs)
             {
                 return;
             }
 
             if (lines.DeadEnds && topology.NodeNear(here, EnterSlackCells) is { } node && !this.remindedAt.Contains(node) && IsStop(topology, node) &&
                 topology.Ways(node).Where(way => !way.Nook).All(way => this.StateOf(topology, node, way) != ForkWay.GoesOn) &&
-                this.Pending(here, toWorld, player, node) is { } where)
+                this.Pending(here, toWorld, player, node, hidden) is { } where)
             {
                 this.remindedAt.Add(node);
                 this.lastReminder = now;
@@ -65,11 +67,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (lines.Exits && this.ExitReached() is { } exit && this.Pending(here, toWorld, player, null) is { } nearest)
+            if (lines.Exits && this.ExitReached() is { } exit && this.Pending(here, toWorld, player, null, hidden) is { } nearest)
             {
                 this.exitsTold[exit.Id] = exit;
                 this.lastReminder = now;
-                this.output.Say(SpeechKind.Places, Announcements.Sentences(new[] { Announcements.PendingBeforeExit(this.pending.Count), nearest }));
+                this.output.Say(SpeechKind.Places, Announcements.Sentences(new[] { Announcements.PendingBeforeExit(shown), nearest }));
             }
         }
 
@@ -84,9 +86,9 @@ namespace Poe2Accessibility.Services
             : ForkWay.GoesOn;
 
         /// <summary>"Camino pendiente en Cruce 3, 60 pasos, abajo 3, luego a la izquierda": the nearest pending way but those of <paramref name="exceptNode"/>.</summary>
-        private string? Pending(Vector2 here, float toWorld, Render player, int? exceptNode)
+        private string? Pending(Vector2 here, float toWorld, Render player, int? exceptNode, Func<Vector2, bool>? hidden)
         {
-            if (this.pending.Nearest(here, exceptNode) is not { } way)
+            if (this.pending.Nearest(here, exceptNode, hidden) is not { } way)
             {
                 return null;
             }

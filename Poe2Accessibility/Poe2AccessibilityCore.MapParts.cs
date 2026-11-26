@@ -30,7 +30,7 @@ namespace Poe2Accessibility
             }
 
             this.mapPartPolledAt = now;
-            if (this.entities == null || this.entities.RoomsApart() || this.entities.PlaceOnMap() is not { } place)
+            if (this.entities == null || this.entities.RoomsApart() || this.entities.InPieceApart() || this.entities.PlaceOnMap() is not { } place)
             {
                 return;
             }

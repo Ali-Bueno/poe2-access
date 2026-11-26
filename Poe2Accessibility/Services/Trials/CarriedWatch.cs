@@ -14,8 +14,11 @@ namespace Poe2Accessibility.Services
 
         private Vector2? last;
 
+        /// <summary>Where the last look that found the player carried found them before it; null after any other look.</summary>
+        public Vector2? CarriedFrom { get; private set; }
+
         /// <summary>A new area: its first place is no place carried to.</summary>
-        public void Reset() => this.last = null;
+        public void Reset() => (this.last, this.CarriedFrom) = (null, null);
 
         /// <summary>True on the look that finds the player carried to other ground.</summary>
         /// <param name="cell">Where the player is, in grid cells.</param>
@@ -24,7 +27,8 @@ namespace Poe2Accessibility.Services
         {
             var before = this.last;
             this.last = cell;
-            return before is { } from && Vector2.Distance(from, cell) > FartherThanFeet && walkable(from) != true;
+            this.CarriedFrom = before is { } from && Vector2.Distance(from, cell) > FartherThanFeet && walkable(from) != true ? from : null;
+            return this.CarriedFrom != null;
         }
     }
 }

@@ -297,6 +297,16 @@ namespace Poe2Accessibility.Services
                 found.TryAdd(door.Id, door);
             }
 
+            // Ground a carry set apart (a tomb and the land around it): no walk joins the two (docs/research/map-pieces.md).
+            var offPiece = this.OffPlayersPiece();
+            if (offPiece != null)
+            {
+                foreach (var id in found.Values.Where(entry => offPiece(GridOf(entry, toCells))).Select(entry => entry.Id).ToList())
+                {
+                    found.Remove(id);
+                }
+            }
+
             var origin = player.WorldPosition;
             var sorted = found.Values.OrderBy(entry => ExplorationMap.Rank(entry.Kind)).ThenBy(entry => Distance(origin, entry)).ToList();
             // The objective is known wherever the game knows it, but said only once seen: the rest is for the player to find,
@@ -307,7 +317,20 @@ namespace Poe2Accessibility.Services
             var questLines = this.QuestGoals.QuestLinesOf(tracker, Localization.Language);
             var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => questLines);
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts), questLines);
-            sorted.InsertRange(0, this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>());
+            var trails = (this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>()).ToList();
+            if (offPiece != null)
+            {
+                var away = this.questTargets.Concat(trails).Where(entry => offPiece(GridOf(entry, toCells))).ToList();
+                trails.RemoveAll(entry => offPiece(GridOf(entry, toCells)));
+                this.questTargets = this.questTargets.Where(entry => !offPiece(GridOf(entry, toCells))).ToList();
+                if (away.Count > 0 && this.questTargets.Count == 0 && trails.Count == 0 && this.WayThrough(away, found.Values, player, toCells) is { } through)
+                {
+                    found.TryAdd(through.Id, through);
+                    this.questTargets = new[] { through };
+                }
+            }
+
+            sorted.InsertRange(0, trails);
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);
             return sorted;
