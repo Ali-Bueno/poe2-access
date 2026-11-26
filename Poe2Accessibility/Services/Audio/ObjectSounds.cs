@@ -68,6 +68,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Powder barrels heard at once, nearest first, the lit ones apart (a first guess, not heard yet).</summary>
         private const int MaxBarrelVoices = 2;
 
+        /// <summary>
+        ///     Quest objects heard at once, nearest first: Qimah's seven Sekhema pillars rang one at a time, the nearest alone
+        ///     (the owner, 2026-11-26: "que suenen al mismo tiempo, ya que son varias").
+        /// </summary>
+        private const int MaxQuestObjectVoices = 8;
+
         /// <summary>A crowd's voices (chests, breakables) never start within this time of each other, so a cluster is heard as several.</summary>
         private const int CrowdGapMs = 70;
 
@@ -108,7 +114,7 @@ namespace Poe2Accessibility.Services
             ("lit barrels", MaxBarrelVoices, entry => entry.Kind == PowderBarrels.LitKind),
             ("barriers", 1, entry => SoundKind(entry) == CueSynth.BarrierSound),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
-            ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
+            ("quest objects", MaxQuestObjectVoices, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
 
         private readonly AudioCueService audio;
