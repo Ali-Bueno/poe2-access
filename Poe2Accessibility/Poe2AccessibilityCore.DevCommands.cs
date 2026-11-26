@@ -10,6 +10,12 @@ namespace Poe2Accessibility
     /// <summary>Research and test commands of <see cref="Poe2AccessibilityCore"/> (debug/command.txt, hotkeys) and the status report.</summary>
     public sealed partial class Poe2AccessibilityCore
     {
+        /// <summary>A scanner entry's grid cell, for the "scan" research lines.</summary>
+        private static string ScanCell(ScanEntry entry) =>
+            Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor is var toCells and > 0
+                ? FormattableString.Invariant($"{entry.WorldX / toCells:F0},{entry.WorldY / toCells:F0}")
+                : "?";
+
         private void RunDevCommand(string command)
         {
             if (command.StartsWith("gesture ", StringComparison.Ordinal) &&
@@ -300,12 +306,12 @@ namespace Poe2Accessibility
                     // Research: every scanner entry, as the categories would say them, then the area's named tiles seen or not.
                     foreach (var entry in this.entities?.Entries() ?? Array.Empty<ScanEntry>())
                     {
-                        this.log?.Info($"Scan {entry.Category} id={entry.Id} kind={entry.Kind} sound={entry.Sound} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0}");
+                        this.log?.Info($"Scan {entry.Category} id={entry.Id} kind={entry.Kind} sound={entry.Sound} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0} cell {ScanCell(entry)}");
                     }
 
                     foreach (var entry in this.entities?.AreaLandmarks() ?? Array.Empty<ScanEntry>())
                     {
-                        this.log?.Info($"Scan tile {entry.Category} id={entry.Id} kind={entry.Kind} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0}");
+                        this.log?.Info($"Scan tile {entry.Category} id={entry.Id} kind={entry.Kind} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0} cell {ScanCell(entry)}");
                     }
 
                     break;

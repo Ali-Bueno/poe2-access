@@ -61,6 +61,12 @@ first direction it said for the same target until the way is 10 degrees past the
   took the average of all its pieces, a point no way leads to ("Stairs Down, 641 steps, the way stops short"). Named tiles now
   give one place per group of pieces (pieces within two tiles are one place, as the boss arenas): two "Stairs Down", 61 and
   13 957 units away, each where it is.
+- **Holten Estate (P1_6) is two floors in one grid**, the upper ~1426 cells below the ground floor; the arena
+  (`Holton_Bossroom`, ground) is walled off from the courtyard and reached only by the foyer's `StairsUp_01` (game exit
+  "Stairs", cell 500,314), the upper floor, and `HoltenBossStairsDown_01` (exit at 520,1824), which lands at the foot of
+  the boss stairs (exit 564,398) beside the arena. The radar table names both stairs "Boss stairs"; the note's tile piece
+  stands 16-17 cells from its game exit, the floor's other stairs 100+ cells off (scan 2026-11-26). Three `ArenaDoor`
+  ("Puerta") east of the arena are not the way in.
 - **A door the grid held open** (driver only): the driver's distance field, taken from the routed grid at 12:54 while a closed
   door (`Metadata/MiscellaneousObjects/Door`, a `TriggerableBlockage`, untargetable from that side) was still beyond the
   network bubble, led through the door's neck; near it the live grid had the neck blocked and the driver went back and forth

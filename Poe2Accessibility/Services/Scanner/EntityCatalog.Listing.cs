@@ -114,6 +114,8 @@ namespace Poe2Accessibility.Services
 
         private List<ScanEntry> List(AreaInstance area, Render player, long now, ListingScratch scratch)
         {
+            this.bossWays.Clear();
+            this.notedTiles.Clear();
             var found = scratch.Found;
             // Known to the game but not yet to the player: only the quest marker may point at them.
             var unseen = scratch.Unseen;
@@ -234,6 +236,11 @@ namespace Poe2Accessibility.Services
                     continue; // the exit's own tile beside the game's exit: one place, said once (two "El bosque singular", 2026-11-02)
                 }
 
+                if (landmark.Category == ScanCategory.Exits && this.NoteOnExit(found, landmark, toCells))
+                {
+                    continue;
+                }
+
                 var place = new StdTuple3D<float> { X = landmark.WorldX, Y = landmark.WorldY, Z = landmark.WorldZ };
                 if (this.Pointed(landmark, player, area.WorldToGridConvertor) || this.Sighted(landmark, place, area.WorldToGridConvertor, this.LayoutRevealed()))
                 {
@@ -347,6 +354,30 @@ namespace Poe2Accessibility.Services
             }
 
             return false;
+        }
+
+        /// <summary>
+        ///     Whether a named exit tile's note names a listed game exit on it in more words: that exit takes the note's name, and
+        ///     a note leading to the boss marks it (<see cref="BossWay"/>); Holten Estate's "Stairs" were "Boss stairs" (2026-11-26).
+        /// </summary>
+        private bool NoteOnExit(Dictionary<uint, ScanEntry> found, ScanEntry tile, float worldPerCell)
+        {
+            var exits = found.Values.Where(entry => entry.Category == ScanCategory.Exits && IsEntity(entry)).ToList();
+            var cells = exits.Select(exit => (exit.Name, new Vector2(exit.WorldX, exit.WorldY) / worldPerCell)).ToList();
+            var at = MinimapMarks.NotedExit(cells, tile.Name, new Vector2(tile.WorldX, tile.WorldY) / worldPerCell, NoteOnExitCells);
+            if (at < 0)
+            {
+                return false;
+            }
+
+            found[exits[at].Id] = exits[at] with { Name = tile.Name };
+            this.notedTiles.Add(tile.Id);
+            if (this.bossWays.Contains(tile.Id))
+            {
+                this.bossWays.Add(exits[at].Id);
+            }
+
+            return true;
         }
 
         /// <summary>Whether a place is anchored on a listed thing of its kind (<see cref="SamePlaceWorld"/>).</summary>

@@ -190,6 +190,32 @@ namespace Poe2Accessibility.Services
             return groups;
         }
 
+        /// <summary>A radar-table label of a way that leads to the boss ("Boss stairs"), not of the arena itself.</summary>
+        public static bool IsBossWay(string label) => label.Contains(ArenaWords[0], StringComparison.OrdinalIgnoreCase) && HasAny(label, WayWords);
+
+        /// <summary>
+        ///     The nearest of the game's exits within <paramref name="reachCells"/> that a radar-table note names in more words
+        ///     (the game's "Stairs" under the note "Boss stairs"), or -1: one way, told by the note.
+        /// </summary>
+        public static int NotedExit(IReadOnlyList<(string Name, Vector2 Cell)> exits, string note, Vector2 noteCell, float reachCells)
+        {
+            var noteWords = note.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var best = -1;
+            var bestAway = reachCells;
+            for (var i = 0; i < exits.Count; i++)
+            {
+                var words = exits[i].Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var away = Vector2.Distance(exits[i].Cell, noteCell);
+                if (words.Length > 0 && words.Length < noteWords.Length && away <= bestAway &&
+                    words.All(word => noteWords.Contains(word, StringComparer.OrdinalIgnoreCase)))
+                {
+                    (best, bestAway) = (i, away);
+                }
+            }
+
+            return best;
+        }
+
         private static bool HasAny(string text, string[] words) => words.Any(word => text.Contains(word, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>

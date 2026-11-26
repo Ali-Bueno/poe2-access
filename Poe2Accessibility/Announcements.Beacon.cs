@@ -11,6 +11,10 @@ namespace Poe2Accessibility
         /// <summary>The exploring guide goes on to ground apart from what it led to: "Siguiente: zona sin explorar, 40 pasos, abajo".</summary>
         public static string ExploreNext(string described) => T($"Next: {described}", $"Siguiente: {described}");
 
+        /// <summary>The way to a boss room goes by a way the radar table names (stairs to another floor): guided there first.</summary>
+        public static string BossWayFirst(string room, string described) =>
+            T($"To reach {room}, first: {described}", $"Para llegar a {room}, primero: {described}");
+
         /// <summary>The exploring guide has no ground that goes on left; nooks may be.</summary>
         public static string ExploreDone => T("Nothing left to explore within reach but nooks", "Solo quedan rincones por explorar a tu alcance");
 

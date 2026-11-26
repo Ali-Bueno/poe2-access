@@ -449,6 +449,13 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, MinimapMarks.ArenaBoss("Metadata/Terrain/Interlude/Part2/P2_1/Salt_Waste_Bossroom.tdtx:14-y:11", "Bosses"), "a bare label");
             Equal(null, MinimapMarks.ArenaBoss("Metadata/Terrain/Woods/Village/Huts/VillageArena_02_courtyard_side.tdtx:0-y:0", "Entrance"), "the way into an arena");
             Equal(null, MinimapMarks.ArenaBoss("Metadata/Terrain/Maps/Derelict/Tiles/HoltenBossStairsDown_01.tdtx:0-y:0", "Boss stairs"), "stairs down to a boss");
+            Equal(true, MinimapMarks.IsBossWay("Boss stairs"), "stairs the radar table says lead to the boss");
+            Equal(false, MinimapMarks.IsBossWay("Stairs Down"), "stairs to no boss");
+            Equal(false, MinimapMarks.IsBossWay("Bosses"), "the arena itself");
+            var stairs = new[] { ("Escaleras", new System.Numerics.Vector2(552, 414)), ("Escaleras", new System.Numerics.Vector2(470, 240)), ("Holten", new System.Numerics.Vector2(600, 150)) };
+            Equal(1, MinimapMarks.NotedExit(stairs, "Escaleras del jefe", new System.Numerics.Vector2(494, 310), 92), "the nearest game exit the note names in more words");
+            Equal(-1, MinimapMarks.NotedExit(stairs, "Escaleras del jefe", new System.Numerics.Vector2(494, 900), 92), "no exit on the note's tile");
+            Equal(-1, MinimapMarks.NotedExit(stairs, "Escaleras", new System.Numerics.Vector2(470, 240), 92), "a note of the same name is the same exit, merged elsewhere");
             Equal(null, MinimapMarks.ArenaBoss("Metadata/Terrain/Woods/HuntingGrounds/RitualClearing01.tdtx:0-y:4", "Ritual Site (Level 4 Skill Gem)"), "no arena");
             Equal(true, MinimapMarks.IsArenaTile("Metadata/Terrain/Interlude/Part2/P2_7/Qimah_bossroom.tdtx:3-y:1"), "an arena tile without a label");
             Equal(false, MinimapMarks.IsArenaTile("Metadata/Terrain/Woods/Mudburrow/Path/path_St_Spawner_v02_01.tdtx:1-y:0"), "a burrow path");

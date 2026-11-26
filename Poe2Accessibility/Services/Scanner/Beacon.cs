@@ -527,10 +527,29 @@ namespace Poe2Accessibility.Services
                     break;
             }
 
-            if (this.target is { } goal && !(verdict.Line == SearchLine.BarrierWay && this.TurnToGate()))
+            if (this.target is { } goal && !(verdict.Line == SearchLine.BarrierWay && this.TurnToGate()) && !this.TurnToBossWay(found == null || partial))
             {
                 this.Say(verdict.Line, goal);
             }
+        }
+
+        /// <summary>
+        ///     The way to a boss room stops short where the radar table names a way to the boss (Holten Estate's "Boss stairs",
+        ///     the arena reached from another floor): the guide goes on to that way, said. True when it turned.
+        /// </summary>
+        private bool TurnToBossWay(bool cut)
+        {
+            if (!cut || this.target is not { Kind: MinimapMarks.BossRoomKind } goal || this.catalog.BossWay() is not { } way ||
+                this.catalog.DistanceTo(way) <= ArrivalWorld)
+            {
+                return false;
+            }
+
+            this.Aim(way);
+            this.output.Say(SpeechKind.Arrivals, Announcements.BossWayFirst(goal.Name, this.catalog.Describe(way, out var wayCut, out var longWay)));
+            this.news.Aim(wayCut, longWay);
+            this.log.Info($"Beacon turned to {way.Name} on the way to {goal.Name}");
+            return true;
         }
 
         /// <summary>

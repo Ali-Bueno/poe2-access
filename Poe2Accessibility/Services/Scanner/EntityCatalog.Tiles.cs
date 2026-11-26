@@ -32,6 +32,15 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const float TileExitMatchCells = 250f;
 
+        /// <summary>A note's tile piece and a game exit standing on that tile: a stair tile is four 23-cell pieces wide.</summary>
+        private static readonly float NoteOnExitCells = 4 * TileStructure.TileToGridConversion;
+
+        /// <summary>Ids of the listed ways the radar table says lead to the boss (<see cref="MinimapMarks.IsBossWay"/>).</summary>
+        private readonly HashSet<uint> bossWays = new();
+
+        /// <summary>Ids of the tile notes whose game exit took their name (<see cref="NoteOnExit"/>).</summary>
+        private readonly HashSet<uint> notedTiles = new();
+
         /// <summary>The unnamed boss arenas of the last tile layout read (<see cref="UnnamedArenas"/>).</summary>
         private (Dictionary<string, List<Vector2>>? Tiles, int Count, string Area, IReadOnlyList<ScanEntry> Entries) arenas = (null, 0, string.Empty, Array.Empty<ScanEntry>());
 
@@ -111,6 +120,11 @@ namespace Poe2Accessibility.Services
                         continue;
                     }
 
+                    if (MinimapMarks.IsBossWay(english))
+                    {
+                        this.bossWays.Add(id);
+                    }
+
                     yield return new ScanEntry(id, ScanCategory.Exits, label, centre.X, centre.Y, height,
                                                this.landmarks.IsAreaName(label) ? string.Empty : QuestMatcher.TileNote);
                 }
@@ -120,6 +134,19 @@ namespace Poe2Accessibility.Services
             {
                 yield return arena with { Name = Announcements.BossRoom(string.Empty), WorldX = arena.WorldX * toWorld, WorldY = arena.WorldY * toWorld, WorldZ = height };
             }
+        }
+
+        /// <summary>
+        ///     The nearest way to the boss ("Boss stairs"), seen or not as a map hint's goal is: the floors of one grid lie far
+        ///     apart, so the nearest is the player's floor's. A note on a listed game exit is that exit.
+        /// </summary>
+        public ScanEntry? BossWay()
+        {
+            var listed = this.Entries();
+            var unseen = this.AreaLandmarks().Where(note => !this.notedTiles.Contains(note.Id));
+            return Seats.Followed.TryGetComponent<Render>(out var player)
+                ? listed.Concat(unseen).Where(entry => this.bossWays.Contains(entry.Id)).OrderBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault()
+                : null;
         }
 
         /// <summary>

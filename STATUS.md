@@ -534,6 +534,12 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 14:10 (the owner in Holten Estate: "no puedo pasar de manera alguna, hasta se me acabaron las zonas sin explorar"):**
+the arena is reached from the upper floor (foyer stairs up, then the boss stairs down; [route-walking](docs/research/route-walking.md)).
+The radar table's "Boss stairs" note now names the game's stair exit on it ("Escaleras del jefe", one entry), and a guide to a
+boss room whose way stops short turns to the nearest boss way first ("Para llegar a Sala del jefe, primero: …").
+**First to hear:** that turn (the owner climbed by the answer in chat before it shipped; second build not yet in the play copy).
+
 **2026-11-26, 12:40 (the owner, against Siora in the Stones of Serle: "el juego dice que ha desaparecido y la vida empieza a bajarme y me muero", and "Objeto sin nombre, Rune Rock 05"; 1148 tests):**
 in her darkness one rune rock lights (`active=1`, targetable, glowing) and must be used; the census never tied the Stones of
 Serle's rocks to her fight. Now the extractor makes them `activate|…|active=1` and the plugin leads there with the shelter's
