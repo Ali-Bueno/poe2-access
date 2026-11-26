@@ -23,6 +23,12 @@ internal static class EndgameExtractor
     /// <summary>Every graph id of a graph file must lead to a PassiveSkills row; fewer is a moved graph id column.</summary>
     private const double ResolvedShare = 0.99;
 
+    /// <summary>A node's tree marks, from PassiveSkills' own flag columns: its kind never rests on how its id is spelt.</summary>
+    private static readonly (string Column, char Flag)[] NodeFlags =
+    {
+        ("PassiveSkills.IsKeystone", 'k'), ("PassiveSkills.IsNotable", 'n'), ("PassiveSkills.IsIconOnly", 'i'),
+    };
+
     public static int Run(Index index, string outFile)
     {
         var tables = new Dictionary<string, DatTable>(StringComparer.Ordinal);
@@ -135,6 +141,12 @@ internal static class EndgameExtractor
             byGraphId.TryAdd(passives.UInt16(row, c.PassiveGraphId), row);
         }
 
+        // The flag columns are found by the main tree's ids, so they hold for every graph; one not found leaves its mark out.
+        var flagColumns = DatContentColumns.Find(index).TakeWhile(found => found.Column.StartsWith("PassiveSkills.", StringComparison.Ordinal))
+            .Where(found => found.Offset != null).ToDictionary(found => found.Column, found => found.Offset!.Value, StringComparer.Ordinal);
+        Say.Out.WriteLine($"  node marks from {string.Join(", ", NodeFlags.Where(flag => flagColumns.ContainsKey(flag.Column)).Select(flag => flag.Column))}");
+        string? Marks(int row) => Present(string.Concat(NodeFlags.Where(flag => flagColumns.TryGetValue(flag.Column, out var at) && passives.Bool(row, at)).Select(flag => flag.Flag)));
+
         var nodeOut = new SortedDictionary<string, NodeEntry>(StringComparer.Ordinal);
         var namedPassives = new SortedSet<int>();
         foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".psg", StringComparison.OrdinalIgnoreCase) &&
@@ -163,17 +175,22 @@ internal static class EndgameExtractor
             }
 
             var links = graph.Links();
+            var roots = graph.Roots.ToHashSet();
             string PassiveId(int graphId) => byGraphId.TryGetValue(graphId, out var row) ? passives.StringOrNull(row, IdOffset) ?? string.Empty : string.Empty;
             var twice = 0;
             foreach (var node in graph.Nodes.Where(node => PassiveId(node.Id).Length > 0))
             {
                 // A node listed twice keeps its first place; its links are merged.
                 twice += nodeOut.TryAdd(PassiveId(node.Id), new NodeEntry(graphName, (int)MathF.Round(node.X), (int)MathF.Round(node.Y), node.Orbit, node.Slot,
-                    Present(links[node.Id].Select(PassiveId).Where(id => id.Length > 0).ToList()))) ? 0 : 1;
+                    Present(links[node.Id].Select(PassiveId).Where(id => id.Length > 0).ToList()))
+                {
+                    Flags = Marks(byGraphId[node.Id]),
+                    Root = roots.Contains(node.Id),
+                }) ? 0 : 1;
                 namedPassives.Add(byGraphId[node.Id]);
             }
 
-            Say.Out.WriteLine($"  {file.Path}: {graph.Nodes.Count} nodes{(twice > 0 ? $", {twice} listed twice" : string.Empty)}");
+            Say.Out.WriteLine($"  {file.Path}: {graph.Nodes.Count} nodes, {roots.Count} roots{(twice > 0 ? $", {twice} listed twice" : string.Empty)}");
         }
 
         // What each Atlas node holds: the pin it shows, the maps and biomes it can be, its objective and messages.
@@ -387,6 +404,12 @@ internal static class EndgameExtractor
     /// <param name="X">Its group's centre in the graph's units (whole units are plenty to tell directions).</param>
     private sealed record NodeEntry(string Graph, int X, int Y, int Orbit, int Slot, List<string>? Links)
     {
+        /// <summary>Its marks from PassiveSkills (<see cref="NodeFlags"/>: k keystone, n notable, i icon only, a mastery).</summary>
+        public string? Flags { get; init; }
+
+        /// <summary>A root of its graph file, where the tree starts.</summary>
+        public bool Root { get; init; }
+
         public string? Pin { get; init; }
 
         public List<string>? Maps { get; init; }

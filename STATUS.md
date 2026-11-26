@@ -290,6 +290,8 @@
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes (the node readout) | done (live 2026-11-25: fires in the Atlas skill tree; on the map the landed readout is `AtlasNarrator`'s, below) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
 | Atlas skill tree finder (D-pad: Position, Notables, Clusters; spoken stick route) | done (live 2026-11-25: lists, routes and arrival heard; the guide's threefold echo on a press fixed the same hour by freezing the line per node) | `AtlasTreeMap`/`AtlasTreeFinder` over the catalog's atlasskillgraph, `PassiveMap.Steps` + `PassiveStick.Route` borrowed; the passive machinery's state judge is the main tree's graph file, so it cannot run there ([atlas-navigator §5](docs/research/atlas-navigator.md)); allocation/point costs unread |
+| Atlas reopen diff ("Since last time: 2 completed: …. 1 now accessible: …") | done (unit tests 2026-11-25; not heard) | `AtlasProgress`, config/atlas-progress.txt by grid place; another Atlas (under half the places shared) is stored silently ([atlas-navigator Phase 4](docs/research/atlas-navigator.md)) |
+| Atlas tree kinds from the game's marks, not ids (update-proofing for 1.0's 70-node tree) | done (unit tests; catalog regenerated 2026-11-25) | `endgame` step v4 writes PassiveSkills flags and .psg roots; any rooted non-map graph is the tree ([atlas-navigator §5](docs/research/atlas-navigator.md)) |
 | Atlas map destination finder (L1/R1 entries, L2+L1/R1 lists: Position · Accessible, not completed · Landmarks · Seasonal activities; spoken route, stops at the map to clear) | done (code + unit tests 2026-11-25; route proof live still owed) | `AtlasDestinationFinder`, revealed-link BFS (`AtlasGraph.Route`), first-gate (`AtlasGraph.FirstGate`), guide in `AtlasNarrator`; buttons, not a stick: the game takes the right stick on this map with or without L2 (live 2026-11-25), L3 is its search and the D-pad hops nodes; bookmarks are the game's own pan jumps, left manual |
 | Yama's frozen time: the safe clone | done (unit tests; not heard) | the shelter's chord and the line lead to where the marked clone will stop, "¡Quieto! Dentro, quédate" before the edge, "¡Fuera!" past it, the all-clear after the blow ([Yama](docs/research/boss-mechanics.md#yama)) |
 | Boss fight turns (vanish/back, invulnerable+adds, phase/form, enrage) | done (unit) | `BossMechanicsWatch` + `BossPhaseTracker`, catalog/boss-mechanics.txt; docs/research/boss-mechanics.md; a boss back at full life after the player's death starts over (`BossLifeSteps.FightRestarted`, unit); a boss that hides to be found (Balbala's fog) is said with its direction and the heartbeat leads to it ([§11](docs/research/boss-mechanics.md#11-hide-and-seek-balbala-2026-11-11); live 2026-11-12, the user found her three times in 6-7 s) |
@@ -744,8 +746,10 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   their edges live in an external graph keyed by grid or index, still unfound, so a destination at one is guided
   by side and grid steps. The **Atlas skill tree's finder is live**; its allocation state, point costs and the
   owner's unspent Atlas points are spoken nowhere found (allocated counters only). **Unblocks:** the owner's
-  route proof over a whole Atlas destination route at two zoom levels, and a created bookmark's side-panel
-  capture (the panel read 0/16 all day; bookmarks are pan jumps, not a finder).
+  route proof over a whole Atlas destination route at two zoom levels, a created bookmark's side-panel
+  capture (the panel read 0/16 all day; bookmarks are pan jumps, not a finder), and one map completed then the
+  Atlas reopened (Phase 4's "Since last time", built 2026-11-25 on unit tests). After 1.0 (11 Dec 2026): the
+  `endgame` step's log line "atlasskillgraphs/…: N nodes, R roots" and a tree finder list heard confirm the new tree.
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each

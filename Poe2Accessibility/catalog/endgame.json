@@ -513,7 +513,8 @@
       "links": [
         "AtlasAbyssSmall17",
         "AtlasAbyssSmall13"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable10": {
       "graph": "atlasskillgraph",
@@ -522,7 +523,8 @@
       "links": [
         "AtlasAbyssSmall7",
         "AtlasAbyssSmall4"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable11": {
       "graph": "atlasskillgraph",
@@ -530,7 +532,8 @@
       "y": 521,
       "links": [
         "AtlasAbyssSmall11_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable12": {
       "graph": "atlasskillgraph",
@@ -539,7 +542,8 @@
       "links": [
         "AtlasAbyssSmall8",
         "AtlasAbyssSmall6_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable13": {
       "graph": "atlasskillgraph",
@@ -549,7 +553,8 @@
         "AtlasAbyssSmall8",
         "AtlasAbyssSmall13",
         "AtlasAbyssSmall9"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable14__": {
       "graph": "atlasskillgraph",
@@ -558,7 +563,8 @@
       "links": [
         "AtlasAbyssSmall5",
         "AtlasAbyssSmall4"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasAbyssNotable15_": {
       "graph": "atlasskillgraph",
@@ -569,7 +575,8 @@
       "links": [
         "AtlasAbyssSmall2_",
         "AtlasAbyssSmall1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable16": {
       "graph": "atlasskillgraph",
@@ -581,7 +588,8 @@
         "AtlasAbyssSmall3",
         "AtlasAbyssSmall2_",
         "AtlasAbyssSmall15"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable17": {
       "graph": "atlasskillgraph",
@@ -589,7 +597,8 @@
       "y": 521,
       "links": [
         "AtlasAbyssSmall16"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable18": {
       "graph": "atlasskillgraph",
@@ -597,7 +606,8 @@
       "y": 775,
       "links": [
         "AtlasAbyssSmall17"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable2": {
       "graph": "atlasskillgraph",
@@ -608,7 +618,8 @@
       "links": [
         "AtlasAbyssSmall3",
         "AtlasAbyssSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable3": {
       "graph": "atlasskillgraph",
@@ -618,7 +629,8 @@
       "slot": 15,
       "links": [
         "AtlasAbyssSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable4_": {
       "graph": "atlasskillgraph",
@@ -628,7 +640,8 @@
         "AtlasAbyssSmall5",
         "AtlasAbyssSmall10",
         "AtlasAbyssSmall14_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable5": {
       "graph": "atlasskillgraph",
@@ -637,7 +650,8 @@
       "links": [
         "AtlasAbyssSmall16",
         "AtlasAbyssSmall14_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable6": {
       "graph": "atlasskillgraph",
@@ -645,7 +659,8 @@
       "y": 826,
       "links": [
         "AtlasAbyssSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable7": {
       "graph": "atlasskillgraph",
@@ -654,7 +669,8 @@
       "links": [
         "AtlasAbyssSmall9",
         "AtlasAbyssSmall11_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAbyssNotable8": {
       "graph": "atlasskillgraph",
@@ -662,7 +678,8 @@
       "y": 816,
       "links": [
         "AtlasAbyssSmall3"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasAbyssNotable9": {
       "graph": "atlasskillgraph",
@@ -670,7 +687,8 @@
       "y": 1365,
       "links": [
         "AtlasAbyssSmall15"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasAbyssSmall1": {
       "graph": "atlasskillgraph",
@@ -843,7 +861,8 @@
         "AtlasAbyssSmall7",
         "AtlasAbyssSmall6_",
         "AtlasAbyssSmall1"
-      ]
+      ],
+      "root": true
     },
     "AtlasAzmeriSpirit2": {
       "graph": "atlasskillgraph",
@@ -916,6 +935,7 @@
       "links": [
         "AtlasEssence7"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable10": {
@@ -929,6 +949,7 @@
         "AtlasGenericSmall76",
         "AtlasAzmeriSpirit7"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable11": {
@@ -942,6 +963,7 @@
         "AtlasGenericSmall78_",
         "AtlasGenericSmall79"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable12": {
@@ -955,6 +977,7 @@
         "AtlasAzmeriSpirit4",
         "AtlasGenericSmall76"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable13": {
@@ -967,6 +990,7 @@
         "AtlasAzmeriSpirit7",
         "AtlasMagicMonster9_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable14_": {
@@ -978,7 +1002,8 @@
       "links": [
         "AtlasHybridLeagueSmall5",
         "AtlasGenericSmall77"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasAzmeriSpiritNotable15": {
       "graph": "atlasskillgraph",
@@ -986,7 +1011,8 @@
       "y": -2132,
       "links": [
         "AtlasAzmeriSpiritNotable8"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasAzmeriSpiritNotable16__": {
       "graph": "atlasskillgraph",
@@ -994,7 +1020,8 @@
       "y": -3558,
       "links": [
         "AtlasAzmeriSpirit2"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasAzmeriSpiritNotable17": {
       "graph": "atlasskillgraph",
@@ -1002,7 +1029,8 @@
       "y": -6922,
       "links": [
         "AtlasAzmeriSpiritNotable12"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasAzmeriSpiritNotable2": {
       "graph": "atlasskillgraph",
@@ -1014,6 +1042,7 @@
         "AtlasHybridLeagueSmall4",
         "AtlasAzmeriSpirit2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable3": {
@@ -1025,6 +1054,7 @@
       "links": [
         "AtlasGenericSmall75"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable6": {
@@ -1038,6 +1068,7 @@
         "AtlasBiomeGrass1",
         "AtlasGenericSmall77"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable7": {
@@ -1049,6 +1080,7 @@
         "AtlasGenericSmall87_",
         "AtlasDeadlyBossDropsExtraRandomLineage3"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable8": {
@@ -1061,6 +1093,7 @@
         "AtlasAzmeriSpiritNotable15",
         "AtlasGenericSmall79"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasAzmeriSpiritNotable9": {
@@ -1073,6 +1106,7 @@
         "AtlasAzmeriSpirit6",
         "AtlasRareMonsterChance2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasBiomeCity1": {
@@ -1167,6 +1201,7 @@
         "AtlasBiomeCity3",
         "AtlasBiomeCity1"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasBiomeCityNotable10": {
@@ -1178,7 +1213,8 @@
       "links": [
         "AtlasBiomeDesert4",
         "AtlasBiomeCityNotable13"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeCityNotable11": {
       "graph": "atlasskillgraph",
@@ -1188,7 +1224,8 @@
       "slot": 43,
       "links": [
         "AtlasBiomeCityNotable14"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeCityNotable12": {
       "graph": "atlasskillgraph",
@@ -1198,7 +1235,8 @@
       "slot": 18,
       "links": [
         "AtlasBiomeCityNotable15"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeCityNotable13": {
       "graph": "atlasskillgraph",
@@ -1210,7 +1248,8 @@
         "AtlasShrines1",
         "AtlasBiomeCity2",
         "AtlasUniqueMonsterDropRarity6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable14": {
       "graph": "atlasskillgraph",
@@ -1222,7 +1261,8 @@
         "AtlasBiomeCity4_",
         "AtlasBiomeCity5",
         "AtlasBiomeCityNotable11"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable15": {
       "graph": "atlasskillgraph",
@@ -1234,7 +1274,8 @@
         "AtlasBiomeCity7",
         "AtlasRareMonsterModifiersChance2",
         "AtlasBiomeCityNotable12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable3_": {
       "graph": "atlasskillgraph",
@@ -1246,7 +1287,8 @@
         "AtlasBiomeCity7",
         "AtlasRarity1",
         "AtlasBiomeCity1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable4": {
       "graph": "atlasskillgraph",
@@ -1256,7 +1298,8 @@
       "slot": 4,
       "links": [
         "AtlasBiomeCity7"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable5_": {
       "graph": "atlasskillgraph",
@@ -1267,7 +1310,8 @@
       "links": [
         "AtlasRogueExiles4",
         "AtlasMagicMonster9_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable6": {
       "graph": "atlasskillgraph",
@@ -1278,7 +1322,8 @@
       "links": [
         "AtlasBiomeCityNotable7",
         "AtlasBiomeCity3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable7": {
       "graph": "atlasskillgraph",
@@ -1288,7 +1333,8 @@
       "slot": 20,
       "links": [
         "AtlasBiomeCityNotable6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable8": {
       "graph": "atlasskillgraph",
@@ -1298,7 +1344,8 @@
       "slot": 45,
       "links": [
         "AtlasBiomeCity5"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeCityNotable9": {
       "graph": "atlasskillgraph",
@@ -1308,7 +1355,8 @@
       "links": [
         "AtlasBiomeCity7",
         "AtlasBiomeCity2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeDesert1": {
       "graph": "atlasskillgraph",
@@ -1384,7 +1432,8 @@
       "links": [
         "AtlasBiomeDesert1",
         "AtlasBiomeDesert3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeDesertNotable2": {
       "graph": "atlasskillgraph",
@@ -1395,7 +1444,8 @@
       "links": [
         "AtlasBiomeDesert2",
         "AtlasGenericSmall3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeDesertNotable3": {
       "graph": "atlasskillgraph",
@@ -1405,7 +1455,8 @@
       "links": [
         "AtlasBiomeDesert2",
         "AtlasBiomeDesert3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeDesertNotable4": {
       "graph": "atlasskillgraph",
@@ -1415,7 +1466,8 @@
         "AtlasBiomeDesert4",
         "AtlasBiomeDesert5",
         "AtlasBiomeDesert6__"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeForest2": {
       "graph": "atlasskillgraph",
@@ -1482,6 +1534,7 @@
         "AtlasBiomeForest2",
         "AtlasRareMonsterChance8"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasBiomeForestNotable2": {
@@ -1494,7 +1547,8 @@
         "AtlasBiomeForest2",
         "AtlasGenericSmall102",
         "AtlasBiomeForest3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeForestNotable3_": {
       "graph": "atlasskillgraph",
@@ -1504,7 +1558,8 @@
       "slot": 15,
       "links": [
         "AtlasBiomeForest3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeForestNotable4_": {
       "graph": "atlasskillgraph",
@@ -1514,7 +1569,8 @@
         "AtlasBiomeForest5",
         "AtlasBiomeForest6",
         "AtlasBiomeForest4"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeGenericNotable1": {
       "graph": "atlasskillgraph",
@@ -1527,7 +1583,8 @@
         "AtlasRareMonsterChance7",
         "AtlasRareMonsterChance8",
         "AtlasRareMonsterModifiersChance3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGenericNotable2": {
       "graph": "atlasskillgraph",
@@ -1540,7 +1597,8 @@
         "AtlasGenericSmall38",
         "AtlasMagicMonster17",
         "AtlasMonsterPackSizeSelector1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGenericNotable3": {
       "graph": "atlasskillgraph",
@@ -1550,7 +1608,8 @@
       "links": [
         "AtlasTabletNotable3",
         "AtlasMonsterPackSizeSelector1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGenericNotable4": {
       "graph": "atlasskillgraph",
@@ -1563,7 +1622,8 @@
         "AtlasGenericSmall1",
         "AtlasMonsterPackSizeSelector1",
         "AtlasGenericSmall3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGenericNotable5": {
       "graph": "atlasskillgraph",
@@ -1576,7 +1636,8 @@
         "AtlasUniqueMonsterDropRarity3",
         "AtlasGenericSmall38",
         "AtlasBiomeGrass3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGrass1": {
       "graph": "atlasskillgraph",
@@ -1654,7 +1715,8 @@
       "links": [
         "AtlasBiomeGrass3",
         "AtlasBiomeGrass1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGrassNotable2_": {
       "graph": "atlasskillgraph",
@@ -1666,7 +1728,8 @@
         "AtlasGenericSmall31",
         "AtlasBiomeGrass2_",
         "AtlasBiomeGrass1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGrassNotable3": {
       "graph": "atlasskillgraph",
@@ -1676,7 +1739,8 @@
       "slot": 8,
       "links": [
         "AtlasBiomeGrass2_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeGrassNotable4": {
       "graph": "atlasskillgraph",
@@ -1686,7 +1750,8 @@
         "AtlasBiomeGrass5",
         "AtlasBiomeGrass4_",
         "AtlasBiomeGrass6"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeMountain1": {
       "graph": "atlasskillgraph",
@@ -1764,6 +1829,7 @@
         "AtlasBiomeMountain1",
         "AtlasRarity4_"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasBiomeMountainNotable2": {
@@ -1775,7 +1841,8 @@
       "links": [
         "AtlasBiomeMountain3",
         "AtlasBiomeMountain2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeMountainNotable3___": {
       "graph": "atlasskillgraph",
@@ -1786,7 +1853,8 @@
       "links": [
         "AtlasStrongbox7",
         "AtlasBiomeMountain2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeMountainNotable4": {
       "graph": "atlasskillgraph",
@@ -1796,7 +1864,8 @@
         "AtlasBiomeMountain4_",
         "AtlasBiomeMountain6",
         "AtlasBiomeMountain5"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeSwamp1": {
       "graph": "atlasskillgraph",
@@ -1872,7 +1941,8 @@
         "AtlasBiomeSwamp3",
         "AtlasBiomeSwamp1",
         "AtlasBiomeSwampNotable2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeSwampNotable2": {
       "graph": "atlasskillgraph",
@@ -1883,7 +1953,8 @@
       "links": [
         "AtlasBiomeSwampNotable1",
         "AtlasBiomeSwamp2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeSwampNotable3": {
       "graph": "atlasskillgraph",
@@ -1893,7 +1964,8 @@
       "slot": 4,
       "links": [
         "AtlasBiomeSwamp3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeSwampNotable4": {
       "graph": "atlasskillgraph",
@@ -1903,7 +1975,8 @@
         "AtlasBiomeSwamp6_",
         "AtlasBiomeSwamp5",
         "AtlasBiomeSwamp4"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBiomeWater1": {
       "graph": "atlasskillgraph",
@@ -1982,6 +2055,7 @@
         "AtlasMagicMonster5",
         "AtlasBiomeWater1"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasBiomeWaterNotable2_": {
@@ -1993,7 +2067,8 @@
       "links": [
         "AtlasBiomeWater2",
         "AtlasBiomeWater1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeWaterNotable3": {
       "graph": "atlasskillgraph",
@@ -2004,7 +2079,8 @@
       "links": [
         "AtlasBiomeWater2",
         "AtlasBiomeWater3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBiomeWaterNotable4": {
       "graph": "atlasskillgraph",
@@ -2014,7 +2090,8 @@
         "AtlasBiomeWater5",
         "AtlasBiomeWater4",
         "AtlasBiomeWater6"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBreachNotable1": {
       "graph": "atlasskillgraph",
@@ -2022,7 +2099,8 @@
       "y": 896,
       "links": [
         "AtlasBreachSmall11"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable10": {
       "graph": "atlasskillgraph",
@@ -2030,7 +2108,8 @@
       "y": 619,
       "links": [
         "AtlasBreachSmall13"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable11_": {
       "graph": "atlasskillgraph",
@@ -2040,7 +2119,8 @@
         "AtlasBreachSmall1",
         "AtlasBreachSmall8",
         "AtlasBreachSmall9"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable12": {
       "graph": "atlasskillgraph",
@@ -2049,7 +2129,8 @@
       "links": [
         "AtlasBreachSmall5",
         "AtlasBreachSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable13": {
       "graph": "atlasskillgraph",
@@ -2057,7 +2138,8 @@
       "y": 495,
       "links": [
         "AtlasBreachSmall5"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBreachNotable14": {
       "graph": "atlasskillgraph",
@@ -2066,7 +2148,8 @@
       "links": [
         "AtlasBreachSmall4",
         "AtlasBreachSmall14"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable15": {
       "graph": "atlasskillgraph",
@@ -2075,7 +2158,8 @@
       "links": [
         "AtlasBreachSmall15",
         "AtlasBreachSmall7"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable16": {
       "graph": "atlasskillgraph",
@@ -2086,7 +2170,8 @@
         "AtlasBreachSmall4",
         "AtlasBreachSmall7",
         "AtlasBreachSmall2_"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBreachNotable2": {
       "graph": "atlasskillgraph",
@@ -2094,7 +2179,8 @@
       "y": 1149,
       "links": [
         "AtlasBreachSmall8"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable3": {
       "graph": "atlasskillgraph",
@@ -2102,7 +2188,8 @@
       "y": 1386,
       "links": [
         "AtlasBreachSmall2_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable4": {
       "graph": "atlasskillgraph",
@@ -2110,7 +2197,8 @@
       "y": 1375,
       "links": [
         "AtlasBreachSmall1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable5": {
       "graph": "atlasskillgraph",
@@ -2118,7 +2206,8 @@
       "y": 615,
       "links": [
         "AtlasBreachSmall14"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBreachNotable6": {
       "graph": "atlasskillgraph",
@@ -2126,7 +2215,8 @@
       "y": 722,
       "links": [
         "AtlasBreachSmall15"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasBreachNotable7": {
       "graph": "atlasskillgraph",
@@ -2136,7 +2226,8 @@
         "AtlasBreachSmall12",
         "AtlasBreachSmall11",
         "AtlasBreachSmall3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable8": {
       "graph": "atlasskillgraph",
@@ -2146,7 +2237,8 @@
         "AtlasBreachSmall6",
         "AtlasBreachSmall13",
         "AtlasBreachSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachNotable9": {
       "graph": "atlasskillgraph",
@@ -2154,7 +2246,8 @@
       "y": 920,
       "links": [
         "AtlasBreachSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasBreachSmall1": {
       "graph": "atlasskillgraph",
@@ -2309,7 +2402,8 @@
         "AtlasBreachSmall16",
         "AtlasBreachSmall9",
         "AtlasBreachSmall3"
-      ]
+      ],
+      "root": true
     },
     "AtlasCleansed1": {
       "graph": "atlasskillgraph",
@@ -2372,6 +2466,7 @@
         "AtlasAzmeriSpirit4",
         "AtlasCleansed4"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasCleansedNotable5__": {
@@ -2385,6 +2480,7 @@
         "AtlasCleansed1",
         "AtlasCleansed3_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasCleansedNotable6": {
@@ -2397,6 +2493,7 @@
         "AtlasBiomeForest6",
         "AtlasCleansed1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasContentTypeSelector1": {
@@ -2412,7 +2509,8 @@
         "AtlasWaystoneNotable3",
         "AtlasBiomeGenericNotable5",
         "AtlasBiomeGenericNotable1"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasCorruption1": {
       "graph": "atlasskillgraph",
@@ -2474,6 +2572,7 @@
       "links": [
         "AtlasCorruption6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasCorruptionNotable3": {
@@ -2486,6 +2585,7 @@
         "AtlasBiomeGrass6",
         "AtlasCorruption2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasDeadlyBossDropsExtraRandomLineage1": {
@@ -2496,7 +2596,8 @@
       "links": [
         "AtlasMagicMonster13",
         "AtlasStrongboxNotable13"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeadlyBossDropsExtraRandomLineage2": {
       "graph": "atlasskillgraph",
@@ -2507,7 +2608,8 @@
         "AtlasGenericSmall6",
         "AtlasMagicMonster13",
         "AtlasBiomeWater4"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeadlyBossDropsExtraRandomLineage3": {
       "graph": "atlasskillgraph",
@@ -2517,7 +2619,8 @@
       "links": [
         "AtlasUniqueMonsterDropRarity13",
         "AtlasAzmeriSpiritNotable7"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeadlyBossDropsExtraRandomLineage4": {
       "graph": "atlasskillgraph",
@@ -2528,7 +2631,8 @@
         "AtlasUniqueMonsterDropRarity13",
         "AtlasAzmeriSpiritEssenceChance",
         "AtlasBiomeDesert5"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable1": {
       "graph": "atlasskillgraph",
@@ -2540,7 +2644,8 @@
         "AtlasDeliriumSmall18",
         "AtlasDeliriumSmall9",
         "AtlasDeliriumSmall1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable10": {
       "graph": "atlasskillgraph",
@@ -2550,7 +2655,8 @@
       "links": [
         "AtlasDeliriumSmall14__",
         "AtlasDeliriumSmall13"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasDeliriumNotable11_": {
       "graph": "atlasskillgraph",
@@ -2560,7 +2666,8 @@
       "slot": 7,
       "links": [
         "AtlasDeliriumSmall16"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable12": {
       "graph": "atlasskillgraph",
@@ -2571,7 +2678,8 @@
       "links": [
         "AtlasDeliriumSmall2_",
         "AtlasDeliriumSmall1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable13": {
       "graph": "atlasskillgraph",
@@ -2582,7 +2690,8 @@
       "links": [
         "AtlasDeliriumSmall16",
         "AtlasDeliriumSmall4_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable14": {
       "graph": "atlasskillgraph",
@@ -2594,7 +2703,8 @@
         "AtlasDeliriumSmall11",
         "AtlasDeliriumSmall4_",
         "AtlasDeliriumSmall3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable15": {
       "graph": "atlasskillgraph",
@@ -2604,7 +2714,8 @@
       "slot": 3,
       "links": [
         "AtlasDeliriumSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable16": {
       "graph": "atlasskillgraph",
@@ -2614,7 +2725,8 @@
       "slot": 12,
       "links": [
         "AtlasDeliriumSmall11"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable17": {
       "graph": "atlasskillgraph",
@@ -2624,7 +2736,8 @@
       "slot": 69,
       "links": [
         "AtlasDeliriumSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable2": {
       "graph": "atlasskillgraph",
@@ -2634,7 +2747,8 @@
       "slot": 65,
       "links": [
         "AtlasDeliriumSmall2_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable3": {
       "graph": "atlasskillgraph",
@@ -2646,7 +2760,8 @@
         "AtlasDeliriumSmall10",
         "AtlasDeliriumSmall13",
         "AtlasDeliriumSmall5"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable5": {
       "graph": "atlasskillgraph",
@@ -2658,7 +2773,8 @@
         "AtlasDeliriumSmall14__",
         "AtlasDeliriumSmall8",
         "AtlasDeliriumSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable6": {
       "graph": "atlasskillgraph",
@@ -2668,7 +2784,8 @@
       "slot": 49,
       "links": [
         "AtlasDeliriumSmall6_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable7_": {
       "graph": "atlasskillgraph",
@@ -2678,7 +2795,8 @@
       "slot": 23,
       "links": [
         "AtlasDeliriumSmall7"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumNotable9": {
       "graph": "atlasskillgraph",
@@ -2688,7 +2806,8 @@
       "slot": 60,
       "links": [
         "AtlasDeliriumSmall9"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasDeliriumSmall1": {
       "graph": "atlasskillgraph",
@@ -2879,7 +2998,8 @@
         "AtlasDeliriumSmall6_",
         "AtlasDeliriumSmall5",
         "AtlasDeliriumSmall7"
-      ]
+      ],
+      "root": true
     },
     "AtlasEssence4_": {
       "graph": "atlasskillgraph",
@@ -2968,6 +3088,7 @@
         "AtlasAzmeriSpiritEssenceChance",
         "AtlasEssence5_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable10_": {
@@ -2979,6 +3100,7 @@
       "links": [
         "AtlasEssence8_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable11": {
@@ -2987,7 +3109,8 @@
       "y": -2132,
       "links": [
         "AtlasEssenceNotable7"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasEssenceNotable12": {
       "graph": "atlasskillgraph",
@@ -2997,7 +3120,8 @@
       "slot": 36,
       "links": [
         "AtlasGenericNotable29"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasEssenceNotable13": {
       "graph": "atlasskillgraph",
@@ -3005,7 +3129,8 @@
       "y": -4649,
       "links": [
         "AtlasEssence4_"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasEssenceNotable2": {
       "graph": "atlasskillgraph",
@@ -3018,6 +3143,7 @@
         "AtlasGenericSmall18",
         "AtlasGenericSmall71"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable3": {
@@ -3030,6 +3156,7 @@
         "AtlasGenericSmall18",
         "AtlasRareMonsterChance3"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable4": {
@@ -3041,6 +3168,7 @@
         "AtlasEssence4_",
         "AtlasEssence6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable6": {
@@ -3054,6 +3182,7 @@
         "AtlasHybridLeagueSmall2_",
         "AtlasEssence4_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable7": {
@@ -3066,6 +3195,7 @@
         "AtlasGenericSmall17",
         "AtlasEssenceNotable11"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable8_": {
@@ -3078,6 +3208,7 @@
         "AtlasHybridLeagueSmall1",
         "AtlasEssence6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasEssenceNotable9": {
@@ -3090,6 +3221,7 @@
         "AtlasEssence5_",
         "AtlasRareMonsterModifiersChance2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasExceptionalBodyArmour__": {
@@ -3101,7 +3233,8 @@
         "AtlasCleansed2",
         "AtlasCleansed4",
         "AtlasCleansed1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExceptionalBoots": {
       "graph": "atlasskillgraph",
@@ -3112,7 +3245,8 @@
       "links": [
         "AtlasRareMonsterModifiersChance6",
         "AtlasRarity1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExceptionalGloves": {
       "graph": "atlasskillgraph",
@@ -3122,7 +3256,8 @@
       "slot": 54,
       "links": [
         "AtlasMagicMonster9_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExceptionalHelmets": {
       "graph": "atlasskillgraph",
@@ -3130,7 +3265,8 @@
       "y": -6989,
       "links": [
         "AtlasRareMonsterModifiersChance2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExceptionalWeapons": {
       "graph": "atlasskillgraph",
@@ -3141,7 +3277,8 @@
         "AtlasCorruption3",
         "AtlasCorruption2",
         "AtlasCorruption6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable1": {
       "graph": "atlasskillgraph",
@@ -3149,7 +3286,8 @@
       "y": 595,
       "links": [
         "AtlasExpeditionSmall3"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasExpeditionNotable10": {
       "graph": "atlasskillgraph",
@@ -3158,7 +3296,8 @@
       "links": [
         "AtlasExpeditionSmall10",
         "AtlasExpeditionSmall9"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable11": {
       "graph": "atlasskillgraph",
@@ -3166,7 +3305,8 @@
       "y": 1862,
       "links": [
         "AtlasExpeditionSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable12": {
       "graph": "atlasskillgraph",
@@ -3175,7 +3315,8 @@
       "links": [
         "AtlasExpeditionSmall12",
         "AtlasExpeditionSmall11"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable2_": {
       "graph": "atlasskillgraph",
@@ -3184,7 +3325,8 @@
       "links": [
         "AtlasExpeditionSmall3",
         "AtlasExpeditionSmall2"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasExpeditionNotable3_": {
       "graph": "atlasskillgraph",
@@ -3193,7 +3335,8 @@
       "links": [
         "AtlasExpeditionSmall2",
         "AtlasExpeditionSmall1"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable4": {
       "graph": "atlasskillgraph",
@@ -3201,7 +3344,8 @@
       "y": 1223,
       "links": [
         "AtlasExpeditionSmall8__"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable5": {
       "graph": "atlasskillgraph",
@@ -3209,7 +3353,8 @@
       "y": 824,
       "links": [
         "AtlasExpeditionSmall4"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasExpeditionNotable6": {
       "graph": "atlasskillgraph",
@@ -3217,7 +3362,8 @@
       "y": 1622,
       "links": [
         "AtlasExpeditionSmall12"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasExpeditionNotable7_": {
       "graph": "atlasskillgraph",
@@ -3226,7 +3372,8 @@
       "links": [
         "AtlasExpeditionSmall5",
         "AtlasExpeditionSmall9"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasExpeditionNotable8": {
       "graph": "atlasskillgraph",
@@ -3234,7 +3381,8 @@
       "y": 1997,
       "links": [
         "AtlasExpeditionSmall6"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasExpeditionNotable9_": {
       "graph": "atlasskillgraph",
@@ -3243,7 +3391,8 @@
       "links": [
         "AtlasExpeditionSmall11",
         "AtlasExpeditionSmall7"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasExpeditionSmall1": {
       "graph": "atlasskillgraph",
@@ -3364,232 +3513,271 @@
         "AtlasExpeditionSmall6",
         "AtlasExpeditionSmall5",
         "AtlasExpeditionSmall1"
-      ]
+      ],
+      "root": true
     },
     "AtlasGenericMastery1": {
       "graph": "atlasskillgraph",
       "x": -357,
       "y": -1638,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery10": {
       "graph": "atlasskillgraph",
       "x": -965,
       "y": -1226,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery11": {
       "graph": "atlasskillgraph",
       "x": -2370,
       "y": -4356,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery13": {
       "graph": "atlasskillgraph",
       "x": 964,
       "y": -1227,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery14": {
       "graph": "atlasskillgraph",
       "x": 2854,
       "y": -3559,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery15": {
       "graph": "atlasskillgraph",
       "x": -1216,
       "y": -625,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery16": {
       "graph": "atlasskillgraph",
       "x": -2858,
       "y": -3558,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery17": {
       "graph": "atlasskillgraph",
       "x": -3053,
       "y": -7271,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery18_": {
       "graph": "atlasskillgraph",
       "x": -3482,
       "y": -4231,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery19": {
       "graph": "atlasskillgraph",
       "x": -1578,
       "y": -4905,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery2": {
       "graph": "atlasskillgraph",
       "x": -1882,
       "y": -3558,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery20": {
       "graph": "atlasskillgraph",
       "x": -1313,
       "y": -2816,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery21": {
       "graph": "atlasskillgraph",
       "x": 1,
       "y": -6989,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery22": {
       "graph": "atlasskillgraph",
       "x": 1307,
       "y": -2807,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery23": {
       "graph": "atlasskillgraph",
       "x": 1587,
       "y": -4911,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery24": {
       "graph": "atlasskillgraph",
       "x": 3487,
       "y": -4232,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery25": {
       "graph": "atlasskillgraph",
       "x": 2068,
       "y": -1189,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery26": {
       "graph": "atlasskillgraph",
       "y": -2569,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery27": {
       "graph": "atlasskillgraph",
       "x": -2092,
       "y": -1195,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery28": {
       "graph": "atlasskillgraph",
       "x": -3542,
       "y": -3037,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery29": {
       "graph": "atlasskillgraph",
       "x": 3047,
       "y": -7261,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery3": {
       "graph": "atlasskillgraph",
       "x": -1834,
       "y": -7267,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery30": {
       "graph": "atlasskillgraph",
       "x": -2565,
       "y": -8779,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery31": {
       "graph": "atlasskillgraph",
       "x": -2565,
       "y": -5914,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery32____": {
       "graph": "atlasskillgraph",
       "x": 814,
       "y": -6354,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery33": {
       "graph": "atlasskillgraph",
       "y": -9475,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery34": {
       "graph": "atlasskillgraph",
       "x": 2568,
       "y": -5913,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery35": {
       "graph": "atlasskillgraph",
       "x": 2568,
       "y": -8774,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery37": {
       "graph": "atlasskillgraph",
       "x": 1,
       "y": -4116,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery38": {
       "graph": "atlasskillgraph",
       "x": 3545,
       "y": -3037,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery39": {
       "graph": "atlasskillgraph",
       "x": 2285,
       "y": -2745,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery4": {
       "graph": "atlasskillgraph",
       "x": 362,
       "y": -1638,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery40_": {
       "graph": "atlasskillgraph",
       "x": -2309,
       "y": -2751,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery5_": {
       "graph": "atlasskillgraph",
       "x": 2365,
       "y": -4357,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery6": {
       "graph": "atlasskillgraph",
       "x": 1803,
       "y": -7258,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery7": {
       "graph": "atlasskillgraph",
       "x": 1216,
       "y": -625,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery8": {
       "graph": "atlasskillgraph",
       "x": 1878,
       "y": -3559,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericMastery9": {
       "graph": "atlasskillgraph",
       "x": -783,
       "y": -7827,
+      "flags": "i",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable1": {
@@ -3602,6 +3790,7 @@
         "AtlasRareMonsterModifiersChance8",
         "AtlasRareMonsterChance3"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable14": {
@@ -3615,6 +3804,7 @@
         "AtlasBiomeMountain1",
         "AtlasBiomeMountain2"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable2": {
@@ -3628,6 +3818,7 @@
         "AtlasGenericSmall13",
         "AtlasMagicMonster6"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable29": {
@@ -3641,6 +3832,7 @@
         "AtlasEssence9_",
         "AtlasEssenceNotable12"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable32": {
@@ -3651,6 +3843,7 @@
         "AtlasShrines3",
         "AtlasGenericSmall65_"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable36": {
@@ -3663,6 +3856,7 @@
         "AtlasHybridLeagueSmall6",
         "AtlasStrongbox7"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable40": {
@@ -3676,6 +3870,7 @@
         "AtlasMapBossNotable2",
         "AtlasRogueExilesNotable13"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable5": {
@@ -3688,6 +3883,7 @@
         "AtlasShrines2",
         "AtlasShrines4__"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable6": {
@@ -3700,6 +3896,7 @@
         "AtlasRareMonsterChance2",
         "AtlasRareMonsterModifiersChance8"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericNotable7": {
@@ -3713,6 +3910,7 @@
         "AtlasStrongboxNotable1",
         "AtlasGenericSmall13"
       ],
+      "flags": "n",
       "pin": "PrecursorMap"
     },
     "AtlasGenericSmall1": {
@@ -4076,6 +4274,7 @@
         "AtlasRogueExiles1_",
         "AtlasGenericSmall71"
       ],
+      "root": true,
       "pin": "BaseCamp",
       "maps": [
         "G_Endgame_Town"
@@ -4147,6 +4346,7 @@
         "AtlasNormalMapsWithDelirium7___",
         "AtlasOutsideFortressPath9"
       ],
+      "flags": "n",
       "maps": [
         "Map_HildaCampsite"
       ],
@@ -4229,7 +4429,8 @@
         "AtlasIncursionSmall19",
         "AtlasIncursionSmall1",
         "AtlasIncursionSmall5"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable10": {
       "graph": "atlasskillgraph",
@@ -4237,7 +4438,8 @@
       "y": -1849,
       "links": [
         "AtlasIncursionSmall10"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasIncursionNotable11": {
       "graph": "atlasskillgraph",
@@ -4247,7 +4449,8 @@
         "AtlasIncursionSmall12",
         "AtlasIncursionSmall5",
         "AtlasIncursionSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable13": {
       "graph": "atlasskillgraph",
@@ -4256,7 +4459,8 @@
       "links": [
         "AtlasIncursionSmall13",
         "AtlasIncursionSmall15"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable14": {
       "graph": "atlasskillgraph",
@@ -4266,7 +4470,8 @@
         "AtlasIncursionSmall9",
         "AtlasIncursionSmall13",
         "AtlasIncursionSmall11__"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable15": {
       "graph": "atlasskillgraph",
@@ -4274,7 +4479,8 @@
       "y": -1340,
       "links": [
         "AtlasIncursionSmall15"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable16": {
       "graph": "atlasskillgraph",
@@ -4282,7 +4488,8 @@
       "y": -2078,
       "links": [
         "AtlasIncursionSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable17_": {
       "graph": "atlasskillgraph",
@@ -4292,7 +4499,8 @@
         "AtlasIncursionSmall19",
         "AtlasIncursionSmall3",
         "AtlasIncursionSmall17_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable18": {
       "graph": "atlasskillgraph",
@@ -4301,7 +4509,8 @@
       "links": [
         "AtlasIncursionSmall15",
         "AtlasIncursionSmall11__"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable19": {
       "graph": "atlasskillgraph",
@@ -4309,7 +4518,8 @@
       "y": -1585,
       "links": [
         "AtlasIncursionSmall7_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable2": {
       "graph": "atlasskillgraph",
@@ -4318,7 +4528,8 @@
       "links": [
         "AtlasIncursionSmall7_",
         "AtlasIncursionSmall16"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable3": {
       "graph": "atlasskillgraph",
@@ -4326,7 +4537,8 @@
       "y": -2078,
       "links": [
         "AtlasIncursionSmall3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable4": {
       "graph": "atlasskillgraph",
@@ -4334,7 +4546,8 @@
       "y": -1343,
       "links": [
         "AtlasIncursionSmall18"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable5_": {
       "graph": "atlasskillgraph",
@@ -4342,7 +4555,8 @@
       "y": -1849,
       "links": [
         "AtlasIncursionSmall17_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable6_": {
       "graph": "atlasskillgraph",
@@ -4351,7 +4565,8 @@
       "links": [
         "AtlasIncursionSmall4",
         "AtlasIncursionSmall6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable7": {
       "graph": "atlasskillgraph",
@@ -4360,7 +4575,8 @@
       "links": [
         "AtlasIncursionSmall2",
         "AtlasIncursionSmall8"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable8": {
       "graph": "atlasskillgraph",
@@ -4368,7 +4584,8 @@
       "y": -1067,
       "links": [
         "AtlasIncursionSmall6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionNotable9": {
       "graph": "atlasskillgraph",
@@ -4377,7 +4594,8 @@
       "links": [
         "AtlasIncursionSmall4",
         "AtlasIncursionSmall2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasIncursionSmall1": {
       "graph": "atlasskillgraph",
@@ -4551,7 +4769,8 @@
         "AtlasIncursionSmall1",
         "AtlasIncursionSmall16",
         "AtlasIncursionSmall8"
-      ]
+      ],
+      "root": true
     },
     "AtlasInsideFortressRed1": {
       "graph": "endgamemaplayoutgraph",
@@ -8797,6 +9016,7 @@
         "AtlasLeagueAbyssInnerNode15",
         "AtlasLeagueAbyssInnerNode8_"
       ],
+      "flags": "k",
       "maps": [
         "Abyss_Pinnacle"
       ],
@@ -9174,6 +9394,7 @@
         "AtlasLeagueBreachSkyhive2",
         "AtlasLeagueBreachSkyhive1"
       ],
+      "flags": "k",
       "pin": "Breach",
       "maps": [
         "ChayulaLeague_TowerBoss"
@@ -9193,6 +9414,7 @@
         "AtlasLeagueBreachOuterNode15",
         "AtlasLeagueBreachOuterNode17"
       ],
+      "flags": "k",
       "maps": [
         "ChayulaLeague"
       ],
@@ -9581,6 +9803,7 @@
         "AtlasLeagueBreachInnerNode2",
         "AtlasLeagueBreachInnerNode3"
       ],
+      "flags": "n",
       "pin": "Breach",
       "maps": [
         "ChayulaLeague_Tower"
@@ -9597,6 +9820,7 @@
         "AtlasLeagueBreachInnerNode11",
         "AtlasLeagueBreachInnerNode4"
       ],
+      "flags": "n",
       "pin": "Breach",
       "maps": [
         "ChayulaLeague_Tower"
@@ -9612,6 +9836,7 @@
         "AtlasLeagueDeliriumOuterNode2_",
         "AtlasLeagueDeliriumInnerNode2"
       ],
+      "flags": "k",
       "pin": "Delirium",
       "biomes": [
         "Grass"
@@ -9626,6 +9851,7 @@
         "AtlasLeagueDeliriumOuterNode13",
         "AtlasLeagueDeliriumOuterNode11"
       ],
+      "flags": "k",
       "maps": [
         "MapUberBoss_Delirium"
       ],
@@ -10683,6 +10909,7 @@
         "AtlasLeagueIncursionDistrictBNode9",
         "AtlasLeagueIncursionDistrictANode11"
       ],
+      "flags": "k",
       "maps": [
         "IncursionHubEndgame"
       ],
@@ -10699,6 +10926,7 @@
         "AtlasLeagueRitualInnerForest2",
         "AtlasLeagueRitualOuterForest2"
       ],
+      "flags": "k",
       "pin": "Ritual",
       "maps": [
         "RitualLeagueBoss"
@@ -10716,6 +10944,7 @@
         "AtlasLeagueRitualOuterForest10",
         "AtlasLeagueRitualOuterForest8"
       ],
+      "flags": "k",
       "maps": [
         "MapUberBoss_Ritual"
       ],
@@ -11407,6 +11636,7 @@
         "AtlasMagicMonster1",
         "AtlasGenericSmall39_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMagicMonsterNotable4": {
@@ -11418,6 +11648,7 @@
       "links": [
         "AtlasMagicMonster1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMagicMonsterNotable5": {
@@ -11430,6 +11661,7 @@
         "AtlasGenericSmall39_",
         "AtlasMagicMonster2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMagicMonsterNotable6": {
@@ -11439,6 +11671,7 @@
       "links": [
         "AtlasMagicMonster1"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasMapBossNotable1_": {
@@ -11453,6 +11686,7 @@
         "AtlasRogueExiles5",
         "AtlasRareMonsterModifiersChance3"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasMapBossNotable2": {
@@ -11466,6 +11700,7 @@
         "AtlasGenericNotable40",
         "AtlasUniqueMonsterDropRarity1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMapBossNotable3": {
@@ -11477,6 +11712,7 @@
       "links": [
         "AtlasUniqueMonsterDropRarity5"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMapBossNotable5": {
@@ -11491,6 +11727,7 @@
         "AtlasGenericSmall38",
         "AtlasGenericSmall36"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasMapBossNotable7_": {
@@ -11504,6 +11741,7 @@
         "AtlasCorruption2",
         "AtlasCorruption6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMapBossNotable8": {
@@ -11517,6 +11755,7 @@
         "AtlasUniqueMonsterDropRarity1",
         "AtlasUniqueMonsterDropRarity4"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasMapVoidReliquary": {
@@ -11544,7 +11783,8 @@
         "AtlasGenericSmall1",
         "AtlasMagicMonster17",
         "AtlasBiomeGenericNotable3"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasNoMapOnlyMountain1": {
       "graph": "endgamemaplayoutgraph",
@@ -12105,6 +12345,7 @@
         "AtlasOutsideFortressPath30",
         "AtlasOutsideFortressPath11"
       ],
+      "flags": "n",
       "pin": "InitialTower",
       "maps": [
         "MapUniqueInitialTower"
@@ -12952,7 +13193,8 @@
       "links": [
         "AtlasTabletNotable9",
         "AtlasMagicMonster6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRareMonsterModifiersCap2": {
       "graph": "atlasskillgraph",
@@ -12961,7 +13203,8 @@
       "links": [
         "AtlasTabletNotable10",
         "AtlasUniqueMonsterDropRarity4"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRareMonsterModifiersChance1": {
       "graph": "atlasskillgraph",
@@ -13079,7 +13322,8 @@
         "AtlasTabletNotable5",
         "AtlasWaystoneNotable3",
         "AtlasRareMonsterModifiersChance8"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRareNotable2": {
       "graph": "atlasskillgraph",
@@ -13091,6 +13335,7 @@
         "AtlasRarePackAdditionalRareChance1",
         "AtlasRareMonsterModifiersChance4"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRareNotable4": {
@@ -13102,6 +13347,7 @@
       "links": [
         "AtlasRareMonsterModifiersChance7"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRareNotable5": {
@@ -13111,6 +13357,7 @@
       "links": [
         "AtlasRareMonsterModifiersChance7"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasRarePackAdditionalRareChance1": {
@@ -13167,6 +13414,7 @@
       "links": [
         "AtlasInsideFortressRed29"
       ],
+      "flags": "n",
       "pin": "WaypointPin",
       "maps": [
         "MapUberBoss_Divinity"
@@ -13186,6 +13434,7 @@
       "links": [
         "AtlasInsideFortressRed20"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable",
       "maps": [
         "MapMothersoul_Male_Quest"
@@ -13203,6 +13452,7 @@
         "AtlasInsideFortressRed46",
         "AtlasInsideFortressRed57"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable",
       "maps": [
         "MapMothersoul_Female_Quest"
@@ -13219,7 +13469,8 @@
       "links": [
         "AtlasRitualSmall4",
         "AtlasRitualSmall10"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable10_": {
       "graph": "atlasskillgraph",
@@ -13227,7 +13478,8 @@
       "y": -2030,
       "links": [
         "AtlasRitualSmall14"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable11": {
       "graph": "atlasskillgraph",
@@ -13235,7 +13487,8 @@
       "y": -1442,
       "links": [
         "AtlasRitualSmall8"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable12": {
       "graph": "atlasskillgraph",
@@ -13249,7 +13502,8 @@
         "AtlasRitualSmall16",
         "AtlasRitualSmall19",
         "AtlasRitualSmall13_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable13": {
       "graph": "atlasskillgraph",
@@ -13257,7 +13511,8 @@
       "y": -1629,
       "links": [
         "AtlasRitualSmall15_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable14": {
       "graph": "atlasskillgraph",
@@ -13265,7 +13520,8 @@
       "y": -1185,
       "links": [
         "AtlasRitualSmall6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable15": {
       "graph": "atlasskillgraph",
@@ -13273,7 +13529,8 @@
       "y": -1612,
       "links": [
         "AtlasRitualSmall16"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable16_": {
       "graph": "atlasskillgraph",
@@ -13281,7 +13538,8 @@
       "y": -1185,
       "links": [
         "AtlasRitualSmall17"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable18": {
       "graph": "atlasskillgraph",
@@ -13289,7 +13547,8 @@
       "y": -1614,
       "links": [
         "AtlasRitualSmall18"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable19": {
       "graph": "atlasskillgraph",
@@ -13297,7 +13556,8 @@
       "y": -1982,
       "links": [
         "AtlasRitualSmall13_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable2": {
       "graph": "atlasskillgraph",
@@ -13305,7 +13565,8 @@
       "y": -1726,
       "links": [
         "AtlasRitualSmall10"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasRitualNotable20": {
       "graph": "atlasskillgraph",
@@ -13313,7 +13574,8 @@
       "y": -1727,
       "links": [
         "AtlasRitualSmall19"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable3_": {
       "graph": "atlasskillgraph",
@@ -13321,7 +13583,8 @@
       "y": -1724,
       "links": [
         "AtlasRitualSmall9"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable4": {
       "graph": "atlasskillgraph",
@@ -13335,7 +13598,8 @@
         "AtlasRitualSmall17",
         "AtlasRitualSmall1",
         "AtlasRitualSmall11"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable5_": {
       "graph": "atlasskillgraph",
@@ -13346,7 +13610,8 @@
         "AtlasRitualSmall3",
         "AtlasRitualSmall8",
         "AtlasRitualSmall7"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable6": {
       "graph": "atlasskillgraph",
@@ -13356,7 +13621,8 @@
         "AtlasRitualSmall9",
         "AtlasRitualSmall18",
         "AtlasRitualSmall7"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasRitualNotable7": {
       "graph": "atlasskillgraph",
@@ -13365,7 +13631,8 @@
       "links": [
         "AtlasRitualSmall14",
         "AtlasRitualSmall11"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualNotable8": {
       "graph": "atlasskillgraph",
@@ -13373,7 +13640,8 @@
       "y": -1630,
       "links": [
         "AtlasRitualSmall12"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasRitualSmall1": {
       "graph": "atlasskillgraph",
@@ -13550,7 +13818,8 @@
         "AtlasRitualSmall5",
         "AtlasRitualSmall1",
         "AtlasRitualSmall3"
-      ]
+      ],
+      "root": true
     },
     "AtlasRogueExiles1_": {
       "graph": "atlasskillgraph",
@@ -13623,6 +13892,7 @@
         "AtlasBiomeWater5",
         "AtlasGenericSmall20"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable10": {
@@ -13635,6 +13905,7 @@
         "AtlasRogueExiles3",
         "AtlasHybridLeagueSmall1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable12": {
@@ -13643,7 +13914,8 @@
       "y": -3981,
       "links": [
         "AtlasRogueExiles3"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasRogueExilesNotable13": {
       "graph": "atlasskillgraph",
@@ -13651,7 +13923,8 @@
       "y": -625,
       "links": [
         "AtlasGenericNotable40"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasRogueExilesNotable2": {
       "graph": "atlasskillgraph",
@@ -13663,6 +13936,7 @@
         "AtlasGenericSmall46",
         "AtlasGenericSmall103"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable3": {
@@ -13674,6 +13948,7 @@
       "links": [
         "AtlasRogueExiles5"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable4_": {
@@ -13686,6 +13961,7 @@
         "AtlasHybridLeagueSmall3",
         "AtlasRogueExiles2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable5": {
@@ -13699,6 +13975,7 @@
         "AtlasGenericSmall105",
         "AtlasGenericSmall20"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable6": {
@@ -13710,6 +13987,7 @@
       "links": [
         "AtlasGenericSmall105"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable8": {
@@ -13723,6 +14001,7 @@
         "AtlasGenericSmall102",
         "AtlasRogueExiles2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasRogueExilesNotable9": {
@@ -13735,6 +14014,7 @@
         "AtlasGenericSmall46",
         "AtlasRogueExiles1_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasShrines1": {
@@ -13809,6 +14089,7 @@
         "AtlasHybridLeagueSmall6",
         "AtlasBiomeMountain3"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasShrinesNotable11": {
@@ -13817,7 +14098,8 @@
       "y": -1664,
       "links": [
         "AtlasShrinesNotable2"
-      ]
+      ],
+      "flags": "k"
     },
     "AtlasShrinesNotable2": {
       "graph": "atlasskillgraph",
@@ -13830,6 +14112,7 @@
         "AtlasShrines3",
         "AtlasShrines2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasShrinesNotable3": {
@@ -13841,6 +14124,7 @@
       "links": [
         "AtlasShrines1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasShrinesNotable4_": {
@@ -13850,6 +14134,7 @@
       "links": [
         "AtlasGenericSmall10"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasShrinesNotable8": {
@@ -13861,6 +14146,7 @@
         "AtlasShrines6",
         "AtlasGenericSmall10"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasShrinesNotable9": {
@@ -13873,6 +14159,7 @@
         "AtlasHybridLeagueSmall4",
         "AtlasShrines6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircle1": {
@@ -13955,6 +14242,7 @@
         "AtlasHybridLeagueSmall2_",
         "AtlasStoneCircle6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircleNotable10": {
@@ -13966,7 +14254,8 @@
       "links": [
         "AtlasStoneCircle4",
         "AtlasHybridLeagueSmall3"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStoneCircleNotable2": {
       "graph": "atlasskillgraph",
@@ -13978,6 +14267,7 @@
         "AtlasStoneCircle1",
         "AtlasStoneCircle8"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircleNotable4": {
@@ -13991,6 +14281,7 @@
         "AtlasRareMonsterModifiersChance9",
         "AtlasStoneCircle6"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircleNotable5": {
@@ -14002,6 +14293,7 @@
       "links": [
         "AtlasStoneCircle5"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircleNotable6": {
@@ -14011,6 +14303,7 @@
       "links": [
         "AtlasStoneCircleNotable9"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircleNotable7": {
@@ -14022,6 +14315,7 @@
       "links": [
         "AtlasStoneCircle2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStoneCircleNotable9": {
@@ -14033,7 +14327,8 @@
         "AtlasStoneCircleNotable6",
         "AtlasStoneCircle8",
         "AtlasStoneCircle5"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStrongbox1": {
       "graph": "atlasskillgraph",
@@ -14144,6 +14439,7 @@
         "AtlasGenericSmall40",
         "AtlasGenericNotable7"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable10": {
@@ -14153,6 +14449,7 @@
       "links": [
         "AtlasStrongbox8"
       ],
+      "flags": "k",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable11": {
@@ -14166,6 +14463,7 @@
         "AtlasGenericSmall63_",
         "AtlasMagicMonster2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable12_": {
@@ -14176,7 +14474,8 @@
       "slot": 18,
       "links": [
         "AtlasStrongbox8"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStrongboxNotable13": {
       "graph": "atlasskillgraph",
@@ -14186,7 +14485,8 @@
       "links": [
         "AtlasDeadlyBossDropsExtraRandomLineage1",
         "AtlasStrongbox4"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStrongboxNotable14": {
       "graph": "atlasskillgraph",
@@ -14198,7 +14498,8 @@
         "AtlasStrongboxNotable4",
         "AtlasGenericSmall66",
         "AtlasStrongbox6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStrongboxNotable15": {
       "graph": "atlasskillgraph",
@@ -14208,7 +14509,8 @@
       "slot": 18,
       "links": [
         "AtlasGenericSmall36"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStrongboxNotable16": {
       "graph": "atlasskillgraph",
@@ -14219,7 +14521,8 @@
       "links": [
         "AtlasStrongbox3",
         "AtlasGenericSmall87_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasStrongboxNotable2": {
       "graph": "atlasskillgraph",
@@ -14231,6 +14534,7 @@
         "AtlasGenericSmall40",
         "AtlasGenericSmall66"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable4": {
@@ -14243,6 +14547,7 @@
         "AtlasStrongboxNotable14",
         "AtlasStrongbox8"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable5_": {
@@ -14255,6 +14560,7 @@
         "AtlasHybridLeagueSmall5",
         "AtlasGenericSmall63_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable6": {
@@ -14266,6 +14572,7 @@
       "links": [
         "AtlasStrongbox2_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable8_": {
@@ -14279,6 +14586,7 @@
         "AtlasStrongbox2_",
         "AtlasStrongbox4"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxNotable9": {
@@ -14291,6 +14599,7 @@
         "AtlasStrongbox3",
         "AtlasStrongbox1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasStrongboxShrineNotable": {
@@ -14302,6 +14611,7 @@
       "links": [
         "AtlasGenericSmall88"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable1": {
@@ -14313,6 +14623,7 @@
       "links": [
         "AtlasUniqueMonsterDropRarity5"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable10": {
@@ -14325,7 +14636,8 @@
         "AtlasRareMonsterChance1",
         "AtlasRareMonsterModifiersCap2",
         "AtlasUniqueMonsterDropRarity9_"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasTabletNotable3": {
       "graph": "atlasskillgraph",
@@ -14335,6 +14647,7 @@
         "AtlasGenericSmall29",
         "AtlasBiomeGenericNotable3"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable4": {
@@ -14347,6 +14660,7 @@
         "AtlasGenericSmall29",
         "AtlasGenericSmall32"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable5": {
@@ -14359,6 +14673,7 @@
         "AtlasContentTypeSelector1",
         "AtlasRareMonsterModifiersMin1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable6": {
@@ -14371,6 +14686,7 @@
         "AtlasGenericSmall29",
         "AtlasGenericSmall32"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable7": {
@@ -14381,6 +14697,7 @@
       "links": [
         "AtlasUniqueMonsterNotable1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable8": {
@@ -14391,6 +14708,7 @@
       "links": [
         "AtlasUniqueMonsterNotable1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTabletNotable9": {
@@ -14404,6 +14722,7 @@
         "AtlasRareMonsterModifiersCap1",
         "AtlasGenericSmall31"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasTowerRadius": {
@@ -14415,7 +14734,8 @@
       "links": [
         "AtlasTabletNotable9",
         "AtlasMagicMonster2"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasUniqueMonsterDropRarity1": {
       "graph": "atlasskillgraph",
@@ -14543,7 +14863,8 @@
         "AtlasTabletNotable7",
         "AtlasTabletNotable8",
         "AtlasUniqueMonsterDropRarity6"
-      ]
+      ],
+      "flags": "n"
     },
     "AtlasUniqueNotable1": {
       "graph": "atlasskillgraph",
@@ -14555,6 +14876,7 @@
         "AtlasRareMonsterModifiersChance6",
         "AtlasRarity1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasUniqueNotable2": {
@@ -14566,6 +14888,7 @@
       "links": [
         "AtlasEssence5_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasUniqueNotable3_": {
@@ -14577,6 +14900,7 @@
       "links": [
         "AtlasCleansed2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasUniqueNotable4": {
@@ -14586,6 +14910,7 @@
       "links": [
         "AtlasMagicMonster13"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasWallTower1": {
@@ -14596,6 +14921,7 @@
         "AtlasOutsideFortressPath28",
         "AtlasInsideFortressWhite84"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14618,6 +14944,7 @@
         "AtlasInsideFortressWhite16",
         "AtlasOutsideFortressPath23_"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14640,6 +14967,7 @@
         "AtlasOutsideFortressPath51",
         "AtlasInsideFortressWhite89"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14662,6 +14990,7 @@
         "AtlasOutsideFortressPath64",
         "AtlasInsideFortressWhite91"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14683,6 +15012,7 @@
       "links": [
         "AtlasInsideFortressYellowLeft13"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14704,6 +15034,7 @@
       "links": [
         "AtlasInsideFortressYellowRight29"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14725,6 +15056,7 @@
       "links": [
         "AtlasInsideFortressRed13_"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14746,6 +15078,7 @@
       "links": [
         "AtlasInsideFortressRed53"
       ],
+      "flags": "n",
       "maps": [
         "MapPrecursorTowerDesert",
         "MapPrecursorTowerForest",
@@ -14769,6 +15102,7 @@
       "links": [
         "AtlasRarity2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasWaystoneNotable3": {
@@ -14781,6 +15115,7 @@
         "AtlasContentTypeSelector1",
         "AtlasRareMonsterModifiersMin1"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasWaystoneNotable4": {
@@ -14792,6 +15127,7 @@
       "links": [
         "AtlasRarity2"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable"
     },
     "AtlasWhiteGate": {
@@ -14802,6 +15138,7 @@
         "AtlasInsideFortressWhite1",
         "AtlasOutsideFortressPath36_"
       ],
+      "flags": "n",
       "pin": "PrecursorGate",
       "maps": [
         "MapUniqueReactor_02"
@@ -14821,6 +15158,7 @@
         "AtlasInsideFortressWhite19",
         "AtlasInsideFortressYellowLeft1"
       ],
+      "flags": "n",
       "pin": "PrecursorGate",
       "maps": [
         "MapUniqueReactor_01"
@@ -14839,6 +15177,7 @@
         "AtlasInsideFortressYellowRight1",
         "AtlasInsideFortressWhite73_"
       ],
+      "flags": "n",
       "pin": "PrecursorGate",
       "maps": [
         "MapUniqueReactor_03"
@@ -14856,6 +15195,7 @@
         "AtlasInsideFortressRed1",
         "AtlasInsideFortressWhite4"
       ],
+      "flags": "n",
       "pin": "WaypointPin",
       "maps": [
         "MapUberBoss_Monolith"
@@ -14875,6 +15215,7 @@
         "AtlasInsideFortressYellowLeft44",
         "AtlasInsideFortressYellowLeft45"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable",
       "maps": [
         "MapUberBoss_IronCitadel_Quest"
@@ -14893,6 +15234,7 @@
         "AtlasInsideFortressYellowRight32",
         "AtlasInsideFortressYellowRight22_"
       ],
+      "flags": "n",
       "pin": "PrecursorNotable",
       "maps": [
         "MapUberBoss_StoneCitadel_Quest"
@@ -14918,7 +15260,8 @@
       "y": -1038,
       "links": [
         "BrequelTreeAmulets10"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets13": {
       "graph": "chayulatreepassiveskillgraph",
@@ -14926,7 +15269,8 @@
       "y": -1092,
       "links": [
         "BrequelTreeAmulets10"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets14_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -14945,7 +15289,8 @@
         "BrequelTreeAmulets17",
         "BrequelTreeAmulets14_",
         "BrequelTreeAmulets18"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets17": {
       "graph": "chayulatreepassiveskillgraph",
@@ -14973,7 +15318,8 @@
       "y": -181,
       "links": [
         "BrequelTreeAmulets18"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets1_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15027,7 +15373,8 @@
       "y": -736,
       "links": [
         "BrequelTreeAmulets4"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets24": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15121,7 +15468,8 @@
         "BrequelTreeAmulets31_",
         "BrequelTreeAmulets35_",
         "BrequelTreeAmulets33"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets33": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15153,7 +15501,8 @@
       "y": -1677,
       "links": [
         "BrequelTreeAmulets31_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets37": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15161,7 +15510,8 @@
       "y": -1901,
       "links": [
         "BrequelTreeAmulets30"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets38": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15169,7 +15519,8 @@
       "y": -1430,
       "links": [
         "BrequelTreeAmulets28"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets39": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15177,7 +15528,8 @@
       "y": -1273,
       "links": [
         "BrequelTreeAmulets28"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets4": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15195,7 +15547,8 @@
       "y": -824,
       "links": [
         "BrequelTreeAmulets27"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets41": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15233,7 +15586,8 @@
       "y": -2297,
       "links": [
         "BrequelTreeAmulets43"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets46": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15241,7 +15595,8 @@
       "y": -2315,
       "links": [
         "BrequelTreeAmulets43"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets47_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15249,7 +15604,8 @@
       "y": -2030,
       "links": [
         "BrequelTreeAmulets42"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets48": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15257,7 +15613,8 @@
       "y": -1474,
       "links": [
         "BrequelTreeAmulets41"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets49": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15267,7 +15624,8 @@
         "BrequelTreeAmulets54",
         "BrequelTreeAmulets25",
         "BrequelTreeAmulets50"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets5": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15276,7 +15634,8 @@
       "links": [
         "BrequelTreeAmulets6",
         "BrequelTreeAmulets4"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets50": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15302,7 +15661,8 @@
       "y": -859,
       "links": [
         "BrequelTreeAmulets49"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets55": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15318,7 +15678,8 @@
       "y": -534,
       "links": [
         "BrequelTreeAmulets24"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets58": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15326,7 +15687,8 @@
       "y": -266,
       "links": [
         "BrequelTreeAmulets24"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets59": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15335,7 +15697,8 @@
       "links": [
         "BrequelTreeAmulets62",
         "BrequelTreeAmulets61_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets6": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15354,7 +15717,8 @@
       "y": 407,
       "links": [
         "BrequelTreeAmulets62"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeAmulets61_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15432,7 +15796,8 @@
       "links": [
         "BrequelTreeAmulets1_",
         "BrequelTreeAmuletsStartNode"
-      ]
+      ],
+      "flags": "k"
     },
     "BrequelTreeAmuletsStartNode": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15440,7 +15805,8 @@
       "y": 90,
       "links": [
         "BrequelTreeAmuletsSlot"
-      ]
+      ],
+      "root": true
     },
     "BrequelTreeBelts10": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15574,7 +15940,8 @@
       "y": 1751,
       "links": [
         "BrequelTreeBelts16"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts21": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15582,7 +15949,8 @@
       "y": 1336,
       "links": [
         "BrequelTreeBelts17"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts22_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15590,7 +15958,8 @@
       "y": 979,
       "links": [
         "BrequelTreeBelts18"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts23": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15598,7 +15967,8 @@
       "y": 927,
       "links": [
         "BrequelTreeBelts19"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts24": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15607,7 +15977,8 @@
       "links": [
         "BrequelTreeBelts1_",
         "BrequelTreeBelts35"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts25": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15629,7 +16000,8 @@
         "BrequelTreeBelts28",
         "BrequelTreeBelts35",
         "BrequelTreeBelts25"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts28": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15647,7 +16019,8 @@
       "y": 1029,
       "links": [
         "BrequelTreeBelts28"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts3": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15665,7 +16038,8 @@
       "y": 773,
       "links": [
         "BrequelTreeBelts28"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts32": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15691,7 +16065,8 @@
       "y": 501,
       "links": [
         "BrequelTreeBelts32"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts35": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15718,7 +16093,8 @@
       "y": 829,
       "links": [
         "BrequelTreeBelts36"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts38": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15776,7 +16152,8 @@
       "y": 1868,
       "links": [
         "BrequelTreeBelts39"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts43": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15796,7 +16173,8 @@
       "y": 2270,
       "links": [
         "BrequelTreeBelts43"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts45": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15824,7 +16202,8 @@
       "links": [
         "BrequelTreeBelts46_",
         "BrequelTreeBelts1_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts48": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15834,7 +16213,8 @@
         "BrequelTreeBelts46_",
         "BrequelTreeBelts49",
         "BrequelTreeBelts40"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts49": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15852,7 +16232,8 @@
       "y": 2044,
       "links": [
         "BrequelTreeBelts49"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts51": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15860,7 +16241,8 @@
       "y": 2217,
       "links": [
         "BrequelTreeBelts49"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts6": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15868,7 +16250,8 @@
       "y": 1259,
       "links": [
         "BrequelTreeBelts4"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts7____": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15876,7 +16259,8 @@
       "y": 1345,
       "links": [
         "BrequelTreeBelts4"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts8": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15884,7 +16268,8 @@
       "y": 1799,
       "links": [
         "BrequelTreeBelts3"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBelts9": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15892,7 +16277,8 @@
       "y": 2418,
       "links": [
         "BrequelTreeBelts2"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeBeltsSlot": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15901,7 +16287,8 @@
       "links": [
         "BrequelTreeBelts1_",
         "BrequelTreeBeltsStartNode"
-      ]
+      ],
+      "flags": "k"
     },
     "BrequelTreeBeltsStartNode": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15909,7 +16296,8 @@
       "y": 3650,
       "links": [
         "BrequelTreeBeltsSlot"
-      ]
+      ],
+      "root": true
     },
     "BrequelTreeBreachstonesSlot": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15917,7 +16305,8 @@
       "y": 3169,
       "links": [
         "BrequelTreeBreachstonesStartNode_"
-      ]
+      ],
+      "flags": "k"
     },
     "BrequelTreeBreachstonesStartNode_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15925,7 +16314,8 @@
       "y": 3756,
       "links": [
         "BrequelTreeBreachstonesSlot"
-      ]
+      ],
+      "root": true
     },
     "BrequelTreeCurrency1": {
       "graph": "chayulatreepassiveskillgraph",
@@ -15945,7 +16335,8 @@
       "slot": 43,
       "links": [
         "BrequelTreeCurrency3"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency11": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16012,7 +16403,8 @@
       "y": -1468,
       "links": [
         "BrequelTreeCurrency16"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency18": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16030,7 +16422,8 @@
       "y": -1983,
       "links": [
         "BrequelTreeCurrency18"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency2": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16038,7 +16431,8 @@
       "y": -1273,
       "links": [
         "BrequelTreeCurrency1"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency20": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16056,7 +16450,8 @@
       "y": -3077,
       "links": [
         "BrequelTreeCurrency20"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency22": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16074,7 +16469,8 @@
         "BrequelTreeCurrency14",
         "BrequelTreeCurrency29",
         "BrequelTreeCurrency25"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency25": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16100,7 +16496,8 @@
       "y": -3361,
       "links": [
         "BrequelTreeCurrency25"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency29": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16130,7 +16527,8 @@
       "y": -3330,
       "links": [
         "BrequelTreeCurrency29"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency31": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16177,7 +16575,8 @@
       "y": -640,
       "links": [
         "BrequelTreeCurrency34"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency36": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16194,7 +16593,8 @@
       "y": -676,
       "links": [
         "BrequelTreeCurrency36"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency38": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16211,7 +16611,8 @@
       "y": -369,
       "links": [
         "BrequelTreeCurrency38"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency40": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16266,7 +16667,8 @@
         "BrequelTreeCurrency43",
         "BrequelTreeCurrency44",
         "BrequelTreeCurrency47_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency47_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16291,7 +16693,8 @@
       "y": -960,
       "links": [
         "BrequelTreeCurrency48"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency4_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16310,7 +16713,8 @@
       "links": [
         "BrequelTreeCurrency51",
         "BrequelTreeCurrency33"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency51": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16336,7 +16740,8 @@
       "y": 511,
       "links": [
         "BrequelTreeCurrency52"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency54_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16435,7 +16840,8 @@
       "y": -3527,
       "links": [
         "BrequelTreeCurrency60_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency62": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16471,7 +16877,8 @@
       "y": -4661,
       "links": [
         "BrequelTreeCurrency63"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency66": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16479,7 +16886,8 @@
       "y": -4629,
       "links": [
         "BrequelTreeCurrency59"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency67": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16506,7 +16914,8 @@
       "links": [
         "BrequelTreeCurrency67",
         "BrequelTreeCurrency70"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency7": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16522,7 +16931,8 @@
       "y": -4664,
       "links": [
         "BrequelTreeCurrency69"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency71": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16533,7 +16943,8 @@
         "BrequelTreeCurrency72",
         "BrequelTreeCurrency75",
         "BrequelTreeCurrency76"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency72": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16561,7 +16972,8 @@
       "y": -2446,
       "links": [
         "BrequelTreeCurrency71"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency75": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16569,7 +16981,8 @@
       "y": -2801,
       "links": [
         "BrequelTreeCurrency71"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency76": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16613,7 +17026,8 @@
       "y": -1721,
       "links": [
         "BrequelTreeCurrency5_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency80": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16622,7 +17036,8 @@
       "links": [
         "BrequelTreeCurrency81_",
         "BrequelTreeCurrency78"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency81_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16630,7 +17045,8 @@
       "y": -3506,
       "links": [
         "BrequelTreeCurrency80"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrency9": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16638,7 +17054,8 @@
       "y": -1597,
       "links": [
         "BrequelTreeCurrency4_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeCurrencySlot": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16647,7 +17064,8 @@
       "links": [
         "BrequelTreeCurrency11",
         "BrequelTreeCurrencyStartNode"
-      ]
+      ],
+      "flags": "k"
     },
     "BrequelTreeCurrencyStartNode": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16655,7 +17073,8 @@
       "y": 172,
       "links": [
         "BrequelTreeCurrencySlot"
-      ]
+      ],
+      "root": true
     },
     "BrequelTreeRings1": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16677,7 +17096,8 @@
       "y": 1272,
       "links": [
         "BrequelTreeRings8"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings11": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16714,7 +17134,8 @@
       "y": 814,
       "links": [
         "BrequelTreeRings13"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings15": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16722,7 +17143,8 @@
       "y": 1158,
       "links": [
         "BrequelTreeRings12_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings16": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16730,7 +17152,8 @@
       "y": 1846,
       "links": [
         "BrequelTreeRings11"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings17": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16767,7 +17190,8 @@
       "y": 2267,
       "links": [
         "BrequelTreeRings17"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings21": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16775,7 +17199,8 @@
       "y": 1927,
       "links": [
         "BrequelTreeRings18_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings22": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16783,7 +17208,8 @@
       "y": 1508,
       "links": [
         "BrequelTreeRings19"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings23": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16794,7 +17220,8 @@
       "links": [
         "BrequelTreeRings26",
         "BrequelTreeRings1"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings24": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16815,7 +17242,8 @@
         "BrequelTreeRings26",
         "BrequelTreeRings27",
         "BrequelTreeRings24"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings26": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16846,7 +17274,8 @@
       "slot": 9,
       "links": [
         "BrequelTreeRings27"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings29": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16854,7 +17283,8 @@
       "y": 2497,
       "links": [
         "BrequelTreeRings27"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings2_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16865,7 +17295,8 @@
         "BrequelTreeRings11",
         "BrequelTreeRings8",
         "BrequelTreeRings1"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings3": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16899,7 +17330,8 @@
       "y": 2148,
       "links": [
         "BrequelTreeRings30"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings32": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16929,7 +17361,8 @@
       "y": 2355,
       "links": [
         "BrequelTreeRings33"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings35": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16959,7 +17392,8 @@
       "y": 2482,
       "links": [
         "BrequelTreeRings36_"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings38_": {
       "graph": "chayulatreepassiveskillgraph",
@@ -16978,7 +17412,8 @@
       "links": [
         "BrequelTreeRings53",
         "BrequelTreeRings1"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings4": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17021,7 +17456,8 @@
       "links": [
         "BrequelTreeRings53",
         "BrequelTreeRings40"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings43": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17039,7 +17475,8 @@
       "y": 1509,
       "links": [
         "BrequelTreeRings43"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings45": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17047,7 +17484,8 @@
       "y": 1755,
       "links": [
         "BrequelTreeRings43"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings46": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17065,7 +17503,8 @@
       "y": 1080,
       "links": [
         "BrequelTreeRings46"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings48": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17091,7 +17530,8 @@
       "y": 1045,
       "links": [
         "BrequelTreeRings41"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings51": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17134,7 +17574,8 @@
       "y": 1291,
       "links": [
         "BrequelTreeRings52"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRings6": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17171,7 +17612,8 @@
       "y": 1074,
       "links": [
         "BrequelTreeRings8"
-      ]
+      ],
+      "flags": "n"
     },
     "BrequelTreeRingsSlot": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17180,7 +17622,8 @@
       "links": [
         "BrequelTreeRingsStartNode",
         "BrequelTreeRings1"
-      ]
+      ],
+      "flags": "k"
     },
     "BrequelTreeRingsStartNode": {
       "graph": "chayulatreepassiveskillgraph",
@@ -17188,36 +17631,43 @@
       "y": 3563,
       "links": [
         "BrequelTreeRingsSlot"
-      ]
+      ],
+      "root": true
     },
     "duelist597": {
       "graph": "royalepassiveskillgraph",
       "x": 2,
-      "y": 1470
+      "y": 1470,
+      "root": true
     },
     "marauder594": {
       "graph": "royalepassiveskillgraph",
       "x": -1271,
-      "y": 733
+      "y": 733,
+      "root": true
     },
     "ranger596": {
       "graph": "royalepassiveskillgraph",
       "x": 1275,
-      "y": 736
+      "y": 736,
+      "root": true
     },
     "six704": {
       "graph": "royalepassiveskillgraph",
       "x": 1270,
-      "y": -729
+      "y": -729,
+      "root": true
     },
     "templar598": {
       "graph": "royalepassiveskillgraph",
       "x": -1245,
-      "y": -719
+      "y": -719,
+      "root": true
     },
     "witch595": {
       "graph": "royalepassiveskillgraph",
-      "y": -1481
+      "y": -1481,
+      "root": true
     }
   },
   "text": {
@@ -17394,7 +17844,7 @@
       "area/MapWillow": "Laubwald",
       "area/MapWoodland": "Waldland",
       "area/Map_HildaCampsite": "Hildas Lager",
-      "area/PlayerAtlasHideout": "Player Hideout",
+      "area/PlayerAtlasHideout": "Spielerversteck",
       "area/RitualLeagueBoss": "Der Kern des Nichts",
       "biome/BreachCity": "Riss-Festung",
       "biome/Desert": "Wüste",
@@ -17434,7 +17884,7 @@
       "content/Abyss": "Abgrund",
       "content/AbyssDepths": "Abgründige Tiefen",
       "content/AbyssFissure": "Abgrund-Spalte",
-      "content/AbyssOverrun": "Überrant von den Abgründigen",
+      "content/AbyssOverrun": "Von den Abgründigen überrannt",
       "content/AllDropsNotEquipment": "Illusion des Reichtums",
       "content/AllDropsNotGold": "Leere Taschen",
       "content/AzmeriMovingMaps": "Geistwanderung",
@@ -17478,8 +17928,8 @@
       "content/Merchant": "Händler",
       "content/MountainBiome": "Bergeinfluss",
       "content/OneOfAll": "Chaotische Kakophonie",
-      "content/PlayerSubmittedHideout": "Player Hideout",
-      "content/PlayerSubmittedHideoutMod": "Player Hideout Modifier",
+      "content/PlayerSubmittedHideout": "Spielerversteck",
+      "content/PlayerSubmittedHideoutMod": "Spielerversteck-Modifikator",
       "content/PowerfulMapBoss": "Mächtiger Kartenboss",
       "content/QuestArea": "Bedeutender Ort",
       "content/RareCurrencyOnly": "Schimmernde Mutation",
@@ -19804,7 +20254,7 @@
       "area/MapWillow": "Saucedal",
       "area/MapWoodland": "Bosque",
       "area/Map_HildaCampsite": "El campamento de Hilda",
-      "area/PlayerAtlasHideout": "Player Hideout",
+      "area/PlayerAtlasHideout": "Guarida de jugador",
       "area/RitualLeagueBoss": "El quid de la nada",
       "biome/BreachCity": "Fortificación de fisura",
       "biome/Desert": "Desierto",
@@ -22298,8 +22748,8 @@
       "content/Merchant": "商人",
       "content/MountainBiome": "山の影響",
       "content/OneOfAll": "混沌の不協和音",
-      "content/PlayerSubmittedHideout": "Player Hideout",
-      "content/PlayerSubmittedHideoutMod": "Player Hideout Modifier",
+      "content/PlayerSubmittedHideout": "プレイヤー隠れ家",
+      "content/PlayerSubmittedHideoutMod": "プレイヤー隠れ家モッド",
       "content/PowerfulMapBoss": "強力なマップボス",
       "content/QuestArea": "注目すべきロケーション",
       "content/RareCurrencyOnly": "きらめく変異",
@@ -24624,7 +25074,7 @@
       "area/MapWillow": "Salgueiro",
       "area/MapWoodland": "Bosque",
       "area/Map_HildaCampsite": "Acampamento de Hilda",
-      "area/PlayerAtlasHideout": "Player Hideout",
+      "area/PlayerAtlasHideout": "Refúgio do Jogador",
       "area/RitualLeagueBoss": "Cerne do Nada",
       "biome/BreachCity": "Fortaleza da Fenda",
       "biome/Desert": "Deserto",
@@ -24708,8 +25158,8 @@
       "content/Merchant": "Comerciante",
       "content/MountainBiome": "Influência da Montanha",
       "content/OneOfAll": "Cacofonia Caótica",
-      "content/PlayerSubmittedHideout": "Player Hideout",
-      "content/PlayerSubmittedHideoutMod": "Player Hideout Modifier",
+      "content/PlayerSubmittedHideout": "Refúgio do Jogador",
+      "content/PlayerSubmittedHideoutMod": "Modificador de Refúgio do Jogador",
       "content/PowerfulMapBoss": "Chefe de Mapa Poderoso",
       "content/QuestArea": "Local Importante",
       "content/RareCurrencyOnly": "Mutação Cintilante",
@@ -27118,8 +27568,8 @@
       "content/Merchant": "ผู้ค้าขาย",
       "content/MountainBiome": "อิทธิพลภูเขา",
       "content/OneOfAll": "เคออสอลหม่าน",
-      "content/PlayerSubmittedHideout": "Player Hideout",
-      "content/PlayerSubmittedHideoutMod": "Player Hideout Modifier",
+      "content/PlayerSubmittedHideout": "ที่ซ่อนผู้เล่น",
+      "content/PlayerSubmittedHideoutMod": "ม็อดที่ซ่อนผู้เล่น",
       "content/PowerfulMapBoss": "บอสประจำแผนที่ที่ทรงพลัง",
       "content/QuestArea": "สถานที่สำคัญ",
       "content/RareCurrencyOnly": "กลายพันธุ์ระยิบระยับ",
@@ -28323,8 +28773,8 @@
       "content/Merchant": "商人",
       "content/MountainBiome": "山地影響",
       "content/OneOfAll": "混沌嘈雜",
-      "content/PlayerSubmittedHideout": "Player Hideout",
-      "content/PlayerSubmittedHideoutMod": "Player Hideout Modifier",
+      "content/PlayerSubmittedHideout": "玩家藏身處",
+      "content/PlayerSubmittedHideoutMod": "玩家藏身處詞綴",
       "content/PowerfulMapBoss": "強大地圖頭目",
       "content/QuestArea": "任務區域",
       "content/RareCurrencyOnly": "閃爍異變",

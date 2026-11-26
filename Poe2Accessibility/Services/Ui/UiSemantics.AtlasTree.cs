@@ -19,15 +19,29 @@ namespace Poe2Accessibility.Services
     public sealed partial class UiSemantics
     {
         private readonly AtlasTreeFinder atlasTreeFinder = new();
-        private AtlasTreeMap? atlasTree;
+        private (string Graph, AtlasTreeMap Map)? atlasTree;
         private (string From, string To, Dictionary<string, Vector2>? Centres, Way? Way)? atlasTreeWay;
 
         /// <summary>The guide line said on the node under the cursor, kept while it stays (as the passive guide's).</summary>
         private (string Node, string Line)? atlasTreeGuideSaid;
 
-        /// <summary>The Atlas tree's graph from the files, built once; null while the catalog holds none of it.</summary>
-        private AtlasTreeMap? AtlasTree =>
-            this.atlasTree ??= EndgameCatalog.Shared.GraphNodes(AtlasTreeMap.GraphName) is { Count: > 0 } nodes ? AtlasTreeMap.Build(nodes) : null;
+        /// <summary>The skill tree a node is of, from the files, built once per graph; null for a node of none.</summary>
+        private AtlasTreeMap? AtlasTreeOf(string id, out string graph)
+        {
+            var catalog = EndgameCatalog.Shared;
+            graph = catalog.Node(id)?.Graph ?? string.Empty;
+            if (graph.Length == 0 || !catalog.IsSkillTree(graph))
+            {
+                return null;
+            }
+
+            if (this.atlasTree is not { } built || built.Graph != graph)
+            {
+                this.atlasTree = catalog.GraphNodes(graph) is { Count: > 0 } nodes ? (graph, AtlasTreeMap.Build(nodes, catalog.Marks)) : null;
+            }
+
+            return this.atlasTree?.Map;
+        }
 
         /// <summary>A D-pad press on an Atlas tree node: moves the finder and returns what to say; null when the node is none of the tree's.</summary>
         /// <param name="hovered">The hovered node's element.</param>
@@ -35,7 +49,7 @@ namespace Poe2Accessibility.Services
         /// <param name="entryStep">+1 next entry, -1 previous.</param>
         public string? AtlasTreeFinderMove(IntPtr hovered, int listStep, int entryStep)
         {
-            if (!this.PassiveFinderOn || this.EndgamePassiveId(hovered) is not { } id || this.AtlasTree is not { } tree ||
+            if (!this.PassiveFinderOn || this.EndgamePassiveId(hovered) is not { } id || this.AtlasTreeOf(id, out var graph) is not { } tree ||
                 !tree.Index.TryGetValue(id, out var from))
             {
                 return null;
@@ -59,7 +73,7 @@ namespace Poe2Accessibility.Services
                 return hadTarget && this.atlasTreeFinder.Target.Length == 0 ? $"{position}. {Announcements.BeaconOff}" : position;
             }
 
-            var centres = this.elements.TryReadElement(hovered, out var info) ? this.EndgameCentres(info, AtlasTreeMap.GraphName) : null;
+            var centres = this.elements.TryReadElement(hovered, out var info) ? this.EndgameCentres(info, graph) : null;
             var name = this.AtlasTreeName(tree, target);
             var found = this.atlasTreeFinder.Target == id
                 ? $"{Announcements.Here(name)}, {this.AtlasTreeWhere(tree, target, distances, here: false)}"
@@ -82,7 +96,7 @@ namespace Poe2Accessibility.Services
             }
 
             var line = string.Empty;
-            if (this.AtlasTree is { } tree && tree.Index.TryGetValue(id, out _) && this.atlasTreeFinder.Target.Length > 0)
+            if (this.AtlasTreeOf(id, out _) is { } tree && tree.Index.TryGetValue(id, out _) && this.atlasTreeFinder.Target.Length > 0)
             {
                 var target = this.atlasTreeFinder.Target;
                 var name = tree.Index.TryGetValue(target, out var at) ? this.AtlasTreeName(tree, at) : target;

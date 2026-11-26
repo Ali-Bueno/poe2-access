@@ -186,11 +186,14 @@ namespace Poe2Accessibility.Services
             return Announcements.AtlasFrontier(string.Join("; ", named), open.Count);
         }
 
-        /// <summary>A place to steer by: a tower those around it are in reach of, a gate, Kingsmarch, a waypoint pin.</summary>
+        /// <summary>
+        ///     A place to steer by: a tower those around it are in reach of, a gate, Kingsmarch, a waypoint pin — and any
+        ///     pin few nodes show, so a pin a patch adds or renames still counts.
+        /// </summary>
         public bool AtlasIsLandmark(AtlasScanEntry entry)
         {
             var catalog = EndgameCatalog.Shared;
-            return entry.Id is { } id && (catalog.TowerReach(id) > 0 || LandmarkPins.Contains(catalog.Node(id)?.Pin ?? string.Empty));
+            return entry.Id is { } id && (catalog.TowerReach(id) > 0 || LandmarkPins.Contains(catalog.Node(id)?.Pin ?? string.Empty) || catalog.HasRarePin(id));
         }
 
         /// <summary>

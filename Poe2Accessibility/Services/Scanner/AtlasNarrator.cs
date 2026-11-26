@@ -17,6 +17,9 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class AtlasNarrator
     {
+        /// <summary>Names each list of the opening's changes says before counting the rest, as the frontier's.</summary>
+        private const int NamedChanges = 3;
+
         /// <summary>The popup is built a few hundred ms after a hop lands: the line is composed no sooner than this.</summary>
         private const int SettleMs = 700;
 
@@ -28,6 +31,7 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly AtlasDestinationFinder destinations = new();
         private PassiveResume resume = new(null);
+        private AtlasProgress progress = new(null);
         private IntPtr node;
         private DateTime since;
         private bool settled;
@@ -58,6 +62,12 @@ namespace Poe2Accessibility.Services
         public string? ResumeFile
         {
             set => this.resume = new PassiveResume(value);
+        }
+
+        /// <summary>Where each character's node states at the last opening are kept (config/atlas-progress.txt); null keeps them for this session.</summary>
+        public string? ProgressFile
+        {
+            set => this.progress = new AtlasProgress(value);
         }
 
         /// <summary>
@@ -246,9 +256,15 @@ namespace Poe2Accessibility.Services
             if (first)
             {
                 this.opened = here;
+                var character = this.CharacterName?.Invoke() ?? string.Empty;
+                var change = character.Length > 0 ? this.progress.Update(character, scan.Select(entry => (entry.GridX, entry.GridY, entry.State, entry.Name)), NamedChanges) : null;
                 if (this.AnnounceNodes)
                 {
-                    var character = this.CharacterName?.Invoke() ?? string.Empty;
+                    if (change is { IsEmpty: false })
+                    {
+                        extras.Add(Announcements.AtlasSinceLastTime(change));
+                    }
+
                     extras.Add(this.semantics.AtlasResumeLine(scan, here, character.Length > 0 ? this.resume.Get(character) : null));
                     extras.Add(this.semantics.AtlasFrontierLine(scan, here));
                 }

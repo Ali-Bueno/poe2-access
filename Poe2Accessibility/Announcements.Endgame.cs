@@ -60,6 +60,30 @@ namespace Poe2Accessibility
             ? away == 1 ? T($"1 link from {name}", $"a 1 enlace de {name}") : T($"{away} links from {name}", $"a {away} enlaces de {name}")
             : away == 1 ? T($"1 step from {name}", $"a 1 paso de {name}") : T($"{away} steps from {name}", $"a {away} pasos de {name}");
 
+        /// <summary>"Since last time: 2 completed: Caldera, Pit. 1 now accessible: Reservoir" — the Atlas's changes on opening (Phase 4).</summary>
+        public static string AtlasSinceLastTime(Services.AtlasProgressChange change)
+        {
+            string Part(string head, System.Collections.Generic.IReadOnlyList<string> names, int count)
+            {
+                var rest = count > names.Count && names.Count > 0 ? T($" and {count - names.Count} more", $" y {count - names.Count} más") : string.Empty;
+                return names.Count > 0 ? $"{head}: {string.Join(", ", names)}{rest}" : head;
+            }
+
+            var parts = new System.Collections.Generic.List<string>();
+            if (change.CompletedCount > 0)
+            {
+                parts.Add(Part(change.CompletedCount == 1 ? T("1 completed", "1 completado") : T($"{change.CompletedCount} completed", $"{change.CompletedCount} completados"), change.Completed, change.CompletedCount));
+            }
+
+            if (change.NowAccessibleCount > 0)
+            {
+                parts.Add(Part(change.NowAccessibleCount == 1 ? T("1 now accessible", "1 ahora accesible") : T($"{change.NowAccessibleCount} now accessible", $"{change.NowAccessibleCount} ahora accesibles"), change.NowAccessible, change.NowAccessibleCount));
+            }
+
+            var said = Sentences(parts);
+            return said.Length > 0 ? T($"Since last time: {said}", $"Desde la vez anterior: {said}") : string.Empty;
+        }
+
         /// <summary>"Came from Marrow": the previous landing, so a hop too far has its way back said.</summary>
         public static string AtlasCameFrom(string name) => T($"Came from {name}", $"Vienes de {name}");
 

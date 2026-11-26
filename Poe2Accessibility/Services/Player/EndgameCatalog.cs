@@ -21,9 +21,21 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string[]> biomeNames = new(StringComparer.Ordinal);
         private readonly List<string> biomes;
         private readonly List<string> contentIds;
+        private readonly HashSet<string> rootedGraphs;
+        private readonly HashSet<string> rarePins;
+
+        /// <summary>A pin on no more than this share of the Atlas map's nodes marks a one-off place (in 0.5: Kingsmarch, the gates, the waypoints).</summary>
+        private const double RarePinShare = 0.01;
 
         public EndgameCatalog(CatalogData data)
         {
+            // A graph whose nodes are Atlas maps (a pin, maps, biomes) is the map's layout, never a tree, whatever roots it gains.
+            var mapGraphs = data.Nodes.Values.Where(node => node.Pin != null || node.Maps != null || node.Biomes != null).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
+            this.rootedGraphs = data.Nodes.Values.Where(node => node.Root && !mapGraphs.Contains(node.Graph)).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
+            var mapNodes = data.Nodes.Values.Where(node => mapGraphs.Contains(node.Graph)).ToList();
+            var rareAtMost = Math.Max(1, (int)(mapNodes.Count * RarePinShare));
+            this.rarePins = mapNodes.Where(node => node.Pin != null).GroupBy(node => node.Pin!, StringComparer.Ordinal)
+                .Where(group => group.Count() <= rareAtMost).Select(group => group.Key).ToHashSet(StringComparer.Ordinal);
             this.data = data;
             this.objectiveByIcon = data.Objectives.Where(pair => !string.IsNullOrEmpty(pair.Value.Icon))
                 .GroupBy(pair => pair.Value.Icon!, StringComparer.Ordinal)
@@ -88,6 +100,16 @@ namespace Poe2Accessibility.Services
         public string Text(string key, string language) => Localization.Pick(this.data.Text, language, key) ?? string.Empty;
 
         public CatalogNode? Node(string passiveId) => this.data.Nodes.TryGetValue(passiveId, out var node) ? node : null;
+
+        /// <summary>
+        ///     Whether a graph is a skill tree the Atlas tree finder walks: one with roots in the files (the map layout has
+        ///     none), so a renamed or reworked tree file still counts; a catalog made before the marks knows the 0.5 tree by name.
+        /// </summary>
+        public bool IsSkillTree(string graph) =>
+            graph == AtlasTreeMap.LegacyGraphName || this.rootedGraphs.Contains(graph);
+
+        /// <summary>A node's PassiveSkills marks and whether it is a root of its graph, for the tree finder's kinds.</summary>
+        public (string? Flags, bool Root) Marks(string passiveId) => this.Node(passiveId) is { } node ? (node.Flags, node.Root) : (null, false);
 
         /// <summary>Every node of one graph, for a walk over the whole of it (the Atlas tree's finder).</summary>
         public IReadOnlyList<(string Id, int X, int Y, IReadOnlyList<string>? Links)> GraphNodes(string graph) =>
@@ -241,6 +263,9 @@ namespace Poe2Accessibility.Services
             return found.OrderBy(match => match.At).Select(match => match.Name).ToList();
         }
 
+        /// <summary>Whether a node's pin is one few Atlas map nodes show, so it names a place to steer by whatever the pin is called.</summary>
+        public bool HasRarePin(string passiveId) => this.Node(passiveId)?.Pin is { } pin && this.rarePins.Contains(pin);
+
         /// <summary>How many nodes a tower's reach holds; 0 for a node that is no tower.</summary>
         public int TowerReach(string passiveId) => this.towerReach.TryGetValue(passiveId, out var count) ? count : 0;
 
@@ -300,6 +325,12 @@ namespace Poe2Accessibility.Services
             public int Slot { get; set; }
 
             public List<string>? Links { get; set; }
+
+            /// <summary>Its marks from PassiveSkills' flag columns: k keystone, n notable, i icon only (a mastery); null in older catalogs.</summary>
+            public string? Flags { get; set; }
+
+            /// <summary>A root of its graph file, where a tree starts.</summary>
+            public bool Root { get; set; }
 
             public string? Pin { get; set; }
 

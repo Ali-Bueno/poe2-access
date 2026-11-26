@@ -137,10 +137,16 @@ Refuge and the Monolith), so they shortcut returning to a found place but do not
 created bookmark's panel entry is not captured yet (the owner's panel read 0/16 through the day).
 **Proof still owed:** endgame.md §6.3 over a whole route at two zoom levels; a created bookmark's panel capture.
 
-### Phase 4 — reopen diff
+### Phase 4 — reopen diff (built 2026-11-25; unit tests, not heard)
 
-Per-character snapshot of node states, taken when the Atlas closes. On open, before anything else: "Since last
-time: X completed. Now accessible: Y, Z." **Proof:** complete one map, reopen, the diff matches.
+`AtlasProgress` keeps each character's node states (`config/atlas-progress.txt`) from the opening scan, keyed by
+grid place, not catalog id: the grid is read off the node, so a renamed or re-keyed catalog after a patch keeps the
+places. At the next opening, after the landing line: "Since last time: 2 completed: Caldera, Pit. 1 now accessible:
+Reservoir" (three names per list, the rest counted; unnamed fog places counted only). Only places present both times
+change, so a canvas built in part or fog drawn in invents nothing. An opening that shares under half the stored
+places is another Atlas (new league, a reworked Atlas after a patch): stored without a diff, never told as hundreds
+of changes. The snapshot is taken at opening rather than closing: states only change outside the Atlas, and an
+opening has the scan already. **Proof still owed:** complete one map, reopen, the diff matches.
 
 ### Phase 5 — deferred (no pain named; captured in Phase 0 only)
 
@@ -156,7 +162,16 @@ its tree state is judged by the main tree's graph file name (`Metadata/PassiveSk
 borrows its pure logic instead: `AtlasTreeMap` over the catalog's 575 atlasskillgraph nodes (kinds and clusters
 from the ids, masteries left out), link distances by `PassiveMap.Steps`, pushes by `PassiveStick.Route` over the
 drawn centres, the finder's D-pad scheme and words (`UiSemantics.AtlasTree.cs`, lists Position / Notables /
-Clusters; `IsAtlasTreeNode` routes the D-pad). No new offsets. Still open here: allocation state and point costs
+Clusters; `IsAtlasTreeNode` routes the D-pad). No new offsets. **Update-proofing (2026-11-25):** a node's kind comes from its PassiveSkills marks, written by the `endgame` step
+(step version 4: `flags` k/n/i from the IsKeystone/IsNotable/IsIconOnly columns, found by the main tree's ids so they
+hold for any graph; `root` from the .psg header's roots); the ids are read only for a catalog made before. Today's data
+proves the change: the 7 roots are exactly the 7 `…Start` nodes, the mastery mark matches the 38 `…Mastery` ids, and the
+marks find 15 notables and keystones the id rule missed (The Chosen Path, Exceptional Vestments, Memories of the Vaal…).
+The tree is any rooted graph that is not the map's layout (a graph with pins/maps/biomes), so the 1.0 tree (70 nodes,
+ExileCon 2026) is found whatever its file is called; `atlasskillgraph` is kept only for older catalogs. A 575 → 70
+shrink passes the launcher's catalog guard (`GameDataCounts`): measured, the file keeps ~65 % of its values and each
+section over half. Landmarks also take any pin on at most 1 % of the map's nodes, so a new one-off pin counts.
+Still open here: allocation state and point costs
 (this canvas's allocated list is unread — never guessed; a live sweep with `passivenear`/`atlasnode` on the tree
 settles whether the main tree's state layout serves), a resume of the last node, and the unspent-points count.
 Phase 2's wording was accepted by the owner the same day ("good enough" over the maps run since).

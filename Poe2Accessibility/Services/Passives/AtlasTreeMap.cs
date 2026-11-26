@@ -21,9 +21,9 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>
-    ///     The Atlas skill tree's graph for its finder, from <see cref="EndgameCatalog"/>'s atlasskillgraph nodes:
-    ///     links, places and each node's kind and cluster, read from its PassiveSkills id (AtlasAbyssNotable1,
-    ///     AtlasGenericSmall78_). The passive tree's finder cannot serve here — its graph state is judged by the
+    ///     The Atlas skill tree's graph for its finder, from <see cref="EndgameCatalog"/>'s nodes of the tree: links,
+    ///     places, each node's kind from its PassiveSkills marks and the graph's roots (from its id, AtlasAbyssNotable1,
+    ///     where a catalog has no marks) and its cluster from its id (AtlasGenericSmall78_). The passive tree's finder cannot serve here — its graph state is judged by the
     ///     main tree's graph file name, and its allocated list, points and build marks are the main tree's — so
     ///     this borrows its pure logic instead: link distances (<see cref="PassiveMap.Steps"/>) and the stick's
     ///     pushes (<see cref="PassiveStick.Route"/>, the same tree widget's rule). Mastery icons hold no links in
@@ -31,8 +31,15 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class AtlasTreeMap
     {
-        /// <summary>The graph name of the Atlas passive tree in catalog/endgame.json.</summary>
-        public const string GraphName = "atlasskillgraph";
+        /// <summary>The 0.5 Atlas passive tree's graph name, for a catalog made before the marks (<see cref="EndgameCatalog.IsSkillTree"/>).</summary>
+        public const string LegacyGraphName = "atlasskillgraph";
+
+        /// <summary>The catalog's marks (the endgame extractor's NodeFlags): keystone, notable, icon only (a mastery).</summary>
+        private const char KeystoneFlag = 'k';
+
+        private const char NotableFlag = 'n';
+
+        private const char MasteryFlag = 'i';
 
         private AtlasTreeMap(string[] ids, int[][] links, Vector2[] places, bool[] notable, bool[] start, string[] clusters)
         {
@@ -62,9 +69,25 @@ namespace Poe2Accessibility.Services
         public Dictionary<string, int> Index { get; }
 
         /// <summary>The tree from catalog nodes (id, the group's centre, linked ids); links made both ways, masteries left out.</summary>
-        public static AtlasTreeMap Build(IEnumerable<(string Id, int X, int Y, IReadOnlyList<string>? Links)> nodes)
+        /// <param name="marks">Each node's PassiveSkills marks and root flag; a kind no node is marked with is read from the ids.</param>
+        public static AtlasTreeMap Build(IEnumerable<(string Id, int X, int Y, IReadOnlyList<string>? Links)> nodes, Func<string, (string? Flags, bool Root)>? marks = null)
         {
-            var kept = nodes.Where(node => !node.Id.Contains("Mastery", StringComparison.Ordinal)).ToList();
+            var all = nodes.ToList();
+            var marked = new Dictionary<string, (string? Flags, bool Root)>(StringComparer.Ordinal);
+            foreach (var node in all)
+            {
+                marked.TryAdd(node.Id, marks?.Invoke(node.Id) ?? (null, false));
+            }
+
+            bool Marked(string id, char flag) => marked[id].Flags?.Contains(flag, StringComparison.Ordinal) == true;
+            var masteryMarks = all.Any(node => Marked(node.Id, MasteryFlag));
+            var notableMarks = all.Any(node => Marked(node.Id, NotableFlag) || Marked(node.Id, KeystoneFlag));
+            var rootMarks = all.Any(node => marked[node.Id].Root);
+            bool IsMastery(string id) => masteryMarks ? Marked(id, MasteryFlag) : id.Contains("Mastery", StringComparison.Ordinal);
+            bool IsNotable(string id) => notableMarks ? Marked(id, NotableFlag) || Marked(id, KeystoneFlag) : id.Contains("Notable", StringComparison.Ordinal);
+            bool IsStart(string id) => rootMarks ? marked[id].Root : id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal);
+
+            var kept = all.Where(node => !IsMastery(node.Id)).ToList();
             var index = kept.Select((node, at) => (node.Id, at)).ToDictionary(pair => pair.Id, pair => pair.at, StringComparer.Ordinal);
             var links = kept.Select(_ => new List<int>()).ToArray();
             for (var at = 0; at < kept.Count; at++)
@@ -83,8 +106,8 @@ namespace Poe2Accessibility.Services
                 kept.Select(node => node.Id).ToArray(),
                 links.Select(list => list.ToArray()).ToArray(),
                 kept.Select(node => new Vector2(node.X, node.Y)).ToArray(),
-                kept.Select(node => node.Id.Contains("Notable", StringComparison.Ordinal)).ToArray(),
-                kept.Select(node => node.Id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal)).ToArray(),
+                kept.Select(node => IsNotable(node.Id)).ToArray(),
+                kept.Select(node => IsStart(node.Id)).ToArray(),
                 kept.Select(node => ClusterOf(node.Id)).ToArray());
         }
 

@@ -72,7 +72,7 @@ on an orbit gets its group's centre (the drawn element gives the real place). On
 tree and the layout (the start): its first place is kept.
 
 The JSON: `objectives` {id: icon, keyword}, `contents` {id: objective}, `icons` {art file: name key, text key}, `maps`
-{area id: pin}, `nodes` {passive id: graph, x, y, orbit, slot, links, pin, maps, biomes, objective, blocked, hint}, `text`
+{area id: pin}, `nodes` {passive id: graph, x, y, orbit, slot, links, flags (k keystone, n notable, i icon only, from PassiveSkills), root (a root of its .psg), pin, maps, biomes, objective, blocked, hint}, `text`
 {language: {key: text}} with keys `objective/`, `done/`, `term/`, `help/`, `content/`, `contentText/`, `biome/`, `client/`,
 `area/`, `passive/` (10 languages, ~1,200 texts each; Simplified Chinese has no tables). 1.3 MB.
 

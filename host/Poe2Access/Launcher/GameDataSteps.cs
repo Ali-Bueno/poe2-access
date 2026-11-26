@@ -46,7 +46,7 @@ internal static class GameDataSteps
         new Step("game names", 4, "game-names.txt", "game-names", true), // 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
         new Step("places", 2, "places.json", "places", true), // 2: the props vocabulary, every rotation, each tile's own .tmd (2026-11-16)
         new Step("rooms", 3, "rooms.json", "rooms", true), // 3: generic labels named by file name or props (2026-11-16)
-        new Step("endgame", 3, "endgame.json", "endgame", true),
+        new Step("endgame", 4, "endgame.json", "endgame", true), // 4: skill-graph nodes carry their PassiveSkills marks and roots
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 3, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings; 3: the rounds per trial
         new Step("quest goals", 3, "quest-goals.json", "quest-goals", true), // 3: the HUD's "Travel to {0}" and the areas' names
