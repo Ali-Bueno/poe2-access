@@ -489,6 +489,12 @@
     "PlayerAtlasHideout": "PlayerAtlasHideout",
     "RitualLeagueBoss": "DefaultMap"
   },
+  "graphs": {
+    "atlasskillgraph": "metadata/atlasskillgraphs/atlasskillgraph.psg",
+    "chayulatreepassiveskillgraph": "metadata/leagueskillgraphs/chayulatreepassiveskillgraph.psg",
+    "endgamemaplayoutgraph": "metadata/atlasskillgraphs/endgamemaplayoutgraph.psg",
+    "royalepassiveskillgraph": "metadata/alternateskillgraphs/royalepassiveskillgraph.psg"
+  },
   "nodes": {
     "Atlas4thReactor": {
       "graph": "endgamemaplayoutgraph",

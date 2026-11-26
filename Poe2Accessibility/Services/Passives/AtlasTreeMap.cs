@@ -31,8 +31,14 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class AtlasTreeMap
     {
-        /// <summary>The 0.5 Atlas passive tree's graph name, for a catalog made before the marks (<see cref="EndgameCatalog.IsSkillTree"/>).</summary>
+        /// <summary>The 0.5 Atlas passive tree's graph name, for a catalog made before the graph paths (<see cref="EndgameCatalog.HasTreeFinder"/>).</summary>
         public const string LegacyGraphName = "atlasskillgraph";
+
+        /// <summary>
+        ///     The game's folders whose skill trees the D-pad finder walks — only the Atlas passive tree's, by the owner's
+        ///     choice (2026-11-25); a league tree (metadata/leagueskillgraphs/) joins only when added here.
+        /// </summary>
+        public static readonly string[] FinderFolders = { "metadata/atlasskillgraphs/" };
 
         /// <summary>The catalog's marks (the endgame extractor's NodeFlags): keystone, notable, icon only (a mastery).</summary>
         private const char KeystoneFlag = 'k';

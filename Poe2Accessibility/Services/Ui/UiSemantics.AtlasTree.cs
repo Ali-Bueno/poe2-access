@@ -30,7 +30,7 @@ namespace Poe2Accessibility.Services
         {
             var catalog = EndgameCatalog.Shared;
             graph = catalog.Node(id)?.Graph ?? string.Empty;
-            if (graph.Length == 0 || !catalog.IsSkillTree(graph))
+            if (graph.Length == 0 || !catalog.HasTreeFinder(graph))
             {
                 return null;
             }

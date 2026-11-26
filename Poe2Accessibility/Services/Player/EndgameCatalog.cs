@@ -102,11 +102,14 @@ namespace Poe2Accessibility.Services
         public CatalogNode? Node(string passiveId) => this.data.Nodes.TryGetValue(passiveId, out var node) ? node : null;
 
         /// <summary>
-        ///     Whether a graph is a skill tree the Atlas tree finder walks: one with roots in the files (the map layout has
-        ///     none), so a renamed or reworked tree file still counts; a catalog made before the marks knows the 0.5 tree by name.
+        ///     Whether the D-pad finder walks a graph: a tree with roots in the files (the map layout has none) in one of
+        ///     <see cref="AtlasTreeMap.FinderFolders"/>, so a renamed or reworked tree file there still counts and no other
+        ///     tree does; a catalog made before the graph paths knows the 0.5 Atlas tree by name.
         /// </summary>
-        public bool IsSkillTree(string graph) =>
-            graph == AtlasTreeMap.LegacyGraphName || this.rootedGraphs.Contains(graph);
+        public bool HasTreeFinder(string graph) =>
+            this.data.Graphs.TryGetValue(graph, out var path)
+                ? this.rootedGraphs.Contains(graph) && AtlasTreeMap.FinderFolders.Any(folder => path.StartsWith(folder, StringComparison.OrdinalIgnoreCase))
+                : graph == AtlasTreeMap.LegacyGraphName;
 
         /// <summary>A node's PassiveSkills marks and whether it is a root of its graph, for the tree finder's kinds.</summary>
         public (string? Flags, bool Root) Marks(string passiveId) => this.Node(passiveId) is { } node ? (node.Flags, node.Root) : (null, false);
@@ -283,6 +286,9 @@ namespace Poe2Accessibility.Services
             public Dictionary<string, CatalogIcon> Icons { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
             public Dictionary<string, string> Maps { get; set; } = new(StringComparer.Ordinal);
+
+            /// <summary>Each graph's file in the game's bundles, by the graph name its nodes carry.</summary>
+            public Dictionary<string, string> Graphs { get; set; } = new(StringComparer.Ordinal);
 
             public Dictionary<string, CatalogNode> Nodes { get; set; } = new(StringComparer.Ordinal);
 

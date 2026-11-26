@@ -33,7 +33,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasProgressTakesAnotherAtlasSilently), AtlasProgressTakesAnotherAtlasSilently),
             (nameof(AtlasProgressKeepsStatesInItsFile), AtlasProgressKeepsStatesInItsFile),
             (nameof(AtlasTreeKindsComeFromTheMarksOverTheIds), AtlasTreeKindsComeFromTheMarksOverTheIds),
-            (nameof(SkillTreesAreKnownByTheirRootsNotTheirName), SkillTreesAreKnownByTheirRootsNotTheirName),
+            (nameof(TheTreeFinderWalksOnlyTheChosenTrees), TheTreeFinderWalksOnlyTheChosenTrees),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -482,22 +482,31 @@ namespace Poe2Accessibility.Tests
             Expect(false, unmarked.Index.ContainsKey("AtlasGenericMastery1"), "and its masteries too");
         }
 
-        private static void SkillTreesAreKnownByTheirRootsNotTheirName()
+        private static void TheTreeFinderWalksOnlyTheChosenTrees()
         {
             var catalog = new EndgameCatalog(new EndgameCatalog.CatalogData
             {
+                Graphs = new()
+                {
+                    ["atlaspassivegraph"] = "metadata/atlasskillgraphs/atlaspassivegraph.psg",
+                    ["endgamemaplayoutgraph"] = "metadata/atlasskillgraphs/endgamemaplayoutgraph.psg",
+                    ["chayulatreepassiveskillgraph"] = "metadata/leagueskillgraphs/chayulatreepassiveskillgraph.psg",
+                },
                 Nodes = new()
                 {
-                    ["Old1"] = new() { Graph = AtlasTreeMap.LegacyGraphName },
                     ["Renamed1"] = new() { Graph = "atlaspassivegraph", Root = true, Flags = "n" },
                     ["Renamed2"] = new() { Graph = "atlaspassivegraph" },
                     ["Map1"] = new() { Graph = "endgamemaplayoutgraph", Root = true, Pin = "WaypointPin" },
                     ["Map2"] = new() { Graph = "endgamemaplayoutgraph" },
+                    ["League1"] = new() { Graph = "chayulatreepassiveskillgraph", Root = true },
                 },
             });
-            Expect(true, catalog.IsSkillTree("atlaspassivegraph"), "a graph with roots is a tree, whatever its file is named");
-            Expect(true, catalog.IsSkillTree(AtlasTreeMap.LegacyGraphName), "a catalog made before the marks keeps the 0.5 tree");
-            Expect(false, catalog.IsSkillTree("endgamemaplayoutgraph"), "the map's layout is never a tree, roots or not");
+            Expect(true, catalog.HasTreeFinder("atlaspassivegraph"), "a rooted tree in the Atlas's folder, whatever its file is named");
+            Expect(false, catalog.HasTreeFinder("endgamemaplayoutgraph"), "the map's layout is never a tree, roots or not");
+            Expect(false, catalog.HasTreeFinder("chayulatreepassiveskillgraph"), "a league tree is not chosen, rooted or not");
+            Expect(false, catalog.HasTreeFinder("unknowngraph"), "a graph the catalog has no file for");
+            var old = new EndgameCatalog(new EndgameCatalog.CatalogData { Nodes = new() { ["Old1"] = new() { Graph = AtlasTreeMap.LegacyGraphName }, ["League1"] = new() { Graph = "chayulatreepassiveskillgraph", Root = true } } });
+            Expect("True|False", $"{old.HasTreeFinder(AtlasTreeMap.LegacyGraphName)}|{old.HasTreeFinder("chayulatreepassiveskillgraph")}", "a catalog without graph paths keeps the 0.5 Atlas tree alone");
             Expect<(string?, bool)>(("n", true), catalog.Marks("Renamed1"), "a node's marks");
 
             var nodes = Enumerable.Range(0, 200).ToDictionary(at => $"Map{at}", at => new EndgameCatalog.CatalogNode { Graph = "layout", Pin = at < 190 ? "PrecursorMap" : at < 192 ? "CitadelPin" : "Breach" });

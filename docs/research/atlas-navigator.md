@@ -167,8 +167,12 @@ Clusters; `IsAtlasTreeNode` routes the D-pad). No new offsets. **Update-proofing
 hold for any graph; `root` from the .psg header's roots); the ids are read only for a catalog made before. Today's data
 proves the change: the 7 roots are exactly the 7 `…Start` nodes, the mastery mark matches the 38 `…Mastery` ids, and the
 marks find 15 notables and keystones the id rule missed (The Chosen Path, Exceptional Vestments, Memories of the Vaal…).
-The tree is any rooted graph that is not the map's layout (a graph with pins/maps/biomes), so the 1.0 tree (70 nodes,
-ExileCon 2026) is found whatever its file is called; `atlasskillgraph` is kept only for older catalogs. A 575 → 70
+The D-pad finder walks only the trees the owner chose (2026-11-25: the Atlas passive tree alone): a rooted graph,
+not the map's layout (a graph with pins/maps/biomes), whose file lies in a folder of `AtlasTreeMap.FinderFolders`
+(`metadata/atlasskillgraphs/`; the catalog's `graphs` section, step v5, holds each graph's path). So the 1.0 tree (70
+nodes, ExileCon 2026) is found whatever its file is called, and the league trees (`metadata/leagueskillgraphs/`,
+Chayula's; `alternateskillgraphs/`) are left to the game until added there; `atlasskillgraph` by name serves only a
+catalog without paths. A 575 → 70
 shrink passes the launcher's catalog guard (`GameDataCounts`): measured, the file keeps ~65 % of its values and each
 section over half. Landmarks also take any pin on at most 1 % of the map's nodes, so a new one-off pin counts.
 Still open here: allocation state and point costs

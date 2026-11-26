@@ -148,12 +148,14 @@ internal static class EndgameExtractor
         string? Marks(int row) => Present(string.Concat(NodeFlags.Where(flag => flagColumns.TryGetValue(flag.Column, out var at) && passives.Bool(row, at)).Select(flag => flag.Flag)));
 
         var nodeOut = new SortedDictionary<string, NodeEntry>(StringComparer.Ordinal);
+        var graphOut = new SortedDictionary<string, string>(StringComparer.Ordinal);
         var namedPassives = new SortedSet<int>();
         foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".psg", StringComparison.OrdinalIgnoreCase) &&
                                                                      !string.Equals(file.Path, MainGraph, StringComparison.OrdinalIgnoreCase))
                      .OrderBy(file => file.Path, StringComparer.Ordinal))
         {
             var graphName = Path.GetFileNameWithoutExtension(file.Path!);
+            graphOut[graphName] = file.Path!;
             // A file the known layout does not read, or of another version that reads but does not hold together, fails the step.
             var graph = SkillGraphFile.Parse(file.Read().ToArray());
             if (graph == null || (!graph.VersionKnown && !graph.IsConsistent))
@@ -370,6 +372,7 @@ internal static class EndgameExtractor
             contents = contentOut,
             icons = iconOut,
             maps = mapOut,
+            graphs = graphOut,
             nodes = nodeOut,
             text,
         };
