@@ -297,8 +297,9 @@ namespace Poe2Accessibility.Services
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
             var tracker = this.QuestTexts();
             this.tried.NoteQuest(this.QuestObjectives()); // a new quest step may have opened a barrier found shut
-            var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => this.QuestGoals.QuestLinesOf(tracker, Localization.Language));
-            this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts));
+            var questLines = this.QuestGoals.QuestLinesOf(tracker, Localization.Language);
+            var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => questLines);
+            this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts), questLines);
             sorted.InsertRange(0, this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>());
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);

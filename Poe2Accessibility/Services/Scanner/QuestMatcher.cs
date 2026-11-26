@@ -34,11 +34,12 @@ namespace Poe2Accessibility.Services
         ///     text only mentions is not: "Encuentra el Santuario en el corazón de Keth" made the exit back to Keth the
         ///     target in the Lost City (user 2026-11-14).
         /// </param>
+        /// <param name="questLines">Every step of the tracker's quests (<see cref="QuestGoalCatalog.QuestLinesOf"/>): what a later step speaks of in the plural.</param>
         public static List<ScanEntry> Targets(
             IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "", string cameFrom = "", Memo? memo = null,
-            IReadOnlyCollection<string>? leadsTo = null)
+            IReadOnlyCollection<string>? leadsTo = null, IReadOnlyCollection<string>? questLines = null)
         {
-            var objective = memo?.For(questTexts, currentArea) ?? new Objective(questTexts, currentArea);
+            var objective = memo?.For(questTexts, currentArea, questLines) ?? new Objective(questTexts, currentArea, questLines);
             var texts = objective.Texts;
             var steps = leadsTo is { Count: > 0 } ? leadsTo.Select(Fold).ToHashSet() : null;
             // What the minimap marks with the quest's own icon is the objective, whatever the tracker says — never a
@@ -74,14 +75,7 @@ namespace Poe2Accessibility.Services
                     : entry.Kind == MinimapMarks.BossRoomKind ? objective.Names(entry.Subject, NamePart.Whole, byWord)
                     : objective.Names(entry.Name, NamePart.Whole, byWord) ||
                       (entry.Subject.Length > 0 && objective.Names(entry.Subject, NamePart.Whole, byWord)); // a Vaal Beacon as Act 3's "foco antiguo"
-                if (entry.Category == ScanCategory.Objects && named)
-                {
-                    objective.Remember(entry.Name);
-                }
-                else if (entry.Category == ScanCategory.Objects)
-                {
-                    named = objective.NamesSeveral(entry.Name);
-                }
+                named |= entry.Category == ScanCategory.Objects && objective.NamesSeveral(entry.Name);
                 if (named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });
@@ -129,23 +123,10 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public sealed class Memo
         {
-            private readonly HashSet<string> namedWhole = new();
             private Objective? last;
 
-            internal Objective For(IReadOnlyList<string> questTexts, string currentArea)
-            {
-                if (this.last is { } kept && kept.Is(questTexts, currentArea))
-                {
-                    return kept;
-                }
-
-                if (this.last == null || !this.last.InArea(currentArea) || this.namedWhole.Count >= MaxNames)
-                {
-                    this.namedWhole.Clear();
-                }
-
-                return this.last = new Objective(questTexts, currentArea, this.namedWhole);
-            }
+            internal Objective For(IReadOnlyList<string> questTexts, string currentArea, IReadOnlyCollection<string>? questLines) =>
+                this.last is { } kept && kept.Is(questTexts, currentArea) ? kept : this.last = new Objective(questTexts, currentArea, questLines);
         }
 
         /// <summary>
@@ -156,26 +137,21 @@ namespace Poe2Accessibility.Services
         {
             private readonly string[] questTexts;
             private readonly string currentArea;
-            private readonly HashSet<string> namedWhole;
+            private readonly List<string> questLines;
             private readonly Dictionary<(string Text, NamePart Part, bool ByWord), bool> names = new();
             private readonly Dictionary<string, bool> several = new();
             private string[]? stems;
             private HashSet<string>? properNouns;
             private bool? namesOnlyItsArea;
 
-            /// <param name="namedWhole">The objects an objective named whole in this area so far, kept from step to step.</param>
-            public Objective(IReadOnlyList<string> questTexts, string currentArea, HashSet<string>? namedWhole = null)
+            /// <param name="questLines">Every step of the quests the tracker shows, by the game's tables, done and to come.</param>
+            public Objective(IReadOnlyList<string> questTexts, string currentArea, IReadOnlyCollection<string>? questLines = null)
             {
                 this.questTexts = questTexts.ToArray();
                 this.currentArea = currentArea;
-                this.namedWhole = namedWhole ?? new HashSet<string>();
                 this.Texts = this.questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
+                this.questLines = (questLines ?? Array.Empty<string>()).Select(Fold).ToList();
             }
-
-            public bool InArea(string area) => string.Equals(area, this.currentArea, StringComparison.Ordinal);
-
-            /// <summary>Keeps an object the objective names whole, for a later step that speaks of the rest.</summary>
-            public void Remember(string name) => this.namedWhole.Add(Fold(name));
 
             public List<string> Texts { get; }
 
@@ -249,9 +225,9 @@ namespace Poe2Accessibility.Services
             }
 
             /// <summary>
-            ///     Whether a text speaks of several of what an earlier step here named whole, by one word of the name in the plural:
-            ///     after the first, "Activa los megalitos restantes" names no "Megalito rúnico" whole (user 2026-11-26); German's
-            ///     compound too ("Monolithen"). Only those named before: "las Puertas de Galai" is no door mechanism.
+            ///     Whether a text speaks of several of what another step of the quest names whole, by one word of the name in the
+            ///     plural: after the first, "Activa los megalitos restantes" names no "Megalito rúnico" whole (user 2026-11-26);
+            ///     German's compound too ("Monolithen"). Only what the quest names: "las Puertas de Galai" is no door mechanism.
             /// </summary>
             public bool NamesSeveral(string name)
             {
@@ -263,7 +239,8 @@ namespace Poe2Accessibility.Services
                 var folded = Fold(name);
                 this.stems ??= this.Texts.SelectMany(Words).SelectMany(PluralStems).Distinct().ToArray();
                 var own = Words(folded).Where(word => word.Length >= MinStem).ToArray();
-                var named = this.namedWhole.Contains(folded) && this.stems.Any(stem => own.Any(part => part.EndsWith(stem, StringComparison.Ordinal)));
+                var named = own.Length > 0 && this.stems.Any(stem => own.Any(part => part.EndsWith(stem, StringComparison.Ordinal))) &&
+                            this.questLines.Any(line => ContainsWord(line, folded));
                 if (this.several.Count >= MaxNames)
                 {
                     this.several.Clear();
