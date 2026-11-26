@@ -39,6 +39,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame), TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame),
             (nameof(AMarkerWithoutAnIconIsToldByItsModel), AMarkerWithoutAnIconIsToldByItsModel),
             (nameof(TheChargeBeingPlacedPointsToTheNearestOpenFindOnceStill), TheChargeBeingPlacedPointsToTheNearestOpenFindOnceStill),
+            (nameof(PlacementModeAndExplosiveObjectsAreTold), PlacementModeAndExplosiveObjectsAreTold),
         };
 
         private static void AMarkerWithoutAnIconIsToldByItsModel()
@@ -58,6 +59,24 @@ namespace Poe2Accessibility.Tests
             var rule = LeaguePieces.RuleOf(Marker)!;
             Equal(ExpeditionFind.Elite, LeaguePieces.FindOf(rule.Piece, LeaguePieces.MarkerIcon(string.Empty, Folder + "elitemarker_03.ao")), "found as what it buries");
             Equal(true, LeaguePieces.IsListed(rule, Array.Empty<(string, long)>(), LeaguePieces.MarkerIcon(string.Empty, Folder + "chestmarker2.ao")), "and listed");
+        }
+
+        private static void PlacementModeAndExplosiveObjectsAreTold()
+        {
+            var news = new PlacementNews();
+            Equal(null, news.Mode(false), "the area's first reading, off: nothing to say");
+            Equal(true, news.Mode(true), "placing begins");
+            Equal(null, news.Mode(true), "said once");
+            Equal(false, news.Mode(false), "and as it ends");
+            news.Reset();
+            Equal(true, news.Mode(true), "a new area already placing");
+
+            var barrel = LeaguePieces.RuleOf("Metadata/Terrain/Gallows/Leagues/Expedition/Objects/ExplodingFill_BoomBarrel")!;
+            Equal(ExpeditionFind.BlastObject, LeaguePieces.FindOf(barrel.Piece, string.Empty), "a barrel blows with the chain");
+            Equal(true, LeaguePieces.IsListed(barrel, new[] { ("expedition_detonated", 0L) }, string.Empty), "listed until it goes off");
+            Equal(false, LeaguePieces.IsListed(barrel, new[] { ("expedition_detonated", 1L) }, string.Empty), "and not after");
+            Equal(ExpeditionFind.BlastObject, LeaguePieces.FindOf(LeaguePieces.RuleOf("Metadata/Terrain/Gallows/Leagues/Expedition/Logbook_Basin/Objects/OilWell")!.Piece, "ExpeditionPOI"), "the Oil Derrick too");
+            Expect(true, PlacementNews.Worth(ExpeditionFind.BlastObject) < PlacementNews.Worth(ExpeditionFind.Monsters), "an explosive object is guided to before plain monsters");
         }
 
         private static void TheChargeBeingPlacedPointsToTheNearestOpenFindOnceStill()
@@ -286,7 +305,7 @@ namespace Poe2Accessibility.Tests
             Equal("RitualReady", string.Join(" ", altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 1)), "RitualRune")), "they are dead: the altar can be used");
             Equal(0, altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 2)), "RitualRune").Count, "the player began it: no news");
             Equal("RitualDone", string.Join(" ", altar.Heard(3, LeaguePiece.RitualAltar, States(("current_state", 3)), "RitualRuneFinished")), "won");
-            Equal("Explosives Placed: 2/5; 1 not covered", Announcements.ExplosivesPlaced(2, 5, 1), "the game's own count, then what it lacks");
+            Equal("Explosives Placed: 2/5; Not covered: 1 chest", Announcements.ExplosivesPlaced(2, 5, new[] { (ExpeditionFind.Chest, 1) }), "the game's own count, then what it lacks");
             Equal("Explosives Placed: 2", Announcements.ExplosivesPlaced(2, null, null), "the total unread: as before");
 
             var ids = GameIds.Parse(new[] { "# the game's numbers", "stat current_rage 5", "ruleset StandardRules 0", "ruleset UltimatumRules 49" });
@@ -349,7 +368,8 @@ namespace Poe2Accessibility.Tests
             ritual.Reset();
             Equal(0, ritual.Heard(new[] { "Delirium Encounter" }, 0).Count, "a new area: looked at afresh");
 
-            Equal("2 not covered", Announcements.FindsUncovered(2), "after the game's own count, only what it lacks");
+            Equal("Not covered: 2 chests, 1 elite", Announcements.FindsUncovered(new[] { (ExpeditionFind.Chest, 2), (ExpeditionFind.Elite, 1) }), "after the game's own count, only what it lacks, by kind");
+            Equal("Every find covered", Announcements.FindsUncovered(Array.Empty<(ExpeditionFind, int)>()), "nothing left");
             Equal(string.Empty, Announcements.FindsUncovered(null), "and nothing when that is not read");
         }
 
@@ -471,6 +491,9 @@ namespace Poe2Accessibility.Tests
             Equal(2, PlacementNews.Uncovered(new[] { true, false, false }), "one reached: the other two are left");
             Equal(0, PlacementNews.Uncovered(new[] { true, true }), "every find reached");
             Equal(null, PlacementNews.Uncovered(Array.Empty<bool>()), "no finds");
+            var kinds = PlacementNews.UncoveredKinds(new[] { (ExpeditionFind.Monsters, false), (ExpeditionFind.Chest, true), (ExpeditionFind.Monsters, false), (ExpeditionFind.Remnant, false), (ExpeditionFind.Chest, false) });
+            Equal("Remnant 1, Chest 1, Monsters 2", string.Join(", ", kinds!.Select(kind => $"{kind.Find} {kind.Count}")), "what is left by kind, the most worth first (live 2026-11-26: 65 sin cubrir told nothing)");
+            Equal(null, PlacementNews.UncoveredKinds(new[] { (ExpeditionFind.Chest, false) }), "nothing claimed before one reads as reached");
 
             Equal(28, ExpeditionReach.Radius("MapSteppe"), "a charge's blast in a map, in grid units, as measured in the game");
             Equal(34, ExpeditionReach.Radius("ExpeditionLogBook_Reef"), "and in a logbook, where it is a fifth wider");
@@ -533,13 +556,15 @@ namespace Poe2Accessibility.Tests
             Equal("RemnantWaves", string.Join(" ", news.Heard(1, LeaguePiece.VerisiumRemnant, States(("activated", 5)), "Expedition2RemnantActive")), "its waves");
             Equal("RemnantReward", string.Join(" ", news.Heard(1, LeaguePiece.VerisiumRemnant, States(("activated", 6)), "Expedition2RemnantActive")), "its reward");
             Equal(0, news.Heard(1, LeaguePiece.VerisiumRemnant, States(("activated", 7)), "Expedition2RemnantDeactivated").Count, "done: dropped from the list, nothing said");
-            foreach (var spoiled in new[] { 3L, 4L, 8L })
+            foreach (var spoiled in new[] { 4L, 8L })
             {
                 var id = (uint)(10 + spoiled);
                 news.Heard(id, LeaguePiece.VerisiumRemnant, States(("activated", 2)), string.Empty);
                 Equal("RemnantSpoiled", string.Join(" ", news.Heard(id, LeaguePiece.VerisiumRemnant, States(("activated", spoiled)), string.Empty)), $"{spoiled} spoils it");
             }
 
+            news.Heard(20, LeaguePiece.VerisiumRemnant, States(("activated", 2)), string.Empty);
+            Equal(0, news.Heard(20, LeaguePiece.VerisiumRemnant, States(("activated", 3)), string.Empty).Count, "3 is the blast with a recipe chosen: its waves follow (live 2026-11-26, 3 then 5), nothing spoilt");
             news.Heard(30, LeaguePiece.VerisiumRemnant, States(("activated", 0)), string.Empty);
             Equal("RemnantTome", string.Join(" ", news.Heard(30, LeaguePiece.VerisiumRemnant, States(("activated", 1)), string.Empty)), "the campaign's: its tome once its first fight is over");
             news.Reset();

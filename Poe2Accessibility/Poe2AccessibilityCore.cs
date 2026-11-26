@@ -434,6 +434,7 @@ namespace Poe2Accessibility
                 this.leagues = new LeagueWatch(this.output, this.log, elements, memory)
                 {
                     TrackerLines = () => this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>(),
+                    PlacingShown = () => this.narrator != null && this.screen != null && this.narrator.PlacingShown(this.screen.Current),
                     AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
                     Charges = () => this.rulesets?.Charges,
                     FogRunning = () => this.rulesets?.FogRunning,

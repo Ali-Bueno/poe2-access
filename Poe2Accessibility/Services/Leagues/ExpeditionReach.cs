@@ -55,5 +55,16 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The finds the charges placed reach now; the set is not touched again once given.</summary>
         public static void Publish(HashSet<uint> now) => covered = now;
+
+        private static volatile bool detonated;
+
+        /// <summary>
+        ///     Gets a value indicating whether the area's detonator has blown: its markers are spent then, blown or not, though they stay
+        ///     in the ground with the states they had (live 2026-11-26: still said as "Monstruos de expedición" after the encounter).
+        /// </summary>
+        public static bool Detonated => detonated;
+
+        /// <summary>The area's detonator as last read: blown or not.</summary>
+        public static void PublishDetonated(bool now) => detonated = now;
     }
 }

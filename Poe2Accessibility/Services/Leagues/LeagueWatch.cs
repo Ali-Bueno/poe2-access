@@ -43,6 +43,7 @@ namespace Poe2Accessibility.Services
         private readonly List<Vector2> chargePlaces = new();
         private long lastPoll;
         private bool placing;
+        private bool detonated;
         private int? fogLogged = FogNotLogged;
 
         public LeagueWatch(IAccessibilityOutputService output, PluginLog log, UiElementReader elements, HostMemoryReader memory)
@@ -65,6 +66,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets or sets whether the fog's own reader is speaking of its edges now: it says more than "out of the fog".</summary>
         public Func<bool> FogSpeaks { get; set; } = () => false;
 
+        /// <summary>
+        ///     Gets or sets whether the screen shows the placement mode's own legend ("Colocar explosivo", ClientStrings
+        ///     ConsoleActionPlaceExplosive): the charge being placed is client-only and not in the entity list (live 2026-11-26).
+        /// </summary>
+        public Func<bool> PlacingShown { get; set; } = () => false;
+
         /// <summary>Gets or sets the id of the area the player is in ("ExpeditionLogBook_Reef"): a logbook's charges reach farther.</summary>
         public Func<string> AreaId { get; set; } = () => string.Empty;
 
@@ -76,7 +83,8 @@ namespace Poe2Accessibility.Services
             this.placement.Reset();
             this.guide.Reset();
             this.tracker.Reset();
-            (this.placing, this.fogLogged) = (false, FogNotLogged);
+            ExpeditionReach.PublishDetonated(false);
+            (this.placing, this.fogLogged, this.detonated) = (false, FogNotLogged, false);
         }
 
         /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
@@ -141,7 +149,11 @@ namespace Poe2Accessibility.Services
                         this.chargePlaces.Add(charge);
                     }
                 }
-                else if (LeaguePieces.FindOf(rule.Piece, icon) is { } find && LeaguePieces.IsListed(rule, states, icon) && place is { } spot)
+                else if (rule.Piece == LeaguePiece.ExpeditionDetonator && ValueOf(states, LeaguePieces.ActivatedState) > 0)
+                {
+                    this.detonated = true; // the markers are spent, blown or not: they stay in the ground as they were
+                }
+                else if (!this.detonated && LeaguePieces.FindOf(rule.Piece, icon) is { } find && LeaguePieces.IsListed(rule, states, icon) && place is { } spot)
                 {
                     // The game's own word on the find first; the charges' places are asked after the loop, when all are known.
                     this.finds.Add((entity.Id, find, spot, ValueOf(states, LeaguePieces.CoveredState) > 0, ValueOf(states, LeaguePieces.PlacingRangeState) > 0));
@@ -153,6 +165,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            ExpeditionReach.PublishDetonated(this.detonated);
             this.Reach(cursor);
 
             // The tracker first: whether it counts the charges itself decides what a charge placed says.
@@ -161,8 +174,14 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.Quest, line);
             }
 
+            var mode = !this.detonated && (indicator || this.PlacingShown());
+            if (this.placement.Mode(mode) is { } entered)
+            {
+                this.output.Speak(entered ? Announcements.PlacementModeOn : Announcements.PlacementModeOff, interrupt: true);
+            }
+
             this.Placement(indicator, blocked, now);
-            this.Guide(indicator ? cursor : null, now);
+            this.Guide(mode, cursor, now);
             this.Player();
         }
 
@@ -232,22 +251,63 @@ namespace Poe2Accessibility.Services
             {
                 // The game's own "Explosivos colocados: 2/5" is said from the tracker when it shows one; ours then adds only what it lacks.
                 var text = this.tracker.ShowsCount
-                    ? Announcements.FindsUncovered(PlacementNews.Uncovered(this.findsCovered))
+                    ? Announcements.FindsUncovered(this.UncoveredKinds())
                     : this.Charges() is { } site
-                        ? Announcements.ExplosivesPlaced(site.Placed, site.Total, PlacementNews.Uncovered(this.findsCovered))
-                        : Announcements.ExplosivesPlaced(count, null, PlacementNews.Uncovered(this.findsCovered));
+                        ? Announcements.ExplosivesPlaced(site.Placed, site.Total, this.UncoveredKinds())
+                        : Announcements.ExplosivesPlaced(count, null, this.UncoveredKinds());
                 if (text.Length > 0)
                 {
                     this.output.Say(SpeechKind.Quest, text);
+                }
+
+                // The last charge: a remnant none reaches will not run its recipe (live 2026-11-26: the one left out went to 8).
+                if (this.Charges() is { } all && all.Placed >= all.Total && this.RemnantUncovered())
+                {
+                    this.output.Say(SpeechKind.Quest, Announcements.RemnantLeftOut);
                 }
             }
 
             this.placing = placingNow;
         }
 
-        /// <summary>While a charge is being placed: where the nearest find it would not blow lies from it, once it stands still.</summary>
-        private void Guide(Vector2? charge, long now)
+        private List<(ExpeditionFind Find, int Count)>? UncoveredKinds() =>
+            PlacementNews.UncoveredKinds(this.finds.Zip(this.findsCovered, (find, covered) => (find.Find, covered)).ToList());
+
+        private bool RemnantUncovered()
         {
+            for (var i = 0; i < this.finds.Count && i < this.findsCovered.Count; i++)
+            {
+                if (this.finds[i].Find == ExpeditionFind.Remnant && !this.findsCovered[i])
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     While placing and the charge covers nothing: the nearest find no charge reaches, from the player (the charge itself is not
+        ///     readable), the most worth first: a remnant, chests, elites and explosive objects before plain monsters.
+        /// </summary>
+        private void Guide(bool mode, Vector2? charge, long now)
+        {
+            if (!mode)
+            {
+                this.guide.Reset();
+                return;
+            }
+
+            if (charge == null && this.covered.Count == 0 && Seats.Followed.TryGetComponent<Render>(out var self))
+            {
+                charge = new Vector2(self.GridPosition.X, self.GridPosition.Y);
+            }
+            else if (charge == null)
+            {
+                this.guide.Next(null, Array.Empty<(uint, ExpeditionFind, Vector2)>(), now);
+                return;
+            }
+
             var open = new List<(uint Id, ExpeditionFind Find, Vector2 Place)>();
             for (var i = 0; i < this.finds.Count && i < this.findsCovered.Count; i++)
             {
@@ -258,6 +318,11 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            if (open.Any(find => PlacementNews.Worth(find.Find) < PlacementNews.Worth(ExpeditionFind.Monsters)))
+            {
+                open.RemoveAll(find => PlacementNews.Worth(find.Find) >= PlacementNews.Worth(ExpeditionFind.Monsters));
+            }
+
             if (this.guide.Next(charge, open, now) is not { } next || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
@@ -266,7 +331,7 @@ namespace Poe2Accessibility.Services
             var steps = (int)Math.Round(next.Offset.Length() * Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor / StepWorldUnits);
             var (alongX, alongY) = ScreenProjection.Axes(player.WorldPosition);
             var direction = Announcements.StickDirections[StickDirection.Octant(alongX, alongY, next.Offset.X, next.Offset.Y)];
-            this.output.Say(SpeechKind.Quest, Announcements.ExplosiveNextFind(Announcements.LeaguePieceName(LeaguePiece.ExpeditionMarker, next.Find), steps, direction));
+            this.output.Say(SpeechKind.Quest, Announcements.ExplosiveNextFind(Announcements.FindName(next.Find), steps, direction));
         }
 
         /// <summary>The player's own signals: a shrine's buff as it comes on, the Delirium fog while its encounter runs.</summary>

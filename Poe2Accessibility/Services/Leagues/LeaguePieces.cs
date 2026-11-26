@@ -10,6 +10,9 @@ namespace Poe2Accessibility.Services
         VerisiumRemnant,
         ExpeditionMarker,
         ExpeditionRelic,
+
+        /// <summary>An object that blows with an Expedition chain and has a blast of its own (a barrel, an Oil Derrick).</summary>
+        ExpeditionBlastObject,
         ExpeditionDetonator,
         ExpeditionExplosive,
         PlacementIndicator,
@@ -63,6 +66,9 @@ namespace Poe2Accessibility.Services
         Boss,
         Relic,
         Remnant,
+
+        /// <summary>An object with its own blast, caught by a charge: it blows too and widens the chain (the Oil Derrick's text).</summary>
+        BlastObject,
     }
 
     /// <summary>A change of a league object that is news.</summary>
@@ -224,6 +230,9 @@ namespace Poe2Accessibility.Services
         private const string DeliriumArea = "Metadata/Terrain/Gallows/Leagues/Delirium/Objects/";
         private const string Activated = ActivatedState;
 
+        /// <summary>The state an object caught by an Expedition blast sets as it goes off.</summary>
+        private const string ExpeditionDetonated = "expedition_detonated";
+
         /// <summary>The Expedition markers' icons (MinimapIcons 578-584) and the relic's (856); which kind gets which is LIKELY.</summary>
         private static readonly Dictionary<string, ExpeditionFind> FindIcons = new(StringComparer.Ordinal)
         {
@@ -309,6 +318,11 @@ namespace Poe2Accessibility.Services
             new(LeaguePiece.VerisiumRemnant, "Metadata/MiscellaneousObjects/Expedition2/Expedition2EncounterQuest", ListedWhile: new[] { Is(Activated, 0, 1, 2, 5, 6) }, WithoutTarget: true),
             new(LeaguePiece.ExpeditionMarker, Expedition + "ExpeditionMarker", ListedWhile: Array.Empty<StateIs>(), Icons: MarkerIcons, WithoutTarget: true),
             new(LeaguePiece.ExpeditionRelic, Expedition + "ExpeditionRelic", ListedWhile: new[] { Is("exploded", 0) }, Icons: new[] { "ExpeditionPOI" }, WithoutTarget: true),
+            // inherent_explosion_radius set (0.5.5f, every .ot read 2026-11-26): the barrel 60 (Expedition objects), the Faridun
+            // explosive 80 and the Oil Derrick 110 (Basin logbook); each ExpeditionHighlightable, gone once expedition_detonated.
+            new(LeaguePiece.ExpeditionBlastObject, "Metadata/Terrain/Gallows/Leagues/Expedition/Objects/ExplodingFill_BoomBarrel", ListedWhile: new[] { Is(ExpeditionDetonated, 0) }, WithoutTarget: true),
+            new(LeaguePiece.ExpeditionBlastObject, "Metadata/Terrain/Gallows/Leagues/Expedition/Logbook_Basin/Objects/FaridunExplosive", ListedWhile: new[] { Is(ExpeditionDetonated, 0) }, WithoutTarget: true),
+            new(LeaguePiece.ExpeditionBlastObject, "Metadata/Terrain/Gallows/Leagues/Expedition/Logbook_Basin/Objects/OilWell", ListedWhile: new[] { Is(ExpeditionDetonated, 0) }, WithoutTarget: true),
             new(LeaguePiece.ExpeditionDetonator, Expedition + "ExpeditionDetonator", Family: true),
             new(LeaguePiece.ExpeditionExplosive, Expedition + "ExpeditionExplosive"),
             new(LeaguePiece.PlacementIndicator, Expedition + "ExpeditionPlacementIndicator"),
@@ -348,7 +362,6 @@ namespace Poe2Accessibility.Services
             new(LeaguePiece.VerisiumRemnant, Activated, 1, LeagueLine.RemnantTome),
             new(LeaguePiece.VerisiumRemnant, Activated, 5, LeagueLine.RemnantWaves),
             new(LeaguePiece.VerisiumRemnant, Activated, 6, LeagueLine.RemnantReward),
-            new(LeaguePiece.VerisiumRemnant, Activated, 3, LeagueLine.RemnantSpoiled),
             new(LeaguePiece.VerisiumRemnant, Activated, 4, LeagueLine.RemnantSpoiled),
             new(LeaguePiece.VerisiumRemnant, Activated, 8, LeagueLine.RemnantSpoiled),
             new(LeaguePiece.ExpeditionDetonator, "explosives_placed", 1, LeagueLine.DetonatorReady),
@@ -527,6 +540,7 @@ namespace Poe2Accessibility.Services
         {
             LeaguePiece.ExpeditionMarker => FindIcons.TryGetValue(icon, out var find) && find != ExpeditionFind.Relic ? find : null,
             LeaguePiece.ExpeditionRelic => ExpeditionFind.Relic,
+            LeaguePiece.ExpeditionBlastObject => ExpeditionFind.BlastObject,
             LeaguePiece.VerisiumRemnant => ExpeditionFind.Remnant,
             _ => null,
         };
@@ -553,7 +567,7 @@ namespace Poe2Accessibility.Services
                     .Concat(Cues.Where(cue => cue.Piece == piece.Piece).SelectMany(cue => cue.Unless is { } unless ? new[] { cue.State, unless } : new[] { cue.State }))
                     .Concat(piece.Piece switch
                     {
-                        LeaguePiece.ExpeditionMarker => new[] { PlacingRangeState, CoveredState },
+                        LeaguePiece.ExpeditionMarker or LeaguePiece.ExpeditionBlastObject => new[] { PlacingRangeState, CoveredState },
                         LeaguePiece.PlacementIndicator => new[] { BlockedState },
                         LeaguePiece.Simulacrum => new[] { WaveState },
                         LeaguePiece.EssenceCrystal => new[] { EssenceCountState, EssenceCorruptedState },

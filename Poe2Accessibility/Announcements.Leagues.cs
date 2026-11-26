@@ -21,6 +21,7 @@ namespace Poe2Accessibility
                 _ => T("Expedition marker", "Marcador de expedición"),
             },
             LeaguePiece.ExpeditionRelic => T("Expedition relic", "Reliquia de expedición"),
+            LeaguePiece.ExpeditionBlastObject => T("Explosive object: blows with the charges", "Objeto explosivo: estalla con las cargas"),
             LeaguePiece.ShardBoss => T("Delirium shard: boss", "Fragmento de delirio: jefe"),
             LeaguePiece.ShardMirroredBoss => T("Delirium shard: mirrored boss", "Fragmento de delirio: jefe reflejado"),
             LeaguePiece.ShardPortal => T("Delirium shard: portal", "Fragmento de delirio: portal"),
@@ -179,9 +180,26 @@ namespace Poe2Accessibility
             _ => LeaguePieceName(LeaguePiece.ExpeditionMarker, ExpeditionFind.Chest),
         };
 
+        /// <summary>Expedition placement mode began or ended (the game shows it only by its legend).</summary>
+        public static string PlacementModeOn => T("Placing explosives", "Colocando explosivos");
+
+        public static string PlacementModeOff => T("Out of placement mode", "Fuera del modo de colocación");
+
+        /// <summary>Every charge is placed and a Verisium Remnant is still out of reach: its recipe will not run.</summary>
+        public static string RemnantLeftOut => T("The Verisium Remnant is not covered: its recipe will be lost", "El remanente de verisium no está cubierto: su receta se perderá");
+
+        /// <summary>A find's name, as the scanner lists it.</summary>
+        public static string FindName(ExpeditionFind find) => find switch
+        {
+            ExpeditionFind.Remnant => LeaguePieceName(LeaguePiece.VerisiumRemnant, null),
+            ExpeditionFind.Relic => LeaguePieceName(LeaguePiece.ExpeditionRelic, null),
+            ExpeditionFind.BlastObject => T("Explosive object", "Objeto explosivo"),
+            _ => LeaguePieceName(LeaguePiece.ExpeditionMarker, find),
+        };
+
         /// <summary>While placing a charge: the nearest find it would not blow, from the charge ("Next: Expedition chest, 6 steps, up left").</summary>
         public static string ExplosiveNextFind(string find, int steps, string direction) =>
-            steps < 1 ? T($"Next: {find}, here", $"Siguiente: {find}, aquí") : T($"Next: {find}, {Steps(steps)}, {direction}", $"Siguiente: {find}, {Steps(steps)}, {direction}");
+            steps < 1 ? T($"Nearest left from you: {find}, here", $"Más cerca de ti sin cubrir: {find}, aquí") : T($"Nearest left from you: {find}, {Steps(steps)}, {direction}", $"Más cerca de ti sin cubrir: {find}, {Steps(steps)}, {direction}");
 
         /// <summary>"Covers 2 chests, 1 elite": what the Expedition charge being placed would blow.</summary>
         public static string ExpeditionCovers(IReadOnlyList<(ExpeditionFind Find, int Count)> finds)
@@ -202,7 +220,7 @@ namespace Poe2Accessibility
         ///     The HUD's count of the charges set ("Explosives Placed: {0}/{1}"), without the most it does not tell us; with how many
         ///     finds no charge reaches yet, when that is read.
         /// </summary>
-        public static string ExplosivesPlaced(int count, int? total, int? uncovered)
+        public static string ExplosivesPlaced(int count, int? total, IReadOnlyList<(ExpeditionFind Find, int Count)>? uncovered)
         {
             // "Explosives Placed: {0}/{1}" is the game's own line (ClientStrings SideEncounterExpeditionPlacedCount).
             var placed = total is { } most ? T($"Explosives Placed: {count}/{most}", $"Explosivos colocados: {count}/{most}") : T($"Explosives Placed: {count}", $"Explosivos colocados: {count}");
@@ -210,13 +228,25 @@ namespace Poe2Accessibility
             return left.Length == 0 ? placed : $"{placed}; {left}";
         }
 
-        /// <summary>How many Expedition finds no charge placed reaches yet, said after the game's own count; empty when that is not read.</summary>
-        public static string FindsUncovered(int? uncovered) => uncovered switch
+        /// <summary>
+        ///     What no Expedition charge placed reaches yet, by kind ("Not covered: 1 remnant, 2 chests, 30 monsters"), said after the
+        ///     game's own count; empty when that is not read.
+        /// </summary>
+        public static string FindsUncovered(IReadOnlyList<(ExpeditionFind Find, int Count)>? uncovered)
         {
-            null => string.Empty,
-            0 => T("Every find covered", "Todo cubierto"),
-            { } left => T($"{left} not covered", $"{left} sin cubrir"),
-        };
+            if (uncovered is null)
+            {
+                return string.Empty;
+            }
+
+            if (uncovered.Count == 0)
+            {
+                return T("Every find covered", "Todo cubierto");
+            }
+
+            var list = string.Join(", ", uncovered.Select(find => FindCount(find.Find, find.Count)));
+            return T($"Not covered: {list}", $"Sin cubrir: {list}");
+        }
 
         private static string StrongboxName(string name) => name.Length > 0 ? name : T("Strongbox", "Caja fuerte");
 
@@ -232,6 +262,8 @@ namespace Poe2Accessibility
             (ExpeditionFind.SpecialMonsters, false) => T($"{count} special monsters", $"{count} monstruos especiales"),
             (ExpeditionFind.Boss, true) => T("1 boss", "1 jefe"),
             (ExpeditionFind.Boss, false) => T($"{count} bosses", $"{count} jefes"),
+            (ExpeditionFind.BlastObject, true) => T("1 explosive object", "1 objeto explosivo"),
+            (ExpeditionFind.BlastObject, false) => T($"{count} explosive objects", $"{count} objetos explosivos"),
             (ExpeditionFind.Relic, true) => T("1 relic", "1 reliquia"),
             (ExpeditionFind.Relic, false) => T($"{count} relics", $"{count} reliquias"),
             (_, true) => T("1 remnant", "1 remanente"),

@@ -65,6 +65,9 @@ internal static class TrialDataExtractor
         ("SanctumHourglassesRemaining", "label:crystals"),
         ("UltimatumActiveModifierLegendsTitle", "label:modifiers"),
         ("SanctumMapWindowInfo", "label:map"),
+        // Expedition placement mode's legend ("Colocar explosivo [A]"), in the game's language: shown only while a charge is being
+        // placed (live 2026-11-26); the HUD's own "Colocar explosivos" (ExpeditionPlaceExplosives) is another text.
+        ("ConsoleActionPlaceExplosive", "label:placing"),
     };
 
     /// <summary>

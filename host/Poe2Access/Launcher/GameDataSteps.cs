@@ -43,12 +43,12 @@ internal static class GameDataSteps
         // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
         new Step("game ids", 5, "game-ids.txt", "game-ids", true), // 5: the rows of Rulesets, for the client's rulesets
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
-        new Step("game names", 5, "game-names.txt", "game-names", true), // 5: the Verisium Anvil's icon; 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
+        new Step("game names", 6, "game-names.txt", "game-names", true), // 6: the Expedition explosive objects; 5: the Verisium Anvil's icon; 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
         new Step("places", 2, "places.json", "places", true), // 2: the props vocabulary, every rotation, each tile's own .tmd (2026-11-16)
         new Step("rooms", 3, "rooms.json", "rooms", true), // 3: generic labels named by file name or props (2026-11-16)
         new Step("endgame", 5, "endgame.json", "endgame", true), // 5: each graph's file path; 4: skill-graph nodes carry their PassiveSkills marks and roots
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
-        new Step("trial data", 3, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings; 3: the rounds per trial
+        new Step("trial data", 4, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings; 3: the rounds per trial; 4: the Expedition placement legend
         new Step("quest goals", 3, "quest-goals.json", "quest-goals", true), // 3: the HUD's "Travel to {0}" and the areas' names
         new Step("shrines", 1, "shrines.json", "shrines", true),
         new Step("spectres", 4, "spectres.json", "spectres", true), // 4: a spear its monster's id names is a spear, not the data's Warstaff; 3: a variety told by its Spirit cost, not the raw multiplier; monsters only; a row of both tags' reach unsaid. Never 1: a legacy stamp vouches for every step at 1; 2: each monster's weapon and reach, and whether its variety is told

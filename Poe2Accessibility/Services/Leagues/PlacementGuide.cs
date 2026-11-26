@@ -32,7 +32,7 @@ namespace Poe2Accessibility.Services
         {
             if (charge is not { } at)
             {
-                this.Reset();
+                this.moving = null; // the charge covers something: what was said of the spot still stands
                 return null;
             }
 

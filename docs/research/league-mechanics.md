@@ -742,3 +742,28 @@ What the owner's log showed (`accessibility.log`, 11:12-11:23) and what was chan
   new spot (4 cells from the last said, or the nearest changed), "Siguiente: <find>, N pasos, <direction>" for the nearest find no
   placed charge reaches and this one would not. Whether the indicator reaches the host is still unconfirmed: the owner had not entered
   placement in the log.
+
+### 17.1 The owner's first placement (2026-11-26, 11:42-11:48) and what was changed for it
+
+- **The client states reach the host**: `in_placing_range` 1 on the markers the charge at the stick would blow, `in_range` 1 once a placed
+  charge covers them; "Cubre 2 cofres, 1 élite…" was said as the charge moved. **The placement indicator is not in the entity list**, so
+  the charge's own place, a refused spot and the guide from the charge stayed silent.
+- **Placement mode** is told by the game's legend "Colocar explosivo [A] | Salir del modo de colocación [B] | Ajustar colocación [stick
+  derecho]" (the right stick moves the charge). `label:placing` (ClientStrings `ConsoleActionPlaceExplosive`, "Place Explosive", all ten
+  languages) joins `catalog/trials.json`; "Colocando explosivos" / "Fuera del modo de colocación" are said as it shows and goes.
+  (`GamepadActionStopPlaceExplosive` "Exit Placement Mode" is in ClientStrings2, which the step does not read.)
+- **The guide is from the player** while placing and the charge covers nothing: "Más cerca de ti sin cubrir: <find>, N pasos, <dir>", a
+  remnant, chests, elites and explosive objects before plain monsters.
+- **What is left is said by kind** after each charge ("Sin cubrir: 1 remanente, 2 cofres, 30 monstruos"; "65 sin cubrir" told nothing).
+- **The Verisium Remnant**: the one a charge covered went 2 → 3 at the blast → 5 waves → 6 reward → 7, so **3 is not spoiled** (no longer
+  said); the one no charge reached went 2 → 8. A charge must reach a remnant for its recipe to run, and its modifiers apply to what that
+  charge and every later one digs up, never earlier ones (poe2db.tw/Expedition; epoe.io 0.5.5e guide; forum thread 3150033). With every
+  charge placed and a remnant uncovered: "El remanente de verisium no está cubierto: su receta se perderá".
+- **After the blast** the markers stay in the ground with the states they had, and were still said as "Monstruos de expedición": once the
+  area's detonator reads `activated` 1 they are no longer listed (`ExpeditionReach.Detonated`).
+- **Objects that blow with the chain** (every `.ot` of 0.5.5f read for `inherent_explosion_radius`): `…/Leagues/Expedition/Objects/
+  ExplodingFill_BoomBarrel` 60, `…/Logbook_Basin/Objects/FaridunExplosive` 80, `…/Logbook_Basin/Objects/OilWell` 110 ("Oil Derrick" /
+  "Torre petrolífera": "Explota cuando se detona / Los explosivos subsiguientes tienen un radio de detonación mayor"). All three are
+  ExpeditionHighlightable (the same placing states) and set `expedition_detonated` as they go: listed as "Objeto explosivo" until then and
+  counted in "Cubre …". No script reads the radius beyond drawing the ring; the Oil Derrick's bonus is the game's text only.
+- **Order of blasts** (poe2db, 0.5): charges go off in the order placed, each waiting until most monsters the one before dug up are dead.

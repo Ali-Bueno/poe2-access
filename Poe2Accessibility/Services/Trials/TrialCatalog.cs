@@ -33,6 +33,9 @@ namespace Poe2Accessibility.Services
         public const string RoundLabel = "label:round";
         public const string CrystalsLabel = "label:crystals";
 
+        /// <summary>The Expedition placement mode's legend ("Place Explosive", ClientStrings ConsoleActionPlaceExplosive).</summary>
+        public const string PlacingLabel = "label:placing";
+
         private const string EffectPrefix = "effect:";
         private const string AfflictionPrefix = EffectPrefix + "Affliction";
         private const string BoonPrefix = EffectPrefix + "Boon";

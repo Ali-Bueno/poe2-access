@@ -27,6 +27,14 @@ namespace Poe2Accessibility.Services
             return hud != null && TrialLines.Read(this.Trials.Pattern(TrialCatalog.CrystalsLabel), hud.Texts.Select(text => text.Text)) != null;
         }
 
+        /// <summary>Whether the HUD shows the Expedition placement mode's legend ("Colocar explosivo", the game's own text).</summary>
+        public bool PlacingShown(ScreenSnapshot snapshot)
+        {
+            var label = this.Trials.Text(TrialCatalog.PlacingLabel).Trim();
+            var hud = this.inGame && label.Length > 0 ? snapshot.Find(this.HudLayer) : null;
+            return hud != null && hud.Texts.Any(text => string.Equals(text.Text.Trim(), label, System.StringComparison.OrdinalIgnoreCase));
+        }
+
         /// <summary>Says a round beginning (cutting in: a new fight) and the crystals left as one is disabled: digits alone are no news to the differ.</summary>
         public void CheckTrialLines(ScreenSnapshot snapshot)
         {

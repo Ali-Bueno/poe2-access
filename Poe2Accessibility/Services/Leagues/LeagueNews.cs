@@ -159,13 +159,14 @@ namespace Poe2Accessibility.Services
         private bool placing;
         private bool blocked;
         private bool chargesKnown;
+        private bool? mode;
 
         /// <summary>A new area: no charge is placed.</summary>
         public void Reset()
         {
             this.said.Clear();
             this.placed.Clear();
-            (this.lastSaid, this.placing, this.blocked, this.chargesKnown) = (long.MinValue / 2, false, false, false);
+            (this.lastSaid, this.placing, this.blocked, this.chargesKnown, this.mode) = (long.MinValue / 2, false, false, false, null);
         }
 
         /// <summary>
@@ -195,6 +196,14 @@ namespace Poe2Accessibility.Services
             return covered.GroupBy(piece => piece.Find).OrderBy(group => group.Key).Select(group => (group.Key, group.Count())).ToList();
         }
 
+        /// <summary>Placement mode as it begins (true) or ends (false); null while it stays, and for the area's first reading when it is off.</summary>
+        public bool? Mode(bool now)
+        {
+            var was = this.mode;
+            this.mode = now;
+            return was == now || (was == null && !now) ? null : now;
+        }
+
         /// <summary>The charge cannot go where it stands: true as that begins.</summary>
         public bool Refused(bool blockedNow)
         {
@@ -213,6 +222,28 @@ namespace Poe2Accessibility.Services
             var covered = findsCovered.Count(reached => reached);
             return covered == 0 ? null : findsCovered.Count - covered;
         }
+
+        /// <summary>
+        ///     What no charge placed reaches yet, by kind, the most worth first (a remnant, chests, elites…); null until one find reads
+        ///     as reached, which is what shows the client's state is read at all.
+        /// </summary>
+        public static List<(ExpeditionFind Find, int Count)>? UncoveredKinds(IReadOnlyList<(ExpeditionFind Find, bool Covered)> finds) =>
+            finds.Any(find => find.Covered)
+                ? finds.Where(find => !find.Covered).GroupBy(find => find.Find).OrderBy(group => Worth(group.Key)).Select(group => (group.Key, group.Count())).ToList()
+                : null;
+
+        /// <summary>The order finds are said in: what a player places charges for first.</summary>
+        public static int Worth(ExpeditionFind find) => find switch
+        {
+            ExpeditionFind.Remnant => 0,
+            ExpeditionFind.Boss => 1,
+            ExpeditionFind.Chest => 2,
+            ExpeditionFind.Elite => 3,
+            ExpeditionFind.BlastObject => 3,
+            ExpeditionFind.Relic => 4,
+            ExpeditionFind.SpecialMonsters => 5,
+            _ => 6,
+        };
 
         public int? Placed(IEnumerable<uint> charges)
         {

@@ -190,7 +190,8 @@ namespace Poe2Accessibility.Services
                 // The one creature here is an Azmeri spirit, a wisp nothing can hit: not listed, it is nothing, never an enemy.
                 var model = league.Piece == LeaguePiece.ExpeditionMarker ? ModelOf(entity) : string.Empty;
                 var markerIcon = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerIcon(icon, model) : icon;
-                category = LeaguePieces.IsListed(league, leagueStates, markerIcon) ? ScanCategory.Encounters : null;
+                var spent = ExpeditionReach.Detonated && league.Piece is LeaguePiece.ExpeditionMarker or LeaguePiece.ExpeditionBlastObject;
+                category = !spent && LeaguePieces.IsListed(league, leagueStates, markerIcon) ? ScanCategory.Encounters : null;
                 var find = LeaguePieces.FindOf(league.Piece, markerIcon);
                 name = league.Piece == LeaguePiece.ExpeditionMarker ? string.Empty : name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name
@@ -201,7 +202,7 @@ namespace Poe2Accessibility.Services
                     name = Announcements.ExpeditionCovered(name); // the charges placed already reach it: the next goes elsewhere
                 }
 
-                kind = league.Piece == LeaguePiece.ExpeditionMarker ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
+                kind = league.Piece is LeaguePiece.ExpeditionMarker or LeaguePiece.ExpeditionBlastObject ? LeaguePieces.MarkerKind : MinimapMarks.DeviceKind(icon);
                 sound = LeaguePieces.SoundOf(path);
             }
             else if (foughtBeside)
