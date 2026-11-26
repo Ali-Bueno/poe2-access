@@ -4,6 +4,8 @@ namespace Poe2Accessibility.Services
     public enum AtlasNodeState
     {
         Locked,
+
+        /// <summary>Can be opened and not completed (bit0 set, bit1 clear); a completed node keeps bit0 (status 3) and reads Completed — Completed wins.</summary>
         Accessible,
         Completed,
     }

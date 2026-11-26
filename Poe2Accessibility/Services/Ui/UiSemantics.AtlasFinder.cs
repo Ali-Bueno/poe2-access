@@ -44,11 +44,15 @@ namespace Poe2Accessibility.Services
                 .ToList();
         }
 
+        /// <summary>A scanned node's spoken name, the generic word when the data holds none (as the landed line says it).</summary>
+        private static string AtlasEntryName(AtlasScanEntry entry) =>
+            entry.Name.Length > 0 ? entry.Name : Announcements.AtlasNode;
+
         /// <summary>Where the cursor stands for the finder's home list: the landed node and its nearest anchor.</summary>
         public string AtlasDestinationPosition(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here, AtlasScanEntry? opened) =>
             Announcements.Sentences(new[]
             {
-                Announcements.PassivePosition($"{here.Name}, {Announcements.AtlasState(here.State)}"),
+                Announcements.PassivePosition($"{AtlasEntryName(here)}, {Announcements.AtlasState(here.State)}"),
                 this.AtlasAnchorLine(scan, here, opened),
             });
 
@@ -83,7 +87,7 @@ namespace Poe2Accessibility.Services
             var way = effective.Key == target.Key ? finalWay : this.AtlasDestinationWay(scan, here, effective);
             var found = Announcements.PassiveFound(target.Name, string.Join(", ", parts), way.Words.Words(false));
             return gate != null && gate.Key != target.Key
-                ? Announcements.Sentences(new[] { found, Announcements.AtlasFirstClearFor(gate.Name, target.Name) })
+                ? Announcements.Sentences(new[] { found, Announcements.AtlasFirstClearFor(AtlasEntryName(gate), target.Name) })
                 : found;
         }
 
@@ -103,7 +107,7 @@ namespace Poe2Accessibility.Services
             var effective = gate ?? target;
             var way = this.AtlasDestinationWay(scan, here, effective);
             var spoken = way.Linked ? way.Words : new Way(way.Words.Octant, null, false);
-            return this.GoalAndWay($"atlas {target.Key} via {effective.Key}", Announcements.PassiveToward(effective.Name), spoken);
+            return this.GoalAndWay($"atlas {target.Key} via {effective.Key}", Announcements.PassiveToward(AtlasEntryName(effective)), spoken);
         }
 
         /// <summary>The first accessible map to clear for a locked destination, from the scan's node states.</summary>

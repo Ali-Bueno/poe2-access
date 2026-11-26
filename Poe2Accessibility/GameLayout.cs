@@ -613,17 +613,17 @@ namespace Poe2Accessibility
         ///     A node of the Atlas map (the WorldScreen's map_control, its canvas child 6 in the dump, node elements
         ///     flags 0x542EF3 — docs/research/atlas-navigator.md §6, live 2026-11-25). The node the cursor rests on is
         ///     kept by map_control and by the canvas; neither the focus nor the UI manager's hovered slot ever points
-        ///     at a node there. Provenance: SelectedNodeOffset held the node whose area is MapPit while its popup read
-        ///     "Pit"; the three keys and the grid pair are datkeys-proven on eight nodes (the EndgameMapAtlas row's
-        ///     first key names the catalog node, e.g. Pit = AtlasOutsideFortressPath5).
+        ///     at a node there. Provenance: SelectedNodeOffset (and canvas +0x408, unused here) held the node whose
+        ///     area is MapPit while its popup read "Pit"; the three keys are datkeys-proven on four nodes (the
+        ///     EndgameMapAtlas row's first key names the catalog node, e.g. Pit = AtlasOutsideFortressPath5), and
+        ///     the grid pair was sampled on the same four. The EndgameMapAtlas key is null on row-less nodes
+        ///     (Rockpools, Oasis, Slash): always DatKey.Row-check AtlasKeyOffset before trusting it.
         /// </summary>
         public static class AtlasNode
         {
             /// <summary>On map_control: the node element the cursor rests on.</summary>
             public const int SelectedNodeOffset = 0x2E0;
 
-            /// <summary>On the Atlas canvas: the same node element.</summary>
-            public const int CanvasSelectedNodeOffset = 0x408;
 
             /// <summary>On a node element: dat keys (row, file) to its EndgameMaps, WorldAreas and EndgameMapAtlas rows.</summary>
             public const int EndgameMapsKeyOffset = 0x2F0;
@@ -632,7 +632,7 @@ namespace Poe2Accessibility
 
             public const int AtlasKeyOffset = 0x310;
 
-            /// <summary>On a node element: its place as two i32, the catalog graph's place scaled by about 1/173, y flipped.</summary>
+            /// <summary>On a node element: its place as two i32, read directly, never computed. It tracks the catalog place scaled by about 1/173 with y flipped (x exact on 3 of 4 as round(x/173)+16, y off by one once, §6) — descriptive only, not a conversion.</summary>
             public const int GridOffset = 0x320;
 
             /// <summary>

@@ -1,8 +1,10 @@
-# Atlas navigator: orientation, finder and node state (plan, 2026-11-25)
+# Atlas navigator: orientation, finder and node state (2026-11-25)
 
-Plan only; nothing here was measured live at the Atlas yet. Builds on [endgame.md](endgame.md) (the endgame's data,
+Status, same day: the Phase 0 sweep ran live (§6, PROVEN offsets); Phase 1 is live-proven, Phase 2 accepted,
+Phase 3 built (route proof live still owed). §§2–3 and §5 below keep the plan as written before that sweep —
+where they disagree with §6, §6 is what happened. Builds on [endgame.md](endgame.md) (the endgame's data,
 offline) and [endgame-ui.md](endgame-ui.md) §3 (GameHelper's atlas-node offsets). Confidence words as in endgame.md:
-**PROVEN** = read from the code or the game's files; **LIKELY**; **UNSURE** = to settle in Phase 0.
+**PROVEN** = read from the code or the game's files; **LIKELY**; **UNSURE** = to settle live.
 
 ## 1. The owner's word (2026-11-25)
 
@@ -12,7 +14,7 @@ offline) and [endgame-ui.md](endgame-ui.md) §3 (GameHelper's atlas-node offsets
 - Priority: **the finder/navigator first**. No map-device pain was named, so device work is deferred (§7), not
   declared fine.
 
-## 2. What the code does today (PROVEN, the code)
+## 2. What the code does today (at planning time, before the §6 sweep; PROVEN, the code)
 
 - **Hover-only, passive readout.** `UiSemantics.Endgame.DescribeEndgameNode` speaks a node only when the cursor is
   already on it and the element resolves through the main tree's record chain (offset searched ±0x200 around it,
@@ -33,13 +35,13 @@ offline) and [endgame-ui.md](endgame-ui.md) §3 (GameHelper's atlas-node offsets
   `ImportantUiElements.cs:43`, likely stale in controller mode — endgame-ui.md §5 found the panel by its name
   `WorldScreen`). Upstream GameHelper's node reader was never ported (§3).
 
-## 3. Two models of an Atlas node — Phase 0 picks one
+## 3. Two models of an Atlas node — as planned; §6 settles it (both models true at once)
 
 | | Model A: skill-graph node (the shipped code) | Model B: GameHelper's `AtlasMapNode` (endgame-ui.md §3) |
 |---|---|---|
 | Element | A passive-tree-like node element whose record points at a PassiveSkills row | Child of the Atlas panel, flags fingerprint `0x542EF3` (mist `0x442EF3`, you-are-here `0x502EF3`) |
-| Identity | The row's id → `EndgameCatalog` node (graph `endgamemaplayoutgraph`) | Map data row `+0x290`, content name `+0x278`, grid position `+0x310` |
-| State | Not read | Biome byte `+0x2BE`, **status byte `+0x2BF` (bit0 accessible, bit1 completed)**, connections vector `+0x590`, content tokens `+0x350`, badges `+0x368/+0x370` |
+| Identity | The row's id → `EndgameCatalog` node (graph `endgamemaplayoutgraph`) | Map data row `+0x290`, content name `+0x278`, grid position `+0x310` — **live: keys at `+0x2F0`/`+0x300`/`+0x310`, grid `+0x320` (§6); the upstream offsets in this column are stale, do not copy them into code** |
+| State | Not read | Biome byte `+0x2BE`, **status byte `+0x2BF` (bit0 accessible, bit1 completed)** — **live: status `+0x32F`, same bits (§6)**, connections vector `+0x590`, content tokens `+0x350`, badges `+0x368/+0x370` |
 | Risk | Written offline, UNSURE live; the 0.5 Atlas may not draw nodes this way at all | Measured upstream, possibly before the 0.5 Atlas redesign; every offset must be re-validated here (AGENTS 7–9) |
 
 They are not exclusive in outcome: the finder's graph comes from the catalog either way. What differs is where
@@ -69,7 +71,7 @@ device window's tree (capture only). Output: this file's §6 results filled in, 
 
 ### Phase 1 — node state and the anchor (state speech BUILT 2026-11-25; anchor still open)
 
-Built and deployed to the play copy, awaiting the owner's ear: `AtlasNarrator` watches the selected node
+Built and deployed to the play copy (live-proven the same day, below): `AtlasNarrator` watches the selected node
 (`map_control +0x2E0` via `UiSemantics.SelectedAtlasNode`); when it settles (~700 ms, popup built or 2.5 s
 given up) the landing is spoken as name, state from `+0x32F` (`AtlasState.Of`, bits only), contents and links
 (`UiSemantics.AtlasNodeLine` over the shipped endgame readout; setting `AnnounceAtlasNodes`, on by default).
@@ -79,8 +81,10 @@ contents missing and a ~2.5 s wait — the map's popup is no part of the node's 
 arrived (pending gave up), and canvas icons yield no texture key. Fixed the same day: the name comes from the
 element's rolled area key (`EndgameNodeLabel`, neighbours via the centres scan's element map), contents from the
 icon elements' own name text (`EndgameCatalog.IsContentName`), and a named node no longer waits for its popup.
-In the play copy; hearing it waits on the next relaunch.
-Ear-test rounds after hot reloads (same day) closed the rest: biome and contents read from the popup's own
+In the play copy, and heard over the hot-reload rounds that follow.
+Ear-test rounds after hot reloads (same day; the kept lines are in
+[evidence/atlas-phase1-ear-test-20261125.log](evidence/atlas-phase1-ear-test-20261125.log), a filtered
+compilation of the day's `Atlas node:`/`Atlas node landed:` log spans) closed the rest: biome and contents read from the popup's own
 subtree only (a whole-screen walk read the quest panel's "The Grand Expedition" as a content on every landing),
 fog neighbours say "unrevealed" (revealed = drawn in the scan, not the visible flag, which also drops on drawn
 nodes), and state words matched across two walks. **Phase 1's live proof is done.**
@@ -94,7 +98,7 @@ Not in this build: the you-are-here anchor (unresolved, §6) — it moves to Pha
 this landing line becomes.
 
 ### Phase 2 — orientation (the owner's pain; ships before any list)
-**Orientation built and hot-reloaded in (2026-11-25, awaiting the owner's verdict):** one canvas scan per
+**Orientation built and hot-reloaded in (2026-11-25; wording accepted by the owner the same day, §5 end):** one canvas scan per
 opening (`UiSemantics.AtlasScan`: every node's grid, status, rolled area, revealed; identity where catalogued —
 the record offset is learnt from any catalogued sibling, since a row-less selected node teaches nothing). On
 open: the landing, then where the last session left off (`config/atlas-resume.txt` per character) and the

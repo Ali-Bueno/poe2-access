@@ -177,7 +177,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
             Equal(true, File.ReadAllText(Path.Join(package, "poe2access-stop.sh")).Contains("poe2access-proton.env", StringComparison.Ordinal), "the stop script reads the session the launch script records");
             var restart = File.ReadAllText(Path.Join(package, "poe2access-restart.sh"));
-            Equal(true, restart.Contains("poe2access-proton.env", StringComparison.Ordinal) && restart.Contains("WINEDLLPATH", StringComparison.Ordinal), "the restart script reads the session and carries the bridges (a restart without them is mute)");
+            Equal(true, restart.Contains("poe2access-proton.env", StringComparison.Ordinal) && restart.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal) && restart.Contains("export STEAM_COMPAT_CLIENT_INSTALL_PATH STEAM_COMPAT_DATA_PATH SteamAppId SteamGameId WINEDLLPATH", StringComparison.Ordinal), "the restart script reads the session, names the packaged bridges and exports them (a restart without them is mute)");
         }
 
         /// <summary>

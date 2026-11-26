@@ -17,6 +17,8 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> objectiveByIcon;
         private readonly Dictionary<string, int> towerReach;
         private readonly Dictionary<string, HashSet<string>> contentNames = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string[]> contentNamesByLength = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string[]> biomeNames = new(StringComparer.Ordinal);
         private readonly List<string> biomes;
         private readonly List<string> contentIds;
 
@@ -167,6 +169,30 @@ namespace Poe2Accessibility.Services
             return names;
         }
 
+        /// <summary>The content name pool longest first, sorted once per language (ContentNamesIn runs per popup text while a landing settles).</summary>
+        private string[] ContentNamesByLength(string language)
+        {
+            if (!this.contentNamesByLength.TryGetValue(language, out var names))
+            {
+                names = this.ContentNamePool(language).OrderByDescending(name => name.Length).ToArray();
+                this.contentNamesByLength[language] = names;
+            }
+
+            return names;
+        }
+
+        /// <summary>The biomes' names in the language, read once per language.</summary>
+        private string[] BiomeNames(string language)
+        {
+            if (!this.biomeNames.TryGetValue(language, out var names))
+            {
+                names = this.biomes.Select(id => this.Text("biome/" + id, language)).Where(name => name.Length > 0).Distinct(StringComparer.Ordinal).ToArray();
+                this.biomeNames[language] = names;
+            }
+
+            return names;
+        }
+
         /// <summary>
         ///     The biome a text ends in ("Biome: Forest" on a node's popup), in the language; empty when it ends in no
         ///     known biome. A node's rolled biome is only on its popup: 410 of 610 map nodes list none, and one area
@@ -174,9 +200,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string BiomeNameIn(string text, string language)
         {
-            foreach (var id in this.biomes)
+            foreach (var name in this.BiomeNames(language))
             {
-                if (this.Text("biome/" + id, language) is { Length: > 0 } name && text.EndsWith(name, StringComparison.Ordinal))
+                // The popup's line is shaped "Biome: Forest": a bare suffix also names a biome off a map
+                // title that merely ends in one ("Bosque" the area, "Obscure Island"), spoken as its biome.
+                if (text.EndsWith(name, StringComparison.Ordinal) &&
+                    (text.Length == name.Length || (text.Length >= name.Length + 2 && text.AsSpan(text.Length - name.Length - 2, 2).SequenceEqual(": "))))
                 {
                     return name;
                 }
@@ -195,7 +224,7 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<string> ContentNamesIn(string text, string language)
         {
             var found = new List<(int At, string Name)>();
-            foreach (var name in this.ContentNamePool(language).OrderByDescending(name => name.Length))
+            foreach (var name in this.ContentNamesByLength(language))
             {
                 for (var at = text.IndexOf(name, StringComparison.Ordinal); at >= 0; at = text.IndexOf(name, at + 1, StringComparison.Ordinal))
                 {

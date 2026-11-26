@@ -43,13 +43,13 @@ namespace Poe2Accessibility.Services
 
         private static readonly string[] LandmarkPins = { "Kingsmarch", "InitialTower", "PrecursorGate", "WaypointPin" };
 
-        private (IntPtr Canvas, IReadOnlyList<AtlasScanEntry> Entries)? atlasScan;
 
         /// <summary>
-        ///     Every node element on the selected node's canvas, read once per open (fresh) and kept while the
-        ///     canvas stands: identity where the catalog knows it, and grid, status and rolled area for every node.
+        ///     Every node element on the selected node's canvas, read now: identity where the catalog knows it,
+        ///     and grid, status and rolled area for every node. The caller holds the scan for one opening and
+        ///     lets it go when the selection does; nothing caches element addresses here across canvases.
         /// </summary>
-        public IReadOnlyList<AtlasScanEntry> AtlasScan(IntPtr selected, bool fresh)
+        public IReadOnlyList<AtlasScanEntry> AtlasScan(IntPtr selected)
         {
             if (!this.elements.TryReadElement(selected, out var info) || !this.reader.TryRead<IntPtr>(selected, out var nodeClass))
             {
@@ -63,10 +63,6 @@ namespace Poe2Accessibility.Services
             }
 
             var canvas = ancestors[0];
-            if (!fresh && this.atlasScan is { } cached && cached.Canvas == canvas.Address)
-            {
-                return cached.Entries;
-            }
 
             var language = Localization.Language;
             if (!this.endgameRecordByClass.ContainsKey(nodeClass))
@@ -76,12 +72,13 @@ namespace Poe2Accessibility.Services
                 var tried = 0;
                 foreach (var child in this.elements.ReadChildren(canvas))
                 {
-                    if (tried++ >= 48 || this.endgameRecordByClass.ContainsKey(nodeClass))
+                    if (this.endgameRecordByClass.ContainsKey(nodeClass))
                     {
                         break;
                     }
 
-                    if (this.reader.TryRead<IntPtr>(child, out var itsClass) && itsClass == nodeClass)
+                    // Only same-class children can teach the offset; the budget counts those attempts alone.
+                    if (this.reader.TryRead<IntPtr>(child, out var itsClass) && itsClass == nodeClass && tried++ < 48)
                     {
                         _ = this.EndgamePassiveId(child);
                     }
@@ -119,7 +116,6 @@ namespace Poe2Accessibility.Services
                 });
             }
 
-            this.atlasScan = (canvas.Address, entries);
             return entries;
         }
 
@@ -135,8 +131,10 @@ namespace Poe2Accessibility.Services
         public void AtlasRefresh(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here)
         {
             var linked = here.Id != null ? EndgameCatalog.Shared.Node(here.Id)?.Links : null;
-            foreach (var entry in scan.Where(entry => !entry.Revealed && (entry.Element == here.Element || (entry.Id != null && linked != null && linked.Contains(entry.Id)))))
+            foreach (var entry in scan.Where(entry => entry.Element == here.Element || (entry.Id != null && linked != null && linked.Contains(entry.Id))))
             {
+                // Centres of the landed node and its links are re-read even when already revealed: pan and
+                // zoom between the scan and this landing would otherwise mix two drawn snapshots in one side.
                 if (PluginUiElementReflection.TryGetAbsoluteRect(entry.Element, out var position, out var size))
                 {
                     entry.Revealed = true;
@@ -146,8 +144,25 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The frontier from here: the nearest accessible, uncompleted nodes in links (grid steps when here is
-        ///     row-less), and how many revealed ones there are in all. Empty when none is in reach of speech.
+        ///     Link distances from here through revealed nodes only, as the destination finder's ways count
+        ///     them: a spoken "N links" must be a way the cursor can actually be hopped, never one routed
+        ///     through fog. Null when here is row-less.
+        /// </summary>
+        private Dictionary<string, int>? AtlasRevealedDistances(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here)
+        {
+            if (here.Id is not { } from)
+            {
+                return null;
+            }
+
+            var revealed = scan.Where(entry => entry.Revealed && entry.Id != null).Select(entry => entry.Id!).ToHashSet(StringComparer.Ordinal);
+            return AtlasGraph.Distances(from, id => EndgameCatalog.Shared.Node(id)?.Links, id => id == from || revealed.Contains(id));
+        }
+
+        /// <summary>
+        ///     The frontier from here: the nearest accessible, uncompleted nodes in revealed links (grid steps
+        ///     for an entry no revealed way reaches), and how many revealed ones there are in all. Links are never
+        ///     ordered against grid steps as one unit. Empty when none is in reach of speech.
         /// </summary>
         public string AtlasFrontierLine(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here)
         {
@@ -157,11 +172,16 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            var distances = here.Id is { } from ? AtlasGraph.Distances(from, id => EndgameCatalog.Shared.Node(id)?.Links) : null;
+            var distances = this.AtlasRevealedDistances(scan, here);
             var named = open
                 .Select(entry => (Entry: entry, Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links) ? links : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY), Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id)))
                 .Where(part => part.Away > 0 && part.Entry.Name.Length > 0)
-                .OrderBy(part => part.Away).Take(3)
+                .OrderBy(part => !part.Linked)
+                .ThenBy(part => part.Away)
+                .ThenBy(part => this.AtlasDistance(here, part.Entry))
+                .ThenBy(part => part.Entry.Name, StringComparer.CurrentCulture)
+                .ThenBy(part => part.Entry.Key, StringComparer.Ordinal)
+                .Take(3)
                 .Select(part => Announcements.AtlasFrontierEntry(part.Entry.Name, part.Away, this.AtlasSide(here, part.Entry), part.Linked));
             return Announcements.AtlasFrontier(string.Join("; ", named), open.Count);
         }
@@ -180,12 +200,22 @@ namespace Poe2Accessibility.Services
         public string AtlasAnchorLine(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here, AtlasScanEntry? opened)
         {
             bool IsLandmark(AtlasScanEntry entry) => entry.Element == opened?.Element || this.AtlasIsLandmark(entry);
-            var distances = here.Id is { } from ? AtlasGraph.Distances(from, id => EndgameCatalog.Shared.Node(id)?.Links) : null;
+            if (IsLandmark(here))
+            {
+                return string.Empty;
+            }
+
+            var distances = this.AtlasRevealedDistances(scan, here);
             var best = scan
                 .Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && IsLandmark(entry))
                 .Select(entry => (Entry: entry, Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links) ? links : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY), Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id)))
                 .Where(part => part.Away > 0)
-                .OrderBy(part => part.Away).FirstOrDefault();
+                .OrderBy(part => !part.Linked)
+                .ThenBy(part => part.Away)
+                .ThenBy(part => this.AtlasDistance(here, part.Entry))
+                .ThenBy(part => part.Entry.Name, StringComparer.CurrentCulture)
+                .ThenBy(part => part.Entry.Key, StringComparer.Ordinal)
+                .FirstOrDefault();
             return best.Entry == null ? string.Empty : Announcements.AtlasAway(best.Away, best.Linked, best.Entry.Name);
         }
 
@@ -198,10 +228,15 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            var distances = here.Id != null && last.Id != null ? AtlasGraph.Distances(here.Id, id => EndgameCatalog.Shared.Node(id)?.Links) : null;
-            var away = distances != null && last.Id != null && distances.TryGetValue(last.Id, out var links)
-                ? Announcements.AtlasAway(links, true, last.Name)
-                : Announcements.AtlasAway(AtlasGraph.GridSteps(here.GridX, here.GridY, last.GridX, last.GridY), false, last.Name);
+            var distances = last.Id != null ? this.AtlasRevealedDistances(scan, here) : null;
+            var linked = distances != null && last.Id != null && distances.TryGetValue(last.Id, out var links) ? links : -1;
+            var steps = AtlasGraph.GridSteps(here.GridX, here.GridY, last.GridX, last.GridY);
+            if ((linked >= 0 ? linked : steps) == 0)
+            {
+                return string.Empty;
+            }
+
+            var away = linked >= 0 ? Announcements.AtlasLinksAway(linked) : Announcements.AtlasStepsAway(steps);
             return Announcements.AtlasLastTime(last.Name, away);
         }
 
@@ -211,25 +246,31 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string AtlasNearestLine(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here)
         {
+            // One frame for origin and candidates alike (AtlasPlaces' rule: mixing sets would invent a side):
+            // drawn centres when the landing itself draws, grid places for every entry when it does not.
+            var drawn = here.Centre != null;
+            Vector2 Place(AtlasScanEntry entry) => drawn ? entry.Centre!.Value : AtlasGraph.ScreenPlace(entry.GridX, entry.GridY);
+            var origin = Place(here);
             var nearest = AtlasGraph.NearestPerDirection(
-                here.Centre ?? AtlasGraph.ScreenPlace(here.GridX, here.GridY),
-                scan.Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0)
-                    .Select(entry => (entry.Centre ?? AtlasGraph.ScreenPlace(entry.GridX, entry.GridY), entry)));
+                origin,
+                scan.Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && (!drawn || entry.Centre != null))
+                    .Select(entry => (Place(entry), entry)));
             if (nearest.Count == 0)
             {
                 return string.Empty;
             }
 
             var parts = AtlasLinks.Describe(
-                here.Centre ?? AtlasGraph.ScreenPlace(here.GridX, here.GridY),
-                nearest.Take(3).Select(entry => ((Vector2?)(entry.Centre ?? AtlasGraph.ScreenPlace(entry.GridX, entry.GridY)), entry.Name)));
+                origin,
+                nearest.Take(3).Select(entry => ((Vector2?)Place(entry), entry.Name)));
             return Announcements.AtlasNearest(string.Join("; ", parts));
         }
 
-        /// <summary>The side one scanned node lies on from another: drawn centres when both are drawn, else grid places.</summary>
-        private string AtlasSide(AtlasScanEntry here, AtlasScanEntry there) =>
-            here.Centre is { } from && there.Centre is { } to
-                ? AtlasLinks.Side(from, to)
-                : AtlasLinks.Side(AtlasGraph.ScreenPlace(here.GridX, here.GridY), AtlasGraph.ScreenPlace(there.GridX, there.GridY));
+        /// <summary>The side one scanned node lies on from another, in AtlasPlaces' single set of units.</summary>
+        private string AtlasSide(AtlasScanEntry here, AtlasScanEntry there)
+        {
+            var (from, to) = this.AtlasPlaces(here, there);
+            return AtlasLinks.Side(from, to);
+        }
     }
 }

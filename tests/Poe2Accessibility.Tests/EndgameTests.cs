@@ -124,7 +124,7 @@ namespace Poe2Accessibility.Tests
             },
             Text = new()
             {
-                ["en"] = new() { ["term/ContainsBreach"] = "Breach", ["passive/AtlasSmall1"] = "Essence Chance", ["area/MapUniqueInitialTower"] = "Precursor Tower", ["content/PowerfulMapBoss"] = "Powerful Map Boss", ["content/VaalBeacons"] = "Vaal Beacons",
+                ["en"] = new() { ["term/ContainsBreach"] = "Breach", ["passive/AtlasSmall1"] = "Essence Chance", ["area/MapUniqueInitialTower"] = "Precursor Tower", ["content/PowerfulMapBoss"] = "Powerful Map Boss", ["content/MapBoss"] = "Map Boss", ["content/VaalBeacons"] = "Vaal Beacons",
                     ["biome/Forest"] = "Forest", ["biome/Swamp"] = "Swamp", ["objective/Breach"] = "Open all Unstable Breaches", ["client/NeedsTower"] = "Complete the Tower",
                     ["client/ClickBeacon"] = "Activate the Precursor Beacon" },
                 ["es"] = new() { ["term/ContainsBreach"] = "Fisura", ["biome/Forest"] = "Bosque", ["biome/Swamp"] = "Pantano" },
@@ -192,7 +192,8 @@ namespace Poe2Accessibility.Tests
             Expect(false, catalog.IsContentName("Open all Unstable Breaches", "en"), "a description is not a content name");
             Expect(false, catalog.IsContentName("Breach", "es"), "names are per language");
             Expect("Vaal Beacons", string.Join("|", catalog.ContentNamesIn("Area contains Vaal Beacons", "en")), "the popup's own contents line");
-            Expect("Powerful Map Boss", string.Join("|", catalog.ContentNamesIn("Area contains a Powerful Map Boss", "en")), "the full name stands free in prose");
+            Expect("Powerful Map Boss", string.Join("|", catalog.ContentNamesIn("Area contains a Powerful Map Boss", "en")), "the longer name wins its place over the shorter inside it");
+            Expect("Vaal Beacons|Breach", string.Join("|", catalog.ContentNamesIn("Vaal Beacons and a Breach", "en")), "contents in the text's order, not the pool's");
             Expect(string.Empty, string.Join("|", catalog.ContentNamesIn("Breaches everywhere", "en")), "no match inside a longer word");
         }
 
@@ -215,6 +216,7 @@ namespace Poe2Accessibility.Tests
             Expect(AtlasNodeState.Completed, AtlasState.Of(2), "the completed bit alone still reads completed");
             Expect(AtlasNodeState.Accessible, AtlasState.Of(0x11), "a higher special bit does not mask accessible");
             Expect(AtlasNodeState.Locked, AtlasState.Of(0x10), "special bits alone are not accessible");
+            Expect(AtlasNodeState.Completed, AtlasState.Of(0x13), "a special bit over both state bits still reads completed");
         }
 
         private static void AtlasLandingSaysStateAfterName()
@@ -232,8 +234,17 @@ namespace Poe2Accessibility.Tests
             Expect("Forest", catalog.BiomeNameIn("Biome: Forest", "en"), "the popup's biome line");
             Expect("Bosque", catalog.BiomeNameIn("Bioma: Bosque", "es"), "the same line in Spanish");
             Expect(string.Empty, catalog.BiomeNameIn("Long lost secrets lie buried beyond.", "en"), "flavour ends in no biome");
+            Expect(string.Empty, catalog.BiomeNameIn("A Forest long lost to time.", "en"), "a biome named mid-flavour is not the line");
+            Expect(string.Empty, catalog.BiomeNameIn("The old Forest", "en"), "a title ending in a biome, with no label, is not its biome");
             Localization.Set("es", new());
-            Expect("Completado", Announcements.AtlasState(AtlasNodeState.Completed), "the Spanish state word");
+            try
+            {
+                Expect("Completado", Announcements.AtlasState(AtlasNodeState.Completed), "the Spanish state word");
+            }
+            finally
+            {
+                Localization.Set("en", new());
+            }
         }
 
         private static void AtlasGraphWalksLinksAndSectors()
@@ -282,6 +293,7 @@ namespace Poe2Accessibility.Tests
             ("AtlasAbyssStart", 500, 0, new[] { "AtlasAbyssSmall1" }),
             ("AtlasAbyssSmall1", 600, 0, new[] { "AtlasAbyssNotable1" }),
             ("AtlasAbyssNotable1", 700, 0, null),
+            ("AtlasIncursionStart_", 900, 0, null),
         });
 
         private static void AtlasTreeMapReadsClustersKindsAndOrdering()
@@ -289,18 +301,19 @@ namespace Poe2Accessibility.Tests
             Expect("Abyss", AtlasTreeMap.ClusterOf("AtlasAbyssNotable1"), "the kind ends the cluster");
             Expect("Generic", AtlasTreeMap.ClusterOf("AtlasGenericSmall78_"), "a small of the generic tree");
             Expect("AzmeriSpirit", AtlasTreeMap.ClusterOf("AtlasAzmeriSpiritEssenceChance"), "a named small with no kind word");
+            Expect("AzmeriSpirit", AtlasTreeMap.ClusterOf("AtlasAzmeriSpiritEssenceNotable"), "an essence notable keeps its cluster, not a cluster of its own");
             Expect("BiomeCity", AtlasTreeMap.ClusterOf("AtlasBiomeCity1"), "a bare number ends the cluster");
             Expect("Azmeri Spirit", AtlasTreeMap.SaidCluster("AzmeriSpirit"), "a cluster as said");
             var tree = AtlasTreeFixture();
-            Expect(6, tree.Ids.Length, "the mastery icon is left out");
+            Expect(7, tree.Ids.Length, "the mastery icon is left out");
             var small = tree.Index["AtlasGenericSmall1"];
             var distances = tree.DistancesFrom(small);
             Expect(1, distances[tree.Index["AtlasGenericNotable1"]], "its notable one link on, the link read back the other way");
             Expect(PassiveMap.NoPath, distances[tree.Index["AtlasAbyssNotable1"]], "no links join the clusters");
             Expect("AtlasGenericNotable1|AtlasAbyssNotable1", string.Join("|", tree.Members(AtlasTreeCategory.Notables, small, distances)),
                 "notables: linked first in links, the other cluster's after");
-            Expect("AtlasGenericStart|AtlasAbyssStart", string.Join("|", tree.Members(AtlasTreeCategory.Clusters, small, distances)),
-                "cluster starts by drawn distance");
+            Expect("AtlasGenericStart|AtlasAbyssStart|AtlasIncursionStart_", string.Join("|", tree.Members(AtlasTreeCategory.Clusters, small, distances)),
+                "cluster starts by drawn distance, the trailing-underscore start among them");
         }
 
         private static void AtlasTreeFinderWalksListsAndCountsPushes()
@@ -330,6 +343,8 @@ namespace Poe2Accessibility.Tests
             Expect(false, far, "two pushes are not far");
             Expect(0, way?.Octant ?? -1, "the first push is right, octant 0");
             Expect(2, way?.Pushes ?? -1, "start to notable through the small: 2 pushes");
+            finder.ChangeCategory(-1, Members);
+            Expect("Position", finder.Category.ToString(), "up walks the lists back");
         }
 
         private static void AtlasTreeNextHopStartsAlongTheLinks()
@@ -347,6 +362,14 @@ namespace Poe2Accessibility.Tests
             Expect(-1, tree.NextHopOctant(tree.Places, start, tree.Index["AtlasAbyssStart"]) ?? -1,
                 "no links lead to another cluster");
             Expect(-1, tree.NextHopOctant(tree.Places, start, start) ?? -1, "already there");
+            var shared = AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[]
+            {
+                ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
+                ("AtlasGenericSmall1", 0, 0, new[] { "AtlasGenericNotable1" }),
+                ("AtlasGenericNotable1", 100, 0, null),
+            });
+            Expect(-1, shared.NextHopOctant(shared.Places, shared.Index["AtlasGenericStart"], shared.Index["AtlasGenericNotable1"]) ?? -1,
+                "a next hop on the same group centre has no side to say, never an invented right");
         }
 
         private static void AtlasDestinationFinderSkipsEmptyListsAndArrives()
@@ -372,6 +395,8 @@ namespace Poe2Accessibility.Tests
             Expect(false, finder.Arrive("objective"), "arrival fires once");
             finder.ChangeCategory(1, Members);
             Expect("Position", finder.Category.ToString(), "lists wrap home");
+            finder.ChangeCategory(-1, Members);
+            Expect("objective", finder.Target, "walking the lists back reaches the last list with destinations");
         }
     }
 }

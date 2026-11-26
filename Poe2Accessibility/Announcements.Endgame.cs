@@ -41,9 +41,11 @@ namespace Poe2Accessibility
         /// <summary>"Caldera, 1 link up left" / "Slash, 4 steps right": a frontier entry with its distance and side.</summary>
         public static string AtlasFrontierEntry(string name, int away, string side, bool linked)
         {
+            // One T call per branch: the phrase catalog keys on the literal template, so a ternary first
+            // argument would look up the already-filled English and never translate (phrases.py check).
             var distance = linked
-                ? T(away == 1 ? "1 link" : $"{away} links", away == 1 ? "a 1 enlace" : $"a {away} enlaces")
-                : T(away == 1 ? "1 step" : $"{away} steps", away == 1 ? "a 1 paso" : $"a {away} pasos");
+                ? away == 1 ? T("1 link", "a 1 enlace") : T($"{away} links", $"a {away} enlaces")
+                : away == 1 ? T("1 step", "a 1 paso") : T($"{away} steps", $"a {away} pasos");
             return side.Length > 0 ? $"{name}, {distance} {side}" : $"{name}, {distance}";
         }
 
@@ -53,15 +55,15 @@ namespace Poe2Accessibility
                 ? T($"From here: {entries}. {total} accessible, not completed in sight", $"Desde aquí: {entries}. {total} accesibles sin completar a la vista")
                 : T($"{total} accessible, not completed in sight", $"{total} accesibles sin completar a la vista");
 
-        /// <summary>"2 links from Precursor Tower" (or steps, off the catalog graph): how far a named node lies.</summary>
+        /// <summary>"2 links from Precursor Tower" (or steps, off the catalog graph): how far a named landmark lies.</summary>
         public static string AtlasAway(int away, bool linked, string name) => linked
-            ? T(away == 1 ? $"1 link from {name}" : $"{away} links from {name}", away == 1 ? $"a 1 enlace de {name}" : $"a {away} enlaces de {name}")
-            : T(away == 1 ? $"1 step from {name}" : $"{away} steps from {name}", away == 1 ? $"a 1 paso de {name}" : $"a {away} pasos de {name}");
+            ? away == 1 ? T($"1 link from {name}", $"a 1 enlace de {name}") : T($"{away} links from {name}", $"a {away} enlaces de {name}")
+            : away == 1 ? T($"1 step from {name}", $"a 1 paso de {name}") : T($"{away} steps from {name}", $"a {away} pasos de {name}");
 
         /// <summary>"Came from Marrow": the previous landing, so a hop too far has its way back said.</summary>
         public static string AtlasCameFrom(string name) => T($"Came from {name}", $"Vienes de {name}");
 
-        /// <summary>"Last time: Marrow, 4 links from Marrow" — where the last session left off, and how far it lies.</summary>
+        /// <summary>"Last time: Marrow, 4 links away" — where the last session left off, and how far it lies from here.</summary>
         public static string AtlasLastTime(string name, string away) => T($"Last time: {name}, {away}", $"La vez anterior: {name}, {away}");
 
         /// <summary>"Nearest: right, Slash": the closest revealed nodes by direction around a row-less landing.</summary>

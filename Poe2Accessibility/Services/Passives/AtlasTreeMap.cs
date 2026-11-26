@@ -84,7 +84,7 @@ namespace Poe2Accessibility.Services
                 links.Select(list => list.ToArray()).ToArray(),
                 kept.Select(node => new Vector2(node.X, node.Y)).ToArray(),
                 kept.Select(node => node.Id.Contains("Notable", StringComparison.Ordinal)).ToArray(),
-                kept.Select(node => node.Id.EndsWith("Start", StringComparison.Ordinal)).ToArray(),
+                kept.Select(node => node.Id.TrimEnd('_').EndsWith("Start", StringComparison.Ordinal)).ToArray(),
                 kept.Select(node => ClusterOf(node.Id)).ToArray());
         }
 
@@ -95,7 +95,7 @@ namespace Poe2Accessibility.Services
         public static string ClusterOf(string passiveId)
         {
             var name = passiveId.StartsWith("Atlas", StringComparison.Ordinal) ? passiveId["Atlas".Length..] : passiveId;
-            foreach (var kind in new[] { "Notable", "Small", "Keystone", "Start", "EssenceChance" })
+            foreach (var kind in new[] { "EssenceNotable", "Notable", "Small", "Keystone", "Start", "EssenceChance" })
             {
                 var at = name.IndexOf(kind, StringComparison.Ordinal);
                 if (at > 0)
@@ -158,10 +158,22 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public (int Octant, int? Pushes, bool Far)? Way(Vector2[] positions, int from, int to, int maxMoves, out bool far)
         {
+            far = false;
+            if (from == to)
+            {
+                return null;
+            }
+
             var pushes = PassiveStick.Route(positions, from, to, maxMoves, at => this.Links[at], null, out far);
-            return pushes is { Count: > 0 }
-                ? (pushes[0], pushes.Count, false)
-                : (this.NextHopOctant(positions, from, to) ?? PassiveStick.Nearest(positions[to] - positions[from]), null, far);
+            if (pushes is { Count: > 0 })
+            {
+                return (pushes[0], pushes.Count, false);
+            }
+
+            // Nodes of a group share its centre: a zero offset has no side, and Nearest(zero) would invent "right".
+            var offset = positions[to] - positions[from];
+            var octant = this.NextHopOctant(positions, from, to) ?? (offset != Vector2.Zero ? PassiveStick.Nearest(offset) : (int?)null);
+            return octant is { } side ? (side, null, far) : null;
         }
 
         /// <summary>
@@ -185,7 +197,8 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return best < 0 ? null : PassiveStick.Nearest(positions[best] - positions[from]);
+            var hop = best < 0 ? Vector2.Zero : positions[best] - positions[from];
+            return best < 0 || hop == Vector2.Zero ? null : PassiveStick.Nearest(hop);
         }
     }
 

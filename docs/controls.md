@@ -338,20 +338,24 @@ An entry says its cluster, side and ring and how many links it lies from the cur
 right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
 popup says "Unallocated" where it stands.
 
-On landing, the map's own words (its flavour, objective and what blocks it) finish first; the node's state,
-what it holds and its links queue behind them, then where it sits — as a tree node reads its details before
-its links. Hop on and the waiting words of the node left are dropped with it.
-
+**The Atlas map** (landed node and orientation behind the setting "Atlas node landed on, with its state",
+Navigation, on by default): the stick or D-pad hops node to node. On landing, the map's own words (its flavour,
+objective and what blocks it) finish first; the node's name, state (Locked, Accessible or Completed), what it
+holds and its links queue behind them, then where it sits — as a tree node reads its details before its links.
+Hop on and the waiting words of the node left are dropped with it. On opening, where the last session left off is
+said with its distance, and the accessible frontier (the nearest accessible, not completed nodes in links, and
+how many there are); on each hop after that, where you came from and the nearest landmark to steer by. A node the
+game's graph does not hold links for instead names its nearest revealed neighbours by direction.
 
 **Atlas map destinations** (setting "Atlas destination finder on the shoulder buttons", Navigation, on by default):
 while the Atlas map itself has the cursor, L1/R1 (LB/RB) walk a destination list nearest first, and with L2 (LT)
-held they walk the lists instead: Position, Accessible, not completed, Landmarks and Seasonal activities (places
+held they walk the lists instead: Position · Accessible, not completed · Landmarks · Seasonal activities (places
 the game ties to a league mechanic — Ritual, Delirium, Abyss and kin). What a press names
 becomes the destination at once, with its state and the next push ("Caldera, Accessible, 4 links away. From here:
 down right, 4 pushes"). Then hop with the left stick or D-pad as usual: each landing ends with the next push and
 links left, counting down to "Arrived at …"; a wrong hop is silently rerouted. Going back to Position, or holding
 L2 and pressing R3, drops the destination. The guide keeps to revealed links where the game's graph knows them;
-for a place whose links are not known it says its side alone. A locked destination is led to through the first
+for a place whose links are not known it says its side and grid steps. A locked destination is led to through the first
 accessible map that gates it: choosing it names that map ("First clear Reservoir for The Burning Monolith"), the
 pushes lead there, and landing on it says "Clear this map first" instead of a way on — clear it and the guide
 finds the next gate. The game's own Bookmarks still work beside it:

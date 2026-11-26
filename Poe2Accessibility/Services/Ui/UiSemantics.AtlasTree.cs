@@ -128,7 +128,7 @@ namespace Poe2Accessibility.Services
             {
                 var positions = this.AtlasTreePositions(tree, centres, from);
                 var route = tree.Way(positions, from, to, MaxFinderPushes, out _);
-                if (route is { Pushes: null, Far: false } && positions != tree.Places &&
+                if ((route == null || route is { Pushes: null, Far: false }) && positions != tree.Places &&
                     tree.Way(tree.Places, from, to, MaxFinderPushes, out _) is { Pushes: not null } retried)
                 {
                     route = retried;

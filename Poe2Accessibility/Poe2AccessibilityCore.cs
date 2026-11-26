@@ -912,6 +912,12 @@ namespace Poe2Accessibility
 
                 this.Isolated("atlas node", static core => core.atlasNodes?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
             }
+            else
+            {
+                // Both off: still tick the reset, so a scan's element addresses are never carried across an
+                // Atlas closing that happened while the feature was disabled.
+                this.Isolated("atlas node", static core => core.atlasNodes?.Tick(IntPtr.Zero));
+            }
 
             if (this.gameState.CurrentState is (GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or
                     GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState) && this.Settings.AnnounceAppearingText)

@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
         private IntPtr node;
         private DateTime since;
         private bool settled;
+        private DateTime nextLineAttempt;
         private bool opening = true;
         private IReadOnlyList<AtlasScanEntry>? scan;
         private AtlasScanEntry? opened;
@@ -82,11 +83,21 @@ namespace Poe2Accessibility.Services
             }
 
             var target = scan.FirstOrDefault(entry => entry.Key == this.destinations.Target);
-            if (this.destinations.Category == AtlasDestinationCategory.Position || target == null)
+            if (this.destinations.Category == AtlasDestinationCategory.Position)
             {
                 this.destinationName = string.Empty;
                 var position = this.semantics.AtlasDestinationPosition(scan, here, this.opened);
                 return hadDestination && this.destinations.Target.Length == 0 ? $"{position}. {Announcements.BeaconOff}" : position;
+            }
+
+            if (target == null)
+            {
+                // The destination left the scan (an emptied list keeps the old target): say the guide is off
+                // now, as Guidance does on a landing, not on some unrelated hop later.
+                this.destinations.Drop();
+                this.destinationName = string.Empty;
+                var position = this.semantics.AtlasDestinationPosition(scan, here, this.opened);
+                return hadDestination ? $"{position}. {Announcements.BeaconOff}" : position;
             }
 
             this.destinationName = target.Name;
@@ -110,6 +121,30 @@ namespace Poe2Accessibility.Services
             return Announcements.BeaconOff;
         }
 
+        /// <summary>
+        ///     The scan's entry for the selected node. A held scan that misses it is read again once — the game
+        ///     may have rebuilt the canvas under the same world screen (a tab switch keeps the screen, drops the
+        ///     selection) — and a scan that still misses is let go, never kept to name a reused address.
+        /// </summary>
+        private AtlasScanEntry? ScanEntry(IntPtr selected)
+        {
+            var justScanned = this.scan == null;
+            this.scan ??= this.semantics.AtlasScan(selected);
+            var found = this.semantics.AtlasEntryOf(this.scan, selected);
+            if (found == null && !justScanned)
+            {
+                this.scan = this.semantics.AtlasScan(selected);
+                found = this.semantics.AtlasEntryOf(this.scan, selected);
+            }
+
+            if (found == null)
+            {
+                this.scan = null;
+            }
+
+            return found;
+        }
+
         /// <summary>The selected node and a scan holding it, read now when a finder press precedes the opening landing.</summary>
         private bool Current(IntPtr worldScreen, out IReadOnlyList<AtlasScanEntry> scan, out AtlasScanEntry here)
         {
@@ -120,21 +155,13 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            this.scan ??= this.semantics.AtlasScan(selected, fresh: true);
-            var found = this.semantics.AtlasEntryOf(this.scan, selected);
-            if (found == null)
-            {
-                this.scan = this.semantics.AtlasScan(selected, fresh: true);
-                found = this.semantics.AtlasEntryOf(this.scan, selected);
-            }
-
-            if (found == null)
+            if (this.ScanEntry(selected) is not { } found)
             {
                 return false;
             }
 
-            this.semantics.AtlasRefresh(this.scan, found);
-            scan = this.scan;
+            this.semantics.AtlasRefresh(this.scan!, found);
+            scan = this.scan!;
             here = found;
             return true;
         }
@@ -152,7 +179,14 @@ namespace Poe2Accessibility.Services
             var now = DateTime.UtcNow;
             if (selected != this.node)
             {
-                (this.node, this.since, this.settled) = (selected, now, false);
+                if (selected == IntPtr.Zero)
+                {
+                    // The selection went while the screen stands (an act-map tab): the scan's element addresses
+                    // belong to a canvas the game may rebuild, so the opening starts over with the next node.
+                    (this.scan, this.opened, this.previous, this.opening) = (null, null, null, true);
+                }
+
+                (this.node, this.since, this.settled, this.nextLineAttempt) = (selected, now, false, DateTime.MinValue);
                 return;
             }
 
@@ -161,8 +195,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            // The popup walk behind a line is retried a few times a second, not every frame.
             var elapsed = (now - this.since).TotalMilliseconds;
-            if (elapsed < SettleMs || this.semantics.AtlasNodeLine(selected, allowPending: elapsed >= GiveUpMs) is not { } line)
+            if (elapsed < SettleMs || now < this.nextLineAttempt)
+            {
+                return;
+            }
+
+            this.nextLineAttempt = now.AddMilliseconds(150);
+            if (this.semantics.AtlasNodeLine(selected, allowPending: elapsed >= GiveUpMs) is not { } line)
             {
                 return;
             }
@@ -191,13 +232,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Where this landing sits: on opening the last session and the frontier; per hop the way back and an anchor or the guide.</summary>
         private void Orient(IntPtr selected, bool first)
         {
-            this.scan ??= this.semantics.AtlasScan(selected, fresh: true);
-            if (this.semantics.AtlasEntryOf(this.scan, selected) is not { } here)
+            if (this.ScanEntry(selected) is not { } here)
             {
+                // Nothing to orient by this landing; an opening missed this way is not spent.
+                this.opening = first;
                 return;
             }
 
-            this.semantics.AtlasRefresh(this.scan, here);
+            var scan = this.scan!;
+            this.semantics.AtlasRefresh(scan, here);
 
             var extras = new List<string>();
             if (first)
@@ -206,8 +249,8 @@ namespace Poe2Accessibility.Services
                 if (this.AnnounceNodes)
                 {
                     var character = this.CharacterName?.Invoke() ?? string.Empty;
-                    extras.Add(this.semantics.AtlasResumeLine(this.scan, here, character.Length > 0 ? this.resume.Get(character) : null));
-                    extras.Add(this.semantics.AtlasFrontierLine(this.scan, here));
+                    extras.Add(this.semantics.AtlasResumeLine(scan, here, character.Length > 0 ? this.resume.Get(character) : null));
+                    extras.Add(this.semantics.AtlasFrontierLine(scan, here));
                 }
             }
             else if (this.AnnounceNodes && this.previous is { Name.Length: > 0 } came && came.Element != here.Element)
@@ -215,17 +258,17 @@ namespace Poe2Accessibility.Services
                 extras.Add(Announcements.AtlasCameFrom(came.Name));
             }
 
-            var guide = this.Guidance(this.scan, here);
+            var guide = this.Guidance(scan, here);
             if (guide.Length > 0)
             {
                 extras.Add(guide);
             }
             else if (this.AnnounceNodes && !first)
             {
-                extras.Add(this.semantics.AtlasAnchorLine(this.scan, here, this.opened));
+                extras.Add(this.semantics.AtlasAnchorLine(scan, here, this.opened));
                 if (here.Id == null)
                 {
-                    extras.Add(this.semantics.AtlasNearestLine(this.scan, here));
+                    extras.Add(this.semantics.AtlasNearestLine(scan, here));
                 }
             }
 

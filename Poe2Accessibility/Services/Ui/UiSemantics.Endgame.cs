@@ -35,8 +35,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<IntPtr, int> endgameRecordByClass = new();
         private readonly HashSet<IntPtr> notEndgame = new();
         private readonly HashSet<string> uncatalogued = new(StringComparer.Ordinal);
-        private (IntPtr Root, string Graph, Dictionary<string, Vector2> Centres)? endgameCentres;
-        private Dictionary<string, IntPtr> endgameElements = new(StringComparer.Ordinal);
+        private (IntPtr Root, string Graph, Dictionary<string, Vector2> Centres, Dictionary<string, IntPtr> Elements, int Offset)? endgameSnapshot;
 
         /// <summary>A hovered node of an endgame graph; null for any other element.</summary>
         private AccessibleUiNode? DescribeEndgameNode(in UiElementReader.ElementInfo info, bool hovered)
@@ -75,7 +74,7 @@ namespace Poe2Accessibility.Services
                 centres != null && centres.TryGetValue(passive, out var drawn) ? drawn
                 : scale is { } factor && centres != null && GraphPlace(passive) is { } graphThere && GraphPlace(id) is { } graphOrigin
                     ? centres[id] + ((graphThere - graphOrigin) * factor)
-                    : GraphPlace(passive);
+                    : centres == null ? GraphPlace(passive) : null;
             var links = AtlasLinks.Describe(Place(id), linked
                 .Select(other => (Place(other), Label(other))));
 
@@ -258,10 +257,11 @@ namespace Poe2Accessibility.Services
             }
 
             List<string>? byBiome = null;
+            var byBiomeAmbiguous = false;
             var seen = 0;
             foreach (var child in this.elements.ReadChildren(screen))
             {
-                if (!this.elements.TryReadElement(child, out var subtree) || !subtree.IsVisibleFlag || subtree.Name == GameLayout.WorldMap.ControlName)
+                if (!this.elements.TryReadElement(child, out var subtree) || !subtree.IsVisibleFlag || subtree.Name == GameLayout.WorldMap.ControlName || subtree.Name == "quest_selector")
                 {
                     continue;
                 }
@@ -292,13 +292,22 @@ namespace Poe2Accessibility.Services
                     return texts;
                 }
 
-                if (byBiome == null && subtree.Name != "quest_selector" && texts.Any(text => EndgameCatalog.Shared.BiomeNameIn(text, language).Length > 0))
+                if (texts.Any(text => EndgameCatalog.Shared.BiomeNameIn(text, language).Length > 0))
                 {
-                    byBiome = texts;
+                    // No subtree held the title: a biome line alone does not say whose popup this is, so
+                    // two such panels say nothing at all rather than lending another node's words.
+                    if (byBiome == null)
+                    {
+                        byBiome = texts;
+                    }
+                    else
+                    {
+                        byBiomeAmbiguous = true;
+                    }
                 }
             }
 
-            return byBiome ?? new List<string>();
+            return byBiomeAmbiguous ? new List<string>() : byBiome ?? new List<string>();
         }
 
         /// <summary>
@@ -448,7 +457,9 @@ namespace Poe2Accessibility.Services
             }
 
             var root = ancestors[^1].Address;
-            if (this.endgameCentres is { } cached && cached.Root == root && cached.Graph == graph && this.EndgameIdAt(hovered.Address, offset) is { } here && cached.Centres.ContainsKey(here))
+            if (this.endgameSnapshot is { } cached && cached.Root == root && cached.Graph == graph && cached.Offset == offset &&
+                this.EndgameIdAt(hovered.Address, offset) is { } here && cached.Centres.ContainsKey(here) &&
+                cached.Elements.TryGetValue(here, out var held) && held == hovered.Address)
             {
                 return cached.Centres;
             }
@@ -483,19 +494,22 @@ namespace Poe2Accessibility.Services
             }
 
             var hoveredId = this.EndgameIdAt(hovered.Address, offset);
-            if (hoveredId == null || !centres.ContainsKey(hoveredId))
+            if (hoveredId == null || !elements.ContainsKey(hoveredId))
             {
+                this.endgameSnapshot = null;
                 return null;
             }
 
-            this.endgameCentres = (root, graph, centres);
-            this.endgameElements = elements;
+            // Centres and elements are one snapshot, replaced together; a fog hover (in elements, not in
+            // centres) still replaces it, so a failed scan never leaves the preceding addresses live.
+            this.endgameSnapshot = (root, graph, centres, elements, offset);
             return centres;
         }
 
-        /// <summary>The element drawing a node of the last scanned graph, zero when the scan has none cached.</summary>
+        /// <summary>The element drawing a node of the snapshot's graph, re-read as that node before it is trusted; zero when the snapshot holds none.</summary>
         private IntPtr EndgameElementOf(string passiveId) =>
-            this.endgameElements.TryGetValue(passiveId, out var element) ? element : IntPtr.Zero;
+            this.endgameSnapshot is { } snapshot && snapshot.Elements.TryGetValue(passiveId, out var element) &&
+            this.EndgameIdAt(element, snapshot.Offset) == passiveId ? element : IntPtr.Zero;
 
         /// <summary>
         ///     A node's name before its popup: an Atlas passive's name or the one map it can be (the catalog's), else
