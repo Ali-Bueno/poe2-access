@@ -77,15 +77,19 @@ namespace Poe2Accessibility.Services
             return nearest;
         }
 
-        /// <summary>The listed ground behind a barrier with the shortest walk to it, then the nearest; null when none is listed.</summary>
+        /// <summary>
+        ///     The listed ground behind a barrier whose gate is shut now, with the shortest walk to it, then the nearest; null when
+        ///     none is (<see cref="BarrierGround.ShutGates"/>: the list may be older than a gate that just opened).
+        /// </summary>
         public ScanEntry? NearestBarrierGround()
         {
-            if (!Seats.Followed.TryGetComponent<Render>(out var player))
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return null;
             }
 
-            return this.unexplored.Where(entry => entry.Kind == ExplorationMap.BarrierGroundKind)
+            return BarrierGround.ShutGates(this.unexplored, entry => this.BarrierClosedNear(new Vector2(entry.WorldX, entry.WorldY) / toWorld))
                 .OrderBy(entry => this.unexploredWalks.GetValueOrDefault(entry.Id, int.MaxValue))
                 .ThenBy(entry => Distance(player.WorldPosition, entry))
                 .FirstOrDefault();

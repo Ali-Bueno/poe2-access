@@ -40,6 +40,13 @@ namespace Poe2Accessibility.Services
             return kept.Where(entry => ExplorationMap.Rank(entry.Kind) == best).ToList();
         }
 
+        /// <summary>
+        ///     The entries of ground behind a barrier whose gate is shut now: the list is up to two seconds old, and a gate that
+        ///     opened since is never named as closed (live, 2026-11-26: "The way opened", then "The closed barrier is 10 steps away").
+        /// </summary>
+        public static List<ScanEntry> ShutGates(IEnumerable<ScanEntry> entries, Func<ScanEntry, bool> shut) =>
+            entries.Where(entry => entry.Kind == ExplorationMap.BarrierGroundKind && shut(entry)).ToList();
+
         /// <summary>The places without the barriers that stand at a door (grid cells): a shut door has its own "Unopened door" entry.</summary>
         public static List<FrontierPlace> AwayFromDoors(IEnumerable<FrontierPlace> places, IReadOnlyCollection<Vector2> doorCells) =>
             places.Where(place => !place.BehindBarrier || !doorCells.Any(door => Vector2.Distance(door, place.Cell) <= DoorCells)).ToList();
@@ -91,5 +98,45 @@ namespace Poe2Accessibility.Services
 
             this.quest = now;
         }
+    }
+}
+
+namespace Poe2Accessibility.Services
+{
+    /// <summary>
+    ///     The guide's moment at a shut gate before it says "Still closed": a trap gate opened as the player came within two
+    ///     steps, and the guide arrives at a step and a half (Hunting Grounds, live, 2026-11-26). Pure; times in ms.
+    /// </summary>
+    public sealed class GateWait
+    {
+        /// <summary>How long a gate must stay shut with the player at it.</summary>
+        public const long GraceMs = 3000;
+
+        /// <summary>Asked less often than this, the player was not at the gate in between: the wait starts over.</summary>
+        private const long GapMs = 500;
+
+        private long? since;
+        private long last;
+
+        /// <summary>True once the gate stayed shut for the whole grace, false when it is open, null while waiting.</summary>
+        public bool? Verdict(bool shut, long now)
+        {
+            if (!shut)
+            {
+                this.since = null;
+                return false;
+            }
+
+            if (this.since == null || now - this.last > GapMs)
+            {
+                this.since = now;
+            }
+
+            this.last = now;
+            return now - this.since >= GraceMs ? true : null;
+        }
+
+        /// <summary>Another target: no wait under way.</summary>
+        public void Reset() => this.since = null;
     }
 }

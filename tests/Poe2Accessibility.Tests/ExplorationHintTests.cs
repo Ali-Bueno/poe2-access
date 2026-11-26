@@ -33,7 +33,48 @@ namespace Poe2Accessibility.Tests
             (nameof(OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain), OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain),
             (nameof(TheExploringGuideNamesAGateItTurnsTo), TheExploringGuideNamesAGateItTurnsTo),
             (nameof(TheLostHintNeverPointsAtAGate), TheLostHintNeverPointsAtAGate),
+            (nameof(AGateThatOpenedIsNeverNamedAsClosed), AGateThatOpenedIsNeverNamedAsClosed),
+            (nameof(TheGuideWaitsAMomentAtAShutGate), TheGuideWaitsAMomentAtAShutGate),
         };
+
+        /// <summary>
+        ///     Live, 2026-11-26 03:08: the boss's root door opened, then "The Crowbell defeated", then "The closed barrier is 10
+        ///     steps away" for that same door, from a list two seconds old. Only gates still shut now are named.
+        /// </summary>
+        private static void AGateThatOpenedIsNeverNamedAsClosed()
+        {
+            var opened = new ScanEntry(1, ScanCategory.Unexplored, "Unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var shut = new ScanEntry(2, ScanCategory.Unexplored, "Large unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var ground = new ScanEntry(3, ScanCategory.Unexplored, "Small unexplored ground", 0, 0, 0, ExplorationMap.SmallKind);
+            var gates = BarrierGround.ShutGates(new[] { opened, shut, ground }, entry => entry.Id == 2);
+            Equal("2", string.Join(" ", gates.Select(entry => entry.Id)), "the shut gate alone: not the opened one, not open ground");
+        }
+
+        /// <summary>Live, 2026-11-26: a trap gate opened as the player came within two steps, and arrival is a step and a half.</summary>
+        private static void TheGuideWaitsAMomentAtAShutGate()
+        {
+            // The guide asks every frame while the player stands at the gate: a tenth of a second here.
+            var wait = new GateWait();
+            bool? Frames(long from, long to, bool shut)
+            {
+                bool? said = null;
+                for (var now = from; now <= to; now += 100)
+                {
+                    said = wait.Verdict(shut, now);
+                }
+
+                return said;
+            }
+
+            Equal<bool?>(null, wait.Verdict(true, 1000), "shut on arrival: wait");
+            Equal<bool?>(null, Frames(1100, 3900, true), "still waiting");
+            Equal<bool?>(true, wait.Verdict(true, 4000), "shut for the whole grace: still closed");
+            Equal<bool?>(false, wait.Verdict(false, 4100), "open: go on");
+            Equal<bool?>(null, Frames(4200, 6000, true), "shut again: a new wait");
+            Equal<bool?>(null, wait.Verdict(true, 9000), "a gap (the player walked off) starts it over");
+            Equal<bool?>(null, Frames(9100, 11900, true), "waiting again");
+            Equal<bool?>(true, wait.Verdict(true, 12000), "then the grace runs out");
+        }
 
         /// <summary>
         ///     The lost hint and the circling line point at ground the player can walk onto, as before: a gate in a pen would

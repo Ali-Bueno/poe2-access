@@ -169,6 +169,7 @@ namespace Poe2Accessibility.Services
 
         private void Aim(ScanEntry entry)
         {
+            this.gateWait.Reset();
             this.target = entry;
             this.route = null;
             this.search = null;
@@ -202,6 +203,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.log.Info($"Beacon released ({this.target.Name})");
+            this.gateWait.Reset();
             this.target = null;
             this.route = null;
             this.search = null;
@@ -564,6 +566,9 @@ namespace Poe2Accessibility.Services
             return this.beside;
         }
 
+        /// <summary>The moment at a shut gate before "Still closed" (<see cref="GateWait"/>).</summary>
+        private readonly GateWait gateWait = new();
+
         /// <summary>The target is the ground behind a barrier whose gate the barrier memory still holds closed.</summary>
         private bool StillShut(ScanEntry goal)
         {
@@ -575,6 +580,11 @@ namespace Poe2Accessibility.Services
         {
             if (this.StillShut(goal))
             {
+                if (this.gateWait.Verdict(true, Environment.TickCount64) is not true)
+                {
+                    return; // a gate may open as the player steps up to it (two steps, live): a moment before it is said shut
+                }
+
                 // At a gate still shut: said with what may keep it shut, and the guide goes off; the entry stays listed (user, 2026-11-26).
                 this.output.Say(SpeechKind.Arrivals, Announcements.StillClosed(this.catalog.BossOnPlayersGround()));
                 this.catalog.TriedBarrier(goal.Id);
