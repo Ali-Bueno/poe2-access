@@ -117,7 +117,7 @@ namespace Poe2Accessibility.Services
                     this.Monster(entity, path);
                 }
 
-                if (LeaguePieces.RuleOf(path) is not { } rule)
+                if ((LeaguePieces.RuleOf(path) ?? (EssenceWatch.IsCrystal(entity) ? LeaguePieces.EssenceCrystalRule : null)) is not { } rule)
                 {
                     continue;
                 }

@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Services
     using GameReader;
     using GameReader.RemoteEnums.Entity;
     using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     Keeps <see cref="EssencePrison"/> told of the monsters the area's Essence crystals hold, so they stay silent until freed.
@@ -52,7 +53,7 @@ namespace Poe2Accessibility.Services
             foreach (var entity in entities)
             {
                 var path = entity.Path ?? string.Empty;
-                if (!entity.IsValid || !EssencePrison.IsCrystal(path) || !entity.TryGetComponent<Render>(out var render))
+                if (!entity.IsValid || !IsCrystal(entity) || !entity.TryGetComponent<Render>(out var render))
                 {
                     continue;
                 }
@@ -114,6 +115,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The stat the game's tables name for a monster in a crystal (Stats 4785); logged, not yet relied on.</summary>
         private const string HeldStat = "monster_inside_monolith";
+
+        /// <summary>Whether an awake entity is an Essence's crystal, by <see cref="EssencePrison.IsCrystal(string, bool, bool)"/>.</summary>
+        public static bool IsCrystal(Entity entity) =>
+            EssencePrison.IsCrystal(entity.Path ?? string.Empty, EntityComponents.AddressOf(entity, GameLayout.MonolithComponent.Name) != null,
+                entity.TryGetComponent<MinimapIcon>(out var icon) && icon.IconName == MinimapMarks.EssenceIcon);
 
         private static bool IsFreed(Buffs buffs) => Has(buffs, EssencePrison.FreedBuff);
 

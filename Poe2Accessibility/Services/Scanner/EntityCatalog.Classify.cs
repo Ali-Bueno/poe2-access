@@ -40,7 +40,7 @@ namespace Poe2Accessibility.Services
             var league = LeaguePieces.RuleOf(path) is { Lists: true } listed ? listed : null;
             // An Abyss fissure carries its icon closed or open: its transition lists it, not the icon.
             var leagueIcon = league?.Piece == LeaguePiece.AbyssCrack ? null : LeagueDeviceIcon(entity, path);
-            if (leagueIcon == MinimapMarks.EssenceIcon && EssencePrison.IsCrystal(path) && EssencePrison.IsShattered(TransitionState.Of(this.memory, entity)))
+            if (leagueIcon == MinimapMarks.EssenceIcon && EssenceWatch.IsCrystal(entity) && EssencePrison.IsShattered(TransitionState.Of(this.memory, entity)))
             {
                 return null; // shattered: the game hides its icon and deletes it five seconds later
             }

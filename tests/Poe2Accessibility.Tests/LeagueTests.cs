@@ -408,6 +408,11 @@ namespace Poe2Accessibility.Tests
             Equal(true, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/SuperMonolith"), "a map's great crystal");
             Equal(false, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/Monolith_Landmark"), "a landmark of the same word is none");
             Equal(false, EssencePrison.IsCrystal("Metadata/Terrain/Hideouts/Monolith/Objects/ArenaLift"), "nor an object of another folder");
+            Equal(true, EssencePrison.IsCrystal("Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_2/Objects/Monolith_Fire01@58", true, true),
+                "a campaign crystal of its own file, built as one: its monster is held");
+            Equal(false, EssencePrison.IsCrystal("Metadata/MiscellaneousObjects/MiniMonolith", true, false), "the component without the icon: a small crystal, never measured");
+            Equal(false, EssencePrison.IsCrystal("Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_2/Objects/Monolith_Fire01", false, true),
+                "the icon without the component is none");
 
             Equal(true, EssencePrison.IsWhole((1, 4), true), "built: it holds");
             Equal(true, EssencePrison.IsWhole((3, 4), true), "cracked twice: it still holds");

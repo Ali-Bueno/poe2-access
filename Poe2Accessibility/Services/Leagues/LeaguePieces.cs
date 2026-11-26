@@ -508,6 +508,9 @@ namespace Poe2Accessibility.Services
             ("/Expedition", ExpeditionSound), ("/Abyss/", AbyssSound), ("/Incursion", VaalSound),
         };
 
+        /// <summary>The rule an Essence crystal of its own file follows (<see cref="EssencePrison.IsCrystal(string, bool, bool)"/>): the cracks of any other.</summary>
+        public static LeagueRule EssenceCrystalRule => Files["Metadata/MiscellaneousObjects/Monolith"];
+
         /// <summary>The rule of an object's path, whatever its instance tail; null for anything else.</summary>
         public static LeagueRule? RuleOf(string path)
         {

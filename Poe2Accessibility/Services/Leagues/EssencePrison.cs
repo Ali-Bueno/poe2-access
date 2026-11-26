@@ -54,7 +54,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The monsters held now; the set is not touched again once given.</summary>
         public static void Publish(HashSet<uint> now) => held = now;
 
-        /// <summary>Whether a file is an Essence crystal's, whatever its instance tail.</summary>
+        /// <summary>Whether a file is one of the Essence crystals' named above, whatever its instance tail.</summary>
         public static bool IsCrystal(string path)
         {
             if (!path.StartsWith(Objects, StringComparison.Ordinal))
@@ -66,6 +66,14 @@ namespace Poe2Accessibility.Services
             var file = mark < 0 ? path : path[..mark];
             return Array.IndexOf(Crystals, file) >= 0;
         }
+
+        /// <summary>
+        ///     Whether an object is an Essence's crystal: one of the files above, or any object the game builds as one, with the
+        ///     Monolith component and the Essence icon. The campaign's crystals are of the second kind, each of its own file
+        ///     (Metadata/Terrain/Gallows/Act4_Interlude/Part2/P2_2/Objects/Monolith_Fire01 in Estanques de Khatal, entity dump
+        ///     2026-11-26): by the files alone its monster rang, unbroken (user 2026-11-26). The small crystals have no icon. Pure.
+        /// </summary>
+        public static bool IsCrystal(string path, bool monolith, bool essenceIcon) => IsCrystal(path) || (monolith && essenceIcon);
 
         /// <summary>
         ///     Whether a crystal still holds: its transition below the last state (the shattered one) and the game still letting it
