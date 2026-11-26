@@ -47,7 +47,7 @@ namespace Poe2Accessibility.Services
         private (Task<IReadOnlyList<FrontierPlace>> Places, ExplorationMap Map, float ToWorld, float Height, IReadOnlyList<string> Goals, long At)? frontierSearch;
 
         /// <summary>What the last frontier search read: the same grid, seen ground, player's block and goals again find the same places.</summary>
-        private (byte[] Grid, int Seen, int X, int Y, string Goals)? frontierFor;
+        private (byte[] Grid, int Seen, int X, int Y, string Goals, byte[]? Mask)? frontierFor;
 
         /// <summary>When what the unexplored places were worked out from was last current.</summary>
         private long unexploredAsOf;
@@ -59,7 +59,7 @@ namespace Poe2Accessibility.Services
         public int? ExploredPercent()
         {
             return Seats.Followed.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
-                ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y))
+                ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y), this.BarrierMask())
                 : null;
         }
 
@@ -117,8 +117,9 @@ namespace Poe2Accessibility.Services
 
             float FromLast(ScanEntry entry) => Vector2.Distance(new Vector2(entry.WorldX, entry.WorldY) / toWorld, last);
             var found = this.BestUnexplored(area, player).Where(entry => entry.Kind != ExplorationMap.PocketKind).ToList();
-            var left = found.Where(entry => !this.IsSeen(new Vector2(entry.WorldX, entry.WorldY) / toWorld)).ToList();
-            if (left.Count == 0 && found.Count > 0)
+            // Ground behind a barrier stands at the gate's near side, seen ground: it is left out only once found shut.
+            var left = BarrierGround.StillToTry(found, entry => this.IsSeen(new Vector2(entry.WorldX, entry.WorldY) / toWorld), this.tried);
+            if (left.Count == 0 && found.Any(entry => entry.Kind != ExplorationMap.BarrierGroundKind))
             {
                 this.HurryUnexplored(); // all of it seen since it was worked out: not the end, only old
                 return (false, null);
@@ -229,17 +230,24 @@ namespace Poe2Accessibility.Services
                 {
                     uint IdOf(FrontierPlace place) =>
                         UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells);
+                    // A barrier at a door the player opens is that door, listed as "Unopened door" already.
+                    var doorCells = this.doors.Nearest(new Vector2(player.WorldPosition.X, player.WorldPosition.Y))
+                        .Select(door => new Vector2(door.At.X, door.At.Y) / found.ToWorld).ToList();
+                    var places = BarrierGround.AwayFromDoors(found.Places.Result, doorCells);
                     this.unexploredAsOf = found.At;
-                    this.unexploredWalks = found.Places.Result.GroupBy(IdOf).ToDictionary(group => group.Key, group => group.Min(place => place.Steps));
-                    this.unexplored = found.Places.Result
+                    this.unexploredWalks = places.GroupBy(IdOf).ToDictionary(group => group.Key, group => group.Min(place => place.Steps));
+                    this.unexplored = places
                         .Select(place => new ScanEntry(
                             IdOf(place),
                             ScanCategory.Unexplored,
-                            Announcements.Unexplored(place.Size, place.LeadsTo.Select(goal => found.Goals[goal]).ToList()),
+                            place.BehindBarrier
+                                ? Announcements.UnexploredBehindBarrier(place.Size)
+                                : Announcements.Unexplored(place.Size, place.LeadsTo.Select(goal => found.Goals[goal]).ToList()),
                             place.Cell.X * found.ToWorld,
                             place.Cell.Y * found.ToWorld,
                             found.Height,
-                            place.Size == UnseenSize.Pocket ? ExplorationMap.PocketKind : place.Size == UnseenSize.Small ? ExplorationMap.SmallKind : string.Empty))
+                            place.BehindBarrier ? ExplorationMap.BarrierGroundKind
+                            : place.Size == UnseenSize.Pocket ? ExplorationMap.PocketKind : place.Size == UnseenSize.Small ? ExplorationMap.SmallKind : string.Empty))
                         .ToList();
                 }
             }
@@ -255,9 +263,11 @@ namespace Poe2Accessibility.Services
             var goals = this.KnownGoals();
             var goalCells = goals.Select(goal => goal.Cell).ToList();
             var goalNames = goals.Select(goal => goal.Name).ToList();
-            (byte[] Grid, int Seen, int X, int Y, string Goals) reads =
-                (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells), string.Join("|", goalNames));
-            if (this.frontierFor is { } last && ReferenceEquals(last.Grid, grid) && (last.Seen, last.X, last.Y, last.Goals) == (reads.Seen, reads.X, reads.Y, reads.Goals))
+            var mask = this.BarrierMask();
+            (byte[] Grid, int Seen, int X, int Y, string Goals, byte[]? Mask) reads =
+                (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells), string.Join("|", goalNames), mask);
+            if (this.frontierFor is { } last && ReferenceEquals(last.Grid, grid) && ReferenceEquals(last.Mask, mask) &&
+                (last.Seen, last.X, last.Y, last.Goals) == (reads.Seen, reads.X, reads.Y, reads.Goals))
             {
                 this.unexploredAsOf = now;
                 return this.unexplored;
@@ -265,14 +275,14 @@ namespace Poe2Accessibility.Services
 
             this.frontierFor = reads;
             var map = this.explored.Snapshot();
-            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from, goalCells)), map, area.WorldToGridConvertor, player.WorldPosition.Z, goalNames, now);
+            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from, goalCells, mask)), map, area.WorldToGridConvertor, player.WorldPosition.Z, goalNames, now);
             return this.unexplored;
         }
 
-        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from, IReadOnlyList<Vector2> goals)
+        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from, IReadOnlyList<Vector2> goals, byte[]? mask)
         {
             var started = Environment.TickCount64;
-            var places = map.Frontier(grid, row, from, MaxUnexplored, goals);
+            var places = map.Frontier(grid, row, from, MaxUnexplored, goals, mask);
             var took = Environment.TickCount64 - started;
             if (took > this.slowestFrontierMs)
             {
