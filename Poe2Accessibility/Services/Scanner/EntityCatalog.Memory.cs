@@ -194,6 +194,7 @@ namespace Poe2Accessibility.Services
             this.essenceRows.Clear();
             this.explored.Reset();
             this.questTargets = Array.Empty<ScanEntry>();
+            this.questExit = null;
             lock (this.samplesLock)
             {
                 this.grid.Reset();

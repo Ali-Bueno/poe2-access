@@ -30,11 +30,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A seal seen used beside the player sends a trail to the next seal still to use, else to the quest's exit.</summary>
         private void WatchWayfinders(AreaInstance map, Vector2 here)
         {
-            var pointers = Pointers(map).ToList();
-            foreach (var (id, cell, used) in pointers)
+            // The first seal seen used starts one too, wherever it stands: the compass stays on the player after a restart.
+            var first = this.pointersUsed.Count == 0;
+            foreach (var (id, cell, used) in Pointers(map).ToList())
             {
-                if (used && !this.pointersUsed.Contains(id) && Vector2.Distance(here, cell) <= UsedHereCells)
+                if (used && !this.pointersUsed.Contains(id) && (first || Vector2.Distance(here, cell) <= UsedHereCells))
                 {
+                    first = false;
                     this.pointersUsed.Add(id);
                     this.log.Info($"Wayfinder used at cell {cell.X:0},{cell.Y:0}: a trail to the next");
                     this.trails.Add(WayfinderRow, Array.Empty<Vector2>(), this.NextWayfinder);
@@ -59,7 +61,7 @@ namespace Poe2Accessibility.Services
                 return new ScanEntry(next.Id, ScanCategory.Objects, name, next.Cell.X * toWorld, next.Cell.Y * toWorld, player.WorldPosition.Z);
             }
 
-            return entries.FirstOrDefault(entry => entry.Category == ScanCategory.Quest && entry.Kind == QuestMatcher.ExitKind);
+            return this.catalog.QuestExit();
         }
 
         /// <summary>The awake seals with their place and whether they were used.</summary>

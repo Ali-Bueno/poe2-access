@@ -112,6 +112,14 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        private ScanEntry? questExit;
+
+        /// <summary>
+        ///     The exit the quest's step leads through, seen or not (a tile the layout names at arrival): what the game's own
+        ///     compass points to, as the signal seals' (<see cref="MapHintNarrator"/>); null when the step names none.
+        /// </summary>
+        public ScanEntry? QuestExit() => this.questExit;
+
         private List<ScanEntry> List(AreaInstance area, Render player, long now, ListingScratch scratch)
         {
             this.bossWays.Clear();
@@ -323,6 +331,7 @@ namespace Poe2Accessibility.Services
             var questLines = this.QuestGoals.QuestLinesOf(tracker, Localization.Language);
             var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => questLines);
             this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts), questLines);
+            this.questExit = questPool.FirstOrDefault(entry => entry.Category == ScanCategory.Exits && this.questTargets.Any(target => target.Id == entry.Id));
             var trails = (this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>()).ToList();
             if (offPiece != null)
             {
