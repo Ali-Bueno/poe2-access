@@ -367,7 +367,14 @@ namespace Poe2Accessibility
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
-                this.bosses.Defeated = name => this.entities?.BossDefeated(name);
+                this.bosses.Defeated = name =>
+                {
+                    this.entities?.BossDefeated(name);
+                    if (this.entities?.BarrierAfterDefeat() is { } line)
+                    {
+                        this.output?.Say(SpeechKind.Arrivals, line); // after the boss watch's own "defeated"
+                    }
+                };
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log)
                 {
                     Hiding = () => this.bosses?.Mechanics?.LeadTo,

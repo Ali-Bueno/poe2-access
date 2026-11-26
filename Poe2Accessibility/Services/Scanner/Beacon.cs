@@ -122,7 +122,14 @@ namespace Poe2Accessibility.Services
         {
             if (this.catalog.DistanceTo(entry) <= ArrivalWorld && !this.catalog.IsEscort(entry.Id))
             {
-                // Already there: locking would say the way and then the arrival at once.
+                // Already there: locking would say the way and then the arrival at once. At a gate still shut, that it is.
+                if (this.StillShut(entry))
+                {
+                    this.Answer(Announcements.StillClosed(this.catalog.BossOnPlayersGround()), asked);
+                    this.catalog.TriedBarrier(entry.Id);
+                    return;
+                }
+
                 this.Answer(Announcements.Here(entry.Name), asked);
                 return;
             }
@@ -314,6 +321,13 @@ namespace Poe2Accessibility.Services
         private bool ExploreOn(ScanEntry goal, Vector2 here, float gridSize, long now)
         {
             var at = new Vector2(goal.WorldX, goal.WorldY) / gridSize;
+            if (this.StillShut(goal))
+            {
+                // A gate still shut ends in the arrival ("Still closed"); one that opened goes on as any ground seen.
+                this.goalSeenAt = null;
+                return false;
+            }
+
             if (!this.Exploring ||
                 Vector2.Distance(here / gridSize, at) > ExploreOnCells || !this.catalog.IsSeen(at))
             {
@@ -336,7 +350,10 @@ namespace Poe2Accessibility.Services
 
             if (next == null)
             {
-                this.output.Say(SpeechKind.Arrivals, Announcements.ExploreDone);
+                // Ground left behind a barrier found shut is named, so what is left is not taken for nothing (2026-11-26).
+                this.output.Say(
+                    SpeechKind.Arrivals,
+                    this.catalog.NearestBarrierGround() is { } behind ? Announcements.Sentences(new[] { Announcements.ExploreDone, this.catalog.Describe(behind) }) : Announcements.ExploreDone);
                 this.Clear(false);
                 return true;
             }
@@ -547,8 +564,28 @@ namespace Poe2Accessibility.Services
             return this.beside;
         }
 
+        /// <summary>The target is the ground behind a barrier whose gate the barrier memory still holds closed.</summary>
+        private bool StillShut(ScanEntry goal)
+        {
+            var gridSize = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            return goal.Kind == ExplorationMap.BarrierGroundKind && gridSize > 0 && this.catalog.BarrierClosedNear(new Vector2(goal.WorldX, goal.WorldY) / gridSize);
+        }
+
         private void Arrive(ScanEntry goal)
         {
+            if (this.StillShut(goal))
+            {
+                // At a gate still shut: said with what may keep it shut, and the guide goes off; the entry stays listed (user, 2026-11-26).
+                this.output.Say(SpeechKind.Arrivals, Announcements.StillClosed(this.catalog.BossOnPlayersGround()));
+                this.catalog.TriedBarrier(goal.Id);
+                this.log.Info($"Beacon at a closed barrier: {goal.Name}");
+                this.target = null;
+                this.route = null;
+                this.search = null;
+                this.version++;
+                return;
+            }
+
             // At the place of a target that is no longer listed, the place is all that was reached.
             var lastSeen = this.targetGone && BeaconMath.Gone(this.Listed(goal), EntityCatalog.IsEntity(goal), 0f, GoneNearWorld) == GoneTarget.LostFromView;
             this.output.Say(SpeechKind.Arrivals, lastSeen ? Announcements.BeaconLastSeen(goal.Name) : Announcements.BeaconArrived(goal.Name));
