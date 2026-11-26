@@ -125,6 +125,12 @@ namespace Poe2Accessibility.Services
                 this.Add(MinimapMarks.ReforgeKind, hammer);
             }
 
+            var anvilTake = -1;
+            if (gameSounds.Variant(MinimapMarks.AnvilKind, ref anvilTake) is { } verisium)
+            {
+                this.Add(MinimapMarks.AnvilKind, verisium);
+            }
+
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("beacon", CueSynth.Ping(rate));
             if (gameSounds.Get("waypoint") is { } chime)

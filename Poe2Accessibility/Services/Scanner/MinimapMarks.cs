@@ -219,14 +219,18 @@ namespace Poe2Accessibility.Services
         /// <summary>The Reforging Bench: it rang as a quest object for its "Active" icon (the owner, 2026-11-24).</summary>
         public const string ReforgeKind = "reforging_bench";
 
+        /// <summary>The Verisium Anvil: its icon is no `CraftingBench*`, so it sounded nothing (the owner, 2026-11-26).</summary>
+        public const string AnvilKind = "verisium_anvil";
+
         /// <summary>A town service by its minimap icon ("StashPlayer", "HealingWell"; entity dump of G2_town, 0.5.5f), or empty.</summary>
         public static string ServiceKind(string icon) =>
             icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind
             : icon.StartsWith("CraftingBench", StringComparison.Ordinal) ? BenchKind
-            : icon == MinimapIconIds.ReforgingBench ? ReforgeKind : string.Empty;
+            : icon == MinimapIconIds.ReforgingBench ? ReforgeKind
+            : icon == MinimapIconIds.VerisiumAnvil ? AnvilKind : string.Empty;
 
         /// <summary>The kinds <see cref="ServiceKind"/> gives: with a sound of their own, never the quest object's.</summary>
-        public static bool IsService(string kind) => kind is StashKind or WellKind or BenchKind or ReforgeKind;
+        public static bool IsService(string kind) => kind is StashKind or WellKind or BenchKind or ReforgeKind or AnvilKind;
 
         /// <summary>
         ///     A named barrier a campaign area made for itself, such as the Ancient Seal at Balbala's door (Act2/2_2/Objects/BossDoor,

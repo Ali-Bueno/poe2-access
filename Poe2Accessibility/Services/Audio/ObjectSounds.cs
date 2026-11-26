@@ -97,6 +97,7 @@ namespace Poe2Accessibility.Services
             ("wells", 1, entry => entry.Kind == MinimapMarks.WellKind),
             ("benches", 1, entry => entry.Kind == MinimapMarks.BenchKind),
             ("reforging benches", 1, entry => entry.Kind == MinimapMarks.ReforgeKind),
+            ("anvils", 1, entry => entry.Kind == MinimapMarks.AnvilKind),
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
             ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),
@@ -128,6 +129,7 @@ namespace Poe2Accessibility.Services
         private long wayOpenedAt = long.MinValue / 2;
         private int lastBench = -1;
         private int lastReforge = -1;
+        private int lastAnvil = -1;
 
         public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops, GameSounds diabloSounds)
         {
@@ -357,6 +359,7 @@ namespace Poe2Accessibility.Services
             MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
             MinimapMarks.BenchKind => this.sounds.Variant(MinimapMarks.BenchKind, ref this.lastBench),
             MinimapMarks.ReforgeKind => this.sounds.Variant(MinimapMarks.ReforgeKind, ref this.lastReforge),
+            MinimapMarks.AnvilKind => this.sounds.Variant(MinimapMarks.AnvilKind, ref this.lastAnvil),
             MinimapMarks.SignKind => this.sounds.Get(MinimapMarks.SignKind),
             OpenedWays.Kind => this.sounds.Get(OpenedWays.Kind),
             ClosedDoors.Kind => this.sounds.Get(ClosedDoors.Kind),

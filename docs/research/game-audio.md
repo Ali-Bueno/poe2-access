@@ -275,6 +275,15 @@ apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB
   takes (1.5x same pitch, 1.5x and 2x as a sampler) are on the page above.
 - The loader caps every sound at 0.9 s (`GameSoundSeconds`), so a longer recording is cut there.
 
+## The Verisium Anvil (2026-11-26)
+"Yunque de verisium" (`CraftingBenchExpedition.ot` in the Act 1 and Act 4 towns and the Fallen Star, the hideout's
+`VerisiumCraftingBench.ot`; PROVEN by `ot-with`) sounded nothing: its icon, `ExpeditionCraftingBenchAct1`, is no
+`CraftingBench*`. `ExpeditionCraftingBenchAct2` and `ExpeditionAct3Pedestal` are the Runesmithing Knowledge, not an anvil.
+The anvil's world sounds (`Leagues/Rune/CraftingBench/VerisiumMetallurgyBench/Effects/*`, from `MetallurgyAnvil.ao`)
+are its reveal, not a sound to find it by. Now kind `verisium_anvil`, sound `Four_Expedition` /
+`VerisiumSmithing_UI_Hammer_01` (1 s, RMS 0.10), the user's pick, A of five on [its page](https://claude.ai/artifact/UhZ29Nj1rpafzRN95GjTTn).
+No bank has a second take, so the round robin is six retunings (0, -0.6, +0.4, -0.3, +0.7, -0.9 semitones; `Cue.Semitones`).
+
 ## The Reforging Bench (2026-11-24)
 "Mesa de reforja" (`CraftingBenchVaalHammer`, the hideout's `ReforgingBench`) rang as a quest object and was listed under
 Misión: its icon, `TreasureVaultHammerActive`, reads as a lit mark (`MinimapMarks.IsLitMark`). It is a service, unlocked by

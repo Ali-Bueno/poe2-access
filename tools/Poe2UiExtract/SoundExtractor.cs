@@ -14,8 +14,9 @@ internal static partial class SoundExtractor
     // A loop is kept whole (the game's own idle beds) and its seam crossfaded, so it repeats without a click. A frozen
     // loop is a one-shot held still: grains of its [FreezeFrom, FreezeTo) seconds layered into a steady bed.
     // Rms, when set, brings a one-shot to that loudness (peaks under PeakCap): a sample far louder than its neighbours.
+    // Semitones retunes a one-shot, so a sound with a single recording still gets takes to vary in turn.
     private sealed record Cue(string Name, string Bank, string Sample, double MaxSeconds = 1.5, bool Loop = false,
-        double FreezeFrom = 0, double FreezeTo = 0, double Rms = 0);
+        double FreezeFrom = 0, double FreezeTo = 0, double Rms = 0, double Semitones = 0);
 
     /// <summary>How the line naming the cues the banks lacked starts; the launcher logs it.</summary>
     public const string MissingPrefix = "MISSING ";
@@ -87,6 +88,14 @@ internal static partial class SoundExtractor
         new("reforging_bench_4", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_04", 1.0, Rms: 0.10),
         new("reforging_bench_5", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_05", 1.0, Rms: 0.10),
         new("reforging_bench_6", "VaalCraftingBenches", "VaalForgeMaster_FX_HammerDoorLarge_06", 1.0, Rms: 0.10),
+        // The Verisium Anvil: the verisium forge's hammer (user's pick 2026-11-26, A of five on
+        // https://claude.ai/artifact/UhZ29Nj1rpafzRN95GjTTn); the game has one take, so six slight retunings vary in turn.
+        new("verisium_anvil_1", "Four_Expedition", "VerisiumSmithing_UI_Hammer_01", 1.0, Rms: 0.10),
+        new("verisium_anvil_2", "Four_Expedition", "VerisiumSmithing_UI_Hammer_01", 1.0, Rms: 0.10, Semitones: -0.6),
+        new("verisium_anvil_3", "Four_Expedition", "VerisiumSmithing_UI_Hammer_01", 1.0, Rms: 0.10, Semitones: 0.4),
+        new("verisium_anvil_4", "Four_Expedition", "VerisiumSmithing_UI_Hammer_01", 1.0, Rms: 0.10, Semitones: -0.3),
+        new("verisium_anvil_5", "Four_Expedition", "VerisiumSmithing_UI_Hammer_01", 1.0, Rms: 0.10, Semitones: 0.7),
+        new("verisium_anvil_6", "Four_Expedition", "VerisiumSmithing_UI_Hammer_01", 1.0, Rms: 0.10, Semitones: -0.9),
         // A sign to read: pages turned, from a book pet's idle (user's pick 2026-11-12 of eight page, quill, book and
         // scroll sounds; the game plays nothing at a sign).
         new("sign",       "BookandQuillPetMTX", "BookandQuillPet_IdleRelaxed01_FlipPages_01"),
@@ -217,6 +226,11 @@ internal static partial class SoundExtractor
 
 
                     var (pcm, ch, rate) = Decode(sub);
+                    if (cue.Semitones != 0)
+                    {
+                        pcm = Retune(pcm, ch, cue.Semitones);
+                    }
+
                     (pcm, double secs) = !cue.Loop ? TrimAndCap(pcm, ch, rate, cue.MaxSeconds)
                         : cue.FreezeTo > cue.FreezeFrom ? Freeze(pcm, ch, rate, cue.FreezeFrom, cue.FreezeTo)
                         : Seamless(pcm, ch, rate, cue.MaxSeconds);
@@ -398,6 +412,23 @@ internal static partial class SoundExtractor
         if (now <= 0 || peak <= 0) return pcm;
         float gain = (float)Math.Min(rms / now, PeakCap / peak);
         return pcm.Select(v => v * gain).ToArray();
+    }
+
+    /// <summary>Shifts pitch (and length with it) by resampling with linear interpolation, like a turntable's speed.</summary>
+    internal static float[] Retune(float[] pcm, int ch, double semitones)
+    {
+        double step = Math.Pow(2, semitones / 12);
+        int frames = pcm.Length / ch, len = (int)((frames - 1) / step);
+        var res = new float[Math.Max(0, len) * ch];
+        for (int i = 0; i < len; i++)
+        {
+            double at = i * step;
+            int left = (int)at;
+            float t = (float)(at - left);
+            for (int c = 0; c < ch; c++)
+                res[i * ch + c] = pcm[left * ch + c] * (1 - t) + pcm[Math.Min(left + 1, frames - 1) * ch + c] * t;
+        }
+        return res;
     }
 
     internal static (float[] pcm, double seconds) TrimAndCap(float[] pcm, int ch, int rate, double maxSeconds)

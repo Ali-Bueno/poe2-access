@@ -34,6 +34,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const string ReforgingBench = "TreasureVaultHammerActive";
 
-        public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence, ReforgingBench });
+        /// <summary>The Verisium Anvil (CraftingBenchExpedition.ot in Act 1 and Act 4 towns, the hideout's VerisiumCraftingBench.ot).</summary>
+        public const string VerisiumAnvil = "ExpeditionCraftingBenchAct1";
+
+        public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence, ReforgingBench, VerisiumAnvil });
     }
 }

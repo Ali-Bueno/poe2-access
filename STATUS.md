@@ -534,6 +534,12 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 10:55 (the owner, past Tavakai: "necesitamos un sonido para el Yunque de verisium", A "con round robin"; 1142 tests, deployed with the sounds made in place, not released):**
+the anvil is a service of its own (`MinimapMarks.AnvilKind`), six retuned takes of the verisium forge's hammer
+([notes](docs/research/game-audio.md#the-verisium-anvil-2026-11-26)). The play copy's exe is the released one: its data
+steps (game names 5, sounds 22) run with the next release. Tavakai's phase-5 pustules and spike mines say nothing yet
+([boss-mechanics](docs/research/boss-mechanics.md), Tavakai row): the owner got past them, not asked for now.
+
 **2026-11-26, later (the user `oasis1701`, penned in by the Crowbell in the Hunting Grounds with Freythorn still to find; 1142 tests; PR #14 merged with the review's fixes (`GateToTry` takes the untried gate nearest the cut way's end, ushort barrier labels, an exit that is a known goal reuses its walk), deployed, released at the owner's word as v2026.11.26):** ground past a closed barrier is listed as unexplored, one entry per gate, and the guide says "Still closed" there and turns off (see *Ground behind closed barriers*). **Next:** hear it live in a boss pen; a restart forgets a far gate, so the entry comes back once the player has been near the shut gate.
 
 **2026-11-26 (PR #13 merged, the Atlas navigator; the owner reaches the Atlas soon, after Act 4's last boss and the

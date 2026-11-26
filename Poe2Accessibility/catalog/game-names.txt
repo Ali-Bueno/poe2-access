@@ -69,6 +69,7 @@ MinimapIcon	RitualRune		MinimapIconIds
 MinimapIcon	RitualRuneFinished		MinimapIconIds
 MinimapIcon	Essence		MinimapIconIds
 MinimapIcon	TreasureVaultHammerActive		MinimapIconIds
+MinimapIcon	ExpeditionCraftingBenchAct1		MinimapIconIds
 UiArt	/Sanctum/GoldIcon		TrialArt
 UiArt	/Sanctum/BronzeKeyIcon		TrialArt
 UiArt	/Sanctum/SilverKeyIcon		TrialArt
