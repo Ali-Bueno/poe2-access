@@ -73,7 +73,7 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<Vector2>();
             }
 
-            return this.BestUnexplored(area, player).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
+            return this.BestUnexplored(area, player, false).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var nearest = this.BestUnexplored(area, player).OrderBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault();
+            var nearest = this.BestUnexplored(area, player, false).OrderBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault();
             return nearest is null ? null : this.Describe(nearest with { Name = Announcements.NearestUnexplored });
         }
 
@@ -159,13 +159,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether unexplored ground and the forks' ways name the known places they lead to (setting).</summary>
         public bool NameKnownWays { get; set; } = true;
 
-        /// <summary>The unseen ground of the best rank left: ground that goes on while any is left, then what soon ends, pockets last.</summary>
-        private List<ScanEntry> BestUnexplored(AreaInstance area, Render player)
-        {
-            var places = this.Unexplored(area, player).Concat(this.UnopenedDoors(area, player)).ToList();
-            var best = places.Count == 0 ? 0 : places.Min(entry => ExplorationMap.Rank(entry.Kind));
-            return places.Where(entry => ExplorationMap.Rank(entry.Kind) == best).ToList();
-        }
+        /// <summary>
+        ///     The unseen ground of the best rank left: ground that goes on while any is left, then what soon ends, ground behind
+        ///     a barrier when <paramref name="withBarriers"/> (not for the lost hint, <see cref="BarrierGround.Best"/>), pockets last.
+        /// </summary>
+        private List<ScanEntry> BestUnexplored(AreaInstance area, Render player, bool withBarriers = true) =>
+            BarrierGround.Best(this.Unexplored(area, player).Concat(this.UnopenedDoors(area, player)), withBarriers);
 
         /// <summary>The doors seen shut and not opened since, nearest first, as places still to explore (<see cref="ClosedDoors"/>).</summary>
         private IEnumerable<ScanEntry> UnopenedDoors(AreaInstance area, Render player)

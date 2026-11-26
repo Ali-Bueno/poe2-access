@@ -32,7 +32,23 @@ namespace Poe2Accessibility.Tests
             (nameof(ATallGateInTwoPiecesIsOneGateFromEitherEnd), ATallGateInTwoPiecesIsOneGateFromEitherEnd),
             (nameof(OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain), OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain),
             (nameof(TheExploringGuideNamesAGateItTurnsTo), TheExploringGuideNamesAGateItTurnsTo),
+            (nameof(TheLostHintNeverPointsAtAGate), TheLostHintNeverPointsAtAGate),
         };
+
+        /// <summary>
+        ///     The lost hint and the circling line point at ground the player can walk onto, as before: a gate in a pen would
+        ///     be pointed at every thirty seconds, shut or not (review, 2026-11-26; the user asked not to be steered at a shut gate).
+        /// </summary>
+        private static void TheLostHintNeverPointsAtAGate()
+        {
+            var gate = new ScanEntry(1, ScanCategory.Unexplored, "Large unexplored ground behind a closed barrier", 0, 0, 0, ExplorationMap.BarrierGroundKind);
+            var nook = new ScanEntry(2, ScanCategory.Unexplored, "Unexplored nook", 0, 0, 0, ExplorationMap.PocketKind);
+            var small = new ScanEntry(3, ScanCategory.Unexplored, "Small unexplored ground", 0, 0, 0, ExplorationMap.SmallKind);
+            Equal("1", string.Join(" ", BarrierGround.Best(new[] { nook, gate }, true).Select(entry => entry.Id)), "the guide's best: the gate before nooks");
+            Equal("2", string.Join(" ", BarrierGround.Best(new[] { nook, gate }, false).Select(entry => entry.Id)), "the hint's best: the nook, as before");
+            Equal("3", string.Join(" ", BarrierGround.Best(new[] { nook, gate, small }, true).Select(entry => entry.Id)), "open ground before either");
+            Equal(0, BarrierGround.Best(Array.Empty<ScanEntry>(), true).Count, "nothing left");
+        }
 
         /// <summary>
         ///     A gate 50 rows tall remembered in two pieces (rows 236-275 and 279-285) is one gate, with one place and one

@@ -534,7 +534,7 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
-**2026-11-26, later (the user `oasis1701`, penned in by the Crowbell in the Hunting Grounds with Freythorn still to find; 1137 tests, branch `ground-behind-barriers`, not released):** ground past a closed barrier is listed as unexplored, one entry per gate, and the guide says "Still closed" there and turns off (see *Ground behind closed barriers*). **Next:** hear it live in a boss pen; a restart forgets a far gate, so the entry comes back once the player has been near the shut gate.
+**2026-11-26, later (the user `oasis1701`, penned in by the Crowbell in the Hunting Grounds with Freythorn still to find; 1138 tests, branch `ground-behind-barriers`, not released):** ground past a closed barrier is listed as unexplored, one entry per gate, and the guide says "Still closed" there and turns off (see *Ground behind closed barriers*). **Next:** hear it live in a boss pen; a restart forgets a far gate, so the entry comes back once the player has been near the shut gate.
 
 **2026-11-26 (PR #13 merged, the Atlas navigator; the owner reaches the Atlas soon, after Act 4's last boss and the
 interludes; 1125 tests, released at the owner's word as v2026.11.25-5):** [atlas-navigator](docs/research/atlas-navigator.md)

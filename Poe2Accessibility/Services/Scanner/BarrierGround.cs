@@ -28,6 +28,18 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool SaysNext(bool apart, string kind) => apart || kind == ExplorationMap.BarrierGroundKind;
 
+        /// <summary>
+        ///     The unexplored places of the best rank left (<see cref="ExplorationMap.Rank"/>). Without barriers for the lost hint
+        ///     and the circling line, which point at ground the player can walk onto: a gate in a pen would be pointed at every
+        ///     thirty seconds, shut or not (review, 2026-11-26).
+        /// </summary>
+        public static List<ScanEntry> Best(IEnumerable<ScanEntry> places, bool withBarriers)
+        {
+            var kept = places.Where(entry => withBarriers || entry.Kind != ExplorationMap.BarrierGroundKind).ToList();
+            var best = kept.Count == 0 ? 0 : kept.Min(entry => ExplorationMap.Rank(entry.Kind));
+            return kept.Where(entry => ExplorationMap.Rank(entry.Kind) == best).ToList();
+        }
+
         /// <summary>The places without the barriers that stand at a door (grid cells): a shut door has its own "Unopened door" entry.</summary>
         public static List<FrontierPlace> AwayFromDoors(IEnumerable<FrontierPlace> places, IReadOnlyCollection<Vector2> doorCells) =>
             places.Where(place => !place.BehindBarrier || !doorCells.Any(door => Vector2.Distance(door, place.Cell) <= DoorCells)).ToList();
