@@ -74,6 +74,14 @@ namespace Poe2Accessibility.Services
                     : entry.Kind == MinimapMarks.BossRoomKind ? objective.Names(entry.Subject, NamePart.Whole, byWord)
                     : objective.Names(entry.Name, NamePart.Whole, byWord) ||
                       (entry.Subject.Length > 0 && objective.Names(entry.Subject, NamePart.Whole, byWord)); // a Vaal Beacon as Act 3's "foco antiguo"
+                if (entry.Category == ScanCategory.Objects && named)
+                {
+                    objective.Remember(entry.Name);
+                }
+                else if (entry.Category == ScanCategory.Objects)
+                {
+                    named = objective.NamesSeveral(entry.Name);
+                }
                 if (named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });
@@ -121,10 +129,23 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public sealed class Memo
         {
+            private readonly HashSet<string> namedWhole = new();
             private Objective? last;
 
-            internal Objective For(IReadOnlyList<string> questTexts, string currentArea) =>
-                this.last is { } kept && kept.Is(questTexts, currentArea) ? kept : this.last = new Objective(questTexts, currentArea);
+            internal Objective For(IReadOnlyList<string> questTexts, string currentArea)
+            {
+                if (this.last is { } kept && kept.Is(questTexts, currentArea))
+                {
+                    return kept;
+                }
+
+                if (this.last == null || !this.last.InArea(currentArea) || this.namedWhole.Count >= MaxNames)
+                {
+                    this.namedWhole.Clear();
+                }
+
+                return this.last = new Objective(questTexts, currentArea, this.namedWhole);
+            }
         }
 
         /// <summary>
@@ -133,21 +154,28 @@ namespace Poe2Accessibility.Services
         /// </summary>
         internal sealed class Objective
         {
-            /// <summary>Names remembered at most: an area's entries are a few hundred.</summary>
-            private const int MaxNames = 4096;
-
             private readonly string[] questTexts;
             private readonly string currentArea;
+            private readonly HashSet<string> namedWhole;
             private readonly Dictionary<(string Text, NamePart Part, bool ByWord), bool> names = new();
+            private readonly Dictionary<string, bool> several = new();
+            private string[]? stems;
             private HashSet<string>? properNouns;
             private bool? namesOnlyItsArea;
 
-            public Objective(IReadOnlyList<string> questTexts, string currentArea)
+            /// <param name="namedWhole">The objects an objective named whole in this area so far, kept from step to step.</param>
+            public Objective(IReadOnlyList<string> questTexts, string currentArea, HashSet<string>? namedWhole = null)
             {
                 this.questTexts = questTexts.ToArray();
                 this.currentArea = currentArea;
+                this.namedWhole = namedWhole ?? new HashSet<string>();
                 this.Texts = this.questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
             }
+
+            public bool InArea(string area) => string.Equals(area, this.currentArea, StringComparison.Ordinal);
+
+            /// <summary>Keeps an object the objective names whole, for a later step that speaks of the rest.</summary>
+            public void Remember(string name) => this.namedWhole.Add(Fold(name));
 
             public List<string> Texts { get; }
 
@@ -220,6 +248,31 @@ namespace Poe2Accessibility.Services
                 return named;
             }
 
+            /// <summary>
+            ///     Whether a text speaks of several of what an earlier step here named whole, by one word of the name in the plural:
+            ///     after the first, "Activa los megalitos restantes" names no "Megalito rúnico" whole (user 2026-11-26); German's
+            ///     compound too ("Monolithen"). Only those named before: "las Puertas de Galai" is no door mechanism.
+            /// </summary>
+            public bool NamesSeveral(string name)
+            {
+                if (this.several.TryGetValue(name, out var known))
+                {
+                    return known;
+                }
+
+                var folded = Fold(name);
+                this.stems ??= this.Texts.SelectMany(Words).SelectMany(PluralStems).Distinct().ToArray();
+                var own = Words(folded).Where(word => word.Length >= MinStem).ToArray();
+                var named = this.namedWhole.Contains(folded) && this.stems.Any(stem => own.Any(part => part.EndsWith(stem, StringComparison.Ordinal)));
+                if (this.several.Count >= MaxNames)
+                {
+                    this.several.Clear();
+                }
+
+                this.several[name] = named;
+                return named;
+            }
+
             private static string Part(string text, NamePart part) => part switch
             {
                 NamePart.BeforeFirstComma => text[..text.IndexOf(", ", StringComparison.Ordinal)],
@@ -262,6 +315,17 @@ namespace Poe2Accessibility.Services
 
         private static bool SameOrPlural(string word, string singular) =>
             word == singular || word == singular + "s" || word == singular + "es";
+
+        /// <summary>Names remembered at most: an area's entries are a few hundred.</summary>
+        private const int MaxNames = 4096;
+
+        /// <summary>A plural's singular stems shorter than this are common words ("las", "ones"), not a thing's name.</summary>
+        private const int MinStem = 5;
+
+        /// <summary>The singulars a plural word may have (megalitos, megaliths, Monolithen); none for a word with no plural ending.</summary>
+        private static IEnumerable<string> PluralStems(string word) =>
+            new[] { "es", "en", "s", "n" }.Where(ending => word.EndsWith(ending, StringComparison.Ordinal))
+                .Select(ending => word[..^ending.Length]).Where(stem => stem.Length >= MinStem);
 
         /// <summary>Lower case without accents, so "Sierraclara" in a sentence matches the exit's label.</summary>
         private static string Fold(string text)

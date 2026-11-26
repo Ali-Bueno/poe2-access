@@ -534,6 +534,12 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 11:10 (the owner in the Stones of Serle: "el megalito rúnico no tiene sonido de misión… el segundo"; 1143 tests, deployed, not released):**
+"Activa los megalitos restantes" names no "Megalito rúnico" whole, so only the first rang. `QuestMatcher.Memo` keeps the
+objects a step named whole in the area; a later step naming one of their words in the plural (megalitos, Megaliths,
+Monolithen as Runenmonolith's tail) still means them. A sweep of every objective against every object name showed the
+plural alone over-matching ("las Puertas de Galai" → "Mecanismo de la puerta"), hence the earlier step.
+
 **2026-11-26, 10:55 (the owner, past Tavakai: "necesitamos un sonido para el Yunque de verisium", A "con round robin"; 1142 tests, deployed with the sounds made in place, not released):**
 the anvil is a service of its own (`MinimapMarks.AnvilKind`), six retuned takes of the verisium forge's hammer
 ([notes](docs/research/game-audio.md#the-verisium-anvil-2026-11-26)). The play copy's exe is the released one: its data

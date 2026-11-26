@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller),
             (nameof(AStepNamingACarriedQuestItemStillCounts), AStepNamingACarriedQuestItemStillCounts),
+            (nameof(AStepNamingTheRestInThePluralStillCounts), AStepNamingTheRestInThePluralStillCounts),
             (nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone),
             (nameof(GameDataStepsAreEachListedOnce), GameDataStepsAreEachListedOnce),
             (nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver),
@@ -285,6 +286,31 @@ namespace Poe2Accessibility.Tests
             Equal("Gorro de fieltro -> ", Said(SalvageOutcome.Read(new[] { ("Gorro de fieltro", 1), ("Gorro de fieltro, mágico", 1) },
                                                                     new[] { ("Gorro de fieltro, mágico", 1) })),
                   "of two items of one base, the one that went");
+        }
+
+        private static void AStepNamingTheRestInThePluralStillCounts()
+        {
+            // The Stones of Serle, 2026-11-26: after the first megalith the tracker names the rest only in the plural.
+            string Rest(string name, string first, string then, string area = "Las piedras de Serle", string? before = null)
+            {
+                var memo = new QuestMatcher.Memo();
+                var entries = new[]
+                {
+                    new ScanEntry(1, ScanCategory.Objects, name, 0, 0, 0), new ScanEntry(3, ScanCategory.Objects, "Mecanismo de la puerta", 0, 0, 0),
+                    new ScanEntry(4, ScanCategory.Exits, "Tierras de cultivo calcinadas", 0, 0, 0, "exit"),
+                };
+                QuestMatcher.Targets(entries, new[] { first }, before ?? area, memo: memo);
+                var lit = entries.Skip(1).Append(new ScanEntry(2, ScanCategory.Encounters, name, 0, 0, 0, "league")).ToArray();
+                Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(lit, new[] { then }, area, memo: memo).Select(entry => entry.Name)), "the lit one is done");
+                return string.Join(" | ", QuestMatcher.Targets(entries, new[] { then }, area, memo: memo).Select(entry => entry.Name));
+            }
+
+            Equal("Megalito rúnico", Rest("Megalito rúnico", "Activa el Megalito rúnico", "Activa los megalitos restantes"), "the rest, not an exit or another object");
+            Equal("Runed Megalith", Rest("Runed Megalith", "Activate the Runed Megalith", "Activate the remaining Megaliths"), "English, its head word last");
+            Equal("Megalito Rúnico", Rest("Megalito Rúnico", "Ative o Megalito Rúnico", "Ative os outros Megalitos"), "Portuguese");
+            Equal("Runenmonolith", Rest("Runenmonolith", "Aktiviert den Runenmonolith.", "Aktiviert die verbleibenden Monolithen."), "German, the compound's tail");
+            Equal(string.Empty, Rest("Megalito rúnico", "Activa el portal", "Activa los megalitos restantes"), "never named before: the plural alone is not enough");
+            Equal(string.Empty, Rest("Megalito rúnico", "Activa el Megalito rúnico", "Activa los megalitos restantes", before: "Otra zona"), "named in another area");
         }
 
         private static void AStepNamingACarriedQuestItemStillCounts()
