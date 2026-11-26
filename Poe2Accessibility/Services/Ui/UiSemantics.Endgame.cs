@@ -201,8 +201,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The landed node's spoken line for <see cref="AtlasNarrator"/>: its name, its state from the status byte,
-        ///     what it holds and its links — the popup's flavour and blocked words are the screen reading's, already
-        ///     heard. Null while its popup is unbuilt (the name lives there for a random map) unless
+        ///     what it holds and its links — the popup's flavour and blocked words are the screen reading's, which
+        ///     this line queues behind. Null while its popup is unbuilt (the name lives there for a random map) unless
         ///     <paramref name="allowPending"/>; empty when the element is no endgame node at all.
         /// </summary>
         public string? AtlasNodeLine(IntPtr node, bool allowPending)

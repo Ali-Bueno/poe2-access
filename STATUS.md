@@ -734,7 +734,8 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
   currency), Act 4's destination map.
 - **The Atlas navigator, Phases 1–2 accepted and Phase 3 built (2026-11-25):** the landed node speaks
-  name, state, biome, contents and links (fog marked unrevealed); on opening, where the last session left off
+  name, state, biome, contents and links, queued behind the map's own words so its flavour/objective read
+  first (fog marked unrevealed); on opening, where the last session left off
   and the accessible frontier in links; per hop, came-from and the nearest landmark in links. L1/R1 choose a
   destination (with L2 held, its list); each landing then says
   the next push and links left over revealed links, stopping at the first accessible map to clear for a locked

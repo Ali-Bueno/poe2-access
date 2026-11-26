@@ -173,15 +173,16 @@ namespace Poe2Accessibility.Services
             {
                 return;
             }
-
-            // The first node follows the panel's opening words: queued. One hopped to: over its flavour text,
-            // which has had the settle time to say its name.
+            // Queued behind the map's own words: the popup's flavour, objective and blocked text are the
+            // screen reading's and finish first, as a tree node's details come before its links (the owner,
+            // 2026-11-25: the state-and-links line cut the map's speech after its name). A further hop
+            // interrupts as before and drops this still-waiting line with the node it belonged to.
             var first = this.opening;
             this.opening = false;
             if (this.AnnounceNodes && line.Length > 0)
             {
                 this.log.Info($"Atlas node landed: {line}");
-                this.output.Speak(line, !first);
+                this.output.Speak(line);
             }
 
             this.Orient(selected, first);

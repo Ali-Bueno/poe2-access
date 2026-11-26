@@ -338,6 +338,11 @@ An entry says its cluster, side and ring and how many links it lies from the cur
 right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
 popup says "Unallocated" where it stands.
 
+On landing, the map's own words (its flavour, objective and what blocks it) finish first; the node's state,
+what it holds and its links queue behind them, then where it sits — as a tree node reads its details before
+its links. Hop on and the waiting words of the node left are dropped with it.
+
+
 **Atlas map destinations** (setting "Atlas destination finder on the shoulder buttons", Navigation, on by default):
 while the Atlas map itself has the cursor, L1/R1 (LB/RB) walk a destination list nearest first, and with L2 (LT)
 held they walk the lists instead: Position, Accessible, not completed, Landmarks and Seasonal activities (places
