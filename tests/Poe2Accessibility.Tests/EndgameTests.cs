@@ -108,6 +108,10 @@ namespace Poe2Accessibility.Tests
             Equal("Restore some of your Honour. Gain a random Minor Affliction", Announcements.ObjectDescription("Restore {0} of your Honour\nGain a random Minor Affliction"), "said a line a sentence, the amount unknown");
             Equal("Interact to take part in the Trial of the Sekhemas", Announcements.ObjectDescription("Interact to take part in\nthe Trial of the Sekhemas"), "a wrapped line is one sentence");
             Equal(string.Empty, Announcements.ObjectDescription(string.Empty), "nothing written, nothing said");
+            Expect("5% increased Experience Gain\n-5% to Elemental Resistances\n3% reduced Movement Speed",
+                GameMarkup.BoxBody("5% increased Experience Gain\r\n<corrupted>{-5% to Elemental Resistances\r\n3% reduced Movement Speed}"), "a colour over several lines (Alima's Disgrace, Qimah)");
+            Equal("Movement Speed reduced by 3%. armour reduced by 15%", Announcements.ObjectDescription("Movement Speed reduced by 3%\narmour reduced by 15%"),
+                "a lower-case line after an amount is a stat of its own");
             Expect("ContainsBreach", GameMarkup.FirstKeyword("Open all [ContainsBreach|Unstable Breaches] and [Shrine|Shrines]"), "the first link");
             Expect(string.Empty, GameMarkup.FirstKeyword("Defeat all Rare Monsters"), "no link");
         }

@@ -43,6 +43,9 @@ internal static class WorldTitleExtractor
     private static readonly Regex BodyKey = new("body_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
     private const string BodyPrefix = "body:";
 
+    /// <summary>The developers' mark on a text never shown to players.</summary>
+    private const string DoNotTranslate = "DNT-";
+
     /// <summary>A minimap icon's label by its Id: a name of the game's that no object carries.</summary>
     private const string IconPrefix = "icon:";
 
@@ -109,6 +112,15 @@ internal static class WorldTitleExtractor
 
         var search = new DatColumnSearch();
         var strings = ClientStringColumns.Find(english, search);
+        // The second table is extra: without it the keys it alone holds stay unnamed, as before.
+        var englishSecond = DatTable.Open(index, ClientStringColumns.SecondTable);
+        var secondSearch = new DatColumnSearch();
+        var second = englishSecond == null ? null : ClientStringColumns.FindSecond(englishSecond, secondSearch);
+        if (englishSecond != null && !secondSearch.Report("world-titles clientstrings2"))
+        {
+            second = null;
+        }
+
         var objectiveColumn = search.Find(englishObjectives, "QuestStates.Objective", ObjectiveColumn, offset =>
             DatColumnSearch.IsText(englishObjectives, offset, _ => true) && Objectives.All(wanted => DatAnchors.RowWith(englishObjectives, offset, wanted.Objective) >= 0));
         // A minimap icon's label ("Dais of Reckoning"): what the radar table's own labels are often copied from.
@@ -161,19 +173,28 @@ internal static class WorldTitleExtractor
             }
 
             var texts = ClientStringColumns.Read(table, columns);
+            var secondTable = second == null || folder == null ? englishSecond : DatTable.OpenTranslated(index, ClientStringColumns.SecondTable, folder);
+            if (second is { } secondColumns && secondTable != null && ClientStringColumns.SameShape(englishSecond!, secondTable))
+            {
+                foreach (var (key, text) in ClientStringColumns.Read(secondTable, secondColumns))
+                {
+                    texts.TryAdd(key, text); // ClientStrings wins where both hold a key
+                }
+            }
 
             var titles = new SortedDictionary<string, string>(StringComparer.Ordinal);
             foreach (var (path, key) in keys)
             {
-                if (texts.TryGetValue(key, out var text))
+                // A link shows its words ("[DeliriumApexPredators|Apex Predators]"); a "[DNT-UNUSED]" title is no object in play.
+                if (texts.TryGetValue(key, out var text) && !text.Contains(DoNotTranslate, StringComparison.Ordinal))
                 {
-                    titles[path] = Colour.Replace(text, "$1");
+                    titles[path] = GameMarkup.Plain(Colour.Replace(text, "$1"));
                 }
             }
 
             foreach (var (path, key) in bodies)
             {
-                if (texts.TryGetValue(key, out var text) && GameMarkup.BoxBody(text) is { Length: > 0 } shown)
+                if (texts.TryGetValue(key, out var text) && !text.Contains(DoNotTranslate, StringComparison.Ordinal) && GameMarkup.BoxBody(text) is { Length: > 0 } shown)
                 {
                     titles[BodyPrefix + path] = shown;
                 }

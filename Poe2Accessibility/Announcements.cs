@@ -52,7 +52,9 @@ namespace Poe2Accessibility
                 }
 
                 // A line that goes on in lower case is its sentence wrapped ("Interactúa para participar en / la Prueba de las sekhemas").
-                if (sentences.Count > 0 && char.IsLower(line[0]))
+                // A line after an amount is a stat of its own, whatever its case: Alima's Disgrace lists "…reducida un 3%" then
+                // "armadura, evasión y escudo de energía reducidos un 15%" (Qimah's shrines, 2026-11-26).
+                if (sentences.Count > 0 && char.IsLower(line[0]) && sentences[^1][^1] is not ('%' or (>= '0' and <= '9')))
                 {
                     sentences[^1] += " " + line;
                 }

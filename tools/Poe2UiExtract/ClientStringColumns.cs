@@ -28,6 +28,27 @@ internal static class ClientStringColumns
         return text < 0 ? null : (key, text);
     }
 
+    /// <summary>
+    ///     ClientStrings2, the second table of the same shape: the keys a .ot names there too (Qimah's seven Sekhema shrines,
+    ///     "SevenSekhemasTitle01", rows 211-224 in 0.5.5f). Its columns are found by a row the endgame step reads as well.
+    /// </summary>
+    internal const string SecondTable = "clientstrings2";
+    private const string SecondKnownKey = "EndgameMapObjectiveClickPrecursorBeacon";
+
+    /// <summary>ClientStrings2's key and text columns; null, with the search saying which, when one is not found.</summary>
+    public static (int Key, int Text)? FindSecond(DatTable english, DatColumnSearch search)
+    {
+        var key = search.Find(english, "ClientStrings2.Id", KeyOffset, offset => DatColumnSearch.IsText(english, offset, _ => true) && DatAnchors.RowWith(english, offset, SecondKnownKey) >= 0);
+        if (key < 0)
+        {
+            return null;
+        }
+
+        var text = search.Text(english, "ClientStrings2.Text", TextOffset, after: key,
+            known: (DatAnchors.RowWith(english, key, SecondKnownKey), said => said.Contains(' ', StringComparison.Ordinal)));
+        return text < 0 ? null : (key, text);
+    }
+
     /// <summary>Whether a translation is the same table in another language: the offsets found in English read it.</summary>
     public static bool SameShape(DatTable english, DatTable translated) => translated.RowSize == english.RowSize && translated.RowCount == english.RowCount;
 

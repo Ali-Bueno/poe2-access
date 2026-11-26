@@ -19,7 +19,8 @@ internal static class GameMarkup
     /// <summary>The body of an object's box (a WorldDescription) as shown, its lines apart, links and colours gone; empty for a counter.</summary>
     public static string BoxBody(string text)
     {
-        var lines = text.Replace("\r", string.Empty).Split('\n').Select(line => Plain(Coloured.Replace(line, "$1"))).Where(line => line.Length > 0).ToList();
+        // A colour may hold several lines (Alima's Disgrace: "<corrupted>{-5% ...\n3% reduced ...}"), so it goes before the split.
+        var lines = Coloured.Replace(text.Replace("\r", string.Empty), "$1").Split('\n').Select(Plain).Where(line => line.Length > 0).ToList();
         return lines.Any(line => Counter.IsMatch(line)) ? string.Empty : string.Join("\n", lines);
     }
 
