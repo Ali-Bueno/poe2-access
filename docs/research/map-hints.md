@@ -236,7 +236,9 @@ Asked by the owner in P2_1 ("había un sello… y no sonaba como quest"; "sigue 
 
 What the mod does: a named object of the area's own `…/<area id>/Objects/` folder counts as the quest's
 (`EntityCatalog.IsAreaOwnObject`), whatever the tracker says; a seal seen used within a look of the player starts a trail
-("Rastro: Guía del sello, hacia …", the trail sound) to the nearest seal still unused, else to the exit the quest's step leads through, seen or not (`EntityCatalog.QuestExit`:
+("Rastro: Guía del sello, hacia …", the trail sound) to the nearest seal still unused, else to the P2_1 row's goal (`"after": "Objects/Wayfinder"`, "Pools of Khatal": the
+step "Sigue la guía hasta el Templo…" has no goal in the quest tables, live 2026-11-26), else to the exit the quest's step
+leads through, seen or not (`EntityCatalog.QuestExit`:
 here the radar table's `Dregs_Transition` tile, "Pools of Khatal", known at arrival; the room `exit_01` holds both it and
 `Wayfinder4`) (`MapHintNarrator.Wayfinders`). The first seal seen used in an area starts one wherever it stands, as the
 compass stays on the player across a restart of the mod.

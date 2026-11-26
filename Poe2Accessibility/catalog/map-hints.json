@@ -57,6 +57,7 @@
     { "tiles": ["TropicalIsland/Coastline/"], "hint": "coast", "goal": "Singing Caverns", "line": true }
   ],
   "P2_1": [
-    { "tiles": ["SevenWaters/Tiles/River/"], "hint": "river", "goal": "The Galai Gates", "line": true, "reach": 45 }
+    { "tiles": ["SevenWaters/Tiles/River/"], "hint": "river", "goal": "The Galai Gates", "line": true, "reach": 45 },
+    { "after": "Objects/Wayfinder", "hint": "wayfinder", "goal": "Pools of Khatal", "line": true }
   ]
 }

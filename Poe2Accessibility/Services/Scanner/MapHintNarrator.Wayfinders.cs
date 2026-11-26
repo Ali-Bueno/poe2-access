@@ -39,13 +39,17 @@ namespace Poe2Accessibility.Services
                     first = false;
                     this.pointersUsed.Add(id);
                     this.log.Info($"Wayfinder used at cell {cell.X:0},{cell.Y:0}: a trail to the next");
-                    this.trails.Add(WayfinderRow, Array.Empty<Vector2>(), this.NextWayfinder);
+                    var row = this.rows.FirstOrDefault(each => each.Hint == WayfinderRow.Hint) ?? WayfinderRow;
+                    this.trails.Add(row, Array.Empty<Vector2>(), () => this.NextWayfinder(row));
                 }
             }
         }
 
-        /// <summary>The nearest seal still to use, by the game's name for it; else the exit the quest leads through; null while neither is known.</summary>
-        private ScanEntry? NextWayfinder()
+        /// <summary>
+        ///     The nearest seal still to use, by the game's name for it; else the row's goal (the room of the last, invisible
+        ///     `Wayfinder4` holds El cruce de Khari's exit to the Pools of Khatal), else the exit the quest leads through.
+        /// </summary>
+        private ScanEntry? NextWayfinder(MapHintRow row)
         {
             var map = Core.States.InGameStateObject.CurrentAreaInstance;
             if (map.WorldToGridConvertor is not (> 0 and var toWorld) || !Seats.Followed.TryGetComponent<Render>(out var player))
@@ -61,7 +65,7 @@ namespace Poe2Accessibility.Services
                 return new ScanEntry(next.Id, ScanCategory.Objects, name, next.Cell.X * toWorld, next.Cell.Y * toWorld, player.WorldPosition.Z);
             }
 
-            return this.catalog.QuestExit();
+            return this.Goal(row) ?? this.catalog.QuestExit();
         }
 
         /// <summary>The awake seals with their place and whether they were used.</summary>
