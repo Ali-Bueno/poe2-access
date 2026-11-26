@@ -118,6 +118,36 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     A copy of the cells held closed (a nibble 0xF per cell, the grid's layout), for the exploration map to look
+        ///     past them on another thread; null while none is held.
+        /// </summary>
+        public byte[]? ClosedSnapshot() => this.closedCount == 0 ? null : (byte[])this.closed.Clone();
+
+        /// <summary>Whether a cell held closed lies within <paramref name="radius"/> cells (each axis) of a grid cell.</summary>
+        public bool IsClosedNear(int x, int y, int radius, int bytesPerRow)
+        {
+            if (this.closedCount == 0 || bytesPerRow <= 0)
+            {
+                return false;
+            }
+
+            var rows = this.closed.Length / bytesPerRow;
+            for (var row = Math.Max(0, y - radius); row <= Math.Min(rows - 1, y + radius); row++)
+            {
+                for (var cell = Math.Max(0, x - radius); cell <= Math.Min((bytesPerRow * 2) - 1, x + radius); cell++)
+                {
+                    var value = this.closed[(row * bytesPerRow) + (cell / 2)];
+                    if (((cell & 1) == 0 ? value & 0x0F : value & 0xF0) != 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>0x0F and/or 0xF0 for the walkable cells of a grid byte.</summary>
         private static byte Nibbles(byte value) => (byte)(((value & 0x0F) != 0 ? 0x0F : 0) | ((value & 0xF0) != 0 ? 0xF0 : 0));
 

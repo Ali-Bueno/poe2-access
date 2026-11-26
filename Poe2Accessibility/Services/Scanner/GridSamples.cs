@@ -37,8 +37,28 @@ namespace Poe2Accessibility.Services
             this.sampleMs = sampleMs;
         }
 
+        /// <summary>The barrier memory's closed cells as last lent, with the change count they were copied at.</summary>
+        private (int Changes, byte[]? Mask)? lent;
+
         /// <summary>Gets how many cells the barrier memory holds closed.</summary>
         public int ClosedCells => this.barriers.ClosedCount;
+
+        /// <summary>
+        ///     The cells the barrier memory holds closed (<see cref="BarrierMemory.ClosedSnapshot"/>), copied again only when
+        ///     the memory changed: the same array while it did not. Shared, and not to be written to.
+        /// </summary>
+        public byte[]? ClosedMask()
+        {
+            if (this.lent is not { } kept || kept.Changes != this.barriers.Changes)
+            {
+                this.lent = (this.barriers.Changes, this.barriers.ClosedSnapshot());
+            }
+
+            return this.lent.Value.Mask;
+        }
+
+        /// <summary>Whether a cell the barrier memory holds closed lies within <paramref name="radius"/> cells of a grid cell.</summary>
+        public bool ClosedNear(int x, int y, int radius, int bytesPerRow) => this.barriers.IsClosedNear(x, y, radius, bytesPerRow);
 
         /// <summary>
         ///     The grid to answer with without reading the game: the one combined last, while it has <paramref name="cells"/>
@@ -64,6 +84,7 @@ namespace Poe2Accessibility.Services
         {
             this.Forget();
             this.barriers.Reset();
+            this.lent = null;
         }
 
         /// <summary>

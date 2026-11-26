@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear),
+            (nameof(ABarrierRememberedClosedIsLentAsACopy), ABarrierRememberedClosedIsLentAsACopy),
             (nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge),
             (nameof(RadarFindsTheDoorwayToAnotherRoom), RadarFindsTheDoorwayToAnotherRoom),
             (nameof(MapCornerFollowsTheScreenNotTheGrid), MapCornerFollowsTheScreenNotTheGrid),
@@ -64,6 +65,31 @@ namespace Poe2Accessibility.Tests
             grid = (byte[])open.Clone();
             fresh.Apply(grid);
             Equal(false, RoutePlanner.IsWalkable(grid, row, 381, 5), "closed before the first sample");
+        }
+
+        private static void ABarrierRememberedClosedIsLentAsACopy()
+        {
+            // The same strip: the gate's cells are lent to the exploration map as a mask, and asked about near a cell.
+            const int row = 200;
+            var open = Enumerable.Repeat((byte)0x11, row * 10).ToArray();
+            var shut = (byte[])open.Clone();
+            for (var y = 0; y < 10; y++)
+            {
+                shut[(y * row) + 190] = 0;
+            }
+
+            var memory = new BarrierMemory();
+            Equal(true, memory.ClosedSnapshot() == null, "nothing remembered");
+            memory.Observe(open, open, row, 10, 5);
+            memory.Observe(shut, open, row, 10, 5);
+            memory.Observe(open, open, row, 10, 5); // read open from afar: still closed
+            var mask = memory.ClosedSnapshot();
+            Equal(true, mask != null && mask[(5 * row) + 190] == 0xFF, "both cells of the byte lent closed");
+            Equal(true, memory.IsClosedNear(383, 5, 4, row), "within four cells of the gate");
+            Equal(false, memory.IsClosedNear(300, 5, 4, row), "far from it");
+            memory.Observe(open, open, row, 300, 5); // read open from near by: forgotten
+            Equal(true, memory.ClosedSnapshot() == null, "nothing closed left");
+            Equal(0xFF, (int)mask![(5 * row) + 190], "the lent copy is not the memory");
         }
 
         private static void UnexploredGroundLiesPastTheSeenEdge()
