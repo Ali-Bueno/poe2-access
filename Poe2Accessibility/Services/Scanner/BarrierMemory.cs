@@ -119,25 +119,44 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     A copy of the cells held closed (a nibble 0xF per cell, the grid's layout), for the exploration map to look
-        ///     past them on another thread; null while none is held.
+        ///     The cells a grid for routes holds closed that were once walkable (a nibble 0xF per cell, the grid's layout): the
+        ///     barriers to look past, as routes see them, so the two never disagree (review, 2026-11-26: the memory forgets a
+        ///     gate at its first open reading, routes two seconds later). A new array the caller owns; null when none.
         /// </summary>
-        public byte[]? ClosedSnapshot() => this.closedCount == 0 ? null : (byte[])this.closed.Clone();
-
-        /// <summary>Whether a cell held closed lies within <paramref name="radius"/> cells (each axis) of a grid cell.</summary>
-        public bool IsClosedNear(int x, int y, int radius, int bytesPerRow)
+        public byte[]? ClosedOf(byte[] grid)
         {
-            if (this.closedCount == 0 || bytesPerRow <= 0)
+            if (this.everOpen.Length != grid.Length)
+            {
+                return null;
+            }
+
+            byte[]? mask = null;
+            for (var i = 0; i < grid.Length; i++)
+            {
+                var shut = (byte)(Nibbles(this.everOpen[i]) & ~Nibbles(grid[i]));
+                if (shut != 0)
+                {
+                    (mask ??= new byte[grid.Length])[i] = shut;
+                }
+            }
+
+            return mask;
+        }
+
+        /// <summary>Whether a cell set in <paramref name="cells"/> (the grid's layout) lies within <paramref name="radius"/> cells (each axis) of a grid cell.</summary>
+        public static bool AnyNear(byte[]? cells, int x, int y, int radius, int bytesPerRow)
+        {
+            if (cells == null || bytesPerRow <= 0)
             {
                 return false;
             }
 
-            var rows = this.closed.Length / bytesPerRow;
+            var rows = cells.Length / bytesPerRow;
             for (var row = Math.Max(0, y - radius); row <= Math.Min(rows - 1, y + radius); row++)
             {
                 for (var cell = Math.Max(0, x - radius); cell <= Math.Min((bytesPerRow * 2) - 1, x + radius); cell++)
                 {
-                    var value = this.closed[(row * bytesPerRow) + (cell / 2)];
+                    var value = cells[(row * bytesPerRow) + (cell / 2)];
                     if (((cell & 1) == 0 ? value & 0x0F : value & 0xF0) != 0)
                     {
                         return true;

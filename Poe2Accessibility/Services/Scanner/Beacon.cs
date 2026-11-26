@@ -361,7 +361,7 @@ namespace Poe2Accessibility.Services
             var apart = Vector2.Distance(at, new Vector2(next.WorldX, next.WorldY) / gridSize) > ApartCells;
             var (locked, turnWay) = (this.lockedAt, this.lastTurnWay);
             this.Aim(next);
-            if (apart)
+            if (BarrierGround.SaysNext(apart, next.Kind))
             {
                 this.output.Say(SpeechKind.Arrivals, Announcements.ExploreNext(this.catalog.Describe(next, out var cut, out var longWay)));
                 this.news.Aim(cut, longWay);

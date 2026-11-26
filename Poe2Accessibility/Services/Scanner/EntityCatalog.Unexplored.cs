@@ -228,8 +228,13 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
-                    uint IdOf(FrontierPlace place) =>
-                        UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells);
+                    // A gate's entry goes by the barrier's own first cell, not its near side, which moves with the player.
+                    uint IdOf(FrontierPlace place)
+                    {
+                        var at = place.BehindBarrier ? place.Barrier : place.Cell;
+                        return UnexploredIdBase + (uint)(((int)at.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)at.X / ExplorationMap.BlockCells);
+                    }
+
                     // A barrier at a door the player opens is that door, listed as "Unopened door" already.
                     var doorCells = this.doors.Nearest(new Vector2(player.WorldPosition.X, player.WorldPosition.Y))
                         .Select(door => new Vector2(door.At.X, door.At.Y) / found.ToWorld).ToList();
@@ -249,6 +254,7 @@ namespace Poe2Accessibility.Services
                             place.BehindBarrier ? ExplorationMap.BarrierGroundKind
                             : place.Size == UnseenSize.Pocket ? ExplorationMap.PocketKind : place.Size == UnseenSize.Small ? ExplorationMap.SmallKind : string.Empty))
                         .ToList();
+                    this.tried.KeepOnly(this.unexplored.Where(entry => entry.Kind == ExplorationMap.BarrierGroundKind).Select(entry => entry.Id).ToList());
                 }
             }
 

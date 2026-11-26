@@ -246,6 +246,9 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public readonly record struct FrontierPlace(Vector2 Cell, UnseenSize Size, int Steps, IReadOnlyList<int> LeadsTo, bool BehindBarrier = false)
     {
+        /// <summary>For a place behind a barrier, the barrier's own first cell: the same wherever the player stands, so the gate keeps one identity.</summary>
+        public Vector2 Barrier { get; init; }
+
         public bool Pocket => this.Size == UnseenSize.Pocket;
     }
 }

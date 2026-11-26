@@ -23,6 +23,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the ground past a closed barrier is listed among the unexplored (setting GroundBehindBarriers).</summary>
         public bool GroundBehindBarriers { get; set; } = true;
 
+        /// <summary>
+        ///     The quest tracker's objective lines alone (set by the plugin): a step that changes may open a barrier found shut.
+        ///     Not the whole HUD, whose clocks and counters change every second (review, 2026-11-26).
+        /// </summary>
+        public Func<IReadOnlyList<string>> QuestObjectives { get; set; } = () => Array.Empty<string>();
+
         /// <summary>Whether the barrier memory holds a cell closed by a grid cell: the gate a barrier entry stands at is still shut.</summary>
         public bool BarrierClosedNear(Vector2 cell)
         {

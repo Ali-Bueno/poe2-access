@@ -29,7 +29,54 @@ namespace Poe2Accessibility.Tests
             (nameof(ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges), ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges),
             (nameof(GroundBehindADoorIsTheDoorsEntry), GroundBehindADoorIsTheDoorsEntry),
             (nameof(TheGateIsSaidAsShutWithTheBossWhenOneIsInside), TheGateIsSaidAsShutWithTheBossWhenOneIsInside),
+            (nameof(ATallGateInTwoPiecesIsOneGateFromEitherEnd), ATallGateInTwoPiecesIsOneGateFromEitherEnd),
+            (nameof(OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain), OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain),
+            (nameof(TheExploringGuideNamesAGateItTurnsTo), TheExploringGuideNamesAGateItTurnsTo),
         };
+
+        /// <summary>
+        ///     A gate 50 rows tall remembered in two pieces (rows 236-275 and 279-285) is one gate, with one place and one
+        ///     identity, whichever end of the pen the player stands at (review, 2026-11-26: two places from one end, and an
+        ///     id that moved with the player, so a gate found shut was offered again).
+        /// </summary>
+        private static void ATallGateInTwoPiecesIsOneGateFromEitherEnd()
+        {
+            var (grid, mask) = Pen(236, 286, Enumerable.Range(236, 40).Concat(Enumerable.Range(279, 7)), (20, 200, 100, 320), (100, 236, 200, 286), (200, 0, 880, 390));
+            var barriers = new List<Vector2>();
+            foreach (var player in new[] { new Vector2(60, 212), new Vector2(60, 308) })
+            {
+                var map = new ExplorationMap();
+                map.Visit(player, PenWidth, PenHeight);
+                var places = map.Frontier(grid, PenRow, player, 8, null, mask).Where(place => place.BehindBarrier).ToList();
+                Equal(1, places.Count, $"one place from {player.Y}");
+                Equal(UnseenSize.Large, places[0].Size, $"large from {player.Y}");
+                barriers.Add(places[0].Barrier);
+            }
+
+            Equal(barriers[0], barriers[1], "the same gate from both ends");
+        }
+
+        private static void OnlyTheQuestsOwnLinesAndAGateSeenOpenOfferItAgain()
+        {
+            var tried = new TriedBarriers();
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            tried.Tried(1);
+            tried.NoteQuest(Array.Empty<string>());
+            Equal(true, tried.Contains(1), "an empty reading is no new step");
+            tried.NoteQuest(new[] { "Find Freythorn" });
+            Equal(true, tried.Contains(1), "nor is the same step read again after it");
+            tried.Tried(2);
+            tried.KeepOnly(new uint[] { 2 });
+            Equal(false, tried.Contains(1), "a gate no longer listed (seen open) is forgotten");
+            Equal(true, tried.Contains(2), "one still listed stays tried");
+        }
+
+        private static void TheExploringGuideNamesAGateItTurnsTo()
+        {
+            Equal(false, BarrierGround.SaysNext(false, string.Empty), "ground beside the last goes on silently, as before");
+            Equal(true, BarrierGround.SaysNext(true, string.Empty), "ground apart is named, as before");
+            Equal(true, BarrierGround.SaysNext(false, ExplorationMap.BarrierGroundKind), "a gate is always named, however near");
+        }
 
         private static void TheGateIsSaidAsShutWithTheBossWhenOneIsInside()
         {

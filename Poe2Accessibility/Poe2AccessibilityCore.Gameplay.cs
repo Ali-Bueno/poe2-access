@@ -568,7 +568,16 @@ namespace Poe2Accessibility
             return hud?.Texts.Where(text => text.Name != QuestTitleLabel).Select(text => text.Text).ToList() ?? (System.Collections.Generic.IReadOnlyList<string>)Array.Empty<string>();
         }
 
+        /// <summary>The tracker's objective lines alone ("quest_info"), without its names, clocks and counters.</summary>
+        private System.Collections.Generic.IReadOnlyList<string> QuestObjectives()
+        {
+            var hud = this.narrator == null ? null : this.screen?.Current.Find(this.narrator.HudLayer);
+            return hud?.Texts.Where(text => text.Name == QuestObjectiveLabel).Select(text => text.Text).ToList() ?? (System.Collections.Generic.IReadOnlyList<string>)Array.Empty<string>();
+        }
+
         /// <summary>The tracker's label for a quest's name; its objectives are "quest_info" (UI dump 2026-11-10).</summary>
         private const string QuestTitleLabel = "title_label";
+
+        private const string QuestObjectiveLabel = "quest_info";
     }
 }

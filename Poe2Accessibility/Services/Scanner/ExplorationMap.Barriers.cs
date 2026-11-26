@@ -12,14 +12,16 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed partial class ExplorationMap
     {
-        /// <summary>Gates nearer than this are one gate remembered in pieces (317 and 3 cells a few rows apart, live).</summary>
+        /// <summary>Pieces nearer than this are one gate remembered in pieces (317 and 3 cells a few rows apart, live).</summary>
         private const float GateMergeCells = 2 * BlockCells;
 
         /// <summary>
         ///     One place per barrier with unseen ground past it worth a look, at the barrier's near side, and per block the
         ///     ground reached only through a barrier (<paramref name="behind"/>) with the unseen ground behind that barrier
         ///     (<paramref name="behindGround"/>). A cell is past a barrier when the walk from the player reaches it only once
-        ///     the cells <paramref name="closedMask"/> holds closed are open; it belongs to the first barrier on that walk.
+        ///     the cells <paramref name="closedMask"/> holds closed are open; it belongs to the first barrier on that walk. A
+        ///     barrier is the pieces of the mask that touch the player's ground, joined when their outlines lie within
+        ///     <see cref="GateMergeCells"/>, and keeps its first cell as its identity wherever the player stands.
         /// </summary>
         private List<FrontierPlace> BarrierPlaces(byte[] grid, int bytesPerRow, int width, int height, Vector2 from, byte[] closedMask, bool[] behind, int[] behindGround)
         {
@@ -35,11 +37,12 @@ namespace Poe2Accessibility.Services
                 Walk(grid, bytesPerRow, width, height, start, this.walks, true);
                 var (marks, steps, queue) = (this.walks.Marks, this.walks.Steps, this.walks.Queue);
                 var labels = this.walks.FitLabels(cells);
-                var gates = new List<(int Cell, int Steps)> { (-1, int.MaxValue) }; // by label; label 0 is none
-                var piece = new Stack<int>();
+                var pieces = new List<Piece> { default }; // by label; label 0 is none
+                var stack = new Stack<int>();
                 queue.Clear();
 
-                // The pieces of the mask that touch the player's ground, each a barrier with its gate: the reached cell beside it with the shortest walk.
+                // The pieces of the mask that touch the player's ground: each with its outline, its first cell and its gate,
+                // the reached cell beside it with the shortest walk.
                 for (var i = 0; i < closedMask.Length; i++)
                 {
                     if (closedMask[i] == 0)
@@ -61,19 +64,24 @@ namespace Poe2Accessibility.Services
                             continue;
                         }
 
-                        var label = gates.Count;
-                        var gate = (Cell: -1, Steps: int.MaxValue);
+                        var label = pieces.Count;
+                        var piece = new Piece(x, y, x, y, seed, -1, int.MaxValue);
                         labels[seed] = label;
-                        piece.Push(seed);
-                        while (piece.TryPop(out var cell))
+                        stack.Push(seed);
+                        while (stack.TryPop(out var cell))
                         {
                             queue.Enqueue(cell);
-                            if (ReachedBeside(cell) is { } beside && steps[beside] < gate.Steps)
+                            var (cx, cy) = (cell % width, cell / width);
+                            piece = piece with
                             {
-                                gate = (beside, steps[beside]);
+                                Left = Math.Min(piece.Left, cx), Top = Math.Min(piece.Top, cy), Right = Math.Max(piece.Right, cx), Bottom = Math.Max(piece.Bottom, cy),
+                                First = Math.Min(piece.First, cell),
+                            };
+                            if (ReachedBeside(cell) is { } beside && steps[beside] < piece.GateSteps)
+                            {
+                                piece = piece with { Gate = beside, GateSteps = steps[beside] };
                             }
 
-                            var (cx, cy) = (cell % width, cell / width);
                             for (var dy = -1; dy <= 1; dy++)
                             {
                                 for (var dx = -1; dx <= 1; dx++)
@@ -88,22 +96,35 @@ namespace Poe2Accessibility.Services
                                     if (labels[next] == 0 && marks[next] == 0)
                                     {
                                         labels[next] = label;
-                                        piece.Push(next);
+                                        stack.Push(next);
                                     }
                                 }
                             }
                         }
 
-                        gates.Add(gate);
+                        pieces.Add(piece);
                     }
                 }
 
-                if (gates.Count == 1)
+                if (pieces.Count == 1)
                 {
                     return places;
                 }
 
-                // Out from the barriers over the ground the player cannot reach: each cell keeps the barrier it came through.
+                // Pieces whose outlines nearly touch are one gate, wherever the player stands along it.
+                var gate = Enumerable.Range(0, pieces.Count).ToArray();
+                for (var a = 1; a < pieces.Count; a++)
+                {
+                    for (var b = a + 1; b < pieces.Count; b++)
+                    {
+                        if (Apart(pieces[a], pieces[b]) <= GateMergeCells)
+                        {
+                            gate[Find(b)] = Find(a);
+                        }
+                    }
+                }
+
+                // Out from the barriers over the ground the player cannot reach: each cell keeps the piece it came through.
                 while (queue.TryDequeue(out var cell))
                 {
                     var (x, y) = (cell % width, cell / width);
@@ -113,23 +134,29 @@ namespace Poe2Accessibility.Services
                     Spread(x, y + 1, labels[cell]);
                 }
 
-                // Per barrier, the unseen blocks of the ground past it.
-                var unseen = new int[gates.Count];
+                // Per gate, the unseen blocks of the ground past it.
+                var unseen = new int[pieces.Count];
                 var owner = new int[behind.Length];
                 for (var cell = 0; cell < cells; cell++)
                 {
+                    if (labels[cell] == 0)
+                    {
+                        continue;
+                    }
+
                     var (x, y) = (cell % width, cell / width);
-                    if (labels[cell] == 0 || !Walkable(grid, bytesPerRow, x, y))
+                    if (!Walkable(grid, bytesPerRow, x, y))
                     {
                         continue;
                     }
 
                     var block = this.BlockOf(cell, width);
                     behind[block] = true;
+                    var root = Find(labels[cell]);
                     if (!this.seen[block] && owner[block] == 0)
                     {
-                        owner[block] = labels[cell];
-                        unseen[labels[cell]]++;
+                        owner[block] = root;
+                        unseen[root]++;
                     }
                 }
 
@@ -138,28 +165,29 @@ namespace Poe2Accessibility.Services
                     behindGround[block] = owner[block] == 0 ? 0 : unseen[owner[block]];
                 }
 
-                // A gate beside a larger one is the same gate: its ground joins the larger one's.
-                var kept = new List<(int Gate, int Unseen)>();
-                foreach (var label in Enumerable.Range(1, gates.Count - 1).Where(label => gates[label].Cell >= 0).OrderByDescending(label => unseen[label]))
+                foreach (var group in Enumerable.Range(1, pieces.Count - 1).GroupBy(Find))
                 {
-                    var at = Centre(gates[label].Cell);
-                    var same = kept.FindIndex(gate => Vector2.Distance(Centre(gate.Gate), at) <= GateMergeCells);
-                    if (same >= 0)
+                    var nearest = group.Select(label => pieces[label]).Where(piece => piece.Gate >= 0).OrderBy(piece => piece.GateSteps).Cast<Piece?>().FirstOrDefault();
+                    if (nearest is not { } near || unseen[group.Key] < PocketBlocks)
                     {
-                        kept[same] = (kept[same].Gate, kept[same].Unseen + unseen[label]);
+                        continue;
                     }
-                    else
-                    {
-                        kept.Add((gates[label].Cell, unseen[label]));
-                    }
-                }
 
-                foreach (var (gate, ground) in kept.Where(gate => gate.Unseen >= PocketBlocks))
-                {
-                    places.Add(new FrontierPlace(Centre(gate), SizeOf(ground), steps[gate], Array.Empty<int>(), true));
+                    var first = group.Min(label => pieces[label].First);
+                    places.Add(new FrontierPlace(Centre(near.Gate), SizeOf(unseen[group.Key]), near.GateSteps, Array.Empty<int>(), true) { Barrier = Centre(first) });
                 }
 
                 return places;
+
+                int Find(int label)
+                {
+                    while (gate[label] != label)
+                    {
+                        label = gate[label] = gate[gate[label]];
+                    }
+
+                    return label;
+                }
 
                 Vector2 Centre(int cell) => new((cell % width) + 0.5f, (cell / width) + 0.5f);
 
@@ -200,5 +228,16 @@ namespace Poe2Accessibility.Services
                 }
             }
         }
+
+        /// <summary>The gap between two pieces' outlines, in cells; 0 when they touch or overlap.</summary>
+        private static float Apart(Piece a, Piece b)
+        {
+            var dx = Math.Max(0, Math.Max(a.Left - b.Right, b.Left - a.Right));
+            var dy = Math.Max(0, Math.Max(a.Top - b.Bottom, b.Top - a.Bottom));
+            return MathF.Sqrt((dx * dx) + (dy * dy));
+        }
+
+        /// <summary>A piece of the barrier mask: its outline (cells), its first cell, and its gate (the reached cell beside it with the shortest walk, -1 for none).</summary>
+        private readonly record struct Piece(int Left, int Top, int Right, int Bottom, int First, int Gate, int GateSteps);
     }
 }

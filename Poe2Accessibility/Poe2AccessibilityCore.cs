@@ -517,6 +517,7 @@ namespace Poe2Accessibility
                 this.commands.Inspect = this.inspect;
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.entities.QuestObjectives = this.QuestObjectives;
                 this.entities.QuestItemsCarried = () => this.pickups?.QuestItems ?? (System.Collections.Generic.IReadOnlyCollection<string>)Array.Empty<string>();
                 this.entities.CrystalsCounted = () => this.narrator != null && this.screen != null && this.narrator.CrystalsCounted(this.screen.Current);
                 this.entities.RoomsApart = () => this.trialScope.InTrial(Environment.TickCount64);

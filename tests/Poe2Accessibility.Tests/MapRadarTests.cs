@@ -79,16 +79,24 @@ namespace Poe2Accessibility.Tests
             }
 
             var memory = new BarrierMemory();
-            Equal(true, memory.ClosedSnapshot() == null, "nothing remembered");
+            byte[] Routes()
+            {
+                var grid = (byte[])open.Clone();
+                memory.Apply(grid);
+                return grid;
+            }
+
+            Equal(true, memory.ClosedOf(open) == null, "nothing observed");
             memory.Observe(open, open, row, 10, 5);
             memory.Observe(shut, open, row, 10, 5);
             memory.Observe(open, open, row, 10, 5); // read open from afar: still closed
-            var mask = memory.ClosedSnapshot();
+            var mask = memory.ClosedOf(Routes());
             Equal(true, mask != null && mask[(5 * row) + 190] == 0xFF, "both cells of the byte lent closed");
-            Equal(true, memory.IsClosedNear(383, 5, 4, row), "within four cells of the gate");
-            Equal(false, memory.IsClosedNear(300, 5, 4, row), "far from it");
+            Equal(true, BarrierMemory.AnyNear(mask, 383, 5, 4, row), "within four cells of the gate");
+            Equal(false, BarrierMemory.AnyNear(mask, 300, 5, 4, row), "far from it");
+            Equal(true, memory.ClosedOf(shut) is { } live && live[(5 * row) + 190] == 0xFF, "a grid shut there, once open: lent closed too");
             memory.Observe(open, open, row, 300, 5); // read open from near by: forgotten
-            Equal(true, memory.ClosedSnapshot() == null, "nothing closed left");
+            Equal(true, memory.ClosedOf(Routes()) == null, "nothing closed left");
             Equal(0xFF, (int)mask![(5 * row) + 190], "the lent copy is not the memory");
         }
 
