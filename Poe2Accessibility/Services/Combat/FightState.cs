@@ -61,6 +61,12 @@ namespace Poe2Accessibility.Services
             return this.lastInPlay.TryGetValue(id, out var at) && now - at < OutOfPlayMs;
         }
 
+        /// <summary>
+        ///     Forgets one at once: a monster an Essence's crystal turns out to hold. Its first poll can come before the crystal's
+        ///     watch first looks, and that one in play kept the crystal's sound quiet for the whole hold (user 2026-11-26).
+        /// </summary>
+        public void Forget(uint id) => this.lastInPlay.Remove(id);
+
         /// <summary>Forgets those past the hold: the next area uses the same ids.</summary>
         public void Prune(long now)
         {

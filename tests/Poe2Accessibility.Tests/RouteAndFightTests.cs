@@ -333,6 +333,9 @@ namespace Poe2Accessibility.Tests
             Equal(false, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs), "gone for good, it stops counting");
             roster.Prune(700000 + FightRoster.OutOfPlayMs);
             Equal(false, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs - 1), "forgotten: the next area uses the same ids");
+            Equal(true, roster.Counts(1199, true, 1000), "an essence's monster seen in play before its crystal's watch looked");
+            roster.Forget(1199);
+            Equal(false, roster.Counts(1199, false, 1250), "held: forgotten at once, so the crystal is not quiet for the whole hold");
         }
 
         private static void AHiddenMonsterIsToldByItsBuff()

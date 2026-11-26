@@ -83,7 +83,9 @@ namespace Poe2Accessibility.Services
             var monsters = new List<(uint Id, Vector2 Place, bool Pack)>();
             foreach (var entity in entities)
             {
-                if (!entity.IsValid || entity.EntityType != EntityTypes.Monster || this.freed.Contains(entity.Id) || !entity.TryGetComponent<Render>(out var render))
+                // Only an enemy: the player's own skill objects are monsters too (a monk's spectral bell, dropped by a crystal, 2026-11-26).
+                if (!entity.IsValid || entity.EntityType != EntityTypes.Monster || this.freed.Contains(entity.Id) || !EntityCatalog.IsAliveEnemy(entity) ||
+                    !entity.TryGetComponent<Render>(out var render))
                 {
                     continue;
                 }

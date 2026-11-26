@@ -76,6 +76,12 @@ namespace Poe2Accessibility.Services
             var (any, rare) = (false, false);
             foreach (var entity in this.AliveInRange(player))
             {
+                if (EssencePrison.Holds(entity.Id))
+                {
+                    this.roster.Forget(entity.Id); // out of the fight until its crystal shatters, whatever was seen before
+                    continue;
+                }
+
                 if (this.roster.Counts(entity.Id, EntityCatalog.IsInPlay(this.memory, entity), now))
                 {
                     any = true;
