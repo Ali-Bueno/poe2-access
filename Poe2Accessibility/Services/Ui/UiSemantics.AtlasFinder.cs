@@ -21,7 +21,7 @@ namespace Poe2Accessibility.Services
             {
                 AtlasDestinationCategory.Accessible => entry.State == AtlasNodeState.Accessible,
                 AtlasDestinationCategory.Landmarks => this.AtlasIsLandmark(entry),
-                AtlasDestinationCategory.Objectives => entry.Id is { } id && EndgameCatalog.Shared.Node(id)?.Objective is { Length: > 0 },
+                AtlasDestinationCategory.SeasonalActivities => entry.Id is { } id && EndgameCatalog.Shared.Node(id)?.Objective is { Length: > 0 },
                 _ => false,
             };
             var allowed = scan.Where(entry => entry.Revealed && entry.Id != null).Select(entry => entry.Id!).ToHashSet(StringComparer.Ordinal);
@@ -52,7 +52,10 @@ namespace Poe2Accessibility.Services
                 this.AtlasAnchorLine(scan, here, opened),
             });
 
-        /// <summary>"Caldera, Accessible, Ritual, 4 links away. From here: down right, 4 pushes": a chosen destination.</summary>
+        /// <summary>
+        ///     "Caldera, Accessible, Ritual, 4 links away. From here: down right, 4 pushes": a chosen destination.
+        ///     A locked destination first names the accessible map that gates it, and the pushes lead there.
+        /// </summary>
         public string AtlasDestinationFound(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here, AtlasScanEntry target)
         {
             var catalog = EndgameCatalog.Shared;
@@ -68,20 +71,61 @@ namespace Poe2Accessibility.Services
                 parts.Add(Announcements.AtlasTowerReaches(reach));
             }
 
-            var way = this.AtlasDestinationWay(scan, here, target);
-            parts.Add(way.Linked ? Announcements.AtlasLinksAway(way.Away) : Announcements.AtlasStepsAway(way.Away));
-            return Announcements.PassiveFound(target.Name, string.Join(", ", parts), way.Words.Words(false));
+            var gate = this.AtlasDestinationGate(scan, target);
+            var effective = gate ?? target;
+            var finalWay = this.AtlasDestinationWay(scan, here, target);
+            parts.Add(finalWay.Linked ? Announcements.AtlasLinksAway(finalWay.Away) : Announcements.AtlasStepsAway(finalWay.Away));
+            if (gate != null && gate.Key == here.Key && gate.Key != target.Key)
+            {
+                return Announcements.PassiveFound(target.Name, string.Join(", ", parts), Announcements.AtlasClearThisFirst);
+            }
+
+            var way = effective.Key == target.Key ? finalWay : this.AtlasDestinationWay(scan, here, effective);
+            var found = Announcements.PassiveFound(target.Name, string.Join(", ", parts), way.Words.Words(false));
+            return gate != null && gate.Key != target.Key
+                ? Announcements.Sentences(new[] { found, Announcements.AtlasFirstClearFor(gate.Name, target.Name) })
+                : found;
         }
 
         /// <summary>
         ///     The way on at a landing while a destination leads ("Toward Caldera: down right, 3", the goal only
-        ///     when it changes). A way with no link route says its side alone.
+        ///     when it changes). A locked destination is led to through its first accessible gate: at that map
+        ///     the way stops and says to clear it, however far the cursor could be hopped beyond.
         /// </summary>
         public string AtlasDestinationGuide(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here, AtlasScanEntry target)
         {
-            var way = this.AtlasDestinationWay(scan, here, target);
+            var gate = this.AtlasDestinationGate(scan, target);
+            if (gate != null && gate.Key == here.Key && gate.Key != target.Key)
+            {
+                return Announcements.AtlasClearThisFirst;
+            }
+
+            var effective = gate ?? target;
+            var way = this.AtlasDestinationWay(scan, here, effective);
             var spoken = way.Linked ? way.Words : new Way(way.Words.Octant, null, false);
-            return this.GoalAndWay($"atlas {target.Key}", Announcements.PassiveToward(target.Name), spoken);
+            return this.GoalAndWay($"atlas {target.Key} via {effective.Key}", Announcements.PassiveToward(effective.Name), spoken);
+        }
+
+        /// <summary>The first accessible map to clear for a locked destination, from the scan's node states.</summary>
+        private AtlasScanEntry? AtlasDestinationGate(IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry target)
+        {
+            if (target.Id is not { } to)
+            {
+                return null;
+            }
+
+            var byId = new Dictionary<string, AtlasScanEntry>(StringComparer.Ordinal);
+            foreach (var entry in scan.Where(entry => entry.Revealed && entry.Id != null))
+            {
+                byId.TryAdd(entry.Id!, entry);
+            }
+
+            var gate = AtlasGraph.FirstGate(
+                to,
+                id => EndgameCatalog.Shared.Node(id)?.Links,
+                id => id == to || byId.ContainsKey(id),
+                id => byId.TryGetValue(id, out var entry) ? entry.State : AtlasNodeState.Locked);
+            return gate != null && byId.TryGetValue(gate, out var found) ? found : null;
         }
 
         /// <summary>The next push toward a destination and how far it lies: links on a catalogued way, else grid steps.</summary>

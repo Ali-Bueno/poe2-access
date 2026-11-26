@@ -119,10 +119,13 @@ The owner first chose L2 (LT) + right-stick flicks, then reported the game takes
 whether L2 is held or not (no finder press landed all session), so the buttons took over the same evening:
 L1/R1 walk a list's entries, and with L2 held they walk the lists instead; L2 + R3, or the Position list,
 drops the choice. The lists are **Position · Accessible, not completed · Landmarks** (the Phase 2 anchor
-kinds) · **Objectives** (nodes whose catalogue objective names what they ask; rolled contents remain a popup
-fact, so this is the honest part of the planned by-content list). A choice is spoken with its state and the
-first push; each settled landing then ends with the next push and links left, recomputed from where the cursor
-actually landed, and arrival clears it. The route keeps to revealed links (`AtlasGraph.Route` over the
+kinds) · **Seasonal activities** (nodes whose catalogue objective ties them to a league mechanic; rolled
+contents remain a popup fact, so this is the honest part of the planned by-content list). A choice is spoken
+with its state and the first push; each settled landing then ends with the next push and links left,
+recomputed from where the cursor actually landed, and arrival clears it. A locked destination is not walked
+to blindly: the guide leads first to the accessible map that gates it on a shortest way out of completed
+ground (`AtlasGraph.FirstGate`), names it at the choice, and on landing there says to clear it instead of a
+way on (live: it had walked the owner past Reservoir to the locked Burning Monolith). The route keeps to revealed links (`AtlasGraph.Route` over the
 opening scan's revealed catalogued nodes); a row-less end gets its side and grid steps. The target is kept by
 scan key across closing (the device window included), as designed. Bookmarks were checked as an alternative:
 they are the game's own saved pan targets (hold Y on an area, up to 16; the panel also pans to the player, the

@@ -251,6 +251,17 @@ namespace Poe2Accessibility.Tests
             Expect(false, revealed.ContainsKey("B"), "an unrevealed node is not walked through");
             Expect(3, revealed["D"], "the admitted way goes around it");
             Expect("A|C|E", string.Join("|", AtlasGraph.Route("A", "E", id => links.GetValueOrDefault(id), id => id != "B")), "the admitted shortest way");
+            var states = new Dictionary<string, AtlasNodeState>
+            {
+                ["A"] = AtlasNodeState.Completed, ["B"] = AtlasNodeState.Accessible, ["C"] = AtlasNodeState.Completed,
+                ["D"] = AtlasNodeState.Locked, ["E"] = AtlasNodeState.Locked,
+            };
+            Expect("B", AtlasGraph.FirstGate("D", id => links.GetValueOrDefault(id), _ => true, id => states.GetValueOrDefault(id)) ?? string.Empty,
+                "the accessible map just past completed ground");
+            Expect(string.Empty, AtlasGraph.FirstGate("A", id => links.GetValueOrDefault(id), _ => true, id => states.GetValueOrDefault(id)) ?? string.Empty,
+                "a completed destination has no gate");
+            Expect("B", AtlasGraph.FirstGate("B", id => links.GetValueOrDefault(id), _ => true, id => states.GetValueOrDefault(id)) ?? string.Empty,
+                "an accessible destination is itself");
             Expect(0, AtlasGraph.Route("A", "Z", id => links.GetValueOrDefault(id), _ => true).Count, "no way to an unlinked node");
             Expect(4, AtlasGraph.GridSteps(13, 18, 17, 17), "Rockpools to Slash in king steps");
             var nearest = AtlasGraph.NearestPerDirection(Vector2.Zero, new (Vector2, string)[]
@@ -343,7 +354,7 @@ namespace Poe2Accessibility.Tests
             IReadOnlyList<string> Members(AtlasDestinationCategory category) => category switch
             {
                 AtlasDestinationCategory.Accessible => new[] { "near", "far" },
-                AtlasDestinationCategory.Objectives => new[] { "objective" },
+                AtlasDestinationCategory.SeasonalActivities => new[] { "objective" },
                 _ => Array.Empty<string>(),
             };
             var finder = new AtlasDestinationFinder();

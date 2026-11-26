@@ -340,12 +340,16 @@ popup says "Unallocated" where it stands.
 
 **Atlas map destinations** (setting "Atlas destination finder on the shoulder buttons", Navigation, on by default):
 while the Atlas map itself has the cursor, L1/R1 (LB/RB) walk a destination list nearest first, and with L2 (LT)
-held they walk the lists instead: Position, Accessible, not completed, Landmarks and Objectives. What a press names
+held they walk the lists instead: Position, Accessible, not completed, Landmarks and Seasonal activities (places
+the game ties to a league mechanic — Ritual, Delirium, Abyss and kin). What a press names
 becomes the destination at once, with its state and the next push ("Caldera, Accessible, 4 links away. From here:
 down right, 4 pushes"). Then hop with the left stick or D-pad as usual: each landing ends with the next push and
 links left, counting down to "Arrived at …"; a wrong hop is silently rerouted. Going back to Position, or holding
 L2 and pressing R3, drops the destination. The guide keeps to revealed links where the game's graph knows them;
-for a place whose links are not known it says its side alone. The game's own Bookmarks still work beside it:
+for a place whose links are not known it says its side alone. A locked destination is led to through the first
+accessible map that gates it: choosing it names that map ("First clear Reservoir for The Burning Monolith"), the
+pushes lead there, and landing on it says "Clear this map first" instead of a way on — clear it and the guide
+finds the next gate. The game's own Bookmarks still work beside it:
 hold Y on an area to save one of up to 16, then use Y's panel to pan straight back there instead of walking.
 
 The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it

@@ -5,15 +5,16 @@ namespace Poe2Accessibility.Services
     using System.Linq;
 
     /// <summary>
-    ///     The Atlas map finder's lists; Position holds no destination and lets the chosen one go. Objective
-    ///     places are those the game data itself asks for, as opposed to whatever content a map happens to roll.
+    ///     The Atlas map finder's lists; Position holds no destination and lets the chosen one go. Seasonal
+    ///     activities are places the game data ties to a league mechanic, as opposed to whatever content a map
+    ///     happens to roll.
     /// </summary>
     public enum AtlasDestinationCategory
     {
         Position,
         Accessible,
         Landmarks,
-        Objectives,
+        SeasonalActivities,
     }
 
     /// <summary>

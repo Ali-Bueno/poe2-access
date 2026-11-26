@@ -88,8 +88,15 @@ namespace Poe2Accessibility
         {
             Services.AtlasDestinationCategory.Accessible => T("Accessible, not completed", "Accesibles sin completar"),
             Services.AtlasDestinationCategory.Landmarks => T("Landmarks", "Lugares de referencia"),
-            Services.AtlasDestinationCategory.Objectives => T("Objectives", "Objetivos"),
+            Services.AtlasDestinationCategory.SeasonalActivities => T("Seasonal activities", "Actividades de temporada"),
             _ => T("Position", "Posición"),
         };
+
+        /// <summary>"First clear Reservoir for The Burning Monolith": the accessible map gating a locked destination.</summary>
+        public static string AtlasFirstClearFor(string gate, string destination) =>
+            T($"First clear {gate} for {destination}", $"Primero completa {gate} para {destination}");
+
+        /// <summary>At the gating map itself: progression stops here until it is cleared.</summary>
+        public static string AtlasClearThisFirst => T("Clear this map first", "Completa primero este mapa");
     }
 }

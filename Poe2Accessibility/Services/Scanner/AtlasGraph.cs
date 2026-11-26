@@ -93,6 +93,76 @@ namespace Poe2Accessibility.Services
             return route;
         }
 
+        /// <summary>
+        ///     The first accessible, uncompleted node that must be cleared on a shortest way from completed
+        ///     ground to a destination: progression stops there, however far the cursor can be hopped beyond it.
+        ///     The destination itself when it is accessible; null when it is completed or no admitted completed
+        ///     ground leads to it. An accessible side branch off completed ground is not the gate when a shorter
+        ///     completed way passes it by.
+        /// </summary>
+        public static string? FirstGate(
+            string to,
+            Func<string, IEnumerable<string>?> links,
+            Func<string, bool> allowed,
+            Func<string, AtlasNodeState> state)
+        {
+            if (!allowed(to))
+            {
+                return null;
+            }
+
+            if (state(to) == AtlasNodeState.Accessible)
+            {
+                return to;
+            }
+
+            if (state(to) == AtlasNodeState.Completed)
+            {
+                return null;
+            }
+
+            var toTarget = Distances(to, links, allowed);
+            var fromCompleted = new Dictionary<string, int>(StringComparer.Ordinal);
+            var pending = new Queue<string>();
+            foreach (var start in toTarget.Keys.Where(id => state(id) == AtlasNodeState.Completed))
+            {
+                fromCompleted[start] = 0;
+                pending.Enqueue(start);
+            }
+
+            string? best = null;
+            var bestScore = int.MaxValue;
+            while (pending.Count > 0)
+            {
+                var here = pending.Dequeue();
+                foreach (var other in links(here) ?? Enumerable.Empty<string>())
+                {
+                    if (!toTarget.TryGetValue(other, out var onward))
+                    {
+                        continue;
+                    }
+
+                    if (state(other) == AtlasNodeState.Completed)
+                    {
+                        if (fromCompleted.TryAdd(other, fromCompleted[here] + 1))
+                        {
+                            pending.Enqueue(other);
+                        }
+                    }
+                    else if (state(other) == AtlasNodeState.Accessible)
+                    {
+                        var score = fromCompleted[here] + 1 + onward;
+                        if (score < bestScore || score == bestScore && string.CompareOrdinal(other, best) < 0)
+                        {
+                            (best, bestScore) = (other, score);
+                        }
+                    }
+                }
+            }
+
+            return best;
+        }
+
         /// <summary>A grid place as the stick's sides read it: y flipped to screen-down.</summary>
         public static Vector2 ScreenPlace(int gridX, int gridY) => new(gridX, -gridY);
 
