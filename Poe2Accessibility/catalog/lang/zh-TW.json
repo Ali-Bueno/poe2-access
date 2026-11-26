@@ -961,6 +961,8 @@
  "The boss is no longer empowered": "首領不再被強化",
  "The boss retreats": "首領撤退",
  "The boss vanished": "首領消失了",
+ "The boss vanished but keeps striking: keep moving": "首領消失了，但仍在攻擊：別停下來",
+ "{0} vanished but keeps striking: keep moving": "{0}消失了，但仍在攻擊：別停下來",
  "The boss: {0}": "首領：{0}",
  "The build puts here: ": "流派在此放置：",
  "The closed barrier is {0}": "關閉的屏障{0}",

@@ -961,6 +961,8 @@
  "The boss is no longer empowered": "Босс больше не усилен",
  "The boss retreats": "Босс отступает",
  "The boss vanished": "Босс исчез",
+ "The boss vanished but keeps striking: keep moving": "Босс исчез, но продолжает атаковать: не стой на месте",
+ "{0} vanished but keeps striking: keep moving": "{0} исчез, но продолжает атаковать: не стой на месте",
  "The boss: {0}": "Босс: {0}",
  "The build puts here: ": "Билд ставит сюда: ",
  "The closed barrier is {0}": "Закрытый барьер — {0}",

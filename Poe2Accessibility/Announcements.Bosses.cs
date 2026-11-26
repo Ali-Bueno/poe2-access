@@ -17,6 +17,11 @@ namespace Poe2Accessibility
             _ => name == null ? T($"Phase {phase}", $"Fase {phase}") : T($"Phase {phase}: {name}", $"Fase {phase}: {name}"),
         };
 
+        /// <summary>A boss out of sight whose invisible helper keeps striking (Siora's storm): "The boss vanished but keeps striking: keep moving".</summary>
+        public static string BossGoneStriking(string? name) => name == null
+            ? T("The boss vanished but keeps striking: keep moving", "El jefe ha desaparecido, pero sigue atacando: no te pares")
+            : T($"{name} vanished but keeps striking: keep moving", $"{name} ha desaparecido, pero sigue atacando: no te pares");
+
         /// <summary>A boss hiding somewhere in its arena until the player finds it, and the way there: "The boss is hiding: follow the heartbeat, down left".</summary>
         public static string BossHiding(string? name, int octant, bool heartbeat)
         {

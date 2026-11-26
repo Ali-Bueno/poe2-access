@@ -862,6 +862,18 @@ fights and were dropped). The plugin's `BossPlaceKind.Activate` leads with the s
 the shelter's end. A rock with a place rule is no longer named from its file, so spent rocks are silent. The map version
 (Thariel) has only RuneRock_base in its rules: its maps' rocks are not looked up.
 
+**Heard live the same day (12:34-12:36):** three darknesses led to the lit rock (~0.8 s after "ha desaparecido"), each said
+"Algo que activar": the rock has no name yet at its first lit poll. Left so: waiting for the name would delay the lead in a
+darkness that kills within about 5 s. **A vanishing with no rock** (12:36:13-25, after "¡Sofócate!", a StormPhase line):
+11 s out of sight (`hidden_monster`), no rock lit, the player at half life with two flasks. Her helper `DarknessDaemon`
+("Creeping Fire") strikes on: `GSEzomyteReaperStormImpactSingle` (circle of 12 cells, 1.9 s after it is cast, its effect
+`lightningstorm_trackingbolt.ao`), under `GTEzomyteReaperStormImpact` across the arena; maxroll and Fextralife: lightning
+strikes the arena, mostly its edge; poe-vault: shades circle in the darkness and shoot as her life drops. Not found in any
+source: that phase's name or threshold. So a boss with a `daemon` line that vanishes is said "El jefe ha desaparecido, pero
+sigue atacando: no te pares" (`BossGoneStriking`); a rock that lights then interrupts it. The bolts themselves are not
+warned one by one: the helper is warned by its distance only (§17's audit, HELPER), and `Boss effect drawn` logs each
+`.ao` only now and then, so where each bolt lands is not known from this log.
+
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 
 The owner, after Doryani: "haz una búsqueda exhaustiva del resto de jefes… sea jefe secundario, de campaña, endgame". Two

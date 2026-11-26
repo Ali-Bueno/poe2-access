@@ -39,6 +39,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> daemons = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, List<string>> children = new(StringComparer.Ordinal);
         private readonly HashSet<string> daemonMonsters = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> daemonBosses = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, IReadOnlyList<string>> daemonSkills = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> arenaStates = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> empowering = new(StringComparer.OrdinalIgnoreCase);
@@ -71,6 +72,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A monster that is some boss's helper: the cheap first question.</summary>
         public bool IsDaemon(string monster) => this.daemonMonsters.Contains(monster);
+
+        /// <summary>Whether a boss has an invisible helper whose area attacks go on while the boss itself is out of sight (Siora's Creeping Fire).</summary>
+        public bool HasDaemon(string boss) => this.daemonBosses.Contains(boss);
 
         /// <summary>The kind of change a state of the boss makes to its arena ("burn", "collapse", "change"); null for any other state.</summary>
         public string? ArenaKind(string boss, string state) => this.arenaStates.GetValueOrDefault($"{boss}|{state}");
@@ -148,6 +152,7 @@ namespace Poe2Accessibility.Services
                 case "daemon":
                     this.daemons.Add($"{c[1]}|{c[2]}");
                     this.daemonMonsters.Add(c[2]);
+                    this.daemonBosses.Add(c[1]);
                     this.daemonSkills[$"{c[1]}|{c[2]}"] = c.Length > 3 ? c[3].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : Array.Empty<string>();
                     return true;
                 case "arena":

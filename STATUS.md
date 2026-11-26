@@ -538,7 +538,9 @@
 in her darkness one rune rock lights (`active=1`, targetable, glowing) and must be used; the census never tied the Stones of
 Serle's rocks to her fight. Now the extractor makes them `activate|…|active=1` and the plugin leads there with the shelter's
 heartbeat, "Activa Megalito rúnico: sigue el latido, …"; spent rocks are no longer "Objeto sin nombre" ([Siora](docs/research/boss-mechanics.md#siora)).
-**First to hear:** her darkness, the lead and the end cue as the rock is used.
+Heard the same day: three darknesses led to the rock; one vanishing with no rock (her storm) said only "ha desaparecido".
+A boss with an invisible helper that vanishes is now "El jefe ha desaparecido, pero sigue atacando: no te pares".
+**First to hear:** that line in her storm; the bolts are not warned one by one yet.
 
 **2026-11-26, 11:15 (the owner in the Stones of Serle: "el megalito rúnico no tiene sonido de misión… el segundo", then "ahora sí"; 1143 tests, deployed, not released):**
 "Activa los megalitos restantes" names no "Megalito rúnico" whole, so only the first rang. An object another step of

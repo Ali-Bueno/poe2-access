@@ -961,6 +961,8 @@
  "The boss is no longer empowered": "ボスの強化が切れた",
  "The boss retreats": "ボスが退いた",
  "The boss vanished": "ボスが消えた",
+ "The boss vanished but keeps striking: keep moving": "ボスは姿を消したが攻撃は続く：止まらずに動け",
+ "{0} vanished but keeps striking: keep moving": "{0}は姿を消したが攻撃は続く：止まらずに動け",
  "The boss: {0}": "ボス：{0}",
  "The build puts here: ": "ビルドではここに：",
  "The closed barrier is {0}": "閉じた障壁は{0}です",

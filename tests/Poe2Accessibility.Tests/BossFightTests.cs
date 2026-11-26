@@ -102,6 +102,8 @@ namespace Poe2Accessibility.Tests
             Equal("sandstorm_defence", catalog.PlaceRules(Asala).Single().State, "a refuge and its state");
             Equal(5, catalog.Places, "five places");
             Equal(0, catalog.PlaceRules("Metadata/Chests/Urn").Count, "any other entity is no place");
+            Equal(true, catalog.HasDaemon(Titan), "a boss with an invisible helper strikes on while out of sight");
+            Equal(false, catalog.HasDaemon(King), "one without");
         }
 
         private static void ABuffTextIsSpokenWithoutMarkup()

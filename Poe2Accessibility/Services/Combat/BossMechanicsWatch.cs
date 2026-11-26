@@ -223,7 +223,10 @@ namespace Poe2Accessibility.Services
                         this.Found(boss, now);
                     }
 
+                    // Gone with an invisible helper of its own, it is not gone from the fight: Siora's storm struck on, unsaid, for 11 s
+                    // while no rock lit (the owner, 2026-11-26 12:36: "hubo una que no sonó nada").
                     said.Add((news == BossNews.Gone ? this.HidingLine(boss, multi, now) : null) ??
+                             (news == BossNews.Gone && this.Catalog.HasDaemon(boss.Monster) ? Announcements.BossGoneStriking(multi ? boss.Name : null) : null) ??
                              Announcements.BossTurn(news, multi ? boss.Name : null, news == BossNews.Invulnerable ? adds.Count : 0, this.phase));
                 }
 

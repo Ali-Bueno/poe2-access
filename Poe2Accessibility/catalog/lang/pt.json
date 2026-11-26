@@ -961,6 +961,8 @@
  "The boss is no longer empowered": "O chefe não está mais fortalecido",
  "The boss retreats": "O chefe recua",
  "The boss vanished": "O chefe sumiu",
+ "The boss vanished but keeps striking: keep moving": "O chefe desapareceu, mas continua atacando: não pare",
+ "{0} vanished but keeps striking: keep moving": "{0} desapareceu, mas continua atacando: não pare",
  "The boss: {0}": "O chefe: {0}",
  "The build puts here: ": "O arquétipo põe aqui: ",
  "The closed barrier is {0}": "A barreira fechada está {0}",

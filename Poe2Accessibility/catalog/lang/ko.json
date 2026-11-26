@@ -961,6 +961,8 @@
  "The boss is no longer empowered": "보스 강화가 끝났습니다",
  "The boss retreats": "보스가 물러납니다",
  "The boss vanished": "보스가 사라졌다",
+ "The boss vanished but keeps striking: keep moving": "보스가 사라졌지만 계속 공격합니다: 멈추지 말고 움직이세요",
+ "{0} vanished but keeps striking: keep moving": "{0}이(가) 사라졌지만 계속 공격합니다: 멈추지 말고 움직이세요",
  "The boss: {0}": "보스: {0}",
  "The build puts here: ": "빌드에서 여기에 넣는 것: ",
  "The closed barrier is {0}": "닫힌 장벽은 {0}에 있습니다",

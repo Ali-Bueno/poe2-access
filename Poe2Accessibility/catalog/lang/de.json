@@ -961,6 +961,8 @@
  "The boss is no longer empowered": "Der Boss ist nicht mehr gestärkt",
  "The boss retreats": "Der Boss zieht sich zurück",
  "The boss vanished": "Der Boss ist verschwunden",
+ "The boss vanished but keeps striking: keep moving": "Der Boss ist verschwunden, greift aber weiter an: bleib in Bewegung",
+ "{0} vanished but keeps striking: keep moving": "{0} ist verschwunden, greift aber weiter an: bleib in Bewegung",
  "The boss: {0}": "Der Boss: {0}",
  "The build puts here: ": "Der Build setzt hier ein: ",
  "The closed barrier is {0}": "Die geschlossene Barriere ist {0}",
