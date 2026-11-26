@@ -130,11 +130,15 @@ The host needs Speech Dispatcher, Orca (Cthulhu included) or Spiel; PRISM's prio
 bridge talks to Orca's D-Bus service, which Orca 46 does not have: with it (Linux Mint 22.3, Ubuntu 24.04) the bridge
 loads and Speech Dispatcher speaks instead, with Orca's own voice settings.
 
-## Stopping
+## Stopping and restarting
 
 The mod stops by itself when the game closes. `sh poe2access-stop.sh` (beside `Poe2Access.exe`) stops it while the game
 runs, as `Stop the mod.bat` does on Windows: it runs `proton runinprefix ./Poe2Access.exe stop` in the session the
 launch script recorded (`proton run` goes through Proton's `steam.exe`, which waits for the game to close).
+`sh poe2access-restart.sh` starts it again against the running game (stop, replace files, restart — the hot-reload
+loop). A restart must carry `WINEDLLPATH` to the bridges or PRISM finds no speech backend and the mod is mute: the
+script takes it from the session record, as the launch set it. (2026-11-25: three restarts run by hand without it,
+each mute, with exactly that error in the log; the Steam relaunch each time masked it.)
 
 ## Questions and errors (dialogs)
 

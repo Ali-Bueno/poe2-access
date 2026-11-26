@@ -22,6 +22,18 @@ namespace Poe2Accessibility.Tests
             (nameof(LinksAreSaidClockwiseFromUp), LinksAreSaidClockwiseFromUp),
             (nameof(ContentIconsAreNamedByTheirArt), ContentIconsAreNamedByTheirArt),
             (nameof(TowersCountWhatTheyReach), TowersCountWhatTheyReach),
+            (nameof(AtlasStateReadsBitsNotEquality), AtlasStateReadsBitsNotEquality),
+            (nameof(AtlasLandingSaysStateAfterName), AtlasLandingSaysStateAfterName),
+            (nameof(AtlasGraphWalksLinksAndSectors), AtlasGraphWalksLinksAndSectors),
+            (nameof(AtlasTreeMapReadsClustersKindsAndOrdering), AtlasTreeMapReadsClustersKindsAndOrdering),
+            (nameof(AtlasTreeFinderWalksListsAndCountsPushes), AtlasTreeFinderWalksListsAndCountsPushes),
+            (nameof(AtlasTreeNextHopStartsAlongTheLinks), AtlasTreeNextHopStartsAlongTheLinks),
+            (nameof(AtlasDestinationFinderSkipsEmptyListsAndArrives), AtlasDestinationFinderSkipsEmptyListsAndArrives),
+            (nameof(AtlasProgressSaysWhatChangedSinceLastOpening), AtlasProgressSaysWhatChangedSinceLastOpening),
+            (nameof(AtlasProgressTakesAnotherAtlasSilently), AtlasProgressTakesAnotherAtlasSilently),
+            (nameof(AtlasProgressKeepsStatesInItsFile), AtlasProgressKeepsStatesInItsFile),
+            (nameof(AtlasTreeKindsComeFromTheMarksOverTheIds), AtlasTreeKindsComeFromTheMarksOverTheIds),
+            (nameof(SkillTreesAreKnownByTheirRootsNotTheirName), SkillTreesAreKnownByTheirRootsNotTheirName),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -117,7 +129,7 @@ namespace Poe2Accessibility.Tests
             },
             Text = new()
             {
-                ["en"] = new() { ["term/ContainsBreach"] = "Breach", ["passive/AtlasSmall1"] = "Essence Chance", ["area/MapUniqueInitialTower"] = "Precursor Tower",
+                ["en"] = new() { ["term/ContainsBreach"] = "Breach", ["passive/AtlasSmall1"] = "Essence Chance", ["area/MapUniqueInitialTower"] = "Precursor Tower", ["content/PowerfulMapBoss"] = "Powerful Map Boss", ["content/MapBoss"] = "Map Boss", ["content/VaalBeacons"] = "Vaal Beacons",
                     ["biome/Forest"] = "Forest", ["biome/Swamp"] = "Swamp", ["objective/Breach"] = "Open all Unstable Breaches", ["client/NeedsTower"] = "Complete the Tower",
                     ["client/ClickBeacon"] = "Activate the Precursor Beacon" },
                 ["es"] = new() { ["term/ContainsBreach"] = "Fisura", ["biome/Forest"] = "Bosque", ["biome/Swamp"] = "Pantano" },
@@ -180,6 +192,14 @@ namespace Poe2Accessibility.Tests
             Expect("Fisura", catalog.IconName("Art/2DArt/UIImages/InGame/AtlasScreen/AtlasIconContent/AtlasIconContentBreach.dds", "es"), "by the file, folder and extension aside");
             Expect("Breach", catalog.IconName(@"Art\2DArt\AtlasIconContentBreach|tint", "en"), "back slashes and a suffix");
             Expect(string.Empty, catalog.IconName("Art/2DArt/UIImages/InGame/Gold.dds", "en"), "other art");
+            Expect(true, catalog.IsContentName("Breach", "en"), "a content's own name as text (canvas icons carry no readable art)");
+            Expect(true, catalog.IsContentName("Fisura", "es"), "the same name in Spanish");
+            Expect(false, catalog.IsContentName("Open all Unstable Breaches", "en"), "a description is not a content name");
+            Expect(false, catalog.IsContentName("Breach", "es"), "names are per language");
+            Expect("Vaal Beacons", string.Join("|", catalog.ContentNamesIn("Area contains Vaal Beacons", "en")), "the popup's own contents line");
+            Expect("Powerful Map Boss", string.Join("|", catalog.ContentNamesIn("Area contains a Powerful Map Boss", "en")), "the longer name wins its place over the shorter inside it");
+            Expect("Vaal Beacons|Breach", string.Join("|", catalog.ContentNamesIn("Vaal Beacons and a Breach", "en")), "contents in the text's order, not the pool's");
+            Expect(string.Empty, string.Join("|", catalog.ContentNamesIn("Breaches everywhere", "en")), "no match inside a longer word");
         }
 
         private static void TowersCountWhatTheyReach()
@@ -190,6 +210,299 @@ namespace Poe2Accessibility.Tests
             Expect(0, catalog.TowerReach("AtlasPath1"), "no tower");
             Expect("up left", AtlasLinks.Side(new Vector2(10, 10), new Vector2(0, 0)), "the side a tower lies on, y down");
             Expect(string.Empty, AtlasLinks.Side(Vector2.One, Vector2.One), "the same place");
+        }
+
+        private static void AtlasStateReadsBitsNotEquality()
+        {
+            // The certified points of 2026-11-25, and the higher bits seen on special nodes never faking a state.
+            Expect(AtlasNodeState.Locked, AtlasState.Of(0), "locked: The Burning Monolith");
+            Expect(AtlasNodeState.Accessible, AtlasState.Of(1), "accessible: Gateway before, Steaming Springs");
+            Expect(AtlasNodeState.Completed, AtlasState.Of(3), "completed: Gateway after");
+            Expect(AtlasNodeState.Completed, AtlasState.Of(2), "the completed bit alone still reads completed");
+            Expect(AtlasNodeState.Accessible, AtlasState.Of(0x11), "a higher special bit does not mask accessible");
+            Expect(AtlasNodeState.Locked, AtlasState.Of(0x10), "special bits alone are not accessible");
+            Expect(AtlasNodeState.Completed, AtlasState.Of(0x13), "a special bit over both state bits still reads completed");
+        }
+
+        private static void AtlasLandingSaysStateAfterName()
+        {
+            Localization.Set("en", new());
+            var catalog = Catalog();
+            Expect(
+                "Steaming Springs. Accessible. Biome: Forest. Holds: Delirium. Links: right, Hilda's Campsite",
+                Announcements.AtlasLanding("Steaming Springs", Announcements.AtlasState(AtlasNodeState.Accessible), "Forest", "Holds: Delirium", "Links: right, Hilda's Campsite"),
+                "name, state, biome, contents, links");
+            Expect(
+                "The Burning Monolith. Locked",
+                Announcements.AtlasLanding("The Burning Monolith", Announcements.AtlasState(AtlasNodeState.Locked), string.Empty, string.Empty, string.Empty),
+                "no biome, contents or links said");
+            Expect("Forest", catalog.BiomeNameIn("Biome: Forest", "en"), "the popup's biome line");
+            Expect("Bosque", catalog.BiomeNameIn("Bioma: Bosque", "es"), "the same line in Spanish");
+            Expect(string.Empty, catalog.BiomeNameIn("Long lost secrets lie buried beyond.", "en"), "flavour ends in no biome");
+            Expect(string.Empty, catalog.BiomeNameIn("A Forest long lost to time.", "en"), "a biome named mid-flavour is not the line");
+            Expect(string.Empty, catalog.BiomeNameIn("The old Forest", "en"), "a title ending in a biome, with no label, is not its biome");
+            Localization.Set("es", new());
+            try
+            {
+                Expect("Completado", Announcements.AtlasState(AtlasNodeState.Completed), "the Spanish state word");
+            }
+            finally
+            {
+                Localization.Set("en", new());
+            }
+        }
+
+        private static void AtlasGraphWalksLinksAndSectors()
+        {
+            var links = new Dictionary<string, string[]>
+            {
+                ["A"] = new[] { "B", "C" }, ["B"] = new[] { "A", "D" }, ["C"] = new[] { "A", "E" }, ["D"] = new[] { "B", "E" }, ["E"] = new[] { "D", "C" }, ["Z"] = new string[0],
+            };
+            var distances = AtlasGraph.Distances("A", id => links.GetValueOrDefault(id));
+            Expect(0, distances["A"], "here itself");
+            Expect(2, distances["D"], "two links on");
+            Expect(2, distances["E"], "the shortest of two ways");
+            Expect(false, distances.ContainsKey("Z"), "an unlinked node is unreached");
+            var revealed = AtlasGraph.Distances("A", id => links.GetValueOrDefault(id), id => id != "B");
+            Expect(false, revealed.ContainsKey("B"), "an unrevealed node is not walked through");
+            Expect(3, revealed["D"], "the admitted way goes around it");
+            Expect("A|C|E", string.Join("|", AtlasGraph.Route("A", "E", id => links.GetValueOrDefault(id), id => id != "B")), "the admitted shortest way");
+            var states = new Dictionary<string, AtlasNodeState>
+            {
+                ["A"] = AtlasNodeState.Completed, ["B"] = AtlasNodeState.Accessible, ["C"] = AtlasNodeState.Completed,
+                ["D"] = AtlasNodeState.Locked, ["E"] = AtlasNodeState.Locked,
+            };
+            Expect("B", AtlasGraph.FirstGate("D", id => links.GetValueOrDefault(id), _ => true, id => states.GetValueOrDefault(id)) ?? string.Empty,
+                "the accessible map just past completed ground");
+            Expect(string.Empty, AtlasGraph.FirstGate("A", id => links.GetValueOrDefault(id), _ => true, id => states.GetValueOrDefault(id)) ?? string.Empty,
+                "a completed destination has no gate");
+            Expect("B", AtlasGraph.FirstGate("B", id => links.GetValueOrDefault(id), _ => true, id => states.GetValueOrDefault(id)) ?? string.Empty,
+                "an accessible destination is itself");
+            Expect(0, AtlasGraph.Route("A", "Z", id => links.GetValueOrDefault(id), _ => true).Count, "no way to an unlinked node");
+            Expect(4, AtlasGraph.GridSteps(13, 18, 17, 17), "Rockpools to Slash in king steps");
+            var nearest = AtlasGraph.NearestPerDirection(Vector2.Zero, new (Vector2, string)[]
+            {
+                (new Vector2(10, 0), "FarEast"), (new Vector2(2, 0), "NearEast"), (new Vector2(0, -3), "North"), (Vector2.Zero, "Here"),
+            });
+            Expect("NearEast|North", string.Join("|", nearest), "one nearest per direction, itself left out, nearest first");
+            Expect(new Vector2(13, -18), AtlasGraph.ScreenPlace(13, 18), "the grid's y flips to the screen's");
+        }
+
+        /// <summary>Two clusters in a line: the generic tree's start, a small, a notable; the Abyss cluster the same, unlinked.</summary>
+        private static AtlasTreeMap AtlasTreeFixture() => AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[]
+        {
+            ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
+            ("AtlasGenericSmall1", 100, 0, new[] { "AtlasGenericNotable1" }),
+            ("AtlasGenericNotable1", 200, 0, null),
+            ("AtlasGenericMastery1", 100, 50, null),
+            ("AtlasAbyssStart", 500, 0, new[] { "AtlasAbyssSmall1" }),
+            ("AtlasAbyssSmall1", 600, 0, new[] { "AtlasAbyssNotable1" }),
+            ("AtlasAbyssNotable1", 700, 0, null),
+            ("AtlasIncursionStart_", 900, 0, null),
+        });
+
+        private static void AtlasTreeMapReadsClustersKindsAndOrdering()
+        {
+            Expect("Abyss", AtlasTreeMap.ClusterOf("AtlasAbyssNotable1"), "the kind ends the cluster");
+            Expect("Generic", AtlasTreeMap.ClusterOf("AtlasGenericSmall78_"), "a small of the generic tree");
+            Expect("AzmeriSpirit", AtlasTreeMap.ClusterOf("AtlasAzmeriSpiritEssenceChance"), "a named small with no kind word");
+            Expect("AzmeriSpirit", AtlasTreeMap.ClusterOf("AtlasAzmeriSpiritEssenceNotable"), "an essence notable keeps its cluster, not a cluster of its own");
+            Expect("BiomeCity", AtlasTreeMap.ClusterOf("AtlasBiomeCity1"), "a bare number ends the cluster");
+            Expect("Azmeri Spirit", AtlasTreeMap.SaidCluster("AzmeriSpirit"), "a cluster as said");
+            var tree = AtlasTreeFixture();
+            Expect(7, tree.Ids.Length, "the mastery icon is left out");
+            var small = tree.Index["AtlasGenericSmall1"];
+            var distances = tree.DistancesFrom(small);
+            Expect(1, distances[tree.Index["AtlasGenericNotable1"]], "its notable one link on, the link read back the other way");
+            Expect(PassiveMap.NoPath, distances[tree.Index["AtlasAbyssNotable1"]], "no links join the clusters");
+            Expect("AtlasGenericNotable1|AtlasAbyssNotable1", string.Join("|", tree.Members(AtlasTreeCategory.Notables, small, distances)),
+                "notables: linked first in links, the other cluster's after");
+            Expect("AtlasGenericStart|AtlasAbyssStart|AtlasIncursionStart_", string.Join("|", tree.Members(AtlasTreeCategory.Clusters, small, distances)),
+                "cluster starts by drawn distance, the trailing-underscore start among them");
+        }
+
+        private static void AtlasTreeFinderWalksListsAndCountsPushes()
+        {
+            var tree = AtlasTreeFixture();
+            var small = tree.Index["AtlasGenericSmall1"];
+            var distances = tree.DistancesFrom(small);
+            IReadOnlyList<string> Members(AtlasTreeCategory category) => tree.Members(category, small, distances);
+            var finder = new AtlasTreeFinder();
+            finder.ChangeCategory(1, Members);
+            Expect("Notables", finder.Category.ToString(), "down once from Position");
+            Expect("AtlasGenericNotable1", finder.Target, "the nearest notable is the target, nothing to confirm");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("AtlasAbyssNotable1", finder.Target, "right walks the entries");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("AtlasGenericNotable1", finder.Target, "entries wrap");
+            finder.ChangeCategory(1, Members);
+            Expect("AtlasGenericStart", finder.Target, "the clusters' nearest start");
+            finder.ChangeCategory(1, Members);
+            Expect("Position", finder.Category.ToString(), "lists wrap back to Position");
+            Expect(string.Empty, finder.Target, "Position lets the target go");
+            finder.ChangeCategory(1, Members);
+            Expect(true, finder.Arrive("AtlasGenericNotable1"), "landing on the target arrives");
+            Expect(string.Empty, finder.Target, "arrival ends the guide");
+            Expect(false, finder.Arrive("AtlasGenericNotable1"), "arrival fires once");
+            var way = tree.Way(tree.Places, tree.Index["AtlasGenericStart"], tree.Index["AtlasGenericNotable1"], 60, out var far);
+            Expect(false, far, "two pushes are not far");
+            Expect(0, way?.Octant ?? -1, "the first push is right, octant 0");
+            Expect(2, way?.Pushes ?? -1, "start to notable through the small: 2 pushes");
+            finder.ChangeCategory(-1, Members);
+            Expect("Position", finder.Category.ToString(), "up walks the lists back");
+        }
+
+        private static void AtlasTreeNextHopStartsAlongTheLinks()
+        {
+            var tree = AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[]
+            {
+                ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
+                ("AtlasGenericSmall1", 10, 50, new[] { "AtlasGenericNotable1" }),
+                ("AtlasGenericNotable1", 100, 0, null),
+                ("AtlasAbyssStart", 500, 0, null),
+            });
+            var start = tree.Index["AtlasGenericStart"];
+            Expect(6, tree.NextHopOctant(tree.Places, start, tree.Index["AtlasGenericNotable1"]) ?? -1,
+                "the shortest way begins down to the small, though the notable lies right");
+            Expect(-1, tree.NextHopOctant(tree.Places, start, tree.Index["AtlasAbyssStart"]) ?? -1,
+                "no links lead to another cluster");
+            Expect(-1, tree.NextHopOctant(tree.Places, start, start) ?? -1, "already there");
+            var shared = AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[]
+            {
+                ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
+                ("AtlasGenericSmall1", 0, 0, new[] { "AtlasGenericNotable1" }),
+                ("AtlasGenericNotable1", 100, 0, null),
+            });
+            Expect(-1, shared.NextHopOctant(shared.Places, shared.Index["AtlasGenericStart"], shared.Index["AtlasGenericNotable1"]) ?? -1,
+                "a next hop on the same group centre has no side to say, never an invented right");
+        }
+
+        private static void AtlasDestinationFinderSkipsEmptyListsAndArrives()
+        {
+            IReadOnlyList<string> Members(AtlasDestinationCategory category) => category switch
+            {
+                AtlasDestinationCategory.Accessible => new[] { "near", "far" },
+                AtlasDestinationCategory.SeasonalActivities => new[] { "objective" },
+                _ => Array.Empty<string>(),
+            };
+            var finder = new AtlasDestinationFinder();
+            finder.ChangeCategory(1, Members);
+            Expect("Accessible", finder.Category.ToString(), "the first list with destinations");
+            Expect("near", finder.Target, "its nearest destination is chosen at once");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("far", finder.Target, "entries walk");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Expect("near", finder.Target, "entries wrap");
+            finder.ChangeCategory(1, Members);
+            Expect("objective", finder.Target, "the empty landmarks list is passed over");
+            Expect(true, finder.Arrive("objective"), "landing there arrives");
+            Expect(string.Empty, finder.Target, "arrival drops the destination");
+            Expect(false, finder.Arrive("objective"), "arrival fires once");
+            finder.ChangeCategory(1, Members);
+            Expect("Position", finder.Category.ToString(), "lists wrap home");
+            finder.ChangeCategory(-1, Members);
+            Expect("objective", finder.Target, "walking the lists back reaches the last list with destinations");
+        }
+
+        private static (int, int, AtlasNodeState, string)[] Opening(params (int X, AtlasNodeState State, string Name)[] nodes) =>
+            nodes.Select(node => (node.X, 0, node.State, node.Name)).ToArray();
+
+        private static void AtlasProgressSaysWhatChangedSinceLastOpening()
+        {
+            var progress = new AtlasProgress(null);
+            Expect(true, progress.Update("hero", Opening((1, AtlasNodeState.Completed, "Home"), (2, AtlasNodeState.Accessible, "Caldera"), (3, AtlasNodeState.Locked, "Pit"),
+                (4, AtlasNodeState.Locked, "Bastille"), (5, AtlasNodeState.Locked, "Slash"), (6, AtlasNodeState.Accessible, "Marrow")), 3) == null, "the first opening has nothing to compare");
+            var reopened = Opening((1, AtlasNodeState.Completed, "Home"), (2, AtlasNodeState.Completed, "Caldera"), (3, AtlasNodeState.Accessible, "Pit"),
+                (4, AtlasNodeState.Completed, "Bastille"), (5, AtlasNodeState.Accessible, ""), (6, AtlasNodeState.Locked, "Marrow"), (7, AtlasNodeState.Accessible, "New"));
+            var change = progress.Update("hero", reopened, 3)!;
+            Expect("Bastille|Caldera", string.Join("|", change.Completed), "completed, a locked one cleared at once included, by name");
+            Expect(2, change.NowAccessibleCount, "a locked place now accessible counts, named or not");
+            Expect("Pit", string.Join("|", change.NowAccessible), "only named places are said; a place new to the opening has no earlier state");
+            Expect(true, progress.Update("other", Opening((1, AtlasNodeState.Locked, "Home")), 3) == null, "each character has its own Atlas");
+            Expect(true, progress.Update("hero", reopened, 3)!.IsEmpty, "a reopening with nothing new is empty");
+            Expect(true, progress.Update("dup", Opening((1, AtlasNodeState.Locked, "A"), (1, AtlasNodeState.Accessible, "")), 3) == null, "a place drawn twice is one place");
+            Expect(0, progress.Update("dup", Opening((1, AtlasNodeState.Accessible, "A")), 3)!.NowAccessibleCount, "it kept its furthest state");
+
+            var many = new AtlasProgressChange(new[] { "A", "B", "C" }, 5, new[] { "D" }, 1);
+            Expect("Since last time: 5 completed: A, B, C and 2 more. 1 now accessible: D", Announcements.AtlasSinceLastTime(many), "names first, the rest counted");
+            Expect("Since last time: 2 now accessible", Announcements.AtlasSinceLastTime(new AtlasProgressChange(Array.Empty<string>(), 0, Array.Empty<string>(), 2)), "unnamed places are counted");
+        }
+
+        private static void AtlasProgressTakesAnotherAtlasSilently()
+        {
+            var progress = new AtlasProgress(null);
+            _ = progress.Update("hero", Enumerable.Range(0, 10).Select(x => (x, 0, AtlasNodeState.Locked, $"Old{x}")), 3);
+            // A reworked Atlas after a patch: few places in common, most of them changed.
+            var reworked = Enumerable.Range(6, 10).Select(x => (x, 0, AtlasNodeState.Accessible, $"New{x}")).ToList();
+            Expect(true, progress.Update("hero", reworked, 3) == null, "under half the places shared: another Atlas, kept without a diff");
+            Expect(true, progress.Update("hero", reworked, 3)!.IsEmpty, "and compared against from then on");
+            Expect(1, progress.Update("hero", reworked.Take(9).Append((15, 0, AtlasNodeState.Completed, "New15")), 3)!.CompletedCount, "a canvas built in part still diffs on what it shares");
+        }
+
+        private static void AtlasProgressKeepsStatesInItsFile()
+        {
+            var file = Path.Combine(Path.GetTempPath(), $"atlas-progress-{Guid.NewGuid():N}.txt");
+            try
+            {
+                _ = new AtlasProgress(file).Update("hero", Opening((1, AtlasNodeState.Locked, "Pit"), (2, AtlasNodeState.Accessible, "Caldera")), 3);
+                File.AppendAllLines(file, new[] { "broken line", "hero\t9,9\tNotAState", "hero\t8,8\t7" });
+                var change = new AtlasProgress(file).Update("hero", Opening((1, AtlasNodeState.Accessible, "Pit"), (2, AtlasNodeState.Completed, "Caldera")), 3)!;
+                Expect("Caldera / Pit", $"{string.Join("|", change.Completed)} / {string.Join("|", change.NowAccessible)}", "a new session reads the last opening; bad lines are passed over");
+            }
+            finally
+            {
+                File.Delete(file);
+            }
+        }
+
+        private static void AtlasTreeKindsComeFromTheMarksOverTheIds()
+        {
+            // Ids that say nothing of their kind, as a reworked tree may name them: the marks and the roots tell.
+            var nodes = new (string, int, int, IReadOnlyList<string>?)[]
+            {
+                ("AtlasNode1", 0, 0, new[] { "AtlasNode2" }),
+                ("AtlasNode2", 100, 0, new[] { "AtlasNode3", "AtlasNode4" }),
+                ("AtlasNode3", 200, 0, null),
+                ("AtlasNode4", 100, 50, null),
+                ("AtlasNode5", 300, 0, new[] { "AtlasNode3" }),
+            };
+            var marks = new Dictionary<string, (string?, bool)>
+            {
+                ["AtlasNode1"] = (null, true), ["AtlasNode3"] = ("n", false), ["AtlasNode4"] = ("i", false), ["AtlasNode5"] = ("k", false),
+            };
+            var tree = AtlasTreeMap.Build(nodes, id => marks.TryGetValue(id, out var mark) ? mark : (null, false));
+            var first = tree.Index["AtlasNode1"];
+            var last = tree.Index["AtlasNode5"];
+            Expect(false, tree.Index.ContainsKey("AtlasNode4"), "a mastery by its mark is left out");
+            Expect("AtlasNode3|AtlasNode5", string.Join("|", tree.Members(AtlasTreeCategory.Notables, first, tree.DistancesFrom(first))), "notables and keystones by their marks");
+            Expect("AtlasNode1", string.Join("|", tree.Members(AtlasTreeCategory.Clusters, last, tree.DistancesFrom(last))), "a cluster starts at a root of the graph");
+            var unmarked = AtlasTreeMap.Build(new (string, int, int, IReadOnlyList<string>?)[] { ("AtlasGenericStart", 0, 0, null), ("AtlasGenericNotable1", 1, 0, null), ("AtlasGenericMastery1", 2, 0, null) }, _ => (null, false));
+            var start = unmarked.Index["AtlasGenericStart"];
+            Expect("AtlasGenericNotable1", string.Join("|", unmarked.Members(AtlasTreeCategory.Notables, start, unmarked.DistancesFrom(start))), "a catalog with no marks reads the kinds from the ids");
+            Expect(false, unmarked.Index.ContainsKey("AtlasGenericMastery1"), "and its masteries too");
+        }
+
+        private static void SkillTreesAreKnownByTheirRootsNotTheirName()
+        {
+            var catalog = new EndgameCatalog(new EndgameCatalog.CatalogData
+            {
+                Nodes = new()
+                {
+                    ["Old1"] = new() { Graph = AtlasTreeMap.LegacyGraphName },
+                    ["Renamed1"] = new() { Graph = "atlaspassivegraph", Root = true, Flags = "n" },
+                    ["Renamed2"] = new() { Graph = "atlaspassivegraph" },
+                    ["Map1"] = new() { Graph = "endgamemaplayoutgraph", Root = true, Pin = "WaypointPin" },
+                    ["Map2"] = new() { Graph = "endgamemaplayoutgraph" },
+                },
+            });
+            Expect(true, catalog.IsSkillTree("atlaspassivegraph"), "a graph with roots is a tree, whatever its file is named");
+            Expect(true, catalog.IsSkillTree(AtlasTreeMap.LegacyGraphName), "a catalog made before the marks keeps the 0.5 tree");
+            Expect(false, catalog.IsSkillTree("endgamemaplayoutgraph"), "the map's layout is never a tree, roots or not");
+            Expect<(string?, bool)>(("n", true), catalog.Marks("Renamed1"), "a node's marks");
+
+            var nodes = Enumerable.Range(0, 200).ToDictionary(at => $"Map{at}", at => new EndgameCatalog.CatalogNode { Graph = "layout", Pin = at < 190 ? "PrecursorMap" : at < 192 ? "CitadelPin" : "Breach" });
+            var pins = new EndgameCatalog(new EndgameCatalog.CatalogData { Nodes = nodes });
+            Expect("False|True|False", $"{pins.HasRarePin("Map0")}|{pins.HasRarePin("Map190")}|{pins.HasRarePin("Map195")}", "a pin on 1% of the map's nodes at most is a one-off place, whatever its name");
         }
     }
 }

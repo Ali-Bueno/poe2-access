@@ -16,15 +16,38 @@ namespace Poe2Accessibility.Services
         private readonly CatalogData data;
         private readonly Dictionary<string, string> objectiveByIcon;
         private readonly Dictionary<string, int> towerReach;
+        private readonly Dictionary<string, HashSet<string>> contentNames = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string[]> contentNamesByLength = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string[]> biomeNames = new(StringComparer.Ordinal);
+        private readonly List<string> biomes;
+        private readonly List<string> contentIds;
+        private readonly HashSet<string> rootedGraphs;
+        private readonly HashSet<string> rarePins;
+
+        /// <summary>A pin on no more than this share of the Atlas map's nodes marks a one-off place (in 0.5: Kingsmarch, the gates, the waypoints).</summary>
+        private const double RarePinShare = 0.01;
 
         public EndgameCatalog(CatalogData data)
         {
+            // A graph whose nodes are Atlas maps (a pin, maps, biomes) is the map's layout, never a tree, whatever roots it gains.
+            var mapGraphs = data.Nodes.Values.Where(node => node.Pin != null || node.Maps != null || node.Biomes != null).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
+            this.rootedGraphs = data.Nodes.Values.Where(node => node.Root && !mapGraphs.Contains(node.Graph)).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
+            var mapNodes = data.Nodes.Values.Where(node => mapGraphs.Contains(node.Graph)).ToList();
+            var rareAtMost = Math.Max(1, (int)(mapNodes.Count * RarePinShare));
+            this.rarePins = mapNodes.Where(node => node.Pin != null).GroupBy(node => node.Pin!, StringComparer.Ordinal)
+                .Where(group => group.Count() <= rareAtMost).Select(group => group.Key).ToHashSet(StringComparer.Ordinal);
             this.data = data;
             this.objectiveByIcon = data.Objectives.Where(pair => !string.IsNullOrEmpty(pair.Value.Icon))
                 .GroupBy(pair => pair.Value.Icon!, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.First().Key, StringComparer.Ordinal);
             this.towerReach = data.Nodes.Values.SelectMany(node => node.Towers ?? new List<string>()).GroupBy(tower => tower, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+            this.biomes = data.Text.Values.SelectMany(texts => texts.Keys)
+                .Where(key => key.StartsWith("biome/", StringComparison.Ordinal)).Select(key => key["biome/".Length..])
+                .Distinct(StringComparer.Ordinal).ToList();
+            this.contentIds = data.Text.Values.SelectMany(texts => texts.Keys)
+                .Where(key => key.StartsWith("content/", StringComparison.Ordinal)).Select(key => key["content/".Length..])
+                .Distinct(StringComparer.Ordinal).ToList();
         }
 
         /// <summary>The catalog the plugin loaded; empty until then, so every lookup finds nothing.</summary>
@@ -58,6 +81,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The objective an icon's object is for, empty for none.</summary>
         public string ObjectiveOf(string icon) => this.objectiveByIcon.TryGetValue(icon, out var objective) ? objective : string.Empty;
 
+        /// <summary>An objective's own short word ("Ritual", from the keyword its description links), for lists of places.</summary>
+        public string ObjectiveWord(string? objective, string language) =>
+            objective != null && this.data.Objectives.TryGetValue(objective, out var named) && !string.IsNullOrEmpty(named.Keyword)
+                ? this.Text("term/" + named.Keyword, language)
+                : string.Empty;
+
         /// <summary>
         ///     The game's own word for an objective icon's object, singular ("Fisura" for the Breach icon, from the keyword its
         ///     objective links); empty when the catalog has none.
@@ -71,6 +100,22 @@ namespace Poe2Accessibility.Services
         public string Text(string key, string language) => Localization.Pick(this.data.Text, language, key) ?? string.Empty;
 
         public CatalogNode? Node(string passiveId) => this.data.Nodes.TryGetValue(passiveId, out var node) ? node : null;
+
+        /// <summary>
+        ///     Whether a graph is a skill tree the Atlas tree finder walks: one with roots in the files (the map layout has
+        ///     none), so a renamed or reworked tree file still counts; a catalog made before the marks knows the 0.5 tree by name.
+        /// </summary>
+        public bool IsSkillTree(string graph) =>
+            graph == AtlasTreeMap.LegacyGraphName || this.rootedGraphs.Contains(graph);
+
+        /// <summary>A node's PassiveSkills marks and whether it is a root of its graph, for the tree finder's kinds.</summary>
+        public (string? Flags, bool Root) Marks(string passiveId) => this.Node(passiveId) is { } node ? (node.Flags, node.Root) : (null, false);
+
+        /// <summary>Every node of one graph, for a walk over the whole of it (the Atlas tree's finder).</summary>
+        public IReadOnlyList<(string Id, int X, int Y, IReadOnlyList<string>? Links)> GraphNodes(string graph) =>
+            this.data.Nodes.Where(pair => pair.Value.Graph == graph)
+                .Select(pair => (pair.Key, pair.Value.X, pair.Value.Y, (IReadOnlyList<string>?)pair.Value.Links))
+                .ToList();
 
         /// <summary>
         ///     A node by what is known before it is hovered: an Atlas passive's name, the one map an Atlas map node can be, or the
@@ -123,6 +168,103 @@ namespace Poe2Accessibility.Services
             file = dot > 0 ? file[..dot] : file;
             return this.data.Icons.TryGetValue(file, out var icon) ? this.Text(icon.Name, language) : string.Empty;
         }
+
+        /// <summary>
+        ///     Whether a text is exactly a content's name in the language (an Atlas node's content icons carry their
+        ///     name as text; their art does not read on the canvas-drawn elements, live 2026-11-25).
+        /// </summary>
+        public bool IsContentName(string text, string language) => this.ContentNamePool(language).Contains(text);
+
+        /// <summary>Every name a content goes by in the language: the contents' own names and their icons' words.</summary>
+        private HashSet<string> ContentNamePool(string language)
+        {
+            if (!this.contentNames.TryGetValue(language, out var names))
+            {
+                names = new HashSet<string>(
+                    this.contentIds.Select(id => this.Text("content/" + id, language))
+                        .Concat(this.data.Icons.Values.Select(icon => this.Text(icon.Name, language)))
+                        .Where(name => name.Length > 0),
+                    StringComparer.Ordinal);
+                this.contentNames[language] = names;
+            }
+
+            return names;
+        }
+
+        /// <summary>The content name pool longest first, sorted once per language (ContentNamesIn runs per popup text while a landing settles).</summary>
+        private string[] ContentNamesByLength(string language)
+        {
+            if (!this.contentNamesByLength.TryGetValue(language, out var names))
+            {
+                names = this.ContentNamePool(language).OrderByDescending(name => name.Length).ToArray();
+                this.contentNamesByLength[language] = names;
+            }
+
+            return names;
+        }
+
+        /// <summary>The biomes' names in the language, read once per language.</summary>
+        private string[] BiomeNames(string language)
+        {
+            if (!this.biomeNames.TryGetValue(language, out var names))
+            {
+                names = this.biomes.Select(id => this.Text("biome/" + id, language)).Where(name => name.Length > 0).Distinct(StringComparer.Ordinal).ToArray();
+                this.biomeNames[language] = names;
+            }
+
+            return names;
+        }
+
+        /// <summary>
+        ///     The biome a text ends in ("Biome: Forest" on a node's popup), in the language; empty when it ends in no
+        ///     known biome. A node's rolled biome is only on its popup: 410 of 610 map nodes list none, and one area
+        ///     rolls several (Port at Water and at Grass, live 2026-11-25).
+        /// </summary>
+        public string BiomeNameIn(string text, string language)
+        {
+            foreach (var name in this.BiomeNames(language))
+            {
+                // The popup's line is shaped "Biome: Forest": a bare suffix also names a biome off a map
+                // title that merely ends in one ("Bosque" the area, "Obscure Island"), spoken as its biome.
+                if (text.EndsWith(name, StringComparison.Ordinal) &&
+                    (text.Length == name.Length || (text.Length >= name.Length + 2 && text.AsSpan(text.Length - name.Length - 2, 2).SequenceEqual(": "))))
+                {
+                    return name;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        ///     The content names a text carries ("Area contains a Mirror of Delirium" on a node's popup), in the order
+        ///     they stand in it: contents are rolled from the node's stats, so the popup's own words are their only
+        ///     reliable source (live 2026-11-25: canvas icons exist only at some zooms and give no readable art).
+        ///     A match must stand free of letters on both sides, and a longer name wins its place over a shorter
+        ///     inside it ("Powerful Map Boss" over "Map Boss").
+        /// </summary>
+        public IReadOnlyList<string> ContentNamesIn(string text, string language)
+        {
+            var found = new List<(int At, string Name)>();
+            foreach (var name in this.ContentNamesByLength(language))
+            {
+                for (var at = text.IndexOf(name, StringComparison.Ordinal); at >= 0; at = text.IndexOf(name, at + 1, StringComparison.Ordinal))
+                {
+                    var end = at + name.Length;
+                    if ((at == 0 || !char.IsLetter(text[at - 1])) && (end == text.Length || !char.IsLetter(text[end])) &&
+                        !found.Any(other => at < other.At + other.Name.Length && other.At < end))
+                    {
+                        found.Add((at, name));
+                        break;
+                    }
+                }
+            }
+
+            return found.OrderBy(match => match.At).Select(match => match.Name).ToList();
+        }
+
+        /// <summary>Whether a node's pin is one few Atlas map nodes show, so it names a place to steer by whatever the pin is called.</summary>
+        public bool HasRarePin(string passiveId) => this.Node(passiveId)?.Pin is { } pin && this.rarePins.Contains(pin);
 
         /// <summary>How many nodes a tower's reach holds; 0 for a node that is no tower.</summary>
         public int TowerReach(string passiveId) => this.towerReach.TryGetValue(passiveId, out var count) ? count : 0;
@@ -183,6 +325,12 @@ namespace Poe2Accessibility.Services
             public int Slot { get; set; }
 
             public List<string>? Links { get; set; }
+
+            /// <summary>Its marks from PassiveSkills' flag columns: k keystone, n notable, i icon only (a mastery); null in older catalogs.</summary>
+            public string? Flags { get; set; }
+
+            /// <summary>A root of its graph file, where a tree starts.</summary>
+            public bool Root { get; set; }
 
             public string? Pin { get; set; }
 

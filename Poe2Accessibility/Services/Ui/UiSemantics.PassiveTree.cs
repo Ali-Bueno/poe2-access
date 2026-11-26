@@ -113,7 +113,14 @@ namespace Poe2Accessibility.Services
 
             if (this.TreeState(group.Raw.ParentPtr) == IntPtr.Zero)
             {
-                this.NoteNodeWithoutGraph(info.Address, group.Raw.ParentPtr);
+                // A node of an endgame graph (the Atlas skill tree above all) hangs from such a canvas with no
+                // main-tree graph behind it: that is its nature, no graph file lost (live 2026-11-25: the
+                // warning fired in the Atlas tree).
+                if (this.EndgamePassiveId(info.Address) == null)
+                {
+                    this.NoteNodeWithoutGraph(info.Address, group.Raw.ParentPtr);
+                }
+
                 return null;
             }
 

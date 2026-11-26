@@ -169,11 +169,20 @@ namespace Poe2Accessibility
                     // Research: the world map's hovered pin as its data tells it, and whether the game built its popup.
                     this.log?.Info($"Map pin: {this.semantics?.PinReport(this.WorldScreen()) ?? "no semantics"}");
                     break;
-                case "atlasnode":
-                    // Research: the hovered element as a node of the Atlas or its trees (docs/research/endgame.md).
-                    var atlasHovered = IntPtr.Zero;
-                    this.memoryReader?.TryRead(this.focus?.Manager is { } atlasManager ? atlasManager + GameLayout.UiManager.HoveredOffset : IntPtr.Zero, out atlasHovered);
-                    this.log?.Info($"Atlas node: {this.semantics?.EndgameNodeReport(atlasHovered) ?? "no semantics"}");
+                case var atlas when atlas.StartsWith("atlasnode", StringComparison.Ordinal):
+                    // Research: a node of the Atlas or its trees (docs/research/atlas-navigator.md §6): the one named
+                    // ("atlasnode 0x…"), else the one the cursor rests on — map_control keeps it, the hover slot is
+                    // empty on the Atlas.
+                    if (command.StartsWith("atlasnode 0x", StringComparison.Ordinal))
+                    {
+                        var named = (IntPtr)Convert.ToInt64(command["atlasnode 0x".Length..], 16);
+                        this.log?.Info($"Atlas node: {this.semantics?.EndgameNodeReport(named) ?? "no semantics"}");
+                    }
+                    else
+                    {
+                        this.log?.Info($"Atlas node: {this.semantics?.AtlasSelectedReport(this.WorldScreen()) ?? "no semantics"}");
+                    }
+
                     break;
                 case "uilayout":
                     // Research: the focused element's parent chain, drawn rect against the window-free layout rect.

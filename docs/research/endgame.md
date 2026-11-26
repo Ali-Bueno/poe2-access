@@ -72,7 +72,7 @@ on an orbit gets its group's centre (the drawn element gives the real place). On
 tree and the layout (the start): its first place is kept.
 
 The JSON: `objectives` {id: icon, keyword}, `contents` {id: objective}, `icons` {art file: name key, text key}, `maps`
-{area id: pin}, `nodes` {passive id: graph, x, y, orbit, slot, links, pin, maps, biomes, objective, blocked, hint}, `text`
+{area id: pin}, `nodes` {passive id: graph, x, y, orbit, slot, links, flags (k keystone, n notable, i icon only, from PassiveSkills), root (a root of its .psg), pin, maps, biomes, objective, blocked, hint}, `text`
 {language: {key: text}} with keys `objective/`, `done/`, `term/`, `help/`, `content/`, `contentText/`, `biome/`, `client/`,
 `area/`, `passive/` (10 languages, ~1,200 texts each; Simplified Chinese has no tables). 1.3 MB.
 
@@ -128,9 +128,9 @@ changes or hides its icon, so it drops out by itself.
 
 | Item | Confidence | Plan |
 |---|---|---|
-| Atlas node reading (name, contents, links, needs) | code done, UNSURE live | First live hover: `atlasnode` dev command; fix the record search or the canvas walk if the Atlas draws nodes another way. |
-| Atlas node state (completed, reachable, corrupted) | UNSURE | Read from the popup's words first; then look for a MiscAnimated key on the node (EndgameMapPins Unavailable/Available/Active/Failed/Complete pins) with `datkeys`. |
-| A finder on the Atlas ("nearest tower / citadel / not completed") | LIKELY feasible | The graph and pins are in the catalog; needs node state from memory for "not completed". |
+| Atlas node reading (name, contents, links, needs) | done; **live 2026-11-25: fires in the Atlas Skill Tree; on the Atlas map the landed readout is the narrator's** (hover/focus slots empty there; the selected node is `map_control +0x2E0`) | Done ([atlas-navigator.md](atlas-navigator.md) Phase 1): on settling, the map's own popup words finish first, then the node's name, state, contents and links queue behind them (`AtlasNarrator`). |
+| Atlas node state (completed, reachable, corrupted) | **PROVEN 2026-11-25** | Byte `+0x32F` on the node element: bit0 accessible, bit1 completed (upstream's semantics at a stale `+0x2BF`); four owner-certified points incl. the Ancient Gateway 1→3 across its completion. `GameLayout.AtlasNode`, [atlas-navigator.md](atlas-navigator.md) §6. |
+| Orientation and a finder on the Atlas ("nearest tower / citadel / not completed") | done (2026-11-25): orientation live, the destination finder built; **the owner's priority: losing one's place is the named pain** | [atlas-navigator.md](atlas-navigator.md) Phases 1–3: on opening, where the last session left off and the accessible frontier; per hop, came-from and the nearest landmark (accepted); the destination finder on L1/R1 with L2 held walking its lists, revealed-link routes, stopping at the map to clear. Route proof over a whole route live, and a created bookmark's side-panel capture, still owed. |
 | Which nodes a tower reaches | code done, UNSURE live | `EndgameMapAtlasTowers` (Reach list 0x14, the tower's own node 0x34): the 8 Fortress wall towers reach 24-50 nodes each; a node says "Al alcance de una torre: arriba a la izquierda", a tower "Alcanza 26 mapas". What a slotted tablet adds is the tower's window, not read yet. |
 | Azmeri spirits in the scanner | UNSURE | Check live whether the spirit is hostile/targetable; list it by its icon if it is a friendly creature. |
 | Expedition explosive placement | gap | Needs its own reader (placement cursor, chain length, remnants' places): research when reached. |

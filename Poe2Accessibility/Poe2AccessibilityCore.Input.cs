@@ -13,6 +13,11 @@ namespace Poe2Accessibility
         /// <summary>Whether the trigger stood in for the mod button last frame: a change forgets the press in flight.</summary>
         private bool triggerStoodIn;
 
+        /// <summary>The last pad buttons the Atlas shoulder controls saw; unprimed after a controller seat change.</summary>
+        private uint lastAtlasButtons;
+
+        private bool atlasButtonsPrimed;
+
         /// <summary>A stick pushed this far counts as a direction (our threshold: well past rest, before a full push).</summary>
         private const float DirectionDeflection = 0.5f;
 
@@ -59,6 +64,7 @@ namespace Poe2Accessibility
                 Seats.Input = seat;
                 this.focus.Seat = seat;
                 this.gestures = new L3Gestures(); // a hold on the other controller is not this one's tap
+                this.atlasButtonsPrimed = false;
             }
 
             if ((seat == 2 ? second : first) is not { } state)
@@ -85,13 +91,20 @@ namespace Poe2Accessibility
                 this.lastDirectionAt = Environment.TickCount64;
             }
 
+            // On the Atlas map itself the shoulders belong to its destination finder (below), not to a tab switch.
+            var atlasButtons = GameLayout.PadButtons.LeftShoulder | GameLayout.PadButtons.RightShoulder |
+                               GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightStick;
+            var atlasScreen = this.Settings.ControllerCommands && this.Settings.AtlasFinder && state.IsDown(atlasButtons)
+                ? this.AtlasMapScreen()
+                : IntPtr.Zero;
+
             // A opens screens and popups, LB/RB switch tabs: a focus that follows them waits for the new page.
             var confirm = state.IsDown(GameLayout.PadButtons.A) || state.IsDown(GameLayout.PadButtons.LeftShoulder) ||
                           state.IsDown(GameLayout.PadButtons.RightShoulder);
             if (confirm && !this.confirmDown)
             {
                 this.lastConfirmAt = Environment.TickCount64;
-                if (!state.IsDown(GameLayout.PadButtons.A))
+                if (!state.IsDown(GameLayout.PadButtons.A) && atlasScreen == IntPtr.Zero)
                 {
                     this.narrator?.OnTabKey();
                 }
@@ -104,6 +117,7 @@ namespace Poe2Accessibility
             }
 
             this.FindOnTree(state);
+            var atlasInput = this.FindOnAtlas(state, atlasScreen);
             this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu || this.commands.InInspectTable;
             this.commands.PressedAt ??= () => this.gestures.PressedAt;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
@@ -117,7 +131,7 @@ namespace Poe2Accessibility
             // locks the beacon rather than glancing at the map. Gameplay only: in menus L3 keeps its readings.
             // A change of the fed button forgets the press in flight (a hold begun on one is not the other's tap
             // or hold), and the commands read the legend for the button in use.
-            var triggerButton = L3Gestures.TriggerStandsIn(this.Settings.TriggerModButtonInHideout, this.IsHideout(), this.focus?.Current != null,
+            var triggerButton = L3Gestures.TriggerStandsIn(this.Settings.TriggerModButtonInHideout, this.IsHideout(), this.focus?.Current != null || atlasScreen != IntPtr.Zero,
                 this.gameState != null && GameStateService.IsInGame(this.gameState.CurrentState));
             var modButton = triggerButton ? state.IsDown(GameLayout.PadButtons.LeftTrigger) : state.IsDown(GameLayout.PadButtons.LeftStick);
             if (triggerButton != this.triggerStoodIn)
@@ -127,7 +141,7 @@ namespace Poe2Accessibility
             }
 
             this.commands.TriggerFed = triggerButton;
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, modButton, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), !triggerButton && state.IsDown(GameLayout.PadButtons.LeftTrigger)))
+            foreach (var gesture in this.gestures.Update(Environment.TickCount64, modButton, state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick), !triggerButton && !atlasInput && state.IsDown(GameLayout.PadButtons.LeftTrigger)))
             {
                 this.commands.OnGesture(gesture);
             }
@@ -174,6 +188,51 @@ namespace Poe2Accessibility
             {
                 this.lastFinderAt = Environment.TickCount64;
             }
+        }
+
+        /// <summary>The Atlas map while its own cursor, not a panel control, has the pad; zero elsewhere.</summary>
+        private IntPtr AtlasMapScreen()
+        {
+            var screen = this.InGame ? this.WorldScreen() : IntPtr.Zero;
+            return screen != IntPtr.Zero && this.focus?.Current == null && this.semantics?.SelectedAtlasNode(screen) != null
+                ? screen
+                : IntPtr.Zero;
+        }
+
+        /// <summary>
+        ///     The Atlas destination finder on the shoulders: LB/RB walk a list's entries, and with L2 held
+        ///     they walk the lists instead; L2 + R3 drops the destination. Buttons, not a stick: the game takes
+        ///     the right stick on this map whether L2 is held or not (live 2026-11-25, no finder press landed).
+        ///     The D-pad and left stick remain the game's node movement, and L3 remains its search.
+        /// </summary>
+        /// <returns>Whether this L2 hold belongs to the Atlas finder, so its R3 is not also the map glance.</returns>
+        private bool FindOnAtlas(GamepadReader.PadState state, IntPtr screen)
+        {
+            var pressed = this.atlasButtonsPrimed ? state.Buttons & ~this.lastAtlasButtons : 0;
+            this.lastAtlasButtons = state.Buttons;
+            this.atlasButtonsPrimed = true;
+            var trigger = state.IsDown(GameLayout.PadButtons.LeftTrigger);
+            if (screen == IntPtr.Zero)
+            {
+                return false;
+            }
+
+
+            var left = (pressed & GameLayout.PadButtons.LeftShoulder) != 0;
+            var right = (pressed & GameLayout.PadButtons.RightShoulder) != 0;
+            var said = trigger && (pressed & GameLayout.PadButtons.RightStick) != 0
+                ? this.atlasNodes?.DropDestination()
+                : left == right
+                    ? null
+                    : trigger
+                        ? this.atlasNodes?.DestinationMove(screen, left ? -1 : 1, 0)
+                        : this.atlasNodes?.DestinationMove(screen, 0, left ? -1 : 1);
+            if (said is { Length: > 0 })
+            {
+                this.output?.Speak(said, true);
+            }
+
+            return trigger;
         }
 
         /// <summary>

@@ -22,5 +22,107 @@ namespace Poe2Accessibility
             var list = string.Join(", ", names);
             return T($"Holds: {list}", $"Contiene: {list}");
         }
+
+        /// <summary>The word for an Atlas node's state, said right after its name on landing.</summary>
+        public static string AtlasState(Services.AtlasNodeState state) => state switch
+        {
+            Services.AtlasNodeState.Completed => T("Completed", "Completado"),
+            Services.AtlasNodeState.Accessible => T("Accessible", "Accesible"),
+            _ => T("Locked", "Bloqueado"),
+        };
+
+        /// <summary>"Steaming Springs. Accessible. Biome: Forest. Holds: … Links: …" — the landed Atlas node (Phase 1).</summary>
+        public static string AtlasLanding(string name, string state, string biome, string contents, string links) =>
+            Sentences(new[] { name, state, biome.Length > 0 ? T($"Biome: {biome}", $"Bioma: {biome}") : string.Empty, contents, links });
+
+        /// <summary>"Bastille, unrevealed": a linked node still in the fog — named and placed, but no hop lands there yet.</summary>
+        public static string AtlasUnrevealed(string name) => T($"{name}, unrevealed", $"{name}, sin revelar");
+
+        /// <summary>"Caldera, 1 link up left" / "Slash, 4 steps right": a frontier entry with its distance and side.</summary>
+        public static string AtlasFrontierEntry(string name, int away, string side, bool linked)
+        {
+            // One T call per branch: the phrase catalog keys on the literal template, so a ternary first
+            // argument would look up the already-filled English and never translate (phrases.py check).
+            var distance = linked
+                ? away == 1 ? T("1 link", "a 1 enlace") : T($"{away} links", $"a {away} enlaces")
+                : away == 1 ? T("1 step", "a 1 paso") : T($"{away} steps", $"a {away} pasos");
+            return side.Length > 0 ? $"{name}, {distance} {side}" : $"{name}, {distance}";
+        }
+
+        /// <summary>"From here: Caldera, 1 link up left; Pit, 3 links right. 9 accessible, not completed in sight"</summary>
+        public static string AtlasFrontier(string entries, int total) =>
+            entries.Length > 0
+                ? T($"From here: {entries}. {total} accessible, not completed in sight", $"Desde aquí: {entries}. {total} accesibles sin completar a la vista")
+                : T($"{total} accessible, not completed in sight", $"{total} accesibles sin completar a la vista");
+
+        /// <summary>"2 links from Precursor Tower" (or steps, off the catalog graph): how far a named landmark lies.</summary>
+        public static string AtlasAway(int away, bool linked, string name) => linked
+            ? away == 1 ? T($"1 link from {name}", $"a 1 enlace de {name}") : T($"{away} links from {name}", $"a {away} enlaces de {name}")
+            : away == 1 ? T($"1 step from {name}", $"a 1 paso de {name}") : T($"{away} steps from {name}", $"a {away} pasos de {name}");
+
+        /// <summary>"Since last time: 2 completed: Caldera, Pit. 1 now accessible: Reservoir" — the Atlas's changes on opening (Phase 4).</summary>
+        public static string AtlasSinceLastTime(Services.AtlasProgressChange change)
+        {
+            string Part(string head, System.Collections.Generic.IReadOnlyList<string> names, int count)
+            {
+                var rest = count > names.Count && names.Count > 0 ? T($" and {count - names.Count} more", $" y {count - names.Count} más") : string.Empty;
+                return names.Count > 0 ? $"{head}: {string.Join(", ", names)}{rest}" : head;
+            }
+
+            var parts = new System.Collections.Generic.List<string>();
+            if (change.CompletedCount > 0)
+            {
+                parts.Add(Part(change.CompletedCount == 1 ? T("1 completed", "1 completado") : T($"{change.CompletedCount} completed", $"{change.CompletedCount} completados"), change.Completed, change.CompletedCount));
+            }
+
+            if (change.NowAccessibleCount > 0)
+            {
+                parts.Add(Part(change.NowAccessibleCount == 1 ? T("1 now accessible", "1 ahora accesible") : T($"{change.NowAccessibleCount} now accessible", $"{change.NowAccessibleCount} ahora accesibles"), change.NowAccessible, change.NowAccessibleCount));
+            }
+
+            var said = Sentences(parts);
+            return said.Length > 0 ? T($"Since last time: {said}", $"Desde la vez anterior: {said}") : string.Empty;
+        }
+
+        /// <summary>"Came from Marrow": the previous landing, so a hop too far has its way back said.</summary>
+        public static string AtlasCameFrom(string name) => T($"Came from {name}", $"Vienes de {name}");
+
+        /// <summary>"Last time: Marrow, 4 links away" — where the last session left off, and how far it lies from here.</summary>
+        public static string AtlasLastTime(string name, string away) => T($"Last time: {name}, {away}", $"La vez anterior: {name}, {away}");
+
+        /// <summary>"Nearest: right, Slash": the closest revealed nodes by direction around a row-less landing.</summary>
+        public static string AtlasNearest(string parts) => T($"Nearest: {parts}", $"Cercanos: {parts}");
+
+        /// <summary>The Atlas skill tree finder's lists, said on entering one.</summary>
+        public static string AtlasTreeCategoryName(Services.AtlasTreeCategory category) => category switch
+        {
+            Services.AtlasTreeCategory.Notables => T("Notables", "Notables"),
+            Services.AtlasTreeCategory.Clusters => T("Clusters", "Grupos"),
+            _ => T("Position", "Posición"),
+        };
+
+        /// <summary>How many links a node lies from the cursor on a graph ("3 links away").</summary>
+        public static string AtlasLinksAway(int links) =>
+            links == 1 ? T("1 link away", "a 1 enlace") : T($"{links} links away", $"a {links} enlaces");
+
+        /// <summary>How far a node with no catalogued way lies, in atlas-grid steps.</summary>
+        public static string AtlasStepsAway(int steps) =>
+            steps == 1 ? T("1 step away", "a 1 paso") : T($"{steps} steps away", $"a {steps} pasos");
+
+        /// <summary>The Atlas map destination finder's lists, said on entering one.</summary>
+        public static string AtlasDestinationCategoryName(Services.AtlasDestinationCategory category) => category switch
+        {
+            Services.AtlasDestinationCategory.Accessible => T("Accessible, not completed", "Accesibles sin completar"),
+            Services.AtlasDestinationCategory.Landmarks => T("Landmarks", "Lugares de referencia"),
+            Services.AtlasDestinationCategory.SeasonalActivities => T("Seasonal activities", "Actividades de temporada"),
+            _ => T("Position", "Posición"),
+        };
+
+        /// <summary>"First clear Reservoir for The Burning Monolith": the accessible map gating a locked destination.</summary>
+        public static string AtlasFirstClearFor(string gate, string destination) =>
+            T($"First clear {gate} for {destination}", $"Primero completa {gate} para {destination}");
+
+        /// <summary>At the gating map itself: progression stops here until it is cleared.</summary>
+        public static string AtlasClearThisFirst => T("Clear this map first", "Completa primero este mapa");
     }
 }

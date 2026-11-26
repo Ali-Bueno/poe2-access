@@ -49,6 +49,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.PassiveFinder) => T("Passive tree finder on the D-pad", "Buscador del árbol de pasivas en la cruceta"),
             nameof(AccessibilitySettings.PassiveGuideBrief) => T("Brief passive tree guide", "Guía breve en el árbol de pasivas"),
+            nameof(AccessibilitySettings.AnnounceAtlasNodes) => T("Atlas node landed on, with its state", "Nodo del Atlas al llegar, con su estado"),
+            nameof(AccessibilitySettings.AtlasFinder) => T("Atlas destination finder on the shoulder buttons", "Buscador de destinos del Atlas en los botones superiores"),
             nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
             nameof(AccessibilitySettings.GuideExplores) => T("Guide to unexplored ground goes on to the next", "La guía a una zona sin explorar sigue a la siguiente"),
             nameof(AccessibilitySettings.NameKnownWays) => T("Say which known place a fork's way or unexplored ground leads to", "Decir a qué lugar conocido lleva un camino de un cruce o una zona sin explorar"),

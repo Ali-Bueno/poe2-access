@@ -112,8 +112,8 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
     $plugin = Join-Path $app 'Plugins\Poe2Accessibility'
     $oodle = Join-Path $RepoRoot 'external\oodle\oo2core.dll'
     if (-not (Test-Path $oodle)) { throw 'external\oodle\oo2core.dll is missing: the mod reads the game''s bundles with it (tools/README.md, ooz-shim).' }
-    # The Linux scripts (Proton launch option, stop, installer) beside Poe2Access.exe; sh fails on CR line ends.
-    $linuxScripts = 'poe2access-proton.sh', 'poe2access-stop.sh', 'install-linux.sh' | ForEach-Object { Join-Path $ToolsRoot "package\$_" }
+    # The Linux scripts (Proton launch option, stop, restart, installer) beside Poe2Access.exe; sh fails on CR line ends.
+    $linuxScripts = 'poe2access-proton.sh', 'poe2access-stop.sh', 'poe2access-restart.sh', 'install-linux.sh' | ForEach-Object { Join-Path $ToolsRoot "package\$_" }
     foreach ($script in $linuxScripts) {
         if ([IO.File]::ReadAllText($script).Contains("`r")) { throw "$script has CR line ends: sh would fail on it." }
     }
@@ -217,7 +217,7 @@ function Test-PackageStarts([string]$Zip) {
 function Test-PackageLayout([string]$Stage, [string]$Version) {
     $problems = @()
     $top = @(Get-ChildItem $Stage | ForEach-Object Name)
-    $expected = 'Poe2Access.exe', 'README.txt', 'Controls.md', 'Stop the mod.bat', 'poe2access-proton.sh', 'poe2access-stop.sh', 'install-linux.sh', 'app'
+    $expected = 'Poe2Access.exe', 'README.txt', 'Controls.md', 'Stop the mod.bat', 'poe2access-proton.sh', 'poe2access-stop.sh', 'poe2access-restart.sh', 'install-linux.sh', 'app'
     $problems += $expected | Where-Object { $_ -notin $top } | ForEach-Object { "missing $_" }
     $problems += $top | Where-Object { $_ -notin $expected } | ForEach-Object { "unexpected $_ at the top" }
     $app = Join-Path $Stage 'app'

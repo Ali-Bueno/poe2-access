@@ -329,6 +329,38 @@ build's next node is where you left off then), the guide leads back there: "Wher
 12", every node counting down to "Back where you left off". Allocating a node elsewhere first, or choosing another target
 with the D-pad, drops it. Ways are counted up to 60 pushes; beyond, the direction is said ("far, up").
 
+**The Atlas skill tree** (from the Atlas: hold X, point the stick down to "Atlas Skill Tree", release) works the
+same way: the stick hops node to node, each node is read with what it does and its links, and the D-pad is a
+finder over it — down and up walk the lists Position, Notables and Clusters (the start of the generic tree and of
+each league's cluster, to travel between them), left and right walk a list nearest first, what it names is the
+target, and every node then ends with the way ("Toward Stir the Swarm: up, 3"), counting down to "Arrived at …".
+An entry says its cluster, side and ring and how many links it lies from the cursor ("Stir the Swarm, Abyss, down
+right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
+popup says "Unallocated" where it stands.
+
+**The Atlas map** (landed node and orientation behind the setting "Atlas node landed on, with its state",
+Navigation, on by default): the stick or D-pad hops node to node. On landing, the map's own words (its flavour,
+objective and what blocks it) finish first; the node's name, state (Locked, Accessible or Completed), what it
+holds and its links queue behind them, then where it sits — as a tree node reads its details before its links.
+Hop on and the waiting words of the node left are dropped with it. On opening, where the last session left off is
+said with its distance, and the accessible frontier (the nearest accessible, not completed nodes in links, and
+how many there are); on each hop after that, where you came from and the nearest landmark to steer by. A node the
+game's graph does not hold links for instead names its nearest revealed neighbours by direction.
+
+**Atlas map destinations** (setting "Atlas destination finder on the shoulder buttons", Navigation, on by default):
+while the Atlas map itself has the cursor, L1/R1 (LB/RB) walk a destination list nearest first, and with L2 (LT)
+held they walk the lists instead: Position · Accessible, not completed · Landmarks · Seasonal activities (places
+the game ties to a league mechanic — Ritual, Delirium, Abyss and kin). What a press names
+becomes the destination at once, with its state and the next push ("Caldera, Accessible, 4 links away. From here:
+down right, 4 pushes"). Then hop with the left stick or D-pad as usual: each landing ends with the next push and
+links left, counting down to "Arrived at …"; a wrong hop is silently rerouted. Going back to Position, or holding
+L2 and pressing R3, drops the destination. The guide keeps to revealed links where the game's graph knows them;
+for a place whose links are not known it says its side and grid steps. A locked destination is led to through the first
+accessible map that gates it: choosing it names that map ("First clear Reservoir for The Burning Monolith"), the
+pushes lead there, and landing on it says "Clear this map first" instead of a way on — clear it and the guide
+finds the next gate. The game's own Bookmarks still work beside it:
+hold Y on an area to save one of up to 16, then use Y's panel to pan straight back there instead of walking.
+
 The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it
 is read, and on release the view settles on the node in the middle. The links and the finder's ways count
 left-stick pushes: after the right stick, the first left push may land elsewhere than said, and

@@ -42,7 +42,9 @@
   Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
 - **Play copy:** the owner plays from `dist/Poe2Access`, which `tools/build.ps1` does NOT update: `Poe2Access.exe stop`,
   robocopy the built `Plugins/Poe2Accessibility` over `app/Plugins/Poe2Accessibility` (`/E /XD config logs`), then
-  `Poe2Access.exe restart` (the game stays open).
+  `Poe2Access.exe restart` (the game stays open). Under Proton the same loop is `poe2access-stop.sh`, rsync,
+  `poe2access-restart.sh` detached — never a bare `runinprefix … restart`: without the launch's `WINEDLLPATH` the
+  bridges do not load and the mod runs mute (2026-11-25, three times; the log's PRISM error names it).
 - **Releases:** public repo (2026-10-26); `pwsh tools/package/Publish-Release.ps1` (`-DryRun` first) refuses off `main`, dirty or unpushed, then builds, tests, packages and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z` + `release.json`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
 - **Test package:** `pwsh tools/package/New-TestPackage.ps1` (build and tests first) → `dist/package/Poe2Access-test-<date>.zip` and `.7z` (zip ~47 MB, 7z ~33 MB since the recorded item sounds; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
@@ -286,7 +288,11 @@
 | Class resources from the game's tables | done (code; live: Heat with its maximum, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json; a maximum no player stat holds is read from the skills' level rows (`SkillStatSets`, live 2026-11-08) and, not being live, only marks where the pool is told as a count ("Calor: 31"), never as full; resources and limits the mod has no name for are logged, not spoken (code 2026-11-10) |
 | Endgame data from the game files | done (code) | `endgame` step → catalog/endgame.json; docs/research/endgame.md |
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
-| Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
+| Atlas map and tree nodes (the node readout) | done (live 2026-11-25: fires in the Atlas skill tree; on the map the landed readout is `AtlasNarrator`'s, below) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
+| Atlas skill tree finder (D-pad: Position, Notables, Clusters; spoken stick route) | done (live 2026-11-25: lists, routes and arrival heard; the guide's threefold echo on a press fixed the same hour by freezing the line per node) | `AtlasTreeMap`/`AtlasTreeFinder` over the catalog's atlasskillgraph, `PassiveMap.Steps` + `PassiveStick.Route` borrowed; the passive machinery's state judge is the main tree's graph file, so it cannot run there ([atlas-navigator §5](docs/research/atlas-navigator.md)); allocation/point costs unread |
+| Atlas reopen diff ("Since last time: 2 completed: …. 1 now accessible: …") | done (unit tests 2026-11-25; not heard) | `AtlasProgress`, config/atlas-progress.txt by grid place; another Atlas (under half the places shared) is stored silently ([atlas-navigator Phase 4](docs/research/atlas-navigator.md)) |
+| Atlas tree kinds from the game's marks, not ids (update-proofing for 1.0's 70-node tree) | done (unit tests; catalog regenerated 2026-11-25) | `endgame` step v4 writes PassiveSkills flags and .psg roots; any rooted non-map graph is the tree ([atlas-navigator §5](docs/research/atlas-navigator.md)) |
+| Atlas map destination finder (L1/R1 entries, L2+L1/R1 lists: Position · Accessible, not completed · Landmarks · Seasonal activities; spoken route, stops at the map to clear) | done (code + unit tests 2026-11-25; route proof live still owed) | `AtlasDestinationFinder`, revealed-link BFS (`AtlasGraph.Route`), first-gate (`AtlasGraph.FirstGate`), guide in `AtlasNarrator`; buttons, not a stick: the game takes the right stick on this map with or without L2 (live 2026-11-25), L3 is its search and the D-pad hops nodes; bookmarks are the game's own pan jumps, left manual |
 | Yama's frozen time: the safe clone | done (unit tests; not heard) | the shelter's chord and the line lead to where the marked clone will stop, "¡Quieto! Dentro, quédate" before the edge, "¡Fuera!" past it, the all-clear after the blow ([Yama](docs/research/boss-mechanics.md#yama)) |
 | Boss fight turns (vanish/back, invulnerable+adds, phase/form, enrage) | done (unit) | `BossMechanicsWatch` + `BossPhaseTracker`, catalog/boss-mechanics.txt; docs/research/boss-mechanics.md; a boss back at full life after the player's death starts over (`BossLifeSteps.FightRestarted`, unit); a boss that hides to be found (Balbala's fog) is said with its direction and the heartbeat leads to it ([§11](docs/research/boss-mechanics.md#11-hide-and-seek-balbala-2026-11-11); live 2026-11-12, the user found her three times in 6-7 s) |
 | Way out of a boss's danger area | done (unit) | `BossCounterplay`: "¡Sal!", "¡Al centro!", "¡Detrás!", "¡Muévete!", stick way, at the wind-up |
@@ -728,7 +734,22 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
 - **Second player:** a trade swapped for an item that reads the same, the trade window without the focus, whether
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
-  currency), the Atlas and the map device, Act 4's destination map.
+  currency), Act 4's destination map.
+- **The Atlas navigator, Phases 1–2 accepted and Phase 3 built (2026-11-25):** the landed node speaks
+  name, state, biome, contents and links, queued behind the map's own words so its flavour/objective read
+  first (fog marked unrevealed); on opening, where the last session left off
+  and the accessible frontier in links; per hop, came-from and the nearest landmark in links. L1/R1 choose a
+  destination (with L2 held, its list); each landing then says
+  the next push and links left over revealed links, stopping at the first accessible map to clear for a locked
+  destination. Row-less nodes
+  (no EndgameMapAtlas key: Rockpools/Slash) speak name/state/biome/contents plus nearest revealed by direction;
+  their edges live in an external graph keyed by grid or index, still unfound, so a destination at one is guided
+  by side and grid steps. The **Atlas skill tree's finder is live**; its allocation state, point costs and the
+  owner's unspent Atlas points are spoken nowhere found (allocated counters only). **Unblocks:** the owner's
+  route proof over a whole Atlas destination route at two zoom levels, a created bookmark's side-panel
+  capture (the panel read 0/16 all day; bookmarks are pan jumps, not a finder), and one map completed then the
+  Atlas reopened (Phase 4's "Since last time", built 2026-11-25 on unit tests). After 1.0 (11 Dec 2026): the
+  `endgame` step's log line "atlasskillgraphs/…: N nodes, R roots" and a tree finder list heard confirm the new tree.
 - **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
 - **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
   pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each
@@ -746,8 +767,9 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   de armas 2: …", "Set de armas 1: Filo quimérico, raro, Égida de glifo, raro") moves no row. **Unblocks:** the owner
   levels a gem with the cursor on its row and hears "NIVEL: 9" and no more.
 - **A control with no tooltip under the free cursor, heard** (audit N1; the rule is under Decisions): none exists on
-  the panels yarkey opens. **Unblocks:** a character at the Atlas or the map device, swept with `VerboseLogging` on
-  (`Hover without tooltip` lists each one).
+  the panels yarkey opens. The Atlas navigator's Phase 0 sweep (2026-11-25, above) ran its course without
+  surfacing one on the Atlas or map-device panels. **Unblocks:** a panel not yet swept, opened with
+  `VerboseLogging` on (`Hover without tooltip` lists each one).
 - **"La ruta es larga, sigo buscando" heard:** no town can run the search out: the Ardura caravan has 164,423 walkable
   cells (dev `terrain`) and the budget is 600,000 expansions (`RoutePlanner.MaxExpansions`). **Unblocks:** an area
   larger than the budget, met in play with the log kept.

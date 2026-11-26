@@ -1,0 +1,268 @@
+2026-11-25 11:41:53.386 INFO Atlas node: no element @0
+2026-11-25 11:42:09.857 INFO Atlas node: no element @0
+2026-11-25 12:37:02.072 INFO Atlas node: @51186F76B30 "" class 1430F5718 record +0x310: AtlasWhiteGate graph endgamemaplayoutgraph pin PrecursorGate maps MapUniqueReactor_02 at -1468,3005 says "Ancient Gateway" | Activate the Precursor Relay | Complete a Tower Map to access | Links: down right, Atlas node; up left, Atlas node atlas AtlasWhiteGate area MapUniqueReactor_02 grid 8,24 +328 030365066D5AF4AF +330 13 +338 0000000100002200 textures []
+2026-11-25 12:40:55.329 INFO Atlas node: @51186FCE5B0 "" class 1430F5718 record +0x310: AtlasYellowGate graph endgamemaplayoutgraph pin WaypointPin maps MapUberBoss_Monolith at -1471,5 says "The Burning Monolith" | Investigate the Burning Monolith | Complete the Ancient Gateway to access | Links: down right, Atlas node; up left, Atlas node atlas AtlasYellowGate area MapUberBoss_Monolith grid 8,40 +328 00026A06575F6036 +330 24 +338 0000000100001E00 textures []
+2026-11-25 12:57:39.639 INFO Atlas node: @510DB441610 "" class 1430D1468 record +0x2C8: AtlasGenericSmall78_ graph atlasskillgraph pin PrecursorMap maps  at -357,-1638 says "Azmeri Spirit Chance" | 40% increased chance of Azmeri Spirits | Unallocated | Links: up, Spill the Sap; down, The Ziggurat Refuge
+2026-11-25 13:06:32.332 INFO Atlas node: @510D8F0FB50 "" class 1430F5718 record +0x310: AtlasNormalMapsWithDelirium7___ graph endgamemaplayoutgraph pin  maps  at -3426,5203 says "Atlas node" | Links: up right, Atlas node; right, Hilda's Campsite; down left, Atlas node atlas AtlasNormalMapsWithDelirium7___ area MapSteamingSprings grid -3,11 +328 01031106C1F11918 +330 23 +338 0000000100003200 textures []
+2026-11-25 13:18:49.849 INFO Speech interrupts: Atlas node landed on, with its state, on, 28 of 37
+2026-11-25 13:19:17.163 INFO Atlas node landed: Atlas node. Locked. Links: up right, Atlas node; Atlas node; Atlas node
+2026-11-25 13:19:22.537 INFO Atlas node landed: Atlas node. Locked. Links: up, Atlas node; right, Monastery of the Keepers; down left, Atlas node
+2026-11-25 13:19:27.808 INFO Atlas node landed: Monastery of the Keepers. Locked. Links: up right, Atlas node; down right, Atlas node; left, Atlas node
+2026-11-25 13:19:32.649 INFO Atlas node landed: Atlas node. Locked. Links: down right, Atlas node; down left, Monastery of the Keepers; up left, Atlas node
+2026-11-25 13:19:37.122 INFO Atlas node landed: Atlas node. Locked. Links: down right, Atlas node; down left, Atlas node; up left, Atlas node
+2026-11-25 13:19:41.476 INFO Atlas node landed: Atlas node. Accessible. Links: up right, Atlas node; down right, Atlas node; down left, Atlas node
+2026-11-25 13:19:46.427 INFO Atlas node landed: Atlas node. Locked. Links: up, Hilda's Campsite; right, Atlas node; down, Atlas node
+2026-11-25 13:19:51.636 INFO Atlas node landed: Atlas node. Accessible. Links: up right, Atlas node; down right, Atlas node; down left, Atlas node
+2026-11-25 13:19:56.902 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; left, Atlas node
+2026-11-25 13:20:01.151 INFO Atlas node landed: Atlas node. Completed. Links: up left, Atlas node
+2026-11-25 13:20:05.063 INFO Atlas node landed: Atlas node. Completed. Links: down right, Atlas node; down left, Atlas node; up left, Precursor Tower
+2026-11-25 13:20:17.719 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; down right, Atlas node
+2026-11-25 13:20:22.239 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; down left, Atlas node
+2026-11-25 13:20:27.057 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; down left, Atlas node
+2026-11-25 13:20:46.033 INFO Atlas node landed: Grass or Forest or Swamp or Desert. Locked. Links: right, Atlas node; Atlas node
+2026-11-25 13:20:53.298 INFO Atlas node landed: Atlas node. Accessible. Links: up right, Atlas node; down left, Atlas node
+2026-11-25 13:20:59.189 INFO Atlas node landed: Atlas node. Completed. Links: right, Atlas node; down left, Atlas node
+2026-11-25 13:21:03.746 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; down left, Atlas node
+2026-11-25 13:21:07.952 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; down left, Atlas node
+2026-11-25 13:21:12.242 INFO Atlas node landed: Atlas node. Accessible. Links: right, Precursor Tower; down left, Atlas node; up left, Atlas node
+2026-11-25 13:21:33.680 INFO Atlas node landed: Precursor Tower. Completed. Links: down right, Atlas node; left, Atlas node
+2026-11-25 13:21:40.124 INFO Atlas node landed: Atlas node. Completed. Links: up right, Atlas node; down left, Atlas node
+2026-11-25 13:21:45.336 INFO Atlas node landed: Atlas node. Accessible. Links: right, Precursor Tower; down left, Atlas node; up left, Atlas node
+2026-11-25 13:29:35.515 INFO Atlas node landed: Ancient Gateway. Completed. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 13:29:39.708 INFO Atlas node landed: Caldera. Accessible. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:29:44.411 INFO Atlas node landed: Riverhold. Locked. Links: down left, Rugosa; Atlas node
+2026-11-25 13:29:47.140 INFO Atlas node landed: Reservoir. Locked. Links: down right, Rugosa; up left, Blooming Field; Atlas node; Atlas node
+2026-11-25 13:29:50.751 INFO Atlas node landed: Blooming Field. Locked. Links: up right, Steaming Springs; down right, Reservoir; left, Marrow; up left, The Burning Monolith
+2026-11-25 13:29:55.770 INFO Atlas node landed: Reservoir. Locked. Links: down right, Rugosa; up left, Blooming Field; Atlas node; Atlas node
+2026-11-25 13:29:58.653 INFO Atlas node landed: Riverhold. Locked. Links: down left, Rugosa; Atlas node
+2026-11-25 13:30:01.873 INFO Atlas node landed: Reservoir. Locked. Links: down right, Rugosa; up left, Blooming Field; Atlas node; Atlas node
+2026-11-25 13:30:04.893 INFO Atlas node landed: Riverhold. Locked. Links: down left, Rugosa; Atlas node
+2026-11-25 13:30:07.260 INFO Atlas node landed: Reservoir. Locked. Links: down right, Rugosa; up left, Blooming Field; Atlas node; Atlas node
+2026-11-25 13:30:10.766 INFO Atlas node landed: Rugosa. Locked. Links: up right, Riverhold; down right, Caldera; left, Digsite; up left, Reservoir
+2026-11-25 13:30:14.226 INFO Atlas node landed: Digsite. Locked. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 13:30:16.979 INFO Atlas node landed: Mineshaft. Locked. Links: up right, Digsite; Atlas node; Atlas node
+2026-11-25 13:30:19.760 INFO Atlas node landed: Marrow. Locked. Links: right, Blooming Field; down right, Ravine; Atlas node
+2026-11-25 13:30:23.302 INFO Atlas node landed: Ravine. Locked. Links: up left, Marrow; Atlas node; Atlas node
+2026-11-25 13:38:42.230 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 13:38:46.383 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:38:49.580 INFO Atlas node landed: Rugosa. Locked. Biome: Water. Links: up right, Riverhold; down right, Caldera; left, Digsite; up left, Reservoir
+2026-11-25 13:38:52.977 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 13:38:56.244 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 13:38:59.518 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 13:39:02.847 INFO Atlas node landed: Riverhold. Locked. Biome: Grass. Links: right, Blooming Field; left, Rugosa
+2026-11-25 13:39:05.687 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 13:39:09.171 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 13:39:13.427 INFO Atlas node landed: Rugosa. Locked. Biome: Water. Links: up right, Riverhold; down right, Caldera; left, Digsite; up left, Reservoir
+2026-11-25 13:39:16.865 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 13:39:20.828 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 13:39:26.269 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine; right, Digsite; left, Bastille
+2026-11-25 13:39:32.170 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: down right, Blooming Field; down, Ravine; left, Epitaph
+2026-11-25 13:39:37.262 INFO Atlas node landed: Sump. Locked. Biome: Swamp. Links: right, Forge; down, The Burning Monolith; up left, Razed Fields
+2026-11-25 13:39:40.332 INFO Atlas node landed: Steaming Springs. Locked. Biome: Grass. Links: right, Riverside; down right, Blooming Field; left, Blooming Field
+2026-11-25 13:39:43.353 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 13:39:46.705 INFO Atlas node landed: Riverhold. Locked. Biome: Grass. Links: right, Blooming Field; left, Rugosa
+2026-11-25 13:39:49.254 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 13:39:52.349 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:39:55.316 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 13:39:56.201 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:39:59.421 INFO Atlas node landed: Reservoir. Locked. Biome: Swamp. Links: up, Cenotes; down left, Forge; up left, Sealed Vault
+2026-11-25 13:40:02.538 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: up, Bastille; down right, Penitentiary; down left, Reservoir; up left, Sealed Vault
+2026-11-25 13:40:05.773 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Links: right, Bazaar; down left, Sun Temple; up left, Penitentiary
+2026-11-25 13:40:12.908 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Links: right, Sun Temple; down right, Vaal City; left, Bazaar
+2026-11-25 13:40:15.760 INFO Atlas node landed: Vaal City. Locked. Biome: Vaal City. Links: up right, Vaal City; down right, Vaal Ruins; down left, Sun Temple
+2026-11-25 13:40:19.062 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Links: right, Bazaar; down left, Sun Temple; up left, Penitentiary
+2026-11-25 13:40:26.098 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: up, Bastille; down right, Penitentiary; down left, Reservoir; up left, Sealed Vault
+2026-11-25 13:40:29.731 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Links: right, Bazaar; down left, Sun Temple; up left, Penitentiary
+2026-11-25 13:40:33.870 INFO Atlas node landed: Riverhold. Locked. Biome: Grass. Links: right, Blooming Field; left, Rugosa
+2026-11-25 13:40:36.300 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 13:40:38.984 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:40:42.129 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: up, Bastille; down right, Penitentiary; down left, Reservoir; up left, Sealed Vault
+2026-11-25 13:40:45.282 INFO Atlas node landed: Augury. Locked. Biome: Grass. Links: down right, Vaal City; up left, Steppe
+2026-11-25 13:40:54.957 INFO Atlas node landed: Decay. Accessible. Biome: Grass. Links: right, Pit
+2026-11-25 13:42:14.748 INFO Atlas node landed: Sanctuary. Completed. Biome: Desert. Links: up right, Ravine; down left, Bloodwood
+2026-11-25 13:42:18.033 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Links: right, Forge; down left, Sanctuary
+2026-11-25 13:42:21.017 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 13:42:23.883 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:42:27.608 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: up, Bastille; down right, Penitentiary; down left, Reservoir; up left, Sealed Vault
+2026-11-25 13:42:31.087 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:42:34.138 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: up, Bastille; down right, Penitentiary; down left, Reservoir; up left, Sealed Vault
+2026-11-25 13:42:37.019 INFO Atlas node landed: Augury. Locked. Biome: Grass. Links: down right, Vaal City; up left, Steppe
+2026-11-25 13:42:54.723 INFO Atlas node: @34FFB705D90 "" class 1430F5718 record +0x310: AtlasNormalMapsWithIncursion10 graph endgamemaplayoutgraph pin  maps  at 1012,5054 says "Augury" | Links: down right, Vaal City; up left, Steppe atlas AtlasNormalMapsWithIncursion10 area MapAugury grid 22,12 status 0 +328 00021E06DD29719D +330 27 +338 000000010000FFFF textures []
+2026-11-25 13:49:24.661 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Holds: Grand Expedition. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 13:49:29.653 INFO Atlas node landed: Steppe. Completed. Biome: Grass. Holds: Grand Expedition. Links: up right, Bloodwood; down right, Trenches
+2026-11-25 13:49:46.621 INFO Atlas node landed: Pit. Locked. Biome: Desert. Holds: Grand Expedition. Links: up right, Forge; down right, Savannah; left, Decay
+2026-11-25 13:49:57.110 INFO Atlas node landed: Steppe. Completed. Biome: Grass. Holds: Grand Expedition. Links: up right, Bloodwood; down right, Trenches
+2026-11-25 13:50:01.279 INFO Atlas node landed: Bloodwood. Completed. Biome: Forest. Holds: Grand Expedition. Links: up right, Sanctuary; down left, Steppe; up left, Ancient Gateway
+2026-11-25 13:50:04.977 INFO Atlas node landed: Sanctuary. Completed. Biome: Desert. Holds: Grand Expedition. Links: up right, Ravine; down left, Bloodwood
+2026-11-25 13:50:08.079 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Holds: Grand Expedition. Links: right, Forge; down left, Sanctuary
+2026-11-25 13:50:17.232 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Holds: Grand Expedition. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 13:50:21.418 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Holds: Grand Expedition. Links: right, Forge; down left, Sanctuary
+2026-11-25 13:50:25.603 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Holds: Grand Expedition. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:50:29.078 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Holds: Grand Expedition. Links: right, Forge; down left, Sanctuary
+2026-11-25 13:50:45.651 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Holds: Grand Expedition. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 13:50:50.177 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Holds: Grand Expedition. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:50:54.098 INFO Atlas node landed: Rugosa. Locked. Biome: Water. Holds: Grand Expedition. Links: up right, Riverhold; down right, Caldera; left, Digsite; up left, Reservoir
+2026-11-25 13:50:55.947 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Holds: Grand Expedition. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:55:21.167 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 13:55:24.921 INFO Atlas node landed: Bloodwood. Completed. Biome: Forest. Links: up right, Sanctuary; down left, Steppe; up left, Ancient Gateway
+2026-11-25 13:55:27.927 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 13:55:30.780 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 13:55:33.997 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 13:55:36.907 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 13:55:40.741 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 13:55:53.256 INFO Atlas node landed: Spring. Completed. Biome: Desert. Links: down right, Confluence; down, Rustbowl; left, Precursor Tower
+2026-11-25 13:55:56.652 INFO Atlas node landed: Precursor Tower. Completed. Biome: Forest. Links: right, Spring; up left, Trenches
+2026-11-25 13:55:59.452 INFO Atlas node landed: Trenches. Accessible. Biome: Swamp. Links: down right, Precursor Tower; down left, Savannah; up left, Steppe
+2026-11-25 13:56:03.121 INFO Atlas node landed: Steppe. Completed. Biome: Grass. Links: up right, Bloodwood; down right, Trenches
+2026-11-25 13:56:05.590 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 13:56:08.196 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:56:11.481 INFO Atlas node landed: Port. Locked. Biome: Grass. Links: right, Caldera; down left, Bloodwood
+2026-11-25 13:56:14.418 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:56:17.046 INFO Atlas node landed: Rugosa. Locked. Biome: Water. Links: up right, Riverhold; down right, Caldera; left, Digsite; up left, Reservoir
+2026-11-25 13:56:20.235 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 13:56:23.489 INFO Atlas node landed: Ravine. Locked. Biome: Mountain. Links: up, Marrow; down left, Ravine; left, Reservoir
+2026-11-25 13:56:26.368 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: down right, Blooming Field; down, Ravine; left, Epitaph
+2026-11-25 13:56:34.851 INFO Atlas node landed: Ravine. Locked. Biome: Mountain. Links: up, Marrow; down left, Ravine; left, Reservoir
+2026-11-25 13:56:35.863 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: down right, Blooming Field; down, Ravine; left, Epitaph
+2026-11-25 13:56:41.622 INFO Atlas node landed: The Burning Monolith. Locked. Links: down right, Blooming Field; up left, Sump
+2026-11-25 13:56:44.970 INFO Atlas node landed: Blooming Field. Locked. Biome: Grass. Links: up right, Steaming Springs; down right, Reservoir; left, Marrow; up left, The Burning Monolith
+2026-11-25 13:56:48.186 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 13:56:52.083 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 13:56:55.338 INFO Atlas node landed: Port. Locked. Biome: Grass. Links: right, Caldera; down left, Bloodwood
+2026-11-25 13:56:57.556 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 13:58:56.393 INFO Atlas node landed: Port. Locked. Biome: Grass. Links: right, Caldera; down left, Bloodwood
+2026-11-25 13:58:59.041 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine; right, Digsite; left, Bastille
+2026-11-25 13:59:03.836 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: down right, Blooming Field; down, Ravine; left, Epitaph
+2026-11-25 13:59:08.254 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine; right, Digsite; left, Bastille
+2026-11-25 13:59:40.630 INFO Atlas node landed: Frozen Falls. Locked. Biome: Mountain. Links: up right, Bloodwood; down left, Trenches; down left, Penitentiary
+2026-11-25 13:59:43.878 INFO Atlas node landed: Penitentiary. Locked. Biome: Grass. Links: down right, Frozen Falls; left, Steaming Springs
+2026-11-25 13:59:49.830 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: down right, Blooming Field; down, Ravine; left, Epitaph
+2026-11-25 14:00:22.732 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 14:00:23.539 INFO Atlas node landed: Riverhold. Locked. Biome: Grass. Links: right, Blooming Field; left, Rugosa
+2026-11-25 14:00:25.925 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; left, Caldera
+2026-11-25 14:00:29.513 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 14:00:32.298 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Links: right, Forge; down left, Sanctuary
+2026-11-25 14:00:34.978 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:00:37.661 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 14:00:41.565 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: up, Blooming Field; right, Seepage; down, Rugosa; left, Ravine
+2026-11-25 14:00:45.066 INFO Atlas node landed: Ravine. Locked. Biome: Mountain. Links: up, Marrow; down left, Ravine; left, Reservoir
+2026-11-25 14:00:47.816 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: down right, Blooming Field; down, Ravine; left, Epitaph
+2026-11-25 14:00:50.900 INFO Atlas node landed: The Burning Monolith. Locked. Links: down right, Blooming Field; up left, Sump
+2026-11-25 14:00:53.662 INFO Atlas node landed: Blooming Field. Locked. Biome: Grass. Links: up right, Steaming Springs; down right, Reservoir; left, Marrow; up left, The Burning Monolith
+2026-11-25 14:00:56.817 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 14:00:59.220 INFO Atlas node landed: Port. Locked. Biome: Grass. Links: right, Caldera; down left, Bloodwood
+2026-11-25 14:01:05.154 INFO Atlas node landed: Steppe. Completed. Biome: Grass. Links: up right, Bloodwood; down right, Trenches
+2026-11-25 14:01:07.741 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:01:11.556 INFO Atlas node landed: Bloodwood. Completed. Biome: Forest. Links: up right, Sanctuary; down left, Steppe; up left, Ancient Gateway
+2026-11-25 14:01:43.243 INFO Atlas node: @47D47DF1B10 "" class 1430F5718 record +0x310: no endgame node
+2026-11-25 14:06:52.695 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:06:57.897 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 14:07:00.768 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Links: right, Forge; down left, Sanctuary
+2026-11-25 14:07:03.482 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 14:07:06.373 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:07:12.689 INFO Atlas node landed: Forge. Accessible. Biome: Mountain
+2026-11-25 14:07:16.559 INFO Atlas node landed: Sanctuary. Completed. Biome: Desert. Links: up right, Ravine; down left, Bloodwood
+2026-11-25 14:07:19.166 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:07:23.149 INFO Atlas node landed: Port. Locked. Biome: Grass. Links: right, Caldera; down left, Bloodwood
+2026-11-25 14:07:25.799 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 14:07:29.837 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine; up right, Digsite; left, Bastille
+2026-11-25 14:07:33.869 INFO Atlas node landed: Frozen Falls. Locked. Biome: Mountain. Links: up right, Bloodwood; down left, Trenches; down left, Penitentiary
+2026-11-25 14:07:36.989 INFO Atlas node landed: Penitentiary. Locked. Biome: Grass. Links: up right, Frozen Falls; left, Steaming Springs
+2026-11-25 14:07:44.058 INFO Atlas node landed: Frozen Falls. Locked. Biome: Mountain. Links: up right, Bloodwood; down left, Trenches; down left, Penitentiary
+2026-11-25 14:07:44.802 INFO Atlas node landed: Trenches. Locked. Biome: Forest. Links: up right, Frozen Falls; up left, Decay
+2026-11-25 14:07:47.669 INFO Atlas node landed: Penitentiary. Locked. Biome: Grass. Links: up right, Frozen Falls; left, Steaming Springs
+2026-11-25 14:07:51.639 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: right, Blooming Field; down right, Ravine; left, Epitaph
+2026-11-25 14:07:54.489 INFO Atlas node landed: Sump. Locked. Biome: Swamp. Links: up right, Forge; down right, The Burning Monolith; up left, Razed Fields
+2026-11-25 14:08:05.124 INFO Atlas node landed: Steaming Springs. Locked. Biome: Grass. Links: right, Riverside; down right, Blooming Field; down left, Blooming Field
+2026-11-25 14:08:07.599 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field; right, Snowfall; down left, Caldera
+2026-11-25 14:08:10.231 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:08:12.663 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 14:08:15.262 INFO Atlas node landed: Riverhold. Locked. Biome: Grass. Links: right, Blooming Field; down left, Rugosa
+2026-11-25 14:08:18.466 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 14:08:20.653 INFO Atlas node landed: Sanctuary. Completed. Biome: Desert. Links: up right, Ravine; down left, Bloodwood
+2026-11-25 14:08:23.699 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:08:26.217 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 14:08:29.416 INFO Atlas node landed: Caldera. Accessible. Biome: Water. Links: up right, Caldera; down right, Ancient Gateway; left, Port; up left, Rugosa
+2026-11-25 14:09:12.982 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine; up right, Digsite; left, Bastille
+2026-11-25 14:42:58.606 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:43:02.825 INFO Atlas node landed: Caldera. Locked. Biome: Water. Links: up right, Port; down left, Caldera
+2026-11-25 14:43:05.488 INFO Atlas node landed: Rugosa. Locked. Biome: Water. Links: up right, Riverhold; down right, Caldera; left, Digsite; up left, Reservoir
+2026-11-25 14:43:06.388 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down, Bloodwood; down left, Mineshaft
+2026-11-25 14:43:08.842 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine; up right, Digsite; left, Bastille
+2026-11-25 14:43:55.495 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: right, Bloodwood; up left, Caldera
+2026-11-25 14:43:58.118 INFO Atlas node landed: Port. Locked. Biome: Grass. Links: right, Caldera; down left, Bloodwood
+2026-11-25 14:43:58.942 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine, unrevealed; up right, Digsite; left, Bastille, unrevealed
+2026-11-25 14:44:02.803 INFO Atlas node landed: Ravine. Locked. Biome: Mountain. Links: down left, Ravine, unrevealed; left, Reservoir, unrevealed; left, Marrow
+2026-11-25 14:44:06.371 INFO Atlas node landed: Marrow. Locked. Biome: Grass. Links: right, Blooming Field; right, Ravine; left, Epitaph, unrevealed
+2026-11-25 14:44:11.130 INFO Atlas node landed: Reservoir. Locked. Biome: Forest. Links: right, Seepage, unrevealed; down right, Rugosa; left, Ravine, unrevealed; up left, Blooming Field
+2026-11-25 14:44:11.947 INFO Atlas node landed: Riverhold. Locked. Biome: Grass. Links: right, Blooming Field, unrevealed; down left, Rugosa
+2026-11-25 14:44:15.296 INFO Atlas node landed: Port. Locked. Biome: Water. Links: up, Blooming Field, unrevealed; right, Snowfall, unrevealed; down left, Caldera
+2026-11-25 14:44:18.881 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; down right, Reservoir; down right, Forge
+2026-11-25 14:44:22.217 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 14:44:25.202 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:44:27.059 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:47:19.980 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:48:57.307 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:48:59.975 INFO Atlas node landed: Slash. Locked. Biome: Forest
+2026-11-25 14:49:02.712 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:49:05.506 INFO Atlas node landed: Slash. Locked. Biome: Forest
+2026-11-25 14:49:11.124 INFO Atlas node landed: Augury. Locked. Biome: Grass. Holds: Vaal Beacons. Links: right, Vaal City; up left, Steppe, unrevealed
+2026-11-25 14:49:16.686 INFO Atlas node landed: Slash. Locked. Biome: Forest
+2026-11-25 14:49:18.917 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:49:21.235 INFO Atlas node landed: Sanctuary. Completed. Biome: Desert. Links: up right, Ravine; down left, Bloodwood
+2026-11-25 14:49:26.393 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:49:30.379 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 14:49:32.833 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:49:35.005 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:49:37.021 INFO Atlas node landed: Oasis. Completed. Biome: Desert
+2026-11-25 14:49:39.735 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:49:53.057 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:49:56.838 INFO Atlas node landed: Digsite. Locked. Biome: Grass. Links: right, Rugosa; down left, Bloodwood; left, Mineshaft
+2026-11-25 14:49:58.756 INFO Atlas node landed: Mineshaft. Locked. Biome: Mountain. Links: up right, Ravine, unrevealed; right, Digsite; left, Bastille, unrevealed
+2026-11-25 14:50:02.384 INFO Atlas node landed: Frozen Falls. Locked. Biome: Mountain. Links: up right, Bloodwood; down left, Trenches; down left, Penitentiary
+2026-11-25 14:50:07.271 INFO Atlas node landed: Penitentiary. Locked. Biome: Grass. Links: up right, Frozen Falls; left, Steaming Springs, unrevealed
+2026-11-25 14:50:14.022 INFO Atlas node landed: Frozen Falls. Locked. Biome: Mountain. Links: up right, Bloodwood; down left, Trenches; down left, Penitentiary
+2026-11-25 14:50:16.209 INFO Atlas node landed: Rockpools. Completed. Biome: Water
+2026-11-25 14:50:18.166 INFO Atlas node landed: Spider Woods. Locked. Biome: Forest
+2026-11-25 14:50:19.866 INFO Atlas node landed: Steaming Springs. Locked. Biome: Grass
+2026-11-25 14:50:21.298 INFO Atlas node landed: The Reliquary Vault. Locked. Links: down, Forge
+2026-11-25 14:50:23.519 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up, The Reliquary Vault; right, Sinkhole; down left, Pit
+2026-11-25 14:50:26.016 INFO Atlas node landed: Razed Fields. Accessible. Biome: Grass
+2026-11-25 14:50:28.885 INFO Atlas node landed: Steaming Springs. Locked. Biome: Grass
+2026-11-25 14:50:30.918 INFO Atlas node landed: Razed Fields. Accessible. Biome: Grass
+2026-11-25 14:50:32.630 INFO Atlas node landed: Oasis. Completed. Biome: Desert
+2026-11-25 14:50:34.881 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:50:38.295 INFO Atlas node landed: Forge. Accessible. Biome: Mountain
+2026-11-25 14:50:40.192 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:50:41.140 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 14:50:44.509 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: down right, Penitentiary, unrevealed; down, Reservoir; left, Sealed Vault; up left, Bastille
+2026-11-25 14:50:48.004 INFO Atlas node landed: Reservoir. Locked. Biome: Swamp. Links: up, Cenotes; down left, Forge; left, Sealed Vault
+2026-11-25 14:50:50.525 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; right, Reservoir; down right, Forge
+2026-11-25 14:50:53.564 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Links: right, Forge; down left, Sanctuary
+2026-11-25 14:50:55.940 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 14:50:57.651 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Holds: Vaal Beacons. Links: up right, Bazaar; down right, Sun Temple; up left, Penitentiary, unrevealed
+2026-11-25 14:50:59.247 INFO Atlas node landed: Sun Temple. Locked. Biome: Vaal City. Holds: Vaal Beacons. Links: up right, Vaal City; down right, Vaal City; up left, Bazaar
+2026-11-25 14:51:01.936 INFO Atlas node landed: Vaal Ruins. Locked. Links: right, Sun Temple; up left, Vaal City
+2026-11-25 14:51:05.356 INFO Atlas node landed: Vaal City. Locked. Biome: Vaal City. Holds: Vaal Beacons. Links: up right, Vaal City; down right, Vaal Ruins; down left, Sun Temple
+2026-11-25 14:51:06.250 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Holds: Vaal Beacons. Links: right, Sun Temple, unrevealed; right, Vaal City; down left, Bazaar
+2026-11-25 14:51:09.899 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: down right, Penitentiary, unrevealed; down, Reservoir; left, Sealed Vault; up left, Bastille
+2026-11-25 14:51:13.057 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; right, Reservoir; down right, Forge
+2026-11-25 14:51:16.126 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Links: right, Forge; down left, Sanctuary
+2026-11-25 14:51:20.147 INFO Atlas node landed: Forge. Locked. Biome: Mountain. Links: up right, Reservoir; left, Ravine; up left, Sealed Vault
+2026-11-25 14:51:23.165 INFO Atlas node landed: Bazaar. Locked. Biome: Vaal City. Holds: Vaal Beacons. Links: up right, Bazaar; down right, Sun Temple; up left, Penitentiary, unrevealed
+2026-11-25 14:51:25.072 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: down right, Penitentiary, unrevealed; down, Reservoir; left, Sealed Vault; up left, Bastille
+2026-11-25 14:51:28.110 INFO Atlas node landed: Reservoir. Locked. Biome: Swamp. Links: up, Cenotes; down left, Forge; left, Sealed Vault
+2026-11-25 14:51:30.699 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; right, Reservoir; down right, Forge
+2026-11-25 14:51:36.211 INFO Atlas node landed: Bastille. Locked. Biome: Forest. Links: down right, Mire, unrevealed; down right, Cenotes; down left, Sealed Vault
+2026-11-25 14:51:38.815 INFO Atlas node landed: Cenotes. Locked. Biome: Swamp. Links: down right, Penitentiary, unrevealed; down, Reservoir; left, Sealed Vault; up left, Bastille
+2026-11-25 14:51:41.879 INFO Atlas node landed: Sealed Vault. Locked. Biome: Mountain. Links: up right, Bastille; right, Cenotes; right, Reservoir; down right, Forge
+2026-11-25 14:51:43.516 INFO Atlas node landed: Ravine. Accessible. Biome: Forest. Links: right, Forge; down left, Sanctuary
+2026-11-25 14:51:45.946 INFO Atlas node landed: Sanctuary. Completed. Biome: Desert. Links: up right, Ravine; down left, Bloodwood
+2026-11-25 14:51:48.957 INFO Atlas node landed: Ancient Gateway. Completed. Biome: Forest. Links: down right, Bloodwood; up left, Caldera
+2026-11-25 14:51:52.074 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:51:57.950 INFO Atlas node landed: Slash. Locked. Biome: Forest
+2026-11-25 14:52:00.672 INFO Atlas node landed: Slash. Locked. Biome: Forest
+2026-11-25 14:52:02.154 INFO Atlas node landed: Rockpools. Accessible. Biome: Water
+2026-11-25 14:53:17.099 INFO Atlas node: @4FDBF748AB0 "" class 1430F5718 record +0x310: no endgame node
+2026-11-25 14:56:15.383 INFO Atlas node landed: Slash. Locked. Biome: Forest
+2026-11-25 14:57:09.195 INFO Atlas node: @4FDBF7261F0 "" class 1430F5718 record +0x310: no endgame node

@@ -114,6 +114,7 @@ namespace Poe2Accessibility
         private EssenceWatch? essences;
         private RulesetWatch? rulesets;
         private MapPinNarrator? mapPins;
+        private AtlasNarrator? atlasNodes;
         private MinionReport? minions;
         private CullWatch? culls;
         private DeployedWatch? deployed;
@@ -533,6 +534,10 @@ namespace Poe2Accessibility
                 this.screen.MapLegendWord = this.semantics.MapLegendWord;
                 this.semantics.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
+                this.atlasNodes = new AtlasNarrator(this.semantics, this.output, this.log);
+                this.atlasNodes.CharacterName = () => this.semantics.CharacterName?.Invoke() ?? string.Empty;
+                this.atlasNodes.ResumeFile = Path.Join(this.DllDirectory, "config", "atlas-resume.txt");
+                this.atlasNodes.ProgressFile = Path.Join(this.DllDirectory, "config", "atlas-progress.txt");
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.InTown = this.InTownOrHideout;
                 this.entities.LayoutRevealed = () => this.rulesets?.MinimapRevealed == true;
@@ -896,6 +901,23 @@ namespace Poe2Accessibility
             if (this.Settings.AnnounceAppearingText)
             {
                 this.Isolated("map pins", static core => core.mapPins?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
+            }
+
+            if (this.Settings.AnnounceAtlasNodes || this.Settings.AtlasFinder)
+            {
+                if (this.atlasNodes != null)
+                {
+                    this.atlasNodes.AnnounceNodes = this.Settings.AnnounceAtlasNodes;
+                    this.atlasNodes.FinderOn = this.Settings.AtlasFinder;
+                }
+
+                this.Isolated("atlas node", static core => core.atlasNodes?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
+            }
+            else
+            {
+                // Both off: still tick the reset, so a scan's element addresses are never carried across an
+                // Atlas closing that happened while the feature was disabled.
+                this.Isolated("atlas node", static core => core.atlasNodes?.Tick(IntPtr.Zero));
             }
 
             if (this.gameState.CurrentState is (GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or

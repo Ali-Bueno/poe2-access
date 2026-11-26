@@ -609,6 +609,49 @@ namespace Poe2Accessibility
             public const string AreaTable = "Data/Balance/WorldAreas.dat";
         }
 
+        /// <summary>
+        ///     A node of the Atlas map (the WorldScreen's map_control, its canvas child 6 in the dump, node elements
+        ///     flags 0x542EF3 — docs/research/atlas-navigator.md §6, live 2026-11-25). The node the cursor rests on is
+        ///     kept by map_control and by the canvas; neither the focus nor the UI manager's hovered slot ever points
+        ///     at a node there. Provenance: SelectedNodeOffset (and canvas +0x408, unused here) held the node whose
+        ///     area is MapPit while its popup read "Pit"; the three keys are datkeys-proven on four nodes (the
+        ///     EndgameMapAtlas row's first key names the catalog node, e.g. Pit = AtlasOutsideFortressPath5), and
+        ///     the grid pair was sampled on the same four. The EndgameMapAtlas key is null on row-less nodes
+        ///     (Rockpools, Oasis, Slash): always DatKey.Row-check AtlasKeyOffset before trusting it.
+        /// </summary>
+        public static class AtlasNode
+        {
+            /// <summary>On map_control: the node element the cursor rests on.</summary>
+            public const int SelectedNodeOffset = 0x2E0;
+
+
+            /// <summary>On a node element: dat keys (row, file) to its EndgameMaps, WorldAreas and EndgameMapAtlas rows.</summary>
+            public const int EndgameMapsKeyOffset = 0x2F0;
+
+            public const int AreaKeyOffset = 0x300;
+
+            public const int AtlasKeyOffset = 0x310;
+
+            /// <summary>On a node element: its place as two i32, read directly, never computed. It tracks the catalog place scaled by about 1/173 with y flipped (x exact on 3 of 4 as round(x/173)+16, y off by one once, §6) — descriptive only, not a conversion.</summary>
+            public const int GridOffset = 0x320;
+
+            /// <summary>
+            ///     On a node element: its state as bits — bit0 the node can be opened, bit1 its map is completed (live
+            ///     2026-11-25, docs/research/atlas-navigator.md §6: locked 0, accessible 1 twice, and the Ancient Gateway
+            ///     1 → 3 across its completion; higher bits occur on special nodes, so read the two bits, never equality).
+            ///     Upstream GameHelper documented the same bits at its stale +0x2BF.
+            /// </summary>
+            public const int StatusOffset = 0x32F;
+
+            public const int StatusAccessibleBit = 1 << 0;
+
+            public const int StatusCompletedBit = 1 << 1;
+
+            public const string AtlasTable = "Data/Balance/EndgameMapAtlas.dat";
+
+            public const string EndgameMapsTable = "Data/Balance/EndgameMaps.dat";
+        }
+
         /// <summary>A MapPins row (dat columns followed by DatColumns): its area key, name and description, as its popup shows them.</summary>
         public static class MapPinRow
         {
