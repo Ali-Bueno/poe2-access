@@ -240,5 +240,6 @@ What the mod does: a named object of the area's own `…/<area id>/Objects/` fol
 step "Sigue la guía hasta el Templo…" has no goal in the quest tables, live 2026-11-26), else to the exit the quest's step
 leads through, seen or not (`EntityCatalog.QuestExit`:
 here the radar table's `Dregs_Transition` tile, "Pools of Khatal", known at arrival; the room `exit_01` holds both it and
-`Wayfinder4`) (`MapHintNarrator.Wayfinders`). The first seal seen used in an area starts one wherever it stands, as the
-compass stays on the player across a restart of the mod.
+`Wayfinder4`) (`MapHintNarrator.Wayfinders`). A seal seen turning used starts a trail, and so does the first seen already
+used while none is on; the guide being on is kept per character and area in `config/wayfinders.txt`, so a new instance or
+a restart of the mod far from the seals resumes it, until the end of the walk is within a look.

@@ -18,31 +18,70 @@ namespace Poe2Accessibility.Services
         /// <summary>The seal's state: 1 once used, which also makes it untargetable (`Wayfinder{N}Pointer.ot`).</summary>
         private const string PointerState = "active";
 
-        /// <summary>A seal used this near the player (cells) is the one just used: the trail starts from here.</summary>
-        private const float UsedHereCells = ExplorationMap.LookCells;
+        /// <summary>The guide's end this near (cells) is reached: the end of the walk, within what the player sees.</summary>
+        private const float GuideEndCells = ExplorationMap.LookCells;
 
         private static readonly Regex PointerPath = new(@"/Objects/Wayfinder\d+Pointer$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         private static readonly MapHintRow WayfinderRow = new() { Hint = "wayfinder", Line = true };
 
-        private readonly HashSet<uint> pointersUsed = new();
+        /// <summary>The value of <see cref="Guides"/> while a character follows the seals' guide in an area.</summary>
+        private const string GuideOn = "on";
 
-        /// <summary>A seal seen used beside the player sends a trail to the next seal still to use, else to the quest's exit.</summary>
-        private void WatchWayfinders(AreaInstance map, Vector2 here)
+        private const string GuideOff = "off";
+
+        private readonly HashSet<uint> pointersUsed = new();
+        private readonly HashSet<uint> pointersUnused = new();
+        private bool guideResumed;
+        private bool guideTrailOn;
+
+        /// <summary>
+        ///     Per character and area, whether the seals' guide is on: the compass stays on the player in a new instance or after a
+        ///     restart of the mod, when the seal used may be far out of the game's reach (file `config/wayfinders.txt`).
+        /// </summary>
+        public PassiveResume? Guides { get; set; }
+
+        /// <summary>The followed character's name, for <see cref="Guides"/>.</summary>
+        public Func<string>? Character { get; set; }
+
+        private string GuideKey => $"{this.Character?.Invoke() ?? string.Empty}|{this.area}";
+
+        /// <summary>
+        ///     A seal seen turning used sends a trail to the next seal still to use, else to the row's goal; so does the first seal
+        ///     seen already used when no trail is on in this area (one used before the mod saw it), and a guide on from before.
+        /// </summary>
+        private void WatchWayfinders(AreaInstance map)
         {
-            // The first seal seen used starts one too, wherever it stands: the compass stays on the player after a restart.
-            var first = this.pointersUsed.Count == 0;
-            foreach (var (id, cell, used) in Pointers(map).ToList())
+            if (!this.guideResumed)
             {
-                if (used && !this.pointersUsed.Contains(id) && (first || Vector2.Distance(here, cell) <= UsedHereCells))
+                this.guideResumed = true;
+                if (this.Guides?.Get(this.GuideKey) == GuideOn)
                 {
-                    first = false;
-                    this.pointersUsed.Add(id);
-                    this.log.Info($"Wayfinder used at cell {cell.X:0},{cell.Y:0}: a trail to the next");
-                    var row = this.rows.FirstOrDefault(each => each.Hint == WayfinderRow.Hint) ?? WayfinderRow;
-                    this.trails.Add(row, Array.Empty<Vector2>(), () => this.NextWayfinder(row));
+                    this.log.Info("Wayfinder guide on from before: a trail to the next");
+                    this.AddWayfinderTrail();
                 }
             }
+
+            foreach (var (id, cell, used) in Pointers(map).ToList())
+            {
+                if (!used)
+                {
+                    this.pointersUnused.Add(id);
+                }
+                else if (this.pointersUsed.Add(id) && (this.pointersUnused.Remove(id) || !this.guideTrailOn))
+                {
+                    this.log.Info($"Wayfinder used at cell {cell.X:0},{cell.Y:0}: a trail to the next");
+                    this.AddWayfinderTrail();
+                }
+            }
+        }
+
+        private void AddWayfinderTrail()
+        {
+            var row = this.rows.FirstOrDefault(each => each.Hint == WayfinderRow.Hint) ?? WayfinderRow;
+            this.trails.Add(row, Array.Empty<Vector2>(), () => this.NextWayfinder(row));
+            this.Guides?.Set(this.GuideKey, GuideOn);
+            this.guideTrailOn = true;
         }
 
         /// <summary>
@@ -65,7 +104,13 @@ namespace Poe2Accessibility.Services
                 return new ScanEntry(next.Id, ScanCategory.Objects, name, next.Cell.X * toWorld, next.Cell.Y * toWorld, player.WorldPosition.Z);
             }
 
-            return this.Goal(row) ?? this.catalog.QuestExit();
+            var last = this.Goal(row) ?? this.catalog.QuestExit();
+            if (last != null && Vector2.Distance(here, new Vector2(last.WorldX, last.WorldY) / toWorld) <= GuideEndCells)
+            {
+                this.Guides?.Set(this.GuideKey, GuideOff); // the guide's end reached: nothing to follow on a later visit
+            }
+
+            return last;
         }
 
         /// <summary>The awake seals with their place and whether they were used.</summary>

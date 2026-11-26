@@ -479,7 +479,11 @@ namespace Poe2Accessibility
                 this.entities.TrailEntries = this.trails.Entries;
                 this.entities.TrailLines = this.trails.Lines;
                 this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")), this.trails,
-                                                    () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                                                    () => this.gameState?.CurrentAreaId ?? string.Empty, this.log)
+                {
+                    Guides = new PassiveResume(Path.Join(this.DllDirectory, "config", "wayfinders.txt")),
+                    Character = () => PlayerAlerts.Name(Seats.Followed),
+                };
                 this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark ? this.entities.UnseenToward(from, axis) : null;
                 this.radar.LeadsToDeadEnd = (from, axis) => this.Settings.UnexploredMark && this.entities.DeadEndToward(from, axis);
                 Func<System.Numerics.Vector2, bool?> layout = cell => this.Settings.RadarFollowsMap ? this.entities.WaysRunDiagonal(cell) : false;

@@ -93,6 +93,8 @@ namespace Poe2Accessibility.Services
                 (this.scanned, this.trailsAdded, this.scan, this.arrivedAt) = (false, false, null, now);
                 this.trails.Reset(this.instance);
                 this.pointersUsed.Clear();
+                this.pointersUnused.Clear();
+                (this.guideResumed, this.guideTrailOn) = (false, false);
             }
 
             if (now - this.arrivedAt < ArrivalMs)
@@ -140,7 +142,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.WatchRituals(map, here);
-            this.WatchWayfinders(map, here);
+            this.WatchWayfinders(map);
             if (lines.Count > 0)
             {
                 this.output.Say(SpeechKind.Places, string.Join(". ", lines), urgent: true); // through a fight, as discoveries
