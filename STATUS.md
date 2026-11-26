@@ -534,6 +534,11 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 14:40 (the owner: inside the desert tombs, the Sekhemas and the Trial of Chaos the radar cites ways outside):**
+investigated, no code: a tomb is ground apart in the same area; most sources already follow the reachable ground, but the
+listings, forks, landmarks, room names, pending ways and the parts' frame use the whole map. Plan in
+[map pieces](docs/research/map-pieces.md); waiting for the owner's go.
+
 **2026-11-26, 14:10 (the owner in Holten Estate: "no puedo pasar de manera alguna, hasta se me acabaron las zonas sin explorar"):**
 the arena is reached from the upper floor (foyer stairs up, then the boss stairs down; [route-walking](docs/research/route-walking.md)).
 The radar table's "Boss stairs" note now names the game's stair exit on it ("Escaleras del jefe", one entry), and a guide to a
