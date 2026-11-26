@@ -92,7 +92,7 @@ namespace Poe2Accessibility.Services
         public (Vector2 At, float Distance, bool Inside)? FloodEdge => this.FloodOn() ? this.EffectFront() ?? this.flood?.Edge : null;
 
         /// <summary>The heartbeat leads to the fight's shelter (Asala's barrier) or the one place a blow spares (Yama's clone): it takes the shelter's own sound.</summary>
-        public bool LeadsToRefuge => this.maze is { Up: true } || this.LeadsToClone ? this.places!.SafeSpotUp : this.Hiding == null && this.EffectLead() == null && this.WayOut == null && this.flood?.DryLead == null && this.places?.LeadKind == BossPlaceKind.Refuge;
+        public bool LeadsToRefuge => this.maze is { Up: true } || this.LeadsToClone ? this.places!.SafeSpotUp : this.Hiding == null && this.EffectLead() == null && this.WayOut == null && this.flood?.DryLead == null && this.places?.LeadKind is BossPlaceKind.Refuge or BossPlaceKind.Activate;
 
         /// <summary>A shelter of the fight is up: the ground alarm is silent, since the shelter is the way out of the boss's storm.</summary>
         public bool RefugeUp => this.places?.RefugeUp ?? false;

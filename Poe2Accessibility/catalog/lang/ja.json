@@ -869,6 +869,8 @@
  "Sold: {0}, for {1} gold": "売却しました：{0}、{1}ゴールド",
  "Something to break": "壊せるものがある",
  "Something to use": "使えるものがある",
+ "Activate {0}": "{0}を起動",
+ "Something to activate": "起動するものがある",
  "Soul Ferryman - Sells runes": "魂の渡し守、ルーンを販売",
  "Soul core round: find the Vaal Soul Cores and carry them one at a time to a Stone Altar; a core in hand hurts more the longer you hold it": "ソウルコアのラウンド：ヴァールのソウルコアを見つけ、一つずつ石の祭壇へ運びます。コアを持っている間は受けるダメージが増え続けます",
  "Sound": "サウンド",

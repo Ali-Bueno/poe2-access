@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>An object of the arena the player can break.</summary>
         Break,
+
+        /// <summary>An object a state lights up for the player to use now (Siora's rune rock in her darkness); its rule's state is "name=value".</summary>
+        Activate,
     }
 
     /// <summary>One place rule of the catalog: for this boss, entities of a path are places of a kind, while a state of theirs is set when one is named.</summary>
@@ -197,6 +200,9 @@ namespace Poe2Accessibility.Services
                     return true;
                 case "refuge" when c.Length > 3:
                     this.AddPlace(c[2], new BossPlaceRule(BossPlaceKind.Refuge, c[1], c[3]));
+                    return true;
+                case "activate" when c.Length > 3 && c[3].Contains('='):
+                    this.AddPlace(c[2], new BossPlaceRule(BossPlaceKind.Activate, c[1], c[3]));
                     return true;
                 case "clone" when c.Length > 3:
                     this.AddPlace(c[2], new BossPlaceRule(BossPlaceKind.Clone, c[1], c[3]));

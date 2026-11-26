@@ -534,6 +534,12 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 12:40 (the owner, against Siora in the Stones of Serle: "el juego dice que ha desaparecido y la vida empieza a bajarme y me muero", and "Objeto sin nombre, Rune Rock 05"; 1148 tests):**
+in her darkness one rune rock lights (`active=1`, targetable, glowing) and must be used; the census never tied the Stones of
+Serle's rocks to her fight. Now the extractor makes them `activate|…|active=1` and the plugin leads there with the shelter's
+heartbeat, "Activa Megalito rúnico: sigue el latido, …"; spent rocks are no longer "Objeto sin nombre" ([Siora](docs/research/boss-mechanics.md#siora)).
+**First to hear:** her darkness, the lead and the end cue as the rock is used.
+
 **2026-11-26, 11:15 (the owner in the Stones of Serle: "el megalito rúnico no tiene sonido de misión… el segundo", then "ahora sí"; 1143 tests, deployed, not released):**
 "Activa los megalitos restantes" names no "Megalito rúnico" whole, so only the first rang. An object another step of
 the same quest names whole (`QuestGoalCatalog.QuestLinesOf`, the game's tables) is still meant when the step shown names

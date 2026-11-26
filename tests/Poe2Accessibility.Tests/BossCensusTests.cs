@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnElementStateNamesEachValuesElement), AnElementStateNamesEachValuesElement),
             (nameof(TheTrueCloneIsTheStateACloneKindDeclares), TheTrueCloneIsTheStateACloneKindDeclares),
             (nameof(ARefugeIsThePersonTheShelterIsNamedFor), ARefugeIsThePersonTheShelterIsNamedFor),
+            (nameof(AStoneLitToBeUsedIsActivated), AStoneLitToBeUsedIsActivated),
             (nameof(TheBuffsWithWordsToSayAreThoseOfTheTextKinds), TheBuffsWithWordsToSayAreThoseOfTheTextKinds),
         };
 
@@ -303,6 +304,18 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, string.Join(";", Lines(Fight(adds: new[] { add }, orphans: new[] { shelter }), "refuge")), "not in this fight: an NPC of another act sharing the skills");
             Equal($"refuge|{Boss}|Metadata/Monsters/NPC/MarakethMatriarchDreadnought_|sandstorm_defence",
                 string.Join(";", Lines(Fight(adds: new[] { add with { InArena = true } }, orphans: new[] { shelter }), "refuge")), "placed in the arena");
+        }
+
+        private static void AStoneLitToBeUsedIsActivated()
+        {
+            // Siora's RuneRock_base, cut down: active=1 makes it targetable and lights it; its InteractionAction is on one line.
+            var rock = new BossObject("Metadata/Terrain/Gallows/Act4_Interlude/Part1/P1_2/Objects/RuneRock_03", Script("Positioned\n{\n\tblocking = true\n}\nStateMachine\n{\n\tdefine_shared_state = \"active; lightstrike;\"\n}\nInteractionAction {}\nclient\n{\n\tStateMachine\n\t{\n\t\ton_or_create_state_active_0 = { DisableTargetable(); PlayAnimation( idle_inactive ); }\n\t\ton_or_create_state_active_1 = { EnableTargetable(); AddEffectPack( 'Metadata/Effects/rune_ambient_FX.epk' ); }\n\t\ton_or_create_state_active_4 = { PlayAnimation( activate ); }\n\t}\n}\n"));
+            var lines = Lines(Fight(objects: new[] { rock }), "activate").Concat(Lines(Fight(objects: new[] { rock }), "use")).ToList();
+            Equal($"activate|{Boss}|{rock.Path}|active=1", string.Join(";", lines), "led to while lit, and no plain thing to use beside");
+            var struck = new BossObject("Metadata/Monsters/Test/Crystal", Script("Life\n{\n}\nclient\n{\n\tStateMachine\n\t{\n\t\ton_state_open_1 = { EnableTargetable(); AddEffectPack( 'x.epk' ); }\n\t}\n}\n"));
+            Equal(string.Empty, string.Join(";", Lines(Fight(objects: new[] { struck }), "activate")), "one with life is struck, not used");
+            var unlit = new BossObject("Metadata/Monsters/Test/Lever", Script("InteractionAction\n{\n}\nclient\n{\n\tStateMachine\n\t{\n\t\ton_state_open_1 = { EnableTargetable(); }\n\t}\n}\n"));
+            Equal($"use|{Boss}|{unlit.Path}", string.Join(";", Lines(Fight(objects: new[] { unlit }), "activate").Concat(Lines(Fight(objects: new[] { unlit }), "use"))), "targetable but never lit: only told of");
         }
 
         private static void TheBuffsWithWordsToSayAreThoseOfTheTextKinds()

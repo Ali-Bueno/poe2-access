@@ -869,6 +869,8 @@
  "Sold: {0}, for {1} gold": "已賣出：{0}，獲得 {1} 金幣",
  "Something to break": "有東西可破壞",
  "Something to use": "有東西可使用",
+ "Activate {0}": "啟動{0}",
+ "Something to activate": "有東西可啟動",
  "Soul Ferryman - Sells runes": "靈魂擺渡人，販售符文",
  "Soul core round: find the Vaal Soul Cores and carry them one at a time to a Stone Altar; a core in hand hurts more the longer you hold it": "靈魂核心回合：找到瓦爾靈魂核心，一次一個帶到石製祭壇；手持核心時受到的傷害會越來越高",
  "Sound": "音效",

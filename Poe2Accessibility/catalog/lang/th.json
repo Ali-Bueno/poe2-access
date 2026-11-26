@@ -869,6 +869,8 @@
  "Sold: {0}, for {1} gold": "ขายแล้ว {0} ได้ทอง {1}",
  "Something to break": "มีของให้ทำลาย",
  "Something to use": "มีของให้ใช้",
+ "Activate {0}": "เปิดใช้ {0}",
+ "Something to activate": "มีของให้เปิดใช้",
  "Soul Ferryman - Sells runes": "คนแจวเรือวิญญาณ, ขายรูน",
  "Soul core round: find the Vaal Soul Cores and carry them one at a time to a Stone Altar; a core in hand hurts more the longer you hold it": "รอบแกนวิญญาณ: หาแกนวิญญาณวาลแล้วนำไปวางที่แท่นบูชาหินทีละก้อน การถือแกนจะทำให้บาดเจ็บมากขึ้นเรื่อย ๆ",
  "Sound": "เสียง",

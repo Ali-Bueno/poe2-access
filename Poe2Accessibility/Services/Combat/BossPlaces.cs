@@ -43,7 +43,21 @@ namespace Poe2Accessibility.Services
         public BossPlaceKind? LeadKind { get; private set; }
 
         /// <summary>Whether the player is led to a place of this kind.</summary>
-        public static bool Leads(BossPlaceKind kind) => kind is BossPlaceKind.Refuge or BossPlaceKind.Clone or BossPlaceKind.Cover;
+        public static bool Leads(BossPlaceKind kind) => kind is BossPlaceKind.Refuge or BossPlaceKind.Clone or BossPlaceKind.Cover or BossPlaceKind.Activate;
+
+        /// <summary>Whether a rule's "name=value" holds among an entity's states (an absent state is 0); false for a rule with no value.</summary>
+        public static bool StateIs(IEnumerable<(string Name, long Value)> states, string? rule)
+        {
+            var at = rule?.IndexOf('=') ?? -1;
+            if (at <= 0 || !long.TryParse(rule![(at + 1)..], out var wanted))
+            {
+                return false;
+            }
+
+            var name = rule[..at];
+            var value = states.Where(state => string.Equals(state.Name, name, StringComparison.OrdinalIgnoreCase)).Select(state => (long?)state.Value).FirstOrDefault() ?? 0;
+            return value == wanted;
+        }
 
         public void Reset()
         {

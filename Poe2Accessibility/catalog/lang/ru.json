@@ -869,6 +869,8 @@
  "Sold: {0}, for {1} gold": "Продано: {0}, за {1} золота",
  "Something to break": "Можно что-то разбить",
  "Something to use": "Можно что-то использовать",
+ "Activate {0}": "Активируй: {0}",
+ "Something to activate": "Нужно что-то активировать",
  "Soul Ferryman - Sells runes": "Перевозчик душ, продаёт руны",
  "Soul core round: find the Vaal Soul Cores and carry them one at a time to a Stone Altar; a core in hand hurts more the longer you hold it": "Раунд ядер души: найдите ядра души ваал и относите их по одному к каменному алтарю; ядро в руках ранит всё сильнее",
  "Sound": "Звук",

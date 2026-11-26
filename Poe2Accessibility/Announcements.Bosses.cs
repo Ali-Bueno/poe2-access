@@ -123,6 +123,7 @@ namespace Poe2Accessibility
                 BossPlaceKind.Clone => T("The true one", "El verdadero"),
                 BossPlaceKind.Cover => named ? T($"Cover, {name}", $"Cobertura, {name}") : T("Cover", "Cobertura"),
                 BossPlaceKind.Use => named ? T($"{name}, can be used", $"{name}, se puede usar") : T("Something to use", "Algo que usar"),
+                BossPlaceKind.Activate => named ? T($"Activate {name}", $"Activa {name}") : T("Something to activate", "Algo que activar"),
                 _ => named ? T($"{name}, can be broken", $"{name}, se puede romper") : T("Something to break", "Algo que romper"),
             };
             return heartbeat ? $"{what}: {T("follow the heartbeat", "sigue el latido")}, {way}" : $"{what}, {way}";

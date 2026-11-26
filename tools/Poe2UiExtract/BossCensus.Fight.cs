@@ -37,6 +37,12 @@ internal sealed partial class BossCensus
         var dirs = this.folders.GetValueOrDefault(row) ?? new HashSet<string>();
         var arena = BossArenaRooms.Of(folder, fightObjects, dirs, this.rooms);
         paths.AddRange(BossArenaRooms.ObjectsOf(arena, folder, this.monsterRows.ContainsKey));
+        // An object of the boss's areas whose script extends one of the fight's is the fight's too, wherever its rooms are: the
+        // Stones of Serle's RuneRock_01..06 are Siora's RuneRock_base, placed in rooms named for no boss (2026-11-26).
+        var own = paths.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        paths.AddRange(this.rooms.All.Where(room => dirs.Any(dir => room.Path.StartsWith(dir, StringComparison.Ordinal))).SelectMany(room => room.Objects)
+            .Where(path => !own.Contains(path) && !this.monsterRows.ContainsKey(path))
+            .Distinct(StringComparer.OrdinalIgnoreCase).Where(path => own.Any(this.ChainOf(path).Extends)).ToList());
         var objects = paths.Select(this.CaseOf).Distinct(StringComparer.OrdinalIgnoreCase).Select(path => new BossObject(path, this.ChainOf(path))).ToList();
         var placed = arena.SelectMany(room => room.Objects).Where(this.monsterRows.ContainsKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
 

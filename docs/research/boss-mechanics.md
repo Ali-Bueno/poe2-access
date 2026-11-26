@@ -281,7 +281,7 @@ The user's reveal-slam of Balbala needs no word: the game sounds it (the user, 2
 | Benedictus | two pillars shrink the arena at 60 %, then a maze of earth walls | `TwilightOrderOverlord`: states `break_pillar`, `maze_start`; objects `PillarLeft/Right`, `MazeRock` (`shatter`), `LightningRod` (`armed`) | [Benedictus](#benedictus): maze, pillars, raised rocks done (unit tests and the log's places); rods todo |
 | Yama | at 75 % clones on the pillars: run to the one that does not react; at 65 % to the clone with the circle | [Yama](#yama): `chosen_one`, the clone's way, the blow's hole | the circle done (unit tests); pillars todo |
 | Tavakai | which totem the player stands nearest decides his power; the room burns; as the Consumed (phase 5) the floor fills with `KaruiCaptainBoss3Pustule` (`GTKaruiCaptainBoss3PustulePropagator`: delay 1.5 s; pops 11 and 28 cells) and `KaruiCaptainBoss3AlternatingSlamSpikeMine` (50 in a 90° fan, 550 ms, 24 cells), objects no alarm says (the owner died to both, log 2026-11-26 10:11) | state `room_burning_progress` 0..100; `KaruiCaptainBossJadeWall` (Life); `GodTotem` state `current_phase` | todo |
-| Siora (Ogham interlude) | at 90 % the arena goes dark and hurts: run to the glowing monolith | not looked up | todo |
+| Siora (Ogham interlude) | at 90 % the arena goes dark and hurts: run to the glowing monolith | [Siora](#siora): the rock at `active=1` | led to and named (unit tests); not heard |
 | Zarokh (Sekhemas) | at 60 % and 30 %: enter the centre, collect every hourglass before the clock turns | state `timetrialprogress`; entities `TimeTrialCollectable`, `Hourglass`, `ArenaCentreButton` (`readytoactivate`); player buff `sanctum_chronomancer` | todo |
 | Tawhani | (files only) invulnerable while the ancestral warriors live; its element | buff `cannot_be_damaged_sudoku_boss_display`; state `element` 1 fire, 2 cold, 3 lightning | invulnerable: done; element todo |
 | The Trialmaster | stay inside the heart's circle | `trialmaster_tether_debuff_display` | done (move rule) |
@@ -835,6 +835,32 @@ Now: `BossMazeWatch` with pure `MazeRound` (phases from the effects), `MazeWay` 
 (words) and `SafeSpotGuide` (hole, strip); the shelter's chord leads and the all-clear ends it; all `Command`s. Raised rocks and the
 ring he slams (`rock_donut_form.ao`, its middle at 2.05 s) are danger shapes of `BossEffectWatch`. The fight's memory is 12 s.
 Not done: the armed lightning rods (a `ControlZone`, trigger distance not in the files read), the lightning barrage's beams.
+
+## Siora
+
+**The owner, 2026-11-26** (Stones of Serle, kehgan): "el juego dice que ha desaparecido y la vida empieza a bajarme y me
+muero", and the scanner called a rock "Objeto sin nombre, Rune Rock 05". **Her darkness, from the files (PROVEN):** the
+arena's six rocks are `Metadata/Terrain/Gallows/Act4_Interlude/Part1/P1_2/Objects/RuneRock_01..06`, each extending
+`Metadata/Monsters/LeagueExpedition/ReaperBoss/Objects/ArenaRocks/RuneRock_base` (states `active`, `lightstrike`, checkpoint
+`powered`; `InteractionAction {}`). `on_or_create_state_active_0` disables targeting; `active_1` enables it and adds
+`rune_ambient_FX.epk` (the glow); `active_4` plays `activate`, whose end sets `active=2`. The summoning before the fight uses
+the same rocks ("Activa el Megalito rúnico": the game names a rock only while it is targetable). The boss's
+`EmptyActionSpell2` teleport-out plays "Drown in Darkness!" and hides her; the server draws `darkness_phase_screen.ao`.
+**The play log confirms it afterwards** (11:56:20-25): darkness drawn, "El jefe ha desaparecido", 1 s later `rune_light.ao` at
+RuneRock_03 and that rock alone from `active=2` to `active=1`, the player dead 4 s later; the boss stays seen (`Gone = True`).
+So the lit rock is used (A) to end the darkness; the guides say "sprint to the glowing runed megalith".
+
+**Why nothing was said:** the census took her script's folder, `Metadata/Monsters/LeagueExpedition`, so Olroth's Expedition
+rooms out-scored the Stones of Serle's (no room there is named for a boss) and the rocks were never the fight's; and the
+section reader needs a component's brace on the next line, so `InteractionAction {}` made no thing to use either.
+
+**Done:** an object of the boss's areas whose script extends one of the fight's objects is the fight's
+(`BossCensus.Fight`), and a fight object that a state turns targetable and lights up, with no life, is `activate|boss|object|state=value`
+(`BossCensusRules.Objects`; the regenerated catalog changed by those 10 lines only; wider tries added 62 to 96 lines to other
+fights and were dropped). The plugin's `BossPlaceKind.Activate` leads with the shelter's heartbeat while the state holds,
+"Activa Megalito rúnico: sigue el latido, …" (the game's name), keeps the ground alarm quiet like a shelter, and its end plays
+the shelter's end. A rock with a place rule is no longer named from its file, so spent rocks are silent. The map version
+(Thariel) has only RuneRock_base in its rules: its maps' rocks are not looked up.
 
 ## 17. The audit of every boss's unwarned attacks (2026-11-21)
 

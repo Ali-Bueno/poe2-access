@@ -34,6 +34,8 @@ internal static class BossCensusRules
     private static readonly Regex Within = new(@"\b(you are within|while (you are )?(standing )?(in|inside|within)|gaining significant)\b", RegexOptions.IgnoreCase);
     private static readonly Regex Protecting = new(@"regenerat|less damage|immune|protect|cannot be (hit|damaged)", RegexOptions.IgnoreCase);
     private static readonly Regex Stacking = new(@"\bstacks?\b", RegexOptions.IgnoreCase);
+    private static readonly Regex Enables = new(@"\bEnableTargetable\(\s*\)");
+    private static readonly Regex Glows = new(@"\bAddEffectPack\(");
     private static readonly Regex Held = new(@"\byou are (being )?(imprisoned|held|trapped|grabbed|encased|entombed|cocooned|restrained|webbed|petrified)\b", RegexOptions.IgnoreCase);
 
     // Components (sections) of an object the player uses or hits.
@@ -150,6 +152,21 @@ internal static class BossCensusRules
     {
         foreach (var item in fight.Objects.Where(item => item.Script.Found && !NotToLead.IsMatch(item.Path)))
         {
+            // One that a state turns targetable and lights up, with no life to strike, is what that state calls the player to use:
+            // Siora's rune rock, lit in her darkness (RuneRock_base: active=1 enables targeting and adds the glow; using it plays
+            // activate and sets active=2). Its InteractionAction is written on one line, which the section reader does not see.
+            var lit = IsHit(item.Script) ? new List<(string State, int Value)>() : item.Script.Handlers.Where(handler => Enables.IsMatch(handler.Body) && Glows.IsMatch(handler.Body))
+                .Select(handler => BossScriptFacts.StateOf(handler.Name)).OfType<(string State, int Value)>().Where(of => of.Value > 0).Distinct().ToList();
+            foreach (var (state, value) in lit)
+            {
+                yield return $"activate|{fight.Boss}|{item.Path}|{state}={value}";
+            }
+
+            if (lit.Count > 0)
+            {
+                continue;
+            }
+
             if (UseSections.Any(item.Script.HasSection))
             {
                 yield return $"use|{fight.Boss}|{item.Path}";

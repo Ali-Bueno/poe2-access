@@ -34,6 +34,7 @@ internal static class BossMechanicsExtractor
         "# arena|monster|state|burn, dark, flood, lava, collapse, shrink, sandstorm, maze, retreat, platform or change   empowered|monster|buff (its text says others empower it)",
         "# consume|monster|add it consumes   shelter|monster|buff on the player that shelters   refuge|monster|monster or object|state non-zero while it shelters",
         "# cover|monster|object to hide behind   clone|monster|clone path|state marking the true one   use|monster|object to use   target|monster|object or add to break",
+        "# activate|monster|object|state=value (it is lit to be used now: the player is led to it)",
         "# clonepath|monster|object marking the way its clones walk (with Start and End)   areas|monster|its area skills, comma-separated (a fight with clones)",
         "# progress|monster|state[|maximum]   element|monster|state=value|element (fire, cold, lightning, chaos, physical), or element|monster|state|- when no handler names it",
         "# stack|buff|monster (its count on the player)   grab|monster|skill that holds the player   grabbed|monster|buff on the held player   zone|monster|buff of an area",

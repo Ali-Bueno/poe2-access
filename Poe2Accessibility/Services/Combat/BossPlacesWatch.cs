@@ -140,7 +140,7 @@ namespace Poe2Accessibility.Services
             var reached = this.helperWarnings.Update(this.helpers.Select(helper => (helper.Id, helper.Area != null)).ToList(), now);
             this.HelperNews = this.helpers.Where(helper => reached.Contains(helper.Id)).Select(helper => (helper.At, helper.Area)).ToList();
             this.PollClones(catalog, here, now);
-            this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge, Active: true });
+            this.RefugeUp = this.sights.Any(sight => sight is { Kind: BossPlaceKind.Refuge or BossPlaceKind.Activate, Active: true });
             this.RefugeOver = this.refugeEnd.Update(this.RefugeUp || this.SafeSpotUp, now) && Seats.Followed.TryGetComponent<Life>(out var life) && life.IsAlive;
             var (lines, told) = (new List<string>(), new List<string>());
             foreach (var news in this.places.Update(this.sights, here, player.ModelBounds.X, sheltered))
@@ -286,6 +286,7 @@ namespace Poe2Accessibility.Services
             BossPlaceKind.Refuge or BossPlaceKind.Clone =>
                 entity.TryGetComponent<StateMachine>(out var machine) && machine.States.Any(state => state.Value != 0 && string.Equals(state.Name, rule.State, StringComparison.OrdinalIgnoreCase)),
             BossPlaceKind.Cover => true,
+            BossPlaceKind.Activate => entity.TryGetComponent<StateMachine>(out var lit) && BossPlaces.StateIs(lit.States.Select(state => (state.Name, state.Value)), rule.State),
             BossPlaceKind.Use => entity.TryGetComponent<Targetable>(out _) && EntityCatalog.IsInPlay(this.memory, entity),
             // A fissure or a marker has life and cannot be struck: only what can be targeted is a thing to break.
             _ => entity.TryGetComponent<Targetable>(out _) && entity.TryGetComponent<Life>(out var life) && life.IsAlive && !EntityCatalog.IsFrozenDead(entity) &&

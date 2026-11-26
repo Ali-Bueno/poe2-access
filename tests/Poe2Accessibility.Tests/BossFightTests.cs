@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ACountIsSaidOnceItHoldsStill), ACountIsSaidOnceItHoldsStill),
             (nameof(ACoverIsStoodBehindAsSeenFromTheBoss), ACoverIsStoodBehindAsSeenFromTheBoss),
             (nameof(TheMostPressingPlaceLeads), TheMostPressingPlaceLeads),
+            (nameof(ALitStoneLeadsUntilItIsUsed), ALitStoneLeadsUntilItIsUsed),
             (nameof(AClonesWayNamesWhereItStops), AClonesWayNamesWhereItStops),
             (nameof(TheSafeSpotIsSaidUntilThePlayerIsInIt), TheSafeSpotIsSaidUntilThePlayerIsInIt),
             (nameof(TheThrowsTargetIsTheNearestWithItsHelperAtWork), TheThrowsTargetIsTheNearestWithItsHelperAtWork),
@@ -274,6 +275,34 @@ namespace Poe2Accessibility.Tests
             Equal(0, places.Update(sights, player, 10f, false).Count, "nothing is said twice");
             places.Update(sights.Take(2).ToList(), player, 10f, false);
             Equal(1, places.Update(sights, player, 10f, false).Count, "a shelter that comes up again is said again");
+        }
+
+        private static void ALitStoneLeadsUntilItIsUsed()
+        {
+            const string Siora = "Metadata/Monsters/ReaperBoss/EzomyteReaperBoss";
+            const string Rock = "Metadata/Terrain/Gallows/Act4_Interlude/Part1/P1_2/Objects/RuneRock_03";
+            var catalog = new BossMechanicsCatalog();
+            catalog.Add(new[] { $"boss|{Siora}|Siora, Blade of the Mists", $"activate|{Siora}|{Rock}|active=1", $"activate|{Siora}|Metadata/Bad|active" });
+            Equal("Activate:active=1", string.Join(";", catalog.PlaceRules(Rock).Select(rule => $"{rule.Kind}:{rule.State}")), "the rock and the state that lights it");
+            Equal(0, catalog.PlaceRules("Metadata/Bad").Count, "a state with no value is no rule");
+
+            // Her rocks stand at active=2 once used; the one lit in her darkness is at 1, and using it plays activate (4), then 2.
+            Equal(true, BossPlaces.StateIs(new[] { ("lightstrike", 0L), ("active", 1L) }, "active=1"), "lit");
+            Equal(false, BossPlaces.StateIs(new[] { ("active", 2L) }, "active=1"), "used already");
+            Equal(false, BossPlaces.StateIs(new[] { ("active", 4L) }, "active=1"), "being used");
+            Equal(true, BossPlaces.StateIs(Array.Empty<(string, long)>(), "active=0"), "a state not listed is 0");
+            Equal(false, BossPlaces.StateIs(new[] { ("active", 1L) }, "active"), "a rule with no value holds nothing");
+
+            var places = new BossPlaces();
+            var lit = new[] { Sight(9, BossPlaceKind.Activate, 0, 600, name: "Megalito rúnico") };
+            var news = places.Update(lit, Vector2.Zero, 10f, true);
+            Equal("Activate:True:Megalito rúnico", string.Join(";", news.Select(line => $"{line.Kind}:{line.Pressing}:{line.Name}")), "said at once, as a place to go to, by the game's name");
+            Equal(new Vector2(0, 600), places.Lead!.Value.At, "led to, though no shelter buff is on the player");
+            Equal(BossPlaceKind.Activate, places.LeadKind, "with the shelter's sound");
+            places.Update(lit, new Vector2(0, 590), 10f, true);
+            Equal(BossPlaceKind.Activate, places.LeadKind, "still led to when there: it must be used, not stood by");
+            places.Update(new[] { Sight(9, BossPlaceKind.Activate, 0, 600, active: false) }, Vector2.Zero, 10f, false);
+            Equal(null, places.LeadKind, "used: the lead ends");
         }
 
         private static void AClonesWayNamesWhereItStops()
