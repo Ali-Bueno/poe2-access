@@ -104,7 +104,7 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   of the gate, after all the ground you can reach and before nooks. Guided there, the guide goes on through the gate if it
   opens as you come up to it (it waits a few seconds there), and otherwise says "Still closed", with "The Crowbell is alive
   in here" when a boss is alive on your side, and turns off, and the entry
-  stays listed (setting "Unexplored ground behind closed barriers", Navigation, on by default). The size is of the ground you would
+  stays listed. The size is of the ground you would
   reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
   the wall. An exit not known yet is never told; ground that leads to a place you know of and have not reached (an exit
   already listed, a boss room the map points to, what the quest asks) says so: "Large unexplored ground, toward The
@@ -192,8 +192,7 @@ with submenus of their own:
 - Combat: Enemies (coming into view, aim, enemy sounds, melee reach), Bosses and enemy states (boss life and weak
   point, enemy states, primed for stun, Culling Strike), Defence (dodge, parry, shield, stun bar, harmful ground),
   Charges and skills (charges, combo, placed objects), Quiet in fights (loot, chests and altars; characters' lines);
-- Navigation (radar, walls, unexplored ground and the ground behind closed barriers, turns, places); Things and people
-  nearby; Items; Chat; Speech priority;
+- Navigation (radar, walls, unexplored ground, turns, places); Things and people nearby; Items; Chat; Speech priority;
 - Power charges, combo points and harmful ground also have their own volume right after their switch, in Charges and
   skills and in Defence: the same volume Sound lists;
 - Sound: the master volume, then a submenu per kind of sound — Enemies, characters and combat; Dodge and parry; Radar

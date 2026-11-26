@@ -20,9 +20,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The barriers the guide found shut, kept out of the exploring guide until something changes.</summary>
         private readonly TriedBarriers tried = new();
 
-        /// <summary>Whether the ground past a closed barrier is listed among the unexplored (setting GroundBehindBarriers).</summary>
-        public bool GroundBehindBarriers { get; set; } = true;
-
         /// <summary>
         ///     The quest tracker's objective lines alone (set by the plugin): a step that changes may open a barrier found shut.
         ///     Not the whole HUD, whose clocks and counters change every second (review, 2026-11-26).
@@ -113,14 +110,12 @@ namespace Poe2Accessibility.Services
                 : null;
         }
 
-        /// <summary>The cells the barrier memory holds closed, for the frontier to look past; null with the setting off or none held.</summary>
+        /// <summary>
+        ///     The cells routes hold closed that were once open, for the frontier to look past; null when none. Always on, with no
+        ///     setting: turning it off would only bring back "The whole map is explored" with ground shut away (user, 2026-11-26).
+        /// </summary>
         private byte[]? BarrierMask()
         {
-            if (!this.GroundBehindBarriers)
-            {
-                return null;
-            }
-
             lock (this.samplesLock)
             {
                 return this.grid.ClosedMask();

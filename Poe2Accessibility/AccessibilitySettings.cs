@@ -367,12 +367,6 @@ namespace Poe2Accessibility
         /// <summary>Unexplored ground and the ways of a fork say which known place (an exit, a boss room, the quest's) they lead to.</summary>
         public bool NameKnownWays = true;
 
-        /// <summary>
-        ///     The unseen ground past a closed barrier is listed among the unexplored, one entry per barrier, and the guide at a
-        ///     barrier still shut says so and turns off (Hunting Grounds, 2026-11-26: penned in by the Crowbell's gate).
-        /// </summary>
-        public bool GroundBehindBarriers = true;
-
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area, and a barrier that opens.</summary>
         public bool AnnounceDiscoveries = true;
 

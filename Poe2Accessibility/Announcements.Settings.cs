@@ -53,7 +53,6 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AtlasFinder) => T("Atlas destination finder on the shoulder buttons", "Buscador de destinos del Atlas en los botones superiores"),
             nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
             nameof(AccessibilitySettings.GuideExplores) => T("Guide to unexplored ground goes on to the next", "La guía a una zona sin explorar sigue a la siguiente"),
-            nameof(AccessibilitySettings.GroundBehindBarriers) => T("Unexplored ground behind closed barriers", "Zonas sin explorar tras barreras cerradas"),
             nameof(AccessibilitySettings.NameKnownWays) => T("Say which known place a fork's way or unexplored ground leads to", "Decir a qué lugar conocido lleva un camino de un cruce o una zona sin explorar"),
             nameof(AccessibilitySettings.TriggerModButtonInHideout) => T("Left trigger as the mod button in hideouts (fires its skill)", "Gatillo izquierdo como botón del mod en los escondites (activa su habilidad)"),
             nameof(AccessibilitySettings.AnnounceTimers) => T("Countdown timers", "Cuentas atrás"),
