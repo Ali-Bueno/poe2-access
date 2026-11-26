@@ -48,7 +48,7 @@ namespace Poe2Accessibility.Services
             if (this.pending.Leave(here, hidden) is { } left && lines.Leaving)
             {
                 var sides = left.Select(way => Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, (way.Way.Ahead - here) * toWorld)]).Distinct().ToList();
-                this.output.Say(SpeechKind.Places, Announcements.PendingLeft(left.Count, sides));
+                this.output.Say(SpeechKind.Places, Announcements.PendingLeft(sides.Count, sides));
             }
 
             var shown = this.pending.CountShown(hidden);

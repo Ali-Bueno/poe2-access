@@ -45,5 +45,12 @@ the same happens in the Trial of the Sekhemas and the Trial of Chaos. Investigat
 - Map parts and their glance are off on a piece apart (as on a Sekhemas floor); "Zona aparte: solo se dice lo que hay
   aquí" / "De vuelta al mapa principal" on the carry (setting `AnnounceMapParts`; log `Ground: EnteredApart at cell …`).
 
+- Before any carry: an exit named after the area itself (a tomb's way back) sets its piece apart as soon as the game
+  wakes it (`GroundPieces.MarkApart`); a quest goal there with no way known is kept as it was, never dropped.
+- Open ground (owner, same day: "sigue saliendo un montón de caminos sin explorar"; the log: "Dejas 41 caminos
+  pendientes", "Zona con rampa: sigue a la derecha, abajo a la derecha, arriba…" in the desert): a place with more than 8
+  ways toward 6 or more of the 8 sides is named only, its ways neither told nor kept pending (`ForkNarrator`); a fork
+  left says the number of sides, not of skeleton ways.
+
 Open: the `AreaTransition` component's layout (local kind, target), from the exe's code reader, to name a way in before
 it is used; the Trial of Chaos lifts, if they move the player along walkable ground, set nothing apart.

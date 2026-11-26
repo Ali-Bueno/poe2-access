@@ -122,6 +122,7 @@ namespace Poe2Accessibility.Services
             var renders = scratch.Renders;
             var sampling = this.Fields?.StartPass() ?? false;
             var town = this.InTown();
+            var areaName = this.AreaName();
             foreach (var (_, entity) in area.AwakeEntities)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
@@ -140,6 +141,11 @@ namespace Poe2Accessibility.Services
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
                     this.doors.Forget(entity.Id); // opened: the game takes its target away
                     continue;
+                }
+
+                if (entry.Category == ScanCategory.Exits && !town && entry.Name == areaName)
+                {
+                    this.NoteWayBack(entry, area.WorldToGridConvertor);
                 }
 
                 var drawn = this.DrawnOnMinimap(entity, entry, render, player, town);
@@ -320,13 +326,19 @@ namespace Poe2Accessibility.Services
             var trails = (this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>()).ToList();
             if (offPiece != null)
             {
+                // Only the goals on other ground: said through the way there when it is known, else as they were (a goal in a
+                // tomb not entered yet), so the quest is never left without a goal.
                 var away = this.questTargets.Concat(trails).Where(entry => offPiece(GridOf(entry, toCells))).ToList();
-                trails.RemoveAll(entry => offPiece(GridOf(entry, toCells)));
-                this.questTargets = this.questTargets.Where(entry => !offPiece(GridOf(entry, toCells))).ToList();
-                if (away.Count > 0 && this.questTargets.Count == 0 && trails.Count == 0 && this.WayThrough(away, found.Values, player, toCells) is { } through)
+                var nearTargets = this.questTargets.Where(entry => !offPiece(GridOf(entry, toCells))).ToList();
+                var nearTrails = trails.Where(entry => !offPiece(GridOf(entry, toCells))).ToList();
+                if (away.Count == 0 || nearTargets.Count > 0 || nearTrails.Count > 0)
+                {
+                    (this.questTargets, trails) = (nearTargets, nearTrails);
+                }
+                else if (this.WayThrough(away, found.Values, player, toCells) is { } through)
                 {
                     found.TryAdd(through.Id, through);
-                    this.questTargets = new[] { through };
+                    (this.questTargets, trails) = (new[] { through }, new List<ScanEntry>());
                 }
             }
 

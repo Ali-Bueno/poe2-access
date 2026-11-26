@@ -26,6 +26,14 @@ namespace Poe2Accessibility.Services
         /// <summary>A map piece this much past a place's radius (cells, about a step) still stands in it.</summary>
         private const float FeatureSlackCells = 10f;
 
+        /// <summary>
+        ///     A place with more ways than the eight directions, toward at least six of them, is open ground (a desert around
+        ///     rocks: "Dejas 41 caminos pendientes", 2026-11-26): named, but its ways are neither told nor kept pending.
+        /// </summary>
+        private const int OpenGroundWays = 8;
+
+        private const int OpenGroundSides = 6;
+
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
         private readonly ForkTracker tracker = new();
@@ -160,6 +168,13 @@ namespace Poe2Accessibility.Services
                 {
                     onward.Add(way);
                 }
+            }
+
+            var open = ways.Count > OpenGroundWays &&
+                       ways.Select(way => ScreenProjection.Octant(player.WorldPosition, way.Direction * toWorld)).Distinct().Count() >= OpenGroundSides;
+            if (open)
+            {
+                return (entered.Name, entered.Again, Array.Empty<(ForkWay, IReadOnlyList<string>)>());
             }
 
             if (ways.Count >= 3)

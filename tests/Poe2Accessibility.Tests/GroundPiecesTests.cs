@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
             (nameof(GroundAGateCutsOffIsNeverHidden), GroundAGateCutsOffIsNeverHidden),
             (nameof(TheWayBetweenTwoGroundsIsWhereTheCarriesWere), TheWayBetweenTwoGroundsIsWhereTheCarriesWere),
             (nameof(WalkingSetsNothingApart), WalkingSetsNothingApart),
+            (nameof(ATombsWayBackSetsItApartBeforeAnyCarry), ATombsWayBackSetsItApartBeforeAnyCarry),
         };
 
         private static readonly Vector2 Outside = new(50, 50);
@@ -67,6 +68,19 @@ namespace Poe2Accessibility.Tests
             Equal(PieceNews.None, pieces.Update(InTomb, null, PieceAt), "a walk, however it got there");
             Equal(false, pieces.AnyApart, "nothing apart");
             Equal(false, pieces.Hides(Outside, InTomb, PieceAt), "nothing hidden");
+        }
+
+        private static void ATombsWayBackSetsItApartBeforeAnyCarry()
+        {
+            var pieces = new GroundPieces();
+            pieces.MarkApart(InTomb, PieceAt);
+            Equal(false, pieces.AnyApart, "the main ground not known yet: nothing to set apart from");
+            pieces.Update(Outside, null, PieceAt);
+            pieces.MarkApart(Outside + new Vector2(5, 0), PieceAt);
+            Equal(false, pieces.AnyApart, "a way named after the area on the main ground sets nothing apart");
+            pieces.MarkApart(InTomb, PieceAt);
+            Equal(true, pieces.Hides(InTomb + new Vector2(10, 0), Outside, PieceAt), "the tomb is not told from outside, never entered");
+            Equal(false, pieces.Hides(BehindGate, Outside, PieceAt), "ground behind a gate still is");
         }
     }
 }

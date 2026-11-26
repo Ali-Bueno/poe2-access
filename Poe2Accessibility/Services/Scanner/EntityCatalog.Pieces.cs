@@ -31,6 +31,18 @@ namespace Poe2Accessibility.Services
             return this.Regions() is { } regions ? this.pieces.Update(player, carriedFrom, regions.RegionAt) : PieceNews.None;
         }
 
+        /// <summary>
+        ///     An exit named after the area it stands in leads back within it, as a tomb's way out ("El cruce de Khari" inside
+        ///     El cruce de Khari): the ground it stands on is apart from the first time it is known, not only once walked into.
+        /// </summary>
+        private void NoteWayBack(ScanEntry exit, float toCells)
+        {
+            if (this.piecesInstance == this.instance && toCells > 0 && this.Regions() is { } regions)
+            {
+                this.pieces.MarkApart(GridOf(exit, toCells), regions.RegionAt);
+            }
+        }
+
         /// <summary>The player stands on a piece of ground apart from the area's main ground, as in a tomb.</summary>
         public bool InPieceApart() =>
             this.piecesInstance == this.instance && this.pieces.AnyApart && Seats.Followed.TryGetComponent<Render>(out var player) &&

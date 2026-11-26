@@ -75,6 +75,18 @@ namespace Poe2Accessibility.Services
             return PieceNews.EnteredApart;
         }
 
+        /// <summary>
+        ///     Sets apart the piece a way back within the area stands on (an exit named after the area itself, a tomb's), before
+        ///     any carry; nothing while the main ground is not known, or when it stands on it.
+        /// </summary>
+        public void MarkApart(Vector2 cell, Func<Vector2, int> pieceAt)
+        {
+            if (this.main is { } main && pieceAt(cell) is var piece and > 0 && piece != pieceAt(main) && !this.apart.Any(known => pieceAt(known) == piece))
+            {
+                this.apart.Add(cell);
+            }
+        }
+
         /// <summary>The player stands on a piece apart.</summary>
         public bool InPieceApart(Vector2 player, Func<Vector2, int> pieceAt) =>
             pieceAt(player) is var here and > 0 && this.IsApart(here, pieceAt);
