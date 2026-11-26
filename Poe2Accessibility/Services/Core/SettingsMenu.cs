@@ -97,6 +97,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.RoutePrompts)),
                 Switch(nameof(AccessibilitySettings.AutoGuide)),
                 Switch(nameof(AccessibilitySettings.GuideExplores)),
+                Switch(nameof(AccessibilitySettings.GroundBehindBarriers)),
                 Switch(nameof(AccessibilitySettings.TriggerModButtonInHideout)),
                 Switch(nameof(AccessibilitySettings.GuideTimed)),
                 Switch(nameof(AccessibilitySettings.PassiveFinder)),

@@ -28,7 +28,16 @@ namespace Poe2Accessibility.Tests
             (nameof(AGateRememberedInTwoPiecesIsOnePlace), AGateRememberedInTwoPiecesIsOnePlace),
             (nameof(ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges), ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges),
             (nameof(GroundBehindADoorIsTheDoorsEntry), GroundBehindADoorIsTheDoorsEntry),
+            (nameof(TheGateIsSaidAsShutWithTheBossWhenOneIsInside), TheGateIsSaidAsShutWithTheBossWhenOneIsInside),
         };
+
+        private static void TheGateIsSaidAsShutWithTheBossWhenOneIsInside()
+        {
+            Equal("Large unexplored ground behind a closed barrier", Announcements.UnexploredBehindBarrier(UnseenSize.Large), "the entry");
+            Equal("Still closed", Announcements.StillClosed(null), "no boss: no reason");
+            Equal("Still closed. The Crowbell is alive in here", Announcements.StillClosed("The Crowbell"), "the boss inside");
+            Equal("The closed barrier is 42 steps away", Announcements.BarrierAfterDefeat(42), "after a defeat");
+        }
 
         private static void ABarrierFoundShutIsNotOfferedAgainUntilSomethingChanges()
         {
