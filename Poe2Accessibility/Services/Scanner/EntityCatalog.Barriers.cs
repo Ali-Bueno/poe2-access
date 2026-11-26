@@ -98,6 +98,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The guide found this barrier's gate still shut: the exploring guide leaves it until something changes.</summary>
         public void TriedBarrier(uint id) => this.tried.Tried(id);
 
+        /// <summary>The nearest gate still shut that the guide has not found shut since something changed; null when none.</summary>
+        public ScanEntry? GateToTry() => this.NearestBarrierGround() is { } gate && !this.tried.Contains(gate.Id) ? gate : null;
+
         /// <summary>
         ///     A boss fell: every barrier may be tried again, and the line naming the nearest one still listed ("The closed
         ///     barrier is 42 steps away"), said after the boss watch's own "defeated"; null when none is listed.

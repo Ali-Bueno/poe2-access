@@ -97,10 +97,13 @@ first; both wrap and empty categories are skipped. (In a hideout's gameplay, wit
   ground never seen begins, one entry per stretch and direction, named by how much lies behind it, as a look at the
   map tells a sighted player: "Large unexplored ground" (a good part of the area) and "Unexplored ground, 7 steps, left"
   where it goes on, nearest first; then "Small unexplored ground", a room or a short branch that soon ends; then
-  "Unexplored nook" where one look from its edge would show it all, a dead end. Unseen ground past a closed barrier you
+  "Unexplored nook" where one look from its edge would show it all, a dead end. Ground on the way to an exit the map's
+  tiles place is never a nook, however short (the road to Freythorn ends at the map's edge); the exit itself is named only
+  once seen. Unseen ground past a closed barrier you
   have seen shut is one entry per barrier, "Large unexplored ground behind a closed barrier", standing at the near side
-  of the gate, after all the ground you can reach and before nooks. Guided there, the guide says "Still closed" when the
-  gate is still shut, with "The Crowbell is alive in here" when a boss is alive on your side, and turns off, and the entry
+  of the gate, after all the ground you can reach and before nooks. Guided there, the guide goes on through the gate if it
+  opens as you come up to it (it waits a few seconds there), and otherwise says "Still closed", with "The Crowbell is alive
+  in here" when a boss is alive on your side, and turns off, and the entry
   stays listed (setting "Unexplored ground behind closed barriers", Navigation, on by default). The size is of the ground you would
   reach without crossing what you have seen, wall by wall: a corridor that ends at a wall is small whatever lies behind
   the wall. An exit not known yet is never told; ground that leads to a place you know of and have not reached (an exit
@@ -161,7 +164,9 @@ without a word, the ping going on; when that way is done it says the next, "Next
 It ends with "Nothing left to explore within reach but nooks", followed by the nearest ground behind a closed barrier when
 one is left ("Large unexplored ground behind a closed barrier, 42 steps, left"); the same gesture turns it off. It goes on
 to ground behind a barrier only once nothing open is left, and not again to a gate it found shut until a boss falls or
-the quest moves on. When a boss falls while ground behind a barrier is listed, "The closed barrier is 42 steps away"
+the quest moves on. When the way to the ground it leads to turns out to pass a shut gate, it says so as the next ground
+("Next: Unexplored ground behind a closed barrier, 10 steps, left") and leads to the gate instead of waiting where the
+way stops. When a boss falls while ground behind a barrier is listed, "The closed barrier is 42 steps away"
 follows the boss's "defeated". It knows only what you have seen: which way to take at a fork is still yours.
 
 ## Glance at the map (gameplay)

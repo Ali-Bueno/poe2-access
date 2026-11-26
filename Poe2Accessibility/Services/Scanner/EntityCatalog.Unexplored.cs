@@ -269,8 +269,9 @@ namespace Poe2Accessibility.Services
             var goalCells = goals.Select(goal => goal.Cell).ToList();
             var goalNames = goals.Select(goal => goal.Name).ToList();
             var mask = this.BarrierMask();
+            var exits = this.UnseenExitCells(from);
             (byte[] Grid, int Seen, int X, int Y, string Goals, byte[]? Mask) reads =
-                (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells), string.Join("|", goalNames), mask);
+                (grid, this.explored.SeenBlocks, (int)(from.X / ExplorationMap.BlockCells), (int)(from.Y / ExplorationMap.BlockCells), string.Join("|", goalNames.Concat(exits.Select(cell => $"{cell.X:0},{cell.Y:0}"))), mask);
             if (this.frontierFor is { } last && ReferenceEquals(last.Grid, grid) && ReferenceEquals(last.Mask, mask) &&
                 (last.Seen, last.X, last.Y, last.Goals) == (reads.Seen, reads.X, reads.Y, reads.Goals))
             {
@@ -280,14 +281,33 @@ namespace Poe2Accessibility.Services
 
             this.frontierFor = reads;
             var map = this.explored.Snapshot();
-            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from, goalCells, mask)), map, area.WorldToGridConvertor, player.WorldPosition.Z, goalNames, now);
+            this.frontierSearch = (Task.Run(() => this.TimedFrontier(map, grid, row, from, goalCells, mask, exits)), map, area.WorldToGridConvertor, player.WorldPosition.Z, goalNames, now);
             return this.unexplored;
         }
 
-        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from, IReadOnlyList<Vector2> goals, byte[]? mask)
+        /// <summary>
+        ///     The exits the area's tiles place on ground not seen yet (grid cells), nearest first and at most
+        ///     <see cref="MaxKnownGoals"/> (two walks of the whole grid each): the ground on the way to one is no nook, and
+        ///     the exit is not named until seen (Freythorn's road, 2026-11-26).
+        /// </summary>
+        private IReadOnlyList<Vector2> UnseenExitCells(Vector2 from)
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            return toWorld <= 0
+                ? Array.Empty<Vector2>()
+                : this.AreaLandmarks()
+                    .Where(entry => entry.Category == ScanCategory.Exits && entry.Kind.Length == 0)
+                    .Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld)
+                    .Where(cell => !this.IsSeen(cell))
+                    .OrderBy(cell => Vector2.DistanceSquared(cell, from))
+                    .Take(MaxKnownGoals)
+                    .ToList();
+        }
+
+        private IReadOnlyList<FrontierPlace> TimedFrontier(ExplorationMap map, byte[] grid, int row, Vector2 from, IReadOnlyList<Vector2> goals, byte[]? mask, IReadOnlyList<Vector2> exits)
         {
             var started = Environment.TickCount64;
-            var places = map.Frontier(grid, row, from, MaxUnexplored, goals, mask);
+            var places = map.Frontier(grid, row, from, MaxUnexplored, goals, mask, exits);
             var took = Environment.TickCount64 - started;
             if (took > this.slowestFrontierMs)
             {

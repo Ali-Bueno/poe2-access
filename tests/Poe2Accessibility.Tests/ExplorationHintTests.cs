@@ -35,7 +35,44 @@ namespace Poe2Accessibility.Tests
             (nameof(TheLostHintNeverPointsAtAGate), TheLostHintNeverPointsAtAGate),
             (nameof(AGateThatOpenedIsNeverNamedAsClosed), AGateThatOpenedIsNeverNamedAsClosed),
             (nameof(TheGuideWaitsAMomentAtAShutGate), TheGuideWaitsAMomentAtAShutGate),
+            (nameof(GroundHoldingAnExitIsNoNook), GroundHoldingAnExitIsNoNook),
+            (nameof(AnExploringGuideCutByAGateTurnsToIt), AnExploringGuideCutByAGateTurnsToIt),
         };
+
+        /// <summary>
+        ///     Live, 2026-11-26 03:06 and 03:08: the exploring guide's ground lay past a shut gate, and it said "A closed barrier
+        ///     cuts the way…" and waited quietly. The user: it should take the player to the gate, through it if it opens.
+        /// </summary>
+        private static void AnExploringGuideCutByAGateTurnsToIt()
+        {
+            Equal(true, BarrierGround.TurnsToGate(true, true, ExplorationMap.SmallKind, true), "exploring, cut by a gate with an entry to try: to the gate");
+            Equal(false, BarrierGround.TurnsToGate(false, true, ExplorationMap.SmallKind, true), "a plain guide keeps its target, as before");
+            Equal(false, BarrierGround.TurnsToGate(true, false, ExplorationMap.SmallKind, true), "a way not cut by a gate goes on");
+            Equal(false, BarrierGround.TurnsToGate(true, true, ExplorationMap.BarrierGroundKind, true), "already at a gate's entry");
+            Equal(false, BarrierGround.TurnsToGate(true, true, ExplorationMap.SmallKind, false), "no gate to try (none listed, or found shut)");
+        }
+
+        /// <summary>
+        ///     Hunting Grounds, live, 2026-11-26: the road to Freythorn's exit ends at the map's edge, so its unseen ground was
+        ///     a nook, the exploring guide passed it by, and the quest's exit was never found. Ground that holds an exit the
+        ///     area's tiles place (not named until seen) soon ends, but is no nook.
+        /// </summary>
+        private static void GroundHoldingAnExitIsNoNook()
+        {
+            const int width = 900, height = 400;
+            var player = new Vector2(200, 200);
+            // A hall the player stands in, a short road east from it ending at x 360, and a nook west of the hall.
+            var grid = MapRadarTests.Carved(width, height, (100, 150, 300, 250), (300, 196, 360, 204));
+            var map = new ExplorationMap();
+            map.Visit(player, width, height);
+            var plain = map.Frontier(grid, width / 2, player, 8);
+            Equal(true, plain.Count > 0 && plain.All(place => place.Size == UnseenSize.Pocket), "without the exit: all nooks, as before");
+            var exit = new Vector2(355, 200);
+            var places = map.Frontier(grid, width / 2, player, 8, null, null, new[] { exit });
+            Equal(true, places.Any(place => place.Cell.X > 270 && place.Size == UnseenSize.Small), "the road to the exit: small ground, no nook");
+            Equal(true, places.Where(place => place.Cell.X < 130).All(place => place.Size == UnseenSize.Pocket), "the nook away from it stays a nook");
+            Equal(true, places.All(place => place.LeadsTo.Count == 0), "and the exit is not named");
+        }
 
         /// <summary>
         ///     Live, 2026-11-26 03:08: the boss's root door opened, then "The Crowbell defeated", then "The closed barrier is 10

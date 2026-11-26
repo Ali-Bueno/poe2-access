@@ -47,6 +47,14 @@ namespace Poe2Accessibility.Services
         public static List<ScanEntry> ShutGates(IEnumerable<ScanEntry> entries, Func<ScanEntry, bool> shut) =>
             entries.Where(entry => entry.Kind == ExplorationMap.BarrierGroundKind && shut(entry)).ToList();
 
+        /// <summary>
+        ///     Whether the exploring guide, its way cut by a shut gate, turns to that gate's entry ("Next: … behind a closed
+        ///     barrier") instead of waiting quietly where the way stops: then through the gate if it opens, "Still closed" if not
+        ///     (user, 2026-11-26). A plain guide keeps its target, as before; a gate found shut is not taken again.
+        /// </summary>
+        public static bool TurnsToGate(bool exploring, bool cutByBarrier, string targetKind, bool gateToTry) =>
+            exploring && cutByBarrier && targetKind != ExplorationMap.BarrierGroundKind && gateToTry;
+
         /// <summary>The places without the barriers that stand at a door (grid cells): a shut door has its own "Unopened door" entry.</summary>
         public static List<FrontierPlace> AwayFromDoors(IEnumerable<FrontierPlace> places, IReadOnlyCollection<Vector2> doorCells) =>
             places.Where(place => !place.BehindBarrier || !doorCells.Any(door => Vector2.Distance(door, place.Cell) <= DoorCells)).ToList();

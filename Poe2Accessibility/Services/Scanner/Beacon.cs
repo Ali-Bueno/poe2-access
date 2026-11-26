@@ -170,6 +170,7 @@ namespace Poe2Accessibility.Services
         private void Aim(ScanEntry entry)
         {
             this.gateWait.Reset();
+            this.cutByBarrier = false;
             this.target = entry;
             this.route = null;
             this.search = null;
@@ -239,6 +240,11 @@ namespace Poe2Accessibility.Services
                 if (!this.Refresh(here))
                 {
                     return;
+                }
+
+                if (this.TurnToGate())
+                {
+                    return; // the gate's entry was listed after the way was found cut
                 }
 
                 goal = this.target!;
@@ -514,16 +520,36 @@ namespace Poe2Accessibility.Services
                     return;
                 case SearchWay.Take:
                     (this.route, this.partialRoute, this.routeSpent) = (found, partial, verdict.Spent);
+                    this.cutByBarrier = barrier;
                     break;
                 case SearchWay.Drop:
                     this.route = null;
                     break;
             }
 
-            if (this.target is { } goal)
+            if (this.target is { } goal && !(verdict.Line == SearchLine.BarrierWay && this.TurnToGate()))
             {
                 this.Say(verdict.Line, goal);
             }
+        }
+
+        /// <summary>
+        ///     Exploring, the way to the ground cut by a shut gate: the guide goes on to that gate's entry, said as the next
+        ///     ground, in place of waiting where the way stops (<see cref="BarrierGround.TurnsToGate"/>). True when it turned.
+        /// </summary>
+        private bool TurnToGate()
+        {
+            var gate = this.Exploring && this.cutByBarrier && this.target?.Kind != ExplorationMap.BarrierGroundKind ? this.catalog.GateToTry() : null;
+            if (this.target is not { } goal || !BarrierGround.TurnsToGate(this.Exploring, this.cutByBarrier, goal.Kind, gate != null))
+            {
+                return false;
+            }
+
+            this.Aim(gate!);
+            this.output.Say(SpeechKind.Arrivals, Announcements.ExploreNext(this.catalog.Describe(gate!, out var cut, out var longWay)));
+            this.news.Aim(cut, longWay);
+            this.log.Info($"Beacon turned to a closed barrier from {goal.Name}");
+            return true;
         }
 
         private void Say(SearchLine line, ScanEntry goal)
@@ -568,6 +594,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The moment at a shut gate before "Still closed" (<see cref="GateWait"/>).</summary>
         private readonly GateWait gateWait = new();
+
+        /// <summary>The way in use stops at a shut gate (the last search's word).</summary>
+        private bool cutByBarrier;
 
         /// <summary>The target is the ground behind a barrier whose gate the barrier memory still holds closed.</summary>
         private bool StillShut(ScanEntry goal)
