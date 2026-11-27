@@ -438,6 +438,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.inGame && node.Name == EngraveChoiceName && node.Text != this.lastText && (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs)
+            {
+                // LB/RB wrote the next category's first choice into the focused one: that page's focus, waiting for the
+                // category that comes a moment later ("Concentrated Area…", then "Intelligence Gems. Concentrated Area…" 130 ms
+                // later, five times in a tester's run, 2026-11-26).
+                this.OnFocusChanged(node);
+                return;
+            }
+
             var sameOwner = node.Address == this.valueOwner;
             var wasExpanded = sameOwner && this.lastExpanded;
             var textBefore = this.lastText;

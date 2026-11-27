@@ -86,15 +86,16 @@ namespace Poe2Accessibility.Tests
 
         /// <summary>
         ///     The game can rename the focused choice in place for the next category (the log's "Value -> … Cooldown Recovery
-        ///     I"): no focus move, so the tab key's wait ran out with the focus held and named the stash's tab.
+        ///     I"): no focus move, so the tab key's wait ran out with the focus held and named the stash's tab, and the choice
+        ///     was said alone, then again with its category.
         /// </summary>
         private static void AChoiceRenamedInPlaceDoesNotNameTheStashsTab()
         {
             var window = new Window();
             window.Choose("Herald of Thunder", "Elemental Armament I", "Concentrated Area, Elemental Armament I", "I");
             window.Renamed("Barrage", "Cooldown Recovery I", "III");
-            Equal(false, window.Said.Contains("tab 1"), "the stash's tab said");
-            Equal("Barrage. Cooldown Recovery I, 1 of 2", window.Said.LastOrDefault(), "last spoken");
+            // Neither the stash's tab nor the renamed choice alone before its category.
+            Equal("Herald of Thunder. Elemental Armament I, 1 of 2 | Barrage. Cooldown Recovery I, 1 of 2", string.Join(" | ", window.Said), "spoken");
         }
 
         /// <summary>
@@ -185,7 +186,7 @@ namespace Poe2Accessibility.Tests
                 var node = Choice(choice);
                 this.Settle(50);
                 this.narrator.OnValueChanged(node);
-                this.Settle(170);
+                this.Settle(100);
                 this.Show(node, Page(category, page));
                 this.Settle(1100);
             }
