@@ -101,6 +101,12 @@ namespace Poe2Accessibility
             _ => T("Position", "Posición"),
         };
 
+        /// <summary>The Atlas skill tree, as the context its nodes are said in.</summary>
+        public static string AtlasSkillTree => T("Atlas skill tree", "Árbol de habilidades del Atlas");
+
+        /// <summary>The Atlas skill tree's main tree, beside the leagues' (its start: "start, main tree").</summary>
+        public static string AtlasMainTree => T("main tree", "árbol principal");
+
         /// <summary>How many links a node lies from the cursor on a graph ("3 links away").</summary>
         public static string AtlasLinksAway(int links) =>
             links == 1 ? T("1 link away", "a 1 enlace") : T($"{links} links away", $"a {links} enlaces");

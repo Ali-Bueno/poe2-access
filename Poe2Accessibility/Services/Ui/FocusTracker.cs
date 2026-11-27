@@ -155,6 +155,9 @@ namespace Poe2Accessibility.Services
         ///     guide chord's R3 puts the game's HUD cursor on the experience bar, which was read over "Guiando hacia…" and
         ///     made L3 read it again instead of the scanner (2026-10-24). Ignored until the game moves the focus on.
         /// </summary>
+        /// <summary>An element the cursor rests on that the game hovers nothing for (an Atlas tree root, with no node before it); zero when none.</summary>
+        public Func<IntPtr>? Hoverless { get; set; }
+
         public void IgnoreNextFocus(int withinMs) => this.ignoreFocusUntil = Environment.TickCount64 + withinMs;
 
         public void Reset()
@@ -176,6 +179,19 @@ namespace Poe2Accessibility.Services
             }
 
             var (focused, hovered) = this.ReadFocusedPointer(state, stateObject);
+            if (focused == IntPtr.Zero)
+            {
+                // The Atlas tree's roots take the cursor but no hover: the root beside the node left stands in for it,
+                // else, with no node before, the one the view centres (the tree opened on a root).
+                var root = this.Current is { IsAtlasTreeNode: true } onTree ? this.semantics.AtlasTreeRootBeside(onTree.Address)
+                    : this.Current == null ? this.Hoverless?.Invoke() ?? IntPtr.Zero
+                    : IntPtr.Zero;
+                if (root != IntPtr.Zero)
+                {
+                    (focused, hovered) = (root, true);
+                }
+            }
+
             if (focused != IntPtr.Zero && focused != this.lastFocused && Environment.TickCount64 < this.ignoreFocusUntil)
             {
                 this.ignoreFocusUntil = 0;

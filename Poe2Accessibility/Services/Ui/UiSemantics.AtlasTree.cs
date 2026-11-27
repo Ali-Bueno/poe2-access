@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using GameReader.Plugin;
 
     /// <summary>
     ///     The Atlas skill tree's finder for <see cref="UiSemantics"/> (docs/research/atlas-navigator.md §5, the
@@ -84,6 +85,115 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     The Atlas tree's root the cursor rests on once the game's hover went empty: the game's cursor lands on
+        ///     a root (the tree's centre, each cluster's start) but hovers nothing there, so the node, its links and
+        ///     the D-pad finder were lost on it (live 2026-11-27: "Focus -> none" one push down from "Probabilidad de
+        ///     esencias", the view centred on the Generic start). A root already standing in stays while drawn;
+        ///     else it is the one root beside <paramref name="left"/>, the node the focus was on (no node of the
+        ///     tree touches two roots, catalog of 2026-11-25). Zero when none, or once the tree is hidden.
+        /// </summary>
+        public IntPtr AtlasTreeRootBeside(IntPtr left)
+        {
+            if (this.EndgamePassiveId(left) is not { } id || this.AtlasTreeOf(id, out _) is not { } tree || !tree.Index.TryGetValue(id, out var at))
+            {
+                return IntPtr.Zero;
+            }
+
+            var catalog = EndgameCatalog.Shared;
+            if (catalog.Marks(id).Root)
+            {
+                return this.Drawn(left) ? left : IntPtr.Zero;
+            }
+
+            var roots = tree.Links[at].Select(other => tree.Ids[other]).Where(other => catalog.Marks(other).Root).ToList();
+            var element = roots.Count == 1 ? this.EndgameElementOf(roots[0]) : IntPtr.Zero;
+            return element != IntPtr.Zero && this.Drawn(element) ? element : IntPtr.Zero;
+        }
+
+        /// <summary>The Atlas tree's roots found at the view's centre so far, checked again before any walk.</summary>
+        private readonly List<IntPtr> atlasTreeRootsSeen = new();
+
+        /// <summary>
+        ///     The Atlas tree's root the cursor rests on with no node before it (the tree opened on a root, the
+        ///     mod started there): the view pans its cursor's node to the window's centre, a root as any node
+        ///     (live 2026-11-27: the Generic and Breach starts drawn at 640,360 of 1280×720, Breach at the tree's
+        ///     edge), so the root drawn there is it. A root seen before is checked first; while those are hidden
+        ///     the tree is closed and nothing is walked, else the world screen's shown elements are.
+        /// </summary>
+        public IntPtr AtlasTreeRootAtCentre(IntPtr worldScreen, Vector2 centre)
+        {
+            var drawnSeen = false;
+            foreach (var seen in this.atlasTreeRootsSeen.ToList())
+            {
+                if (!this.IsAtlasTreeRoot(seen))
+                {
+                    this.atlasTreeRootsSeen.Remove(seen);
+                }
+                else if (this.Drawn(seen))
+                {
+                    drawnSeen = true;
+                    if (Centred(seen, centre))
+                    {
+                        return seen;
+                    }
+                }
+            }
+
+            if ((this.atlasTreeRootsSeen.Count > 0 && !drawnSeen) || !this.elements.TryReadElement(worldScreen, out var top))
+            {
+                return IntPtr.Zero;
+            }
+
+            // The tree is no child of the world screen: walk from the top of its chain.
+            for (var depth = 0; depth < 32 && top.Raw.ParentPtr != IntPtr.Zero && this.elements.TryReadElement(top.Raw.ParentPtr, out var parent); depth++)
+            {
+                top = parent;
+            }
+
+            var pending = new Queue<UiElementReader.ElementInfo>(new[] { top });
+            var walked = 0;
+            for (; pending.Count > 0 && walked < MaxEndgameElements * 4; walked++)
+            {
+                var info = pending.Dequeue();
+                if (!info.IsVisibleFlag)
+                {
+                    continue;
+                }
+
+                if (Centred(info.Address, centre) && this.IsAtlasTreeRoot(info.Address))
+                {
+                    this.atlasTreeRootsSeen.Add(info.Address);
+                    this.TreeFields.Log?.Invoke($"Atlas tree root at the view's centre: {this.EndgamePassiveId(info.Address)}, {walked} elements walked");
+                    return info.Address;
+                }
+
+                foreach (var child in this.elements.ReadChildren(info))
+                {
+                    if (this.elements.TryReadElement(child, out var childInfo))
+                    {
+                        pending.Enqueue(childInfo);
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>Whether an element is a root of the Atlas tree (one the finder walks), by its record.</summary>
+        private bool IsAtlasTreeRoot(IntPtr element) =>
+            this.EndgamePassiveId(element) is { } id && EndgameCatalog.Shared.Marks(id).Root && EndgameCatalog.Shared.Node(id) is { } node &&
+            EndgameCatalog.Shared.HasTreeFinder(node.Graph);
+
+        /// <summary>Whether an element is drawn on a point, within its own size.</summary>
+        private static bool Centred(IntPtr element, Vector2 centre) =>
+            PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size) && size.X > 0 &&
+            Vector2.Distance(position + (size / 2), centre) <= MathF.Max(size.X, size.Y);
+
+        /// <summary>Whether an element is shown with a rect: a closed tree's nodes are not.</summary>
+        private bool Drawn(IntPtr element) =>
+            this.elements.TryReadElement(element, out var info) && this.elements.IsVisible(info) && PluginUiElementReflection.TryGetAbsoluteRect(element, out _, out _);
+
+        /// <summary>
         ///     What the guide says on a hovered Atlas tree node ("Toward Stir the Swarm: up, 3"), the arrival on
         ///     the target itself; empty while no target is chosen. Worked out once per node and kept while the
         ///     cursor stays, as the passive guide's is (<see cref="GuideAt"/>): a choice made on this node with
@@ -111,10 +221,19 @@ namespace Poe2Accessibility.Services
             return line;
         }
 
+        /// <summary>
+        ///     A tree as said: the main tree in the mod's words, a league's by the game's own name for its content
+        ///     ("Abismo", "Fisura", "Delirio"), else the files' word spaced ("Azmeri Spirit").
+        /// </summary>
+        private static string AtlasTreeSaid(string cluster) =>
+            cluster == AtlasTreeMap.MainTree ? Announcements.AtlasMainTree
+            : EndgameCatalog.Shared.Text("content/" + cluster, Localization.Language) is { Length: > 0 } league ? league
+            : AtlasTreeMap.SaidCluster(cluster);
+
         /// <summary>A node's spoken name: the catalog's for a passive, its cluster's start word for a start.</summary>
         private string AtlasTreeName(AtlasTreeMap tree, int at) =>
             EndgameCatalog.Shared.NodeName(tree.Ids[at], Localization.Language) is { Length: > 0 } name ? name
-            : tree.Start[at] ? Announcements.PassiveStartLink(AtlasTreeMap.SaidCluster(tree.Clusters[at]), false)
+            : tree.Start[at] ? Announcements.PassiveStartLink(AtlasTreeSaid(tree.Clusters[at]), false)
             : Announcements.AtlasNode;
 
         /// <summary>"Abyss, down right, outer ring, 3 links away": a node's cluster, its side and ring of the tree, and its links from the cursor. A start's name already says its cluster.</summary>
@@ -123,7 +242,9 @@ namespace Poe2Accessibility.Services
             var (octant, ring) = PassiveMap.Zone(tree.Places, at);
             var place = tree.Start[at] && !here
                 ? $"{Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}"
-                : $"{AtlasTreeMap.SaidCluster(tree.Clusters[at])}, {Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}";
+                : tree.Clusters[at] == AtlasTreeMap.MainTree
+                    ? $"{Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}"
+                    : $"{AtlasTreeSaid(tree.Clusters[at])}, {Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}";
             return !here && distances[at] > 0 ? $"{place}, {Announcements.AtlasLinksAway(distances[at])}" : place;
         }
 

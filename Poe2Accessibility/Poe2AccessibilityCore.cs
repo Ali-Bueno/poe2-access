@@ -243,6 +243,7 @@ namespace Poe2Accessibility
                 this.semantics.PassiveResumeFile = Path.Join(this.DllDirectory, "config", "passive-resume.txt");
                 this.ApplyPassiveTree(this.Settings);
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
+                this.focus.Hoverless = this.AtlasTreeRootUnderCursor;
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
                 this.narrator.EngravePartOf = text => this.semantics?.EngravePartOf(text) ?? EngravePart.Other;
@@ -940,7 +941,12 @@ namespace Poe2Accessibility
                     this.atlasNodes.FinderOn = this.Settings.AtlasFinder;
                 }
 
-                this.Isolated("atlas node", static core => core.atlasNodes?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
+                // The Atlas tree stands over the map, whose selection stays: its narrator holds still meanwhile (live
+                // 2026-11-27: the map's landing was said over the tree), and picks up where it was once the tree closes.
+                if (this.focus?.Current is not { IsAtlasTreeNode: true })
+                {
+                    this.Isolated("atlas node", static core => core.atlasNodes?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
+                }
             }
             else
             {

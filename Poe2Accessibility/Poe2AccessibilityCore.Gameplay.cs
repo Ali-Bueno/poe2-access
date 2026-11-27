@@ -442,6 +442,26 @@ namespace Poe2Accessibility
             return this.worldScreen;
         }
 
+        /// <summary>How often the Atlas tree's root at the view's centre is looked for while nothing has the focus on the Atlas.</summary>
+        private const int HoverlessLookupMs = 1000;
+
+        private long hoverlessLookedUpAt = long.MinValue / 2;
+
+        /// <summary>The Atlas tree's root the cursor rests on with no node before it (<see cref="UiSemantics.AtlasTreeRootAtCentre"/>); zero elsewhere.</summary>
+        private IntPtr AtlasTreeRootUnderCursor()
+        {
+            var now = Environment.TickCount64;
+            var area = Core.Process.WindowArea;
+            if (now - this.hoverlessLookedUpAt < HoverlessLookupMs || this.semantics == null || area.Width <= 0 || area.Height <= 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            this.hoverlessLookedUpAt = now;
+            var screen = this.InGame ? this.WorldScreen() : IntPtr.Zero;
+            return screen == IntPtr.Zero ? IntPtr.Zero : this.semantics.AtlasTreeRootAtCentre(screen, new System.Numerics.Vector2(area.Width / 2f, area.Height / 2f));
+        }
+
         /// <summary>A moment for the player's place to be read in a new instance.</summary>
         private const int PlayerSettlesMs = 300;
 

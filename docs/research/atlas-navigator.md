@@ -311,6 +311,16 @@ written down as still open, not guessed.
   refusing to go there"); the agent cannot click it either (fullscreen Proton unreachable by the desktop tools,
   virtual pad would seize player 1). The radial above is the controller's door.
 
+**Atlas skill tree, live 2026-11-27 (unattended, kehgan, 1280×720 captures at half scale):** the radial's up item is
+"Abrir árbol de habilidades del Atlas" (left stick up while X is held). The tree's **roots** (AtlasGenericStart, the six
+league starts) take the controller cursor but leave the game's hover empty, so no focus reads them; the view pans the
+cursor's node to the window's centre (the Generic and Breach starts at 640,360, Breach at the tree's bottom edge); the
+roots' elements are of the node class and their records read. One push down from the Generic start lands on the
+"Puntos de habilidad del Atlas adquiridos" counter (0/336), and further down on the league trees, which no link
+joins. The tree's padlocks are buttons ("Completa la Cámara de enigmas oriental para desbloquearlo, botón, 2 de 11")
+the stick stops on between nodes. The tree's elements are no children of the world screen (a walk from its chain's
+top finds them in ~1,200 shown elements). The D-pad moves nothing on the tree (it stays the finder's).
+
 ## 7. Risks and fallbacks
 
 - **B's offsets predate the 0.5 redesign.** If no byte validates, Phases 2–3 ship catalog-only (anchors, routes,

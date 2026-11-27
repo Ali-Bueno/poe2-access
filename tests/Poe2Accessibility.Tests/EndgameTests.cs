@@ -298,7 +298,8 @@ namespace Poe2Accessibility.Tests
         {
             ("AtlasGenericStart", 0, 0, new[] { "AtlasGenericSmall1" }),
             ("AtlasGenericSmall1", 100, 0, new[] { "AtlasGenericNotable1" }),
-            ("AtlasGenericNotable1", 200, 0, null),
+            ("AtlasGenericNotable1", 200, 0, new[] { "AtlasBiomeCity1" }),
+            ("AtlasBiomeCity1", 300, 0, null),
             ("AtlasGenericMastery1", 100, 50, null),
             ("AtlasAbyssStart", 500, 0, new[] { "AtlasAbyssSmall1" }),
             ("AtlasAbyssSmall1", 600, 0, new[] { "AtlasAbyssNotable1" }),
@@ -315,7 +316,9 @@ namespace Poe2Accessibility.Tests
             Expect("BiomeCity", AtlasTreeMap.ClusterOf("AtlasBiomeCity1"), "a bare number ends the cluster");
             Expect("Azmeri Spirit", AtlasTreeMap.SaidCluster("AzmeriSpirit"), "a cluster as said");
             var tree = AtlasTreeFixture();
-            Expect(7, tree.Ids.Length, "the mastery icon is left out");
+            Expect(8, tree.Ids.Length, "the mastery icon is left out");
+            Expect("Generic|Abyss", $"{tree.Clusters[tree.Index["AtlasBiomeCity1"]]}|{tree.Clusters[tree.Index["AtlasAbyssNotable1"]]}",
+                "a node's tree is its start's, not its id's finer part (\"Biome City\" was said, live 2026-11-27)");
             var small = tree.Index["AtlasGenericSmall1"];
             var distances = tree.DistancesFrom(small);
             Expect(1, distances[tree.Index["AtlasGenericNotable1"]], "its notable one link on, the link read back the other way");

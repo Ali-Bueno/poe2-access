@@ -130,7 +130,8 @@ namespace Poe2Accessibility.Services
                 IsVisible = this.elements.IsVisible(info),
                 IsHovered = hovered,
                 IsAtlasTreeNode = atlasTreeNode,
-                Context = this.PanelTitle(info),
+                // The tree lives under the world screen's Quests panel, whose title is no name of it (live 2026-11-27: "Misiones").
+                Context = atlasTreeNode ? Announcements.AtlasSkillTree : this.PanelTitle(info),
                 Tooltip = tooltip,
                 TooltipPending = popup.Count == 0,
             };

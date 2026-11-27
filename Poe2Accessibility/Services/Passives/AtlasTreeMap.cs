@@ -40,6 +40,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static readonly string[] FinderFolders = { "metadata/atlasskillgraphs/" };
 
+        /// <summary>The main tree's cluster in the files: its nodes need no tree named, the leagues' do.</summary>
+        public const string MainTree = "Generic";
+
         /// <summary>The catalog's marks (the endgame extractor's NodeFlags): keystone, notable, icon only (a mastery).</summary>
         private const char KeystoneFlag = 'k';
 
@@ -69,7 +72,7 @@ namespace Poe2Accessibility.Services
 
         public bool[] Start { get; }
 
-        /// <summary>Each node's cluster as the files spell it ("Abyss", "AzmeriSpirit", "Generic").</summary>
+        /// <summary>Each node's tree, its start's cluster as the files spell it ("Abyss", "Generic"); a node no start reaches keeps its own id's.</summary>
         public string[] Clusters { get; }
 
         public Dictionary<string, int> Index { get; }
@@ -108,13 +111,40 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            // A node's tree is its start's: the ids name finer parts ("AtlasRareMonsterModifiersChance3",
+            // "AtlasBiomeCity1") that are no tree of the game, only words of its files (live 2026-11-27: "Rogue
+            // Exiles", "Biome City" spoken in Spanish). No links join the trees, so each start claims its own.
+            var starts = kept.Select(node => IsStart(node.Id)).ToArray();
+            var clusters = kept.Select(node => ClusterOf(node.Id)).ToArray();
+            var claimed = new bool[kept.Count];
+            for (var start = 0; start < kept.Count; start++)
+            {
+                if (!starts[start] || claimed[start])
+                {
+                    continue;
+                }
+
+                var pending = new Queue<int>(new[] { start });
+                claimed[start] = true;
+                while (pending.Count > 0)
+                {
+                    var at = pending.Dequeue();
+                    clusters[at] = clusters[start];
+                    foreach (var next in links[at].Where(next => !claimed[next]))
+                    {
+                        claimed[next] = true;
+                        pending.Enqueue(next);
+                    }
+                }
+            }
+
             return new AtlasTreeMap(
                 kept.Select(node => node.Id).ToArray(),
                 links.Select(list => list.ToArray()).ToArray(),
                 kept.Select(node => new Vector2(node.X, node.Y)).ToArray(),
                 kept.Select(node => IsNotable(node.Id)).ToArray(),
-                kept.Select(node => IsStart(node.Id)).ToArray(),
-                kept.Select(node => ClusterOf(node.Id)).ToArray());
+                starts,
+                clusters);
         }
 
         /// <summary>

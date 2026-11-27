@@ -534,6 +534,20 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-27, evening, unattended on kehgan (the owner: "investiga tú qué es este nodo central y si se lee todo bien";
+1177 tests, deployed to the play copy, pushed, NOT released):** the Atlas tree's **roots take the game's cursor but no
+hover** (focus none), so the centre and every league start said nothing and left the D-pad finder without a node: the
+one root beside the node left stands in (`AtlasTreeRootBeside`), and with no node before (the tree opened on a root,
+the mod started there) the root drawn at the window's centre does (`AtlasTreeRootAtCentre`, the view pans its cursor's
+node there; ≤1 walk a second of ~900 shown elements while the Atlas map has no focus, none once a root was seen and the
+tree is hidden). The map's narrator holds still while a tree node has the focus (it spoke the map's landing over the
+tree). Nodes now say their tree in the game's words ("Abismo", "Fisura", "Delirio", "Focos vaal", nothing for the main
+tree) instead of the ids' English parts ("Rogue Exiles", "Biome City"), the context is "Árbol de habilidades del Atlas"
+instead of "Misiones", and the main start is "inicio, árbol principal". Heard live: centre and Breach start read with
+links, finder lists from them, a route to "Llegaste a inicio, Fisura". **Open:** the tree's 11 locks ("Completa la
+Cámara de enigmas oriental para desbloquearlo, botón, 2 de 11") are buttons, not nodes: a route through one says no
+guide line there and the D-pad finder does nothing on it. **Next:** the owner's word on the locks.
+
 **2026-11-27, evening (the owner: the Atlas tree's D-pad finder said nothing, and the tree's centre was read as "El
 refugio del zigurat"; 1177 tests, deployed to the play copy, pushed, NOT released):** the catalog gives the Atlas skill
 tree's nodes pins (PrecursorMap/PrecursorNotable) and its root the town's map (BaseCamp, G_Endgame_Town), and
