@@ -534,6 +534,18 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-27, midday (the owner in the Vaal Ruins with the Temple Console open: "mira el menú… si tenemos todo accesible"; then in
+Atziri's Temple; heard live, deployed to the play copy, pushed, NOT released):** the **Temple Console** is read: a cell says its row and
+column from the Vestibule and what stands beside it by the cross's direction ("Camino, botón, fila 2, columna 5, arriba Camino, derecha
+Camino, abajo Vestíbulo"), an empty one "Libre", a room no path reaches "sin conectar"; A on a card says "Sujetando Camino, 7 sitios
+donde colocarla" (only those cells take the cursor), the card held reads "en la mano" in the list, the list says "quedan N cartas";
+the crystal counter "2/60 cristales energizados"; "entrar al templo, RB" (any button drawing a pad glyph other than A now says it);
+the help paragraph lost its "columna 1, fila 1"; the temple's benches sound as the Reforging Bench ([findings](docs/research/league-mechanics.md#9-incursion-vaal-beacons-and-the-temple-fate-of-the-vaal)).
+**Next:** where the player stands on the temple map and which rooms are done (no mark in the element tree: memory of the cells or
+the rooms' `Incursion<Room>Active/Inactive` icons), then "Próxima sala: X, arriba a la derecha" on "Sala completada" (the map is
+drawn with the camera's turn, so grid up = screen up-right) — asked by the owner. **First to hear:** whether a shortcut glyph now
+said on other buttons ("…, RB") is noise anywhere.
+
 **2026-11-27 (the owner, away, after a refund at the Hooded One: "varios estaban engarzados a otros nodos entonces me costaba
 saber cómo proseguir"; and "los engarces que tengo asignados, pero en los cuales no tengo gemas puestas"; 1170 tests, heard live
 unattended on kehgan, deployed to the play copy, pushed, released at the owner's word as v2026.11.27-2):** the D-pad's **Holding others** list (refunding only)

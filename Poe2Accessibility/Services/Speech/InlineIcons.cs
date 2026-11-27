@@ -70,6 +70,7 @@ namespace Poe2Accessibility.Services
             ["checkboxchecked"] = Kind.State,
             ["checkboxunchecked"] = Kind.State,
             ["savedshopitemicon"] = Kind.State,
+            ["incursion2tokencountericon"] = Kind.Unit, // the Temple Console's "<<incursion_temple_tokens>> 2/60" (2026-11-27)
         };
 
         private static Dictionary<string, string> arts = new(StringComparer.Ordinal);

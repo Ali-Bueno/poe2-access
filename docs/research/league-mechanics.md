@@ -372,6 +372,26 @@ on a spirit's death), Rites of the Rogues. `EntityInfoRogueExileUniqueItem` "Has
   Beacons to enter the Vaal Ruins" / "Da energía a {0} focos más para acceder a las Ruinas vaal", `GamepadShowIncursionTempleUseDesc` "View Temple Map" /
   "Ver mapa del templo"; errors "Place up to 3 Restricted Rooms before continuing.", "Temple is not yet complete. Are you sure you want to leave the area?",
   "Atziri's Chamber is not connected to the rest of the temple."
+- **The console's window, read live (2026-11-27, 0.5.5f; dumps `ui-tree-InGameState-20261127-115000/121908/125033.txt` of the play copy;
+  reader `UiSemantics.TempleMap.cs`, pure `TempleGrid`).** One holder (`[0,1,17,2,8,0]` that day) holds: the 9x9 grid, 81 buttons
+  named `"(row, column)"` in one child; Atziri's Chamber `"(9, 4)"` alone in another; the Room Cards list (`Cartas de sala`, a card
+  = 4 children: frame, two marks, caption); the bar with "entrar al templo" + `<<xbox_button_rb>>`, the crystal counter
+  `<<incursion_temple_tokens>> 2/60` (icon `Incursion2TokenCounterIcon`) and six 36x36 pips; Temple Mods (`mod_label`). The cells have
+  no text: a room or path is named by its **tooltip** (a path's tooltip is its title alone, a room's adds its effect and tier,
+  "Guarnición nivel 1"); an empty cell has none (MEASURED).
+  - Orientation: row 0 holds the Vestibule at `(0, 4)`, rows grow toward Atziri (screen up-right), columns screen down-right; the cross
+    moves along the axes: up = row + 1, right = column + 1 (right (1,4)→(1,5), down (2,4)→(1,4), left (3,4)→(3,3)) (MEASURED).
+  - Idle, only cells with a room carry the navigable bit (0x0E). **A card held** (A on it): its frame child (index 0) is drawn, the list
+    slides left (x −274), "Cerrar [B]" becomes "Cancelar [B]", and **exactly the cells the card can go on** take the navigable bit:
+    Camino held, 7 free cells, each beside a path or the Vestibule, none beside a room alone; a room card had 12 (MEASURED). So paths
+    lead on and rooms hang off them; a room beside rooms only is cut off (LIKELY, `TempleGrid.Reached`). A placed room adds its
+    effect to Temple Mods at once (Laboratorio de alquimia: "Rareza … +10%").
+  - In the temple, LT + up opens the same window as its map (no cards); its cells showed **no "you are here" or completed mark** in
+    the element tree (visible dump 12:50; flags and children as in the hub). Where the player stands and which rooms are done must
+    come from memory (cell fields or the room entities' `Incursion<Room>Active/Inactive` icons): not found yet.
+  - Inside the temple only near entities are in the list (entities dump 12:42, 32 within ~230 units): `RoomDoor`,
+    `RoomBlockerVisuals` (shut doors), the benches; no room icons. The bench `IncursionBenchCampaignCurrency` "Mesa de trabajo regia"
+    carries the icon **"IncursionCraft"** (not the table's `IncursionCraftingBench…`), states `active, single_use_consumed, busy, benchtype`.
 - Dangers: ground buffs `architect_ground_blood*` "Boiling Blood" / "Sangre hirviente" (in `hazards.txt`), `vaal_cloud` "Corrupting Smoke" / "Humo
   corrupto"; wall turrets `Monsters/LeagueIncursion/WallTurrets/WallTurret*`. Bosses (Xipocado, Atziri): [boss-mechanics.md](boss-mechanics.md).
 - **Act 3's Ancient Beacons are this object** (MEASURED 2026-11-18, Las criptas venenosas: "Misión: Focos antiguos. Activa el foco

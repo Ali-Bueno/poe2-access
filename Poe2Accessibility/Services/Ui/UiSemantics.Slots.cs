@@ -109,7 +109,8 @@ namespace Poe2Accessibility.Services
                     Name = info.Name,
                     Role = UiRole.Panel,
                     Text = held,
-                    Position = this.PickerPosition(info),
+                    // A paragraph is no cell: the Temple Console's help read "columna 1, fila 1" inside (2026-11-27).
+                    Position = held.Length > MaxCellText ? string.Empty : this.PickerPosition(info),
                     IsVisible = this.elements.IsVisible(info),
                     Context = this.PanelTitle(info),
                     Tooltip = details,

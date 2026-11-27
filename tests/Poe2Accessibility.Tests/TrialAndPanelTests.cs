@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TrialTrapsAreToldByTheirFiles), TrialTrapsAreToldByTheirFiles),
             (nameof(SheetWidgetsAreToldByTheirTooltipsKeys), SheetWidgetsAreToldByTheirTooltipsKeys),
             (nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss),
+            (nameof(TempleCellsAreRowsFromTheVestibuleWithTheirNeighbours), TempleCellsAreRowsFromTheVestibuleWithTheirNeighbours),
             (nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal),
             (nameof(HonourIsSaidAsItFalls), HonourIsSaidAsItFalls),
             (nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine),
@@ -159,6 +160,33 @@ namespace Poe2Accessibility.Tests
             Equal(null, SheetStats.FromMarkup("<valuedefault>{Estimated Armour Mitigation}\n[Armour] reduces the [Physical|Physical Damage] you take"), "any other tooltip");
             Equal(null, SheetStats.FromMarkup("+10 to [Strength]\n+20% to [Fire] [Resistances|Resistance]"), "an item's lines are no sheet widget");
             Equal(null, SheetStats.FromMarkup(string.Empty), "no tooltip");
+        }
+
+        /// <summary>The Temple Console's map as dumped on 2026-11-27: cells "(row, column)", the cross moving along them.</summary>
+        private static void TempleCellsAreRowsFromTheVestibuleWithTheirNeighbours()
+        {
+            Equal(((int, int)?)(3, 4), TempleGrid.Parse("(3, 4)"), "a cell's name");
+            Equal(((int, int)?)(9, 4), TempleGrid.Parse("(9, 4)"), "Atziri's Chamber beyond the grid");
+            Equal(((int, int)?)null, TempleGrid.Parse("mod_label"), "any other name");
+            var rooms = new Dictionary<(int, int), string> { [(0, 4)] = "Vestíbulo", [(1, 4)] = "Camino", [(1, 5)] = "Camino", [(2, 4)] = "Camino" };
+            string? At((int Row, int Column) cell) => rooms.TryGetValue(cell, out var room) ? room : null;
+            Localization.Set("es", new());
+            Equal("fila 2, columna 5, arriba Camino, derecha Camino, abajo Vestíbulo", Announcements.TempleCellPlace(1, 4, TempleGrid.Neighbours((1, 4), At)), "the path past the Vestibule");
+            Equal("fila 3, columna 4, derecha Camino", Announcements.TempleCellPlace(2, 3, TempleGrid.Neighbours((2, 3), At)), "a free cell where a card would join a path");
+            Equal("fila 8, columna 7, nada al lado", Announcements.TempleCellPlace(7, 6, TempleGrid.Neighbours((7, 6), At)), "a room on its own");
+            // The temple of 2026-11-27 after the owner's placements: every room hangs off a path; the Architect's Chamber stands alone.
+            var temple = new Dictionary<(int Row, int Column), bool>
+            {
+                [(0, 4)] = true, [(0, 3)] = true, [(0, 2)] = false, [(0, 5)] = false, [(1, 4)] = true, [(1, 5)] = true, [(2, 4)] = true,
+                [(3, 3)] = false, [(3, 4)] = true, [(3, 5)] = true, [(3, 6)] = false, [(7, 6)] = false, [(9, 4)] = false,
+            };
+            var reached = TempleGrid.Reached(temple);
+            Equal(true, reached.Contains((0, 2)) && reached.Contains((3, 6)) && reached.Contains((0, 5)), "rooms beside the paths are reached");
+            Equal(false, reached.Contains((7, 6)) || reached.Contains((9, 4)), "the Architect's and Atziri's chambers are not");
+            temple[(4, 6)] = false;
+            Equal(false, TempleGrid.Reached(temple).Contains((4, 6)), "a room beside a room only is not reached through it");
+            Equal("fila 8, columna 7, sin conectar, nada al lado", Announcements.TempleCellPlace(7, 6, Array.Empty<(TempleGrid.Side, string)>(), true), "said after the place");
+            Localization.Set("en", new());
         }
 
         private static void TrialMapIsColumnsFromEntranceToBoss()

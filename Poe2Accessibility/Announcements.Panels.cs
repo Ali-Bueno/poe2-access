@@ -18,6 +18,7 @@ namespace Poe2Accessibility
             "checkboxchecked" => Checked,
             "checkboxunchecked" => Unchecked,
             "savedshopitemicon" => T("deferred", "reservado"),
+            "incursion2tokencountericon" => T("energised crystals", "cristales energizados"),
             _ => null,
         };
 

@@ -252,7 +252,7 @@ namespace Poe2Accessibility.Services
         public static string ServiceKind(string icon) =>
             icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind
             : icon.StartsWith("CraftingBench", StringComparison.Ordinal) ? BenchKind
-            : icon == MinimapIconIds.ReforgingBench ? ReforgeKind
+            : icon == MinimapIconIds.ReforgingBench || icon.StartsWith(MinimapIconIds.TempleBenchPrefix, StringComparison.Ordinal) ? ReforgeKind
             : icon == MinimapIconIds.VerisiumAnvil ? AnvilKind : string.Empty;
 
         /// <summary>The kinds <see cref="ServiceKind"/> gives: with a sound of their own, never the quest object's.</summary>

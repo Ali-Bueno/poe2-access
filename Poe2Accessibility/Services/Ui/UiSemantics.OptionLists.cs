@@ -266,6 +266,24 @@ namespace Poe2Accessibility.Services
         private bool IsConfirmGlyph(in UiElementReader.ElementInfo node) =>
             this.GlyphOf(node) is { Length: > 0 } button && button == Announcements.ButtonName(ConfirmGlyphFile, ControllerGlyphs.PlayStationSeen);
 
+        /// <summary>
+        ///     The pad button a button's own child draws beside its caption, other than the confirm button every focused control
+        ///     answers to (the Temple Console's "entrar al templo" and its RB); empty when it draws none.
+        /// </summary>
+        private string ShortcutGlyph(in UiElementReader.ElementInfo button)
+        {
+            foreach (var childAddress in this.elements.ReadChildren(button))
+            {
+                if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag && !this.IsConfirmGlyph(child) &&
+                    this.GlyphOf(child) is { Length: > 0 } glyph)
+                {
+                    return glyph;
+                }
+            }
+
+            return string.Empty;
+        }
+
         /// <summary>The button a node draws, as an image of either class or as a markup-only label; empty for anything else.</summary>
         private string GlyphOf(in UiElementReader.ElementInfo node)
         {

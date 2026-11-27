@@ -426,6 +426,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, MinimapMarks.IsQuestIcon("QuestObject") && MinimapMarks.IsQuestIcon("QuestItem") && !MinimapMarks.IsQuestIcon("NPC"), "the quest's own icons");
             Equal(true, MinimapMarks.IsSpent("TitanGrottoEntranceInActive"), "the table's other spelling of inactive");
             Equal(MinimapMarks.ReforgeKind, MinimapMarks.ServiceKind("TreasureVaultHammerActive"), "the Reforging Bench is a service");
+            Equal(MinimapMarks.ReforgeKind, MinimapMarks.ServiceKind("IncursionCraftingBenchGem"), "a bench of Atziri's Temple sounds as the Reforging Bench (owner, 2026-11-27)");
+            Equal(MinimapMarks.ReforgeKind, MinimapMarks.ServiceKind("IncursionCraft"), "as its entity carries the icon (dump 2026-11-27)");
             Equal(false, MinimapMarks.IsLitMark("TreasureVaultHammerActive") || !MinimapMarks.IsService(MinimapMarks.ReforgeKind), "never a quest's mark");
             Equal(MinimapMarks.AnvilKind, MinimapMarks.ServiceKind("ExpeditionCraftingBenchAct1"), "the Verisium Anvil is a service of its own");
             Equal(true, MinimapMarks.IsService(MinimapMarks.AnvilKind) && MinimapMarks.ServiceKind("ExpeditionCraftingBenchAct2").Length == 0, "the runesmithing knowledge is no anvil");

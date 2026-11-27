@@ -37,6 +37,13 @@ namespace Poe2Accessibility.Services
         /// <summary>The Verisium Anvil (CraftingBenchExpedition.ot in Act 1 and Act 4 towns, the hideout's VerisiumCraftingBench.ot).</summary>
         public const string VerisiumAnvil = "ExpeditionCraftingBenchAct1";
 
+        /// <summary>
+        ///     The benches of Atziri's Temple ("Mesa de trabajo regia", IncursionBenchCampaignCurrency): no `CraftingBench*` either, so
+        ///     they sounded nothing (the owner, 2026-11-27). The icon the entity carries reads "IncursionCraft" (entity dump
+        ///     2026-11-27 12:42), not the table's "IncursionCraftingBench…" (game-keys): the prefix covers both.
+        /// </summary>
+        public const string TempleBenchPrefix = "IncursionCraft";
+
         public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence, ReforgingBench, VerisiumAnvil });
     }
 }

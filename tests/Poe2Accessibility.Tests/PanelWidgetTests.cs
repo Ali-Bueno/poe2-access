@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             "weapon_set_1\tArt/2DArt/UIImages/InGame/SkillPanel/InventoryPanelWeaponSwap1Hover",
             "weapon_set_2\tArt/2DArt/UIImages/InGame/SkillPanel/InventoryPanelWeaponSwap2Hover",
             "RitualTribute\tArt/2DArt/UIImages/InGame/Ritual/killpointicon",
+            "incursion_temple_tokens\tArt/2DArt/UIImages/InGame/Incursion2/Incursion2TokenCounterIcon",
             "malformed line without a tab",
         });
 
@@ -117,6 +118,7 @@ namespace Poe2Accessibility.Tests
             Expect("500 gold", ControllerGlyphs.Plain("<<village_gold>> <goldvalue>{500}"), "exchange order cost");
             Expect("1,000 gold", ControllerGlyphs.Plain("<<village_gold>> <red>{1,000}"), "ascendancy cost not afforded");
             Expect("Market Ratio", ControllerGlyphs.Plain("<<market_ratio>> Market Ratio "), "a picture that means nothing stays unsaid");
+            Expect("2/60 energised crystals", ControllerGlyphs.Plain("<<incursion_temple_tokens>> 2/60"), "the Temple Console's crystals, not the icon's file name");
         }
 
         /// <summary>GamepadSpiritManagementTabAssignedSpiritValueLabel "{0} &lt;&lt;spirit_resource_icon&gt;&gt;" and the total "{0} Spirit &lt;&lt;…&gt;&gt;".</summary>
@@ -235,7 +237,7 @@ namespace Poe2Accessibility.Tests
 
             Localization.Set("en", new());
             InlineIcons.Set(InlineIcons.Parse(System.IO.File.ReadAllLines(file)));
-            foreach (var token in new[] { "village_gold", "spirit_resource_icon", "TickIcon", "checkbox_on", "map_portal_icon", "party_revives_icon", "RitualTribute", "ritual_suspended" })
+            foreach (var token in new[] { "village_gold", "spirit_resource_icon", "TickIcon", "checkbox_on", "map_portal_icon", "party_revives_icon", "RitualTribute", "ritual_suspended", "incursion_temple_tokens" })
             {
                 Expect(true, InlineIcons.MeaningOfToken(token).HasValue, $"{token} named");
             }

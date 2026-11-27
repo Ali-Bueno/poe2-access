@@ -387,6 +387,38 @@ namespace Poe2Accessibility.Services
                 (label, position) = (label.Length > 0 ? label : Announcements.HiddenRoom, room);
                 this.NoteTrialRoom(label, address);
             }
+            else if (role == UiRole.Button && this.InGame && this.TempleCellPlace(info) is { } templePlace)
+            {
+                // A cell of the Temple Console's map: a room or path is named by its tooltip; an empty cell has none, and
+                // was read by the panel's title, "Consola del templo, botón, 42 de 81" (2026-11-27). Never the title: with the
+                // console open before the mod started, every room was "Consola del templo" and its name came after its place.
+                if (!titledByTooltip && tooltip.Count > 0)
+                {
+                    label = tooltip[0];
+                    tooltip.RemoveAt(0);
+                }
+                else if (!titledByTooltip)
+                {
+                    label = Announcements.TempleFreeCell;
+                }
+
+                position = templePlace;
+                if (this.TempleHeldCardNews(info) is { } held)
+                {
+                    label = $"{held}. {label}";
+                }
+            }
+            else if (role == UiRole.Button && this.InGame && this.TempleCardHeldMark(info, label) is { Length: > 0 } inHand)
+            {
+                label = $"{label}, {inHand}";
+            }
+
+            if (role == UiRole.Button && this.InGame && label.Length > 0 && this.ShortcutGlyph(info) is { Length: > 0 } shortcut)
+            {
+                // A button drawing the pad button that presses it from anywhere in the window: the Temple Console's "entrar
+                // al templo" beside RB was read without it (2026-11-27).
+                label = $"{label}, {shortcut}";
+            }
             else if ((role == UiRole.Panel && label.Length > MaxCellText && longestCell > MaxCellText) || (titledByTooltip && label.Length > MaxCellText))
             {
                 // Nor is an icon whose tooltip is a paragraph: the map's Info button read its place between two of them (2026-11-12).

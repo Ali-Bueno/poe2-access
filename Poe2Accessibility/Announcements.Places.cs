@@ -179,6 +179,47 @@ namespace Poe2Accessibility
         /// <summary>A room of the Trial's map not revealed yet: the map shows only a few rooms ahead.</summary>
         public static string HiddenRoom => T("Hidden room", "Sala oculta");
 
+        /// <summary>A cell of the Temple Console's map with no room or path on it (the game names it nothing).</summary>
+        public static string TempleFreeCell => T("Free", "Libre");
+
+        /// <summary>Said once on the first cell after A on a room card: the card held, to place with A or put back with B.</summary>
+        public static string TemplePlacing(string card, int spots) => spots == 1
+            ? T($"Holding {card}, 1 place to put it", $"Sujetando {card}, 1 sitio donde colocarla")
+            : T($"Holding {card}, {spots} places to put it", $"Sujetando {card}, {spots} sitios donde colocarla");
+
+        /// <summary>The card held, read again in the Room Cards list.</summary>
+        public static string TempleCardInHand => T("in hand", "en la mano");
+
+        /// <summary>The room cards left to place, said when the Room Cards list is first read and when the count changes.</summary>
+        public static string TempleCardsLeft(int count) => count == 1
+            ? T("1 card left", "queda 1 carta")
+            : T($"{count} cards left", $"quedan {count} cartas");
+
+        /// <summary>
+        ///     A cell's place on the Temple Console's map (`TempleGrid`, from 0): rows from the Vestibule toward Atziri, columns
+        ///     across, then what stands beside it by the pad's direction ("arriba Camino, derecha Cuartel").
+        /// </summary>
+        /// <param name="cut">No path leads to it from the Vestibule: said right after the place.</param>
+        public static string TempleCellPlace(int row, int column, IReadOnlyList<(Services.TempleGrid.Side Side, string Room)> neighbours, bool cut = false)
+        {
+            var place = T($"row {row + 1}, column {column + 1}", $"fila {row + 1}, columna {column + 1}");
+            place = cut ? $"{place}, {T("not connected", "sin conectar")}" : place;
+            if (neighbours.Count == 0)
+            {
+                return $"{place}, {T("nothing beside it", "nada al lado")}";
+            }
+
+            return $"{place}, {string.Join(", ", neighbours.Select(each => $"{TempleSide(each.Side)} {each.Room}"))}";
+        }
+
+        private static string TempleSide(Services.TempleGrid.Side side) => side switch
+        {
+            Services.TempleGrid.Side.Up => T("up", "arriba"),
+            Services.TempleGrid.Side.Right => T("right", "derecha"),
+            Services.TempleGrid.Side.Down => T("down", "abajo"),
+            _ => T("left", "izquierda"),
+        };
+
         /// <summary>A room's place on the Trial's map, columns running from the entrance to the boss; to enter a room, its tooltip says so.</summary>
         /// <param name="through">With the links known: the rooms to enter that lead to this one, when there is a choice (rows from 0).</param>
         /// <param name="leadsTo">With the links known: the rooms of the next column this one leads to (rows from 0).</param>
