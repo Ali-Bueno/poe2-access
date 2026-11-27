@@ -535,7 +535,7 @@
 
 ## Next step
 **2026-11-27, evening, unattended on kehgan (the owner: "investiga tú qué es este nodo central y si se lee todo bien";
-1177 tests, deployed to the play copy, pushed, NOT released):** the Atlas tree's **roots take the game's cursor but no
+1177 tests, deployed to the play copy, pushed, released at the owner's word as v2026.11.27-3):** the Atlas tree's **roots take the game's cursor but no
 hover** (focus none), so the centre and every league start said nothing and left the D-pad finder without a node: the
 one root beside the node left stands in (`AtlasTreeRootBeside`), and with no node before (the tree opened on a root,
 the mod started there) the root drawn at the window's centre does (`AtlasTreeRootAtCentre`, the view pans its cursor's
