@@ -547,7 +547,8 @@ window gate does. Behind another window the game's redraws are now said for 3 s 
 own commit); a press from before the window went behind does not count, so a notification mid-play stays silent as on
 2026-10-26. Second run, 22:49, game in front: every empty skill said the message, no "tab 1", every category named. Back
 from Strength Gems to Bow Shot the hint bar changed in the same frame and the category was queued behind the last line; a
-waiting page now always cuts in.
+waiting page now always cuts in. After a restart onto the recommended gems, Square back to the build's showed the message
+with no category switch, and the next empty skill was said alone; the message is now kept from that path too.
 **First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, no "tab 1", and
 "Strength Gems. …" with another window in front.
 

@@ -202,6 +202,15 @@ namespace Poe2Accessibility.Services
 
                 var goldChrome = this.Chrome(change.Texts);
                 var content = change.Texts.Where(text => !IsNumber(text.Text) && !IsTierNumeral(text.Text) && !goldChrome.Contains(text.Address)).ToList();
+                if (change.Kind == ScreenChangeKind.TextsAppeared && change.Layer.Texts.Any(text => text.Name == EngraveCategoryName))
+                {
+                    // The engraving window's message back without a category switch (Square from the recommended gems to the
+                    // build's): the next category without choices keeps it drawn too ("Escape Shot" alone after it, tester
+                    // 2026-11-26, the mod just restarted). Only what appeared: a whole layer still holds the last choice's tooltip.
+                    this.engravePage.Clear();
+                    this.engravePage.UnionWith(content.Select(text => (text.Address, text.Text)));
+                }
+
                 var shown = content.Count <= SmallBoxTexts && legends.Count > 0
                     ? Announcements.Sentences(new[] { Describe(content), Describe(legends) })
                     : Describe(content);

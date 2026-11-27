@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(EachCategoryIsSaidWithoutTheStashsTab), EachCategoryIsSaidWithoutTheStashsTab),
             (nameof(ACategoryWithANewButtonStillCutsIn), ACategoryWithANewButtonStillCutsIn),
+            (nameof(TheMessageBackBySquareIsSaidOnTheNextCategory), TheMessageBackBySquareIsSaidOnTheNextCategory),
             (nameof(AChoiceRenamedInPlaceDoesNotNameTheStashsTab), AChoiceRenamedInPlaceDoesNotNameTheStashsTab),
             (nameof(TheStashsOwnTabSwitchIsStillSaid), TheStashsOwnTabSwitchIsStillSaid),
             (nameof(OnlyAPressBehindTheWindowDrivesTheGame), OnlyAPressBehindTheWindowDrivesTheGame),
@@ -68,6 +69,19 @@ namespace Poe2Accessibility.Tests
             var line = $"Bow Shot. {NoEntries} Show Recommended, Square";
             Equal(line, window.Said.LastOrDefault(), "last spoken");
             Equal(true, window.Interrupted(line), "cuts in");
+        }
+
+        /// <summary>
+        ///     Square back from the recommended gems shows the message with no category switch, and the next category without
+        ///     choices keeps it drawn: said there too (the mod restarted on the recommended gems, tester 2026-11-26).
+        /// </summary>
+        private static void TheMessageBackBySquareIsSaidOnTheNextCategory()
+        {
+            var window = new Window();
+            window.Choose("Stormcaller Arrow", "Shock", "Lightning Attunement, Shock");
+            window.BackToPlan();
+            window.Empty("Escape Shot");
+            Equal($"Escape Shot. {NoEntries}", window.Said.LastOrDefault(), "last spoken");
         }
 
         /// <summary>
@@ -195,6 +209,14 @@ namespace Poe2Accessibility.Tests
             }
 
             public bool Interrupted(string line) => this.output.Interrupting.Contains(line);
+
+            /// <summary>Square from the recommended gems back to the build's, in a category it has none for: the message alone appears.</summary>
+            public void BackToPlan()
+            {
+                this.focusLayer = IntPtr.Zero;
+                this.Show(null, this.shown.Where(text => text.Name == "category_name_label").Append(Text(5850, NoEntries)).ToArray());
+                this.Settle(1100);
+            }
 
             /// <summary>RB on the stash itself, the cursor left in the inventory: the tab changes, nothing else does.</summary>
             public void SwitchStash(string tab)
