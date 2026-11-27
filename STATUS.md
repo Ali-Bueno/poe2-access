@@ -540,10 +540,14 @@ not merged into `main` yet ([rules](docs/menu-speech-rules.md#what-to-say)). The
 1 s after each switch with no focus; it now names a tabbed panel's tab only when that tab changed. The game's message stays
 drawn from one empty category to the next, so it never appeared again; it is now said with each. A choice's tier numeral
 ("III") is no longer read as a page line. Unit tests replay the log (`EngravingCategoryTests`). The unnamed categories
-(Strength Gems, Dexterity Gems, Bow Shot once) look like the game behind another window with the pad still driving it, since
-the host ran at its background rate of 20 frames a second for most of 22:02-22:08; not confirmed with the tester yet. Behind
-another window the game's redraws are now said for 3 s after a press made there (`PadActivity`, its own commit); a press from
-before the window went behind does not count, so a notification mid-play stays silent as on 2026-10-26.
+(Strength Gems, Dexterity Gems, Barrage and Bow Shot once) came with the game behind another window and the pad still driving
+it. The tester does not remember another window, but the host ran at its background rate of 20 frames a second for most of
+every minute from 21:50 to 22:08, and each unnamed category's texts reached the log without being narrated, which only the
+window gate does. Behind another window the game's redraws are now said for 3 s after a press made there (`PadActivity`, its
+own commit); a press from before the window went behind does not count, so a notification mid-play stays silent as on
+2026-10-26. Second run, 22:49, game in front: every empty skill said the message, no "tab 1", every category named. Back
+from Strength Gems to Bow Shot the hint bar changed in the same frame and the category was queued behind the last line; a
+waiting page now always cuts in.
 **First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, no "tab 1", and
 "Strength Gems. …" with another window in front.
 

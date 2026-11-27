@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(EachCategoryIsSaidWithoutTheStashsTab), EachCategoryIsSaidWithoutTheStashsTab),
+            (nameof(ACategoryWithANewButtonStillCutsIn), ACategoryWithANewButtonStillCutsIn),
             (nameof(AChoiceRenamedInPlaceDoesNotNameTheStashsTab), AChoiceRenamedInPlaceDoesNotNameTheStashsTab),
             (nameof(TheStashsOwnTabSwitchIsStillSaid), TheStashsOwnTabSwitchIsStillSaid),
             (nameof(OnlyAPressBehindTheWindowDrivesTheGame), OnlyAPressBehindTheWindowDrivesTheGame),
@@ -53,6 +54,20 @@ namespace Poe2Accessibility.Tests
                 }),
                 string.Join(" | ", window.Said),
                 "spoken");
+        }
+
+        /// <summary>
+        ///     Back from an attribute category to a skill without choices the hint bar changes in the same frame ("Show All"
+        ///     to "Show Recommended"): said after the category, which still cuts the last one off (it was queued behind it).
+        /// </summary>
+        private static void ACategoryWithANewButtonStillCutsIn()
+        {
+            var window = new Window();
+            window.Choose("Strength Gems", "Elemental Armament I", "Prolonged Duration I, Elemental Armament I", "I");
+            window.Empty("Bow Shot", "Show Recommended");
+            var line = $"Bow Shot. {NoEntries} Show Recommended, Square";
+            Equal(line, window.Said.LastOrDefault(), "last spoken");
+            Equal(true, window.Interrupted(line), "cuts in");
         }
 
         /// <summary>
@@ -161,15 +176,25 @@ namespace Poe2Accessibility.Tests
                 this.Settle(1100);
             }
 
-            /// <summary>R1 onto a category without choices: no focus, the title and the game's message.</summary>
-            public void Empty(string category)
+            /// <summary>R1 onto a category without choices: no focus, the title and the game's message; maybe a new button with them.</summary>
+            public void Empty(string category, string? button = null)
             {
                 this.Press();
                 this.focusLayer = IntPtr.Zero;
                 this.Settle(200);
                 this.Show(null, new[] { Title(category), Text(5850, NoEntries) });
+                if (button != null)
+                {
+                    // The hint bar, in the same frame: skills offer "Show Recommended", the attribute categories "Show All".
+                    var hint = new ScreenText((IntPtr)6100, button, string.Empty, false, true, "Square");
+                    var bar = new ScreenLayer((IntPtr)61, 61, new[] { hint }, false, true);
+                    this.narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TextsAppeared, bar, new[] { hint }), Snapshot(this.hud, this.stash, bar), null, this.focusLayer);
+                }
+
                 this.Settle(1100);
             }
+
+            public bool Interrupted(string line) => this.output.Interrupting.Contains(line);
 
             /// <summary>RB on the stash itself, the cursor left in the inventory: the tab changes, nothing else does.</summary>
             public void SwitchStash(string tab)
@@ -230,9 +255,19 @@ namespace Poe2Accessibility.Tests
         {
             public List<string> Said { get; } = new();
 
+            /// <summary>The lines said cutting in on what was being said.</summary>
+            public HashSet<string> Interrupting { get; } = new();
+
             public string BackendName => "test";
 
-            public void Speak(string text, bool interrupt = false) => this.Said.Add(text);
+            public void Speak(string text, bool interrupt = false)
+            {
+                this.Said.Add(text);
+                if (interrupt)
+                {
+                    this.Interrupting.Add(text);
+                }
+            }
 
             public void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false) => this.Said.Add(text);
 
