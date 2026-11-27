@@ -156,18 +156,19 @@ allocation state and finder. Each re-enters when the owner names the pain or Pha
 reader failing there.
 
 **The Atlas passive tree's finder re-entered and is built (2026-11-25, the owner's word: the D-pad does not walk
-its nodes, only the stick — as on the passive tree).** The passive finder's machinery itself cannot run there:
+its nodes, only the stick — as on the passive tree).** **Corrected 2026-11-27 (the owner): the game's D-pad does hop the tree's nodes**, so the finder left the D-pad for
+the map's shoulder scheme (L2 + L1/R1 lists, L1/R1 entries, L2 + R3 drops; `FindOnAtlas` on an `IsAtlasTreeNode` focus). The passive finder's machinery itself cannot run there:
 its tree state is judged by the main tree's graph file name (`Metadata/PassiveSkillGraph…`; this tree's file is
 `metadata/atlasskillgraphs/atlasskillgraph.psg`), and its allocated list, points and build marks are the main tree's. So the finder
 borrows its pure logic instead: `AtlasTreeMap` over the catalog's 575 atlasskillgraph nodes (kinds and clusters
 from the ids, masteries left out), link distances by `PassiveMap.Steps`, pushes by `PassiveStick.Route` over the
 drawn centres, the finder's D-pad scheme and words (`UiSemantics.AtlasTree.cs`, lists Position / Notables /
-Clusters; `IsAtlasTreeNode` routes the D-pad). No new offsets. **Update-proofing (2026-11-25):** a node's kind comes from its PassiveSkills marks, written by the `endgame` step
+Clusters; `IsAtlasTreeNode` routes the shoulders, formerly the D-pad). No new offsets. **Update-proofing (2026-11-25):** a node's kind comes from its PassiveSkills marks, written by the `endgame` step
 (step version 4: `flags` k/n/i from the IsKeystone/IsNotable/IsIconOnly columns, found by the main tree's ids so they
 hold for any graph; `root` from the .psg header's roots); the ids are read only for a catalog made before. Today's data
 proves the change: the 7 roots are exactly the 7 `…Start` nodes, the mastery mark matches the 38 `…Mastery` ids, and the
 marks find 15 notables and keystones the id rule missed (The Chosen Path, Exceptional Vestments, Memories of the Vaal…).
-The D-pad finder walks only the trees the owner chose (2026-11-25: the Atlas passive tree alone): a rooted graph,
+The tree finder walks only the trees the owner chose (2026-11-25: the Atlas passive tree alone): a rooted graph,
 not the map's layout (a graph with pins/maps/biomes), whose file lies in a folder of `AtlasTreeMap.FinderFolders`
 (`metadata/atlasskillgraphs/`; the catalog's `graphs` section, step v5, holds each graph's path). So the 1.0 tree (70
 nodes, ExileCon 2026) is found whatever its file is called, and the league trees (`metadata/leagueskillgraphs/`,

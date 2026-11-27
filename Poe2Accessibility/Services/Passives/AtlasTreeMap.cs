@@ -7,9 +7,8 @@ namespace Poe2Accessibility.Services
     using System.Text;
 
     /// <summary>
-    ///     The lists of the Atlas skill tree's finder (the D-pad, which the game leaves free there as on the passive
-    ///     tree; the stick alone hops its nodes — the owner, 2026-11-25). The first says where the cursor is and
-    ///     holds no node.
+    ///     The lists of the Atlas skill tree's finder (on the shoulder buttons: the game hops its nodes with the
+    ///     stick and the D-pad both — the owner, 2026-11-27). The first says where the cursor is and holds no node.
     /// </summary>
     public enum AtlasTreeCategory
     {
@@ -35,7 +34,7 @@ namespace Poe2Accessibility.Services
         public const string LegacyGraphName = "atlasskillgraph";
 
         /// <summary>
-        ///     The game's folders whose skill trees the D-pad finder walks — only the Atlas passive tree's, by the owner's
+        ///     The game's folders whose skill trees the tree finder walks — only the Atlas passive tree's, by the owner's
         ///     choice (2026-11-25); a league tree (metadata/leagueskillgraphs/) joins only when added here.
         /// </summary>
         public static readonly string[] FinderFolders = { "metadata/atlasskillgraphs/" };

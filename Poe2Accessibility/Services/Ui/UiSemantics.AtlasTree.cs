@@ -7,10 +7,10 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The Atlas skill tree's finder for <see cref="UiSemantics"/> (docs/research/atlas-navigator.md §5, the
-    ///     Atlas tree of Phase 5, named by the owner 2026-11-25): its nodes are the hovered element, the stick
-    ///     hops them and the D-pad does nothing there, so the passive tree finder's controls and words serve as
-    ///     they are — D-pad up/down walk the lists (Position, Notables, Clusters), left/right their entries, and
-    ///     every node then says the way to the one chosen. The passive finder's own machinery cannot run here
+    ///     Atlas tree of Phase 5, named by the owner 2026-11-25): its nodes are the hovered element, and the
+    ///     stick and the D-pad both hop them (the owner, 2026-11-27), so the finder is on the shoulder buttons as
+    ///     the Atlas map's is — L2 + L1/R1 walk the lists (Position, Notables, Clusters), L1/R1 their entries,
+    ///     L2 + R3 drops the target — and every node then says the way to the one chosen. The passive finder's own machinery cannot run here
     ///     (its tree state is judged by the main tree's graph file; its points, build marks and allocated list
     ///     are the main tree's), so the graph is the files' (<see cref="AtlasTreeMap"/>) and the pushes are
     ///     <see cref="PassiveStick"/>'s over the drawn centres. What it does not say yet: what a node costs in
@@ -43,7 +43,7 @@ namespace Poe2Accessibility.Services
             return this.atlasTree?.Map;
         }
 
-        /// <summary>A D-pad press on an Atlas tree node: moves the finder and returns what to say; null when the node is none of the tree's.</summary>
+        /// <summary>A shoulder press on an Atlas tree node: moves the finder and returns what to say; null when the node is none of the tree's.</summary>
         /// <param name="hovered">The hovered node's element.</param>
         /// <param name="listStep">+1 next list, -1 previous, 0 to stay in it.</param>
         /// <param name="entryStep">+1 next entry, -1 previous.</param>
@@ -81,11 +81,23 @@ namespace Poe2Accessibility.Services
             return listStep == 0 ? found : Announcements.InContext(Announcements.AtlasTreeCategoryName(this.atlasTreeFinder.Category), found);
         }
 
+        /// <summary>L2 + R3 on an Atlas tree node: ends the guide; null when none was on (nothing to say).</summary>
+        public string? AtlasTreeFinderDrop()
+        {
+            if (!this.PassiveFinderOn || this.atlasTreeFinder.Target.Length == 0)
+            {
+                return null;
+            }
+
+            this.atlasTreeFinder.Drop();
+            return Announcements.BeaconOff;
+        }
+
         /// <summary>
         ///     What the guide says on a hovered Atlas tree node ("Toward Stir the Swarm: up, 3"), the arrival on
         ///     the target itself; empty while no target is chosen. Worked out once per node and kept while the
         ///     cursor stays, as the passive guide's is (<see cref="GuideAt"/>): a choice made on this node with
-        ///     the D-pad is said by the finder itself, and a guide line changing under it here would be spoken
+        ///     the shoulders is said by the finder itself, and a guide line changing under it here would be spoken
         ///     over that answer, then again in its brief form (live 2026-11-25: three speeches per press).
         /// </summary>
         private string AtlasTreeGuide(string id, Dictionary<string, Vector2>? centres)

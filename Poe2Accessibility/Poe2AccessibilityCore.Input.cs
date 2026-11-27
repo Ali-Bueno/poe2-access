@@ -212,30 +212,33 @@ namespace Poe2Accessibility
         ///     The Atlas destination finder on the shoulders: LB/RB walk a list's entries, and with L2 held
         ///     they walk the lists instead; L2 + R3 drops the destination. Buttons, not a stick: the game takes
         ///     the right stick on this map whether L2 is held or not (live 2026-11-25, no finder press landed).
-        ///     The D-pad and left stick remain the game's node movement, and L3 remains its search.
+        ///     The D-pad and left stick remain the game's node movement, and L3 remains its search. The Atlas
+        ///     skill tree's finder takes the same buttons on a tree node: the game hops its nodes with the D-pad
+        ///     too (the owner, 2026-11-27), so the D-pad finder of the passive tree cannot serve there.
         /// </summary>
-        /// <returns>Whether this L2 hold belongs to the Atlas finder, so its R3 is not also the map glance.</returns>
+        /// <returns>Whether this L2 hold belongs to an Atlas finder, so its R3 is not also the map glance.</returns>
         private bool FindOnAtlas(GamepadReader.PadState state, IntPtr screen)
         {
             var pressed = this.atlasButtonsPrimed ? state.Buttons & ~this.lastAtlasButtons : 0;
             this.lastAtlasButtons = state.Buttons;
             this.atlasButtonsPrimed = true;
             var trigger = state.IsDown(GameLayout.PadButtons.LeftTrigger);
-            if (screen == IntPtr.Zero)
+            var treeNode = screen == IntPtr.Zero && this.focus?.Current is { IsAtlasTreeNode: true } node ? node.Address : IntPtr.Zero;
+            if (screen == IntPtr.Zero && treeNode == IntPtr.Zero)
             {
                 return false;
             }
 
-
             var left = (pressed & GameLayout.PadButtons.LeftShoulder) != 0;
             var right = (pressed & GameLayout.PadButtons.RightShoulder) != 0;
+            var (listStep, entryStep) = trigger ? (left ? -1 : 1, 0) : (0, left ? -1 : 1);
             var said = trigger && (pressed & GameLayout.PadButtons.RightStick) != 0
-                ? this.atlasNodes?.DropDestination()
+                ? treeNode != IntPtr.Zero ? this.semantics?.AtlasTreeFinderDrop() : this.atlasNodes?.DropDestination()
                 : left == right
                     ? null
-                    : trigger
-                        ? this.atlasNodes?.DestinationMove(screen, left ? -1 : 1, 0)
-                        : this.atlasNodes?.DestinationMove(screen, 0, left ? -1 : 1);
+                    : treeNode != IntPtr.Zero
+                        ? this.semantics?.AtlasTreeFinderMove(treeNode, listStep, entryStep)
+                        : this.atlasNodes?.DestinationMove(screen, listStep, entryStep);
             if (said is { Length: > 0 })
             {
                 this.output?.Speak(said, true);
