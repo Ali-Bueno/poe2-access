@@ -59,6 +59,9 @@ namespace Poe2Accessibility
         /// <summary>The build puts the support offered in the tab's skill, which does not have it.</summary>
         public static string SkillNeedsSupport(string skill) => T($"{skill} needs this support", $"{skill} necesita esta asistencia");
 
+        /// <summary>The build puts another tier of the support offered in the tab's skill: "Boneshatter needs Rage II".</summary>
+        public static string SkillNeedsGem(string skill, string gem) => T($"{skill} needs {gem}", $"{skill} necesita {gem}");
+
         /// <summary>After <see cref="SkillNeedsSupport"/>: a cut copy lies in the inventory.</summary>
         public static string SpareInBag => T("You have one in your inventory", "Tienes una en tu inventario");
 
@@ -68,8 +71,10 @@ namespace Poe2Accessibility
         /// <summary>A tab that is no skill's (Strength Gems): the build skills that use the support offered.</summary>
         public static string InBuildFor(IReadOnlyList<string> skills) => T($"In the build for {JoinAnd(skills)}", $"En la build para {JoinAnd(skills)}");
 
-        /// <summary>After <see cref="InBuildFor"/>: one of those skills has it socketed.</summary>
-        public static string SkillHasIt(string skill) => T($"{skill} already has it", $"{skill} ya la tiene");
+        /// <summary>After <see cref="InBuildFor"/>: those of the skills that have it socketed, in one line.</summary>
+        public static string SkillsHaveIt(IReadOnlyList<string> skills) => skills.Count == 1
+            ? T($"{skills[0]} already has it", $"{skills[0]} ya la tiene")
+            : T($"{JoinAnd(skills)} already have it", $"{JoinAnd(skills)} ya la tienen");
 
         /// <summary>A tab that is no skill's: no build skill uses the support offered.</summary>
         public static string NotInBuild => T("Not in the build", "No está en la build");

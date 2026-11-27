@@ -328,19 +328,7 @@ namespace Poe2Accessibility.Tests
                 "{\"name\":\"Mace\",\"passives\":[],\"skills\":[" +
                 "{\"id\":\"Metadata/Items/Gem/SkillGemBoneshatter\",\"level_interval\":[1,100],\"support_skills\":[{\"id\":\"Metadata/Items/Gems/SupportGemRageTwo\",\"level_interval\":[1,100]}]}," +
                 "{\"id\":\"Metadata/Items/Gem/SkillGemRollingSlam\",\"level_interval\":[1,100],\"support_skills\":[{\"id\":\"Metadata/Items/Gems/SupportGemRageTwo\",\"level_interval\":[1,100]}]}]}";
-            var plan = BuildPlan.Parse(Shared)!;
-            static string States(IEnumerable<(BuildSkill Skill, SupportStatus Status)> places) =>
-                string.Join(" ", places.Select(place => $"{place.Skill.Gem.Key}:{place.Status.State}:{place.Status.Held}"));
-            var both = new[] { new OwnedSkill("SkillGemBoneshatter", new[] { "SupportGemRageTwo" }), new OwnedSkill("SkillGemRollingSlam", Array.Empty<string>()) };
-            Expect("SkillGemBoneshatter:Socketed: SkillGemRollingSlam:Missing:",
-                States(BuildGems.SupportPlaces(plan, 5, "SupportGemRageTwo", new GemHoldings(both, Array.Empty<string>()))), "the copy in one build skill is not the other's");
-            var none = new[] { new OwnedSkill("SkillGemBoneshatter", Array.Empty<string>()), new OwnedSkill("SkillGemOther", new[] { "SupportGemRageTwo" }) };
-            Expect("SkillGemBoneshatter:InOtherSkill:SkillGemOther SkillGemRollingSlam:InOtherSkill:SkillGemOther",
-                States(BuildGems.SupportPlaces(plan, 5, "SupportGemRageTwo", new GemHoldings(none, Array.Empty<string>()))), "a copy in a skill outside those is one to move");
-            Expect("SkillGemBoneshatter:InBag: SkillGemRollingSlam:InBag:",
-                States(BuildGems.SupportPlaces(plan, 5, "SupportGemRageTwo", new GemHoldings(none.Take(1).ToList(), new[] { "SupportGemRageTwo" }))), "cut and not yet socketed");
-            Expect(0, BuildGems.SupportPlaces(plan, 5, "SupportGemBrutality", GemHoldings.None).Count, "a support the build does not use");
-
+            Expect(2, BuildPlan.Parse(Shared)!.Skills.Count, "the build's skills");
             Localization.Set("es", new());
             try
             {
@@ -369,17 +357,29 @@ namespace Poe2Accessibility.Tests
             static bool Rage(string key) => key == "SupportGemRageTwo";
             static GemHoldings Holding(string[] boneshatter, params string[] bag) =>
                 new(new[] { new OwnedSkill("SkillGemBoneshatter", boneshatter), new OwnedSkill("SkillGemRollingSlam", Array.Empty<string>()) }, bag);
-            TabSupportAnswer Tab(string skill, GemHoldings holdings) => BuildGems.OnSkillTab(plan, 5, skill, Rage, holdings);
+            TabSupportAnswer Tab(string skill, GemHoldings holdings) => BuildGems.OnSkillTab(plan, 5, skill, Rage, "SupportGemRageTwo", holdings);
             Expect(new TabSupportAnswer(TabSupport.Has, string.Empty, false), Tab("SkillGemBoneshatter", Holding(new[] { "SupportGemRageTwo" })), "socketed in the tab's skill");
             Expect(new TabSupportAnswer(TabSupport.HasOtherTier, "SupportGemRage", false), Tab("SkillGemBoneshatter", Holding(new[] { "SupportGemRage" })), "another tier in the tab's skill");
             Expect(new TabSupportAnswer(TabSupport.Needs, string.Empty, true), Tab("SkillGemBoneshatter", Holding(Array.Empty<string>(), "SupportGemRageTwo")), "the build's, cut in the bag");
             Expect(new TabSupportAnswer(TabSupport.Needs, string.Empty, false), Tab("SkillGemBoneshatter", Holding(Array.Empty<string>())), "the build's, not held");
             Expect(new TabSupportAnswer(TabSupport.NotHere, string.Empty, false), Tab("SkillGemOther", Holding(Array.Empty<string>())), "a skill the build does not put it in");
 
+            // The choice of another tier than the build's ("Rage I" from Show All, the build asking for Rage II): told by its own key.
+            static bool RageOne(string key) => key == "SupportGemRage";
+            TabSupportAnswer TierTab(GemHoldings holdings) => BuildGems.OnSkillTab(plan, 5, "SkillGemBoneshatter", RageOne, "SupportGemRage", holdings);
+            Expect(new TabSupportAnswer(TabSupport.HasOtherTier, "SupportGemRageTwo", false), TierTab(Holding(new[] { "SupportGemRageTwo" })), "the build's tier socketed, another offered");
+            Expect(new TabSupportAnswer(TabSupport.NeedsOtherTier, "SupportGemRageTwo", false), TierTab(Holding(Array.Empty<string>())), "the build asks for another tier");
+            Expect(new TabSupportAnswer(TabSupport.Has, string.Empty, false), BuildGems.OnSkillTab(plan, 5, "SkillGemBoneshatter", _ => false, "SupportGemRageTwo", Holding(new[] { "SupportGemRageTwo" })),
+                "told by its key when the label names nothing the build has");
+
             static string Places(IReadOnlyList<(BuildSkill Skill, bool Has)> places) => string.Join(" ", places.Select(place => $"{place.Skill.Gem.Key}:{place.Has}"));
-            Expect("SkillGemBoneshatter:True SkillGemRollingSlam:False", Places(BuildGems.ForOtherTab(plan, 5, Rage, Holding(new[] { "SupportGemRageTwo" }))), "an attribute tab");
-            Expect("SkillGemBoneshatter:False SkillGemRollingSlam:False", Places(BuildGems.ForOtherTab(plan, 5, Rage, GemHoldings.None)), "no skill read yet");
-            Expect(string.Empty, Places(BuildGems.ForOtherTab(plan, 5, key => key == "SupportGemBrutality", GemHoldings.None)), "a support the build does not use");
+            Expect("SkillGemBoneshatter:True SkillGemRollingSlam:False", Places(BuildGems.ForOtherTab(plan, 5, Rage, "SupportGemRageTwo", Holding(new[] { "SupportGemRageTwo" }))), "an attribute tab");
+            Expect("SkillGemBoneshatter:False SkillGemRollingSlam:False", Places(BuildGems.ForOtherTab(plan, 5, Rage, "SupportGemRageTwo", GemHoldings.None)), "no skill read yet");
+            Expect(string.Empty, Places(BuildGems.ForOtherTab(plan, 5, key => key == "SupportGemBrutality", "SupportGemBrutality", GemHoldings.None)), "a support the build does not use");
+            Expect("SkillGemBoneshatter:True SkillGemRollingSlam:False", Places(BuildGems.ForOtherTab(plan, 5, RageOne, "SupportGemRage", Holding(new[] { "SupportGemRageTwo" }))),
+                "another tier offered: the build's skills of its family, and who has one");
+            var twice = BuildPlan.Parse(Shared.Replace("\"skills\":[", "\"skills\":[{\"id\":\"Metadata/Items/Gem/SkillGemBoneshatter\",\"level_interval\":[1,100],\"support_skills\":[{\"id\":\"Metadata/Items/Gems/SupportGemRageTwo\",\"level_interval\":[1,100]}]},"))!;
+            Expect("SkillGemBoneshatter:False SkillGemRollingSlam:False", Places(BuildGems.ForOtherTab(twice, 5, Rage, "SupportGemRageTwo", GemHoldings.None)), "a skill the file lists twice, once");
 
             Localization.Set("es", new());
             try
@@ -391,7 +391,9 @@ namespace Poe2Accessibility.Tests
                 Expect("No está en la build para Destrozahuesos", Announcements.NotInBuildFor("Destrozahuesos"), "not here");
                 Expect("En la build para Destrozahuesos y Golpe rodante", Announcements.InBuildFor(new[] { "Destrozahuesos", "Golpe rodante" }), "two skills");
                 Expect("En la build para Destrozahuesos, Terremoto y Golpe rodante", Announcements.InBuildFor(new[] { "Destrozahuesos", "Terremoto", "Golpe rodante" }), "three skills");
-                Expect("Destrozahuesos ya la tiene", Announcements.SkillHasIt("Destrozahuesos"), "one of them has it");
+                Expect("Destrozahuesos necesita Furia II", Announcements.SkillNeedsGem("Destrozahuesos", "Furia II"), "needs another tier");
+                Expect("Destrozahuesos ya la tiene", Announcements.SkillsHaveIt(new[] { "Destrozahuesos" }), "one of them has it");
+                Expect("Destrozahuesos y Golpe rodante ya la tienen", Announcements.SkillsHaveIt(new[] { "Destrozahuesos", "Golpe rodante" }), "two have it, one line");
                 Expect("No está en la build", Announcements.NotInBuild, "nowhere");
             }
             finally

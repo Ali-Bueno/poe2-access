@@ -442,6 +442,7 @@
     <Compile Include="..\..\Poe2Accessibility\Announcements.Compatibility.cs" Link="Plugin\Announcements.Compatibility.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\EngravePart.cs" Link="Plugin\EngravePart.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\EngraveWindowParts.cs" Link="Plugin\EngraveWindowParts.cs" />
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\EntityRefresh.cs" Link="Host\EntityRefresh.cs" />

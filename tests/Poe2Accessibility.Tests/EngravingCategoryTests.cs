@@ -25,6 +25,8 @@ namespace Poe2Accessibility.Tests
             (nameof(EachCategoryIsSaidWithoutTheStashsTab), EachCategoryIsSaidWithoutTheStashsTab),
             (nameof(ACategoryWithANewButtonStillCutsIn), ACategoryWithANewButtonStillCutsIn),
             (nameof(ACategoryReachedByR1ReadsItsChoicesDescription), ACategoryReachedByR1ReadsItsChoicesDescription),
+            (nameof(TheWindowsPartsAreToldByTheDumpsPaths), TheWindowsPartsAreToldByTheDumpsPaths),
+            (nameof(ASkillGemsDescriptionKeepsTheSmallPageRule), ASkillGemsDescriptionKeepsTheSmallPageRule),
             (nameof(ASkillsTabLeavesOutTheSupportableSkills), ASkillsTabLeavesOutTheSupportableSkills),
             (nameof(TheMessageBackBySquareIsSaidOnTheNextCategory), TheMessageBackBySquareIsSaidOnTheNextCategory),
             (nameof(AChoiceRenamedInPlaceDoesNotNameTheStashsTab), AChoiceRenamedInPlaceDoesNotNameTheStashsTab),
@@ -76,6 +78,14 @@ namespace Poe2Accessibility.Tests
             Equal("Barrage. Cooldown Recovery I, 1 of 2. " + string.Join(". ", description.Select(line => line.TrimEnd('.'))) + ".", window.Said.LastOrDefault(), "last spoken");
         }
 
+        /// <summary>The uncut skill gem window (nothing of it a support's description) keeps the small page's lines after its choice.</summary>
+        private static void ASkillGemsDescriptionKeepsTheSmallPageRule()
+        {
+            var window = new Window();
+            window.Choose("Bow", "Escape Shot, Level 3", "Twister");
+            Equal("Bow. Escape Shot, Level 3, 1 of 2. Twister", window.Said.LastOrDefault(), "last spoken");
+        }
+
         /// <summary>On a skill's tab the game's "Supportable Skills" list is left out, reached by R1 or by the D-pad.</summary>
         private static void ASkillsTabLeavesOutTheSupportableSkills()
         {
@@ -86,6 +96,34 @@ namespace Poe2Accessibility.Tests
             window.Move("Lightning Attunement", new[] { "Category: Lightning Attunement" }, list);
             Equal("Lightning Attunement, 1 of 2. Category: Lightning Attunement", window.Said.LastOrDefault(), "by the D-pad");
             Equal(false, window.Said.Any(line => line.Contains("Supportable", StringComparison.Ordinal)), "the list said");
+        }
+
+        /// <summary>
+        ///     The window's parts by their ancestors (name, children), from the parent up, as the dump of 2026-11-26 23:26 has them:
+        ///     contents_frame (13) > item_popup (1) > unnamed (9) > bottom_layout (13) > the unnamed "Supportable Skills" block (2).
+        /// </summary>
+        private static void TheWindowsPartsAreToldByTheDumpsPaths()
+        {
+            var popup = new[] { ("", 9), ("item_popup", 1), ("contents_frame", 13) };
+            (string, int)[] Up(params (string, int)[] below) => below.Concat(popup).ToArray();
+            var heading = Up(("", 2), ("bottom_layout", 13));
+            var gridName = Up(("", 2), ("", 10), ("", 2), ("bottom_layout", 13));
+            var description = Up(("description_layout", 1), ("bottom_layout", 13));
+            var reminder = Up(("bottom_layout", 13));
+            var stat = Up(("current_tab_content", 2), ("stat_container_layout", 1), ("bottom_layout", 13));
+            var title = Up(("title_background", 3));
+            var category = new[] { ("category_name_anchor", 1), ("contents_frame", 13) };
+            EngravePart Part((string, int)[] chain, bool support = true, bool skillTab = true) => EngraveWindowParts.Classify(chain, support, skillTab);
+            Equal(EngravePart.SkillList, Part(heading), "the list's heading on a skill's tab");
+            Equal(EngravePart.SkillList, Part(gridName), "a skill in the list's grid");
+            Equal(EngravePart.Description, Part(heading, skillTab: false), "the list on Strength Gems");
+            Equal(EngravePart.Description, Part(description), "the description");
+            Equal(EngravePart.Description, Part(reminder), "the reminder, a child of the bottom layout itself");
+            Equal(EngravePart.Description, Part(stat), "a stat line");
+            Equal(EngravePart.Description, Part(title), "the title");
+            Equal(EngravePart.Other, Part(category), "the tab's label");
+            Equal(EngravePart.Other, Part(description, support: false), "a skill gem's description (the uncut skill gem window)");
+            Equal(EngravePart.Description, Part(Up(("", 0), ("bottom_layout", 13))), "an empty divider is no list");
         }
 
         /// <summary>

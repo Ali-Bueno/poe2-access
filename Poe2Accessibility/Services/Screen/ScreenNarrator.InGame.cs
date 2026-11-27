@@ -178,9 +178,11 @@ namespace Poe2Accessibility.Services
                                                        !focusSpeech.Contains(text.Text, StringComparison.Ordinal) && !this.JustNarrated(text.Text)).ToList();
                 // The engraving window's choice reached by R1/L1: its description, as a D-pad move reads it (Barrage's Cooldown
                 // Recovery came without one: more lines than a small page, tester 2026-11-26).
-                var pageLines = partOfEngraving != null && tabTitle.Name == EngraveCategoryName && focus?.Name == EngraveChoiceName
-                    ? Describe(lines.Where(text => partOfEngraving(text.Address) == EngravePart.Description))
-                    : lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
+                // The uncut skill gem window has no support's description: its small page is read as before.
+                var described = partOfEngraving != null && tabTitle.Name == EngraveCategoryName && focus?.Name == EngraveChoiceName
+                    ? lines.Where(text => partOfEngraving(text.Address) == EngravePart.Description).ToList()
+                    : new List<ScreenText>();
+                var pageLines = described.Count > 0 ? Describe(described) : lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
                 if (named)
                 {
                     if (pageLines.Length > 0)

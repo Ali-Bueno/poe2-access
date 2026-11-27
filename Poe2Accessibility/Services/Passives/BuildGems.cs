@@ -67,6 +67,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The build puts it in the tab's skill, which does not have it.</summary>
         Needs,
 
+        /// <summary>The build puts another tier of it in the tab's skill, which does not have it.</summary>
+        NeedsOtherTier,
+
         /// <summary>The build does not put it in the tab's skill.</summary>
         NotHere,
     }
@@ -79,35 +82,54 @@ namespace Poe2Accessibility.Services
     {
         /// <summary>
         ///     A support offered on a skill's tab of the engraving window, which sockets it into that skill: what that skill has
-        ///     of it. <paramref name="labelled"/> tells whether the choice's label names a gem key.
+        ///     of it. <paramref name="labelled"/> tells whether the choice's label names a gem key; <paramref name="offeredKey"/>
+        ///     is the offered gem's own key when the game's files name it (empty when not), so a tier the build does not name
+        ///     (Show All's "Rage I" where it asks for Rage II) is still told by its family.
         /// </summary>
-        public static TabSupportAnswer OnSkillTab(BuildPlan plan, int level, string skillKey, Func<string, bool> labelled, GemHoldings holdings)
+        public static TabSupportAnswer OnSkillTab(BuildPlan plan, int level, string skillKey, Func<string, bool> labelled, string offeredKey, GemHoldings holdings)
         {
+            bool Offered(string key) => key == offeredKey || labelled(key);
             var socketed = holdings.Skills.FirstOrDefault(held => held.Key == skillKey)?.Supports ?? Array.Empty<string>();
-            if (socketed.Any(labelled))
+            if (socketed.Any(Offered))
             {
                 return new TabSupportAnswer(TabSupport.Has, string.Empty, false);
             }
 
-            var offered = plan.Skills.Where(skill => skill.Gem.ToLevel >= level).SelectMany(skill => skill.Supports)
-                .FirstOrDefault(support => support.ToLevel >= level && labelled(support.Key));
-            if (offered != null && socketed.FirstOrDefault(key => FamilyOf(key) == FamilyOf(offered.Key)) is { } tier)
+            var planned = SkillOf(plan, level, skillKey)?.Supports.Where(support => support.ToLevel >= level).ToList() ?? new List<BuildGem>();
+            var wanted = planned.FirstOrDefault(support => Offered(support.Key));
+            var family = offeredKey.Length > 0 ? FamilyOf(offeredKey)
+                : (wanted ?? plan.Skills.Where(skill => skill.Gem.ToLevel >= level).SelectMany(skill => skill.Supports)
+                    .FirstOrDefault(support => support.ToLevel >= level && labelled(support.Key))) is { } named ? FamilyOf(named.Key) : string.Empty;
+            if (family.Length > 0 && socketed.FirstOrDefault(key => FamilyOf(key) == family) is { } tier)
             {
                 return new TabSupportAnswer(TabSupport.HasOtherTier, tier, false);
             }
 
-            return SkillOf(plan, level, skillKey)?.Supports.FirstOrDefault(support => support.ToLevel >= level && labelled(support.Key)) is { } wanted
-                ? new TabSupportAnswer(TabSupport.Needs, string.Empty, holdings.Bag.Contains(wanted.Key))
+            if (wanted != null)
+            {
+                return new TabSupportAnswer(TabSupport.Needs, string.Empty, holdings.Bag.Contains(wanted.Key));
+            }
+
+            return family.Length > 0 && planned.FirstOrDefault(support => FamilyOf(support.Key) == family) is { } other
+                ? new TabSupportAnswer(TabSupport.NeedsOtherTier, other.Key, false)
                 : new TabSupportAnswer(TabSupport.NotHere, string.Empty, false);
         }
 
-        /// <summary>A support offered on a tab that is no skill's (Strength Gems): the build skills that use it, and whether each has it socketed.</summary>
-        public static IReadOnlyList<(BuildSkill Skill, bool Has)> ForOtherTab(BuildPlan plan, int level, Func<string, bool> labelled, GemHoldings holdings) =>
-            plan.Skills.Where(skill => skill.Gem.ToLevel >= level)
-                .Select(skill => (Skill: skill, Support: skill.Supports.FirstOrDefault(support => support.ToLevel >= level && labelled(support.Key))))
+        /// <summary>
+        ///     A support offered on a tab that is no skill's (Strength Gems): the build skills that use it or another tier of it,
+        ///     each once, and whether each has one of its family socketed.
+        /// </summary>
+        public static IReadOnlyList<(BuildSkill Skill, bool Has)> ForOtherTab(BuildPlan plan, int level, Func<string, bool> labelled, string offeredKey, GemHoldings holdings)
+        {
+            var family = offeredKey.Length > 0 ? FamilyOf(offeredKey) : null;
+            bool Uses(BuildGem support) => support.ToLevel >= level && (support.Key == offeredKey || labelled(support.Key) || FamilyOf(support.Key) == family);
+            return plan.Skills.Where(skill => skill.Gem.ToLevel >= level)
+                .Select(skill => (Skill: skill, Support: skill.Supports.FirstOrDefault(Uses)))
                 .Where(use => use.Support != null)
-                .Select(use => (use.Skill, holdings.Skills.Any(held => held.Key == use.Skill.Gem.Key && held.Supports.Contains(use.Support!.Key))))
+                .DistinctBy(use => use.Skill.Gem.Key)
+                .Select(use => (use.Skill, holdings.Skills.Any(held => held.Key == use.Skill.Gem.Key && held.Supports.Any(key => FamilyOf(key) == FamilyOf(use.Support!.Key)))))
                 .ToList();
+        }
 
         private static readonly Regex Tier = new("(Two|Three|Four|Five|Six)$", RegexOptions.Compiled);
 
@@ -167,21 +189,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The build's skills that socket this support, among those still in use at this level.</summary>
         public static IReadOnlyList<BuildSkill> SkillsUsing(BuildPlan plan, int level, string supportKey) =>
             plan.Skills.Where(skill => skill.Gem.ToLevel >= level && skill.Supports.Any(support => support.Key == supportKey && support.ToLevel >= level)).ToList();
-
-        /// <summary>
-        ///     Where a support already is for each build skill that sockets it, asked before cutting another one. A copy in
-        ///     one of those skills is no copy for the next: that skill still misses its own.
-        /// </summary>
-        public static IReadOnlyList<(BuildSkill Skill, SupportStatus Status)> SupportPlaces(BuildPlan plan, int level, string supportKey, GemHoldings holdings)
-        {
-            var users = SkillsUsing(plan, level, supportKey);
-            return users.Select(skill =>
-            {
-                var status = StateOf(skill.Supports.First(support => support.Key == supportKey && support.ToLevel >= level), skill,
-                    holdings.Skills.FirstOrDefault(held => held.Key == skill.Gem.Key), holdings);
-                return (skill, status.State == GemState.InOtherSkill && users.Any(user => user.Gem.Key == status.Held) ? status with { State = GemState.Missing, Held = string.Empty } : status);
-            }).ToList();
-        }
 
         /// <summary>
         ///     What to get next: the first skill of the build not owned (one the level allows before one it does not, then
