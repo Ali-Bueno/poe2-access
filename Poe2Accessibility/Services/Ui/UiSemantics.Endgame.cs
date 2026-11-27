@@ -525,6 +525,15 @@ namespace Poe2Accessibility.Services
                 return passive;
             }
 
+            // A tree's node is a passive, never an area: its root names the town's map (G_Endgame_Town), which
+            // read "El refugio del zigurat" as the Atlas tree's centre (the owner, 2026-11-27).
+            if (catalog.Node(passiveId) is { } node && catalog.IsTree(node.Graph))
+            {
+                return this.AtlasTreeOf(passiveId, out _) is { } tree && tree.Index.TryGetValue(passiveId, out var at)
+                    ? this.AtlasTreeName(tree, at)
+                    : string.Empty;
+            }
+
             if (catalog.Node(passiveId)?.Maps is { Count: 1 } && catalog.NodeName(passiveId, language) is { Length: > 0 } single)
             {
                 return single;

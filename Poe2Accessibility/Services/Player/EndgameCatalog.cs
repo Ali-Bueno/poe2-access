@@ -29,10 +29,13 @@ namespace Poe2Accessibility.Services
 
         public EndgameCatalog(CatalogData data)
         {
-            // A graph whose nodes are Atlas maps (a pin, maps, biomes) is the map's layout, never a tree, whatever roots it gains.
-            var mapGraphs = data.Nodes.Values.Where(node => node.Pin != null || node.Maps != null || node.Biomes != null).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
+            // A graph whose nodes roll biomes is the map's layout, never a tree, whatever roots it gains. Pins and maps
+            // do not tell: the Atlas skill tree's nodes carry pins too (PrecursorMap, PrecursorNotable) and its root
+            // the town's map (BaseCamp, G_Endgame_Town; catalog of 2026-11-25), which once made it a map and silenced
+            // its finder (the owner, 2026-11-27).
+            var mapGraphs = data.Nodes.Values.Where(node => node.Biomes != null).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
             this.rootedGraphs = data.Nodes.Values.Where(node => node.Root && !mapGraphs.Contains(node.Graph)).Select(node => node.Graph).ToHashSet(StringComparer.Ordinal);
-            var mapNodes = data.Nodes.Values.Where(node => mapGraphs.Contains(node.Graph)).ToList();
+            var mapNodes = data.Nodes.Values.Where(node => !this.rootedGraphs.Contains(node.Graph)).ToList();
             var rareAtMost = Math.Max(1, (int)(mapNodes.Count * RarePinShare));
             this.rarePins = mapNodes.Where(node => node.Pin != null).GroupBy(node => node.Pin!, StringComparer.Ordinal)
                 .Where(group => group.Count() <= rareAtMost).Select(group => group.Key).ToHashSet(StringComparer.Ordinal);
@@ -110,6 +113,9 @@ namespace Poe2Accessibility.Services
             this.data.Graphs.TryGetValue(graph, out var path)
                 ? this.rootedGraphs.Contains(graph) && AtlasTreeMap.FinderFolders.Any(folder => path.StartsWith(folder, StringComparison.OrdinalIgnoreCase))
                 : graph == AtlasTreeMap.LegacyGraphName;
+
+        /// <summary>Whether a graph is a skill tree (rooted, no biomes), not the map's layout: its nodes are passives, never areas.</summary>
+        public bool IsTree(string graph) => this.rootedGraphs.Contains(graph);
 
         /// <summary>A node's PassiveSkills marks and whether it is a root of its graph, for the tree finder's kinds.</summary>
         public (string? Flags, bool Root) Marks(string passiveId) => this.Node(passiveId) is { } node ? (node.Flags, node.Root) : (null, false);

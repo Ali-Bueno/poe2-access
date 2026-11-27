@@ -34,6 +34,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasProgressKeepsStatesInItsFile), AtlasProgressKeepsStatesInItsFile),
             (nameof(AtlasTreeKindsComeFromTheMarksOverTheIds), AtlasTreeKindsComeFromTheMarksOverTheIds),
             (nameof(TheTreeFinderWalksOnlyTheChosenTrees), TheTreeFinderWalksOnlyTheChosenTrees),
+            (nameof(TheShippedCatalogKeepsTheAtlasTreeATree), TheShippedCatalogKeepsTheAtlasTreeATree),
         };
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
@@ -486,6 +487,21 @@ namespace Poe2Accessibility.Tests
             Expect(false, unmarked.Index.ContainsKey("AtlasGenericMastery1"), "and its masteries too");
         }
 
+        /// <summary>The catalog as shipped: the Atlas skill tree's pins and its root's town map do not make it the map (the owner, 2026-11-27: the finder was silent).</summary>
+        private static void TheShippedCatalogKeepsTheAtlasTreeATree()
+        {
+            var directory = AppContext.BaseDirectory;
+            while (!File.Exists(Path.Join(directory, "Poe2Accessibility", "catalog", "endgame.json")))
+            {
+                directory = Path.GetDirectoryName(directory) ?? throw new FileNotFoundException("endgame.json is not under any folder above the tests");
+            }
+
+            var data = Newtonsoft.Json.JsonConvert.DeserializeObject<EndgameCatalog.CatalogData>(File.ReadAllText(Path.Join(directory, "Poe2Accessibility", "catalog", "endgame.json")))!;
+            var catalog = new EndgameCatalog(data);
+            Expect(true, catalog.HasTreeFinder("atlasskillgraph"), "the Atlas skill tree has its finder");
+            Expect(false, catalog.IsTree("endgamemaplayoutgraph"), "the Atlas map's layout is no tree");
+        }
+
         private static void TheTreeFinderWalksOnlyTheChosenTrees()
         {
             var catalog = new EndgameCatalog(new EndgameCatalog.CatalogData
@@ -499,13 +515,15 @@ namespace Poe2Accessibility.Tests
                 Nodes = new()
                 {
                     ["Renamed1"] = new() { Graph = "atlaspassivegraph", Root = true, Flags = "n" },
-                    ["Renamed2"] = new() { Graph = "atlaspassivegraph" },
-                    ["Map1"] = new() { Graph = "endgamemaplayoutgraph", Root = true, Pin = "WaypointPin" },
+                    ["Renamed2"] = new() { Graph = "atlaspassivegraph", Pin = "PrecursorMap" },
+                    ["Renamed3"] = new() { Graph = "atlaspassivegraph", Root = true, Pin = "BaseCamp", Maps = new() { "G_Endgame_Town" } },
+                    ["Map1"] = new() { Graph = "endgamemaplayoutgraph", Root = true, Pin = "WaypointPin", Biomes = new() { "Forest" } },
                     ["Map2"] = new() { Graph = "endgamemaplayoutgraph" },
                     ["League1"] = new() { Graph = "chayulatreepassiveskillgraph", Root = true },
                 },
             });
             Expect(true, catalog.HasTreeFinder("atlaspassivegraph"), "a rooted tree in the Atlas's folder, whatever its file is named");
+            Expect(true, catalog.IsTree("atlaspassivegraph"), "a tree whose nodes carry pins and its root the town's map stays a tree (catalog of 2026-11-25)");
             Expect(false, catalog.HasTreeFinder("endgamemaplayoutgraph"), "the map's layout is never a tree, roots or not");
             Expect(false, catalog.HasTreeFinder("chayulatreepassiveskillgraph"), "a league tree is not chosen, rooted or not");
             Expect(false, catalog.HasTreeFinder("unknowngraph"), "a graph the catalog has no file for");

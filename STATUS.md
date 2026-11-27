@@ -534,6 +534,14 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-27, evening (the owner: the Atlas tree's D-pad finder said nothing, and the tree's centre was read as "El
+refugio del zigurat"; 1177 tests, deployed to the play copy, pushed, NOT released):** the catalog gives the Atlas skill
+tree's nodes pins (PrecursorMap/PrecursorNotable) and its root the town's map (BaseCamp, G_Endgame_Town), and
+`EndgameCatalog` took any pin or map for the map's layout, so the tree was no tree: no finder, no `IsAtlasTreeNode`, the
+root named as the town. Now only biomes mark the map's layout (`IsTree`), a tree's node is never named as an area, and a
+test holds the shipped catalog to it. **Next:** the owner hears the tree's D-pad finder again and the centre as the
+tree's start.
+
 **2026-11-27, afternoon (the owner: "seguimos con lo de la próxima sala", then "¿no puedes hacerlo sin esos límites?"; 1176 tests, deployed to the play copy, pushed, NOT
 released, never heard in a temple):** inside **Atziri's Temple** the console's map is laid on the ground (`TempleSlots`: each
 room or path is a 253-cell slot; the map's turn and shift found by matching built cells to slots holding ground): walking into a
