@@ -555,8 +555,9 @@ and now waits for the category like a new focus. Then the wording (the tester: t
 Rod already has this support", "Barrage needs this support", "Not in the build for Lightning Rod"); Strength, Dexterity and
 Intelligence Gems say "In the build for A and B" and who already has it; the choice's description is read on R1/L1; the
 game's "Supportable Skills" list is left out on a skill's tab (`BuildGems.OnSkillTab`, `UiSemantics.EngravePartOf`, from the
-window's `category_name_label` and `item_popup`, UI dump 2026-11-26 23:26). **First to hear:** those lines on the tester's
-four examples.
+window's `category_name_label` and `item_popup`, UI dump 2026-11-26 23:26). Heard working 2026-11-27 00:10; back on Barrage
+after Frost Bomb its description was not read (the game leaves it drawn, so nothing appears): the description is now taken as
+drawn. **First to hear:** Barrage's description after Frost Bomb.
 **First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, no "tab 1", and
 "Strength Gems. …" with another window in front.
 

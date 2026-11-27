@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ACategoryWithANewButtonStillCutsIn), ACategoryWithANewButtonStillCutsIn),
             (nameof(ACategoryReachedByR1ReadsItsChoicesDescription), ACategoryReachedByR1ReadsItsChoicesDescription),
             (nameof(TheWindowsPartsAreToldByTheDumpsPaths), TheWindowsPartsAreToldByTheDumpsPaths),
+            (nameof(ADescriptionLeftDrawnIsReadOnReturn), ADescriptionLeftDrawnIsReadOnReturn),
             (nameof(ASkillGemsDescriptionKeepsTheSmallPageRule), ASkillGemsDescriptionKeepsTheSmallPageRule),
             (nameof(ASkillsTabLeavesOutTheSupportableSkills), ASkillsTabLeavesOutTheSupportableSkills),
             (nameof(TheMessageBackBySquareIsSaidOnTheNextCategory), TheMessageBackBySquareIsSaidOnTheNextCategory),
@@ -75,6 +76,24 @@ namespace Poe2Accessibility.Tests
                 "Supported Skills have 25% increased cooldown recovery rate", "Place into a Skill's Support Gem socket.",
             };
             window.Choose("Barrage", "Cooldown Recovery I", new[] { "III" }, description, Array.Empty<string>());
+            Equal("Barrage. Cooldown Recovery I, 1 of 2. " + string.Join(". ", description.Select(line => line.TrimEnd('.'))) + ".", window.Said.LastOrDefault(), "last spoken");
+        }
+
+        /// <summary>
+        ///     Back on a category whose choice's description the game left drawn (Barrage, Frost Bomb without choices, Barrage
+        ///     again): nothing of it appears again, and it is still read (tester 2026-11-27 00:10:35, "Barrage needs this support" alone).
+        /// </summary>
+        private static void ADescriptionLeftDrawnIsReadOnReturn()
+        {
+            var window = new Window();
+            var description = new[]
+            {
+                "Category: Cooldown Recovery", "Cost Multiplier: 130%", "Supports skills with Cooldowns.", "Supported Skills have 25% increased cooldown recovery rate",
+                "Place into a Skill's Support Gem socket.",
+            };
+            window.Choose("Barrage", "Cooldown Recovery I", new[] { "III" }, description, Array.Empty<string>());
+            window.Empty("Frost Bomb");
+            window.Return("Barrage", "Cooldown Recovery I", new[] { "III" }, description);
             Equal("Barrage. Cooldown Recovery I, 1 of 2. " + string.Join(". ", description.Select(line => line.TrimEnd('.'))) + ".", window.Said.LastOrDefault(), "last spoken");
         }
 
@@ -265,6 +284,28 @@ namespace Poe2Accessibility.Tests
                 this.Settle(1100);
             }
 
+            /// <summary>
+            ///     R1 back onto a category whose choice's description the game left drawn: the layer shows it, and only the title
+            ///     and the page appear (the description's elements hold the same text as when last confirmed).
+            /// </summary>
+            public void Return(string category, string choice, string[] page, string[] description)
+            {
+                this.Press();
+                this.focusLayer = (IntPtr)EngraveLayer;
+                var node = Choice(choice);
+                this.narrator.OnFocusChanged(node);
+                this.Settle(100);
+                var appeared = Page(category, page);
+                var drawn = this.parts.Keys.Select(address => (address, line: this.lines[address])).Where(part => description.Contains(part.line)).Select(part => Text((long)part.address, part.line));
+                var layer = Layer(EngraveLayer, 58, true, appeared.Concat(drawn).ToArray());
+                this.shown = layer.Texts.ToArray();
+                this.narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TextsAppeared, layer, appeared), Snapshot(this.hud, this.stash, layer), node, this.focusLayer);
+                this.Settle(1100);
+            }
+
+            /// <summary>The text each part's address held (<see cref="Described"/>).</summary>
+            private readonly Dictionary<IntPtr, string> lines = new();
+
             private IEnumerable<ScreenText> Described(string[] description, string[] skillList)
             {
                 foreach (var (texts, part) in new[] { (description, EngravePart.Description), (skillList, EngravePart.SkillList) })
@@ -273,6 +314,7 @@ namespace Poe2Accessibility.Tests
                     {
                         var text = Text(this.nextPart++, line);
                         this.parts[text.Address] = part;
+                        this.lines[text.Address] = line;
                         yield return text;
                     }
                 }

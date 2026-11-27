@@ -179,8 +179,12 @@ namespace Poe2Accessibility.Services
                 // The engraving window's choice reached by R1/L1: its description, as a D-pad move reads it (Barrage's Cooldown
                 // Recovery came without one: more lines than a small page, tester 2026-11-26).
                 // The uncut skill gem window has no support's description: its small page is read as before.
+                // The description as drawn, not only what appeared: back on a category, the game leaves the last description of
+                // its choice drawn and nothing of it appears again (Barrage after Frost Bomb, tester 2026-11-27).
                 var described = partOfEngraving != null && tabTitle.Name == EngraveCategoryName && focus?.Name == EngraveChoiceName
-                    ? lines.Where(text => partOfEngraving(text.Address) == EngravePart.Description).ToList()
+                    ? change.Layer.Texts.Where(text => text != tabTitle && !text.IsControl && !IsNumber(text.Text) && !IsTierNumeral(text.Text) &&
+                                                       !focusTexts.Contains(text.Text) && !focusSpeech.Contains(text.Text, StringComparison.Ordinal) &&
+                                                       partOfEngraving(text.Address) == EngravePart.Description).ToList()
                     : new List<ScreenText>();
                 var pageLines = described.Count > 0 ? Describe(described) : lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
                 if (named)
