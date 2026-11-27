@@ -844,7 +844,13 @@ namespace Poe2Accessibility
             this.narrator.Tick();
             // Another window in front (a notification, alt-tab): what the game redraws meanwhile is not news, and is
             // taken in silently so coming back does not read it (tooltips read out on a notification, 2026-10-26).
-            var watching = !this.gameState.IsAttached || Core.Process.Foreground;
+            // Unless the pad, pressed since the window went behind, drives the game there: the game takes it, the focus
+            // was said and the engraving window's categories were not (a tester with notes open, 2026-11-26).
+            var foreground = Core.Process.Foreground;
+            var now = Environment.TickCount64;
+            this.behindSince = foreground || !this.wasForeground ? this.behindSince : now;
+            this.wasForeground = foreground;
+            var watching = !this.gameState.IsAttached || foreground || this.padActivity.Driving(this.behindSince, now);
             this.Isolated("cinematic", static core =>
             {
                 if (core.cinematics != null && core.screen != null && core.narrator != null)

@@ -539,8 +539,13 @@ the categories without choices, "Escape Shot" came alone after "Contagion", and 
 branch `fix/engraving-category-speech` ([rules](docs/menu-speech-rules.md#what-to-say)). The tab key named the stash's tab
 1 s after each switch with no focus; it now names a tabbed panel's tab only when that tab changed. The game's message stays
 drawn from one empty category to the next, so it never appeared again; it is now said with each. A choice's tier numeral
-("III") is no longer read as a page line. Unit tests replay the log (`EngravingCategoryTests`).
-**First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, and no "tab 1".
+("III") is no longer read as a page line. Unit tests replay the log (`EngravingCategoryTests`). The unnamed categories
+(Strength Gems, Dexterity Gems, Bow Shot once) look like the game behind another window with the pad still driving it, since
+the host ran at its background rate of 20 frames a second for most of 22:02-22:08; not confirmed with the tester yet. Behind
+another window the game's redraws are now said for 3 s after a press made there (`PadActivity`, its own commit); a press from
+before the window went behind does not count, so a notification mid-play stays silent as on 2026-10-26.
+**First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, no "tab 1", and
+"Strength Gems. …" with another window in front.
 
 **2026-11-26, 15:30 (the owner, El cruce de Khari: the "Sello de señalización" did not sound as the quest; "sigue la guía hasta el
 templo"):** area-own objects count as quest objects; a used seal starts a trail to the next seal, else the quest's exit

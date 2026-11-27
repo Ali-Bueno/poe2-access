@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Tests
 
     /// <summary>
     ///     The support engraving window's categories (R1/L1), opened from a gem in the stash, replayed from a tester's log
-    ///     (2026-11-26 22:01-22:07), and the stash's own LB/RB beside it.
+    ///     (2026-11-26 22:01-22:07), and the stash's own LB/RB beside it; the pad driving the game behind another window.
     /// </summary>
     public static class EngravingCategoryTests
     {
@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Tests
             (nameof(EachCategoryIsSaidWithoutTheStashsTab), EachCategoryIsSaidWithoutTheStashsTab),
             (nameof(AChoiceRenamedInPlaceDoesNotNameTheStashsTab), AChoiceRenamedInPlaceDoesNotNameTheStashsTab),
             (nameof(TheStashsOwnTabSwitchIsStillSaid), TheStashsOwnTabSwitchIsStillSaid),
+            (nameof(OnlyAPressBehindTheWindowDrivesTheGame), OnlyAPressBehindTheWindowDrivesTheGame),
         };
 
         /// <summary>
@@ -80,6 +81,25 @@ namespace Poe2Accessibility.Tests
             window.SwitchStashUnderCursor("2");
             window.SwitchStash("1");
             Equal("Stash. tab 2. Empty, column 12, row 10 | tab 1", string.Join(" | ", window.Said), "the cursor in the stash, then beside");
+        }
+
+        /// <summary>Behind another window only a press made there drives the game; play the window was taken from does not.</summary>
+        private static void OnlyAPressBehindTheWindowDrivesTheGame()
+        {
+            const long Behind = 10_000;
+            var pad = new PadActivity();
+            Equal(false, pad.Driving(Behind, Behind + 100), "an untouched pad");
+            pad.Observe(0x200, false, Behind - 50);
+            Equal(false, pad.Driving(Behind, Behind + 100), "a press just before the window went behind (a notification mid-fight)");
+            pad.Observe(0x200, false, Behind + 500);
+            Equal(false, pad.Driving(Behind, Behind + 600), "that button still held");
+            pad.Observe(0, false, Behind + 700);
+            Equal(false, pad.Driving(Behind, Behind + 800), "that button let go");
+            pad.Observe(0x1000, false, Behind + 1000);
+            Equal(true, pad.Driving(Behind, Behind + 1000 + PadActivity.DrivesMs - 1), "R1 pressed behind the window, a moment later");
+            Equal(false, pad.Driving(Behind, Behind + 1000 + PadActivity.DrivesMs), "R1 pressed behind the window, long ago");
+            pad.Observe(0x1000, true, Behind + 5000);
+            Equal(true, pad.Driving(Behind, Behind + 5000), "a stick pushed behind the window");
         }
 
         /// <summary>
