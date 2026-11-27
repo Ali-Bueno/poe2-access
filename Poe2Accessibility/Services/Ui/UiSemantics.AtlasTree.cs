@@ -77,7 +77,9 @@ namespace Poe2Accessibility.Services
             var name = this.AtlasTreeName(tree, target);
             var found = this.atlasTreeFinder.Target == id
                 ? $"{Announcements.Here(name)}, {this.AtlasTreeWhere(tree, target, distances, here: false)}"
-                : Announcements.PassiveFound(name, this.AtlasTreeWhere(tree, target, distances, here: false), this.AtlasTreeWayTo(tree, centres, id, this.atlasTreeFinder.Target)?.Words(false) ?? string.Empty);
+                : this.AtlasTreeWayTo(tree, centres, id, this.atlasTreeFinder.Target)?.Words(false) is { Length: > 0 } way
+                    ? Announcements.PassiveFound(name, this.AtlasTreeWhere(tree, target, distances, here: false), way)
+                    : $"{name}, {this.AtlasTreeWhere(tree, target, distances, here: false)}"; // no drawn way yet: no "From here:" left hanging
             return listStep == 0 ? found : Announcements.InContext(Announcements.AtlasTreeCategoryName(this.atlasTreeFinder.Category), found);
         }
 

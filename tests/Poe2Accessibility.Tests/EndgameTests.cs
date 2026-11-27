@@ -500,6 +500,7 @@ namespace Poe2Accessibility.Tests
             var catalog = new EndgameCatalog(data);
             Expect(true, catalog.HasTreeFinder("atlasskillgraph"), "the Atlas skill tree has its finder");
             Expect(false, catalog.IsTree("endgamemaplayoutgraph"), "the Atlas map's layout is no tree");
+            Expect(string.Empty, catalog.NodeName("AtlasGenericStart", "es"), "the tree's root is not named as the town (El refugio del zigurat)");
         }
 
         private static void TheTreeFinderWalksOnlyTheChosenTrees()

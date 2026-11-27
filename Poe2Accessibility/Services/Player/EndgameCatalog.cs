@@ -142,7 +142,8 @@ namespace Poe2Accessibility.Services
                 return name;
             }
 
-            if (node.Maps is { Count: 1 } maps && this.Text("area/" + maps[0], language) is { Length: > 0 } area)
+            // A tree's node is a passive: the Atlas tree's root names the town's map (G_Endgame_Town), never its name.
+            if (node.Maps is { Count: 1 } maps && !this.IsTree(node.Graph) && this.Text("area/" + maps[0], language) is { Length: > 0 } area)
             {
                 return area;
             }

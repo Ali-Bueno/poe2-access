@@ -208,6 +208,12 @@ namespace Poe2Accessibility.Services
             this.emptyOnArrival = changed ? IntPtr.Zero : this.emptyOnArrival;
             if (focused == IntPtr.Zero)
             {
+                if (this.Current is { IsAtlasTreeNode: true } left)
+                {
+                    // Research (the owner, 2026-11-27): the Atlas tree's centre leaves the game's hover empty, and the D-pad finder with it.
+                    this.log.Info($"Focus -> none from Atlas tree node 0x{left.Address.ToInt64():X} \"{left.Text}\"");
+                }
+
                 this.steppedField = this.Current is { Role: UiRole.TextField } field ? field : null;
                 this.Current = null;
                 this.CurrentLayer = IntPtr.Zero;
@@ -217,6 +223,11 @@ namespace Poe2Accessibility.Services
             var node = this.semantics.Describe(focused, hovered);
             if (node == null)
             {
+                if (this.Current is { IsAtlasTreeNode: true })
+                {
+                    this.log.Info($"Focused pointer 0x{focused.ToInt64():X} after an Atlas tree node is not a readable element (hovered {hovered})");
+                }
+
                 this.log.Debug($"Focused pointer 0x{focused.ToInt64():X} is not a readable element");
                 return;
             }
