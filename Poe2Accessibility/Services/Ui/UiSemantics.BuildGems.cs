@@ -170,7 +170,7 @@ namespace Poe2Accessibility.Services
             }
 
             var inSkills = node.Context == Announcements.SkillGemPanel;
-            var lines = (info.Name == EngraveOption ? this.EngraveBuildLines(node.Text) : inSkills ? this.SkillPanelBuildLines(info, node.Text) : Array.Empty<string>()).ToList();
+            var lines = (info.Name == EngraveOption ? this.EngraveBuildLines(node.Text, info) : inSkills ? this.SkillPanelBuildLines(info, node.Text) : Array.Empty<string>()).ToList();
             var notes = inSkills ? node.PanelNotes.Concat(this.BuildGemSummary()).ToList() : node.PanelNotes;
             if (lines.Count == 0 && notes.Count == node.PanelNotes.Count)
             {
@@ -411,11 +411,13 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     A choice of the engraving window that the build uses, told by its name, and whether the character has it
-        ///     already: an uncut gem is spent on the answer (user 2026-11-11). Nothing is said of having it when no skill
-        ///     of the character was read, which is a failed reading and not a character without gems.
+        ///     A choice of the engraving window and the build. A build skill offered: whether the character has it already, an
+        ///     uncut gem being spent on the answer (user 2026-11-11). A support on a skill's tab goes into that skill: what that
+        ///     skill has of it, and no other skill (tester 2026-11-26: the other skills' "missing" read as something wrong). On
+        ///     another tab (Strength Gems), the build skills that use it and those that have it. Nothing is said of having it when
+        ///     no skill of the character was read, which is a failed reading and not a character without gems.
         /// </summary>
-        private IEnumerable<string> EngraveBuildLines(string label)
+        private IEnumerable<string> EngraveBuildLines(string label, UiElementReader.ElementInfo option)
         {
             if (this.GemPlan() is not { } active)
             {
@@ -423,6 +425,7 @@ namespace Poe2Accessibility.Services
             }
 
             bool Named(BuildGem gem) => gem.ToLevel >= active.Level && BuildGems.Labels(label, GemNames.Of(gem.Key));
+            bool Labelled(string key) => BuildGems.Labels(label, GemNames.Of(key));
             static string Name(string key) => GemNames.Of(key);
             var skills = active.Plan.Skills.Where(skill => skill.Gem.ToLevel >= active.Level).ToList();
             var holdings = this.Holdings();
@@ -434,24 +437,95 @@ namespace Poe2Accessibility.Services
                 {
                     yield return Announcements.EngraveSkillHeld(holdings.Skills.Any(held => held.Key == offered.Gem.Key), holdings.Bag.Contains(offered.Gem.Key));
                 }
+
+                yield break;
             }
-            else if (skills.Where(skill => skill.Supports.Any(Named)).ToList() is { Count: > 0 } users)
+
+            if (read && this.EngraveTabSkill(option, holdings) is { Length: > 0 } tabSkill)
             {
-                yield return Announcements.BuildGemFor(users.Select(skill => Name(skill.Gem.Key)));
-                if (!read)
+                var skill = Name(tabSkill);
+                var answer = BuildGems.OnSkillTab(active.Plan, active.Level, tabSkill, Labelled, holdings);
+                yield return answer.State switch
                 {
-                    yield break;
+                    TabSupport.Has => Announcements.SkillHasSupport(skill),
+                    TabSupport.HasOtherTier => Announcements.SkillHasGem(skill, Name(answer.Held)),
+                    TabSupport.Needs => Announcements.SkillNeedsSupport(skill),
+                    _ => Announcements.NotInBuildFor(skill),
+                };
+                if (answer.InBag)
+                {
+                    yield return Announcements.SpareInBag;
                 }
 
-                var places = BuildGems.SupportPlaces(active.Plan, active.Level, users[0].Supports.First(Named).Key, holdings);
-                IEnumerable<(BuildSkill Skill, SupportStatus Status)> In(GemState state) => places.Where(place => place.Status.State == state);
-                yield return Announcements.EngraveSupportHeld(
-                    In(GemState.Socketed).Select(place => Name(place.Skill.Gem.Key)).ToList(),
-                    In(GemState.InBag).Any(),
-                    In(GemState.InOtherSkill).Select(place => Name(place.Status.Held)).Distinct(),
-                    In(GemState.OtherTier).Select(place => Announcements.BuildTierHeld(Name(place.Status.Held), Name(place.Status.Gem.Key))).Distinct(),
-                    In(GemState.Missing).Select(place => Name(place.Skill.Gem.Key)).ToList());
+                yield break;
             }
+
+            var places = BuildGems.ForOtherTab(active.Plan, active.Level, Labelled, holdings);
+            if (places.Count > 0)
+            {
+                yield return Announcements.InBuildFor(places.Select(place => Name(place.Skill.Gem.Key)).ToList());
+                foreach (var place in places.Where(place => place.Has))
+                {
+                    yield return Announcements.SkillHasIt(Name(place.Skill.Gem.Key));
+                }
+            }
+            else if (GemIndex.Shared.ByName(label.Split(", ")[0], Localization.Language).Any(gem => gem.Kind == GemKind.Support))
+            {
+                // Only a support: a skill choice of the uncut skill gem window that the build lacks said nothing, and still does.
+                yield return Announcements.NotInBuild;
+            }
+        }
+
+        /// <summary>Control ids of the support engraving window (dump 2026-11-26): the window, the label of its tab, the choice's description.</summary>
+        private const string EngraveWindow = "contents_frame";
+        private const string EngraveCategory = "category_name_label";
+        private const string EngraveDescription = "item_popup";
+        private const string DescriptionBottom = "bottom_layout";
+
+        /// <summary>A choice lies this many parents under the window (scollable_frame > scrollable_frame_contents > new_option); a description text at most this deep.</summary>
+        private const int ChoiceWindowHops = 4;
+        private const int DescriptionHops = 12;
+
+        /// <summary>The character's skill whose tab of the engraving window a choice is in, by the tab's label; empty on another tab (Strength Gems, a weapon kind).</summary>
+        private string EngraveTabSkill(UiElementReader.ElementInfo option, GemHoldings holdings)
+        {
+            var window = this.elements.ReadAncestors(option, ChoiceWindowHops).FirstOrDefault(ancestor => ancestor.Name == EngraveWindow);
+            return window.Address != IntPtr.Zero ? this.TabSkillOf(window, holdings) : string.Empty;
+        }
+
+        private string TabSkillOf(in UiElementReader.ElementInfo window, GemHoldings holdings)
+        {
+            if (this.elements.FindNamed(window.Address, EngraveCategory, 2) is not { } label || !this.elements.TryReadText(label.Address, out var text) || text.Trim() is not { Length: > 0 } tab)
+            {
+                return string.Empty;
+            }
+
+            return holdings.Skills.Select(held => held.Key)
+                .FirstOrDefault(key => GemNames.RowNames(key).Append(GemNames.Of(key)).Any(name => string.Equals(name, tab, StringComparison.OrdinalIgnoreCase))) ?? string.Empty;
+        }
+
+        /// <summary>
+        ///     What a text of the engraving window is: a line of the focused choice's description, the game's "Supportable Skills"
+        ///     list (the heading and grid ending the description, an unnamed part of its bottom layout with children) on a
+        ///     skill's tab, where the tab already names the skill, or anything else.
+        /// </summary>
+        public EngravePart EngravePartOf(IntPtr text)
+        {
+            if (!this.elements.TryReadElement(text, out var info))
+            {
+                return EngravePart.Other;
+            }
+
+            var chain = this.elements.ReadAncestors(info, DescriptionHops);
+            var popup = chain.FindIndex(ancestor => ancestor.Name == EngraveDescription);
+            if (popup < 0 || popup + 1 >= chain.Count || chain[popup + 1].Name != EngraveWindow)
+            {
+                return EngravePart.Other;
+            }
+
+            var bottom = chain.FindIndex(ancestor => ancestor.Name == DescriptionBottom);
+            var list = bottom > 0 && bottom < popup && chain[bottom - 1].Name.Length == 0 && this.elements.ReadChildren(chain[bottom - 1]).Length > 0;
+            return list && this.TabSkillOf(chain[popup + 1], this.Holdings()).Length > 0 ? EngravePart.SkillList : EngravePart.Description;
         }
 
         private string SupportLine(SupportStatus support, int level)
