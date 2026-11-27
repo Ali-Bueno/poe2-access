@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using System.Numerics;
     using GameReader.Plugin;
+    using Poe2Accessibility.Models;
 
     /// <summary>
     ///     The Atlas skill tree's finder for <see cref="UiSemantics"/> (docs/research/atlas-navigator.md §5, the
@@ -50,6 +51,11 @@ namespace Poe2Accessibility.Services
         /// <param name="entryStep">+1 next entry, -1 previous.</param>
         public string? AtlasTreeFinderMove(IntPtr hovered, int listStep, int entryStep)
         {
+            if (this.EndgamePassiveId(hovered) == null && this.AtlasTreeAnchor(hovered) is var anchor && anchor != IntPtr.Zero)
+            {
+                hovered = anchor; // a padlock: the finder counts from the node before it
+            }
+
             if (!this.PassiveFinderOn || this.EndgamePassiveId(hovered) is not { } id || this.AtlasTreeOf(id, out var graph) is not { } tree ||
                 !tree.Index.TryGetValue(id, out var from))
             {
@@ -108,6 +114,57 @@ namespace Poe2Accessibility.Services
             var roots = tree.Links[at].Select(other => tree.Ids[other]).Where(other => catalog.Marks(other).Root).ToList();
             var element = roots.Count == 1 ? this.EndgameElementOf(roots[0]) : IntPtr.Zero;
             return element != IntPtr.Zero && this.Drawn(element) ? element : IntPtr.Zero;
+        }
+
+        /// <summary>The guide's line said on the padlock under the cursor, kept while it stays.</summary>
+        private (IntPtr Stop, string Line)? atlasTreeStopSaid;
+
+        /// <summary>The last Atlas tree node said as hovered: what a padlock between nodes counts from.</summary>
+        private IntPtr atlasTreeLast;
+
+        /// <summary>
+        ///     The node a stop of the Atlas tree's own counts from: the stick rests on its padlocks between nodes
+        ///     ("Completa la Cámara de enigmas oriental para desbloquearlo, botón, 2 de 11", live 2026-11-27), where
+        ///     the D-pad finder had no node and the guide no line; the owner chose to count from the last node
+        ///     (2026-11-27). A control under the tree's canvas or its frame while that node is still drawn; zero
+        ///     for any other.
+        /// </summary>
+        private IntPtr AtlasTreeAnchor(IntPtr element)
+        {
+            if (this.atlasTreeLast == IntPtr.Zero || element == this.atlasTreeLast || this.endgameSnapshot is not { } snapshot ||
+                !EndgameCatalog.Shared.HasTreeFinder(snapshot.Graph) || !this.Drawn(this.atlasTreeLast) || !this.elements.TryReadElement(element, out var info))
+            {
+                return IntPtr.Zero;
+            }
+
+            var frame = this.elements.TryReadElement(snapshot.Root, out var canvas) ? canvas.Raw.ParentPtr : IntPtr.Zero;
+            return this.elements.ReadAncestors(info, 8).Any(ancestor => ancestor.Address == snapshot.Root || (frame != IntPtr.Zero && ancestor.Address == frame))
+                ? this.atlasTreeLast
+                : IntPtr.Zero;
+        }
+
+        /// <summary>A control of the Atlas tree that is no node (a padlock) as a stop of it: the D-pad finder's, ending with the guide's line from the node before.</summary>
+        private AccessibleUiNode WithAtlasTreeStop(AccessibleUiNode node)
+        {
+            if (node.IsAtlasTreeNode || this.AtlasTreeAnchor(node.Address) is var anchor && anchor == IntPtr.Zero)
+            {
+                return node;
+            }
+
+            // Kept per padlock as a node's line is: worked out again, the guide's brief form replaced it and was said too.
+            if (this.atlasTreeStopSaid is not { } said || said.Stop != node.Address)
+            {
+                var line = this.EndgamePassiveId(anchor) is { } id ? this.AtlasTreeGuide(id, this.endgameSnapshot?.Centres, kept: false) : string.Empty;
+                this.atlasTreeStopSaid = said = (node.Address, line);
+            }
+
+            var lines = node.Tooltip.ToList();
+            if (said.Line.Length > 0)
+            {
+                lines.Add(said.Line);
+            }
+
+            return node.AsAtlasTreeStop(lines, Announcements.AtlasSkillTree);
         }
 
         /// <summary>The Atlas tree's roots found at the view's centre so far, checked again before any walk.</summary>
@@ -200,15 +257,16 @@ namespace Poe2Accessibility.Services
         ///     the D-pad is said by the finder itself, and a guide line changing under it here would be spoken
         ///     over that answer, then again in its brief form (live 2026-11-25: three speeches per press).
         /// </summary>
-        private string AtlasTreeGuide(string id, Dictionary<string, Vector2>? centres)
+        private string AtlasTreeGuide(string id, Dictionary<string, Vector2>? centres, bool kept = true)
         {
-            if (this.atlasTreeGuideSaid is { } said && said.Node == id)
+            if (kept && this.atlasTreeGuideSaid is { } said && said.Node == id)
             {
                 return said.Line;
             }
 
             var line = string.Empty;
-            if (this.AtlasTreeOf(id, out _) is { } tree && tree.Index.TryGetValue(id, out _) && this.atlasTreeFinder.Target.Length > 0)
+            if (this.AtlasTreeOf(id, out _) is { } tree && tree.Index.TryGetValue(id, out _) && this.atlasTreeFinder.Target.Length > 0 &&
+                (kept || this.atlasTreeFinder.Target != id)) // a padlock's line, counted from the node before, never arrives on it
             {
                 var target = this.atlasTreeFinder.Target;
                 var name = tree.Index.TryGetValue(target, out var at) ? this.AtlasTreeName(tree, at) : target;
@@ -217,7 +275,11 @@ namespace Poe2Accessibility.Services
                     : this.GoalAndWay($"atlas tree {target}", Announcements.PassiveToward(name), this.AtlasTreeWayTo(tree, centres, id, target));
             }
 
-            this.atlasTreeGuideSaid = (id, line);
+            if (kept)
+            {
+                this.atlasTreeGuideSaid = (id, line);
+            }
+
             return line;
         }
 

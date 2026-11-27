@@ -544,9 +544,10 @@ tree is hidden). The map's narrator holds still while a tree node has the focus 
 tree). Nodes now say their tree in the game's words ("Abismo", "Fisura", "Delirio", "Focos vaal", nothing for the main
 tree) instead of the ids' English parts ("Rogue Exiles", "Biome City"), the context is "Árbol de habilidades del Atlas"
 instead of "Misiones", and the main start is "inicio, árbol principal". Heard live: centre and Breach start read with
-links, finder lists from them, a route to "Llegaste a inicio, Fisura". **Open:** the tree's 11 locks ("Completa la
-Cámara de enigmas oriental para desbloquearlo, botón, 2 de 11") are buttons, not nodes: a route through one says no
-guide line there and the D-pad finder does nothing on it. **Next:** the owner's word on the locks.
+links, finder lists from them, a route to "Llegaste a inicio, Fisura". The tree's 11 **padlocks** ("Completa la
+Cámara de enigmas oriental para desbloquearlo, botón, 2 de 11", buttons on the canvas between nodes) are stops of the
+tree now: the D-pad finder and the guide's line count from the last node (the owner's choice), heard live ("…, 2 de
+11, Hacia inicio, árbol principal: abajo, 9", then the lists). **Next:** the owner's next Atlas session.
 
 **2026-11-27, evening (the owner: the Atlas tree's D-pad finder said nothing, and the tree's centre was read as "El
 refugio del zigurat"; 1177 tests, deployed to the play copy, pushed, NOT released):** the catalog gives the Atlas skill

@@ -36,6 +36,8 @@ namespace Poe2Accessibility.Models
         private string text = string.Empty;
         private System.Collections.Generic.IReadOnlyList<string> panelNotes = Array.Empty<string>();
         private System.Collections.Generic.IReadOnlyList<string> tooltip = Array.Empty<string>();
+        private bool atlasTreeNode;
+        private string context = string.Empty;
 
         public IntPtr Address { get; init; }
 
@@ -44,6 +46,14 @@ namespace Poe2Accessibility.Models
         {
             var copy = (AccessibleUiNode)this.MemberwiseClone();
             (copy.text, copy.tooltip, copy.panelNotes) = (label, lines, notes);
+            return copy;
+        }
+
+        /// <summary>The same control as a stop of the Atlas tree between its nodes (a padlock), with these lines.</summary>
+        public AccessibleUiNode AsAtlasTreeStop(System.Collections.Generic.IReadOnlyList<string> lines, string context)
+        {
+            var copy = (AccessibleUiNode)this.MemberwiseClone();
+            (copy.tooltip, copy.atlasTreeNode, copy.context) = (lines, true, context);
             return copy;
         }
 
@@ -105,8 +115,8 @@ namespace Poe2Accessibility.Models
         /// <summary>A node of the passive tree: the D-pad is the finder's there.</summary>
         public bool IsPassiveNode { get; init; }
 
-        /// <summary>A node of the Atlas skill tree: the D-pad is its finder's there too.</summary>
-        public bool IsAtlasTreeNode { get; init; }
+        /// <summary>A node of the Atlas skill tree, or a stop of its own between nodes (a padlock): the D-pad is its finder's there too.</summary>
+        public bool IsAtlasTreeNode { get => this.atlasTreeNode; init => this.atlasTreeNode = value; }
 
         /// <summary>Lines of the element's tooltip (short ones are read with the focus, long ones on request).</summary>
         public System.Collections.Generic.IReadOnlyList<string> Tooltip { get => this.tooltip; init => this.tooltip = value; }
@@ -154,7 +164,7 @@ namespace Poe2Accessibility.Models
         public bool NamedByControlId { get; init; }
 
         /// <summary>Title of the panel holding the element in game ("Inventory"); empty when unknown.</summary>
-        public string Context { get; init; } = string.Empty;
+        public string Context { get => this.context; init => this.context = value; }
 
         /// <summary>False for a control that is shown but cannot be used yet (locked button).</summary>
         public bool IsEnabled { get; init; } = true;

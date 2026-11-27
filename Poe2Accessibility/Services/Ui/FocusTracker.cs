@@ -183,9 +183,12 @@ namespace Poe2Accessibility.Services
             {
                 // The Atlas tree's roots take the cursor but no hover: the root beside the node left stands in for it,
                 // else, with no node before, the one the view centres (the tree opened on a root).
-                var root = this.Current is { IsAtlasTreeNode: true } onTree ? this.semantics.AtlasTreeRootBeside(onTree.Address)
-                    : this.Current == null ? this.Hoverless?.Invoke() ?? IntPtr.Zero
-                    : IntPtr.Zero;
+                var root = this.Current is { IsAtlasTreeNode: true } onTree ? this.semantics.AtlasTreeRootBeside(onTree.Address) : IntPtr.Zero;
+                if (root == IntPtr.Zero && this.Current is null or { IsAtlasTreeNode: true })
+                {
+                    root = this.Hoverless?.Invoke() ?? IntPtr.Zero; // from a padlock, or the tree opened on a root
+                }
+
                 if (root != IntPtr.Zero)
                 {
                     (focused, hovered) = (root, true);
