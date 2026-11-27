@@ -149,6 +149,7 @@ namespace Poe2Accessibility.Tests
                 PlayerItemNewsTests.All(),
                 UnseenReaderTests.All(),
                 PanelOpeningTests.All(),
+                EngravingCategoryTests.All(),
                 RoomTests.All(),
                 RoomObjectTests.All(),
                 InspectTableTests.All(),

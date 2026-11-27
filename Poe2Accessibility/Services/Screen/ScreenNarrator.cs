@@ -111,6 +111,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The layer whose tab was last said (a merchant's stock, the stash), for LB/RB that leave the focus where it is.</summary>
         private IntPtr tabbedLayer;
 
+        /// <summary>The tab <see cref="tabbedLayer"/> showed when last read: LB/RB that leave it there switched something else.</summary>
+        private string tabbedTab = string.Empty;
+
         /// <summary>When LB or RB was pressed in a panel; MaxValue when no tab switch is awaited.</summary>
         private DateTime tabKeyAt = DateTime.MaxValue;
 
@@ -153,6 +156,12 @@ namespace Poe2Accessibility.Services
         ///     into: the game sockets the engraved support there; the window's tab, LB/RB).
         /// </summary>
         public (string Choice, string Category) Engraving { get; private set; } = (string.Empty, string.Empty);
+
+        /// <summary>
+        ///     The lines the engraving window's last category without choices said (the game's "Selected Build Plan does not
+        ///     contain any entries for this category…"): still drawn on the next such category, they never appear again.
+        /// </summary>
+        private readonly HashSet<(IntPtr Address, string Text)> engravePage = new();
 
         /// <summary>Lines of the game menu said this session (<see cref="ReadScreenMessages"/> off): its tip never changes.</summary>
         private readonly HashSet<string> screenLinesSaid = new(StringComparer.Ordinal);
@@ -221,7 +230,8 @@ namespace Poe2Accessibility.Services
             this.deferredFocus = null;
             this.pendingPage = null;
             this.hintAfterFocus = string.Empty;
-            this.tabbedLayer = IntPtr.Zero;
+            (this.tabbedLayer, this.tabbedTab) = (IntPtr.Zero, string.Empty);
+            this.engravePage.Clear();
         }
 
         private string lastSelectorPosition = string.Empty;

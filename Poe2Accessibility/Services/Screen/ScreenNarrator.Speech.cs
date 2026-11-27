@@ -116,7 +116,9 @@ namespace Poe2Accessibility.Services
             }
 
             // A page still waiting for its focus goes first: what follows (the area the quest map shows) must not
-            // be cut off by the page arriving a moment later.
+            // be cut off by the page arriving a moment later. It is a tab's page, so it cuts in as it would alone: a new
+            // button with it ("Show Recommended, Square") queued "Bow Shot…" behind the last category's line (tester 2026-11-26).
+            interrupt |= this.pendingPage != null;
             text = this.WithPendingPage(text);
 
             // The same parts in another order a moment later (a panel reported as opened, then as its texts

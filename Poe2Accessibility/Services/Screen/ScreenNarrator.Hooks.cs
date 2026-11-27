@@ -9,6 +9,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The layer holding the focus (FocusTracker), to notice a focus that moved into a popup.</summary>
         public Func<IntPtr>? FocusLayer { get; set; }
 
+        /// <summary>What a text of the support engraving window is (UiSemantics.EngravePartOf): the choice's description, the game's skill list on a skill's tab, or else.</summary>
+        public Func<IntPtr, EngravePart>? EngravePartOf { get; set; }
+
         /// <summary>The focused node described again (its panel may have been built since); null when gone.</summary>
         public Func<AccessibleUiNode, AccessibleUiNode?>? Refresh { get; set; }
 

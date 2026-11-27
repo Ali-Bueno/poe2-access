@@ -534,6 +534,34 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 22:30 (a tester with an uncut support gem from the stash, R1/L1 through the engraving window's skills: "tab 1" cut
+the categories without choices, "Escape Shot" came alone after "Contagion", and some categories went unnamed):** fixed,
+not merged into `main` yet ([rules](docs/menu-speech-rules.md#what-to-say)). The tab key named the stash's tab
+1 s after each switch with no focus; it now names a tabbed panel's tab only when that tab changed. The game's message stays
+drawn from one empty category to the next, so it never appeared again; it is now said with each. A choice's tier numeral
+("III") is no longer read as a page line. Unit tests replay the log (`EngravingCategoryTests`). The unnamed categories
+(Strength Gems, Dexterity Gems, Barrage and Bow Shot once) came with the game behind another window and the pad still driving
+it. The tester does not remember another window, but the host ran at its background rate of 20 frames a second for most of
+every minute from 21:50 to 22:08, and each unnamed category's texts reached the log without being narrated, which only the
+window gate does. Behind another window the game's redraws are now said for 3 s after a press made there (`PadActivity`, its
+own commit); a press from before the window went behind does not count, so a notification mid-play stays silent as on
+2026-10-26. Second run, 22:49, game in front: every empty skill said the message, no "tab 1", every category named. Back
+from Strength Gems to Bow Shot the hint bar changed in the same frame and the category was queued behind the last line; a
+waiting page now always cuts in. After a restart onto the recommended gems, Square back to the build's showed the message
+with no category switch, and the next empty skill was said alone; the message is now kept from that path too. Third run,
+23:01: all of it heard working; a choice the game renames in place after LB/RB was said alone, then again with its category,
+and now waits for the category like a new focus. Then the wording (the tester: the other skills named on a skill's tab,
+"missing in" beside "you do not have it", and "it" unclear): on a skill's tab the line is only about that skill ("Lightning
+Rod already has this support", "Barrage needs this support", "Not in the build for Lightning Rod"); Strength, Dexterity and
+Intelligence Gems say "In the build for A and B" and who already has it; the choice's description is read on R1/L1, its
+"Supportable Skills" list included (`BuildGems.OnSkillTab`, `UiSemantics.EngravePartOf`, from the window's
+`category_name_label` and `item_popup`, UI dump 2026-11-26 23:26). Heard working 2026-11-27 00:10; back on Barrage after
+Frost Bomb its description was not read (the game leaves it drawn, so nothing appears): the description is now taken as
+drawn. The list was first left out on a skill's tab and is read again: the tester wants what the window shows heard
+(2026-11-27). **First to hear:** Barrage's description after Frost Bomb, and the list on a skill's tab.
+**First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, no "tab 1", and
+"Strength Gems. …" with another window in front.
+
 **2026-11-26, 15:30 (the owner, El cruce de Khari: the "Sello de señalización" did not sound as the quest; "sigue la guía hasta el
 templo"):** area-own objects count as quest objects; a used seal starts a trail to the next seal, else the quest's exit
 ([signal seals](docs/research/map-hints.md#the-signal-seals-of-el-cruce-de-khari-2026-11-26)). **First to hear:** "Rastro: Guía

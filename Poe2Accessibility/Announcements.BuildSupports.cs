@@ -1,6 +1,7 @@
 namespace Poe2Accessibility
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>Spoken strings of a build skill's supports, heard group by group (same translatable layer).</summary>
     public static partial class Announcements
@@ -49,37 +50,38 @@ namespace Poe2Accessibility
         /// <summary>A build skill among the engraving window's choices: whether the character has it, asked before cutting it again.</summary>
         public static string EngraveSkillHeld(bool owned, bool inBag) => owned ? T("you already have it", "ya la tienes") : inBag ? HeldInBag : NotHeld;
 
-        /// <summary>
-        ///     A build support among the engraving window's choices: "already socketed in Twister; missing in Whirling Slash",
-        ///     "you have it in your inventory", "you do not have it".
-        /// </summary>
-        public static string EngraveSupportHeld(
-            IReadOnlyList<string> socketedIn, bool inBag, IEnumerable<string> inOtherSkills, IEnumerable<string> otherTiers, IReadOnlyList<string> missingIn)
-        {
-            var parts = new List<string>();
-            if (socketedIn.Count > 0)
-            {
-                parts.Add(T("already socketed in ", "ya engarzada en ") + string.Join(", ", socketedIn));
-            }
+        /// <summary>A skill's tab of the support engraving window, whose skill has the support offered socketed.</summary>
+        public static string SkillHasSupport(string skill) => T($"{skill} already has this support", $"{skill} ya tiene esta asistencia");
 
-            if (inBag)
-            {
-                parts.Add(HeldInBag);
-            }
+        /// <summary>The same, holding another tier of it: "Lightning Rod already has Elemental Armament II".</summary>
+        public static string SkillHasGem(string skill, string gem) => T($"{skill} already has {gem}", $"{skill} ya tiene {gem}");
 
-            if (string.Join(", ", inOtherSkills) is { Length: > 0 } others)
-            {
-                parts.Add(T("you have it in ", "la tienes en ") + others);
-            }
+        /// <summary>The build puts the support offered in the tab's skill, which does not have it.</summary>
+        public static string SkillNeedsSupport(string skill) => T($"{skill} needs this support", $"{skill} necesita esta asistencia");
 
-            parts.AddRange(otherTiers);
-            if (missingIn.Count > 0)
-            {
-                parts.Add(parts.Count == 0 ? NotHeld : T("missing in ", "falta en ") + string.Join(", ", missingIn));
-            }
+        /// <summary>The build puts another tier of the support offered in the tab's skill: "Boneshatter needs Rage II".</summary>
+        public static string SkillNeedsGem(string skill, string gem) => T($"{skill} needs {gem}", $"{skill} necesita {gem}");
 
-            return string.Join("; ", parts);
-        }
+        /// <summary>After <see cref="SkillNeedsSupport"/>: a cut copy lies in the inventory.</summary>
+        public static string SpareInBag => T("You have one in your inventory", "Tienes una en tu inventario");
+
+        /// <summary>The build does not put the support offered in the tab's skill.</summary>
+        public static string NotInBuildFor(string skill) => T($"Not in the build for {skill}", $"No está en la build para {skill}");
+
+        /// <summary>A tab that is no skill's (Strength Gems): the build skills that use the support offered.</summary>
+        public static string InBuildFor(IReadOnlyList<string> skills) => T($"In the build for {JoinAnd(skills)}", $"En la build para {JoinAnd(skills)}");
+
+        /// <summary>After <see cref="InBuildFor"/>: those of the skills that have it socketed, in one line.</summary>
+        public static string SkillsHaveIt(IReadOnlyList<string> skills) => skills.Count == 1
+            ? T($"{skills[0]} already has it", $"{skills[0]} ya la tiene")
+            : T($"{JoinAnd(skills)} already have it", $"{JoinAnd(skills)} ya la tienen");
+
+        /// <summary>A tab that is no skill's: no build skill uses the support offered.</summary>
+        public static string NotInBuild => T("Not in the build", "No está en la build");
+
+        /// <summary>"A", "A and B", "A, B and C".</summary>
+        private static string JoinAnd(IReadOnlyList<string> items) =>
+            items.Count <= 1 ? string.Concat(items) : string.Join(", ", items.Take(items.Count - 1)) + T(" and ", " y ") + items[^1];
 
         private static string HeldInBag => T("you have it in your inventory", "la tienes en tu inventario");
 

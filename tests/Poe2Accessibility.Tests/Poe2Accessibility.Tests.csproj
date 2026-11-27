@@ -26,6 +26,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\WeaponSetRows.cs" Link="Plugin\WeaponSetRows.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Input\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Input\PadActivity.cs" Link="Plugin\PadActivity.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\LongTextParagraphs.cs" Link="Plugin\LongTextParagraphs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ScanModel.cs" Link="Plugin\ScanModel.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\WayCut.cs" Link="Plugin\WayCut.cs" />
@@ -440,6 +441,8 @@
     <Compile Include="..\..\Poe2Accessibility\Announcements.Controls.cs" Link="Plugin\Announcements.Controls.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Compatibility.cs" Link="Plugin\Announcements.Compatibility.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Models\EngravePart.cs" Link="Plugin\EngravePart.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\EngraveWindowParts.cs" Link="Plugin\EngraveWindowParts.cs" />
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\EntityRefresh.cs" Link="Host\EntityRefresh.cs" />

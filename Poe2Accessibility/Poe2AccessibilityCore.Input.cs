@@ -32,6 +32,14 @@ namespace Poe2Accessibility
 
         private bool confirmDown;
 
+        /// <summary>Whether the pad is driving the game behind another window (<see cref="NarrateScreenChanges"/>).</summary>
+        private readonly PadActivity padActivity = new();
+
+        /// <summary>When the game's window last went behind another (Environment.TickCount64), and whether it was in front last frame.</summary>
+        private long behindSince;
+
+        private bool wasForeground;
+
         private readonly BlockedMove blockedMove = new();
 
         private uint lastDPad;
@@ -73,6 +81,7 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
+            this.padActivity.Observe(state.Buttons, IsDirection(state), Environment.TickCount64);
             this.TracePad(state);
             var stickDown = state.IsDown(GameLayout.PadButtons.RightStick);
             if (stickDown && !this.rightStickDown)
