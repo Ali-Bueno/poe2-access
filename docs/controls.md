@@ -354,12 +354,10 @@ build's next node is where you left off then), the guide leads back there: "Wher
 with the D-pad, drops it. Ways are counted up to 60 pushes; beyond, the direction is said ("far, up").
 
 **The Atlas skill tree** (from the Atlas: hold X, point the stick down to "Atlas Skill Tree", release) works the
-same way, with one difference: the stick and the D-pad both hop node to node (the game's), so the finder is on
-the shoulder buttons, as on the Atlas map. Each node is read with what it does and its links; L2 (LT) + L1/R1
-(LB/RB) walk the lists Position, Notables and Clusters (the start of the generic tree and of each league's
-cluster, to travel between them), L1/R1 alone walk a list nearest first, what it names is the target, and every
-node then ends with the way ("Toward Stir the Swarm: up, 3"), counting down to "Arrived at …". L2 + R3, or going
-back to Position, drops the target.
+same way: the stick hops node to node, each node is read with what it does and its links, and the D-pad is a
+finder over it — down and up walk the lists Position, Notables and Clusters (the start of the generic tree and of
+each league's cluster, to travel between them), left and right walk a list nearest first, what it names is the
+target, and every node then ends with the way ("Toward Stir the Swarm: up, 3"), counting down to "Arrived at …".
 An entry says its cluster, side and ring and how many links it lies from the cursor ("Stir the Swarm, Abyss, down
 right, outer ring, 3 links away. From here: …"). What a node costs in Atlas points is not said yet; its own
 popup says "Unallocated" where it stands.

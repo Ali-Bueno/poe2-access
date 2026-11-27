@@ -298,13 +298,20 @@ namespace Poe2Accessibility.Services
         /// <summary>A node of the tree in front while the D-pad is the finder's with the cursor on none (the Altar of Ascendancy's preview); zero otherwise.</summary>
         public Func<IntPtr>? TreeAnchor { get; set; }
 
-        /// <summary>
-        ///     A D-pad press on a passive tree node: up and down change the finder's list, left and right its entry;
-        ///     false when it was not the finder's. Not on the Atlas skill tree, where the D-pad is the game's node
-        ///     movement (its finder is on the shoulder buttons, <c>FindOnAtlas</c>).
-        /// </summary>
+        /// <summary>A D-pad press on a passive or Atlas tree node: up and down change the finder's list, left and right its entry; false when it was not the finder's.</summary>
         public bool OnTreeDirection(int listStep, int entryStep)
         {
+            if (this.focus.Current is { IsAtlasTreeNode: true } atlasNode)
+            {
+                if (this.semantics.AtlasTreeFinderMove(atlasNode.Address, listStep, entryStep) is not { } atlasSaid)
+                {
+                    return false;
+                }
+
+                this.output.Speak(atlasSaid, true);
+                return true;
+            }
+
             var node = this.focus.Current is { IsPassiveNode: true } on ? on.Address : this.TreeAnchor?.Invoke() ?? IntPtr.Zero;
             if (node == IntPtr.Zero || this.semantics.PassiveFinderMove(node, listStep, entryStep) is not { } said)
             {
