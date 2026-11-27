@@ -44,7 +44,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            this.tabbedLayer = page.Layer;
+            (this.tabbedLayer, this.tabbedTab) = (page.Layer, tab);
             this.SayPageWithFocus(page.Texts, focus, tab);
             return true;
         }
@@ -122,13 +122,26 @@ namespace Poe2Accessibility.Services
                     // stays, other bare numbers mean nothing alone. The page under an overlay page stays visible to
                     // the tree (Friends under Challenges): only the texts inside the panel the tab names.
                     // The stacks, gem tiers and gold of the inventory beside it are the cursor's and the gold command's.
-                    var pageChrome = this.Chrome(change.Texts);
-                    var pageTexts = PairNumbers(change.Texts).Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/')) &&
-                                                                            !IsTierNumeral(text.Text) && !pageChrome.Contains(text.Address)).ToList();
+                    // The engraving window's next category without choices keeps the last one's message drawn, which then
+                    // never appears: it is said with this category too ("Escape Shot" alone after "Contagion. Selected
+                    // Build Plan…", tester 2026-11-26).
+                    var engraving = tabTitle.Name == EngraveCategoryName;
+                    var source = engraving
+                        ? change.Layer.Texts.Where(text => change.Texts.Contains(text) || this.engravePage.Contains((text.Address, text.Text))).ToList()
+                        : change.Texts;
+                    var pageChrome = this.Chrome(source);
+                    var pageTexts = PairNumbers(source).Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/')) &&
+                                                                      !IsTierNumeral(text.Text) && !pageChrome.Contains(text.Address)).ToList();
                     var inPage = this.InPanel == null ? pageTexts : pageTexts.Where(text => this.InPanel(text.Address, tabTitle.Text)).ToList();
                     var pageShown = inPage.Count > 0 ? inPage : pageTexts;
+                    if (engraving)
+                    {
+                        this.engravePage.Clear();
+                        this.engravePage.UnionWith(pageShown.Select(text => (text.Address, text.Text)));
+                    }
+
                     var page = Describe(pageShown);
-                    var pageSaid = new HashSet<string>(change.Texts.Select(text => text.Text));
+                    var pageSaid = new HashSet<string>(source.Select(text => text.Text));
                     this.lastPanel = (change.Layer.Address, page, DateTime.UtcNow);
                     if (focus != null && this.deferredFocus == null)
                     {
@@ -147,7 +160,8 @@ namespace Poe2Accessibility.Services
                 // read after the focus; a page full of labels is left to the focus that browses it.
                 var focusTexts = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
                 var focusSpeech = withFocus || named ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
-                var lines = change.Texts.Where(text => text != tabTitle && !text.IsControl && !IsNumber(text.Text) &&
+                // A gem's tier numeral beside a choice is no line of the page ("Barrage. Cooldown Recovery I…. III", tester 2026-11-26).
+                var lines = change.Texts.Where(text => text != tabTitle && !text.IsControl && !IsNumber(text.Text) && !IsTierNumeral(text.Text) &&
                                                        !text.Text.Split(", ").Any(focusTexts.Contains) &&
                                                        !focusSpeech.Contains(text.Text, StringComparison.Ordinal) && !this.JustNarrated(text.Text)).ToList();
                 var pageLines = lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
@@ -309,7 +323,7 @@ namespace Poe2Accessibility.Services
                 // A tabbed page arrived with the focus (options opened from the game menu, an options tab switch):
                 // the selected tab and the focus, as pre-game — never the page's labels. A focus outside the page (the
                 // inventory beside the stash) is said in its own part.
-                this.tabbedLayer = change.Layer.Address;
+                (this.tabbedLayer, this.tabbedTab) = (change.Layer.Address, pageTab);
                 this.SayPageWithFocus(change.Texts, focus, pageTab);
             }
             else if (change.Layer.Address != focusLayer)
@@ -330,7 +344,7 @@ namespace Poe2Accessibility.Services
                 var place = FocusDetails.PagePlace(focus?.Context ?? string.Empty, openedTab);
                 // A merchant opened with the cursor on the inventory: its first tab, then the inventory's item in its own part.
                 var beside = FocusDetails.PageBeside(focus?.Context ?? string.Empty, openedTab, this.SidePanel?.Invoke() ?? string.Empty);
-                this.tabbedLayer = change.Layer.Address;
+                (this.tabbedLayer, this.tabbedTab) = (change.Layer.Address, openedTab);
                 this.lastContext = place == Announcements.TabTitle(openedTab) ? openedTab : place;
                 this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { beside, place, shown, this.lastFocusSpeech }), true);
             }

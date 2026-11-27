@@ -534,6 +534,14 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-26, 22:30 (a tester with an uncut support gem from the stash, R1/L1 through the engraving window's skills: "tab 1" cut
+the categories without choices, "Escape Shot" came alone after "Contagion", and some categories went unnamed):** fixed on
+branch `fix/engraving-category-speech` ([rules](docs/menu-speech-rules.md#what-to-say)). The tab key named the stash's tab
+1 s after each switch with no focus; it now names a tabbed panel's tab only when that tab changed. The game's message stays
+drawn from one empty category to the next, so it never appeared again; it is now said with each. A choice's tier numeral
+("III") is no longer read as a page line. Unit tests replay the log (`EngravingCategoryTests`).
+**First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, and no "tab 1".
+
 **2026-11-26, 15:30 (the owner, El cruce de Khari: the "Sello de señalización" did not sound as the quest; "sigue la guía hasta el
 templo"):** area-own objects count as quest objects; a used seal starts a trail to the next seal, else the quest's exit
 ([signal seals](docs/research/map-hints.md#the-signal-seals-of-el-cruce-de-khari-2026-11-26)). **First to hear:** "Rastro: Guía

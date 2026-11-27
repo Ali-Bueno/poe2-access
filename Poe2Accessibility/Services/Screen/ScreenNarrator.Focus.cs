@@ -348,7 +348,7 @@ namespace Poe2Accessibility.Services
                 this.PanelsClosed();
                 this.speaker.Forget();
                 this.shortcutsSaid.Clear();
-                this.tabbedLayer = IntPtr.Zero;
+                (this.tabbedLayer, this.tabbedTab) = (IntPtr.Zero, string.Empty);
                 this.deferredFocus = null;
                 this.pendingPage = null;
                 this.hintAfterFocus = string.Empty;
@@ -386,14 +386,24 @@ namespace Poe2Accessibility.Services
             }
 
             this.tabKeyAt = DateTime.MaxValue;
+            // A merchant that opened on the inventory's side never named its tabs' layer: they lie in the focus's own.
+            var layer = this.tabbedLayer != IntPtr.Zero ? this.tabbedLayer : this.FocusLayer?.Invoke() ?? IntPtr.Zero;
+            var tab = this.selectedTab(layer);
+            // LB/RB switched another window's pages over the tabbed one (the support engraving window's categories over the
+            // stash): its own tab stayed, and naming it cut the category off ("tab 1" over "Contagion. Selected Build
+            // Plan…", tester 2026-11-26). Kept on every switch, the ones a moved focus said too: a switch back is news.
+            var stayed = layer == this.tabbedLayer && tab == this.tabbedTab;
+            if (layer == this.tabbedLayer && tab.Length > 0)
+            {
+                this.tabbedTab = tab;
+            }
+
             if (this.lastFocusAt >= pressed || this.deferredFocus != null)
             {
                 return;
             }
 
-            // A merchant that opened on the inventory's side never named its tabs' layer: they lie in the focus's own.
-            var tab = this.selectedTab(this.tabbedLayer != IntPtr.Zero ? this.tabbedLayer : this.FocusLayer?.Invoke() ?? IntPtr.Zero);
-            if (tab.Length > 0 && tab != this.lastContext)
+            if (tab.Length > 0 && tab != this.lastContext && !stayed)
             {
                 this.lastContext = tab;
                 this.Speak("tab without focus move", Announcements.TabTitle(tab), true);

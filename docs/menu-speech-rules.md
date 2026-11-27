@@ -24,7 +24,8 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | Focus moves | name, value/state, role, then position ("3 of 12") last | yes | done except position |
 | Value changes in place (slider, toggle, combo) | only the new value | yes | done |
 | Tab change | only the tab name | yes | done |
-| Tabbed screen opens (options) | title, tab, focus; never the page's labels | yes | done |
+| LB/RB with the cursor left beside a tabbed panel (the inventory beside the stash) | the tabbed panel's new tab, only when its tab changed; LB/RB that switch another window's pages over it (the support engraving window's categories over the stash) say nothing of it | yes | done (`ScreenNarrator.TickTabKey`; the stash's "tab 1" cut every category without choices, tester 2026-11-26) |
+| A category of the support engraving window the build has no gems for | the category and the game's "Selected Build Plan does not contain any entries for this category…", also when the last category's message stays drawn and so never appears again | yes | done (`ScreenNarrator.engravePage`; "Escape Shot" was said alone after "Contagion", tester 2026-11-26) || Tabbed screen opens (options) | title, tab, focus; never the page's labels | yes | done |
 | A press the game ignores in silence (character name) | why, once per press | yes | done |
 | A long text closes (terms) | the focus underneath again | yes | done |
 | An area loads | only the loading screen's own lines; the HUD and chat stay in the tree and are never read | — | done |
