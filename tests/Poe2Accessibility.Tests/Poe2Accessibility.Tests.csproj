@@ -89,6 +89,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\TempleGrid.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\TempleSlots.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\TempleRun.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\SettingsStore.cs" Link="Plugin\SettingsStore.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialFloorLocator.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialMapLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SheetStats.cs" />

@@ -456,7 +456,9 @@ on a spirit's death), Rites of the Rogues. `EntityInfoRogueExileUniqueItem` "Has
       line "Temple: slot lines at …, ground ###./…; the map's N cells lie turned (…) from slot (…), K wrong" (or "fit no single way")
       is the check. `TempleWatch` then says a room's title on walking into it (", completada" once done), marks the room stood in
       as done when the tracker's "(N/M)" rises, and says "Próxima sala: X" with the scanner's way to its slot's middle (nearest not
-      done along the paths, Atziri's Chamber once N = M); the map's cells add "estás aquí" and "completada".
+      done along the paths, Atziri's Chamber once N = M); the map's cells add "estás aquí" and "completada". `TempleRun` keeps the
+      last map and the rooms done, with the instance's area hash, in `config/temple.json` (kept by the updater): a restart of the mod
+      in the same temple keeps both; another instance starts with none done.
 - Dangers: ground buffs `architect_ground_blood*` "Boiling Blood" / "Sangre hirviente" (in `hazards.txt`), `vaal_cloud` "Corrupting Smoke" / "Humo
   corrupto"; wall turrets `Monsters/LeagueIncursion/WallTurrets/WallTurret*`. Bosses (Xipocado, Atziri): [boss-mechanics.md](boss-mechanics.md).
 - **Act 3's Ancient Beacons are this object** (MEASURED 2026-11-18, Las criptas venenosas: "Misión: Focos antiguos. Activa el foco

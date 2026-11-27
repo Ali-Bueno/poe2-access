@@ -17,7 +17,36 @@ namespace Poe2Accessibility.Tests
             (nameof(TheMapIsFoundTurnedAndShiftedOnTheGround), TheMapIsFoundTurnedAndShiftedOnTheGround),
             (nameof(AMirroredMapIsNotGuessed), AMirroredMapIsNotGuessed),
             (nameof(TheNextRoomIsTheNearestNotDoneAlongThePaths), TheNextRoomIsTheNearestNotDoneAlongThePaths),
+            (nameof(TheMapAndTheRoomsDoneOutliveARestartInTheSameTemple), TheMapAndTheRoomsDoneOutliveARestartInTheSameTemple),
         };
+
+        private static void TheMapAndTheRoomsDoneOutliveARestartInTheSameTemple()
+        {
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests");
+            var file = System.IO.Path.Join(folder, "temple-" + Guid.NewGuid().ToString("N") + ".json");
+            var log = new PluginLog(folder, false);
+            try
+            {
+                TempleRun.Attach(new SettingsStore<TempleMemory>(file, log));
+                TempleRun.Publish(Layout().ToDictionary(each => each.Key, each => (each.Value ? "Camino" : "Sala", each.Value)));
+                TempleRun.Enter("temple A");
+                TempleRun.Complete((1, 5));
+
+                TempleRun.Attach(new SettingsStore<TempleMemory>(file, log)); // the mod restarted
+                Equal(Layout().Count, TempleRun.Layout.Count, "the map read before the restart");
+                Equal(("Sala", false), TempleRun.Layout[(1, 5)], "a room's title and kind");
+                TempleRun.Enter("temple A");
+                Equal(true, TempleRun.Done.Contains((1, 5)), "the room done before, back in the same temple");
+                TempleRun.Enter("temple B");
+                Equal(0, TempleRun.Done.Count, "another temple starts with none done");
+                Equal(Layout().Count, TempleRun.Layout.Count, "the map stays for the next temple");
+            }
+            finally
+            {
+                System.IO.File.Delete(file);
+                TempleRun.Enter(string.Empty);
+            }
+        }
 
         /// <summary>A temple of seven rooms off one spine of paths from the Vestibule to Atziri (no two ways fit it).</summary>
         private static Dictionary<(int Row, int Column), bool> Layout()

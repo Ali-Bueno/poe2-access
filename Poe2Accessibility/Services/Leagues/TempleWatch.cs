@@ -108,7 +108,7 @@ namespace Poe2Accessibility.Services
         private void Enter(GameReader.RemoteObjects.States.InGameStateObjects.AreaInstance area, (float X, float Y) at)
         {
             this.areaHash = area.AreaHash;
-            TempleRun.Restart();
+            TempleRun.Enter(area.AreaHash);
             (this.frame, this.matchedLayout, this.told, this.completed) = (null, null, null, null);
             this.spawn = this.arriving ? at : null;
             this.arriving = false;

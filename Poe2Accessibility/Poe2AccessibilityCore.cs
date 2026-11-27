@@ -182,6 +182,7 @@ namespace Poe2Accessibility
                 this.log = new PluginLog(Path.Join(this.DllDirectory, "logs"), this.Settings.VerboseLogging);
                 this.settingsStore = new SettingsStore<AccessibilitySettings>(Path.Join(this.DllDirectory, "config", "settings.txt"), this.log);
                 this.ApplySettings(this.settingsStore.Load(this.Settings));
+                TempleRun.Attach(new SettingsStore<TempleMemory>(Path.Join(this.DllDirectory, "config", "temple.json"), this.log));
                 this.log.Info($"Enabled. Host library {Core.GetVersion()}, game open: {isGameOpened}");
                 Localization.PhraseDirectory = Path.Join(this.DllDirectory, "catalog", "lang");
                 this.appliedLanguage = this.Settings.Language;
