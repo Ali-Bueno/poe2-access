@@ -17,6 +17,9 @@ namespace Poe2Accessibility.Services
         private readonly string folder;
         private readonly string config;
         private readonly Dictionary<string, (DateTime Written, BuildPlan? Plan)> files = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Each file's plan as read, before <see cref="BuildPlan.InStageOrder"/> over the folder; <see cref="files"/> holds the ordered one.</summary>
+        private readonly Dictionary<string, BuildPlan?> read = new(StringComparer.OrdinalIgnoreCase);
         private long? scannedAt;
         private (DateTime Written, string Text) configRead = (DateTime.MinValue, string.Empty);
 
@@ -230,19 +233,34 @@ namespace Poe2Accessibility.Services
             try
             {
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var changed = false;
                 foreach (var path in Directory.Exists(this.folder) ? Directory.EnumerateFiles(this.folder, "*.build") : Enumerable.Empty<string>())
                 {
                     seen.Add(path);
                     var written = File.GetLastWriteTimeUtc(path);
                     if (!this.files.TryGetValue(path, out var known) || known.Written != written)
                     {
-                        this.files[path] = (written, ParseFile(path));
+                        this.read[path] = ParseFile(path);
+                        this.files[path] = (written, null);
+                        changed = true;
                     }
                 }
 
                 foreach (var gone in this.files.Keys.Where(path => !seen.Contains(path)).ToList())
                 {
                     this.files.Remove(gone);
+                    this.read.Remove(gone);
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    // A stage written or gone changes the order the guide's other stages take their ascendancy passives in.
+                    var plans = this.read.Values.OfType<BuildPlan>().ToList();
+                    foreach (var path in this.files.Keys.ToList())
+                    {
+                        this.files[path] = (this.files[path].Written, this.read[path]?.InStageOrder(plans));
+                    }
                 }
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

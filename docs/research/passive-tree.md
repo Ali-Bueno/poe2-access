@@ -379,6 +379,15 @@ ascendancy points; `dump visible` and dev `passivenear`):
   punto. Desde aquí: abajo, 12 empujones", and the Attributes list on the same tree: "Atributos, Inteligencia 4,
   Destreza 2, Fuerza 1. Inteligencia. Atributo, arriba a la izquierda, anillo medio, asignado. Desde aquí: abajo, 3
   empujones".
+- **A stage's file lists its ascendancy passives in no taking order** (2026-11-27, the owner: "no sé si el build planner
+  toma bien los puntos de ascendencia, en caso de tener que cambiármelos"). kehgan's eight files of one guide: "Lvl 1-23"
+  and "23+ Unarmed" name Small4, Notable3; "Act 3-6" Small3, Notable8, Small4, Notable3; "Campaign End" (the active one)
+  Small7, Notable5, Small4, Notable3, Small3, Notable8. kehgan had the four of the earlier stages; refunding Notable8 at
+  the Hooded One (pending, then undone) gave one ascendancy point and the Build list said "paso 99: Atributos" (Small7).
+  Now `BuildPlan.InStageOrder` (applied by `BuildPlanFolder` to every file once the folder is read) orders a file's
+  ascendancy passives by the first stage of its guide (same `link` and `ascendancy`) naming each, the stage naming fewest
+  first, then by the file's order; the class's tree's passives keep their places. LIVE the same: "Build, 82 de 116
+  asignados, 1 por asignar ahora. Build: paso 102 de 116. Camino del puño de roca".
 - **NOT MEASURED:** the stick's step from an ascendancy node, which the self-check does not judge (the game shifts it
   by the inner canvas); the ways counted across the two trees were walked by the owner without a miss heard.
 
@@ -534,9 +543,10 @@ MEASURED live 2026-11-18 (0.5.5f, dev command `inventories` and memory reads), "
   focus moves to an item element two levels under the node (the jewel's entity at element +0x4E0). The mod walks up from
   that item element to the node and reads the node (`UiSemantics.SocketOfItem`). The node says what the socket holds:
   "Engarce de joya, asignado: Solaz de perdición, Esmeralda, raro", or "…, vacío".
-- The D-pad's **Empty jewel sockets** list (2026-11-27, the owner: "los engarces que tengo asignados, pero en los cuales no
-  tengo gemas puestas"): the allocated sockets no jewel lies at in PassiveJewels1, the one under the cursor first; the
-  Jewel sockets list says of an allocated socket "vacío" or its jewel. LIVE the same day on kehgan: three allocated sockets,
+- The D-pad's **Allocated jewel sockets** list (2026-11-27, the owner: "los engarces que tengo asignados, pero en los cuales
+  no tengo gemas puestas", then "no necesariamente tienen que ser los vacíos"): every allocated socket, those no jewel lies
+  at in PassiveJewels1 first, each said with its jewel or "vacío", under "Engarces asignados, 2 de 3 vacíos"; the Jewel
+  sockets list says the same of an allocated socket. LIVE the same day on kehgan: three allocated sockets,
   all heard "vacío", inventory 24 absent from the `inventories` dump (the owner had taken the jewel out to refund).
 - Socketing used to read "Movido a Alijo: …" and X "Sacado de Alijo: Esmeralda, raro", because inventory 24 was not
   tracked. It is tracked now: "Engarzado en el árbol: …" and "Retirado del engarce: …" (`ItemMoves`). The base name

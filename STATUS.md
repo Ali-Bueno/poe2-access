@@ -539,12 +539,18 @@ saber cómo proseguir"; and "los engarces que tengo asignados, pero en los cuale
 unattended on kehgan, deployed to the play copy, pushed, NOT released):** the D-pad's **Holding others** list (refunding only)
 and the refund guide: a chosen node that holds others leads to them one by one ("Para reintegrar X, quedan 3 antes: reintegra
 Y: derecha, 2", "reintegra este", "X ya se puede reintegrar", "X reintegrado"), and a node's state names the big ones it holds;
-the **Empty jewel sockets** list (the allocated sockets with no jewel), and the Jewel sockets list says "vacío" or the jewel
+the D-pad list of jewel sockets taken, and the Jewel sockets list says "vacío" or the jewel
 ([refunding](docs/research/passive-tree.md#refunding), [socketed jewels](docs/research/passive-tree.md#socketed-jewels)).
 Live: a refund pending in the Hooded One's tree is undone by A on the node again (both undone, gold unchanged). The owner's
 morning log: the stuck refund ended in Refund All and 79 points taken again; the jewel "Solaz de perdición" is out of its
 socket, and kehgan's three allocated sockets are empty. **First to hear from the owner:** whether the guide's lines are
 enough to free a node of many (a node "holds 76" is better given back with Refund All).
+Later the same day (the owner: "no sé si el build planner toma bien los puntos de ascendencia, en caso de tener que
+cambiármelos"; "los engarces no necesariamente tienen que ser los vacíos"): the list is now **Allocated jewel sockets**
+(every socket taken, the empty ones first, each with its jewel or "vacío", "Engarces asignados, 3 de 3 vacíos"), and a
+build's ascendancy passives follow its guide's stages, not the stage file's list (`BuildPlan.InStageOrder`; a refunded
+Camino del puño de roca was offered back, before "Atributos" of the third trial; [ascendancy's
+tree](docs/research/passive-tree.md#the-ascendancys-tree)). Both heard live; every refund undone.
 
 **2026-11-26, 22:30 (a tester with an uncut support gem from the stash, R1/L1 through the engraving window's skills: "tab 1" cut
 the categories without choices, "Escape Shot" came alone after "Contagion", and some categories went unnamed):** fixed,

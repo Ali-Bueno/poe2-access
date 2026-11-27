@@ -107,6 +107,7 @@ new `serve`, which disconnects the game to the login screen.
   `poe2_production_Config.ini`); the mod follows it.
 - A second dump in the same second overwrites the first (`dump visible` lost to a full dump once): copy it at once.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
+- The game menu's "Salir de Path of Exile" asks to confirm (Confirmar focused): A twice (2026-11-27).
 - Escape on the login screen quits the game; the host closes with it, so start both again with
   `launch.py all`.
 - Stopping the pad server unplugs the virtual pad: in game that is a disconnect ("tu dispositivo de control se ha

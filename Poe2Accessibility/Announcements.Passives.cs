@@ -43,7 +43,7 @@ namespace Poe2Accessibility
             Services.PassiveCategory.Attributes => T("Attributes", "Atributos"),
             Services.PassiveCategory.Refundable => T("Refundable now", "Reintegrables ahora"),
             Services.PassiveCategory.Holding => T("Holding others", "Sostienen otros"),
-            Services.PassiveCategory.EmptySockets => T("Empty jewel sockets", "Engarces vacíos"),
+            Services.PassiveCategory.TakenSockets => T("Allocated jewel sockets", "Engarces asignados"),
             _ => T("Position", "Posición"),
         };
 
@@ -197,6 +197,10 @@ namespace Poe2Accessibility
         public static string PassiveFreeing(string name, int count, string next) =>
             count == 1 ? T($"To refund {name}, 1 to go first: refund {next}", $"Para reintegrar {name}, queda 1 antes: reintegra {next}")
             : T($"To refund {name}, {count} to go first: refund {next}", $"Para reintegrar {name}, quedan {count} antes: reintegra {next}");
+
+        /// <summary>Said with the allocated sockets' list: how many of them hold no jewel ("2 of 3 empty").</summary>
+        public static string PassiveSocketsEmpty(int empty, int sockets) =>
+            empty == 1 ? T($"1 of {sockets} empty", $"1 de {sockets} vacío") : T($"{empty} of {sockets} empty", $"{empty} de {sockets} vacíos");
 
         /// <summary>The refund guide on the node to give back now (the game's hint: "Refund [A]").</summary>
         public static string RefundThis => T("refund this one", "reintegra este");

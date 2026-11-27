@@ -165,6 +165,13 @@ namespace Poe2Accessibility.Tests
                 Equal("Endgame", plans.NextAscendancyStage(active, taken), "then the next one");
                 taken.UnionWith(new[] { "AscendancyMonk1Small5", "AscendancyMonk1Notable4" });
                 Equal(null, plans.NextAscendancyStage(active, taken), "none of the guide has more");
+
+                // "Campaign End" names the third trial's pair first; the earlier stages say the order the points went in.
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Campaign End.build"), File(guide, "Monk1", "AscendancyMonk1Start", "AscendancyMonk1Small7", "AscendancyMonk1Notable5", "x1", "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "AscendancyMonk1Small3", "AscendancyMonk1Notable8", "x2"));
+                var campaign = new BuildPlanFolder(folder, System.IO.Path.Join(folder, "config.ini")).Matching("kehgan", new[] { "AscendancyMonk1Small7", "AscendancyMonk1Notable5", "AscendancyMonk1Small4", "AscendancyMonk1Notable3", "AscendancyMonk1Small3", "AscendancyMonk1Notable8", "x1", "x2" });
+                Equal("AscendancyMonk1Start AscendancyMonk1Small4 AscendancyMonk1Notable3 x1 AscendancyMonk1Small3 AscendancyMonk1Notable8 AscendancyMonk1Small7 AscendancyMonk1Notable5 x2",
+                    string.Join(' ', campaign!.Passives.Select(passive => passive.Id)), "the first trial's pair, then the second's, then the stage's own; the tree's passives stay");
+                Equal("0 1 2 3 4 5 6 7 8", string.Join(' ', campaign.Passives.Select(passive => passive.Order)), "each place keeps its step");
                 Localization.Set("es", new());
                 Equal("2 puntos de ascendencia, la build no tiene más pasivas de ascendencia, la build Act 3-6 tiene más", Announcements.BuildAscendancyUnspent(2, "Act 3-6"), "said");
             }

@@ -152,7 +152,7 @@ namespace Poe2Accessibility.Tests
             var finder = new PassiveFinder();
             IReadOnlyList<IntPtr> Members(PassiveCategory category) => category == PassiveCategory.Holding ? new[] { (IntPtr)2 } : Array.Empty<IntPtr>();
             finder.ChangeCategory(-1, Members);
-            Equal(PassiveCategory.Holding, finder.Category, "up from Position: the empty sockets passed over, then the holding list");
+            Equal(PassiveCategory.Holding, finder.Category, "up from Position: the allocated sockets passed over, then the holding list");
             finder.StartFreeing();
             Equal((true, true), (finder.Taking, finder.Freeing), "the node under the cursor: the guide leads to what goes first at once");
             finder.ChangeEntry(1, Members(finder.Category));

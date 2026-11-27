@@ -97,6 +97,40 @@ namespace Poe2Accessibility.Services
             this.nodeIds.Count(id => IsAscendancyNode(id) && !IsAscendancyStart(id) && !taken.Contains(id));
 
         /// <summary>
+        ///     The plan with its ascendancy passives in the order its guide takes them: by the first of the guide's stages (files of
+        ///     the same "link" and ascendancy, this one too) that names each, the stage naming fewest ascendancy passives first, then
+        ///     in the file's order; the class's tree's passives keep their places. A stage's file lists its ascendancy passives in no
+        ///     taking order: kehgan's "Campaign End" names the third trial's pair first, while "23+ Unarmed" takes Small4 and
+        ///     Notable3 and "Act 3-6" adds Small3 and Notable8, so with one of these refunded the guide sent the point elsewhere
+        ///     (2026-11-27). Itself when it names no guide or the order is the same.
+        /// </summary>
+        public BuildPlan InStageOrder(IEnumerable<BuildPlan> stages)
+        {
+            if (this.Link.Length == 0)
+            {
+                return this;
+            }
+
+            var guide = stages.Append(this).Where(stage => string.Equals(stage.Link, this.Link, StringComparison.OrdinalIgnoreCase) &&
+                                                         string.Equals(stage.Ascendancy, this.Ascendancy, StringComparison.OrdinalIgnoreCase)).ToList();
+            int Rank(string id) => guide.Where(stage => stage.nodeIds.Contains(id)).Select(stage => stage.AscendancyLeft(new HashSet<string>())).DefaultIfEmpty(int.MaxValue).Min();
+            var slots = Enumerable.Range(0, this.Passives.Count).Where(index => IsAscendancyNode(this.Passives[index].Id) && !IsAscendancyStart(this.Passives[index].Id)).ToList();
+            var ordered = slots.Select(index => this.Passives[index]).OrderBy(passive => Rank(passive.Id)).ToList(); // stable: the file's order within a stage
+            if (ordered.Select(passive => passive.Id).SequenceEqual(slots.Select(index => this.Passives[index].Id)))
+            {
+                return this;
+            }
+
+            var passives = this.Passives.ToList();
+            for (var at = 0; at < slots.Count; at++)
+            {
+                passives[slots[at]] = ordered[at] with { Order = this.Passives[slots[at]].Order };
+            }
+
+            return this with { Passives = passives };
+        }
+
+        /// <summary>
         ///     Whether that many marked nodes can be a build: the tree's mark is one byte with no second sign, and moved by a
         ///     patch any byte that often reads 1 would mark the tree; no build takes a quarter of it (docs/research/passive-tree.md).
         /// </summary>

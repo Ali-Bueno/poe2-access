@@ -51,10 +51,11 @@ namespace Poe2Accessibility.Services
         Holding,
 
         /// <summary>
-        ///     The allocated jewel sockets with no jewel in them, to go and fill (the owner, 2026-11-27: "los engarces que tengo
-        ///     asignados, pero en los cuales no tengo gemas puestas"). Empty, so passed over, when every socket taken holds one.
+        ///     The allocated jewel sockets, the empty ones first, each said with its jewel or as empty: to go and fill one or change
+        ///     its jewel (the owner, 2026-11-27: "los engarces que tengo asignados, pero en los cuales no tengo gemas puestas", then
+        ///     "no necesariamente tienen que ser los vacíos"). Empty, so passed over, with no socket taken.
         /// </summary>
-        EmptySockets,
+        TakenSockets,
     }
 
     /// <summary>What a passive node is, best first where a list mixes them.</summary>

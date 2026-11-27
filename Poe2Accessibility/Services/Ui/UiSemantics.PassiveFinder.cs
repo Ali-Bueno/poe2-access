@@ -141,7 +141,7 @@ namespace Poe2Accessibility.Services
                 PassiveCategory.Attributes => atlas.Chosen(choices, choiceCounts.Select(count => count.Variant).ToList(), record, Differs),
                 PassiveCategory.Refundable => refunding ? atlas.Refundable(allocated, record) : Array.Empty<IntPtr>(),
                 PassiveCategory.Holding => refunding ? atlas.Holding(allocated, record) : Array.Empty<IntPtr>(),
-                PassiveCategory.EmptySockets => this.EmptySockets(atlas, allocated, record),
+                PassiveCategory.TakenSockets => this.TakenSockets(atlas, allocated, record),
                 PassiveCategory.Build => BuildPlan.TakeNow(atlas.Members(category, steps, record, marked, BuildStep, Waits).Select(node => (node, Pool(node))), points),
                 _ => atlas.Members(category, steps, record, marked, BuildStep, Waits),
             };
@@ -162,7 +162,7 @@ namespace Poe2Accessibility.Services
             }
 
             var where = Where(atlas, target, steps);
-            if (this.finder.Category is PassiveCategory.JewelSockets or PassiveCategory.EmptySockets && atlas.Nodes[target].TakenIn(allocated) &&
+            if (this.finder.Category is PassiveCategory.JewelSockets or PassiveCategory.TakenSockets && atlas.Nodes[target].TakenIn(allocated) &&
                 this.SocketJewel(atlas.Nodes[target]) is { } jewel)
             {
                 where = $"{(jewel.Length == 0 ? Announcements.EmptyCell : jewel)}, {where}"; // what a socket taken holds, or that it is empty
@@ -230,6 +230,11 @@ namespace Poe2Accessibility.Services
                 // How far along the ascendancy is: its nodes taken of those it shows, the one under the cursor too.
                 var own = Enumerable.Range(0, atlas.Nodes.Length).Where(index => BuildPlan.IsAscendancyNode(atlas.Nodes[index].Id) && !atlas.Nodes[index].IsStart).ToList();
                 progress = Announcements.BuildProgress(own.Count(index => steps[index] == 0), own.Count, 0);
+            }
+            else if (this.finder.Category == PassiveCategory.TakenSockets)
+            {
+                var sockets = Members(PassiveCategory.TakenSockets);
+                progress = Announcements.PassiveSocketsEmpty(sockets.Count(node => atlas.Places.Index.TryGetValue(node, out var at) && this.SocketJewel(atlas.Nodes[at]) is { Length: 0 }), sockets.Count);
             }
             else if (this.finder.Category == PassiveCategory.Attributes)
             {
@@ -465,13 +470,14 @@ namespace Poe2Accessibility.Services
             return Announcements.PassiveHoldsAmong(held.Count, names);
         }
 
-        /// <summary>The allocated jewel sockets no jewel lies in, the one under the cursor first, then nearest it; none while the jewels cannot be read.</summary>
-        private IReadOnlyList<IntPtr> EmptySockets(PassiveAtlas atlas, HashSet<int> allocated, IntPtr near)
+        /// <summary>The allocated jewel sockets, those no jewel lies in first, then the one under the cursor, then nearest it.</summary>
+        private IReadOnlyList<IntPtr> TakenSockets(PassiveAtlas atlas, HashSet<int> allocated, IntPtr near)
         {
             var here = atlas.Places.Index.TryGetValue(near, out var at) ? atlas.Places.Positions[at] : Vector2.Zero;
             return Enumerable.Range(0, atlas.Nodes.Length)
-                .Where(index => atlas.Nodes[index].JewelSocket && atlas.Nodes[index].TakenIn(allocated) && this.SocketJewel(atlas.Nodes[index]) is { Length: 0 })
-                .OrderBy(index => atlas.Nodes[index].Record == near ? 0 : 1)
+                .Where(index => atlas.Nodes[index].JewelSocket && atlas.Nodes[index].TakenIn(allocated))
+                .OrderBy(index => this.SocketJewel(atlas.Nodes[index]) is { Length: 0 } ? 0 : 1)
+                .ThenBy(index => atlas.Nodes[index].Record == near ? 0 : 1)
                 .ThenBy(index => Vector2.Distance(atlas.Places.Positions[index], here))
                 .Select(index => atlas.Nodes[index].Record)
                 .ToList();

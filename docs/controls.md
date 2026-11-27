@@ -324,8 +324,9 @@ Reachable now, Attributes (the
 allocated nodes you gave a choice, each said with it: "Attributes, Strength 4, Dexterity 4. Dexterity. Attribute, down left…";
 those the build's notes would have otherwise come first), while the Hooded One's tree refunds passives, Refundable now (the
 allocated nodes no other hangs from) and Holding others (the allocated nodes others hang from, the one under the cursor first,
-each with what it holds: "Attribute, holds 4 nodes, among them Fluid Metal"), and Empty jewel sockets (the sockets you have
-taken with no jewel in them, to go and fill: "Jewel Socket, empty, up right…"); up from Position reaches these last first.
+each with what it holds: "Attribute, holds 4 nodes, among them Fluid Metal"), and Allocated jewel sockets (the sockets you have
+taken, the empty ones first, each with its jewel or "empty", under "Allocated jewel sockets, 2 of 3 empty": to go and fill one
+or change its jewel); up from Position reaches these last first.
 A node chosen in Holding others is one to refund: once the cursor is on it (at once when it is the node under the cursor)
 the guide leads to the nodes to give back first, one by one: "To refund Attribute, 3 to go first: refund Fluid Metal: right, 2",
 "refund this one" on that node, then "Attribute can be refunded now" with the way back, and "Attribute refunded" (any
