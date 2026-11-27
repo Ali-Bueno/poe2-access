@@ -6,10 +6,7 @@ namespace Poe2Accessibility.Models
         /// <summary>Not the focused choice's description: the tab, the choices, the build plan's list, the buttons.</summary>
         Other,
 
-        /// <summary>A line of the focused choice's description.</summary>
+        /// <summary>A line of the focused support's description, its "Supportable Skills" list included.</summary>
         Description,
-
-        /// <summary>The game's "Supportable Skills" heading or grid, on a skill's tab, where the tab already names the skill.</summary>
-        SkillList,
     }
 }

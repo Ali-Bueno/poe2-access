@@ -13,31 +13,21 @@ namespace Poe2Accessibility.Services
         /// <summary>The tab's label: a skill's name, or "Strength Gems" and the like.</summary>
         public const string Category = "category_name_label";
 
-        /// <summary>The focused choice's description, and in it the layout whose last part is the game's "Supportable Skills" list.</summary>
+        /// <summary>The focused choice's description, down to the game's "Supportable Skills" list that ends it.</summary>
         public const string Description = "item_popup";
-        public const string Bottom = "bottom_layout";
 
         /// <summary>The description's gem kind line ("[SupportGem|Support]" with its markup, whatever the language) and the mark of a support.</summary>
         public const string KindLine = "skill_type";
         public const string SupportMark = "[SupportGem|";
 
         /// <summary>
-        ///     What a text is, by its ancestors (control id and child count, from the parent up to the window). The "Supportable
-        ///     Skills" list is the unnamed part of the bottom layout that holds the heading and the grid; it is a list only on a
-        ///     skill's tab, where the tab already names the skill. A skill gem's description (the uncut skill gem window) is
-        ///     no support's and is left as it was read.
+        ///     What a text is, by its ancestors' control ids from the parent up to the window: a line of a support's description,
+        ///     or anything else. A skill gem's description (the uncut skill gem window) is no support's and is read as it was.
         /// </summary>
-        public static EngravePart Classify(IReadOnlyList<(string Name, int Children)> chain, bool describesSupport, bool skillTab)
+        public static EngravePart Classify(IReadOnlyList<string> chain, bool describesSupport)
         {
-            var popup = chain.ToList().FindIndex(ancestor => ancestor.Name == Description);
-            if (popup < 0 || popup + 1 >= chain.Count || chain[popup + 1].Name != Window || !describesSupport)
-            {
-                return EngravePart.Other;
-            }
-
-            var bottom = chain.Take(popup).ToList().FindIndex(ancestor => ancestor.Name == Bottom);
-            var list = bottom > 0 && chain[bottom - 1].Name.Length == 0 && chain[bottom - 1].Children >= 2;
-            return list && skillTab ? EngravePart.SkillList : EngravePart.Description;
+            var popup = chain.ToList().IndexOf(Description);
+            return popup >= 0 && popup + 1 < chain.Count && chain[popup + 1] == Window && describesSupport ? EngravePart.Description : EngravePart.Other;
         }
     }
 }

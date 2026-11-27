@@ -28,7 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheWindowsPartsAreToldByTheDumpsPaths), TheWindowsPartsAreToldByTheDumpsPaths),
             (nameof(ADescriptionLeftDrawnIsReadOnReturn), ADescriptionLeftDrawnIsReadOnReturn),
             (nameof(ASkillGemsDescriptionKeepsTheSmallPageRule), ASkillGemsDescriptionKeepsTheSmallPageRule),
-            (nameof(ASkillsTabLeavesOutTheSupportableSkills), ASkillsTabLeavesOutTheSupportableSkills),
+            (nameof(ASkillsTabReadsTheSupportableSkills), ASkillsTabReadsTheSupportableSkills),
             (nameof(TheMessageBackBySquareIsSaidOnTheNextCategory), TheMessageBackBySquareIsSaidOnTheNextCategory),
             (nameof(AChoiceRenamedInPlaceDoesNotNameTheStashsTab), AChoiceRenamedInPlaceDoesNotNameTheStashsTab),
             (nameof(TheStashsOwnTabSwitchIsStillSaid), TheStashsOwnTabSwitchIsStillSaid),
@@ -105,44 +105,38 @@ namespace Poe2Accessibility.Tests
             Equal("Bow. Escape Shot, Level 3, 1 of 2. Twister", window.Said.LastOrDefault(), "last spoken");
         }
 
-        /// <summary>On a skill's tab the game's "Supportable Skills" list is left out, reached by R1 or by the D-pad.</summary>
-        private static void ASkillsTabLeavesOutTheSupportableSkills()
+        /// <summary>
+        ///     The game's "Supportable Skills" list ends the description on a skill's tab too, and is read there, by R1 or by the
+        ///     D-pad (the tester, 2026-11-27: what the window shows is heard).
+        /// </summary>
+        private static void ASkillsTabReadsTheSupportableSkills()
         {
             var window = new Window();
             var list = new[] { "Supportable Skills", "Lightning Rod, Herald of Thunder" };
             window.Choose("Lightning Rod", "Elemental Armament I", new[] { "I" }, new[] { "Category: Elemental Armament" }, list);
-            Equal("Lightning Rod. Elemental Armament I, 1 of 2. Category: Elemental Armament", window.Said.LastOrDefault(), "by R1");
+            Equal("Lightning Rod. Elemental Armament I, 1 of 2. Category: Elemental Armament. Supportable Skills. Lightning Rod, Herald of Thunder", window.Said.LastOrDefault(), "by R1");
             window.Move("Lightning Attunement", new[] { "Category: Lightning Attunement" }, list);
-            Equal("Lightning Attunement, 1 of 2. Category: Lightning Attunement", window.Said.LastOrDefault(), "by the D-pad");
-            Equal(false, window.Said.Any(line => line.Contains("Supportable", StringComparison.Ordinal)), "the list said");
+            Equal("Lightning Attunement, 1 of 2. Category: Lightning Attunement. Supportable Skills. Lightning Rod, Herald of Thunder", window.Said.LastOrDefault(), "by the D-pad");
         }
 
         /// <summary>
-        ///     The window's parts by their ancestors (name, children), from the parent up, as the dump of 2026-11-26 23:26 has them:
-        ///     contents_frame (13) > item_popup (1) > unnamed (9) > bottom_layout (13) > the unnamed "Supportable Skills" block (2).
+        ///     The window's parts by their ancestors' control ids, from the parent up, as the dump of 2026-11-26 23:26 has them:
+        ///     contents_frame > item_popup > unnamed > bottom_layout > the unnamed "Supportable Skills" block.
         /// </summary>
         private static void TheWindowsPartsAreToldByTheDumpsPaths()
         {
-            var popup = new[] { ("", 9), ("item_popup", 1), ("contents_frame", 13) };
-            (string, int)[] Up(params (string, int)[] below) => below.Concat(popup).ToArray();
-            var heading = Up(("", 2), ("bottom_layout", 13));
-            var gridName = Up(("", 2), ("", 10), ("", 2), ("bottom_layout", 13));
-            var description = Up(("description_layout", 1), ("bottom_layout", 13));
-            var reminder = Up(("bottom_layout", 13));
-            var stat = Up(("current_tab_content", 2), ("stat_container_layout", 1), ("bottom_layout", 13));
-            var title = Up(("title_background", 3));
-            var category = new[] { ("category_name_anchor", 1), ("contents_frame", 13) };
-            EngravePart Part((string, int)[] chain, bool support = true, bool skillTab = true) => EngraveWindowParts.Classify(chain, support, skillTab);
-            Equal(EngravePart.SkillList, Part(heading), "the list's heading on a skill's tab");
-            Equal(EngravePart.SkillList, Part(gridName), "a skill in the list's grid");
-            Equal(EngravePart.Description, Part(heading, skillTab: false), "the list on Strength Gems");
-            Equal(EngravePart.Description, Part(description), "the description");
-            Equal(EngravePart.Description, Part(reminder), "the reminder, a child of the bottom layout itself");
-            Equal(EngravePart.Description, Part(stat), "a stat line");
-            Equal(EngravePart.Description, Part(title), "the title");
-            Equal(EngravePart.Other, Part(category), "the tab's label");
-            Equal(EngravePart.Other, Part(description, support: false), "a skill gem's description (the uncut skill gem window)");
-            Equal(EngravePart.Description, Part(Up(("", 0), ("bottom_layout", 13))), "an empty divider is no list");
+            var popup = new[] { "", "item_popup", "contents_frame" };
+            string[] Up(params string[] below) => below.Concat(popup).ToArray();
+            EngravePart Part(string[] chain, bool support = true) => EngraveWindowParts.Classify(chain, support);
+            Equal(EngravePart.Description, Part(Up("", "bottom_layout")), "the Supportable Skills heading");
+            Equal(EngravePart.Description, Part(Up("", "", "", "bottom_layout")), "a skill in the Supportable Skills grid");
+            Equal(EngravePart.Description, Part(Up("description_layout", "bottom_layout")), "the description");
+            Equal(EngravePart.Description, Part(Up("bottom_layout")), "the reminder");
+            Equal(EngravePart.Description, Part(Up("current_tab_content", "stat_container_layout", "bottom_layout")), "a stat line");
+            Equal(EngravePart.Description, Part(Up("title_background")), "the title");
+            Equal(EngravePart.Other, Part(new[] { "category_name_anchor", "contents_frame" }), "the tab's label");
+            Equal(EngravePart.Other, Part(Up("description_layout", "bottom_layout"), support: false), "a skill gem's description (the uncut skill gem window)");
+            Equal(EngravePart.Other, Part(new[] { "", "item_popup", "inventory" }), "a popup of the same name elsewhere");
         }
 
         /// <summary>
@@ -308,15 +302,13 @@ namespace Poe2Accessibility.Tests
 
             private IEnumerable<ScreenText> Described(string[] description, string[] skillList)
             {
-                foreach (var (texts, part) in new[] { (description, EngravePart.Description), (skillList, EngravePart.SkillList) })
+                // The "Supportable Skills" list is the description's own end.
+                foreach (var line in description.Concat(skillList))
                 {
-                    foreach (var line in texts)
-                    {
-                        var text = Text(this.nextPart++, line);
-                        this.parts[text.Address] = part;
-                        this.lines[text.Address] = line;
-                        yield return text;
-                    }
+                    var text = Text(this.nextPart++, line);
+                    this.parts[text.Address] = EngravePart.Description;
+                    this.lines[text.Address] = line;
+                    yield return text;
                 }
             }
 

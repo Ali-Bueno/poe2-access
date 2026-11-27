@@ -53,17 +53,6 @@ namespace Poe2Accessibility.Services
         private void OnInGameChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer, System.Collections.Generic.List<ScreenText> legends)
         {
             var partOfEngraving = this.EngravePartOf is { } partOf && change.Layer.Texts.Any(text => text.Name == EngraveCategoryName) ? partOf : null;
-            if (partOfEngraving != null)
-            {
-                // On a skill's tab of the engraving window the game's "Supportable Skills" list names every skill again, where
-                // the tab already is the one the support goes into (tester 2026-11-26: "which skill am I modifying here?").
-                change = change with { Texts = change.Texts.Where(text => partOfEngraving(text.Address) != EngravePart.SkillList).ToList() };
-                if (change.Texts.Count == 0 && change.Kind != ScreenChangeKind.TopLayerChanged)
-                {
-                    return;
-                }
-            }
-
             var inShop = this.ShopShown?.Invoke() == true;
             if (inShop && this.InAnotherShopCard is { } inCard)
             {

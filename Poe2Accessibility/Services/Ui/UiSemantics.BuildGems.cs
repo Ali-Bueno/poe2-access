@@ -536,10 +536,7 @@ namespace Poe2Accessibility.Services
             return (key, readable);
         }
 
-        /// <summary>
-        ///     What a text of the engraving window is (<see cref="EngraveWindowParts.Classify"/>): a line of a support's
-        ///     description, the game's "Supportable Skills" list on a skill's tab, or anything else.
-        /// </summary>
+        /// <summary>What a text of the engraving window is (<see cref="EngraveWindowParts.Classify"/>): a line of a support's description, or anything else.</summary>
         public EngravePart EngravePartOf(IntPtr text)
         {
             if (!this.elements.TryReadElement(text, out var info))
@@ -547,28 +544,21 @@ namespace Poe2Accessibility.Services
                 return EngravePart.Other;
             }
 
-            // Up to the window and no further; a child count only where the rule looks at one (an unnamed part).
-            var chain = new List<(string Name, int Children)>();
-            var window = IntPtr.Zero;
+            // Up to the window and no further.
+            var chain = new List<string>();
             var popup = IntPtr.Zero;
             var current = info;
             while (chain.Count < DescriptionHops && current.Raw.ParentPtr != IntPtr.Zero && this.elements.TryReadElement(current.Raw.ParentPtr, out current))
             {
-                chain.Add((current.Name, current.Name.Length == 0 ? this.elements.ReadChildren(current).Length : 0));
+                chain.Add(current.Name);
                 popup = current.Name == EngraveWindowParts.Description ? current.Address : popup;
                 if (current.Name == EngraveWindowParts.Window)
                 {
-                    window = current.Address;
                     break;
                 }
             }
 
-            if (window == IntPtr.Zero || popup == IntPtr.Zero)
-            {
-                return EngravePart.Other;
-            }
-
-            return EngraveWindowParts.Classify(chain, this.DescribesSupport(popup), this.TabSkillOf(window, this.Holdings()).Key.Length > 0);
+            return popup == IntPtr.Zero ? EngravePart.Other : EngraveWindowParts.Classify(chain, this.DescribesSupport(popup));
         }
 
         /// <summary>Whether the description shown is a support's, by its kind line's markup ("[SupportGem|Support]" in every language).</summary>
