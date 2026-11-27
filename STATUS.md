@@ -536,7 +536,7 @@
 ## Next step
 **2026-11-27 (the owner, away, after a refund at the Hooded One: "varios estaban engarzados a otros nodos entonces me costaba
 saber cómo proseguir"; and "los engarces que tengo asignados, pero en los cuales no tengo gemas puestas"; 1170 tests, heard live
-unattended on kehgan, deployed to the play copy, pushed, NOT released):** the D-pad's **Holding others** list (refunding only)
+unattended on kehgan, deployed to the play copy, pushed, released at the owner's word as v2026.11.27-2):** the D-pad's **Holding others** list (refunding only)
 and the refund guide: a chosen node that holds others leads to them one by one ("Para reintegrar X, quedan 3 antes: reintegra
 Y: derecha, 2", "reintegra este", "X ya se puede reintegrar", "X reintegrado"), and a node's state names the big ones it holds;
 the D-pad list of jewel sockets taken, and the Jewel sockets list says "vacío" or the jewel
