@@ -550,7 +550,13 @@ from Strength Gems to Bow Shot the hint bar changed in the same frame and the ca
 waiting page now always cuts in. After a restart onto the recommended gems, Square back to the build's showed the message
 with no category switch, and the next empty skill was said alone; the message is now kept from that path too. Third run,
 23:01: all of it heard working; a choice the game renames in place after LB/RB was said alone, then again with its category,
-and now waits for the category like a new focus.
+and now waits for the category like a new focus. Then the wording (the tester: the other skills named on a skill's tab,
+"missing in" beside "you do not have it", and "it" unclear): on a skill's tab the line is only about that skill ("Lightning
+Rod already has this support", "Barrage needs this support", "Not in the build for Lightning Rod"); Strength, Dexterity and
+Intelligence Gems say "In the build for A and B" and who already has it; the choice's description is read on R1/L1; the
+game's "Supportable Skills" list is left out on a skill's tab (`BuildGems.OnSkillTab`, `UiSemantics.EngravePartOf`, from the
+window's `category_name_label` and `item_popup`, UI dump 2026-11-26 23:26). **First to hear:** those lines on the tester's
+four examples.
 **First to hear:** "Escape Shot. Selected Build Plan does not contain any entries…" right after Contagion, no "tab 1", and
 "Strength Gems. …" with another window in front.
 
