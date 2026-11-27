@@ -534,6 +534,16 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-27, afternoon (the owner: "seguimos con lo de la próxima sala"; 1175 tests, deployed to the play copy, pushed, NOT
+released, never heard in a temple):** inside **Atziri's Temple** the console's map is laid on the ground (`TempleSlots`: each
+room or path is a 253-cell slot; the map's turn and shift found by matching built cells to slots holding ground): walking into a
+room says its name (", completada" once done); the tracker's "Salas del templo completadas (N/7)" rising marks the room stood
+in as done and says "Próxima sala: Armería, 40 pasos, arriba 5, luego derecha"; the map's cells say "estás aquí" and
+"completada" ([how](docs/research/league-mechanics.md#9-incursion-vaal-beacons-and-the-temple-fate-of-the-vaal)). Needs the
+console's map read this session (in the hub, or LT + up in the temple). **First to check in the owner's next temple:** the log
+line "Temple: slot lines at …" says the map fit one way with 0-2 wrong; if it says "fit no single way", its ground picture
+shows how the temple is really built.
+
 **2026-11-27, midday (the owner in the Vaal Ruins with the Temple Console open: "mira el menú… si tenemos todo accesible"; then in
 Atziri's Temple; heard live, deployed to the play copy, pushed, NOT released):** the **Temple Console** is read: a cell says its row and
 column from the Vestibule and what stands beside it by the cross's direction ("Camino, botón, fila 2, columna 5, arriba Camino, derecha

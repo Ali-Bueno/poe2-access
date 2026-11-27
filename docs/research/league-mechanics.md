@@ -392,6 +392,71 @@ on a spirit's death), Rites of the Rogues. `EntityInfoRogueExileUniqueItem` "Has
   - Inside the temple only near entities are in the list (entities dump 12:42, 32 within ~230 units): `RoomDoor`,
     `RoomBlockerVisuals` (shut doors), the benches; no room icons. The bench `IncursionBenchCampaignCurrency` "Mesa de trabajo regia"
     carries the icon **"IncursionCraft"** (not the table's `IncursionCraftingBench…`), states `active, single_use_consumed, busy, benchtype`.
+  - **Where the player stands and which rooms are done: what the files and the 2026-11-27 log say (offline pass, same day; scratch
+    dumps only, nothing shipped).**
+    - *How the area is built.* `IncursionTemple` (WorldAreas 430, Topologies 1301) and `IncursionTemplePresent` (429, Topologies 1300) are
+      assembled from room files: `Terrain/Gallows/Leagues/Incursion/Graphs/incursion.dgr` (past; `Size: 7 10`, 26 nodes named after rooms:
+      entrance, alchemylab, armoury, commander, … map_boss, atziri_leadup, atziri_arena) and `incursion_present.dgr` (`Size: 7 7`, 18 nodes);
+      room sets `generate.rs` / `generate_present.rs` list the `.arm` files (`Rooms/Past_Rooms/<room>_3open|4open_NN.arm`, `Rooms/Past_Paths/
+      cnr|end|quad|st|tri_NN.arm`, `Rooms/Fills/fill_01.arm`, `Rooms/Unique/…`). The two graphs are fixed templates (7 wide, not the console's
+      9x9): the console's layout is not in them, so the server must generate the real one from the player's cards (LIKELY; the files
+      cannot say how). MEASURED: **every room and path `.arm` is one slot of 11x11 sub-tiles** (`k 11 11` in all 100+ files read; sub-tile
+      = 23 grid cells, `rooms.md`), i.e. **253 grid cells = 2750 world units per cell** (grid cell = 250/23 world units, `WorldToGridConvertor`);
+      uniques: entrance `past_entrance_01` / `present_entrance_01` 21x11 (2 cells wide), `atziri_arena_01` 21x21, `atziri_leadup_01` 11x31
+      (3 long), architect 11x11. Each room places its own `Objects/MinimapIcons/<Room>T<tier>MinimapIcon` at the slot centre (garrison
+      `.arm` line 74: `126 126`), a `"checkpoint"` named point and a `CheckpointLocation` (MEASURED in the `.arm` files).
+    - *Doors give the lattice.* The entity dump 12:42 (player at grid (527,739)) holds two `RoomDoor` (+ `RoomBlockerVisuals`) at grid
+      (633,748) and (518,863): exactly the middle of one edge of a 253x253 slot, ±11.5 (door tile): slot x 391.5-644.5, y 621.5-874.5, the
+      player inside (MEASURED arithmetic; checks the 253 pitch). Also "Small unexplored ground left behind at cell 436,1380" (12:37:32),
+      so the map is at least 5.4 slots tall. **Not determinable from files:** the grid origin (the slot lattice phase was 138.5 / 115.5
+      cells here, a sub-tile multiple +0.5), which world axis is the console's row and which the column, the sign of each, and where the
+      Vestibule's 2-wide slot sits against column 4. Calibrate at run time: the spawn is in the Vestibule, the doors snap the lattice, and
+      the first completed room next to it fixes the axes.
+    - *What "room completed" is.* **`CompletionNotifications` row 9 `Incursion2RoomCompleted`** ("Room Completed" / "Sala completada",
+      popup art `QuestMessageBackgroundIncursion`, sound 1263) and row 10 `Incursion2TempleCompleted` ("Temple Complete" / "Templo
+      completado"); both MEASURED. Live 2026-11-27 each room completion produced, in this order: the quest tracker line **"Salas del
+      templo completadas (N/7)"** (ClientStrings "Completed Temple Rooms ({0}/{1})", N = rooms done, 7 = rooms to do in that temple; N went
+      0→1 12:37:30, 2 at 12:39:45, 3 at 12:54:54, 4 at 12:58:38), the popup text "Sala completada" (`Screen TextsAppeared layer 12`, 20 ms
+      apart) and, ~0.3 s later, a "Nuevo punto de control" (the room's `Checkpoint_Incursion` / `Checkpoint` entity appearing). So the
+      mod already sees every completion twice (counter + popup); what is missing is which room. Room objective (clear / boss / event):
+      not in the files; from the log the Garrison/Alchemy rooms are monster rooms ("Fanático sangriento" just before 2/7) (LIKELY).
+    - *Which objects flip.* `RoomDoor.ot`: states `locked=0; open=1; is_access_chamber_or_architect; current_unlocked; required_unlocked`,
+      `TriggerableBlockage`, targetable while `open` = 0; both doors read `open` 1 at 12:42 (MEASURED dump). `RoomBlockerVisuals.ot`:
+      state `active` (1-4 = force wall animation, 0 = down); both 0 at 12:42. `RoomArenaBlocker` / `RoomMonsterBlocker`: `active`, collide
+      with `in_active_boss_arena` / `monster_is_incursion_monster`. **`IncursionRoomMinimapIcon.ot`** (base of every `<Room>T<n>MinimapIcon`):
+      `define_shared_state = "room_complete = 0; monsters_defeated = 0;"` and a `MinimapIcon` (the leaf names the Active icon, e.g.
+      `IncursionGarrisonActive`; the Inactive twin is the table's next row, MinimapIcons 939-990 in pairs Active/Inactive). **These two
+      states are the only per-room completion flags in the data** (MEASURED names; nothing says when each flips, LIKELY `room_complete`
+      1 on completion). The object has no `Positioned`/`Render` component, and the 12:42 entity dump (369 lines, 32 within ~230 units)
+      shows no such entity near the player, so the mod's list does not show them (UNSURE why: filtered, not sent, or not in range).
+      MinimapIcons rows have nothing "always shown" (all Incursion rows 939-990: radius 2/2, pointer max distance 250, the common default).
+    - *Anything client-side with the layout.* No table (`Incursion2Rooms` 37 rows, `Incursion2RoomPerLevel` 81, `Incursion2EncounterTilePerArea`
+      144 of (Area, one id), `Incursion2TempleLevelPerCharacterLevel`, `Incursion2Medallions`) holds a layout or a state; they are static.
+      Stats named incursion / temple: `map_incursion_temple_room_level_override` (24282), `map_incursion_temple_level_+` (25888),
+      `map_incursion_room_*` (26508-26511, 26578, 26854-26856) are map mods, **no stat counts rooms done or marks the current room**.
+      `Rulesets` row 91 `IncursionTempleRules` (and 90 `IncursionHubRules`) exist (flags 1/1 and 1/0), as the Trial's row 49 does with
+      its round at +0x1A8: the client keeps one ruleset object per row, filled from server packets (exe-layouts.md "Rulesets"), so the
+      temple's room list is most likely there; **not examined in the exe**. The 12:36 log reads "Rulesets: … 1 of this area:
+      AncestralOmenRules" in the temple (row 91 not yet present at arrival, LIKELY created on its first packet): the next probe is
+      `Rulesets read` on row 91 once a room is done. The mod's region word ("Esquina inferior izquierda" at the spawn, "Borde izquierdo", "Centro
+      del mapa") is screen-axis (`MapCorner`, `ScreenProjection.Axes`), not the console's.
+    - *Web (2 sources, thin; poe2wiki blocked).* The temple console shows a 9x9 grid with the Foyer and Atziri's Chamber on opposite
+      sides; you place rooms and paths from cards; "once you step inside, there is no going back" (poe-vault). No source states the
+      completion condition, whether doors lock, or that the temple is physically that grid (UNSURE; the 11x11 slots are consistent with it).
+    - *Plan the files support (LIKELY):* (a) slot lattice from `RoomDoor`s + Vestibule spawn, (b) the current slot = floor of (position -
+      origin) / 253, (c) on "Sala completada" take the room's cell as the slot the player stands in, and name the next room from the
+      console's room/path graph read earlier in the hub (the mod reads those cells' tooltips already), (d) check `room_complete` /
+      ruleset row 91 for a data-driven version once measured.
+    - *What the plugin does (2026-11-27, unit tests only, not yet heard in a temple).* `TempleSlots` cuts the area's walkable grid
+      into 253-cell slots: the slot lines are the phase whose lines the fewest walkable cells cross (each slot is walled, doors
+      aside; the middle of that run), a slot holds ground at 5% of the fullest's. The console's map (`TempleRun.Layout`, published
+      by the map's reader whenever its tooltips are read, in the hub or with LT + up in the temple) is laid on the slots by trying the
+      8 turns and every shift: the 81 cells and Atziri's Chamber must hold ground exactly where the map has a room or path, 2 wrong
+      at most; two equal fits are told apart only by the spawn slot (at or beside the Vestibule), else nothing is said. The log
+      line "Temple: slot lines at …, ground ###./…; the map's N cells lie turned (…) from slot (…), K wrong" (or "fit no single way")
+      is the check. `TempleWatch` then says a room's title on walking into it (", completada" once done), marks the room stood in
+      as done when the tracker's "(N/M)" rises, and says "Próxima sala: X" with the scanner's way to its slot's middle (nearest not
+      done along the paths, Atziri's Chamber once N = M); the map's cells add "estás aquí" and "completada".
 - Dangers: ground buffs `architect_ground_blood*` "Boiling Blood" / "Sangre hirviente" (in `hazards.txt`), `vaal_cloud` "Corrupting Smoke" / "Humo
   corrupto"; wall turrets `Monsters/LeagueIncursion/WallTurrets/WallTurret*`. Bosses (Xipocado, Atziri): [boss-mechanics.md](boss-mechanics.md).
 - **Act 3's Ancient Beacons are this object** (MEASURED 2026-11-18, Las criptas venenosas: "Misión: Focos antiguos. Activa el foco

@@ -14,6 +14,9 @@ namespace Poe2Accessibility.Services
         ///     area's new one came with the HUD after loading, which is no news, and was never said: Freythorn, 2026-10-29).
         /// </summary>
         /// <returns>The tracker's texts, for the HUD's own news to leave out.</returns>
+        /// <summary>Gets the quest tracker's lines at the last look at the HUD.</summary>
+        public IReadOnlyList<string> QuestLines { get; private set; } = Array.Empty<string>();
+
         public List<ScreenText> CheckQuestPage(ScreenSnapshot snapshot)
         {
             var hud = this.inGame ? snapshot.Find(this.HudLayer) : null;
@@ -22,6 +25,11 @@ namespace Poe2Accessibility.Services
                 : hud.Texts.Where(text => text.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
                                           (this.IsQuestTrackerText?.Invoke(text.Address) ?? false)).ToList();
             var legend = hud?.Texts.FirstOrDefault(text => text.Name == GameLayout.InGameUi.QuestLegendName)?.Text ?? string.Empty;
+            if (hud != null)
+            {
+                this.QuestLines = tracker.Select(text => text.Text).ToList();
+            }
+
             if (this.questPage.News(QuestsOf(tracker), this.InMenu || this.AreaUnnamed, legend) is { Length: > 0 } page)
             {
                 // Held whole, pages turned one after another queued up behind each other (user 2026-11-07); the cursor's

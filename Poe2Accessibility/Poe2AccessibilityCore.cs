@@ -110,6 +110,7 @@ namespace Poe2Accessibility
         private TrialDoorWatch? trialDoors;
         private ChaosTrialWatch? chaosTrial;
         private LeagueWatch? leagues;
+        private TempleWatch? temple;
         private CinematicWatch? cinematics;
         private EssenceWatch? essences;
         private RulesetWatch? rulesets;
@@ -440,6 +441,12 @@ namespace Poe2Accessibility
                     Charges = () => this.rulesets?.Charges,
                     FogRunning = () => this.rulesets?.FogRunning,
                     FogSpeaks = () => this.rulesets?.FogSpeaks ?? false,
+                };
+                this.temple = new TempleWatch(this.output, this.log)
+                {
+                    AreaId = () => this.gameState?.CurrentAreaId ?? string.Empty,
+                    QuestLines = () => this.narrator?.QuestLines ?? Array.Empty<string>(),
+                    Describe = entry => this.entities?.Describe(entry) ?? entry.Name,
                 };
                 var rulesetReader = new RulesetReader(memory, elements, this.log);
                 this.rulesets = new RulesetWatch(rulesetReader, new FogReader(memory, rulesetReader), new ChaosTrialHudReader(elements), this.output, this.log)

@@ -37,6 +37,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The Vestibule's cell, the temple's entrance.</summary>
         public static readonly (int Row, int Column) Vestibule = (0, 4);
 
+        /// <summary>Atziri's Chamber, alone beyond the far edge (dump 2026-11-27: "(9, 4)" in a container of its own).</summary>
+        public static readonly (int Row, int Column) AtziriChamber = (9, 4);
+
         private static readonly Regex CellName = new(@"^\((\d{1,2}), (\d{1,2})\)$", RegexOptions.Compiled);
 
         /// <summary>The cell an element name gives ("(3, 4)": row 3, column 4, from 0); null for any other name.</summary>
@@ -90,6 +93,41 @@ namespace Poe2Accessibility.Services
             }
 
             return reached;
+        }
+
+        /// <summary>
+        ///     The room to do next from a cell: the nearest room not done, walking the map's paths (rooms hang off them); Atziri's
+        ///     Chamber once every other is done, or when none is left that a path reaches. Null when nothing is left.
+        /// </summary>
+        /// <param name="isPath">Every cell with a room or path on it, true for a path.</param>
+        public static (int Row, int Column)? NextRoom((int Row, int Column) from, IReadOnlyDictionary<(int Row, int Column), bool> isPath, IReadOnlySet<(int Row, int Column)> done)
+        {
+            var seen = new HashSet<(int Row, int Column)> { from };
+            var queue = new Queue<(int Row, int Column)>();
+            queue.Enqueue(from);
+            while (queue.Count > 0)
+            {
+                var cell = queue.Dequeue();
+                foreach (Side side in Enum.GetValues(typeof(Side)))
+                {
+                    var next = Step(cell, side);
+                    if (!isPath.TryGetValue(next, out var path) || !seen.Add(next))
+                    {
+                        continue;
+                    }
+
+                    if (path)
+                    {
+                        queue.Enqueue(next);
+                    }
+                    else if (next != AtziriChamber && !done.Contains(next))
+                    {
+                        return next;
+                    }
+                }
+            }
+
+            return isPath.ContainsKey(AtziriChamber) && from != AtziriChamber ? AtziriChamber : null;
         }
 
         /// <summary>

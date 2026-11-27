@@ -121,6 +121,7 @@ namespace Poe2Accessibility
             this.Isolated("essences", playing, static (core, playing) => core.essences?.Tick(playing));
             this.Isolated("rulesets", playing, static (core, playing) => core.rulesets?.Tick(playing, core.Settings.AnnounceLeagues, core.Settings.AnnounceTrialProgress));
             this.Isolated("leagues", playing, static (core, playing) => core.leagues?.Tick(playing && core.Settings.AnnounceLeagues));
+            this.Isolated("temple", playing, static (core, playing) => core.temple?.Tick(playing && core.Settings.AnnounceLeagues));
             this.Isolated("enemy states", playing, static (core, playing) => core.enemyStates?.Tick(playing, core.Settings.EnemyStateCues, core.Settings.PrimedStunCues));
             this.Isolated("object sounds", playing, static (core, playing) => core.objectSounds?.Tick(playing && core.Settings.ObjectSounds));
             // A town is not explored; the guide, while it leads, is the one sound to follow.

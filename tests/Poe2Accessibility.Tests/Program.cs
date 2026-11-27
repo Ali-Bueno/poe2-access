@@ -79,6 +79,7 @@ namespace Poe2Accessibility.Tests
                 PassiveAndMenuTests.All(),
                 ReleaseAndQuestTests.All(),
                 TrialAndPanelTests.All(),
+                TempleSlotsTests.All(),
                 CodeFieldAndMarkerTests.All(),
                 ObjectAndPhraseTests.All(),
                 LayoutSearchTests.All(),

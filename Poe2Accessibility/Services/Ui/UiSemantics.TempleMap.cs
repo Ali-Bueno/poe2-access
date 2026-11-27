@@ -33,7 +33,7 @@ namespace Poe2Accessibility.Services
             var rooms = this.TempleRooms(ancestors[1].Address, cells);
             var neighbours = TempleGrid.Neighbours(at, place => rooms.TryGetValue(place, out var room) ? room.Title : null);
             var cut = rooms.ContainsKey(at) && !TempleGrid.Reached(rooms.ToDictionary(each => each.Key, each => each.Value.Path)).Contains(at);
-            return Announcements.TempleCellPlace(at.Row, at.Column, neighbours, cut);
+            return Announcements.TempleCellPlace(at.Row, at.Column, neighbours, cut, TempleRun.Here == at, TempleRun.Done.Contains(at));
         }
 
         private (IntPtr Holder, long At, Dictionary<(int Row, int Column), (string Title, bool Path)> Rooms)? templeRooms;
@@ -61,6 +61,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.templeRooms = (holder, now, rooms);
+            TempleRun.Publish(rooms);
             return rooms;
         }
 

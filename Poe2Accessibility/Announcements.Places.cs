@@ -200,10 +200,15 @@ namespace Poe2Accessibility
         ///     across, then what stands beside it by the pad's direction ("arriba Camino, derecha Cuartel").
         /// </summary>
         /// <param name="cut">No path leads to it from the Vestibule: said right after the place.</param>
-        public static string TempleCellPlace(int row, int column, IReadOnlyList<(Services.TempleGrid.Side Side, string Room)> neighbours, bool cut = false)
+        /// <param name="here">Inside the temple, the player stands in it.</param>
+        /// <param name="done">Inside the temple, its room is completed.</param>
+        public static string TempleCellPlace(int row, int column, IReadOnlyList<(Services.TempleGrid.Side Side, string Room)> neighbours, bool cut = false,
+            bool here = false, bool done = false)
         {
             var place = T($"row {row + 1}, column {column + 1}", $"fila {row + 1}, columna {column + 1}");
             place = cut ? $"{place}, {T("not connected", "sin conectar")}" : place;
+            place = here ? $"{place}, {T("you are here", "estás aquí")}" : place;
+            place = done ? $"{place}, {TempleRoomDone}" : place;
             if (neighbours.Count == 0)
             {
                 return $"{place}, {T("nothing beside it", "nada al lado")}";
@@ -211,6 +216,14 @@ namespace Poe2Accessibility
 
             return $"{place}, {string.Join(", ", neighbours.Select(each => $"{TempleSide(each.Side)} {each.Room}"))}";
         }
+
+        /// <summary>A temple room walked into: its name, and whether it is done.</summary>
+        public static string TempleRoomEntered(string room, bool done) => done ? $"{room}, {TempleRoomDone}" : room;
+
+        /// <summary>The room to do next, said with its way once a room is completed: "Próxima sala: Armería".</summary>
+        public static string TempleNextRoom(string room) => T($"Next room: {room}", $"Próxima sala: {room}");
+
+        private static string TempleRoomDone => T("completed", "completada");
 
         private static string TempleSide(Services.TempleGrid.Side side) => side switch
         {
