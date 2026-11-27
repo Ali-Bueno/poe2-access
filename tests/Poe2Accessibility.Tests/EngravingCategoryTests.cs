@@ -24,6 +24,8 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(EachCategoryIsSaidWithoutTheStashsTab), EachCategoryIsSaidWithoutTheStashsTab),
             (nameof(ACategoryWithANewButtonStillCutsIn), ACategoryWithANewButtonStillCutsIn),
+            (nameof(ACategoryReachedByR1ReadsItsChoicesDescription), ACategoryReachedByR1ReadsItsChoicesDescription),
+            (nameof(ASkillsTabLeavesOutTheSupportableSkills), ASkillsTabLeavesOutTheSupportableSkills),
             (nameof(TheMessageBackBySquareIsSaidOnTheNextCategory), TheMessageBackBySquareIsSaidOnTheNextCategory),
             (nameof(AChoiceRenamedInPlaceDoesNotNameTheStashsTab), AChoiceRenamedInPlaceDoesNotNameTheStashsTab),
             (nameof(TheStashsOwnTabSwitchIsStillSaid), TheStashsOwnTabSwitchIsStillSaid),
@@ -55,6 +57,35 @@ namespace Poe2Accessibility.Tests
                 }),
                 string.Join(" | ", window.Said),
                 "spoken");
+        }
+
+        /// <summary>
+        ///     A category reached with R1 reads its focused choice's description, as the D-pad does (Barrage's Cooldown Recovery
+        ///     came without it, tester 2026-11-26).
+        /// </summary>
+        private static void ACategoryReachedByR1ReadsItsChoicesDescription()
+        {
+            var window = new Window();
+            // The description as the log of 22:01:49 has it: more lines than a small page, which the tab once dropped whole.
+            var description = new[]
+            {
+                "Category: Cooldown Recovery", "Cost Multiplier: 130%", "Support Requirements: +5 Dex (25)", "Supports skills with Cooldowns.",
+                "Supported Skills have 25% increased cooldown recovery rate", "Place into a Skill's Support Gem socket.",
+            };
+            window.Choose("Barrage", "Cooldown Recovery I", new[] { "III" }, description, Array.Empty<string>());
+            Equal("Barrage. Cooldown Recovery I, 1 of 2. " + string.Join(". ", description.Select(line => line.TrimEnd('.'))) + ".", window.Said.LastOrDefault(), "last spoken");
+        }
+
+        /// <summary>On a skill's tab the game's "Supportable Skills" list is left out, reached by R1 or by the D-pad.</summary>
+        private static void ASkillsTabLeavesOutTheSupportableSkills()
+        {
+            var window = new Window();
+            var list = new[] { "Supportable Skills", "Lightning Rod, Herald of Thunder" };
+            window.Choose("Lightning Rod", "Elemental Armament I", new[] { "I" }, new[] { "Category: Elemental Armament" }, list);
+            Equal("Lightning Rod. Elemental Armament I, 1 of 2. Category: Elemental Armament", window.Said.LastOrDefault(), "by R1");
+            window.Move("Lightning Attunement", new[] { "Category: Lightning Attunement" }, list);
+            Equal("Lightning Attunement, 1 of 2. Category: Lightning Attunement", window.Said.LastOrDefault(), "by the D-pad");
+            Equal(false, window.Said.Any(line => line.Contains("Supportable", StringComparison.Ordinal)), "the list said");
         }
 
         /// <summary>
@@ -155,6 +186,7 @@ namespace Poe2Accessibility.Tests
                 this.narrator = new ScreenNarrator(this.output, log, layer => layer == (IntPtr)StashLayer ? this.stashTab : string.Empty)
                 {
                     FocusLayer = () => this.focusLayer, HudLayer = (IntPtr)HudLayer, SinceConfirm = () => Environment.TickCount64 - this.pressedAt,
+                    EngravePartOf = text => this.parts.GetValueOrDefault(text, EngravePart.Other),
                 };
                 this.narrator.Reset(true);
                 var cell = new AccessibleUiNode { Address = (IntPtr)1701, Role = UiRole.GridCell, Text = "empty", Value = "column 1, row 1", Context = "Inventory", IsVisible = true };
@@ -166,6 +198,47 @@ namespace Poe2Accessibility.Tests
             }
 
             public List<string> Said => this.output.Said;
+
+            /// <summary>What each text of the window is, as the semantics would tell (UiSemantics.EngravePartOf).</summary>
+            private readonly Dictionary<IntPtr, EngravePart> parts = new();
+
+            /// <summary>The next address for a description or list text: a choice's description is drawn anew for each choice.</summary>
+            private long nextPart = 5900;
+
+            /// <summary>R1 onto a category with choices whose focused one shows its description, maybe ending with the game's skill list.</summary>
+            public void Choose(string category, string choice, string[] page, string[] description, string[] skillList)
+            {
+                this.Press();
+                this.focusLayer = (IntPtr)EngraveLayer;
+                var node = Choice(choice);
+                this.narrator.OnFocusChanged(node);
+                this.Settle(100);
+                this.Show(node, Page(category, page).Concat(this.Described(description, skillList)).ToArray());
+                this.Settle(1100);
+            }
+
+            /// <summary>The D-pad to another choice of the same category: its description replaces the last one's.</summary>
+            public void Move(string choice, string[] description, string[] skillList)
+            {
+                var node = Choice(choice, 5981);
+                this.narrator.OnFocusChanged(node);
+                this.Settle(100);
+                this.Show(node, this.shown.Where(text => !this.parts.ContainsKey(text.Address)).Concat(this.Described(description, skillList)).ToArray());
+                this.Settle(1100);
+            }
+
+            private IEnumerable<ScreenText> Described(string[] description, string[] skillList)
+            {
+                foreach (var (texts, part) in new[] { (description, EngravePart.Description), (skillList, EngravePart.SkillList) })
+                {
+                    foreach (var line in texts)
+                    {
+                        var text = Text(this.nextPart++, line);
+                        this.parts[text.Address] = part;
+                        yield return text;
+                    }
+                }
+            }
 
             /// <summary>R1 onto a category with choices: the focus lands on one, the page's texts well within its 300 ms wait.</summary>
             public void Choose(string category, string choice, params string[] page)
@@ -268,9 +341,9 @@ namespace Poe2Accessibility.Tests
 
             private static ScreenText Title(string category) => new((IntPtr)5890, category, "category_name_label", false, true);
 
-            private static AccessibleUiNode Choice(string text) => new()
+            private static AccessibleUiNode Choice(string text, long address = 5980) => new()
             {
-                Address = (IntPtr)5980, Name = "new_option", Role = UiRole.Panel, Text = text, Position = "1 of 2", IsVisible = true,
+                Address = (IntPtr)address, Name = "new_option", Role = UiRole.Panel, Text = text, Position = "1 of 2", IsVisible = true,
             };
         }
 

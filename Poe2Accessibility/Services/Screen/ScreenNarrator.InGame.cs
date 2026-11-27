@@ -52,6 +52,18 @@ namespace Poe2Accessibility.Services
         /// <summary>In game: the focus layer speaks; panels, popups, the death screen and new texts follow the in-game rules.</summary>
         private void OnInGameChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer, System.Collections.Generic.List<ScreenText> legends)
         {
+            var partOfEngraving = this.EngravePartOf is { } partOf && change.Layer.Texts.Any(text => text.Name == EngraveCategoryName) ? partOf : null;
+            if (partOfEngraving != null)
+            {
+                // On a skill's tab of the engraving window the game's "Supportable Skills" list names every skill again, where
+                // the tab already is the one the support goes into (tester 2026-11-26: "which skill am I modifying here?").
+                change = change with { Texts = change.Texts.Where(text => partOfEngraving(text.Address) != EngravePart.SkillList).ToList() };
+                if (change.Texts.Count == 0 && change.Kind != ScreenChangeKind.TopLayerChanged)
+                {
+                    return;
+                }
+            }
+
             var inShop = this.ShopShown?.Invoke() == true;
             if (inShop && this.InAnotherShopCard is { } inCard)
             {
@@ -164,7 +176,11 @@ namespace Poe2Accessibility.Services
                 var lines = change.Texts.Where(text => text != tabTitle && !text.IsControl && !IsNumber(text.Text) && !IsTierNumeral(text.Text) &&
                                                        !text.Text.Split(", ").Any(focusTexts.Contains) &&
                                                        !focusSpeech.Contains(text.Text, StringComparison.Ordinal) && !this.JustNarrated(text.Text)).ToList();
-                var pageLines = lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
+                // The engraving window's choice reached by R1/L1: its description, as a D-pad move reads it (Barrage's Cooldown
+                // Recovery came without one: more lines than a small page, tester 2026-11-26).
+                var pageLines = partOfEngraving != null && tabTitle.Name == EngraveCategoryName && focus?.Name == EngraveChoiceName
+                    ? Describe(lines.Where(text => partOfEngraving(text.Address) == EngravePart.Description))
+                    : lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
                 if (named)
                 {
                     if (pageLines.Length > 0)

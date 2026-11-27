@@ -243,6 +243,7 @@ namespace Poe2Accessibility
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
+                this.narrator.EngravePartOf = text => this.semantics?.EngravePartOf(text) ?? EngravePart.Other;
                 this.narrator.FocusPending = () => this.focus?.ItemPending == true;
                 this.narrator.PanelOverGame = () => this.PanelOverGame() != null;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
