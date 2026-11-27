@@ -1,6 +1,7 @@
 namespace Poe2Accessibility
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>Spoken strings of a build skill's supports, heard group by group (same translatable layer).</summary>
     public static partial class Announcements
@@ -80,6 +81,34 @@ namespace Poe2Accessibility
 
             return string.Join("; ", parts);
         }
+
+        /// <summary>A skill's tab of the support engraving window, whose skill has the support offered socketed.</summary>
+        public static string SkillHasSupport(string skill) => T($"{skill} already has this support", $"{skill} ya tiene esta asistencia");
+
+        /// <summary>The same, holding another tier of it: "Lightning Rod already has Elemental Armament II".</summary>
+        public static string SkillHasGem(string skill, string gem) => T($"{skill} already has {gem}", $"{skill} ya tiene {gem}");
+
+        /// <summary>The build puts the support offered in the tab's skill, which does not have it.</summary>
+        public static string SkillNeedsSupport(string skill) => T($"{skill} needs this support", $"{skill} necesita esta asistencia");
+
+        /// <summary>After <see cref="SkillNeedsSupport"/>: a cut copy lies in the inventory.</summary>
+        public static string SpareInBag => T("You have one in your inventory", "Tienes una en tu inventario");
+
+        /// <summary>The build does not put the support offered in the tab's skill.</summary>
+        public static string NotInBuildFor(string skill) => T($"Not in the build for {skill}", $"No está en la build para {skill}");
+
+        /// <summary>A tab that is no skill's (Strength Gems): the build skills that use the support offered.</summary>
+        public static string InBuildFor(IReadOnlyList<string> skills) => T($"In the build for {JoinAnd(skills)}", $"En la build para {JoinAnd(skills)}");
+
+        /// <summary>After <see cref="InBuildFor"/>: one of those skills has it socketed.</summary>
+        public static string SkillHasIt(string skill) => T($"{skill} already has it", $"{skill} ya la tiene");
+
+        /// <summary>A tab that is no skill's: no build skill uses the support offered.</summary>
+        public static string NotInBuild => T("Not in the build", "No está en la build");
+
+        /// <summary>"A", "A and B", "A, B and C".</summary>
+        private static string JoinAnd(IReadOnlyList<string> items) =>
+            items.Count <= 1 ? string.Concat(items) : string.Join(", ", items.Take(items.Count - 1)) + T(" and ", " y ") + items[^1];
 
         private static string HeldInBag => T("you have it in your inventory", "la tienes en tu inventario");
 
