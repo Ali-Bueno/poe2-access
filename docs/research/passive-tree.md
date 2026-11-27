@@ -462,6 +462,19 @@ on an attribute node A opens the three choices, a change of attribute costing as
   ascendancy's were it gone) gives 9 nodes; the four the game offered "Reintegrar" on are among them (Metal fluido,
   Símbolo fundido, Estímulo sangriento, and no change of hint between the first two) and the six it offered
   "Seleccionar" on hold 1 to 22 nodes each. Not seen: the hint on an attribute node that holds none.
+- The refund guide (2026-11-27; the owner's play log of that morning: at the Hooded One, "Atributo, nodo pequeño, asignado,
+  sostiene 4 nodos, Llegaste a Atributo", and nothing said what to give back first, so "Refund All" and 79 points taken
+  again): `PassiveMap.HeldBy` names the nodes a node holds and `PassiveMap.FreeFirst` those of them that hold none, which
+  go first. An allocated node that holds others, chosen in any list while refunding (the D-pad's **Holding others** list
+  holds them all, the one under the cursor first), turns the guide to them once the cursor is on it (`PassiveFinder.Freeing`):
+  "Para reintegrar X, quedan 3 antes: reintegra Y: derecha, 2", "reintegra este" on Y, "X ya se puede reintegrar" with
+  the way back, "X reintegrado. Guía desactivada". The node chosen first stays while it can still go first. A node's state
+  names the big ones it holds: "sostiene 5 nodos, entre ellos Metal fluido". LIVE (2026-11-27, kehgan at the Hooded One):
+  followed from the list to "Evasión y escudo de energía" (7 pushes), "queda 1 antes: reintegra Conciencia consciente",
+  A there gave "ya se puede reintegrar: izquierda, 1", A on it "reintegrado. Guía desactivada"; A on each again took
+  both back and the bar of changes went away (gold unchanged): **a pending refund is undone by A on the node**.
+- Known: on the refund opening the first node read can come before the gold row shows, and says the build's next node
+  once ("Siguiente de la build: …"); the next node read is right.
 - Mod: while refunding, an allocated node says "asignado, se puede reintegrar" or "asignado, sostiene 3 nodos"
   (`RefundState`), the D-pad has a **Refundable now** list (those that hold none, nearest first; empty, so passed
   over, on any other opening), and the build's guide does not lead (its next node is none to go to: with no target
@@ -521,6 +534,10 @@ MEASURED live 2026-11-18 (0.5.5f, dev command `inventories` and memory reads), "
   focus moves to an item element two levels under the node (the jewel's entity at element +0x4E0). The mod walks up from
   that item element to the node and reads the node (`UiSemantics.SocketOfItem`). The node says what the socket holds:
   "Engarce de joya, asignado: Solaz de perdición, Esmeralda, raro", or "…, vacío".
+- The D-pad's **Empty jewel sockets** list (2026-11-27, the owner: "los engarces que tengo asignados, pero en los cuales no
+  tengo gemas puestas"): the allocated sockets no jewel lies at in PassiveJewels1, the one under the cursor first; the
+  Jewel sockets list says of an allocated socket "vacío" or its jewel. LIVE the same day on kehgan: three allocated sockets,
+  all heard "vacío", inventory 24 absent from the `inventories` dump (the owner had taken the jewel out to refund).
 - Socketing used to read "Movido a Alijo: …" and X "Sacado de Alijo: Esmeralda, raro", because inventory 24 was not
   tracked. It is tracked now: "Engarzado en el árbol: …" and "Retirado del engarce: …" (`ItemMoves`). The base name
   ("Esmeralda") came from the arrival's new entity, which had no title kept and, read just after the move, apparently no

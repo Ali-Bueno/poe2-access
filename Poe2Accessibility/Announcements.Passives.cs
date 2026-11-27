@@ -42,6 +42,8 @@ namespace Poe2Accessibility
             Services.PassiveCategory.Reachable => T("Reachable now", "Alcanzables ahora"),
             Services.PassiveCategory.Attributes => T("Attributes", "Atributos"),
             Services.PassiveCategory.Refundable => T("Refundable now", "Reintegrables ahora"),
+            Services.PassiveCategory.Holding => T("Holding others", "Sostienen otros"),
+            Services.PassiveCategory.EmptySockets => T("Empty jewel sockets", "Engarces vacíos"),
             _ => T("Position", "Posición"),
         };
 
@@ -179,11 +181,31 @@ namespace Poe2Accessibility
         /// <summary>While the tree refunds passives: an allocated node the game lets go of now.</summary>
         public static string PassiveRefundable => T("can be refunded", "se puede reintegrar");
 
-        /// <summary>While the tree refunds passives: an allocated node other allocated nodes hang from, which must go first.</summary>
         /// <summary>An allocated node the Build Planner file leaves out but without which some of its nodes have no way to the start.</summary>
         public static string BuildNeedsIt => T("the build needs it to link up", "la build lo necesita para conectar");
 
+        /// <summary>While the tree refunds passives: an allocated node other allocated nodes hang from, which must go first.</summary>
         public static string PassiveHolds(int nodes) => nodes == 1 ? T("holds 1 node", "sostiene 1 nodo") : T($"holds {nodes} nodes", $"sostiene {nodes} nodos");
+
+        /// <summary>"holds 5 nodes, among them Fluid Metal, Jewel Socket": the big ones of those it holds, named.</summary>
+        public static string PassiveHoldsAmong(int nodes, IReadOnlyList<string> names) =>
+            names.Count == 0 ? PassiveHolds(nodes)
+            : nodes == names.Count ? T($"holds {string.Join(", ", names)}", $"sostiene {string.Join(", ", names)}")
+            : T($"holds {nodes} nodes, among them {string.Join(", ", names)}", $"sostiene {nodes} nodos, entre ellos {string.Join(", ", names)}");
+
+        /// <summary>The refund guide: the target still holds nodes, and the next one to give back.</summary>
+        public static string PassiveFreeing(string name, int count, string next) =>
+            count == 1 ? T($"To refund {name}, 1 to go first: refund {next}", $"Para reintegrar {name}, queda 1 antes: reintegra {next}")
+            : T($"To refund {name}, {count} to go first: refund {next}", $"Para reintegrar {name}, quedan {count} antes: reintegra {next}");
+
+        /// <summary>The refund guide on the node to give back now (the game's hint: "Refund [A]").</summary>
+        public static string RefundThis => T("refund this one", "reintegra este");
+
+        /// <summary>The refund guide's target holds nothing any more.</summary>
+        public static string PassiveFreed(string name) => T($"{name} can be refunded now", $"{name} ya se puede reintegrar");
+
+        /// <summary>The refund guide's target was given back.</summary>
+        public static string PassiveRefunded(string name) => T($"{name} refunded", $"{name} reintegrado");
 
         /// <summary>The gold the unconfirmed changes cost, as the tree shows it ("4.273 > 3.826").</summary>
         public static string PassiveChangeCost(string from, string to) => T($"Gold: {from} to {to}", $"Oro: de {from} a {to}");

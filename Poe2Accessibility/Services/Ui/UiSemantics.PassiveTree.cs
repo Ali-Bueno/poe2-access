@@ -240,8 +240,9 @@ namespace Poe2Accessibility.Services
                     said = guide.Line.Length > 0 ? held.Prepend(guide.Line).ToList() : held;
                     tooltipPending = tooltipPending && guide.Line.Length == 0;
                 }
-                else if (record == this.finder.Target)
+                else if (record == this.finder.Target && !this.finder.Freeing)
                 {
+                    // (A target to refund says "refund this one" with its name, below, as any node to give back does.)
                     said = guide.Line.Length > 0 && !tooltipPending ? tooltip.Append(guide.Line).ToList() : tooltip; // read the target, then go on
                 }
                 else
@@ -281,7 +282,6 @@ namespace Poe2Accessibility.Services
             };
         }
 
-        /// <summary>"allocated, can be refunded", or "allocated, holds 3 nodes" for one other allocated nodes hang from; a start is only allocated.</summary>
         /// <summary>Whether an allocated node the build does not mark is the only way some of the build's nodes have to the start.</summary>
         private bool BridgesBuild(PassiveGraph graph, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
@@ -294,6 +294,10 @@ namespace Poe2Accessibility.Services
             return atlas.Places.Index.TryGetValue(record, out var at) && atlas.BuildNeeds(allocated, marked, at) > 0;
         }
 
+        /// <summary>
+        ///     "allocated, can be refunded", or "allocated, holds 3 nodes, among them Fluid Metal" for one other allocated nodes hang
+        ///     from; a start is only allocated.
+        /// </summary>
         private string RefundState(PassiveGraph graph, IntPtr record, HashSet<int> allocated)
         {
             var atlas = this.AtlasOf(graph);
@@ -302,8 +306,7 @@ namespace Poe2Accessibility.Services
                 return Announcements.PassiveAllocated;
             }
 
-            var held = atlas.Held(allocated, at);
-            return $"{Announcements.PassiveAllocated}, {(held == 0 ? Announcements.PassiveRefundable : Announcements.PassiveHolds(held))}";
+            return $"{Announcements.PassiveAllocated}, {(atlas.Held(allocated, at) == 0 ? Announcements.PassiveRefundable : HoldWords(atlas, allocated, at))}";
         }
 
         /// <summary>

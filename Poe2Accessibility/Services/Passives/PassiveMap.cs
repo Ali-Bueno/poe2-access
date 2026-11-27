@@ -43,6 +43,18 @@ namespace Poe2Accessibility.Services
         ///     the ones the game lets go of now (<see cref="PassiveMap.Held"/>).
         /// </summary>
         Refundable,
+
+        /// <summary>
+        ///     While the tree refunds passives: the allocated nodes others hang from, the one under the cursor first. Chosen, the guide
+        ///     leads to the nodes to refund first, one by one, until it can go (the owner, 2026-11-27).
+        /// </summary>
+        Holding,
+
+        /// <summary>
+        ///     The allocated jewel sockets with no jewel in them, to go and fill (the owner, 2026-11-27: "los engarces que tengo
+        ///     asignados, pero en los cuales no tengo gemas puestas"). Empty, so passed over, when every socket taken holds one.
+        /// </summary>
+        EmptySockets,
     }
 
     /// <summary>What a passive node is, best first where a list mixes them.</summary>
@@ -107,7 +119,30 @@ namespace Poe2Accessibility.Services
         /// <param name="taken">The taken nodes; the roots need not be among them.</param>
         /// <param name="roots">Where a tree begins: the class's start and the ascendancy's.</param>
         public static int Held(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int node) =>
-            roots.Contains(node) || !taken.Contains(node) ? 0 : Math.Max(0, Joined(links, taken, roots, NoNode).Count(taken.Contains) - Joined(links, taken, roots, node).Count(taken.Contains) - 1);
+            HeldBy(links, taken, roots, node).Count;
+
+        /// <returns>The taken nodes <paramref name="node"/> holds (<see cref="Held"/>): none for a root or a node not taken.</returns>
+        public static HashSet<int> HeldBy(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int node)
+        {
+            if (roots.Contains(node) || !taken.Contains(node))
+            {
+                return new HashSet<int>();
+            }
+
+            var held = Joined(links, taken, roots, NoNode);
+            held.ExceptWith(Joined(links, taken, roots, node));
+            held.IntersectWith(taken);
+            held.Remove(node);
+            return held;
+        }
+
+        /// <returns>
+        ///     What to refund first for <paramref name="node"/> to go: of the nodes it holds, those that hold none themselves, which the
+        ///     game lets go of now. Refunding them one by one frees the node (the owner at the Hooded One, 2026-11-27: several nodes
+        ///     "estaban engarzados a otros nodos", and nothing said which to give back first). Empty when the node holds none.
+        /// </returns>
+        public static List<int> FreeFirst(IReadOnlyList<int[]> links, IReadOnlySet<int> taken, IReadOnlyCollection<int> roots, int node) =>
+            HeldBy(links, taken, roots, node).Where(held => Held(links, taken, roots, held) == 0).ToList();
 
         /// <returns>
         ///     How many of the build's nodes only <paramref name="node"/>, taken outside the build, joins to a root once the whole build
@@ -246,6 +281,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The target is where the cursor was when the tree was last left: landing there ends the guide, nothing to take.</summary>
         public bool Returning { get; private set; }
 
+        /// <summary>
+        ///     With <see cref="Taking"/>: the target is an allocated node to refund, and the guide leads to the nodes that hang from it,
+        ///     to be refunded first, until it is given back itself.
+        /// </summary>
+        public bool Freeing { get; private set; }
+
         /// <param name="step">+1 next, -1 previous.</param>
         /// <param name="members">A list's nodes, nearest first; an empty list is passed over.</param>
         public void ChangeCategory(int step, Func<PassiveCategory, IReadOnlyList<IntPtr>> members)
@@ -257,7 +298,7 @@ namespace Poe2Accessibility.Services
                 if (this.Category == PassiveCategory.Position || list.Count > 0)
                 {
                     this.Target = list.Count > 0 ? list[0] : IntPtr.Zero;
-                    (this.Taking, this.Returning) = (false, false);
+                    (this.Taking, this.Returning, this.Freeing) = (false, false, false);
                     return;
                 }
             }
@@ -271,14 +312,15 @@ namespace Poe2Accessibility.Services
             {
                 var at = members.ToList().IndexOf(this.Target);
                 this.Target = members[at < 0 ? 0 : SettingsCursor.Wrap(at + step, members.Count)];
-                (this.Taking, this.Returning) = (false, false);
+                (this.Taking, this.Returning, this.Freeing) = (false, false, false);
             }
         }
 
         /// <param name="hovered">The node under the cursor.</param>
-        /// <param name="toTake">The target still has nodes to take: the guide goes on to them.</param>
+        /// <param name="toTake">The target still has nodes to take, or to refund first: the guide goes on to them.</param>
+        /// <param name="freeing">Those are nodes to refund (<see cref="Freeing"/>).</param>
         /// <returns>True when the cursor landed on the node it was guided to, the first time.</returns>
-        public bool Arrive(IntPtr hovered, bool toTake)
+        public bool Arrive(IntPtr hovered, bool toTake, bool freeing = false)
         {
             if (hovered == IntPtr.Zero || hovered != this.Target || this.Taking)
             {
@@ -287,7 +329,7 @@ namespace Poe2Accessibility.Services
 
             if (toTake && !this.Returning)
             {
-                this.Taking = true;
+                (this.Taking, this.Freeing) = (true, freeing);
             }
             else
             {
@@ -298,9 +340,18 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Ends the guide: the target was taken, or reached on the way back.</summary>
-        public void Drop() => (this.Target, this.Taking, this.Returning) = (IntPtr.Zero, false, false);
+        public void Drop() => (this.Target, this.Taking, this.Returning, this.Freeing) = (IntPtr.Zero, false, false, false);
+
+        /// <summary>The target is the node under the cursor, to refund: the guide leads at once to what must go first.</summary>
+        public void StartFreeing()
+        {
+            if (this.Target != IntPtr.Zero)
+            {
+                (this.Taking, this.Returning, this.Freeing) = (true, false, true);
+            }
+        }
 
         /// <summary>Leads back to where the cursor was when the tree was last left; the D-pad's lists start again from Position.</summary>
-        public void Return(IntPtr node) => (this.Category, this.Target, this.Taking, this.Returning) = (PassiveCategory.Position, node, false, true);
+        public void Return(IntPtr node) => (this.Category, this.Target, this.Taking, this.Returning, this.Freeing) = (PassiveCategory.Position, node, false, true, false);
     }
 }

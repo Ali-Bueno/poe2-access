@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(MinionsAreCountedByKind), MinionsAreCountedByKind),
             (nameof(PassiveStepsCountThePointsAlongTheLinks), PassiveStepsCountThePointsAlongTheLinks),
             (nameof(ANodeThatHoldsNoOtherCanBeRefunded), ANodeThatHoldsNoOtherCanBeRefunded),
+            (nameof(AHeldNodeSaysWhatToRefundFirst), AHeldNodeSaysWhatToRefundFirst),
             (nameof(ANodeOutsideTheBuildThatJoinsItIsNeeded), ANodeOutsideTheBuildThatJoinsItIsNeeded),
             (nameof(PassiveChoicesAreReadWithTheirNodes), PassiveChoicesAreReadWithTheirNodes),
             (nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing),
@@ -132,6 +133,34 @@ namespace Poe2Accessibility.Tests
             // A ring: 0 - 1 - 2 - 3 - 0. Either way round still joins the rest.
             var ring = new[] { new[] { 1, 3 }, new[] { 0, 2 }, new[] { 1, 3 }, new[] { 2, 0 } };
             Equal(0, PassiveMap.Held(ring, new HashSet<int> { 0, 1, 2, 3 }, new[] { 0 }, 1), "a node of a ring holds none");
+        }
+
+        private static void AHeldNodeSaysWhatToRefundFirst()
+        {
+            // Start 0 - 1 - 2 - 3, 2 - 4 - 5, and 1 - 6; 7 is not taken.
+            var links = new[] { new[] { 1 }, new[] { 0, 2, 6 }, new[] { 1, 3, 4 }, new[] { 2, 7 }, new[] { 2, 5 }, new[] { 4 }, new[] { 1 }, new[] { 3 } };
+            var taken = new HashSet<int> { 0, 1, 2, 3, 4, 5, 6 };
+            var roots = new[] { 0 };
+            Equal("3 4 5", string.Join(' ', PassiveMap.HeldBy(links, taken, roots, 2).Order()), "the fork holds both its branches");
+            Equal("3 5", string.Join(' ', PassiveMap.FreeFirst(links, taken, roots, 2).Order()), "the ends of them go first");
+            Equal("5", string.Join(' ', PassiveMap.FreeFirst(links, taken, roots, 4)), "a line gives back its end");
+            Equal(0, PassiveMap.FreeFirst(links, taken, roots, 3).Count, "a node that holds none has nothing to refund first");
+            Equal(0, PassiveMap.HeldBy(links, taken, roots, 0).Count, "a root holds nothing to give back");
+            taken.Remove(5);
+            Equal("4", string.Join(' ', PassiveMap.FreeFirst(links, taken, roots, 2).Where(node => node != 3)), "once the end is gone, the node before it");
+
+            var finder = new PassiveFinder();
+            IReadOnlyList<IntPtr> Members(PassiveCategory category) => category == PassiveCategory.Holding ? new[] { (IntPtr)2 } : Array.Empty<IntPtr>();
+            finder.ChangeCategory(-1, Members);
+            Equal(PassiveCategory.Holding, finder.Category, "up from Position: the empty sockets passed over, then the holding list");
+            finder.StartFreeing();
+            Equal((true, true), (finder.Taking, finder.Freeing), "the node under the cursor: the guide leads to what goes first at once");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Equal(false, finder.Freeing, "another choice is looked at first");
+            Equal(true, finder.Arrive((IntPtr)2, true, true), "landing on a node to refund that holds others");
+            Equal(true, finder.Freeing, "leads on to them");
+            finder.Drop();
+            Equal(false, finder.Freeing, "refunded: the guide ends");
         }
 
         private static void ANodeOutsideTheBuildThatJoinsItIsNeeded()

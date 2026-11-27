@@ -140,6 +140,8 @@ namespace Poe2Accessibility.Services
             {
                 PassiveCategory.Attributes => atlas.Chosen(choices, choiceCounts.Select(count => count.Variant).ToList(), record, Differs),
                 PassiveCategory.Refundable => refunding ? atlas.Refundable(allocated, record) : Array.Empty<IntPtr>(),
+                PassiveCategory.Holding => refunding ? atlas.Holding(allocated, record) : Array.Empty<IntPtr>(),
+                PassiveCategory.EmptySockets => this.EmptySockets(atlas, allocated, record),
                 PassiveCategory.Build => BuildPlan.TakeNow(atlas.Members(category, steps, record, marked, BuildStep, Waits).Select(node => (node, Pool(node))), points),
                 _ => atlas.Members(category, steps, record, marked, BuildStep, Waits),
             };
@@ -159,10 +161,28 @@ namespace Poe2Accessibility.Services
                 return hadTarget && this.finder.Target == IntPtr.Zero ? $"{position}. {Announcements.BeaconOff}" : position;
             }
 
+            var where = Where(atlas, target, steps);
+            if (this.finder.Category is PassiveCategory.JewelSockets or PassiveCategory.EmptySockets && atlas.Nodes[target].TakenIn(allocated) &&
+                this.SocketJewel(atlas.Nodes[target]) is { } jewel)
+            {
+                where = $"{(jewel.Length == 0 ? Announcements.EmptyCell : jewel)}, {where}"; // what a socket taken holds, or that it is empty
+            }
+            else if (this.finder.Category == PassiveCategory.Holding)
+            {
+                where = $"{HoldWords(atlas, allocated, target)}, {where}";
+            }
+
             // The build's lists hold the node under the cursor too, so that they count what their header does.
             var found = this.finder.Target == record
-                ? $"{Announcements.Here(atlas.Nodes[target].Name)}, {Where(atlas, target, steps)}"
-                : Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty);
+                ? $"{Announcements.Here(atlas.Nodes[target].Name)}, {where}"
+                : Announcements.PassiveFound(atlas.Nodes[target].Name, where, this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty);
+            if (this.finder.Category == PassiveCategory.Holding && this.finder.Target == record)
+            {
+                // On the node under the cursor the guide starts at once, with the first node to give back.
+                this.finder.StartFreeing();
+                found = $"{found}. {this.FreeingGuide(graph, atlas, record, target, allocated, null).Line}";
+            }
+
             if (this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken && order != null && BuildStep(this.finder.Target) is var step and < int.MaxValue)
             {
                 // The build's nodes are walked in its order: each says which step of it it is, and the weapon set whose points take it.
@@ -325,10 +345,28 @@ namespace Poe2Accessibility.Services
                 return new GuideSay(this.GoalAndWay($"return {target}", Announcements.ResumeGoal(name), back), false, false, back?.Octant, true);
             }
 
+            if (this.finder.Freeing)
+            {
+                if (!this.Refunding(graph))
+                {
+                    this.finder.Drop(); // the refund's tree was left: a node to refund means nothing in any other
+                    return GuideSay.None;
+                }
+
+                return this.FreeingGuide(graph, atlas, record, target, allocated, null);
+            }
+
             if (!this.finder.Taking && record != this.finder.Target)
             {
                 var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes);
                 return new GuideSay(this.GoalAndWay($"toward {target}", Announcements.PassiveToward(name), way), false, false, way?.Octant, true);
+            }
+
+            // Refunding, an allocated target others hang from: the guide goes on to them, to be given back first.
+            if (!this.finder.Taking && this.Refunding(graph) && atlas.Nodes[target].TakenIn(allocated) && atlas.Held(allocated, target) > 0 &&
+                this.finder.Arrive(record, true, true))
+            {
+                return this.FreeingGuide(graph, atlas, record, target, allocated, Announcements.BeaconArrived(name));
             }
 
             var trail = TrailTo(atlas, target, allocated, marked);
@@ -366,6 +404,77 @@ namespace Poe2Accessibility.Services
             var way = this.WayTo(graph, atlas, from, next.Record, MaxFinderPushes);
             var goal = Announcements.PassiveTrail(lead, trail.Count, !this.PassiveGuideBrief && at > 0 && at < trail.Count - 1, Announcements.AllocateGoal(next.Name));
             return new GuideSay(this.GoalAndWay($"trail {trail[^1]} {trail.Count} {trail[0]}", goal, way), false, at >= 0, way?.Octant, true);
+        }
+
+        /// <summary>
+        ///     The refund guide: "To refund Fluid Metal, 3 to go first: refund Attribute: down, 2", "refund this one" on that node; once
+        ///     the target holds none, the way back to it, and "Fluid Metal refunded" when it is gone. <paramref name="lead"/> comes first.
+        /// </summary>
+        private GuideSay FreeingGuide(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, int target, HashSet<int> allocated, string? lead)
+        {
+            var name = atlas.Nodes[target].Name;
+            string Led(string line) => lead == null ? line : $"{lead}. {line}";
+            if (!atlas.Nodes[target].TakenIn(allocated))
+            {
+                this.finder.Drop();
+                return new GuideSay($"{Announcements.PassiveRefunded(name)}. {Announcements.BeaconOff}", false, false, null, true);
+            }
+
+            var held = atlas.HeldBy(allocated, target);
+            var first = atlas.FreeFirst(allocated, target, record);
+            if (first.Count == 0)
+            {
+                if (atlas.Nodes[target].Record == record)
+                {
+                    return new GuideSay(Led(Announcements.RefundThis), true, true, null, true);
+                }
+
+                var back = this.WayTo(graph, atlas, record, atlas.Nodes[target].Record, MaxFinderPushes);
+                return new GuideSay(Led(this.GoalAndWay($"freed {target}", Announcements.PassiveFreed(name), back)), false, false, back?.Octant, true);
+            }
+
+            // The node chosen stays while it can still go first, so the line does not change as the cursor nears another.
+            this.freeingNext = first.Contains(this.freeingNext) ? this.freeingNext : first[0];
+            var next = atlas.Nodes[this.freeingNext];
+            var onLine = atlas.Places.Index.TryGetValue(record, out var here) && held.Contains(here);
+            if (next.Record == record)
+            {
+                return new GuideSay(Led(Announcements.RefundThis), true, true, null, true);
+            }
+
+            var way = this.WayTo(graph, atlas, record, next.Record, MaxFinderPushes);
+            var goal = Announcements.PassiveFreeing(name, held.Count, next.Name);
+            return new GuideSay(Led(this.GoalAndWay($"free {target} {held.Count} {this.freeingNext}", goal, way)), false, onLine, way?.Octant, true);
+        }
+
+        /// <summary>The refund guide's node to give back next, by the atlas's index; kept while it can still go first.</summary>
+        private int freeingNext = -1;
+
+        /// <summary>"holds 5 nodes, among them Fluid Metal": the keystones, notables and sockets of those an allocated node holds, three at most.</summary>
+        private static string HoldWords(PassiveAtlas atlas, HashSet<int> allocated, int node)
+        {
+            var held = atlas.HeldBy(allocated, node);
+            var names = held.Where(index => index < atlas.Nodes.Length)
+                .Select(index => atlas.Nodes[index])
+                .Where(row => row.Class is PassiveClass.Keystone or PassiveClass.Notable || row.JewelSocket)
+                .OrderBy(row => row.Class)
+                .Select(row => row.Name)
+                .Distinct()
+                .Take(3)
+                .ToList();
+            return Announcements.PassiveHoldsAmong(held.Count, names);
+        }
+
+        /// <summary>The allocated jewel sockets no jewel lies in, the one under the cursor first, then nearest it; none while the jewels cannot be read.</summary>
+        private IReadOnlyList<IntPtr> EmptySockets(PassiveAtlas atlas, HashSet<int> allocated, IntPtr near)
+        {
+            var here = atlas.Places.Index.TryGetValue(near, out var at) ? atlas.Places.Positions[at] : Vector2.Zero;
+            return Enumerable.Range(0, atlas.Nodes.Length)
+                .Where(index => atlas.Nodes[index].JewelSocket && atlas.Nodes[index].TakenIn(allocated) && this.SocketJewel(atlas.Nodes[index]) is { Length: 0 })
+                .OrderBy(index => atlas.Nodes[index].Record == near ? 0 : 1)
+                .ThenBy(index => Vector2.Distance(atlas.Places.Positions[index], here))
+                .Select(index => atlas.Nodes[index].Record)
+                .ToList();
         }
 
         /// <summary>The build's next node: nothing on it (its state says "next in the build"), elsewhere the way to it.</summary>
@@ -630,6 +739,34 @@ namespace Poe2Accessibility.Services
                 return Enumerable.Range(0, this.Nodes.Length)
                     .Where(index => taken.Contains(index) && this.Nodes[index].Record != near && !this.Nodes[index].IsStart && PassiveMap.Held(links, taken, roots, index) == 0)
                     .OrderBy(index => Vector2.Distance(this.Places.Positions[index], here))
+                    .Select(index => this.Nodes[index].Record)
+                    .ToList();
+            }
+
+            /// <summary>The allocated nodes this one holds (<see cref="PassiveMap.HeldBy"/>).</summary>
+            public HashSet<int> HeldBy(HashSet<int> allocated, int node) => PassiveMap.HeldBy(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated).ToHashSet(), this.Roots, node);
+
+            /// <summary>What to refund first for this node to go (<see cref="PassiveMap.FreeFirst"/>), nearest the cursor first.</summary>
+            public List<int> FreeFirst(HashSet<int> allocated, int node, IntPtr near)
+            {
+                var here = this.Places.Index.TryGetValue(near, out var at) ? this.Places.Positions[at] : Vector2.Zero;
+                return PassiveMap.FreeFirst(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated).ToHashSet(), this.Roots, node)
+                    .Where(index => index < this.Nodes.Length)
+                    .OrderBy(index => Vector2.Distance(this.Places.Positions[index], here))
+                    .ToList();
+            }
+
+            /// <summary>The allocated nodes others hang from, the one under the cursor first, then nearest it.</summary>
+            public IReadOnlyList<IntPtr> Holding(HashSet<int> allocated, IntPtr near)
+            {
+                var here = this.Places.Index.TryGetValue(near, out var at) ? this.Places.Positions[at] : Vector2.Zero;
+                var links = this.Links.Append(this.StartLinks).ToArray();
+                var taken = this.Taken(allocated).ToHashSet();
+                var roots = this.Roots;
+                return Enumerable.Range(0, this.Nodes.Length)
+                    .Where(index => taken.Contains(index) && !this.Nodes[index].IsStart && PassiveMap.Held(links, taken, roots, index) > 0)
+                    .OrderBy(index => this.Nodes[index].Record == near ? 0 : 1)
+                    .ThenBy(index => Vector2.Distance(this.Places.Positions[index], here))
                     .Select(index => this.Nodes[index].Record)
                     .ToList();
             }

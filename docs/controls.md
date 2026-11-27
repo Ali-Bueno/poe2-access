@@ -322,8 +322,15 @@ you have that the build does not: the points a refund would bring back to it), K
 start, those costing fewest points first, under "Ascendancy, 3 of 23 taken": to hear what each does and the way to it),
 Reachable now, Attributes (the
 allocated nodes you gave a choice, each said with it: "Attributes, Strength 4, Dexterity 4. Dexterity. Attribute, down left…";
-those the build's notes would have otherwise come first) and, while the Hooded One's tree refunds passives, Refundable now (the
-allocated nodes no other hangs from); up from Position reaches these last two first. Left and right walk a
+those the build's notes would have otherwise come first), while the Hooded One's tree refunds passives, Refundable now (the
+allocated nodes no other hangs from) and Holding others (the allocated nodes others hang from, the one under the cursor first,
+each with what it holds: "Attribute, holds 4 nodes, among them Fluid Metal"), and Empty jewel sockets (the sockets you have
+taken with no jewel in them, to go and fill: "Jewel Socket, empty, up right…"); up from Position reaches these last first.
+A node chosen in Holding others is one to refund: once the cursor is on it (at once when it is the node under the cursor)
+the guide leads to the nodes to give back first, one by one: "To refund Attribute, 3 to go first: refund Fluid Metal: right, 2",
+"refund this one" on that node, then "Attribute can be refunded now" with the way back, and "Attribute refunded" (any
+allocated node that holds others, chosen in another list while refunding, does the same). The Jewel sockets list also says
+of a socket you have whether it is empty or the jewel in it. Left and right walk a
 list, those costing fewest points first. A node the build takes with a weapon set's points says so ("Next in the build: Attack
 Damage, with weapon set 1 points": hold A on it to choose the points), and the Build list counts those points too. While
 refunding, an allocated node says "can be refunded" or "holds 3 nodes" (those must go first), and each change says the
