@@ -1440,6 +1440,7 @@
  "temple": "temple",
  "tent": "tente",
  "the Atlas's data, so its nodes read from the game's own popup": "les données de l'Atlas, donc ses nœuds se liront depuis la fenêtre du jeu",
+ "the Atlas's nodes, so their state and the way to them may read wrong": "les nœuds de l'Atlas, donc leur état et le chemin jusqu'à eux peuvent être mal lus",
  "the HUD": "l'ATH",
  "the area names": "les noms des zones",
  "the area's level": "le niveau de la zone",

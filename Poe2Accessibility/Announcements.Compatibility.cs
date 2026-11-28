@@ -69,6 +69,7 @@ namespace Poe2Accessibility
             "area level" => T("the area's level", "el nivel del área"),
             "life" => T("life, mana and energy shield", "la vida, el maná y el escudo de energía"),
             "Atlas catalog" => T("the Atlas's data, so its nodes read from the game's own popup", "los datos del Atlas, así que sus nodos se leerán solo por su ventana"),
+            Services.AtlasState.NodesPart => T("the Atlas's nodes, so their state and the way to them may read wrong", "los nodos del Atlas, así que su estado y el camino hasta ellos pueden leerse mal"),
             "buffs" => T("buffs and harmful states", "los efectos y estados"),
             "skills" => T("your skills and cooldowns", "tus habilidades y enfriamientos"),
             "stats" => T("your stats", "tus estadísticas"),

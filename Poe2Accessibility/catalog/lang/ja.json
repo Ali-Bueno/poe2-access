@@ -1440,6 +1440,7 @@
  "temple": "神殿",
  "tent": "テント",
  "the Atlas's data, so its nodes read from the game's own popup": "アトラスのデータのため、ノードはゲーム自身のポップアップから読み上げます",
+ "the Atlas's nodes, so their state and the way to them may read wrong": "アトラスのノード。状態やそこまでの道順が正しく読めないかもしれません",
  "the HUD": "HUD",
  "the area names": "エリア名",
  "the area's level": "エリアレベル",

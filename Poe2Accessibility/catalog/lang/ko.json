@@ -1440,6 +1440,7 @@
  "temple": "사원",
  "tent": "천막",
  "the Atlas's data, so its nodes read from the game's own popup": "아틀라스 데이터이므로, 노드는 게임 자체 팝업에서 읽습니다",
+ "the Atlas's nodes, so their state and the way to them may read wrong": "아틀라스의 노드, 따라서 상태와 그곳까지의 길이 잘못 읽힐 수 있습니다",
  "the HUD": "HUD",
  "the area names": "지역 이름",
  "the area's level": "지역 레벨",

@@ -1440,6 +1440,7 @@
  "temple": "神殿",
  "tent": "帳篷",
  "the Atlas's data, so its nodes read from the game's own popup": "輿圖的資料，因此節點會由遊戲自己的彈出視窗讀出",
+ "the Atlas's nodes, so their state and the way to them may read wrong": "輿圖的節點，因此其狀態與前往的路徑可能讀錯",
  "the HUD": "HUD",
  "the area names": "區域名稱",
  "the area's level": "區域等級",

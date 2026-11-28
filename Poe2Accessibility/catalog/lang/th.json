@@ -1440,6 +1440,7 @@
  "temple": "วิหาร",
  "tent": "เต็นท์",
  "the Atlas's data, so its nodes read from the game's own popup": "ข้อมูลของแอตลาส ดังนั้นโหนดจะอ่านจากหน้าต่างป๊อปอัปของเกม",
+ "the Atlas's nodes, so their state and the way to them may read wrong": "โหนดของแอตลาส ดังนั้นสถานะและเส้นทางไปยังโหนดอาจอ่านผิด",
  "the HUD": "หน้าจอ HUD",
  "the area names": "ชื่อพื้นที่",
  "the area's level": "เลเวลของพื้นที่",

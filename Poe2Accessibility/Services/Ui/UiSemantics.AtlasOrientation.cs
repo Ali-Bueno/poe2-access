@@ -19,6 +19,9 @@ namespace Poe2Accessibility.Services
 
         public required AtlasNodeState State { get; init; }
 
+        /// <summary>The status byte as read, for <see cref="AtlasState.Plausible"/>.</summary>
+        public byte Status { get; init; }
+
         public required string Name { get; init; }
 
         /// <summary>Drawn when scanned (fog has no rect); refreshed per landing as fog lifts.</summary>
@@ -103,13 +106,15 @@ namespace Poe2Accessibility.Services
 
                 var id = offset >= 0 ? this.EndgameIdAt(child, offset) : null;
                 var revealed = PluginUiElementReflection.TryGetAbsoluteRect(child, out var position, out var size);
+                var status = bytes[GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset];
                 entries.Add(new AtlasScanEntry
                 {
                     Element = child,
                     Id = id,
                     GridX = BitConverter.ToInt32(bytes, 0),
                     GridY = BitConverter.ToInt32(bytes, 4),
-                    State = AtlasState.Of(bytes[GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset]),
+                    State = AtlasState.Of(status),
+                    Status = status,
                     Name = id != null ? this.EndgameNodeLabel(id, child, language) : this.AtlasAreaName(child, language),
                     Revealed = revealed,
                     Centre = revealed ? position + (size / 2) : null,
@@ -172,18 +177,32 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
+            var named = this.AtlasNearestFirst(scan, here, open.Where(entry => entry.Name.Length > 0))
+                .Take(3)
+                .Select(part => Announcements.AtlasFrontierEntry(part.Entry.Name, part.Away, this.AtlasSide(here, part.Entry), part.Linked));
+            return Announcements.AtlasFrontier(string.Join("; ", named), open.Count);
+        }
+
+        /// <summary>
+        ///     Entries away from here, nearest first: those a revealed link way joins (in links) before the rest (in grid
+        ///     steps), ties by the distance drawn, then the name, then the key.
+        /// </summary>
+        private IEnumerable<(AtlasScanEntry Entry, int Away, bool Linked)> AtlasNearestFirst(
+            IReadOnlyList<AtlasScanEntry> scan, AtlasScanEntry here, IEnumerable<AtlasScanEntry> among)
+        {
             var distances = this.AtlasRevealedDistances(scan, here);
-            var named = open
-                .Select(entry => (Entry: entry, Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links) ? links : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY), Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id)))
-                .Where(part => part.Away > 0 && part.Entry.Name.Length > 0)
+            return among
+                .Select(entry => (Entry: entry,
+                    Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links)
+                        ? links
+                        : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY),
+                    Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id)))
+                .Where(part => part.Away > 0)
                 .OrderBy(part => !part.Linked)
                 .ThenBy(part => part.Away)
                 .ThenBy(part => this.AtlasDistance(here, part.Entry))
                 .ThenBy(part => part.Entry.Name, StringComparer.CurrentCulture)
-                .ThenBy(part => part.Entry.Key, StringComparer.Ordinal)
-                .Take(3)
-                .Select(part => Announcements.AtlasFrontierEntry(part.Entry.Name, part.Away, this.AtlasSide(here, part.Entry), part.Linked));
-            return Announcements.AtlasFrontier(string.Join("; ", named), open.Count);
+                .ThenBy(part => part.Entry.Key, StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -208,17 +227,8 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            var distances = this.AtlasRevealedDistances(scan, here);
-            var best = scan
-                .Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && IsLandmark(entry))
-                .Select(entry => (Entry: entry, Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links) ? links : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY), Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id)))
-                .Where(part => part.Away > 0)
-                .OrderBy(part => !part.Linked)
-                .ThenBy(part => part.Away)
-                .ThenBy(part => this.AtlasDistance(here, part.Entry))
-                .ThenBy(part => part.Entry.Name, StringComparer.CurrentCulture)
-                .ThenBy(part => part.Entry.Key, StringComparer.Ordinal)
-                .FirstOrDefault();
+            var landmarks = scan.Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && IsLandmark(entry));
+            var best = this.AtlasNearestFirst(scan, here, landmarks).FirstOrDefault();
             return best.Entry == null ? string.Empty : Announcements.AtlasAway(best.Away, best.Linked, best.Entry.Name);
         }
 

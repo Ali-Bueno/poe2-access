@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ContentIconsAreNamedByTheirArt), ContentIconsAreNamedByTheirArt),
             (nameof(TowersCountWhatTheyReach), TowersCountWhatTheyReach),
             (nameof(AtlasStateReadsBitsNotEquality), AtlasStateReadsBitsNotEquality),
+            (nameof(AMovedAtlasNodeFieldIsNotBelieved), AMovedAtlasNodeFieldIsNotBelieved),
             (nameof(AtlasLandingSaysStateAfterName), AtlasLandingSaysStateAfterName),
             (nameof(AtlasGraphWalksLinksAndSectors), AtlasGraphWalksLinksAndSectors),
             (nameof(AtlasTreeMapReadsClustersKindsAndOrdering), AtlasTreeMapReadsClustersKindsAndOrdering),
@@ -227,6 +228,21 @@ namespace Poe2Accessibility.Tests
             Expect(AtlasNodeState.Accessible, AtlasState.Of(0x11), "a higher special bit does not mask accessible");
             Expect(AtlasNodeState.Locked, AtlasState.Of(0x10), "special bits alone are not accessible");
             Expect(AtlasNodeState.Completed, AtlasState.Of(0x13), "a special bit over both state bits still reads completed");
+        }
+
+        /// <summary>A game update that moves the status byte or the grid reads other fields there: the canvas is judged before it is believed.</summary>
+        private static void AMovedAtlasNodeFieldIsNotBelieved()
+        {
+            static List<(int, int, byte)> Canvas(int nodes, Func<int, byte> status, Func<int, int>? cell = null) =>
+                Enumerable.Range(0, nodes).Select(index => (cell?.Invoke(index) ?? index - 20, -index, status(index))).ToList();
+
+            Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 20 ? 3 : index < 25 ? 1 : 0))) == true, "completed, a frontier and the locked rest");
+            Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 20 ? 0x13 : index < 25 ? 0x11 : 0x10))) == true, "special bits over them change nothing");
+            Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index == 0 ? 1 : 0))) == true, "an Atlas just opened: one node to enter");
+            Expect(true, AtlasState.Plausible(Canvas(60, _ => 0)) == false, "no node can be entered: not the status byte");
+            Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 30 ? 2 : 1))) == false, "completed nodes that cannot be entered: not the status byte");
+            Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 20 ? 3 : 1), index => 0x7F000000 + index)) == false, "cells like pointers: not the grid");
+            Expect(true, AtlasState.Plausible(Canvas(10, _ => 0)) == null, "too few catalogued nodes to tell");
         }
 
         private static void AtlasLandingSaysStateAfterName()

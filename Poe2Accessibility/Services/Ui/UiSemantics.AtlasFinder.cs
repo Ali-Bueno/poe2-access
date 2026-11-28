@@ -24,24 +24,8 @@ namespace Poe2Accessibility.Services
                 AtlasDestinationCategory.SeasonalActivities => entry.Id is { } id && EndgameCatalog.Shared.Node(id)?.Objective is { Length: > 0 },
                 _ => false,
             };
-            var allowed = scan.Where(entry => entry.Revealed && entry.Id != null).Select(entry => entry.Id!).ToHashSet(StringComparer.Ordinal);
-            var distances = here.Id is { } from
-                ? AtlasGraph.Distances(from, id => EndgameCatalog.Shared.Node(id)?.Links, id => id == from || allowed.Contains(id))
-                : null;
-            return scan
-                .Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && Holds(entry))
-                .Select(entry => (Entry: entry, Linked: distances != null && entry.Id != null && distances.ContainsKey(entry.Id),
-                    Away: distances != null && entry.Id != null && distances.TryGetValue(entry.Id, out var links)
-                        ? links
-                        : AtlasGraph.GridSteps(here.GridX, here.GridY, entry.GridX, entry.GridY)))
-                .Where(part => part.Away > 0)
-                .OrderBy(part => !part.Linked)
-                .ThenBy(part => part.Away)
-                .ThenBy(part => this.AtlasDistance(here, part.Entry))
-                .ThenBy(part => part.Entry.Name, StringComparer.CurrentCulture)
-                .ThenBy(part => part.Entry.Key, StringComparer.Ordinal)
-                .Select(part => part.Entry.Key)
-                .ToList();
+            var held = scan.Where(entry => entry.Revealed && entry.Element != here.Element && entry.Name.Length > 0 && Holds(entry));
+            return this.AtlasNearestFirst(scan, here, held).Select(part => part.Entry.Key).ToList();
         }
 
         /// <summary>A scanned node's spoken name, the generic word when the data holds none (as the landed line says it).</summary>

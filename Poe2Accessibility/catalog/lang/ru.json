@@ -1440,6 +1440,7 @@
  "temple": "храм",
  "tent": "палатка",
  "the Atlas's data, so its nodes read from the game's own popup": "данные атласа, поэтому его узлы читаются из окна самой игры",
+ "the Atlas's nodes, so their state and the way to them may read wrong": "узлы атласа, поэтому их состояние и путь к ним могут читаться неверно",
  "the HUD": "игровой интерфейс",
  "the area names": "названия областей",
  "the area's level": "уровень области",

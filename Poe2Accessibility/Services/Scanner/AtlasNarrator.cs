@@ -134,6 +134,34 @@ namespace Poe2Accessibility.Services
             return Announcements.BeaconOff;
         }
 
+        /// <summary>A scan just read, with its nodes' fields judged: a game update that moved them is reported, not believed in silence.</summary>
+        private IReadOnlyList<AtlasScanEntry> Judged(IReadOnlyList<AtlasScanEntry> scan)
+        {
+            var catalogued = scan.Where(entry => entry.Id != null).Select(entry => (entry.GridX, entry.GridY, entry.Status)).ToList();
+            var census = $"{scan.Count} nodes, {AtlasState.Census(catalogued)}";
+            if (census != this.lastCensus)
+            {
+                this.lastCensus = census;
+                this.log.Info($"Atlas scan: {census}");
+            }
+
+            if (AtlasState.Plausible(catalogued) is { } plausible)
+            {
+                if (plausible)
+                {
+                    CompatibilityReport.Current?.Found(AtlasState.NodesPart);
+                }
+                else
+                {
+                    CompatibilityReport.Current?.Missing(AtlasState.NodesPart);
+                }
+            }
+
+            return scan;
+        }
+
+        private string lastCensus = string.Empty;
+
         /// <summary>
         ///     The scan's entry for the selected node. A held scan that misses it is read again once — the game
         ///     may have rebuilt the canvas under the same world screen (a tab switch keeps the screen, drops the
@@ -142,11 +170,11 @@ namespace Poe2Accessibility.Services
         private AtlasScanEntry? ScanEntry(IntPtr selected)
         {
             var justScanned = this.scan == null;
-            this.scan ??= this.semantics.AtlasScan(selected);
+            this.scan ??= this.Judged(this.semantics.AtlasScan(selected));
             var found = this.semantics.AtlasEntryOf(this.scan, selected);
             if (found == null && !justScanned)
             {
-                this.scan = this.semantics.AtlasScan(selected);
+                this.scan = this.Judged(this.semantics.AtlasScan(selected));
                 found = this.semantics.AtlasEntryOf(this.scan, selected);
             }
 
