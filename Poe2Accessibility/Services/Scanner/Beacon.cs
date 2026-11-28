@@ -184,7 +184,10 @@ namespace Poe2Accessibility.Services
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             this.lockedIn = (area.Address, area.AreaHash ?? string.Empty);
             this.goalSeenAt = null;
+            this.lastTurn = null;
             this.lastTurnWay = null;
+            this.routeSpent = false;
+            this.partialRoute = false;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
             this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
@@ -208,6 +211,8 @@ namespace Poe2Accessibility.Services
             this.target = null;
             this.route = null;
             this.search = null;
+            this.partialRoute = false;
+            this.routeSpent = false;
             this.version++;
         }
 
@@ -248,7 +253,10 @@ namespace Poe2Accessibility.Services
                 }
 
                 goal = this.target!;
-                this.StartSearch(here / gridSize, new Vector2(goal.WorldX, goal.WorldY) / gridSize);
+                if (!this.StartSearch(here / gridSize, new Vector2(goal.WorldX, goal.WorldY) / gridSize))
+                {
+                    this.lastRefresh = long.MinValue / 2; // a search the last lock left is still running: try again next frame
+                }
             }
 
             if (this.ExploreOn(goal, here, gridSize, now))
@@ -367,7 +375,7 @@ namespace Poe2Accessibility.Services
             }
 
             var apart = Vector2.Distance(at, new Vector2(next.WorldX, next.WorldY) / gridSize) > ApartCells;
-            var (locked, turnWay) = (this.lockedAt, this.lastTurnWay);
+            var (locked, turnWay, turn) = (this.lockedAt, this.lastTurnWay, this.lastTurn);
             this.Aim(next);
             if (BarrierGround.SaysNext(apart, next.Kind))
             {
@@ -376,7 +384,7 @@ namespace Poe2Accessibility.Services
             }
             else
             {
-                (this.lockedAt, this.lastTurnWay) = (locked, turnWay); // the ping goes on: only a spoken lock is followed by silence
+                (this.lockedAt, this.lastTurnWay, this.lastTurn) = (locked, turnWay, turn); // the ping goes on: only a spoken lock is followed by silence
                 this.news.Aim(false, false);
             }
 
@@ -466,11 +474,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The target under the category the scanner lists it in: a quest's copy is judged as the thing it copies.</summary>
         private ScanEntry Listed(ScanEntry goal) => goal with { Category = this.listedAs };
 
-        private void StartSearch(Vector2 start, Vector2 end)
+        /// <summary>Starts a search; false only when one left by an earlier lock is still running.</summary>
+        private bool StartSearch(Vector2 start, Vector2 end)
         {
             if (this.search is { IsCompleted: false } || this.running is { IsCompleted: false } || !this.catalog.TryLiveGrid(out var grid, out var row))
             {
-                return;
+                return this.search != null || this.running is not { IsCompleted: false };
             }
 
             var started = this.version;
@@ -496,6 +505,7 @@ namespace Poe2Accessibility.Services
                 return (route, route != null && (!reached || barrier), barrier, spent);
             });
             this.running = this.search;
+            return true;
         }
 
         private void CollectSearch()
