@@ -62,7 +62,11 @@ namespace Poe2Accessibility.Tests
         }
 
         /// <summary>Each candidate of the plugin's source with the first file holding it, by the file's name.</summary>
-        private static SortedDictionary<string, string> SourceNames(string root)
+        private static SortedDictionary<string, string> SourceNames(string root) =>
+            Listed(root, (name, text) => ExeNames.Candidates(text, name == ExeNames.LayoutFile));
+
+        /// <summary>What <paramref name="candidates"/> finds in each of the plugin's source files (name, text), with the first file holding each.</summary>
+        internal static SortedDictionary<string, string> Listed(string root, Func<string, string, IEnumerable<string>> candidates)
         {
             var names = new SortedDictionary<string, string>(StringComparer.Ordinal);
             var folder = Path.Combine(root, Plugin);
@@ -74,7 +78,7 @@ namespace Poe2Accessibility.Tests
                     continue;
                 }
 
-                foreach (var name in ExeNames.Candidates(File.ReadAllText(file), Path.GetFileName(file) == ExeNames.LayoutFile))
+                foreach (var name in candidates(Path.GetFileName(file), File.ReadAllText(file)))
                 {
                     names.TryAdd(name, Path.GetFileName(file));
                 }
@@ -137,7 +141,7 @@ namespace Poe2Accessibility.Tests
         }
 
         /// <summary>The repository: the folder above the tests' output that holds the solution.</summary>
-        private static string Root()
+        internal static string Root()
         {
             var root = AppContext.BaseDirectory;
             while (root is not null && !File.Exists(Path.Combine(root, Solution)))

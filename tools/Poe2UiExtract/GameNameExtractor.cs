@@ -39,7 +39,9 @@ internal static class GameNameExtractor
 
         var files = new GameNameCheck.Files(ids["buffdefinitions"], ids["animation"], ids["monstervarieties"], Script, ids["minimapicons"], GameNameCheck.UiArtNames(imageList.ReadText()), ids["rulesets"]);
         var names = GameNames.All().ToList();
-        var gone = GameNameCheck.Gone(names, files);
+        // A monster is matched by its variety's Id, which need not be a file's path: both are where a path may start.
+        var paths = scripts.Keys.Concat(ids["monstervarieties"].Select(id => id.ToLowerInvariant()));
+        var gone = GameNameCheck.Gone(names, files).Concat(GonePaths(paths, outFile)).ToList();
         if (gone.Count > 0)
         {
             Say.Out.WriteLine(GameNameCheck.Line(gone));
@@ -50,5 +52,27 @@ internal static class GameNameExtractor
             .Concat(names.Select(name => $"{name.Kind}\t{name.Value}\t{name.State}\t{name.Rule}")));
         Say.Out.WriteLine($"{names.Count} names found in the game's files, written to {outFile}");
         return 0;
+    }
+
+    /// <summary>
+    ///     The paths the plugin's source matches (the list shipped beside the output, <see cref="PathNames"/>) that start
+    ///     none of <paramref name="lowerPaths"/> (the game's files and its monsters' Ids), as names gone; none when the list
+    ///     is not there.
+    /// </summary>
+    private static IEnumerable<GameName> GonePaths(IEnumerable<string> lowerPaths, string outFile)
+    {
+        var list = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outFile)) ?? string.Empty, PathNames.FileName);
+        if (!File.Exists(list))
+        {
+            Say.Out.WriteLine($"{PathNames.FileName} is not beside the output: the paths the plugin matches are not checked.");
+            return Array.Empty<GameName>();
+        }
+
+        var sorted = lowerPaths.ToArray();
+        Array.Sort(sorted, StringComparer.Ordinal);
+        var entries = PathNames.Parse(File.ReadLines(list));
+        var gone = PathNames.Gone(sorted, entries);
+        Say.Out.WriteLine($"{entries.Count - gone.Count} of {entries.Count} paths the plugin matches start a file or a monster of the game");
+        return gone.Select(path => new GameName(GameNameKind.Path, path.Path, null, path.Where));
     }
 }

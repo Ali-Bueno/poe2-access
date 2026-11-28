@@ -47,6 +47,11 @@ namespace Poe2Accessibility.Tests
                 return ExeNameTests.Make(held);
             }
 
+            if (args is [PathNameTests.MakeCommand])
+            {
+                return PathNameTests.Make();
+            }
+
             if (args is [PrismTests.CheckCommand, var prismFolder])
             {
                 return PrismTests.Check(prismFolder);
@@ -145,6 +150,7 @@ namespace Poe2Accessibility.Tests
                 KnownRowTests.All(),
                 GameNameTests.All(),
                 ExeNameTests.All(),
+                PathNameTests.All(),
                 HostRuleTests.All(),
                 LayoutRuleTests.All(),
                 LauncherWaitTests.All(),

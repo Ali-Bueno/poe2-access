@@ -29,6 +29,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A Rulesets Id.</summary>
         Ruleset,
+
+        /// <summary>The start of a file's path, from the list of those the source matches (<see cref="PathNames"/>); its rule is the source file.</summary>
+        Path,
     }
 
     /// <param name="State">For an object's script, the state matched on it; null when only the file is.</param>
