@@ -49,6 +49,8 @@
     asks "Hay una versión nueva… ¿instalarla ahora?" while a newer release exists and starts nothing until answered:
     `launch.py` then times out "waiting for the game window". Read the dialog's text first; "No" declines for that start
     only (log `Update declined`), and the owner is asked again at theirs. Never answer "Sí": it replaces the play copy.
+    `tools/computer_use/decline_update.ps1` reads the text and presses "No" on that question only; then `launch.py host`.
+    Leave the character where it was found (the way back to the refuge is in `tools/computer_use/README.md`).
 29. A name the game gives something goes where a check will find it: a control's name or a table's path as a string
     literal (`catalog/exe-names.txt`), a file's path starting `Metadata/` (`catalog/path-names.txt`). The tests fail
     until the list is made again when one is added or removed: `dotnet run --project tests/Poe2Accessibility.Tests -c

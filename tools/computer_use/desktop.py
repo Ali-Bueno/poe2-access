@@ -38,6 +38,10 @@ def main():
     joystick.add_argument('direction', help='up, down, left, right, up-left... or vec:X,Y (screen axes, y down)')
     joystick.add_argument('--amount', type=float, default=1.0)
     joystick.add_argument('--seconds', type=float, default=0.15)
+    quick = sub.add_parser('burst', help='Press several controls back to back (two deeds in one batch: triangle dpad-down triangle)')
+    quick.add_argument('names', nargs='+', choices=pad.NAMES)
+    quick.add_argument('--gap', type=float, default=0.15, help='Seconds between one press and the next')
+    quick.add_argument('--seconds', type=float, default=0.06, help='How long each control stays down')
     both = sub.add_parser('combo', help='Hold one control and press another meanwhile (l2 cross --seconds 1.5: start in town)')
     both.add_argument('held', choices=pad.NAMES)
     both.add_argument('pressed', choices=pad.NAMES)
@@ -95,6 +99,13 @@ def main():
                 w.require_foreground(info)
                 result.update(name=args.name, seconds=args.seconds)
                 pad.send(dict(action='press', name=args.name, seconds=args.seconds))
+            elif args.action == 'burst':
+                w.require_foreground(info)
+                result.update(names=args.names, gap=args.gap, seconds=args.seconds)
+                for index, name in enumerate(args.names):
+                    if index:
+                        time.sleep(args.gap)
+                    pad.send(dict(action='press', name=name, seconds=args.seconds))
             elif args.action == 'stick':
                 w.require_foreground(info)
                 result.update(side=args.side, direction=args.direction, amount=args.amount, seconds=args.seconds)

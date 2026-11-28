@@ -336,17 +336,21 @@ silent with nothing said ([audit](research/robustness-audit-2026-11-27.md)).
 
 - **An Atlas node's three dat keys** (EndgameMaps, WorldAreas, EndgameMapAtlas) are `DatKeySite`s (`AtlasNodeFields`): each is
   looked for by the table it names, on the nodes of a scan, and taken once two nodes agree. On an element not yet known to
-  be a node they are read where they are, with no search (`DatKeySite.RowAt`): map_control's selected field is another
-  thing on the act maps, and a search would take that thing's keys for a node's.
+  be a node they are read where they are, with no search and nothing learnt (`DatKeySite.RowAt`): map_control's selected
+  field is another thing on the act maps, and a search would take that thing's keys for a node's.
 - **Its grid and status** sit right after the keys and have nothing to be told by. They are read where the game's code puts
   them (`AtlasNode.Grid`, `AtlasNode.Status` in the code catalog), else as far from where measured as the keys moved
-  (`DatKeySearch.SharedMove`: the one move the keys that moved share; nothing when two differ), never both. Three builds of
+  (`DatKeySearch.SharedMove`: the one move shared by the keys that nodes proved, `DatKeySite.ProvedMove`; nothing while none
+  is proved or when two differ), never both. Three builds of
   September to November hold all five fields 0x10 before, which is the move this follows. `AtlasState.Plausible` then
   judges every scan (log `Atlas scan: 542 nodes, 368 catalogued, status bits 0:362 1:4 2:0 3:2, 368 cells in range`), and
   two scans that read wrong say "los nodos del Atlas".
-- **The selected node** on map_control is a `ControlGroup` found by `ChangingField`: of the control's pointers to a node, the
-  one that changes as the cursor moves. A pointer counts when the element's key reads where the keys are, or when the
-  element sits where a node does (a child of a child of map_control) and its key is found again.
+- **The selected node** on map_control is a `ControlGroup`. It is read where it is known to be (one read, `SelectedNodeOf`),
+  and the field is proved by its own reading once the node it names changes on the same control (`ControlFields.Proved`).
+  Only while that reads no node is the control looked over (`ChangingField`: of its pointers to a node, the one that changes
+  as the cursor moves; a pointer counts when the element sits where a node does, a child of a child of map_control, and its
+  key is found again): at most twice a second, and ever more seldom, down to once in eight seconds, while nothing there may
+  be a node, which is every act's map. Another map_control is looked over at once.
 - **The rulesets' session** (`RulesetReader`): when no pointer of the area or the game state leads to an object that holds
   the area where a session did, each is tried as a session whose fields moved (`RulesetSessionSearch`): the area's pointer
   within 0x400 of where it was, and an array near where the rulesets' was that holds, at some row, a ruleset pointing back
@@ -354,11 +358,21 @@ silent with nothing said ([audit](research/robustness-audit-2026-11-27.md)).
   believed only when it holds its row's number (an int32 the base constructor stores; found again within 0x20 when all the
   area's rulesets agree on another place). Every area has a session (43 of 43 in a day's log, each with
   AncestralOmenRules at least): none found in two areas, or rulesets that cannot be told apart, is said ("los datos en
-  vivo de los encuentros de liga").
+  vivo de los encuentros de liga"). The Trial's bar is a float of the session with nothing of its own to be told by: the
+  game's code places it (`Rulesets.TrialProgress`), and only where it still sits at its compiled place does it follow the
+  area and the array when both moved alike, never both.
+- **A value no struct can hold** is refused: a line of the catalog or of `config/layout-overrides.txt` that reads a place
+  before its struct is logged (`Code fields: … NOT applied`) and the compiled value kept; a stride of nothing reads as no
+  vector.
 
-Live 2026-11-28 (kehgan, El refugio del zigurat and its Atlas): `Layout: rulesets where measured`, `Atlas selected node`,
-`Atlas node area key`, `Atlas node map key` and `Atlas nodes where measured`; the landings read as before. No search has
-run on a real move: the pure parts have unit tests.
+Live 2026-11-28 (kehgan, 0.5.5h; El refugio del zigurat and its Atlas, Villafrey, Marca del rey, the hideout): `Exe names: 102
+of 102`, `Code fields: 85 of 85 … moved: none`, `Layout: rulesets where measured` and a session at each of ten arrivals in
+six areas (`RitualRules, AncestralOmenRules` in Villafrey; `SailAwayRules, WobblePointRules, AncestralOmenRules` in Marca del
+rey); on the Atlas `Atlas node map key`, `area key`, `atlas key` and `Atlas nodes
+where measured` at the first scan, `Atlas selected node where measured` at the first hop, the landings as before
+("Desaguadero. Bloqueado…", "Foso. Accesible…", "Oasis. Completado…"). With the mod started anew and the teleport map
+opened first, 35 s on it among its places: no slow tick, nothing said of the Atlas; the Atlas after it proved its field the
+same way. No error or warning in the log. No search has run on a real move: the pure parts have unit tests.
 
 ### When a part is said lost
 Reviewed 2026-11-10: every place that says a part lost (`CompatibilityReport.Missing`) was asked whether a healthy game can

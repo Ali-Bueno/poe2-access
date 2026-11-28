@@ -53,6 +53,8 @@ dpad-up/down/left/right (hold `--seconds`, ≤ 2 s). `stick left|right up|down|l
 `combo HELD PRESSED [--seconds S]` holds one control and presses another meanwhile (`combo l2 cross --seconds 1.8`
 starts the game in town from character selection: the game wants A held; a character away from town gets a
 confirmation whose Cancel is focused).
+`burst NAME NAME… [--gap S]` presses controls back to back, for what must hold when the player is fast (`burst triangle
+dpad-down triangle` drops two items within half a second: one `Item moves:` batch, "Tirado: … . Tirado: …").
 `chord BUTTON left|right DIRECTION [--seconds S] [--select]` holds a button and pushes a stick meanwhile; `--select`
 lets go of the button while the stick still points, which opens what the radial menu points at
 (`chord share right up-right --seconds 0.8 --select` opens Cosmetics). Changing `pad.py` needs `pad.py quit` and a
@@ -100,7 +102,24 @@ new `serve`, which disconnects the game to the login screen.
   2026-11-10): end the `Poe2Access.exe` whose path is under `dist\` as soon as the game window shows.
 - The play copy's update prompt (a Yes/No box titled "Poe2Access" from `dist\Poe2Access`) holds the game's start until answered: the
   box's "No" button answers it through UI Automation (`InvokePattern`), without a key press. `Poe2Access.exe stop` stops every running
-  copy, the development host too: run `launch.py host` after it (2026-11-13).
+  copy, the development host too: run `launch.py host` after it (2026-11-13). `decline_update.ps1` does it in one step: start the
+  game (`cmd /c start "" "steam://rungameid/2694490"`), run the script (it reads the box's text, presses "No" on that question
+  only and prints `declined`), wait for the game window, then `launch.py host` (2026-11-28).
+- Walking by the entities dump (`entities` in `debug/command.txt`: the player's cell on the first line, each thing with its
+  dx, dy): the camera is turned an eighth, so `stick left up` walks +x +y, `down` -x -y, `left` -x +y, `right` +x -y, about
+  25 cells a second on each axis; a wall slides the character along it, so read the place again after each leg of a second
+  or so (2026-11-28).
+- A facing the wrong way talks to the wrong thing: at the hideout's waypoint A opened Farrow's shop twice, the merchant
+  standing just beyond it. Press A only after the log says `moved: Transportador, A`, and stand so the thing wanted is the
+  one ahead (2026-11-28).
+- The teleport map: D-pad up from the places reaches the act tabs, left and right walk them, A shows that act with the cursor
+  on its town. Its Y changes with where the character has been ("Regresar a Villafrey", else "Viajar al pueblo": the town of
+  the act last visited, not the refuge); holding Y goes to the hideout. **El refugio del zigurat is no place of that map**: the
+  way back is Marca del rey (Act 4's town), El encapuchado, "Viajar a Oriath" (four lines to continue, then a 40 s video the
+  mod narrates). A test that leaves the refuge owes that trip, so the character is left where it was found (2026-11-28).
+- A town refuses drops. A place that takes them: Villafrey's waypoint (Act 1, monsters of level 11; the nearest enemy stood
+  148 cells away that day, and an instance is made anew each time). Note the bag first (`inventories`), pick each thing up
+  again ("Recogido: …") and put it back in its cell: the bag was compared line by line afterwards (2026-11-28).
 - Stick pushes with a panel open can walk the character (yarkey went from the waypoint to the well during a sweep of
   panels, 2026-11-10): check where it stands before relying on its place.
 - The client's language: Options, Game, Language, then X to save and a restart (`language=` under `[LANGUAGE]` of
