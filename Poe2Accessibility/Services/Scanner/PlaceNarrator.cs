@@ -53,7 +53,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Where the grid's fields are read: as measured, or as a search found them; replaced whole (builds run off the frame thread).</summary>
         private volatile TileGridSearch.Layout layout = Measured;
-        private Task<(PlaceMap Map, int Count, int Generation)?>? building;
+        private Task<BuildResult?>? building;
         private int generation;
         private PlaceTracker tracker = NewTracker();
 
@@ -71,8 +71,8 @@ namespace Poe2Accessibility.Services
         private int objectsMatched;
         private long lastObjectMatch = long.MinValue / 2;
 
-        /// <summary>The last build's verdict on the tile grid layout (1 fits, 2 found moved, -1 neither, 0 none new), for the frame thread.</summary>
-        private int tileLayout;
+        /// <summary>A finished build for one area: its map (none when no sub-tile names a tile) and its verdict on the tile grid layout (1 fits, 2 found moved, -1 neither).</summary>
+        private sealed record BuildResult(PlaceMap? Map, int Generation, int Verdict, string GridTest, TileGridSearch.Layout Layout);
 
         /// <summary>The self-test's line on the tile grid, from the last build.</summary>
         private string gridTest = "not judged yet (needs an area)";
@@ -233,7 +233,7 @@ namespace Poe2Accessibility.Services
             this.gridTest = "not judged yet (needs an area)";
         }
 
-        private (PlaceMap Map, int Count, int Generation)? Build(StdVector details, int perRow, int count, int generation)
+        private BuildResult? Build(StdVector details, int perRow, int count, int generation)
         {
             try
             {
@@ -248,20 +248,19 @@ namespace Poe2Accessibility.Services
                 var found = this.FindLayout(grid, count, perRow);
                 if (found != null && found != layout)
                 {
-                    (layout, this.layout) = (found, found);
+                    layout = found;
                     placements = this.ReadPlacements(grid, perRow, layout);
                     fits = true;
                 }
 
                 var verdict = !fits ? -1 : layout == Measured ? 1 : 2;
-                this.gridTest = verdict > 0
+                var gridTest = verdict > 0
                     ? $"{(verdict == 1 ? "ok" : "moved")} ({placements.Count} of {count} sub-tiles name a tile; {layout}; " +
                       $"{(found != null ? "a search finds it too" : "a search finds nothing here")})"
                     : $"FAIL ({placements.Count} of {count} sub-tiles name a tile, {grid.Length} bytes; nothing near {Measured} fits)";
-                Interlocked.Exchange(ref this.tileLayout, verdict);
                 if (placements.Count == 0)
                 {
-                    return null;
+                    return new BuildResult(null, generation, verdict, gridTest, layout);
                 }
 
                 var built = PlaceMap.Build(this.catalog, placements, TileStructure.TileToGridConversion);
@@ -274,7 +273,7 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Rooms: {built.NamedRooms.Count} named in {timer.ElapsedMilliseconds} ms" +
                               (built.NamedRooms.Count > 0 ? $" ({string.Join(", ", built.NamedRooms.Select(room => $"{room.Label} at {room.X},{room.Y}"))})" : string.Empty) +
                               $"; {built.ObjectRooms.Count} more its entities may place");
-                return (built, count, generation);
+                return new BuildResult(built, generation, verdict, gridTest, layout);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
@@ -358,6 +357,23 @@ namespace Poe2Accessibility.Services
                 : string.Empty;
         }
 
+        private void ReportLayout(int verdict)
+        {
+            switch (verdict)
+            {
+                case 1:
+                    this.Report?.Found("tile grid");
+                    break;
+                case 2:
+                    var (from, to) = TileGridSearch.FirstMoved(Measured, this.layout);
+                    this.Report?.Moved("tile grid", from, to);
+                    break;
+                case -1:
+                    this.Report?.Missing("tile grid");
+                    break;
+            }
+        }
+
         private static string Kinds(IEnumerable<(Vector2 Grid, string Kind)> places) =>
             string.Join(", ", places.GroupBy(place => place.Kind).Select(group => $"{group.Key} {group.Count()}"));
 
@@ -375,29 +391,21 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            switch (Interlocked.Exchange(ref this.tileLayout, 0))
-            {
-                case 1:
-                    this.Report?.Found("tile grid");
-                    break;
-                case 2:
-                    var (from, to) = TileGridSearch.FirstMoved(Measured, this.layout);
-                    this.Report?.Moved("tile grid", from, to);
-                    break;
-                case -1:
-                    this.Report?.Missing("tile grid");
-                    break;
-            }
-
             if (this.building is { IsCompleted: true } built)
             {
                 this.building = null;
                 if (built.Result is { } fresh && fresh.Generation == this.generation)
                 {
-                    this.map = fresh.Map;
-                    this.lastAnchorPoll = long.MinValue / 2;
-                    this.objectsMatched = -1; // the new map holds its tile rooms only
-                    this.lastObjectMatch = long.MinValue / 2;
+                    this.layout = fresh.Layout;
+                    this.gridTest = fresh.GridTest;
+                    this.ReportLayout(fresh.Verdict);
+                    if (fresh.Map != null)
+                    {
+                        this.map = fresh.Map;
+                        this.lastAnchorPoll = long.MinValue / 2;
+                        this.objectsMatched = -1; // the new map holds its tile rooms only
+                        this.lastObjectMatch = long.MinValue / 2;
+                    }
                 }
             }
 
