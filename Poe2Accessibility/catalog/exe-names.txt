@@ -30,6 +30,7 @@
 -	G4_town	Cinematics.cs
 -	G_Endgame_Town	Cinematics.cs
 -	HelmetMetal_Drop_01	SoundGlossary.cs
++	HideoutDoodad	GameLayout.cs
 -	Interlude_Endgame_Transition	Announcements.Cinematics.cs
 -	LiftButton_PlatformLarge	ChaosTrial.cs
 +	Metadata/PassiveSkillGraph	GameLayout.cs

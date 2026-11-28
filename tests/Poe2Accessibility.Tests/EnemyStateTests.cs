@@ -157,6 +157,21 @@ namespace Poe2Accessibility.Tests
             Equal("Sin explorar", Names(new[] { back, waypoint, frontier }, crossing), "no way on known yet: the unexplored ground");
             Equal(string.Empty, Names(new[] { back, on, frontier }, "Busca la semilla de la corrupción"), "an objective not about this area");
             Equal(string.Empty, Names(new[] { back, on, frontier }, "Registra el Enredo sombrío para encontrar al Conde"), "a name to find: not the way on");
+
+            // The HUD's arrival message names the area too and is no objective: with nothing on the tracker, the exit of
+            // Villafrey was "Terrenos de caza, tu misión" on every arrival by waypoint (the owner, 2026-11-28).
+            var hunting = new ScanEntry(5, ScanCategory.Exits, "Terrenos de caza", 0, 0, 0, QuestMatcher.ExitKind);
+            var hud = new[] { "9", "7", "Espíritu, 10/100", "Maná, 502/502", "Entrando a Villafrey..." };
+            string Arriving(IReadOnlyCollection<string>? objectives, params string[] texts) =>
+                string.Join(" | ", QuestMatcher.Targets(new[] { hunting, frontier }, texts, "Villafrey", string.Empty, objectives: objectives).Select(entry => entry.Name));
+            Equal(string.Empty, Arriving(Array.Empty<string>(), hud), "the arrival message alone asks for nothing");
+            Equal("Terrenos de caza", Arriving(new[] { "Sigue a través de Villafrey" }, hud.Append("Sigue a través de Villafrey").ToArray()),
+                  "an objective that names only the area still sends across it");
+            var memo = new QuestMatcher.Memo();
+            Equal("Terrenos de caza", string.Join(" | ", QuestMatcher.Targets(new[] { hunting }, new[] { "Sigue a través de Villafrey" }, "Villafrey", memo: memo,
+                      objectives: new[] { "Sigue a través de Villafrey" }).Select(entry => entry.Name)), "kept for the same texts");
+            Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(new[] { hunting }, new[] { "Sigue a través de Villafrey" }, "Villafrey", memo: memo,
+                      objectives: Array.Empty<string>()).Select(entry => entry.Name)), "and worked out again when the same text is no objective any more");
         }
 
         private static void ExploredGroundIsKeptAsBytes()

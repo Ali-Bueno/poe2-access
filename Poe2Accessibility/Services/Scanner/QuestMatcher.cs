@@ -35,11 +35,16 @@ namespace Poe2Accessibility.Services
         ///     target in the Lost City (user 2026-11-14).
         /// </param>
         /// <param name="questLines">Every step of the tracker's quests (<see cref="QuestGoalCatalog.QuestLinesOf"/>): what a later step speaks of in the plural.</param>
+        /// <param name="objectives">
+        ///     Which of the texts are the tracker's own objective lines; all of them when not given. Only an objective sends
+        ///     the player across the area it names: the HUD's "Entrando a Villafrey..." on arrival named the area too, and
+        ///     with no quest on the tracker every exit was "tu misión" (the owner, 2026-11-28).
+        /// </param>
         public static List<ScanEntry> Targets(
             IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "", string cameFrom = "", Memo? memo = null,
-            IReadOnlyCollection<string>? leadsTo = null, IReadOnlyCollection<string>? questLines = null)
+            IReadOnlyCollection<string>? leadsTo = null, IReadOnlyCollection<string>? questLines = null, IReadOnlyCollection<string>? objectives = null)
         {
-            var objective = memo?.For(questTexts, currentArea, questLines) ?? new Objective(questTexts, currentArea, questLines);
+            var objective = memo?.For(questTexts, currentArea, questLines, objectives) ?? new Objective(questTexts, currentArea, questLines, objectives);
             var texts = objective.Texts;
             var steps = leadsTo is { Count: > 0 } ? leadsTo.Select(Fold).ToHashSet() : null;
             // What the minimap marks with the quest's own icon is the objective, whatever the tracker says — never a
@@ -125,8 +130,8 @@ namespace Poe2Accessibility.Services
         {
             private Objective? last;
 
-            internal Objective For(IReadOnlyList<string> questTexts, string currentArea, IReadOnlyCollection<string>? questLines) =>
-                this.last is { } kept && kept.Is(questTexts, currentArea) ? kept : this.last = new Objective(questTexts, currentArea, questLines);
+            internal Objective For(IReadOnlyList<string> questTexts, string currentArea, IReadOnlyCollection<string>? questLines, IReadOnlyCollection<string>? objectives = null) =>
+                this.last is { } kept && kept.Is(questTexts, currentArea, objectives) ? kept : this.last = new Objective(questTexts, currentArea, questLines, objectives);
         }
 
         /// <summary>
@@ -138,6 +143,7 @@ namespace Poe2Accessibility.Services
             private readonly string[] questTexts;
             private readonly string currentArea;
             private readonly List<string> questLines;
+            private readonly string[]? objectives;
             private readonly Dictionary<(string Text, NamePart Part, bool ByWord), bool> names = new();
             private readonly Dictionary<string, bool> several = new();
             private string[]? stems;
@@ -145,12 +151,14 @@ namespace Poe2Accessibility.Services
             private bool? namesOnlyItsArea;
 
             /// <param name="questLines">Every step of the quests the tracker shows, by the game's tables, done and to come.</param>
-            public Objective(IReadOnlyList<string> questTexts, string currentArea, IReadOnlyCollection<string>? questLines = null)
+            /// <param name="objectives">The texts that are objective lines; every text when not given.</param>
+            public Objective(IReadOnlyList<string> questTexts, string currentArea, IReadOnlyCollection<string>? questLines = null, IReadOnlyCollection<string>? objectives = null)
             {
                 this.questTexts = questTexts.ToArray();
                 this.currentArea = currentArea;
                 this.Texts = this.questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
                 this.questLines = (questLines ?? Array.Empty<string>()).Select(Fold).ToList();
+                this.objectives = objectives?.ToArray();
             }
 
             public List<string> Texts { get; }
@@ -181,9 +189,10 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            public bool Is(IReadOnlyList<string> texts, string area)
+            public bool Is(IReadOnlyList<string> texts, string area, IReadOnlyCollection<string>? objectives = null)
             {
-                if (texts.Count != this.questTexts.Length || !string.Equals(area, this.currentArea, StringComparison.Ordinal))
+                if (texts.Count != this.questTexts.Length || !string.Equals(area, this.currentArea, StringComparison.Ordinal) ||
+                    (objectives == null) != (this.objectives == null) || (objectives != null && !objectives.SequenceEqual(this.objectives!)))
                 {
                     return false;
                 }
@@ -260,7 +269,9 @@ namespace Poe2Accessibility.Services
             private bool OnlyItsArea()
             {
                 var here = Fold(this.currentArea).Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(word => word.Length >= 4).ToList();
-                return this.ProperNouns.Count == 0 && here.Count > 0 && this.Texts.Any(text => here.All(word => Words(text).Contains(word)));
+                // An objective line only: another text of the HUD that names the area asks for nothing.
+                var asking = this.objectives == null ? this.Texts : this.objectives.Select(Fold).Where(text => text.Length > 0).ToList();
+                return this.ProperNouns.Count == 0 && here.Count > 0 && asking.Any(text => here.All(word => Words(text).Contains(word)));
             }
         }
 

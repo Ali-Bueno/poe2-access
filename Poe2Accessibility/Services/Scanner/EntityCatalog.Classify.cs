@@ -65,6 +65,11 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            if (IsDecoration(entity))
+            {
+                return null; // a hideout's decoration is scenery too, though its editor can target it
+            }
+
             var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
             var kind = string.Empty;
             var plain = false;

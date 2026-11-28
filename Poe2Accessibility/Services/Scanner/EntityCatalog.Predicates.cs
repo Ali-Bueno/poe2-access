@@ -139,6 +139,18 @@ namespace Poe2Accessibility.Services
         /// <summary>The game's component that makes an entity usable; the reader has no class for it.</summary>
         private const string InteractionActionComponent = "InteractionAction";
 
+        /// <summary>
+        ///     A hideout's decoration: placed by its editor and marked by nothing on the minimap. Scenery to a sighted player,
+        ///     it was listed as an object, named on approach, and "Mesa de campamento 5" was the quest's for sharing a word with
+        ///     "Ve al Campamento de Hilda" (the owner, 2026-11-28). Never a character, a chest or a way out, whatever it carries.
+        /// </summary>
+        public static bool IsDecoration(Entity entity) =>
+            entity.HasComponent(GameLayout.Components.HideoutDoodad) && !entity.TryGetComponent<MinimapIcon>(out _) &&
+            entity.EntityType is not (EntityTypes.NPC or EntityTypes.Monster or EntityTypes.Chest or EntityTypes.Player) && !entity.HasComponent(TransitionComponentName);
+
+        /// <summary>The game's component of a way to another area.</summary>
+        private const string TransitionComponentName = "AreaTransition";
+
         /// <summary>A character listed and sounded as an enemy, logged once with what the game said of it (issue #9).</summary>
         private void LogCharacterAsEnemy(Entity entity, string path)
         {

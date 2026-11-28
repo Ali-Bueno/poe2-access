@@ -265,6 +265,17 @@ namespace Poe2Accessibility
             public static int CooldownSkillIdOffset { get; internal set; } = 0x3C;
         }
 
+        /// <summary>Components told by their name alone: the reader has no class for them.</summary>
+        public static class Components
+        {
+            /// <summary>
+            ///     What a hideout's editor places. Its services carry it too (the waypoint does in every area, the stash, the
+            ///     benches), each with a minimap icon; a decoration has none ("Piedrecitas costeras 1", "Mesa de campamento 5":
+            ///     42 of them in the owner's hideout, entities dump of 2026-11-28).
+            /// </summary>
+            public const string HideoutDoodad = "HideoutDoodad";
+        }
+
         /// <summary>Entity Render component.</summary>
         public static class RenderComponent
         {

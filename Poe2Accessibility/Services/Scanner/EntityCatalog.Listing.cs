@@ -360,7 +360,9 @@ namespace Poe2Accessibility.Services
             this.tried.NoteQuest(this.QuestObjectives()); // a new quest step may have opened a barrier found shut
             var questLines = this.QuestGoals.QuestLinesOf(tracker, Localization.Language);
             var questTexts = this.carriedSteps.With(tracker, area.AreaHash, this.QuestItemsCarried(), () => questLines);
-            this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts), questLines);
+            // The tracker's objective lines, and the steps kept for a quest item carried: the HUD's other texts ask for nothing.
+            var objectives = this.QuestObjectives().Concat(questTexts.Where(text => !tracker.Contains(text))).ToList();
+            this.questTargets = QuestMatcher.Targets(questPool, questTexts, this.AreaName(), this.cameFrom, this.questMemo, this.QuestLeadsTo(questTexts), questLines, objectives);
             this.questExit = questPool.FirstOrDefault(entry => entry.Category == ScanCategory.Exits && this.questTargets.Any(target => target.Id == entry.Id));
             var trails = (this.TrailEntries?.Invoke() ?? Array.Empty<ScanEntry>()).ToList();
             if (offPiece != null)
