@@ -260,6 +260,11 @@ namespace Poe2Accessibility.Services
 
             var visibleLayers = current.Layers.Select(layer => layer.Address).Concat(this.previous.Layers.Select(layer => layer.Address)).ToHashSet();
             this.stableLayers.RemoveWhere(address => !visibleLayers.Contains(address));
+            foreach (var address in this.vanishedAt.Keys.Where(address => !visibleLayers.Contains(address)).ToList())
+            {
+                this.vanishedAt.Remove(address);
+            }
+
             var visibleTexts = current.Layers.Concat(this.previous.Layers).SelectMany(layer => layer.Texts).Select(text => text.Address).ToHashSet();
             this.rebuilt.RemoveWhere(address => !visibleTexts.Contains(address));
             foreach (var address in this.stableTexts.Keys.Where(address => !visibleTexts.Contains(address)).ToList())

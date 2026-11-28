@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(WrappedLabelsJoin), WrappedLabelsJoin),
             (nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews),
             (nameof(FocusDetailsAreNotScrolledRows), FocusDetailsAreNotScrolledRows),
+            (nameof(ReusedLayerAddressIsNotScrolled), ReusedLayerAddressIsNotScrolled),
             (nameof(KeptLessonIsHeardWhole), KeptLessonIsHeardWhole),
             (nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart),
             (nameof(PlayerMoveCutsAMessage), PlayerMoveCutsAMessage),
@@ -240,6 +241,20 @@ namespace Poe2Accessibility.Tests
             var details = Snapshot(Layer(1, 0, true, Text(11, "All I need"), Text(12, "Witch"), Text(13, "Details"), Text(14, "More")));
             differ.Apply(details);
             Equal(false, differ.Apply(details).Single().Scrolled, "a text added with nothing gone");
+        }
+
+        private static void ReusedLayerAddressIsNotScrolled()
+        {
+            var differ = Settled(out _);
+            var scrolled = Snapshot(Layer(1, 0, true, Text(11, "All I need"), Text(12, "Witch")));
+            differ.Apply(scrolled);
+            differ.Apply(scrolled);
+            var gone = Snapshot();
+            differ.Apply(gone);
+            differ.Apply(gone);
+            var reused = Snapshot(Layer(1, 0, true, Text(21, "Options")));
+            differ.Apply(reused);
+            Equal(ScreenChangeKind.LayerOpened, differ.Apply(reused).Single().Kind, "a layer that took the address later is opened, not scrolled");
         }
 
         private const string TierLabel = "tier_label";
