@@ -150,25 +150,32 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>The batch's departed items that had a title: their name, their name by base, and the title.</summary>
-        private readonly List<(string Name, string ByBase, string Title)> batchTitles = new();
+        /// <summary>The batch's departed items that had a title: their name, their name by base, the title and where they left.</summary>
+        private readonly List<(string Name, string ByBase, string Title, InventoryName From)> batchTitles = new();
 
         /// <summary>The batch's arrivals' entities, in the order of <see cref="arrivals"/>.</summary>
         private readonly List<IntPtr> arrivalEntities = new();
 
         /// <summary>
         ///     An item that changed inventory is a new entity, read by its base: it takes the title of the one departure of
-        ///     the batch with that base name ("Equipado: Escudo torre reforzado, raro" for Égida de glifo).
+        ///     the batch with that base name ("Equipado: Escudo torre reforzado, raro" for Égida de glifo). One made anew
+        ///     where it was (an orb used on it, a flask drunk) is only read by it for this batch: its title may be another
+        ///     now, and its tooltip gives it.
         /// </summary>
         private void NameArrivalsByTitle()
         {
             for (var index = 0; index < this.arrivals.Count && index < this.arrivalEntities.Count; index++)
             {
                 var (to, name) = this.arrivals[index];
-                var found = this.batchTitles.Where(gone => gone.ByBase == name).Select(gone => gone.Title).Distinct().ToList();
+                var gone = this.batchTitles.Where(left => left.ByBase == name).ToList();
+                var found = gone.Select(left => left.Title).Distinct().ToList();
                 if (found.Count == 1 && this.reader.DescribeItemEntity(this.arrivalEntities[index], found[0]) is { } named)
                 {
-                    this.reader.RememberTitle(this.arrivalEntities[index], found[0]);
+                    if (gone.Any(left => left.From != to))
+                    {
+                        this.reader.RememberTitle(this.arrivalEntities[index], found[0]);
+                    }
+
                     this.arrivals[index] = (to, named);
                 }
             }

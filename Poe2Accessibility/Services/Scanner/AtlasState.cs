@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         /// <summary>No Atlas is this many cells wide: a pointer or a float read as a cell is far larger.</summary>
         private const int MaxCell = 10_000;
 
+        /// <summary>Fewest completed nodes for "a completed one is accessible too" to be judged: one odd node proves nothing.</summary>
+        private const int MinCompleted = 4;
+
         private const int LowBits = GameLayout.AtlasNode.StatusAccessibleBit | GameLayout.AtlasNode.StatusCompletedBit;
 
         public static AtlasNodeState Of(byte status) =>
@@ -50,7 +53,7 @@ namespace Poe2Accessibility.Services
             var accessible = nodes.Count(node => (node.Status & GameLayout.AtlasNode.StatusAccessibleBit) != 0);
             var completed = nodes.Count(node => (node.Status & GameLayout.AtlasNode.StatusCompletedBit) != 0);
             var both = nodes.Count(node => (node.Status & LowBits) == LowBits);
-            return placed * 2 > nodes.Count && accessible > 0 && both * 2 >= completed;
+            return placed * 2 > nodes.Count && accessible > 0 && (completed < MinCompleted || both * 2 >= completed);
         }
 
         /// <summary>For the log: how many nodes carry each value of the two status bits, and how many cells are small numbers.</summary>

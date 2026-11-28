@@ -241,6 +241,8 @@ namespace Poe2Accessibility.Tests
             Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index == 0 ? 1 : 0))) == true, "an Atlas just opened: one node to enter");
             Expect(true, AtlasState.Plausible(Canvas(60, _ => 0)) == false, "no node can be entered: not the status byte");
             Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 30 ? 2 : 1))) == false, "completed nodes that cannot be entered: not the status byte");
+            Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 2 ? 2 : 1))) == true, "one or two odd nodes prove nothing");
+            Expect(true, AtlasState.Plausible(Canvas(368, index => (byte)(index < 2 ? 3 : index < 6 ? 1 : 0))) == true, "kehgan's Atlas, live 2026-11-27: 362 locked, 4 to enter, 2 completed");
             Expect(true, AtlasState.Plausible(Canvas(60, index => (byte)(index < 20 ? 3 : 1), index => 0x7F000000 + index)) == false, "cells like pointers: not the grid");
             Expect(true, AtlasState.Plausible(Canvas(10, _ => 0)) == null, "too few catalogued nodes to tell");
         }

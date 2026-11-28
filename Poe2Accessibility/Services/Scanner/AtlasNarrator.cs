@@ -147,11 +147,12 @@ namespace Poe2Accessibility.Services
 
             if (AtlasState.Plausible(catalogued) is { } plausible)
             {
+                this.implausibleScans = plausible ? 0 : this.implausibleScans + 1;
                 if (plausible)
                 {
                     CompatibilityReport.Current?.Found(AtlasState.NodesPart);
                 }
-                else
+                else if (this.implausibleScans >= ImplausibleScans)
                 {
                     CompatibilityReport.Current?.Missing(AtlasState.NodesPart);
                 }
@@ -160,6 +161,10 @@ namespace Poe2Accessibility.Services
             return scan;
         }
 
+        /// <summary>Scans in a row that must read wrong before it is said: one may catch the canvas while the game rebuilds it.</summary>
+        private const int ImplausibleScans = 2;
+
+        private int implausibleScans;
         private string lastCensus = string.Empty;
 
         /// <summary>

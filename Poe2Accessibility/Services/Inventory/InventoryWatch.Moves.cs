@@ -92,7 +92,7 @@ namespace Poe2Accessibility.Services
                     this.departures.Add((from, name));
                     if (this.seen.TryGetValue(entity, out var item) && item.Title.Length > 0)
                     {
-                        this.batchTitles.Add((name, item.ByBase, item.Title));
+                        this.batchTitles.Add((name, item.ByBase, item.Title, from));
                     }
 
                     this.NoteKind(entity, name);
