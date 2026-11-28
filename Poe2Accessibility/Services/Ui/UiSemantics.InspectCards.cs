@@ -12,10 +12,6 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed partial class UiSemantics
     {
-        private const string CardLayoutName = "layout";
-        private const string CardCostName = "cost";
-        private const string CardLegendName = "gamepad_popup_button_legend_layout";
-
         /// <summary>The end of a modifier group's name while the advanced details show ("prefix-mods-with-reminders").</summary>
         private const string AdvancedGroupEnd = "-with-reminders";
 
@@ -75,7 +71,7 @@ namespace Poe2Accessibility.Services
             var link = this.DescribeLink(info);
             var isTier = link == null && line?.Chip == address;
             // Besides links and tiers the cursor stops on a granted skill's box, and on the whole card when nothing in it is a stop.
-            var wholeCard = info.Name == CardLayoutName && link == null;
+            var wholeCard = info.Name == InspectLayout.LayoutName && link == null;
             var hover = link?.Tooltip ?? (wholeCard ? Array.Empty<string>() : this.TooltipLines(info));
             var spoken = wholeCard ? string.Empty : line?.Spoken() ?? link?.Value ?? string.Empty;
             var (text, value) = wholeCard ? (cardName, string.Empty)
@@ -102,7 +98,7 @@ namespace Poe2Accessibility.Services
         }
 
         private bool IsUnder(IntPtr address, IntPtr ancestor) =>
-            this.elements.TryReadElement(address, out var info) && this.elements.ReadAncestors(info, MaxCardDepth).TakeWhile(parent => parent.Name != CardLayoutName).Any(parent => parent.Address == ancestor);
+            this.elements.TryReadElement(address, out var info) && this.elements.ReadAncestors(info, MaxCardDepth).TakeWhile(parent => parent.Name != InspectLayout.LayoutName).Any(parent => parent.Address == ancestor);
 
         /// <summary>
         ///     The view's title for a link outside its cards (a definition A opened beside them): coming back to a card is then no
@@ -191,7 +187,7 @@ namespace Poe2Accessibility.Services
         {
             foreach (var child in this.elements.ReadChildren(card).Skip(1))
             {
-                if (this.elements.TryReadElement(child, out var layout) && layout.Name == CardLayoutName && layout.IsVisibleFlag)
+                if (this.elements.TryReadElement(child, out var layout) && layout.Name == InspectLayout.LayoutName && layout.IsVisibleFlag)
                 {
                     return this.CardTitle(card).Length > 0 ? layout : null;
                 }
@@ -234,7 +230,7 @@ namespace Poe2Accessibility.Services
                         continue;
                     }
 
-                    if (child.Name is CardCostName or CardLegendName)
+                    if (child.Name is InspectLayout.CostName or InspectLayout.LegendName)
                     {
                         asides.AddRange(this.LinesOf(child));
                     }
