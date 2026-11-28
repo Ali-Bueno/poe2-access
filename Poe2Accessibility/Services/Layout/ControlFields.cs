@@ -257,6 +257,19 @@ namespace Poe2Accessibility.Services
             return state.Known ?? expected;
         }
 
+        /// <summary>
+        ///     A group's field, read at <paramref name="shift"/>, was seen to change between two values its own check accepts:
+        ///     proved there with no search, which a field that reads well need not run to be believed.
+        /// </summary>
+        public void Proved(ControlGroup group, int shift)
+        {
+            var state = this.State(group);
+            if (state.Known == null)
+            {
+                this.Adopt(group, state, shift);
+            }
+        }
+
         /// <summary>Whether a live control has proved the group's shift yet.</summary>
         public bool IsKnown(ControlGroup group) => this.State(group).Known != null;
 

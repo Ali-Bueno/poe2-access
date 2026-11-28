@@ -331,7 +331,7 @@ namespace Poe2Accessibility.Services
             foreach (var child in this.elements.ReadChildren(screen))
             {
                 if (this.elements.TryReadElement(child, out var control) && control.Name == GameLayout.WorldMap.ControlName &&
-                    this.AtlasNodeAt(child, this.SelectedNodeShift(child)) is { } node)
+                    this.SelectedNodeOf(child) is { } node)
                 {
                     return node;
                 }
@@ -340,39 +340,72 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
-        /// <summary>How often map_control is looked over for its selected node until the field is proved.</summary>
+        /// <summary>How often map_control is looked over for its selected node while something there may be one.</summary>
         private const int SelectedNodeLookMs = 500;
+
+        /// <summary>How seldom, once looks have found nothing that may be a node: an act's map never holds one.</summary>
+        private const int SelectedNodeLookMostMs = 8000;
 
         /// <summary>A node is a child of the canvas, itself a child of map_control.</summary>
         private const int NodeDepthInControl = 2;
 
         private long nextSelectedNodeLook;
+        private int selectedNodeLookMs = SelectedNodeLookMs;
+        private (IntPtr Control, IntPtr Node) lastSelectedNode;
+        private IntPtr lookedControl;
 
         /// <summary>
-        ///     Where map_control keeps the selected node, as a shift from where it was measured: of its pointers to a node, the
-        ///     one that changes as the cursor moves (<see cref="ControlFields.ChangingAt"/>), looked for twice a second until proved.
+        ///     The node map_control keeps where its selected node is read. While that reads a node nothing else is read, and
+        ///     the field is proved once it is seen to go from one node to another. When it reads none (an act's map; a game
+        ///     update that moved the field or the node's keys), the control's pointers are looked over for the one to a node
+        ///     that changes as the cursor moves (<see cref="ControlFields.ChangingAt"/>): twice a second while any may be a
+        ///     node, ever more seldom while none is.
         /// </summary>
-        private int SelectedNodeShift(IntPtr control)
+        private IntPtr? SelectedNodeOf(IntPtr control)
         {
-            if (this.elements.Controls is not { } controls)
+            var controls = this.elements.Controls;
+            var shift = controls?.Current(ControlGroup.AtlasSelectedNode) ?? 0;
+            if (this.AtlasNodeAt(control, shift, search: false) is { } node)
             {
-                return 0;
+                if (this.lastSelectedNode.Control == control && this.lastSelectedNode.Node != node)
+                {
+                    controls?.Proved(ControlGroup.AtlasSelectedNode, shift);
+                }
+
+                this.lastSelectedNode = (control, node);
+                return node;
             }
 
-            if (controls.IsKnown(ControlGroup.AtlasSelectedNode) || Environment.TickCount64 < this.nextSelectedNodeLook)
+            var now = Environment.TickCount64;
+            if (control != this.lookedControl)
             {
-                return controls.Current(ControlGroup.AtlasSelectedNode);
+                // Another map_control (the world screen built anew): looked over at once, as often as at first.
+                (this.lookedControl, this.selectedNodeLookMs, this.nextSelectedNodeLook) = (control, SelectedNodeLookMs, 0);
             }
 
-            this.nextSelectedNodeLook = Environment.TickCount64 + SelectedNodeLookMs;
-            return controls.ChangingAt(ControlGroup.AtlasSelectedNode, control, shift => this.AtlasNodeAt(control, shift)?.ToInt64() ?? 0);
+            if (controls == null || controls.IsKnown(ControlGroup.AtlasSelectedNode) || now < this.nextSelectedNodeLook)
+            {
+                return null;
+            }
+
+            var seen = false;
+            var found = controls.ChangingAt(ControlGroup.AtlasSelectedNode, control, at =>
+            {
+                var value = this.AtlasNodeAt(control, at, search: true)?.ToInt64() ?? 0;
+                seen |= value != 0;
+                return value;
+            });
+            this.selectedNodeLookMs = seen ? SelectedNodeLookMs : Math.Min(this.selectedNodeLookMs * 2, SelectedNodeLookMostMs);
+            this.nextSelectedNodeLook = now + this.selectedNodeLookMs;
+            return this.AtlasNodeAt(control, found, search: false);
         }
 
         /// <summary>
         ///     The node element map_control points at from the selected node's place moved by <paramref name="shift"/>: one
-        ///     whose key reads where the keys are, or one that sits where a node does and whose key is found again.
+        ///     whose key reads where the keys are or, when <paramref name="search"/> is asked, one that sits where a node does
+        ///     and whose key is found again.
         /// </summary>
-        private IntPtr? AtlasNodeAt(IntPtr control, int shift)
+        private IntPtr? AtlasNodeAt(IntPtr control, int shift, bool search)
         {
             if (!this.reader.TryRead<IntPtr>(control + GameLayout.AtlasNode.SelectedNodeOffset + shift, out var node) || node == IntPtr.Zero)
             {
@@ -384,7 +417,7 @@ namespace Poe2Accessibility.Services
                 return node;
             }
 
-            return this.elements.TryReadElement(node, out var info) && this.elements.ReadAncestors(info, NodeDepthInControl) is { Count: NodeDepthInControl } above &&
+            return search && this.elements.TryReadElement(node, out var info) && this.elements.ReadAncestors(info, NodeDepthInControl) is { Count: NodeDepthInControl } above &&
                    above[^1].Address == control && AtlasNodeFields.Finds(this.reader, this.elements, node)
                 ? node
                 : null;

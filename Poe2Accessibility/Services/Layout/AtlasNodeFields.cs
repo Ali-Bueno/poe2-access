@@ -17,13 +17,10 @@ namespace Poe2Accessibility.Services
         public static readonly DatKeySite AtlasKey = new("Atlas node atlas key", GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable);
 
         /// <summary>
-        ///     How far the node's fields moved: as far as its keys, when those that moved agree; 0 when none moved or two say
-        ///     otherwise (nothing is guessed between them).
+        ///     How far the node's fields moved: as far as its keys, when those a node has proved agree; 0 when none is proved
+        ///     or two say otherwise, one found where it was among them (nothing is guessed between them).
         /// </summary>
-        public static int Shift => DatKeySearch.SharedMove(
-            MapsKey.Offset - GameLayout.AtlasNode.EndgameMapsKeyOffset,
-            AreaKey.Offset - GameLayout.AtlasNode.AreaKeyOffset,
-            AtlasKey.Offset - GameLayout.AtlasNode.AtlasKeyOffset);
+        public static int Shift => DatKeySearch.SharedMove(MapsKey.ProvedMove, AreaKey.ProvedMove, AtlasKey.ProvedMove);
 
         /// <summary>
         ///     Whether an element holds a node's key where the keys are now, with no search: map_control's selected field is

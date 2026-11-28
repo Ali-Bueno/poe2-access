@@ -48,27 +48,36 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The row of the key <paramref name="owner"/> keeps where the site is now, with no search: for something not yet
-        ///     known to be such a struct, which a search would take another struct's key from.
+        ///     Gets how far the key is from where it was measured, once a struct known to be one has read its key (0: there);
+        ///     null until then, when the site says nothing of where the struct's fields are.
         /// </summary>
-        public IntPtr? RowAt(HostMemoryReader reader, UiElementReader elements, IntPtr owner)
+        public int? ProvedMove
         {
-            var at = this.Offset;
-            if (DatKey.Row(reader, elements, owner + at, this.table) is not { } row)
+            get
             {
-                return null;
+                this.Fresh();
+                lock (this.gate)
+                {
+                    return this.settled ? this.offset - this.measured : null;
+                }
             }
-
-            this.Settle(at);
-            return row;
         }
+
+        /// <summary>
+        ///     The row of the key <paramref name="owner"/> keeps where the site is now, with no search and nothing learnt:
+        ///     for something not known to be such a struct, whose key a search would take for one's and which, reading at
+        ///     the old place by chance, would end the search for those that are.
+        /// </summary>
+        public IntPtr? RowAt(HostMemoryReader reader, UiElementReader elements, IntPtr owner) =>
+            DatKey.Row(reader, elements, owner + this.Offset, this.table);
 
         /// <summary>The row of the key that <paramref name="owner"/> keeps, only when its file is the site's table.</summary>
         public IntPtr? Row(HostMemoryReader reader, UiElementReader elements, IntPtr owner)
         {
             var at = this.Offset;
-            if (this.RowAt(reader, elements, owner) is { } row)
+            if (DatKey.Row(reader, elements, owner + at, this.table) is { } row)
             {
+                this.Settle(at);
                 return row;
             }
 

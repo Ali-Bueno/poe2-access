@@ -232,8 +232,10 @@ namespace Poe2Accessibility.Tests
 
             // An Atlas node's grid and status follow its three keys (AtlasNodeFields).
             Equal(0, DatKeySearch.SharedMove(0, 0, 0), "no key moved: nor did the rest");
-            Equal(8, DatKeySearch.SharedMove(8, 0, 8), "a key not yet found again says nothing against the two that moved alike");
-            Equal(0, DatKeySearch.SharedMove(8, 16, 0), "two keys moved differently: nothing is guessed between them");
+            Equal(0, DatKeySearch.SharedMove(null, null, null), "no key proved yet: where measured");
+            Equal(8, DatKeySearch.SharedMove(8, null, 8), "a key not yet found again says nothing against the two that moved alike");
+            Equal(0, DatKeySearch.SharedMove(8, 16, null), "two keys moved differently: nothing is guessed between them");
+            Equal(0, DatKeySearch.SharedMove(8, 0, 0), "one key found elsewhere and two proved where they were: the one is not followed");
         }
 
         private static void TheStunRecordMovedFarNeedsOneSharedPlace()

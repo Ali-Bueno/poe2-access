@@ -428,6 +428,13 @@ namespace Poe2Accessibility
 
                 if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var field))
                 {
+                    // No field sits before its struct: a line or an override that says so would have the readers index before their blocks.
+                    if (value < 0)
+                    {
+                        this.log?.Warn($"Code fields: {entry.Name} reads -0x{-(long)value:X}, which is no place in a struct: NOT applied");
+                        continue;
+                    }
+
                     // Memory beats code: a live search that moved the field before the code was read keeps its value.
                     if (field.Get() != entry.Measured)
                     {

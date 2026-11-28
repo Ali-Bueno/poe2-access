@@ -316,7 +316,8 @@ namespace Poe2Accessibility.Services
         /// <summary>How many elements a std::vector holds; null when its two pointers are not a vector of that stride.</summary>
         private int? VectorCount(IntPtr vector, int stride, int most = MaxRecords)
         {
-            if (!this.memory.TryRead<IntPtr>(vector, out var first) || !this.memory.TryRead<IntPtr>(vector + IntPtr.Size, out var last))
+            // A stride the code or an override set to nothing is no stride to divide by.
+            if (stride <= 0 || !this.memory.TryRead<IntPtr>(vector, out var first) || !this.memory.TryRead<IntPtr>(vector + IntPtr.Size, out var last))
             {
                 return null;
             }
@@ -541,8 +542,10 @@ namespace Poe2Accessibility.Services
                 {
                     this.log.Info($"Rulesets: the session's fields found again: its area +0x{measured.Area:X} to +0x{places.Area:X}, its rulesets +0x{measured.Rulesets:X} to +0x{places.Rulesets:X}, a ruleset's session +0x{measured.Back:X} to +0x{places.Back:X}");
 
-                    // The Trial's bar is a float of the session with nothing of its own to be told by: it follows its neighbours when they moved alike.
-                    if (places.Area - measured.Area == places.Rulesets - measured.Rulesets)
+                    // The Trial's bar is a float of the session with nothing of its own to be told by: where the game's code did not
+                    // place it, it follows its neighbours when they moved alike (never both: the code's place has the move in it).
+                    if (places.Area - measured.Area == places.Rulesets - measured.Rulesets &&
+                        GameLayout.Rulesets.SessionTrialProgress == GameLayout.Rulesets.SessionTrialProgressMeasured)
                     {
                         GameLayout.Rulesets.SessionTrialProgress += places.Area - measured.Area;
                     }

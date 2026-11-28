@@ -574,7 +574,9 @@ namespace Poe2Accessibility
             ///     In the session, not the ruleset: the float the bar "Challenge Progress" is drawn from (0x5787D2: F3 0F 10 B8 E0 23
             ///     00 00), 0 to 1, written by a game-state message (0x2117C0E).
             /// </summary>
-            public static int SessionTrialProgress { get; internal set; } = 0x23E0;
+            public static int SessionTrialProgress { get; internal set; } = SessionTrialProgressMeasured;
+
+            public const int SessionTrialProgressMeasured = 0x23E0;
         }
 
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>
