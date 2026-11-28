@@ -234,6 +234,24 @@ namespace Poe2Accessibility
             this.NoteTickCost(service, start);
         }
 
+        /// <summary>The same for a part that gives a value: <paramref name="fallback"/> when it throws.</summary>
+        private TResult Isolated<TState, TResult>(string service, TState state, Func<Poe2AccessibilityCore, TState, TResult> tick, TResult fallback)
+        {
+            var start = System.Diagnostics.Stopwatch.GetTimestamp();
+            var result = fallback;
+            try
+            {
+                result = tick(this, state);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                this.ReportTickFault(service, ex);
+            }
+
+            this.NoteTickCost(service, start);
+            return result;
+        }
+
         private void NoteTickCost(string service, long start)
         {
             var ticks = System.Diagnostics.Stopwatch.GetTimestamp() - start;

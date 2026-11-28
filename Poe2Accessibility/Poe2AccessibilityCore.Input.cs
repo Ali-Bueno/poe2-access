@@ -93,8 +93,9 @@ namespace Poe2Accessibility
             // In the passive tree the triggers zoom and Y centres the view.
             var viewMoved = state.IsDown(GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightTrigger | GameLayout.PadButtons.Y);
             this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, viewMoved, Environment.TickCount64);
-            this.CheckPadButtons(state);
-            this.WatchBlockedMove(state);
+            // The gesture machine below must advance every frame: a part that throws is isolated, not fatal to it.
+            this.Isolated("pad buttons", state, static (core, state) => core.CheckPadButtons(state));
+            this.Isolated("blocked move", state, static (core, state) => core.WatchBlockedMove(state));
             if (IsDirection(state))
             {
                 this.lastDirectionAt = Environment.TickCount64;
@@ -104,7 +105,7 @@ namespace Poe2Accessibility
             var atlasButtons = GameLayout.PadButtons.LeftShoulder | GameLayout.PadButtons.RightShoulder |
                                GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightStick;
             var atlasScreen = this.Settings.ControllerCommands && this.Settings.AtlasFinder && state.IsDown(atlasButtons)
-                ? this.AtlasMapScreen()
+                ? this.Isolated("atlas screen", 0, static (core, _) => core.AtlasMapScreen(), IntPtr.Zero)
                 : IntPtr.Zero;
 
             // A opens screens and popups, LB/RB switch tabs: a focus that follows them waits for the new page.
@@ -131,8 +132,8 @@ namespace Poe2Accessibility
                 return;
             }
 
-            this.FindOnTree(state);
-            var atlasInput = this.FindOnAtlas(state, atlasScreen);
+            this.Isolated("tree finder", state, static (core, state) => core.FindOnTree(state));
+            var atlasInput = this.Isolated("atlas finder", (state, atlasScreen), static (core, args) => core.FindOnAtlas(args.state, args.atlasScreen), false);
             this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu || this.commands.InInspectTable;
             this.commands.PressedAt ??= () => this.gestures.PressedAt;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
