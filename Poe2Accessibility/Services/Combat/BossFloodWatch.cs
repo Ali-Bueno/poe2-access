@@ -4,7 +4,6 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameOffsets.Objects.States.InGameState;
     using GameReader;
     using GameReader.RemoteEnums.Entity;
     using GameReader.RemoteObjects.Components;
@@ -57,7 +56,6 @@ namespace Poe2Accessibility.Services
         private Vector2 origin;
         private RoomFit? fit;
         private bool unfitLogged;
-        private bool manyLogged;
         private bool flowing;
         private long lastPoll;
         private long lastLog;
@@ -78,7 +76,7 @@ namespace Poe2Accessibility.Services
         {
             (this.Edge, this.DryLead) = (null, null);
             this.warnings.Reset();
-            (this.rule, this.lavaId, this.fit, this.unfitLogged, this.manyLogged, this.flowing) = (null, 0, null, false, false, false);
+            (this.rule, this.lavaId, this.fit, this.unfitLogged, this.flowing) = (null, 0, null, false, false);
         }
 
         /// <summary>With the bosses in sight: the lines of the flood to say now. <see cref="Reset"/> once the warnings are off.</summary>
@@ -182,17 +180,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The flood's object, and the fit of its room to the world from the first anchor in sight.</summary>
         private Entity? Lava(FloodRule rule)
         {
-            var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (this.fit != null && area.AwakeEntities.TryGetValue(new EntityNodeKey { id = this.lavaId }, out var kept) && kept.IsValid && kept.Id == this.lavaId &&
-                kept.TryGetComponent<Render>(out _))
-            {
-                return kept; // found and fitted: the others are looked for only when it is gone
-            }
-
             Entity? lava = null;
-            var matches = 0;
-            Dictionary<string, List<Vector2>>? anchors = null;
-            foreach (var entity in area.AwakeEntities.Values)
+            var anchors = new Dictionary<string, List<Vector2>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
                 if (!entity.IsValid || entity.EntityType == EntityTypes.Player || entity.Path.Length == 0)
                 {
@@ -203,12 +193,10 @@ namespace Poe2Accessibility.Services
                 if (path.Equals(rule.Object, StringComparison.OrdinalIgnoreCase))
                 {
                     lava = entity;
-                    matches++;
                 }
                 else if (this.fit == null && rule.Anchors.Any(anchor => anchor.Path.Equals(path, StringComparison.OrdinalIgnoreCase)) &&
                          entity.TryGetComponent<Render>(out var render))
                 {
-                    anchors ??= new Dictionary<string, List<Vector2>>(StringComparer.OrdinalIgnoreCase);
                     if (!anchors.TryGetValue(path, out var seen))
                     {
                         anchors[path] = seen = new List<Vector2>();
@@ -216,12 +204,6 @@ namespace Poe2Accessibility.Services
 
                     seen.Add(new Vector2(render.WorldPosition.X, render.WorldPosition.Y));
                 }
-            }
-
-            if (matches > 1 && !this.manyLogged)
-            {
-                this.manyLogged = true;
-                this.log.Warn($"Boss flood: {matches} entities are {rule.Object}; the last one found is followed");
             }
 
             if (lava == null || !lava.TryGetComponent<Render>(out var at))
@@ -240,7 +222,7 @@ namespace Poe2Accessibility.Services
                 // An anchor counts only when it is the one of its path in sight: two would leave which one the room placed unknown.
                 foreach (var (path, room) in rule.Anchors)
                 {
-                    if (anchors != null && anchors.TryGetValue(path, out var seen) && seen.Count == 1 && RoomFit.Of(room, seen[0] - origin) is { } found)
+                    if (anchors.TryGetValue(path, out var seen) && seen.Count == 1 && RoomFit.Of(room, seen[0] - origin) is { } found)
                     {
                         this.fit = found;
                         this.log.Info($"Boss flood: {rule.Object} at {origin.X:0},{origin.Y:0}, its room fitted by {path} as {found}");
@@ -248,7 +230,7 @@ namespace Poe2Accessibility.Services
                     }
                 }
 
-                if (this.fit == null && anchors is { Count: > 0 } && !this.unfitLogged)
+                if (this.fit == null && anchors.Count > 0 && !this.unfitLogged)
                 {
                     this.unfitLogged = true;
                     this.log.Info($"Boss flood: {rule.Object} at {origin.X:0},{origin.Y:0}, no anchor fits its room ({string.Join(", ", anchors.Select(pair => $"{pair.Key} x{pair.Value.Count}"))})");
