@@ -1,0 +1,12 @@
+# entities around the player at grid (809,584); dx/dy in grid units
+    28 (    -2,    28) id=869 @0x32229427680 Unidentified/Unidentified icon="" - hostile targetable target[30..80]=0000000000000000B0668D0E22030000000000000000000050DF6A1B22030000000000000000000000000000000000000000000000000000000101010000010100000100000000000000000000000000 Metadata/MiscellaneousObjects/WorldItem name="" bounds=(41,41,1)
+         components: Animated,BaseEvents,InteractionAction,Positioned,Render,Targetable,WorldItem
+         item @0x3220F996A80 Metadata/Items/Currency/GoldCoin base="" (CurrencyGoldCoinSmallPile) components: Base@0x32229E64490,RenderItem@0x3220E7ED4D0,Stack@0x3220C8011D0,Usable@0x3220C801E50
+--
+    34 (    -5,    34) id=815 @0x3220E9C6980 Unidentified/Unidentified icon="" - hostile targetable target[30..80]=0000000000000000B06B8D0E22030000000000000000000050DF6A1B22030000000000000000000000000000000000000000000000000000000101000000010100000100000000000000000000000000 Metadata/MiscellaneousObjects/WorldItem name="" bounds=(52,52,3)
+         components: Animated,BaseEvents,InteractionAction,Positioned,Render,Targetable,WorldItem
+         item @0x322D8F93780 Metadata/Items/Weapons/OneHandWeapons/OneHandSpears/FourSpear3 base="Hunting Spear" (FourSpear3) components: AttributeRequirements@0x3220C80BFC0,Base@0x32229E650D0,LocalStats@0x3220F6F5260,Mods@0x3220EF0D1B0,Quality@0x3220EF46D70,RenderItem@0x3220E7EA6B0,Sockets@0x32205BD39F0,Weapon@0x32205B98BF0,Wieldable@0x3220EF4E9F0
+--
+   163 (    17,  -162) id=758 @0x3223F4FD300 Unidentified/Unidentified icon="" - hostile targetable target[30..80]=000000000000000090778D0E22030000000000000000000050DF6A1B22030000000000000000000000000000000000000000000000000000000101000000010100000100000000000000000000000000 Metadata/MiscellaneousObjects/WorldItem name="" bounds=(41,41,5)
+         components: Animated,BaseEvents,InteractionAction,Positioned,Render,Targetable,WorldItem
+         item @0x3223FA64F80 Metadata/Items/Armours/Helmets/FourHelmetStr1 base="Rusted Greathelm" (FourHelmetStr1) components: Armour@0x3220F95E7B0,AttributeRequirements@0x3220C80BF90,Base@0x32229E64810,LocalStats@0x3220F6F5030,Mods@0x3220EF0C030,Quality@0x3220EF469E0,RenderItem@0x3220E7ED5F0,Sockets@0x32205BD37B0

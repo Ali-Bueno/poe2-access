@@ -357,6 +357,40 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     The ground item's WorldItem component, which is the game's ClientWorldItem (pool of 0xB8 bytes, named at 0x3D630). It
+        ///     keeps the loot filter's verdict for its item. The game's own test (vtable 0x33CE098 slot 0xC8, 0x17E2E60) hides the item
+        ///     when the "hide all filtered ground items" option is on, <see cref="NeverHiddenOffset"/> and the item's
+        ///     <see cref="ItemNeverHiddenOffset"/> are clear, and the cached verdict's Hide bit is set. The verdict is cached by
+        ///     0x17E2EB0, which tests <see cref="FilterReadyOffset"/> first. Exe build 26744644 (2026-11-23), read as a file; live on
+        ///     a helmet hidden by a one-line filter beside a shown spear, 2026-11-28 (docs/research/item-filter.md).
+        /// </summary>
+        public static class WorldItemComponent
+        {
+            /// <summary>The filter's verdict, copied from the evaluator's result (0x17E2F14); bit 0 is Hide (the Hide block's handler sets it, 0x21BD217).</summary>
+            public static int FilterResultOffset { get; internal set; } = 0x70;
+
+            /// <summary>Non-zero once the verdict above is computed for the current filter; a filter reload clears it (0xE4CF1F), and the verdict is stale until then.</summary>
+            public static int FilterReadyOffset { get; internal set; } = 0xB0;
+
+            /// <summary>Set by the item's setter (0x1E10829) for items the filter never hides, such as quest items.</summary>
+            public static int NeverHiddenOffset { get; internal set; } = 0x54;
+
+            /// <summary>
+            ///     A byte of the item entity (WorldItem +0x28) that keeps the item shown (0x17E2E89). Its meaning is not known and only one
+            ///     code site reads it, so it is a constant: if a patch moves it, a non-zero byte read in its place only keeps an item listed.
+            /// </summary>
+            public const int ItemNeverHiddenOffset = 0x2E;
+
+            /// <summary>The Hide bit of <see cref="FilterResultOffset"/>.</summary>
+            public const byte HideBit = 1;
+
+            /// <summary>Bytes read from the component in one go, from <see cref="NeverHiddenOffset"/> through <see cref="FilterReadyOffset"/>.</summary>
+            public static int SpanStart => System.Math.Min(NeverHiddenOffset, System.Math.Min(FilterResultOffset, FilterReadyOffset));
+
+            public static int SpanLength => System.Math.Max(NeverHiddenOffset, System.Math.Max(FilterResultOffset, FilterReadyOffset)) + 1 - SpanStart;
+        }
+
+        /// <summary>
         ///     Entity ControlZone component (pool of 0xF0 bytes): the radius of the circle a script keeps the player in, a word the
         ///     game's SetControlZoneRadius writes (0x2093008: 66 89 47 26, on the component + 0x18) and the zone's update reads (exe of
         ///     0.5.5f, 2026-11-14). Logged for the Breach's ring, whose files set none; nothing is said from it yet.

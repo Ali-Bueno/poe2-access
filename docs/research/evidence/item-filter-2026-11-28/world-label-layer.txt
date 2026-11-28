@@ -1,0 +1,36 @@
+# ui-tree-InGameState-20261128-005032.txt, world_ui_layer_parent
+    [0,1,11] 0x3227DBDEA30 vis=V flags=0x542EF3 kids=4 name="world_ui_layer_parent" rect=(none)
+      [0,1,11,0] 0x322185EED10 vis=V flags=0x402EF3 kids=2 name="" rect=(0,0 1920x1080) str@0x590="Bar.dds" str@0x5B8="Fontin"
+        [0,1,11,0,0] 0x3228B3667B0 vis=V flags=0x502EF1 kids=2 name="" rect=(0,0 1920x1080)
+          [0,1,11,0,0,0] 0x322055A3810 vis=V flags=0x8502EF0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(2761,1634 170x30) str@0x310="Fontin Smallcaps" str@0x360="Rusted Greathelm" str@0x490="Rusted Greathelm" str@0x538="Rusted Greathelm"
+          [0,1,11,0,0,1] 0x3220EF61010 vis=V flags=0x8502EF0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(625,340 140x30) str@0x310="Fontin Smallcaps" str@0x360="Hunting Spear" str@0x490="Hunting Spear" str@0x538="Hunting Spear"
+        [0,1,11,0,1] 0x3228B366A90 vis=V flags=0x502EF1 kids=1 name="" rect=(0,0 1920x1080)
+          [0,1,11,0,1,0] 0x322D82F4810 vis=V flags=0x8502EF0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(718,370 66x30) str@0x310="Fontin Smallcaps" str@0x360="4 Gold" str@0x490="4 Gold" str@0x538="4 Gold"
+      [0,1,11,1] 0x3227CA2DC10 vis=V flags=0x502EF3 kids=0 name="" rect=(0,0 1920x1080) str@0x5D8="Fontin" str@0x618="Fontin"
+      [0,1,11,2] 0x3228B2A0C20 vis=V flags=0x502EF3 kids=0 name="" rect=(0,0 1920x1080)
+      [0,1,11,3] 0x3227DBDED40 vis=V flags=0x502EF3 kids=0 name="" rect=(0,0 1920x1080)
+    [0,1,12] 0x32226678C50 vis=V flags=0x502EF1 kids=23 name="HUD" font="Fontin" rect=(10,6 1900x1069) str@0x378="skip_all_tutorials_message" str@0x658="tutorial_popup"
+# ui-tree-InGameState-20261128-005652.txt, world_ui_layer_parent
+    [0,1,11] 0x3227DBDEA30 vis=V flags=0x542EF3 kids=4 name="world_ui_layer_parent" rect=(none)
+      [0,1,11,0] 0x322185EED10 vis=V flags=0x402EF3 kids=2 name="" rect=(0,0 1920x1080) str@0x590="Bar.dds" str@0x5B8="Fontin"
+        [0,1,11,0,0] 0x3228B3667B0 vis=V flags=0x502EF1 kids=2 name="" rect=(0,0 1920x1080)
+          [0,1,11,0,0,0] 0x322055A3810 vis=V flags=0x8502EF0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(2777,1635 170x30) str@0x310="Fontin Smallcaps" str@0x360="Rusted Greathelm" str@0x490="Rusted Greathelm" str@0x538="Rusted Greathelm"
+          [0,1,11,0,0,1] 0x3220EF61010 vis=V flags=0x8502EF0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(635,340 140x30) str@0x310="Fontin Smallcaps" str@0x360="Hunting Spear" str@0x490="Hunting Spear" str@0x538="Hunting Spear"
+        [0,1,11,0,1] 0x3228B366A90 vis=V flags=0x502EF1 kids=0 name="" rect=(0,0 1920x1080)
+      [0,1,11,1] 0x3227CA2DC10 vis=V flags=0x502EF3 kids=0 name="" rect=(0,0 1920x1080) str@0x5D8="Fontin" str@0x618="Fontin"
+      [0,1,11,2] 0x3228B2A0C20 vis=V flags=0x502EF3 kids=0 name="" rect=(0,0 1920x1080)
+      [0,1,11,3] 0x3227DBDED40 vis=V flags=0x502EF3 kids=0 name="" rect=(0,0 1920x1080)
+    [0,1,12] 0x32226678C50 vis=V flags=0x502EF1 kids=23 name="HUD" font="Fontin" rect=(10,6 1900x1069) str@0x378="skip_all_tutorials_message" str@0x658="tutorial_popup"
+      [0,1,12,0] 0x32296CFF970 vis=- flags=0x5026F3 kids=4 name="" rect=(none)
+# ui-tree-InGameState-20261128-005735.txt, world_ui_layer_parent
+    [0,1,11] 0x3227DBDEA30 vis=- flags=0x5426F3 kids=4 name="world_ui_layer_parent" rect=(none)
+      [0,1,11,0] 0x322185EED10 vis=V flags=0x402EF3 kids=2 name="" rect=(none) str@0x590="Bar.dds" str@0x5B8="Fontin"
+        [0,1,11,0,0] 0x3228B3667B0 vis=V flags=0x502EF1 kids=2 name="" rect=(none)
+          [0,1,11,0,0,0] 0x322055A3810 vis=- flags=0x85026F0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(none) str@0x310="Fontin Smallcaps" str@0x360="Rusted Greathelm" str@0x490="Rusted Greathelm" str@0x538="Rusted Greathelm"
+          [0,1,11,0,0,1] 0x3220EF61010 vis=V flags=0x8502EF0 kids=0 name="Metadata/MiscellaneousObjects/WorldItem" font="Fontin Smallcaps" rect=(none) str@0x310="Fontin Smallcaps" str@0x360="Hunting Spear" str@0x490="Hunting Spear" str@0x538="Hunting Spear"
+        [0,1,11,0,1] 0x3228B366A90 vis=V flags=0x502EF1 kids=0 name="" rect=(none)
+      [0,1,11,1] 0x3227CA2DC10 vis=V flags=0x502EF3 kids=0 name="" rect=(none) str@0x5D8="Fontin" str@0x618="Fontin"
+      [0,1,11,2] 0x3228B2A0C20 vis=V flags=0x502EF3 kids=0 name="" rect=(none)
+      [0,1,11,3] 0x3227DBDED40 vis=V flags=0x502EF3 kids=0 name="" rect=(none)
+    [0,1,12] 0x32226678C50 vis=- flags=0x5026F1 kids=23 name="HUD" font="Fontin" rect=(none) str@0x378="skip_all_tutorials_message" str@0x658="tutorial_popup"
+      [0,1,12,0] 0x32296CFF970 vis=- flags=0x5026F3 kids=4 name="" rect=(none)

@@ -545,7 +545,7 @@ re-derived: a new rule is heard as "lost" and needs the exe read again. The 240 
 (`tests/Fixtures/stick-walks.txt`) must be recorded again on the new tree before the rule is trusted.
 
 ## Read from the game's code
-Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 85
+Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 88
 lines of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
 called from `CheckCodeFields`; 0.9 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
 sequences hit exactly once and agree; a miss keeps the constant, and a miss is the usual result for a function a patch
@@ -562,9 +562,9 @@ recompiled. What the code settles:
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 85 of 85 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
-Six of the 85 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
-does not read: they count in the 85 but protect nothing heard.
+read the line `Code fields: 88 of 88 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 88 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+does not read: they count in the 88 but protect nothing heard.
 
 33 of the lines were added on 2026-11-27 and 28 for what the league mechanics and the Atlas read, none of which had any guard: the
 rulesets' session and base and the Trial's bar in the session (`Rulesets.*`), the Breach's, the Expedition's and the Trial of Chaos' own fields, the Delirium
@@ -578,11 +578,17 @@ sequences cannot disagree. A league or Atlas field the code no longer settles is
 value only within its range, and the session and the nodes have their own search (below), so an unread line leaves a
 reading that fails, not one that lies (`CodeFieldCatalog.RefusedWhenWrong`).
 
+Three more on 2026-11-28 place the ground item's filter verdict (`WorldItem.FilterResult`, `FilterReady`, `NeverHidden`, the
+WorldItem component's +0x70, +0xB0 and +0x54; [item filter](research/item-filter.md), [evidence](research/evidence/code-fields-item-filter-2026-11-28.json)).
+They were made and checked on the installed build only (26744644), as the archive of older builds is not on this machine.
+`FilterResult`'s two sites are in one function (the getter that caches the verdict). Each failure leaves an item listed: a
+verdict not read, not computed, or read as never hidden hides nothing (`GameItemFilter.VerdictHides`).
+
 ### Names in the exe
 The game names every control of its UI tree in code: the name is a whole UTF-16 string of the exe ("tribute_button",
 "name_label_panel", "Skip_Cutscene"), and so is each table's path ("Data/Balance/MapPins.dat"). `catalog/exe-names.txt`
 lists every such name the plugin's source matches (its string literals shaped `words_joined_by_underscores`, and every string
-constant of `GameLayout.cs`), marked `+` when the exe held it as a whole string when the list was made (102 of 353). At
+constant of `GameLayout.cs`), marked `+` when the exe held it as a whole string when the list was made (103 of 354). At
 attach the running game's exe is read for the `+` names (`ExeNames`, with the code fields): log `Exe names: 102 of 102 still
 in the game's exe`, or the names gone with the file that matches each, said once ("algunos controles de la interfaz por su
 nombre, así que alguna pantalla o algún botón puede quedar sin leer"). All 102 are in the seven builds kept. A test keeps the

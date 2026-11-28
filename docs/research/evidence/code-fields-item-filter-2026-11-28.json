@@ -1,0 +1,99 @@
+{
+ "made": "2026-11-28",
+ "exe": "PathOfExileSteam.exe installed at F:\\Steam\\steamapps\\common\\Path of Exile 2, Steam build 26744644, 78,442,840 bytes, built 2026-11-23, read as a file (signatures.py, capstone)",
+ "builds": [
+  "installed"
+ ],
+ "rules": "each signature hits once in .text; displacements, immediates and branch operands wildcarded; >= 12 fixed bytes; value per build is what signatures.py check reads",
+ "not_checked": "the archive of older builds (D:\\code\\decompilers\\projects\\poe2-research\\builds) is not on this machine: only the installed build was read",
+ "class": "the component listed as WorldItem is the game's ClientWorldItem: pool 0x45C4980 named \"ClientWorldItem\" by the initialiser 0x3D630, 0xB8 bytes allocated by the constructor 0x17E1F50 (base constructor 0x1E106B0), vtable 0x33CE098; the label code 0xE57F70 looks it up by the string \"WorldItem\" (lea r14 at 0xE58000) and calls its verdict getter 0x17E2EB0 (0xE58099)",
+ "test": "vtable slot 0xC8 = 0x17E2E60: shown when the option hide_all_filtered_ground_items is off (getter 0x19467D0), or byte +0x54 is set, or the item entity's byte +0x2E is set, or bit 0 of the verdict 0x17E2EB0 returns is clear; else hidden",
+ "fields": [
+  {
+   "field": "WorldItem.FilterResult",
+   "target": "layout:WorldItemFilterResult",
+   "value": "0x70",
+   "size": 1,
+   "strength": "one function",
+   "signatures": [
+    {
+     "sig": "66 89 47 ^ ?? 41 0F B6 40 ?? 88 47 ?? 41 8B 40",
+     "site": "0x17e2f14",
+     "function": "0x17e2eb0",
+     "proof": "the verdict getter: when +0xB0 is clear it runs the filter evaluator 0x21C2C80 on the item [+0x28] and copies the result's first word into +0x70 (the Hide handler 0x21BD150 sets the result's bit 0 at 0x21BD217)",
+     "values": {
+      "installed": "0x70"
+     }
+    },
+    {
+     "sig": "48 8D 47 ^ ?? 4C 8D 5C 24 ?? 49 8B 5B ?? 49 8B 73",
+     "site": "0x17e2ff2",
+     "function": "0x17e2eb0",
+     "proof": "the same getter's return: lea rax,[rdi+0x70], the address the test 0x17E2E60 and the label code 0xE580C4 read bit 0 through",
+     "values": {
+      "installed": "0x70"
+     }
+    }
+   ]
+  },
+  {
+   "field": "WorldItem.FilterReady",
+   "target": "layout:WorldItemFilterReady",
+   "value": "0xb0",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "80 B9 ^ ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 88 ?? ?? ?? ?? 48 85 C9 74",
+     "site": "0x17e2ec2",
+     "function": "0x17e2eb0",
+     "proof": "the verdict getter's first test: a non-zero byte returns the cached +0x70 without evaluating; set at 0x17E2FAF after the copy",
+     "values": {
+      "installed": "0xb0"
+     }
+    },
+    {
+     "sig": "C6 87 ^ ?? ?? ?? ?? ?? C6 47 ?? ?? 48 8B 43 ?? 80 78 ?? ?? 74 ?? 48 8B 43",
+     "site": "0xe4cf1f",
+     "function": "0xe4cee3",
+     "proof": "the label owner's cache reset 0xE4CEB0: for each entity of its map, the WorldItem component (getter 0x196CD0), frees +0x98, clears +0xB0 and sets +0x68",
+     "values": {
+      "installed": "0xb0"
+     }
+    }
+   ]
+  },
+  {
+   "field": "WorldItem.NeverHidden",
+   "target": "layout:WorldItemNeverHidden",
+   "value": "0x54",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "80 7B ^ ?? ?? 75 ?? 48 8B 43 ?? 48 85 C0 74 ?? 80 78 ?? ?? 75 ?? 48 8B CB E8 ?? ?? ?? ?? 0F B6 00",
+     "site": "0x17e2e7a",
+     "function": "0x17e2e60",
+     "proof": "the test (vtable slot 0xC8): a non-zero byte returns shown before the verdict is asked",
+     "values": {
+      "installed": "0x54"
+     }
+    },
+    {
+     "sig": "88 47 ^ ?? 48 8B 47 ?? 48 8B 98 ?? ?? ?? ?? 48 8B 46 ?? 0F B6 50",
+     "site": "0x1e10829",
+     "function": "0x1e10750",
+     "proof": "the item setter: stores the item at +0x28 and this byte from the item's kind (quest items and a base-type flag), then calls slot 0xC8",
+     "values": {
+      "installed": "0x54"
+     }
+    }
+   ]
+  }
+ ],
+ "not_done": {
+  "item entity +0x2E": "read by the test at 0x17E2E89 only; its writer and meaning were not found: a constant (GameLayout.WorldItemComponent.ItemNeverHiddenOffset)",
+  "label code 0xE580C4": "reads the verdict through the getter's returned pointer (movzx eax, byte [r13]): no displacement, so no signature",
+  "targeting 0x1A5204": "the same: no displacement"
+ }
+}

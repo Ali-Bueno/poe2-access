@@ -222,6 +222,12 @@ mana and flask lines cut it.
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
+**The game's item filter.** The loot filter chosen in the game's Options > Game > Item Filter, such as NeverSink's, hides
+items by drawing no label for them and offering no pick-up. Those items are not listed in the scanner, make no drop sound and
+are not named on approach either, the same as a sighted player sees. There is no mod setting for it, because the game's own
+"hide all filtered ground items" option is the switch (`hide_all_filtered_ground_items` in its config). With that off, or with
+no filter chosen, every item is listed.
+
 **Item sound set** (Sound, after the master volume; D2R item sound sets): the sounds of items on the ground, chests, searchable bodies and shrines:
 Path of Exile 2, the game's own (default), or Diablo IV, the D2R mod's set, which plays without a break while the
 thing is in range and where equipment sounds by rarity; up on screen it rises only two semitones, since these

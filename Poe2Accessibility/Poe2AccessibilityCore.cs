@@ -565,7 +565,9 @@ namespace Poe2Accessibility
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.InTown = this.InTownOrHideout;
                 this.entities.LayoutRevealed = () => this.rulesets?.MinimapRevealed == true;
-                this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
+                var hideFiltered = new GameConfigOption(Localization.ConfigPath, GameItemFilter.HideOptionKey, line => this.log?.Info(line));
+                this.entities.GameHidesFilteredItems = () => hideFiltered.Value;
+                this.entities.Memory =new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;

@@ -6,7 +6,8 @@
 ## Identity
 - **Game:** Path of Exile 2, Steam (`PathOfExileSteam.exe`, app 2694490), proprietary GGG engine, DX12,
   no kernel anti-cheat (server-side detection). Install: `D:\games\steam\steamapps\common\Path of Exile 2`
-  (download started 2026-09-14, ~138 GB). Current patch 0.5.5f.
+  (download started 2026-09-14, ~138 GB). Current patch 0.5.5f. Steam build 26744644 (exe of 2026-11-23) was installed on 2026-11-28; on a machine with the game elsewhere,
+  `tools/exe_reader` needs `POE2_EXE` set to its exe.
 - **Approach:** external, **read-only** memory reading, no input automation (see brief §3/§25 and `AGENTS.md`).
 - **Host:** the mod's own headless `Poe2Access.exe` (`host/Poe2Access`, one process with the launcher steps since 2026-11-08; [host](host/README.md)): the
   `GameReader` library (GameHelper2 v2.8.0's memory model, vendored and renamed) with the runtime layout searches and the
@@ -184,7 +185,8 @@
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
 | Vitals: flask uses, level progress, gold, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges; uses only once two drinks showed what one costs, the charges until then: the base type's cost ignores the flask's modifiers, code 2026-11-10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning heard: "Frasco de maná menor vacío" after six drinks in Clearfell, then the game's own "Sin frascos" (2026-10-25; flasks are not drunk in town or at full life/mana); the uses left said after each drink, "Frasco de vida menor, 3 usos" (code, user asked 2026-10-26): flasks tracked by belt slot, since a drink makes a new item entity (`FlaskDrinks`, seen in the log); a use gained and a flask put on the belt said too |
 | Minions in the vitals readout (D2R) | done (code) | `MinionReport` + pure `MinionGroups`: friendly living creatures without the NPC component within object range, by kind with average life ("Esbirros: 3 Esqueleto arquero, 80 por ciento"); a party member's minions count too |
-| Loot filter for item sounds and approach names (D2R) | done (code) | `LootFilter`, setting "Objetos que suenan y se nombran": todos / mágicos o mejores / solo monedas, gemas, objetos de misión, raros y únicos; the scanner still lists every item; not heard live (no ground items in town) |
+| Loot filter for item sounds and approach names (D2R) | done (code) | `LootFilter`, setting "Objetos que suenan y se nombran": todos / mágicos o mejores / solo monedas, gemas, objetos de misión, raros y únicos; the scanner lists every item the game's own filter shows (next row); not heard live (no ground items in town) |
+| The game's item filter (Options > Game > Item Filter) | done (live 2026-11-28: deployed, the helmet left the scanner under a Hide filter and came back with NeverSink) | `GameItemFilter` + `GameConfigOption`, no mod setting (the game's option is the switch): an item the filter hides is not listed, heard or named. Read from the WorldItem component's verdict (+0x70 bit 0, computed +0xB0, never-hide +0x54, item +0x2E), as the game's own test 0x17E2E60 reads it, when `hide_all_filtered_ground_items=true` in the game's config; anything unread keeps the item listed. Live: a helmet under a one-line Hide filter read 1, the spear beside it 0. A fresh hidden drop not yet seen: look for `Ground item hidden by the game's item filter` in a session log. A failed pick-up of a hidden item rebuilds it at the map's origin until the area is entered again ([item filter](docs/research/item-filter.md)) |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
 | Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
 | Overheated crossbow (Rapid Shot) | done (heard 2026-11-05) | `StatusAilment.Overheated` from buff `overheated`: "Arma sobrecalentada", then "Arma lista" (user 2026-11-05); under the "Estados alterados" switch |
@@ -540,6 +542,13 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28, night (a tester of the fork oasis1701/poe2-access, NeverSink's semi-strict filter on: "our mod still announces its name as I move over it"; branch
+`item-filter`, 1194 tests, deployed to the development host and checked live, pushed, not released):** ground items the game's
+item filter hides are left out of the scanner, its sounds and its names ([item filter](docs/research/item-filter.md)). Next:
+confirm a fresh hidden drop from the log line `Ground item hidden by the game's item filter`
+(at area level 14 semi-strict hides Transmutation Shards and plain white flasks without quality). The code catalog's three
+WorldItem lines were checked on the installed build only (26744644): the archive of older builds is not on this machine.
+
 **2026-11-28 (a fork's player, in Clearfell with the Mad Wolf's "Infiltrate the Manor": does the waypoint map show where the
 quest ends?; 1204 tests, branch `quest-markers-on-map`, heard live from the build folder, not released):** the world map says the places its
 exclamation marks are on, with the nearest active waypoint, when it opens; the cursor on one says "Quest location"; a

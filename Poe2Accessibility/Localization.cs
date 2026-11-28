@@ -151,7 +151,8 @@ namespace Poe2Accessibility
 
         private static string? ReadGameLanguage(string path) => File.Exists(path) ? ParseGameLanguage(File.ReadAllText(path)) : null;
 
-        private static string ConfigPath()
+        /// <summary>The game's own config file (Documents\My Games\Path of Exile 2\poe2_production_Config.ini).</summary>
+        public static string ConfigPath()
         {
             var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (string.IsNullOrEmpty(documents))
