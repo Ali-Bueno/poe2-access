@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>More records than this in one vector says the pointers are not a vector's.</summary>
         private const int MaxRecords = 64;
 
+        /// <summary>The records of the last vector refused for being too many, 0 when none was.</summary>
+        private long refusedRecords;
+
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly PluginLog log;
@@ -243,9 +246,10 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string AreaStats()
         {
+            this.refusedRecords = 0;
             if (this.AreaStatPairs() is not { } pairs)
             {
-                return "Area stats: unread";
+                return this.refusedRecords > 0 ? $"Area stats: unread, a vector of {this.refusedRecords} pairs is over the {GameLayout.AreaStats.MostPairs} read" : "Area stats: unread";
             }
 
             // By the game's own key where the catalog lists the stat (game-ids.txt), else by the host's old enum, which drifts.
@@ -259,14 +263,14 @@ namespace Poe2Accessibility.Services
         private List<(int Stat, int Value)>? AreaStatPairs()
         {
             var areaNow = Core.States.InGameStateObject.CurrentAreaInstance.Address;
-            if (areaNow == IntPtr.Zero || this.VectorCount(areaNow + GameLayout.AreaStats.VectorOffset, GameLayout.AreaStats.PairBytes) is not { } count ||
+            if (areaNow == IntPtr.Zero || this.VectorCount(areaNow + GameLayout.AreaStats.VectorOffset, GameLayout.AreaStats.PairBytes, GameLayout.AreaStats.MostPairs) is not { } count ||
                 !this.memory.TryRead<IntPtr>(areaNow + GameLayout.AreaStats.VectorOffset, out var first))
             {
                 return null;
             }
 
             var pairs = new List<(int Stat, int Value)>();
-            for (var index = 0; index < Math.Min(count, MaxRecords); index++)
+            for (var index = 0; index < count; index++)
             {
                 if (this.memory.TryRead<int>(first + (index * GameLayout.AreaStats.PairBytes), out var stat) &&
                     this.memory.TryRead<int>(first + (index * GameLayout.AreaStats.PairBytes) + sizeof(int), out var value))
@@ -296,7 +300,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>How many elements a std::vector holds; null when its two pointers are not a vector of that stride.</summary>
-        private int? VectorCount(IntPtr vector, int stride)
+        private int? VectorCount(IntPtr vector, int stride, int most = MaxRecords)
         {
             if (!this.memory.TryRead<IntPtr>(vector, out var first) || !this.memory.TryRead<IntPtr>(vector + IntPtr.Size, out var last))
             {
@@ -309,7 +313,18 @@ namespace Poe2Accessibility.Services
                 return 0;
             }
 
-            return bytes > 0 && bytes % stride == 0 && bytes / stride <= MaxRecords && this.memory.IsValidAddress(first) ? (int)(bytes / stride) : null;
+            if (bytes < 0 || bytes % stride != 0 || !this.memory.IsValidAddress(first))
+            {
+                return null;
+            }
+
+            if (bytes / stride > most)
+            {
+                this.refusedRecords = bytes / stride;
+                return null;
+            }
+
+            return (int)(bytes / stride);
         }
 
         /// <summary>A ruleset of the area by its name, for a reader of what it holds; null when the area has none.</summary>
