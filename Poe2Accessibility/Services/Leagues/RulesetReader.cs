@@ -99,11 +99,13 @@ namespace Poe2Accessibility.Services
             return nearest;
         }
 
-        /// <summary>The Trial of Chaos' round, counted from 1, and how many it has; null outside one or when the two bytes cannot be that.</summary>
-        public (int Round, int Total)? TrialRound()
+        /// <summary>The Trial of Chaos' ruleset of the area; null outside one. Asked once per poll for the reads below.</summary>
+        public IntPtr? Trial() => this.Find(GameLayout.Rulesets.UltimatumName);
+
+        /// <summary>The Trial of Chaos' round, counted from 1, and how many it has; null when the two bytes cannot be that.</summary>
+        public (int Round, int Total)? TrialRound(IntPtr rules)
         {
-            if (this.Find(GameLayout.Rulesets.UltimatumName) is not { } rules ||
-                !this.memory.TryRead<byte>(rules + GameLayout.Rulesets.UltimatumRound, out var round) ||
+            if (!this.memory.TryRead<byte>(rules + GameLayout.Rulesets.UltimatumRound, out var round) ||
                 !this.memory.TryRead<byte>(rules + GameLayout.Rulesets.UltimatumTotal, out var total) ||
                 total is 0 or > GameLayout.Rulesets.UltimatumMostRounds || round >= total)
             {
@@ -117,10 +119,9 @@ namespace Poe2Accessibility.Services
         ///     The Trial of Chaos' round as the game names it: the kind's Id ("Survive") and the objective in the client's language
         ///     ("Sobrevive"); null outside one, or when the pointers do not lead to a kind with a plain Id and a text.
         /// </summary>
-        public (IntPtr Room, string Kind, string Text)? TrialObjective()
+        public (IntPtr Room, string Kind, string Text)? TrialObjective(IntPtr rules)
         {
-            if (this.Find(GameLayout.Rulesets.UltimatumName) is not { } rules ||
-                !this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.UltimatumRoom, out var room) || !this.memory.IsValidAddress(room) ||
+            if (!this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.UltimatumRoom, out var room) || !this.memory.IsValidAddress(room) ||
                 !this.memory.TryRead<IntPtr>(room + GameLayout.Rulesets.UltimatumRoomType, out var type) || !this.memory.IsValidAddress(type) ||
                 !this.memory.TryRead<IntPtr>(type, out var idText) || !this.memory.IsValidAddress(idText) ||
                 !this.memory.TryRead<IntPtr>(type + GameLayout.Rulesets.UltimatumTypeText, out var nameText) || !this.memory.IsValidAddress(nameText) ||
@@ -135,9 +136,8 @@ namespace Poe2Accessibility.Services
 
         private const int MaxTextChars = 120;
 
-        /// <summary>How full the Trial's bar "Challenge Progress" is, 0 to 1; null outside a Trial or when the float cannot be that.</summary>
+        /// <summary>How full the Trial's bar "Challenge Progress" is, 0 to 1, once <see cref="Trial"/> found the ruleset; null when the float cannot be that.</summary>
         public float? TrialProgress() =>
-            this.Find(GameLayout.Rulesets.UltimatumName) != null &&
             this.memory.TryRead<float>(this.session + GameLayout.Rulesets.SessionTrialProgress, out var progress) && float.IsFinite(progress) && progress is >= 0f and <= 1f
                 ? progress
                 : null;

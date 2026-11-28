@@ -30,7 +30,7 @@ namespace Poe2Accessibility.Services
         ///     The texts to say now, each element by its own id (two labels of one name are two lines); what stands when first
         ///     looked at in an area is not news.
         /// </summary>
-        public List<string> Heard(IReadOnlyList<(long Id, string Text)> shown, long now)
+        public List<string> Heard(IEnumerable<(long Id, string Text)> shown, long now)
         {
             var news = new List<string>();
             foreach (var (id, text) in shown)
