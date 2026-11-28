@@ -48,8 +48,10 @@ namespace Poe2Accessibility.Services
     /// <param name="About">What the game writes under the object's title, said once with its button (<see cref="Announcements.ObjectDescription"/>).</param>
     /// <param name="Cost">What a Trial shrine asks in sacred water (<see cref="ShrineCost"/>), 0 for an object with no cost.</param>
     /// <param name="Strongbox">A strongbox: holding the interact button applies currency to it instead of opening it.</param>
+    /// <param name="Dimmed">An object the minimap draws in its spent form (<see cref="MinimapMarks.IsSpent"/>): nothing to use there now.</param>
     public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "", string BaseId = "",
-        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "", bool Timed = false, string About = "", int Cost = 0, bool Strongbox = false)
+        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "", bool Timed = false, string About = "", int Cost = 0, bool Strongbox = false,
+        bool Dimmed = false)
     {
         public const string PortalKind = "portal";
 

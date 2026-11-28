@@ -177,3 +177,15 @@ bubble, and the unit of the pointer distance.
 - **World labels:** the names drawn over things in the world are UI labels under `world_ui_layer_parent`, named by the
   entity's metadata path ("Metadata/MiscellaneousObjects/Checkpoint" → "Punto de control"); the minimap itself has no
   UI children.
+
+## Goddess of Justice, Abandoned Prison (Act 4; game data 2026-11-27, issue #16)
+- The statue (`ClientStrings` `GoddessOfJusticeWorldObjectDescription`, ko 정의의 여신) has `G4_5_2GoddessOfJusticeObjectActive` /
+  `…ObjectInactive`; the chapel is `…LandmarkActive` ("The Chapel"). Every other `…Inactive` icon in `MinimapIcons` is a done or spent
+  form (bosses slain, secrets found, shrines taken, `GateMechanismInactive`).
+- Reward (poe2db): "Her scales weigh only truth", 30% increased Life **or** Mana Recovery from Flasks (Right / Left); quest flags
+  `JusticeScaleActive1/2`, `GoddessOfJusticeUISeen`, `GoddessOfJusticePoweredReceivedBefore` suggest a choice window (not confirmed live).
+  Nothing in the data gives +30 maximum life.
+- The chapel door (`ObjectDisplayTextJusticePrisonDoor` "Chapel Door", ko 예배당 문) opens with the **Chapel Key**
+  (`Metadata/Items/QuestItems/Gallows/Act4/PrisonKey`, a random drop in the instance). Without it the game writes
+  `InteractErrorChapelDoor` ("The Chapel Door is locked. It seems to require a Chapel Key."), a refusal the mod reads from `message_label`.
+- `Metadata/NPC/Four_Act4/GoddessOfJusticePrisonGlyph` ("The Lady of Justice") is a lore glyph beside it, not the statue.

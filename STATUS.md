@@ -534,6 +534,11 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-27, late (issue #16, closed by its reporter):** what A uses is named "no disponible" when its minimap icon is in the
+spent form (`ScanEntry.Dimmed`), and every A press in the world logs what the game targets (`A pressed on:`, file, icon, states);
+the Goddess of Justice's key, door and reward from the game data are in `docs/research/minimap.md`. Locked-door refusals
+("The Chapel Door is locked…") already come through `message_label`. Not yet heard live: what the statue's window reads.
+
 **2026-11-27, evening, unattended on kehgan (the owner: "investiga tú qué es este nodo central y si se lee todo bien";
 1177 tests, deployed to the play copy, pushed, released at the owner's word as v2026.11.27-3):** the Atlas tree's **roots take the game's cursor but no
 hover** (focus none), so the centre and every league start said nothing and left the D-pad finder without a node: the

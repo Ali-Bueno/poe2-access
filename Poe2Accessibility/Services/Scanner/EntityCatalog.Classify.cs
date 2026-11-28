@@ -404,7 +404,8 @@ namespace Poe2Accessibility.Services
                     // "Foco vaal", and they sounded as an encounter it does not ask for (owner, 2026-11-18).
                     : this.landmarks.WorldTitle(LeaguePieces.AncientBeaconTitle),
                 timed, category is ScanCategory.Encounters or ScanCategory.Objects ? this.AboutOf(path) : string.Empty,
-                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0, Strongbox: strongbox);
+                category is ScanCategory.Encounters or ScanCategory.Objects ? CostOf(entity) : 0, Strongbox: strongbox,
+                Dimmed: category == ScanCategory.Objects && MinimapMarks.IsSpent(icon));
         }
 
         /// <summary>What the object asks in sacred water, from its script's shared state; 0 without one.</summary>
@@ -611,6 +612,21 @@ namespace Poe2Accessibility.Services
             }
 
             return null;
+        }
+
+        /// <summary>For the log as A goes down: every entity the game flags as targeted, by file, minimap icon and script states.</summary>
+        public string TargetTrace()
+        {
+            var targets = Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values
+                .Where(entity => entity.IsValid && this.IsTargeted(entity))
+                .Select(entity =>
+                {
+                    var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
+                    var states = string.Join(",", StatesOf(entity).Select(state => $"{state.Name}={state.Value}"));
+                    return $"{entity.Id} {entity.Path} icon \"{icon}\" states [{states}]";
+                })
+                .ToList();
+            return targets.Count == 0 ? "nothing targeted" : string.Join("; ", targets);
         }
 
         /// <summary>The game flags the entity as the player's target (<see cref="GameLayout.TargetableComponent.IsTargetedOffset"/>).</summary>

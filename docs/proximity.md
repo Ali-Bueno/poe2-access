@@ -32,3 +32,7 @@
   A Trial shrine's or fountain's cost in sacred water, its shared state `interact_cost` (`ShrineCost`), ends the line when the state
   is there and not zero: "Honra a Tabana, A. Restaura algo de honor, cuesta 5 de agua sagrada" (later times, "Honra a Tabana, A, cuesta 5 de agua sagrada").
 - What happened behind a kept line ("Recogido 5 de oro") follows the move that cuts the line instead of being dropped (`SpeechFloor.Move`).
+- An object the minimap draws in its spent form (`…Inactive`, `MinimapMarks.IsSpent`; `ScanEntry.Dimmed`) is named "no disponible"
+  with its button: "Diosa de la Justicia, no disponible, A". Every such icon in the data is a done or spent form, and a press may
+  open nothing nor show a refusal: at the Goddess of Justice the player heard only the name and pressed again (issue #16, 2026-11-27). Every A press in the world logs what the game flags as targeted (file,
+  minimap icon, script states: `EntityCatalog.TargetTrace`), so a report of "A did nothing" shows what the press reached.

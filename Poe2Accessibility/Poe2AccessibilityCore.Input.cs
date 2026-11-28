@@ -113,6 +113,12 @@ namespace Poe2Accessibility
             if (confirm && !this.confirmDown)
             {
                 this.lastConfirmAt = Environment.TickCount64;
+                if (state.IsDown(GameLayout.PadButtons.A) && this.InGame && this.entities != null && this.WorldInFront())
+                {
+                    // What the press reached, so a report of "A did nothing" shows it (issue #16).
+                    this.log?.Info($"A pressed on: {this.entities.TargetTrace()}");
+                }
+
                 if (!state.IsDown(GameLayout.PadButtons.A) && atlasScreen == IntPtr.Zero)
                 {
                     this.narrator?.OnTabKey();

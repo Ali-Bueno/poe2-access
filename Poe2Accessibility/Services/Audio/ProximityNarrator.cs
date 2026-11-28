@@ -310,7 +310,8 @@ namespace Poe2Accessibility.Services
                 this.targetLeft = null;
             }
 
-            var label = Announcements.WithButton(entry.Name, ControllerGlyphs.Interact);
+            // A dimmed object answers A with nothing on screen (Goddess of Justice, issue #16): the player hears why.
+            var label = Announcements.WithButton(entry.Dimmed ? Announcements.Unavailable(entry.Name) : entry.Name, ControllerGlyphs.Interact);
             if (entry.About.Length > 0 && !entry.Timed && this.aboutSaid.Add(entry.About))
             {
                 // What the game's box says the object is for, once an area: the Blood Chalice said its name and the button,
