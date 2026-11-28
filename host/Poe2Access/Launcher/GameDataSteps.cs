@@ -25,7 +25,7 @@ internal static class GameDataSteps
         new Step(ItemSounds, 1, "item-sounds.json", "item-sounds"),
         new Step("area names", 1, "area-names.json", "areas"),
         new Step("area layouts", 2, "area-layouts.json", "area-layouts", true), // never 1: a legacy stamp vouches for every step at 1
-        new Step("dat columns", 7, "dat-columns.json", "dat-columns"), // 7: a skill's stats at its gem's level (GrantedEffectStatSetsPerLevel)
+        new Step("dat columns", 8, "dat-columns.json", "dat-columns"), // 8: the areas' links (WorldAreas.Connections) and a quest state's map pins (QuestStates.MapPinsKeys); 7: a skill's stats at its gem's level (GrantedEffectStatSetsPerLevel)
         new Step("experience", 1, "experience.json", "experience"),
         new Step("hit times", 7, "hit-times.txt", "hit-times", true), // 7: a geometry trigger sets off hits, whatever its action's name; 6: a clip without a contact is timed by its "impact" event (Doryani's Triumph's self-destruct); 5: skills that cannot be dodged, evaded or blocked are unblockable
         new Step("hazards", 3, "hazards.txt", "hazards", true),

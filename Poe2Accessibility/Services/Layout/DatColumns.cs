@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
         {
             ["ActiveSkills"] = 338, ["Characters"] = 640, ["GrantedEffects"] = 297, ["GrantedEffectsPerLevel"] = 116,
             ["GrantedEffectStatSetsPerLevel"] = 185, ["MapPins"] = 202,
-            ["MinimapIcons"] = 42, ["Mods"] = 693, ["PassiveSkills"] = 487, ["WorldAreas"] = 736,
+            ["MinimapIcons"] = 42, ["Mods"] = 693, ["PassiveSkills"] = 487, ["WorldAreas"] = 736, ["QuestStates"] = 208,
         };
 
         private static readonly List<string> UnjudgedColumns = new();
@@ -76,6 +76,8 @@ namespace Poe2Accessibility.Services
             ("WorldAreas.Name", GameLayout.WorldAreaRow.NameOffset, offset => GameLayout.WorldAreaRow.NameOffset = offset),
             ("GrantedEffectStatSetsPerLevel.AdditionalStats", GameLayout.StatSetLevelRow.StatKeysOffset, offset => GameLayout.StatSetLevelRow.StatKeysOffset = offset),
             ("GrantedEffectStatSetsPerLevel.AdditionalStatsValues", GameLayout.StatSetLevelRow.ValuesOffset, offset => GameLayout.StatSetLevelRow.ValuesOffset = offset),
+            ("QuestStates.MapPinsKeys", GameLayout.QuestStateRow.MapPinsOffset, offset => GameLayout.QuestStateRow.MapPinsOffset = offset),
+            ("WorldAreas.Connections", GameLayout.WorldAreaRow.ConnectionsOffset, offset => GameLayout.WorldAreaRow.ConnectionsOffset = offset),
         };
 
         /// <summary>

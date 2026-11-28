@@ -554,9 +554,10 @@ namespace Poe2Accessibility
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
                 this.semantics.MapLegendWord = picture => this.entities?.MapLegendWord(picture) ?? string.Empty;
                 this.semantics.AreasBehind = (area, towns) => this.entities?.QuestGoals.Behind(area, towns) ?? Array.Empty<string>();
+                this.semantics.QuestMarksShown = () => this.Settings.AnnounceQuestMarks;
                 this.screen.MapLegendWord = this.semantics.MapLegendWord;
                 this.semantics.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
-                this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
+                this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log, () => this.Settings.AnnounceQuestMarks);
                 this.atlasNodes = new AtlasNarrator(this.semantics, this.output, this.log);
                 this.atlasNodes.CharacterName = () => this.semantics.CharacterName?.Invoke() ?? string.Empty;
                 this.atlasNodes.ResumeFile = Path.Join(this.DllDirectory, "config", "atlas-resume.txt");

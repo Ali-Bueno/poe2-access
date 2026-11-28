@@ -525,6 +525,16 @@ With two worn items (rings) each is named by its slot on the name row. The D-pad
 - Teleport map (A at a waypoint): the D-pad moves between the places; D-pad up from the places under the title
   reaches the act tabs ("Teleport. Act 2, button, 2 of 2"); left and right move between the acts and A shows that
   act's map with the cursor back on its places, the town first.
+- Quest locations (both maps; setting "Quest locations on the world map and the nearest waypoint", Navigation, on by
+  default): the exclamation mark the map draws over a quest's place is told the way a look at the map shows it. When
+  a map opens, and each time it shows another act, after the place under the cursor: "Quest location: The Mad Wolf of
+  Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, one area away, below it on the map" (the active
+  waypoint fewest exits away, and where its pin lies on the map from the mark's), or "No active waypoint near it". A place whose own waypoint
+  is active ends at "Visited, waypoint active". The cursor on a marked place adds "Quest location" after its popup, which
+  names the area's quests itself (the quest's name follows only when the popup did not say it). In the quest list (Square) a quest says where its mark is, after its name: "The Mad Wolf of Ogham, marked on
+  Ogham Manor, button, 1 of 12, …". A quest the map does not mark (Grave Tidings, the rituals) says nothing more, as the
+  map shows nothing; a finished one neither. The marks come from the game's own rows of the quest's current step, so a
+  patch that changes quests is told as the game draws it.
 - Social: Friends opens with your account name and area after the focus; a Guild or Party page without one reads
   its explanation after the focus ("You are not currently in a guild. …").
 - Game menu: its tip (R3 for skills and buffs) and the pause banner are said once a session, after the focus.

@@ -18,6 +18,8 @@
 +	Data/Balance/GrantedEffectsPerLevel.dat	GameLayout.cs
 +	Data/Balance/MapPins.dat	GameLayout.cs
 +	Data/Balance/PassiveSkills.dat	GameLayout.cs
++	Data/Balance/Quest.dat	GameLayout.cs
++	Data/Balance/QuestStates.dat	GameLayout.cs
 +	Data/Balance/Words.dat	GameLayout.cs
 +	Data/Balance/WorldAreas.dat	GameLayout.cs
 -	DepthToggle	GameLayout.cs
@@ -119,6 +121,7 @@
 -	frenzy_charges	PlayerCharges.cs
 -	fury_charges	Announcements.ClassMechanics.cs
 +	gambling_stock_display_label	GameLayout.cs
++	gamepad_Toggle_mode_button	GameLayout.cs
 +	gamepad_move_map_hint	MapOverlayWatch.cs
 +	gamepad_popup_button_legend_layout	InspectLayout.cs
 -	generic_limited_minions	Announcements.ClassMechanics.cs
@@ -236,7 +239,7 @@
 +	progress_frame	GameLayout.cs
 +	quest_info	GameLayout.cs
 -	quest_item	Announcements.Settings.cs
-+	quest_selector	UiSemantics.Endgame.cs
++	quest_selector	GameLayout.cs
 +	quests_display_pages_root	GameLayout.cs
 -	radar2_exit	Announcements.Settings.cs
 -	radar2_obstacle	Announcements.Settings.cs

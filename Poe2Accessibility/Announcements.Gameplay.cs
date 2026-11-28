@@ -122,6 +122,62 @@ namespace Poe2Accessibility
             _ => string.Empty,
         };
 
+        /// <summary>The world map's exclamation mark over a quest's place (the map legend's "Quest Location"), on the pin under the cursor.</summary>
+        public static string QuestLocation(System.Collections.Generic.IEnumerable<string> quests)
+        {
+            var named = string.Join(", ", quests);
+            return named.Length == 0 ? T("Quest location", "Lugar de misión") : T($"Quest location: {named}", $"Lugar de misión: {named}");
+        }
+
+        /// <summary>
+        ///     What a look at the opened world map shows of a quest's mark: the quest, its place and state, and the nearest blue swirl
+        ///     ("Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, one area away,
+        ///     below it on the map").
+        /// </summary>
+        public static string QuestMarkGlance(Services.QuestMark mark)
+        {
+            var first = Clauses(new[] { QuestLocation(mark.Quests), mark.Place, MapArea(mark.State) }.Where(part => part.Length > 0));
+            return mark.Steps switch
+            {
+                Services.QuestMark.NoneNear => Sentences(new[] { first, T("No active waypoint near it", "Ningún transportador activo cerca") }),
+                > 0 => Sentences(new[] { first, NearestWaypoint(mark.Waypoints, mark.Steps, mark.Waypoints.Count == 1 ? mark.Side : string.Empty) }),
+                _ => first, // its own waypoint is active (its state says so), or nothing is known of the way: nothing claimed
+            };
+        }
+
+        /// <summary>
+        ///     The active waypoints fewest exits from a mark, how far, and where the one lies on the map from it ("…, one area away,
+        ///     below it on the map": "next door, down" was heard as an order to go down once there, 2026-11-28).
+        /// </summary>
+        public static string NearestWaypoint(System.Collections.Generic.IReadOnlyList<string> waypoints, int steps, string side)
+        {
+            var names = string.Join(T(" or ", " o "), waypoints);
+            var far = steps == 1 ? T("one area away", "a una zona") : T($"{steps} areas away", $"a {steps} zonas");
+            var line = T($"Nearest waypoint: {names}, {far}", $"Transportador activo más cercano: {names}, {far}");
+            return side.Length > 0 ? $"{line}, {side}" : line;
+        }
+
+        /// <summary>Where a pin lies on the world map from the one just named, by <see cref="Services.StickDirection"/> octant ("below it on the map").</summary>
+        public static string OnTheMapFrom(int octant) => octant switch
+        {
+            0 => T("to the right of it on the map", "a su derecha en el mapa"),
+            1 => T("above and to the right of it on the map", "arriba a su derecha en el mapa"),
+            2 => T("above it on the map", "encima en el mapa"),
+            3 => T("above and to the left of it on the map", "arriba a su izquierda en el mapa"),
+            4 => T("to the left of it on the map", "a su izquierda en el mapa"),
+            5 => T("below and to the left of it on the map", "abajo a su izquierda en el mapa"),
+            6 => T("below it on the map", "debajo en el mapa"),
+            7 => T("below and to the right of it on the map", "abajo a su derecha en el mapa"),
+            _ => string.Empty,
+        };
+
+        /// <summary>A quest of the map's list (Square), said by the places its mark is on, as the ring the game draws there.</summary>
+        public static string QuestMarkedOn(System.Collections.Generic.IEnumerable<string> places)
+        {
+            var named = string.Join(T(" and ", " y "), places);
+            return T($"marked on {named}", $"marcada en {named}");
+        }
+
         /// <summary>An exit's own hint: holding the interact button offers its options (a new instance).</summary>
         public static string HoldForOptions(string button) => T($"hold {button} for options", $"mantén {button} para opciones");
 
