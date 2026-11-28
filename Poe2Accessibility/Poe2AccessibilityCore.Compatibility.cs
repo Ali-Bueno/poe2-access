@@ -106,8 +106,9 @@ namespace Poe2Accessibility
         /// <summary>Per frame: the parts of the game's layout that could not be found, said once together.</summary>
         private void SayCompatibility()
         {
-            this.TakeCodeFields();
-            this.worldLayout?.Tick(this.InGame);
+            // A failing sweep must not silence the alarm below.
+            this.Isolated("code fields", static core => core.TakeCodeFields());
+            this.Isolated("world layout", static core => core.worldLayout?.Tick(core.InGame));
             if (this.compatibility?.TakeUnsaid() is { Count: > 0 } missing)
             {
                 this.output.Speak(Announcements.CompatibilityMissing(missing), false);
