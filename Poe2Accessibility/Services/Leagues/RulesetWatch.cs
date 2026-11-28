@@ -16,8 +16,6 @@ namespace Poe2Accessibility.Services
         private const int PollMs = 400;
 
         /// <summary>How often the interface is walked for the Trial of Chaos' elements.</summary>
-        private bool fogRan;
-
         private const int TrialHudWalkMs = 3000;
 
         /// <summary>Once its elements are known the walk is only for new ones (a popup's labels).</summary>
@@ -34,7 +32,9 @@ namespace Poe2Accessibility.Services
         private readonly ChaosTrialHudReader trialHud;
         private readonly ChaosTrialHudNews trialHudNews = new();
         private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
+        private readonly HashSet<(string Name, string Text)> trialHudTexts = new();
         private long trialHudFound = long.MinValue / 2;
+        private bool fogRan;
         private bool areaStatsLogged;
 
         /// <summary>
@@ -120,6 +120,7 @@ namespace Poe2Accessibility.Services
             this.trialHudNews.Reset();
             (this.heldObjective, this.objectiveSaid) = (null, false);
             this.trialHud.Reset();
+            this.trialHudTexts.Clear();
             this.areaStatsLogged = false;
             this.MinimapRevealed = false;
             this.InChaosTrial = false;
@@ -140,7 +141,8 @@ namespace Poe2Accessibility.Services
             var player = new Vector2(render.GridPosition.X, render.GridPosition.Y);
             var ring = this.reader.BreachNear(player);
             this.Charges = this.reader.ExpeditionNear(player);
-            var round = this.reader.TrialRound();
+            var trial = this.reader.Trial();
+            var round = trial is { } rules ? this.reader.TrialRound(rules) : null;
             this.InChaosTrial = round != null;
             this.LogChange(ring, round, player);
             if (!this.areaStatsLogged)
@@ -185,7 +187,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var objective = round == null ? null : this.reader.TrialObjective();
+            var objective = round == null || trial is not { } found ? null : this.reader.TrialObjective(found);
             if (objective is { } kind && this.trialHudLogged.Add($"objective {kind.Kind}"))
             {
                 this.log.Info($"Trial objective: {kind.Kind} = \"{kind.Text}\""); // confirms the room's row and its kind's text
@@ -226,13 +228,13 @@ namespace Poe2Accessibility.Services
                 var shown = this.trialHud.Visible();
                 foreach (var (_, name, text) in shown)
                 {
-                    if (this.trialHudLogged.Add($"{name} = {System.Text.RegularExpressions.Regex.Replace(text, @"\d+", "#")}"))
+                    if (this.trialHudTexts.Add((name, text)) && this.trialHudLogged.Add($"{name} = {System.Text.RegularExpressions.Regex.Replace(text, @"\d+", "#")}"))
                     {
                         this.log.Info($"Trial HUD: {name} = \"{text}\""); // which names the game's elements really have, and what they hold
                     }
                 }
 
-                foreach (var line in this.trialHudNews.Heard(shown.Select(element => (element.Id, element.Text)).ToList(), now))
+                foreach (var line in this.trialHudNews.Heard(shown.Select(element => (element.Id, element.Text)), now))
                 {
                     // The objective is said from the ruleset: the same words on screen are not said twice.
                     if (trials && line != objective?.Text)

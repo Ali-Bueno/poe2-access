@@ -56,6 +56,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Distinct readings logged per area: a state that counts by itself would write a line every poll.</summary>
         private const int MaxFactsLogged = 500;
+
+        /// <summary>A sub-watch that keeps failing is logged this often (ms), not every poll.</summary>
+        private const int FailureLogMs = 30000;
+
+        private readonly Dictionary<string, long> failedAt = new(StringComparer.Ordinal);
         private int phase = 1;
         private long? playerDiedAt;
         private long lastPhaseAt = long.MinValue / 2;
@@ -244,14 +249,14 @@ namespace Poe2Accessibility.Services
                 said.Add(wayOut);
             }
 
-            this.EndCensusPoll(fighting, multi, now, said);
+            this.Isolated("census", now, () => this.EndCensusPoll(fighting, multi, now, said));
             foreach (var text in said.Distinct(StringComparer.Ordinal))
             {
                 this.output.Say(SpeechKind.BossLife, text, true);
                 this.log.Info($"Boss turn: {text}");
             }
 
-            this.SayCalm();
+            this.Isolated("calm", now, this.SayCalm);
 
             this.others.Clear();
             var hidden = this.bosses.Values.FirstOrDefault(boss => boss.SeenAt == now && boss.HidingSince != null && boss.Facts.Gone);
@@ -261,6 +266,23 @@ namespace Poe2Accessibility.Services
             {
                 this.log.Info($"Boss hiding: {hidden.Monster} moved to {hidden.At.X:0},{hidden.At.Y:0}");
                 hidden.HidingAt = hidden.At;
+            }
+        }
+
+        /// <summary>Runs one part of the poll's end so that a throw there costs that part only, logged now and then by name.</summary>
+        private void Isolated(string name, long now, Action work)
+        {
+            try
+            {
+                work();
+            }
+            catch (Exception ex)
+            {
+                if (!this.failedAt.TryGetValue(name, out var at) || now - at >= FailureLogMs)
+                {
+                    this.failedAt[name] = now;
+                    this.log.Error($"Boss mechanics: {name} failed", ex);
+                }
             }
         }
 

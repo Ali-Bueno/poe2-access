@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using GameOffsets.Objects.States.InGameState;
     using GameReader;
     using GameReader.RemoteObjects.Components;
     using Entity = GameReader.RemoteObjects.States.InGameStateObjects.Entity;
@@ -13,6 +14,9 @@ namespace Poe2Accessibility.Services
     {
         /// <summary>The fight's entities are looked for this often (ms); where the player and the boss stand is read each time it is asked.</summary>
         private const int PollMs = 150;
+
+        /// <summary>The arena's pieces are given this long (ms) to stream in before their absence is logged.</summary>
+        private const int PiecesGraceMs = 15000;
 
         private readonly EntityPlaces positions;
         private readonly PluginLog log;
@@ -24,6 +28,9 @@ namespace Poe2Accessibility.Services
         private Entity? thrower;
         private bool carrying;
         private long lastPoll;
+        private long? bossSeenAt;
+        private bool missLogged;
+        private bool busyChecked;
 
         public BossThrowWatch(EntityPlaces positions, PluginLog log)
         {
@@ -36,8 +43,14 @@ namespace Poe2Accessibility.Services
         {
             get
             {
-                if (this.target is not { } at || this.thrower is not { } boss || !Seats.Followed.TryGetComponent<Render>(out var player) ||
-                    !boss.TryGetComponent<Render>(out var render))
+                if (this.target is not { } at || this.thrower is not { } boss || !Seats.Followed.TryGetComponent<Render>(out var player))
+                {
+                    return null;
+                }
+
+                // The boss kept from the last poll may be gone with its area: only an entity still among the area's is read.
+                if (!Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.TryGetValue(new EntityNodeKey { id = boss.Id }, out var still) ||
+                    !still.IsValid || !still.TryGetComponent<Render>(out var render))
                 {
                     return null;
                 }
@@ -54,6 +67,7 @@ namespace Poe2Accessibility.Services
             this.target = null;
             this.thrower = null;
             this.carrying = false;
+            (this.bossSeenAt, this.missLogged, this.busyChecked) = (null, false, false);
         }
 
         /// <summary>At each poll of the boss mechanics, with the bosses being fought.</summary>
@@ -72,6 +86,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
+            this.bossSeenAt ??= now;
             this.helpers.Clear();
             this.targets.Clear();
             Entity? boss = null;
@@ -88,7 +103,8 @@ namespace Poe2Accessibility.Services
                         boss = entity;
                         break;
                     case 2:
-                        this.helpers.Add((at, StateOf(entity, fight.Busy) is var state && state > 0 && state < fight.Stopped));
+                        this.CheckBusy(entity, fight);
+                        this.helpers.Add((at, StateReading.Of(entity, fight.Busy) is var state && state > 0 && state < fight.Stopped));
                         break;
                     case 3:
                         this.targets.Add(at);
@@ -96,7 +112,13 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var carried = boss != null && StateOf(boss, fight.Carries) > 0;
+            if (boss == null && this.helpers.Count == 0 && this.targets.Count == 0 && !this.missLogged && now - this.bossSeenAt >= PiecesGraceMs)
+            {
+                this.missLogged = true;
+                this.log.Warn($"Boss throw: {fight.Boss} is fought but none of its boss, helpers or targets is among the entities; their paths or the \"{fight.Carries}\" state may have been renamed");
+            }
+
+            var carried = boss != null && StateReading.Of(boss, fight.Carries) > 0;
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var picked = boss == null ? null : this.throws.Pick(this.helpers, this.targets, here);
             if (picked != this.target || carried != this.carrying)
@@ -107,6 +129,20 @@ namespace Poe2Accessibility.Services
             }
 
             (this.target, this.carrying, this.thrower) = (picked, carried, boss);
+        }
+
+        /// <summary>The first helper must have the state the watch reads from it, or a rename went unnoticed.</summary>
+        private void CheckBusy(Entity entity, BossThrowFight fight)
+        {
+            var names = StateReading.NamesOf(entity);
+            if (!this.busyChecked && names.Count > 0)
+            {
+                this.busyChecked = true;
+                if (!names.Contains(fight.Busy, StringComparer.OrdinalIgnoreCase))
+                {
+                    this.log.Warn($"Boss throw: a helper has no \"{fight.Busy}\" state, it has {string.Join(", ", names)}");
+                }
+            }
         }
 
         /// <summary>1 the boss, 2 a helper, 3 a target, 0 none: asked once per entity.</summary>
@@ -129,9 +165,5 @@ namespace Poe2Accessibility.Services
             return kind;
         }
 
-        private static long StateOf(Entity entity, string name) =>
-            entity.TryGetComponent<StateMachine>(out var machine)
-                ? machine.States.Where(state => string.Equals(state.Name, name, StringComparison.OrdinalIgnoreCase)).Select(state => state.Value).FirstOrDefault()
-                : 0;
     }
 }

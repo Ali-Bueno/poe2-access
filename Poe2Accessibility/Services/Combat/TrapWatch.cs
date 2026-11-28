@@ -25,7 +25,7 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly float[] warning = CueSynth.Dodge(AudioCueService.SampleRate);
         private readonly TrapStrikes strikes = new();
-        private readonly HashSet<string> logged = new(StringComparer.Ordinal);
+        private readonly DistinctLog logged;
 
         /// <summary>Each petrifying statue's last animation, and the player's petrification buffs, logged as they change (first run, 2026-11-19).</summary>
         private readonly Dictionary<uint, int> statueAnimations = new();
@@ -49,6 +49,7 @@ namespace Poe2Accessibility.Services
             this.audio = audio;
             this.output = output;
             this.log = log;
+            this.logged = new DistinctLog(log, "Trial trap seen");
         }
 
         /// <summary>The statue's own beam starting (the owner's pick 2026-11-19, tools/Poe2UiExtract/SoundExtractor.cs).</summary>
@@ -250,11 +251,7 @@ namespace Poe2Accessibility.Services
 
         private void LogOnce(string path, List<(string Name, long Value)> states)
         {
-            var line = $"{path}: {string.Join(", ", states.Where(state => state.Value > 0).Select(state => $"{state.Name}={state.Value}"))}";
-            if (this.logged.Add(line))
-            {
-                this.log.Info($"Trial trap seen: {line}");
-            }
+            this.logged.Note($"{path}: {string.Join(", ", states.Where(state => state.Value > 0).Select(state => $"{state.Name}={state.Value}"))}");
         }
     }
 }

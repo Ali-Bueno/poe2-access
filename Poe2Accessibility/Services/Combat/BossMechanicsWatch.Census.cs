@@ -219,7 +219,7 @@ namespace Poe2Accessibility.Services
             this.flood ??= new BossFloodWatch(this.log) { Reader = () => this.Reader() };
             if (this.FloodOn())
             {
-                said.AddRange(this.flood.Poll(this.Catalog, this.bosses.Values.Where(boss => boss.SeenAt == now).Select(boss => boss.Monster).Distinct(StringComparer.OrdinalIgnoreCase), now));
+                this.Isolated("flood", now, () => said.AddRange(this.flood.Poll(this.Catalog, this.bosses.Values.Where(boss => boss.SeenAt == now).Select(boss => boss.Monster).Distinct(StringComparer.OrdinalIgnoreCase), now)));
             }
             else
             {
@@ -230,7 +230,7 @@ namespace Poe2Accessibility.Services
                 this.lastFight = fighting.Select(boss => (boss.Monster, boss.At)).ToList();
             }
 
-            this.PollMaze(fighting, now, said);
+            this.Isolated("maze", now, () => this.PollMaze(fighting, now, said));
             if (fighting.Count == 0 && this.places is not { ClonesAbout: true })
             {
                 if (now - this.lastFightAt >= FightOverMs)
@@ -246,7 +246,7 @@ namespace Poe2Accessibility.Services
             this.lastFightAt = now;
             this.NoteFeeders(fighting, now, said);
             this.throws ??= new BossThrowWatch(this.Positions, this.log);
-            this.throws.Poll(this.lastFight.Select(boss => boss.Monster).ToList(), now);
+            this.Isolated("throws", now, () => this.throws.Poll(this.lastFight.Select(boss => boss.Monster).ToList(), now));
             this.places ??= new BossPlacesWatch(this.elements, this.memory, this.Positions, this.log);
             this.places.AreaOf = this.AreaOf;
             foreach (var news in this.playerBuffs.Update(this.Catalog, PlayerBuffs(), this.places.RefugeUp, now))
@@ -255,7 +255,7 @@ namespace Poe2Accessibility.Services
                 this.SayPlayerNews(news, said);
             }
 
-            said.AddRange(this.places.Poll(this.Catalog, this.lastFight, this.playerBuffs.Sheltered, this.Heartbeat(), now));
+            this.Isolated("places", now, () => said.AddRange(this.places.Poll(this.Catalog, this.lastFight, this.playerBuffs.Sheltered, this.Heartbeat(), now)));
             if (this.places.RefugeOver)
             {
                 this.log.Info("Boss fight: the shelter is over, the player can move freely");

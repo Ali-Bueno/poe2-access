@@ -58,6 +58,7 @@ namespace Poe2Accessibility.Services
         private long lastFought = long.MinValue / 2;
         private long saidAt;
         private bool caught;
+        private bool baselined;
 
         public BossEffectWatch(IAccessibilityOutputService output, EffectAreas areas, PluginLog log) => (this.output, this.areas, this.log) = (output, areas, log);
 
@@ -78,7 +79,7 @@ namespace Poe2Accessibility.Services
             this.known.Clear();
             this.logged.Clear();
             this.active.Clear();
-            (this.Lead, this.Front, this.caught) = (null, null, false);
+            (this.Lead, this.Front, this.caught, this.baselined) = (null, null, false, false);
         }
 
         /// <summary>Per frame.</summary>
@@ -98,7 +99,7 @@ namespace Poe2Accessibility.Services
 
             if (!on || now - this.lastFought > FightOverMs || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                if (!this.known.IsEmpty)
+                if (this.baselined || !this.known.IsEmpty)
                 {
                     this.Reset();
                 }
@@ -113,7 +114,8 @@ namespace Poe2Accessibility.Services
         /// <summary>The effects drawn since the last poll, those with timed shapes placed in the world.</summary>
         private void Meet(long now)
         {
-            var first = this.known.IsEmpty; // what the fight's first poll finds started no one knows when
+            var first = !this.baselined; // what the fight's first poll finds started no one knows when
+            this.baselined = true;
             var fresh = new ConcurrentBag<(uint Id, Entity Entity)>();
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             area.ScanVisuals(this.Met, (id, entity) => fresh.Add((id, entity)));

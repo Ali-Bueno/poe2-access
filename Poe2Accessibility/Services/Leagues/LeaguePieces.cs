@@ -559,6 +559,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A monster of a league mechanic, whose buffs are logged once.</summary>
         public static bool IsMechanicMonster(string path) => MechanicMonsters.Any(folder => path.StartsWith(folder, StringComparison.Ordinal));
 
+        /// <summary>The script states a rule's listing and the cues of its piece read by name.</summary>
+        public static IEnumerable<string> StatesRead(LeagueRule rule) =>
+            (rule.ListedWhile ?? Array.Empty<StateIs>()).Select(condition => condition.State)
+                .Concat(Cues.Where(cue => cue.Piece == rule.Piece).SelectMany(cue => cue.Unless is { } unless ? new[] { cue.State, unless } : new[] { cue.State }))
+                .Where(state => state != Transition).Distinct();
+
         /// <summary>The name of each file, state, icon, buff and monster the rules match, for the data step's check (<see cref="GameNames"/>).</summary>
         public static IEnumerable<GameName> NamesMatched()
         {

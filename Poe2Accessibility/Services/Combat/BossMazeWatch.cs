@@ -28,6 +28,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The entities are looked for this often (ms).</summary>
         private const int PollMs = 100;
 
+        /// <summary>The arena's pieces are given this long (ms) to stream in before their absence is logged.</summary>
+        private const int PiecesGraceMs = 15000;
+
         /// <summary>The middle strip the pillars spare: the room's sector `pillar`, 245 to 332 across, its middle at 286 (cells): 41 on the narrower side.</summary>
         private const float StripWorld = 41f * AttackAreas.WorldPerCell;
 
@@ -71,6 +74,9 @@ namespace Poe2Accessibility.Services
         private uint roundId;
         private MazePhase told;
         private long lastPoll;
+        private long? bossSeenAt;
+        private bool piecesMissLogged;
+        private readonly HashSet<int> kindsChecked = new();
 
         public BossMazeWatch(EntityPlaces positions, PluginLog log)
         {
@@ -99,6 +105,8 @@ namespace Poe2Accessibility.Services
             this.rocks.Clear();
             this.raised.Clear();
             this.pillars.Clear();
+            (this.bossSeenAt, this.piecesMissLogged) = (null, false);
+            this.kindsChecked.Clear();
             (this.middle, this.line, this.pillarsBrokeAt, this.Lead) = (null, null, null, null);
             (this.pillarsFall, this.Up, this.told) = (false, false, MazePhase.None);
         }
@@ -140,8 +148,11 @@ namespace Poe2Accessibility.Services
                     this.Reset();
                 }
 
+                (this.bossSeenAt, this.piecesMissLogged) = (null, false);
                 return;
             }
+
+            this.bossSeenAt ??= now;
 
             if (now - this.lastPoll < PollMs)
             {
@@ -151,7 +162,7 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             this.rocks.Clear();
             this.pillars.Clear();
-            var (falling, broken) = (false, false);
+            var (falling, broken, matched) = (false, false, false);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
                 if (!entity.IsValid || this.KindOf(entity) is not (> 0 and var kind))
@@ -159,14 +170,26 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                matched |= kind > 1;
+                if (this.kindsChecked.Add(kind))
+                {
+                    this.CheckState(entity, kind);
+                }
+
                 if (kind == 1)
                 {
-                    falling |= EntityCatalog.IsAliveEnemy(entity) && StateOf(entity, PillarState) == 1;
+                    falling |= EntityCatalog.IsAliveEnemy(entity) && StateReading.Of(entity, PillarState) == 1;
                 }
                 else if (this.positions.Of(entity) is { } at)
                 {
                     this.Note(entity, kind, at, ref broken, now);
                 }
+            }
+
+            if (!matched && !this.piecesMissLogged && now - this.bossSeenAt >= PiecesGraceMs)
+            {
+                this.piecesMissLogged = true;
+                this.log.Warn("Boss maze: the boss is fought but none of the arena's rocks, pillars or middle is among the entities; their paths may have been renamed");
             }
 
             this.pillarsBrokeAt = broken ? this.pillarsBrokeAt ?? now : null;
@@ -326,19 +349,30 @@ namespace Poe2Accessibility.Services
             return RoutePlanner.IsWalkable(area.GridWalkableData, area.TerrainMetadata.BytesPerRow, (int)(at.X / AttackAreas.WorldPerCell), (int)(at.Y / AttackAreas.WorldPerCell));
         }
 
+        /// <summary>The first piece of each kind must have the state the watch reads from it, or a rename went unnoticed.</summary>
+        private void CheckState(Entity entity, int kind)
+        {
+            var expected = kind switch { 1 => PillarState, 2 => ShatterState, 4 => BrokenState, _ => null };
+            var names = StateReading.NamesOf(entity);
+            if (expected != null && names.Count > 0 && !names.Contains(expected, StringComparer.OrdinalIgnoreCase))
+            {
+                this.log.Warn($"Boss maze: a piece of kind {kind} has no \"{expected}\" state, it has {string.Join(", ", names)}");
+            }
+        }
+
         private void Note(Entity entity, int kind, Vector2 at, ref bool broken, long now)
         {
             switch (kind)
             {
-                case 2 when StateOf(entity, ShatterState) == 0:
-                    this.rocks.Add(new MazeRock(at, StateOf(entity, "left") == 1, StateOf(entity, "right") == 1));
+                case 2 when StateReading.Of(entity, ShatterState) == 0:
+                    this.rocks.Add(new MazeRock(at, StateReading.Of(entity, "left") == 1, StateReading.Of(entity, "right") == 1));
                     break;
                 case 3:
                     this.middle = at;
                     break;
                 case 4:
                     this.pillars.Add(at);
-                    broken |= StateOf(entity, BrokenState) > 0;
+                    broken |= StateReading.Of(entity, BrokenState) > 0;
                     break;
                 case 5 when !this.raised.ContainsKey(entity.Id):
                     this.raised[entity.Id] = (at, now, false);
@@ -381,9 +415,5 @@ namespace Poe2Accessibility.Services
             return kind;
         }
 
-        private static long StateOf(Entity entity, string name) =>
-            entity.TryGetComponent<StateMachine>(out var machine)
-                ? machine.States.Where(state => string.Equals(state.Name, name, StringComparison.OrdinalIgnoreCase)).Select(state => state.Value).FirstOrDefault()
-                : 0;
     }
 }
