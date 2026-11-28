@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using GameReader.RemoteObjects.Components;
@@ -104,13 +105,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var actors = area.AwakeEntities.Values
-                .Where(EntityCatalog.IsAliveEnemy)
-                .Select(entity => entity.TryGetComponent<Actor>(out var actor) ? actor.Address : IntPtr.Zero)
-                .Where(address => address != IntPtr.Zero)
-                .Take(MaxActorsWatched)
-                .Select(address => PoiseSearch.Heads(OffsetHealer.ReadBlock(address + PoiseBlockStart, PoiseBlockSize)))
-                .ToList();
+            var actors = ActorsAround(area).Select(address => PoiseSearch.Heads(OffsetHealer.ReadBlock(address + PoiseBlockStart, PoiseBlockSize))).ToList();
             if (actors.Count < PoiseSearch.MinActors)
             {
                 return;
@@ -154,15 +149,17 @@ namespace Poe2Accessibility.Services
             }
 
             this.nextPoiseWideAt = now + PoiseWideEveryMs;
-            var actors = area.AwakeEntities.Values
+            var actors = ActorsAround(area).Select(address => PoiseSearch.Heads(OffsetHealer.ReadBlock(address, PoiseWideBytes))).ToList();
+            return PoiseSearch.AgreedOnly(actors) is { } head ? head - PoiseBlockStart : null;
+        }
+
+        /// <summary>The Actor components of the enemies alive around, the first <see cref="MaxActorsWatched"/>.</summary>
+        private static IEnumerable<IntPtr> ActorsAround(AreaInstance area) =>
+            area.AwakeEntities.Values
                 .Where(EntityCatalog.IsAliveEnemy)
                 .Select(entity => entity.TryGetComponent<Actor>(out var actor) ? actor.Address : IntPtr.Zero)
                 .Where(address => address != IntPtr.Zero)
-                .Take(MaxActorsWatched)
-                .Select(address => PoiseSearch.Heads(OffsetHealer.ReadBlock(address, PoiseWideBytes)))
-                .ToList();
-            return PoiseSearch.AgreedOnly(actors) is { } head ? head - PoiseBlockStart : null;
-        }
+                .Take(MaxActorsWatched);
 
         /// <summary>The cells the player walks on must read walkable (<see cref="WalkableCheck"/>).</summary>
         private void JudgeWalkable(AreaInstance area)

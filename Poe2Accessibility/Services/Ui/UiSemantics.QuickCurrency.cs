@@ -163,12 +163,8 @@ namespace Poe2Accessibility.Services
         {
             keys = new List<string>();
             var currency = string.Empty;
-            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
-            queue.Enqueue((button, 0));
-            var budget = 8;
-            while (queue.Count > 0 && budget-- > 0)
+            foreach (var node in this.QuickButtonNodes(button))
             {
-                var (node, depth) = queue.Dequeue();
                 if (this.elements.ReadAnyTextureKey(node) is { } key)
                 {
                     keys.Add(key);
@@ -177,8 +173,26 @@ namespace Poe2Accessibility.Services
                         currency = named;
                     }
                 }
+            }
 
-                if (depth == 2)
+            return currency;
+        }
+
+        /// <summary>How many elements of a row button are looked at, and how deep: its icon and its tooltip sit within two levels.</summary>
+        private const int QuickButtonBudget = 8;
+        private const int QuickButtonDepth = 2;
+
+        /// <summary>A row button and the first elements under it, breadth first.</summary>
+        private IEnumerable<UiElementReader.ElementInfo> QuickButtonNodes(UiElementReader.ElementInfo button)
+        {
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((button, 0));
+            var budget = QuickButtonBudget;
+            while (queue.Count > 0 && budget-- > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                yield return node;
+                if (depth == QuickButtonDepth)
                 {
                     continue;
                 }
@@ -191,8 +205,6 @@ namespace Poe2Accessibility.Services
                     }
                 }
             }
-
-            return currency;
         }
 
         /// <summary>Whether the asking player's backpack holds the currency of this id; false while the backpack does not read.</summary>
@@ -225,28 +237,11 @@ namespace Poe2Accessibility.Services
         /// <summary>The first tooltip lines in a button's subtree (the currency item's, as its backpack cell reads).</summary>
         private List<string> QuickTooltipOf(in UiElementReader.ElementInfo button)
         {
-            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
-            queue.Enqueue((button, 0));
-            var budget = 8;
-            while (queue.Count > 0 && budget-- > 0)
+            foreach (var node in this.QuickButtonNodes(button))
             {
-                var (node, depth) = queue.Dequeue();
                 if (this.TooltipLines(node) is { Count: > 0 } lines)
                 {
                     return lines;
-                }
-
-                if (depth == 2)
-                {
-                    continue;
-                }
-
-                foreach (var childAddress in this.elements.ReadChildren(node))
-                {
-                    if (this.elements.TryReadElement(childAddress, out var child))
-                    {
-                        queue.Enqueue((child, depth + 1));
-                    }
                 }
             }
 
