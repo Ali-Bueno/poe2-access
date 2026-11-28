@@ -1,7 +1,6 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using System.Diagnostics;
     using System.Linq;
     using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
@@ -44,19 +43,6 @@ namespace Poe2Accessibility.Services
                 return IntPtr.Zero;
             }
 
-            if (this.disabledRowFor == this.optionSections && this.sinceDisabledRow.ElapsedMilliseconds < ValuePollMs)
-            {
-                return this.disabledRow;
-            }
-
-            this.disabledRowFor = this.optionSections;
-            this.sinceDisabledRow.Restart();
-            this.disabledRow = this.ReadDisabledOptionRow();
-            return this.disabledRow;
-        }
-
-        private IntPtr ReadDisabledOptionRow()
-        {
             if (!this.elements.TryReadElement(this.optionSections, out var holder) || !this.elements.IsVisible(holder))
             {
                 this.optionSections = IntPtr.Zero; // the options page closed or another tab shows
@@ -74,13 +60,6 @@ namespace Poe2Accessibility.Services
 
             return IntPtr.Zero;
         }
-
-        /// <summary>The last <see cref="DisabledOptionRow"/> read, the sections holder it was read for and when: polled at the value poll's pace.</summary>
-        private IntPtr disabledRow;
-
-        private IntPtr disabledRowFor;
-
-        private readonly Stopwatch sinceDisabledRow = Stopwatch.StartNew();
 
         /// <summary>A section's rows: its grandchild with the most children (heading and list sit in a page).</summary>
         private IntPtr[] SectionRows(in UiElementReader.ElementInfo section)
