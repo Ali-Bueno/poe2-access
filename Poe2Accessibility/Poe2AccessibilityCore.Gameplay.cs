@@ -180,8 +180,28 @@ namespace Poe2Accessibility
         private string? catalogDirectory;
 
         /// <summary>The panel covering the game; none in local co-op, where it may be the other player's and this one's game goes on.</summary>
-        private ScreenLayer? PanelOverGame() =>
-            this.narrator == null || Seats.Other != null ? null : this.screen?.Current.PanelOver(this.narrator.HudLayer, this.narrator.TutorialLayer);
+        private ScreenLayer? PanelOverGame()
+        {
+            if (this.narrator == null || Seats.Other != null || this.screen == null)
+            {
+                return null;
+            }
+
+            // Asked several times a frame: the answer only changes with the snapshot (immutable) or the two layers it ignores.
+            var snapshot = this.screen.Current;
+            if (!ReferenceEquals(snapshot, this.panelSnapshot) || this.narrator.HudLayer != this.panelHud || this.narrator.TutorialLayer != this.panelTutorial)
+            {
+                (this.panelSnapshot, this.panelHud, this.panelTutorial) = (snapshot, this.narrator.HudLayer, this.narrator.TutorialLayer);
+                this.panelOver = snapshot.PanelOver(this.panelHud, this.panelTutorial);
+            }
+
+            return this.panelOver;
+        }
+
+        private ScreenSnapshot? panelSnapshot;
+        private IntPtr panelHud;
+        private IntPtr panelTutorial;
+        private ScreenLayer? panelOver;
 
         /// <summary>
         ///     Nothing covers the game: no focus and no panel. The focus alone is not enough: a panel can hold none (a
