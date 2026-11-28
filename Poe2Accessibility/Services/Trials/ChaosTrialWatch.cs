@@ -196,7 +196,16 @@ namespace Poe2Accessibility.Services
             // On the deck is on its plate: pressed when its state is read, else near enough to the centre to set it off.
             foreach (var (id, at, far, sameFloor) in this.decks)
             {
-                var plate = this.plates.Where(each => System.Numerics.Vector2.Distance(each.At, at) <= ChaosTrial.PlateLiftWorld).Select(each => each.Pressed).FirstOrDefault();
+                bool? plate = null;
+                foreach (var each in this.plates)
+                {
+                    if (System.Numerics.Vector2.Distance(each.At, at) <= ChaosTrial.PlateLiftWorld)
+                    {
+                        plate = each.Pressed;
+                        break;
+                    }
+                }
+
                 var onPlate = plate ?? (far <= ChaosTrial.PlateWorld && sameFloor);
                 if (this.lifts.Boarded(id, onPlate, now))
                 {
