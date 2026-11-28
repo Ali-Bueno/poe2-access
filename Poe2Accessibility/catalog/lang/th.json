@@ -1546,6 +1546,7 @@
  "where things stand, so sounds lose their side": "ตำแหน่งของสิ่งต่าง ๆ เสียงจึงไม่บอกด้านซ้ายขวา",
  "where you can walk, so the guide and the radar may fail": "บริเวณที่เดินได้ ดังนั้นตัวนำทางและเรดาร์อาจผิดพลาด",
  "which characters have a quest": "ตัวละครที่มีเควส",
+ "which ground items the game's item filter hides, so those are listed too": "ไอเทมบนพื้นที่ตัวกรองไอเทมของเกมซ่อนไว้ ดังนั้นไอเทมเหล่านั้นจะอยู่ในรายการด้วย",
  "which monsters and characters are in play": "มอนสเตอร์และตัวละครที่อยู่ในเกม",
  "who is an enemy and who is not, so enemies may stay silent": "ใครเป็นศัตรูและใครไม่ใช่ ศัตรูจึงอาจไม่มีเสียง",
  "with wall tones on, a hiss on the side of a near wall; higher ahead, lower behind, louder when closer": "เมื่อเปิดเสียงกำแพง จะมีเสียงฟู่ทางด้านของกำแพงที่อยู่ใกล้ สูงขึ้นถ้าอยู่ข้างหน้า ต่ำลงถ้าอยู่ข้างหลัง ดังขึ้นเมื่อเข้าใกล้",

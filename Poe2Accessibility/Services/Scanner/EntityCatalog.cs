@@ -135,9 +135,28 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The game's "hide all filtered ground items" option (<see cref="GameItemFilter.HideOptionKey"/>): while it is on, the items
         ///     its item filter hides are left out of the scanner, its sounds and its names. The mod has no switch of its own, as the
-        ///     game's option already is one; null when unread, which hides nothing.
+        ///     game's option already is one; false when unread or with no filter chosen (<see cref="GameItemFilter.Wanted"/>).
         /// </summary>
-        public Func<bool?> GameHidesFilteredItems { get; set; } = () => null;
+        public Func<bool> GameHidesFilteredItems { get; set; } = () => false;
+
+        /// <summary>
+        ///     Whether the game's code placed every field of the filter's verdict (<see cref="GameItemFilter.Fields"/>): null until
+        ///     the code has been read, and nothing is hidden unless it is true. A field that hides loot is never a guess.
+        /// </summary>
+        public bool? ItemFilterPlaced
+        {
+            get => this.itemFilterPlaced;
+            set
+            {
+                this.itemFilterPlaced = value;
+                this.filterLossSaid &= value != null; // another run of the game: its loss is said again
+            }
+        }
+
+        private bool? itemFilterPlaced;
+
+        /// <summary>Called once when the player wants filtered items hidden and the verdict cannot be trusted: said, as they are listed again.</summary>
+        public Action? ItemFilterLost { get; set; }
 
         /// <summary>How much ground has been seen in this area: it grows while the player finds new ground.</summary>
         public int SeenBlocks => this.explored.SeenBlocks;

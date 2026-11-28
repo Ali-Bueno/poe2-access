@@ -38,6 +38,30 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the game's item filter hides items for this listing (the game's option, <see cref="GameHidesFilteredItems"/>).</summary>
         private bool filterHides;
 
+        /// <summary>The loss of the filter's verdict was said (<see cref="ItemFilterLost"/>): once for a game's run.</summary>
+        private bool filterLossSaid;
+
+        /// <summary>Ground items of this area asked of the filter, those whose verdict was computed, and those it hid: one log line an area.</summary>
+        private readonly HashSet<uint> filterAsked = new();
+        private readonly HashSet<uint> filterAnswered = new();
+        private int filterHid;
+
+        /// <summary>
+        ///     How the filter read in the area left: with the option on and a filter chosen, many items asked and none answered
+        ///     means the "computed" byte is not where it was, and that is only seen in the log.
+        /// </summary>
+        private void LogFilterTally()
+        {
+            if (this.filterAsked.Count > 0)
+            {
+                this.log.Info($"Item filter: {this.filterAsked.Count} ground items asked, {this.filterAnswered.Count} with a verdict, {this.filterHid} hidden");
+            }
+
+            this.filterAsked.Clear();
+            this.filterAnswered.Clear();
+            this.filterHid = 0;
+        }
+
         /// <summary>
         ///     Category and name, or null for what the scanner leaves out (self, dead, opened, unnamed, and what is
         ///     not in play: the town holds every story variant of an NPC, only one of them targetable).
@@ -495,9 +519,23 @@ namespace Poe2Accessibility.Services
         {
             var start = GameLayout.WorldItemComponent.SpanStart;
             var span = this.memory.ReadBytes(worldItem.Address + start, GameLayout.WorldItemComponent.SpanLength);
-            if (span.Length < GameLayout.WorldItemComponent.SpanLength ||
-                !GameItemFilter.VerdictHides(span[GameLayout.WorldItemComponent.FilterReadyOffset - start],
-                    span[GameLayout.WorldItemComponent.FilterResultOffset - start], span[GameLayout.WorldItemComponent.NeverHiddenOffset - start]))
+            if (span.Length < GameLayout.WorldItemComponent.SpanLength)
+            {
+                return false;
+            }
+
+            var ready = span[GameLayout.WorldItemComponent.FilterReadyOffset - start];
+            if (this.filterAsked.Count < MaxLoggedFiltered)
+            {
+                this.filterAsked.Add(id);
+            }
+
+            if (ready != 0 && this.filterAsked.Contains(id))
+            {
+                this.filterAnswered.Add(id);
+            }
+
+            if (!GameItemFilter.VerdictHides(ready, span[GameLayout.WorldItemComponent.FilterResultOffset - start], span[GameLayout.WorldItemComponent.NeverHiddenOffset - start]))
             {
                 return false;
             }
@@ -511,6 +549,7 @@ namespace Poe2Accessibility.Services
             if (this.filteredLogged.Count < MaxLoggedFiltered && this.filteredLogged.Add(id))
             {
                 // How a fresh drop the filter hides is confirmed from a session's log.
+                this.filterHid++;
                 this.log.Info($"Ground item hidden by the game's item filter: {id} {this.inventory.ItemBaseName(worldItem.ItemEntityAddress)}");
             }
 

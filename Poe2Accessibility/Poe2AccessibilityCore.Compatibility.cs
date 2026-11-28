@@ -49,6 +49,7 @@ namespace Poe2Accessibility
             ["WorldItemFilterResult"] = (() => GameLayout.WorldItemComponent.FilterResultOffset, value => GameLayout.WorldItemComponent.FilterResultOffset = value),
             ["WorldItemFilterReady"] = (() => GameLayout.WorldItemComponent.FilterReadyOffset, value => GameLayout.WorldItemComponent.FilterReadyOffset = value),
             ["WorldItemNeverHidden"] = (() => GameLayout.WorldItemComponent.NeverHiddenOffset, value => GameLayout.WorldItemComponent.NeverHiddenOffset = value),
+            ["WorldItemItemNeverHidden"] = (() => GameLayout.WorldItemComponent.ItemNeverHiddenOffset, value => GameLayout.WorldItemComponent.ItemNeverHiddenOffset = value),
             ["MonolithEssences"] = (() => GameLayout.MonolithComponent.EssencesOffset, value => GameLayout.MonolithComponent.EssencesOffset = value),
             ["AtlasNodeGrid"] = (() => GameLayout.AtlasNode.GridOffset, value => GameLayout.AtlasNode.GridOffset = value),
             ["AtlasNodeStatus"] = (() => GameLayout.AtlasNode.StatusOffset, value => GameLayout.AtlasNode.StatusOffset = value),
@@ -273,6 +274,11 @@ namespace Poe2Accessibility
                 field.Set(LayoutMeasured[name]);
             }
 
+            if (this.entities != null)
+            {
+                this.entities.ItemFilterPlaced = null; // not until this build's code has been read
+            }
+
             this.worldLayout?.Reset();
             this.layoutProbe?.Reset();
             this.locator?.Fields.Reset();
@@ -401,12 +407,23 @@ namespace Poe2Accessibility
                 this.log?.Warn($"Code fields unread: {reading.Error}");
                 if (this.layoutOverrides.Count == 0)
                 {
+                    if (this.entities != null)
+                    {
+                        this.entities.ItemFilterPlaced = false;
+                    }
+
                     return;
                 }
             }
 
             var (settled, disagree) = CodeFieldCatalog.Settle(reading.Code, reading.Semantic);
             var read = LayoutOverrides.Apply(settled, this.layoutOverrides);
+            if (this.entities != null)
+            {
+                // The item filter's verdict hides loot from a player who cannot see it: believed only with every field of it
+                // placed by this build's code (or by the owner's override), never on a constant that stands unchecked.
+                this.entities.ItemFilterPlaced = GameItemFilter.Fields.All(name => read.Any(field => field.Entry.Name == name && field.Found != null));
+            }
             var moved = new System.Collections.Generic.List<string>();
             var stuck = false;
             foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))

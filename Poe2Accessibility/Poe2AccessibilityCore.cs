@@ -565,9 +565,11 @@ namespace Poe2Accessibility
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.InTown = this.InTownOrHideout;
                 this.entities.LayoutRevealed = () => this.rulesets?.MinimapRevealed == true;
-                var hideFiltered = new GameConfigOption(Localization.ConfigPath, GameItemFilter.HideOptionKey, line => this.log?.Info(line));
-                this.entities.GameHidesFilteredItems = () => hideFiltered.Value;
-                this.entities.Memory =new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
+                var hideFiltered = new GameConfigOption(Localization.ConfigPath, GameItemFilter.OptionSection, GameItemFilter.HideOptionKey, line => this.log?.Info(line));
+                var chosenFilter = new GameConfigOption(Localization.ConfigPath, GameItemFilter.OptionSection, GameItemFilter.ChosenFilterKey, line => this.log?.Info(line));
+                this.entities.GameHidesFilteredItems = () => GameItemFilter.Wanted(hideFiltered.Value, chosenFilter.Text);
+                this.entities.ItemFilterLost = () => this.compatibility?.Missing(GameItemFilter.Part);
+                this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;

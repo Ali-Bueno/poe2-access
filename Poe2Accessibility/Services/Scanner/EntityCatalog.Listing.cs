@@ -154,7 +154,16 @@ namespace Poe2Accessibility.Services
             var unseen = scratch.Unseen;
             var renders = scratch.Renders;
             var sampling = this.Fields?.StartPass() ?? false;
-            this.filterHides = this.GameHidesFilteredItems() == true;
+            // Hidden only with the verdict's fields placed by the game's code: a guess here would lose the player loot in silence.
+            var hideWanted = this.GameHidesFilteredItems();
+            this.filterHides = hideWanted && this.ItemFilterPlaced == true;
+            if (hideWanted && this.ItemFilterPlaced == false && !this.filterLossSaid)
+            {
+                this.filterLossSaid = true;
+                this.log.Warn("Item filter: the game hides filtered items, and the verdict's fields were not placed by its code: every ground item is listed");
+                this.ItemFilterLost?.Invoke();
+            }
+
             var town = this.InTown();
             var areaName = this.AreaName();
             foreach (var (_, entity) in area.AwakeEntities)

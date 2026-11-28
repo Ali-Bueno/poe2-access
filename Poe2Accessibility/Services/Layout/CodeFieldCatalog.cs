@@ -153,7 +153,9 @@ namespace Poe2Accessibility.Services
         // The leagues' live data and the Atlas's nodes: the session and the nodes are found again or said lost by their own
         // search (RulesetReader, AtlasNodeFields), and what is read inside a ruleset is believed only within its range (a
         // ring's size, a round of its total, a fog that agrees with the game's stat), so a wrong place reads nothing.
-        private static readonly string[] RefusedWhenWrong = { "Rulesets.", "Breach.", "Expedition.", "Ultimatum.", "Fog.", "Monolith.", "AtlasNode." };
+        // The item filter's verdict is not read at all unless the code placed every field of it, and says so by its own
+        // part when the player wants it (EntityCatalog.ItemFilterPlaced).
+        private static readonly string[] RefusedWhenWrong = { "Rulesets.", "Breach.", "Expedition.", "Ultimatum.", "Fog.", "Monolith.", "AtlasNode.", "WorldItem." };
 
         // In the catalogs for the count only (docs/compatibility.md, "Read from the game's code").
         private static readonly HashSet<string> Unread = new(StringComparer.Ordinal)

@@ -1546,6 +1546,7 @@
  "where things stand, so sounds lose their side": "物の位置。音の左右がなくなります",
  "where you can walk, so the guide and the radar may fail": "歩ける場所。ガイドとレーダーが正しく働かない可能性があります",
  "which characters have a quest": "クエストのあるキャラクター",
+ "which ground items the game's item filter hides, so those are listed too": "ゲームのアイテムフィルターが隠す地面のアイテム。そのため隠されたアイテムも一覧に出ます",
  "which monsters and characters are in play": "ゲーム内にいるモンスターとキャラクター",
  "who is an enemy and who is not, so enemies may stay silent": "敵かどうかの区別。敵の音が鳴らない場合があります",
  "with wall tones on, a hiss on the side of a near wall; higher ahead, lower behind, louder when closer": "壁の音をオンにすると、近くの壁の側でシューという音がします。前方は高く、後方は低く、近いほど大きくなります",

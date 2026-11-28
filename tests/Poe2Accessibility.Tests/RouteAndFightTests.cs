@@ -393,16 +393,90 @@ namespace Poe2Accessibility.Tests
             Equal(false, GameItemFilter.VerdictHides(1, 1, 1), "an item the filter never hides stays");
             Equal(false, GameItemFilter.VerdictHides(1, 2, 0), "only the Hide bit hides: a Continue bit alone does not");
             Equal(true, GameItemFilter.VerdictHides(1, 3, 0), "Hide with other bits still hides");
+
+            // Another field read where the verdict was (a patch that moved it): the game writes 1 and nothing else there.
+            Equal(false, GameItemFilter.VerdictHides(2, 1, 0), "a computed byte that is not the game's 1 is not the verdict");
+            Equal(false, GameItemFilter.VerdictHides(0xFF, 0xFF, 0), "nor a run of set bytes");
+            Equal(false, GameItemFilter.VerdictHides(1, 0xFE, 0), "every bit but Hide");
+            Equal(false, GameItemFilter.VerdictHides(1, 1, 0x80), "any keep byte keeps");
+
+            // What the player asked of the game: the option on and a filter chosen.
+            Equal(true, GameItemFilter.Wanted(true, "NeverSink-semistrict"), "the option on and a filter chosen");
+            Equal(false, GameItemFilter.Wanted(true, "None"), "the game's word for no filter: nothing to hide (the owner's own file)");
+            Equal(false, GameItemFilter.Wanted(false, "NeverSink-semistrict"), "the option off");
+            Equal(false, GameItemFilter.Wanted(null, "NeverSink-semistrict"), "the option not read hides nothing");
+            Equal(true, GameItemFilter.Wanted(true, null), "a filter's name not read may still be one: the verdict decides");
+            Equal(4, GameItemFilter.Fields.Length, "the verdict's four fields, each a line of the code catalog");
+            var directory = AppContext.BaseDirectory;
+            while (!System.IO.File.Exists(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")))
+            {
+                directory = System.IO.Path.GetDirectoryName(directory) ?? throw new System.IO.FileNotFoundException("code-fields.txt is not under any folder above the tests");
+            }
+
+            var catalog = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
+            foreach (var field in GameItemFilter.Fields)
+            {
+                Equal(1, catalog.Count(entry => entry.Name == field && entry.Layout != null), $"{field} is placed by the game's code");
+            }
         }
 
         private static void GameConfigOptionReadsTrueOrFalse()
         {
-            const string ini = "[GAME]\r\nlanguage=en\r\n[UI]\r\nhide_all_filtered_ground_items=true\r\napply_item_filter_to_ritual=false\r\n";
-            Equal(true, GameConfigOption.Parse(ini, GameItemFilter.HideOptionKey), "the option on");
-            Equal(false, GameConfigOption.Parse(ini.Replace("items=true", "items=false"), GameItemFilter.HideOptionKey), "the option off");
-            Equal(null, GameConfigOption.Parse("[UI]\r\nitem_filter=x.filter\r\n", GameItemFilter.HideOptionKey), "a missing key reads as unknown");
-            Equal(null, GameConfigOption.Parse("hide_all_filtered_ground_items=maybe", GameItemFilter.HideOptionKey), "a value neither true nor false reads as unknown");
-            Equal(false, GameConfigOption.Parse("apply_item_filter_to_ritual=false", "apply_item_filter_to_ritual"), "another key reads by its own name");
+            const string Section = GameItemFilter.OptionSection;
+            const string ini = "[GAME]\r\nlanguage=en\r\n[UI]\r\nhide_all_filtered_ground_items=true\r\napply_item_filter_to_ritual=false\r\nitem_filter=None\r\n";
+            Equal(true, GameConfigOption.Parse(ini, Section, GameItemFilter.HideOptionKey), "the option on");
+            Equal(false, GameConfigOption.Parse(ini.Replace("items=true", "items=false"), Section, GameItemFilter.HideOptionKey), "the option off");
+            Equal(null, GameConfigOption.Parse("[UI]\r\nitem_filter=x.filter\r\n", Section, GameItemFilter.HideOptionKey), "a missing key reads as unknown");
+            Equal(null, GameConfigOption.Parse("[UI]\nhide_all_filtered_ground_items=maybe", Section, GameItemFilter.HideOptionKey), "a value neither true nor false reads as unknown");
+            Equal(false, GameConfigOption.Parse("[UI]\napply_item_filter_to_ritual=false", Section, "apply_item_filter_to_ritual"), "another key reads by its own name");
+            Equal("None", GameConfigOption.ParseText(ini, Section, GameItemFilter.ChosenFilterKey), "the filter chosen, as text");
+            Equal("My filter.filter", GameConfigOption.ParseText("[UI]\r\nitem_filter = My filter.filter \r\n", Section, GameItemFilter.ChosenFilterKey), "a name with spaces, trimmed at its ends");
+
+            // The section is the game's: the same key elsewhere is another option, and a key before any section is none.
+            Equal(null, GameConfigOption.Parse("[SOUND]\nhide_all_filtered_ground_items=true\n[UI]\nother=1\n", Section, GameItemFilter.HideOptionKey), "the key in another section");
+            Equal(false, GameConfigOption.Parse("[SOUND]\nhide_all_filtered_ground_items=true\n[UI]\nhide_all_filtered_ground_items=false\n", Section, GameItemFilter.HideOptionKey),
+                  "its own section's value, not the first in the file");
+            Equal(null, GameConfigOption.Parse("hide_all_filtered_ground_items=true", Section, GameItemFilter.HideOptionKey), "a key under no section");
+            Equal(true, GameConfigOption.Parse("﻿[ui]\nHIDE_ALL_FILTERED_GROUND_ITEMS=TRUE", Section, GameItemFilter.HideOptionKey), "a byte order mark, and any case");
+            Equal(null, GameConfigOption.Parse("[UI]\nhide_all_filtered_ground_items=true ; note", Section, GameItemFilter.HideOptionKey), "a value with more after it is neither");
+            Equal(true, GameConfigOption.Parse("[UI]\nhide_all_filtered_ground_items=true", Section, GameItemFilter.HideOptionKey), "no line end after the last line");
+
+            // The file as the game keeps it: read again when it changes, and a value that cannot be read again does not stand for good.
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests-" + Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(folder);
+            try
+            {
+                var file = System.IO.Path.Join(folder, "config.ini");
+                var now = 0L;
+                var logged = new List<string>();
+                var option = new GameConfigOption(() => file, Section, GameItemFilter.HideOptionKey, logged.Add, () => now);
+                Equal(null, option.Value, "no file: unknown");
+                System.IO.File.WriteAllText(file, "[UI]\r\nhide_all_filtered_ground_items=true\r\n");
+                Equal(null, option.Value, "not looked at again within the same moment");
+                now += 2000;
+                Equal(true, option.Value, "read once the file is there");
+                System.IO.File.WriteAllText(file, "[UI]\r\nhide_all_filtered_ground_items=false\r\n");
+                System.IO.File.SetLastWriteTimeUtc(file, DateTime.UtcNow.AddSeconds(5));
+                now += 2000;
+                Equal(false, option.Value, "read again when the game saved it");
+                using (var held = new System.IO.FileStream(file, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None))
+                {
+                    System.IO.File.SetLastWriteTimeUtc(held.SafeFileHandle, DateTime.UtcNow.AddSeconds(10));
+                    now += 2000;
+                    Equal(false, option.Value, "changed and held shut by its writer: the last value stands for a moment");
+                    now += GameConfigOption.StaleMs;
+                    Equal(null, option.Value, "and not for good: unread that long, it is not known any more");
+                }
+
+                now += 2000;
+                Equal(false, option.Value, "read again once it can be");
+                Equal(1, logged.Count(line => line.EndsWith("=true", StringComparison.Ordinal)), "true logged once");
+                Equal(2, logged.Count(line => line.EndsWith("=false", StringComparison.Ordinal)), "false logged when read, and when read again after it was lost");
+            }
+            finally
+            {
+                System.IO.Directory.Delete(folder, true);
+            }
         }
     }
 }

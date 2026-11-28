@@ -376,10 +376,11 @@ namespace Poe2Accessibility
             public static int NeverHiddenOffset { get; internal set; } = 0x54;
 
             /// <summary>
-            ///     A byte of the item entity (WorldItem +0x28) that keeps the item shown (0x17E2E89). Its meaning is not known and only one
-            ///     code site reads it, so it is a constant: if a patch moves it, a non-zero byte read in its place only keeps an item listed.
+            ///     A byte of the item entity (WorldItem +0x28) that keeps the item shown (0x17E2E89: cmp byte ptr [rax+0x2E], 0 in the
+            ///     game's own test). Its meaning is not known and only that one site reads it; the code catalog places it from that
+            ///     site (two signatures over the one instruction), since a zero read in its place would let a hide through.
             /// </summary>
-            public const int ItemNeverHiddenOffset = 0x2E;
+            public static int ItemNeverHiddenOffset { get; internal set; } = 0x2E;
 
             /// <summary>The Hide bit of <see cref="FilterResultOffset"/>.</summary>
             public const byte HideBit = 1;

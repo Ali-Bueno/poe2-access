@@ -155,6 +155,7 @@
 -	is_in_affliction_fog	LeaguePieces.cs
 +	item	GameLayout.cs
 -	item_equipment	ItemSoundGroup.cs
++	item_filter	LootFilter.cs
 -	item_flask	ItemSoundGroup.cs
 +	item_frame	GameLayout.cs
 -	item_gem	ItemSoundGroup.cs
