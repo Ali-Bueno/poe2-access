@@ -17,24 +17,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AFirstTooltipWaitsUntilItHoldsStill), AFirstTooltipWaitsUntilItHoldsStill),
             (nameof(ATooltipSeenWholeIsSaidAtOnce), ATooltipSeenWholeIsSaidAtOnce),
             (nameof(AnItemItsTooltipNamesWaitsForATooltipNotUpYet), AnItemItsTooltipNamesWaitsForATooltipNotUpYet),
-            (nameof(GoingBackToAnItemContinuesItsClock), GoingBackToAnItemContinuesItsClock),
         };
-
-        private static void GoingBackToAnItemContinuesItsClock()
-        {
-            var settle = new TooltipSettle();
-            Equal(true, settle.Filling(Belt, 3, 1, 1000), "the belt's first tooltip");
-            Equal(true, settle.Filling(Ring, 2, 5, 1100), "the cursor moves on");
-            Equal(true, settle.Filling(Belt, 3, 2, 1200), "and back: still changing");
-            Equal(true, settle.Filling(Ring, 2, 6, 1300), "alternating again");
-            Equal(false, settle.Filling(Belt, 3, 3, 1000 + TooltipSettle.GiveUpMs), "the belt's give-up time counts from its first sight");
-            Equal(true, settle.Filling(Ring, 2, 7, 1300 + TooltipSettle.HoldMs - 1), "the ring still changes");
-
-            var later = new TooltipSettle();
-            later.Filling(Belt, 3, 1, 1000);
-            later.Filling(Ring, 2, 5, 1100);
-            Equal(true, later.Filling(Belt, 3, 1, 1100 + TooltipSettle.GiveUpMs + 1), "left for long: timed from the start again");
-        }
 
         private static void AFirstTooltipWaitsUntilItHoldsStill()
         {

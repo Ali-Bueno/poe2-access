@@ -29,49 +29,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Items that showed no tooltip within <see cref="NameWaitMs"/>: said at once from then on.</summary>
         private readonly HashSet<IntPtr> nameless = new();
-
-        /// <summary>Items timed lately, so going back to one continues its clock; one left for longer than <see cref="GiveUpMs"/> starts over.</summary>
-        private readonly Dictionary<IntPtr, Timing> timings = new();
-
-        /// <summary>Items kept timed at once (the cursor alternates between a few).</summary>
-        private const int MaxTimed = 8;
-
         private IntPtr item;
+        private int lines;
+        private long firstSeenAt;
+        private long sameSince;
 
-        private sealed class Timing
-        {
-            public int Lines;
-            public long FirstSeenAt;
-            public long SameSince;
-            public long LastSeenAt;
-
-            /// <summary>The item has shown no tooltip yet (the wait for its name).</summary>
-            public bool Empty;
-        }
-
-        private Timing Start(IntPtr item, int lines, long now, bool empty)
-        {
-            if (this.timings.Count >= MaxTimed)
-            {
-                this.timings.Clear();
-            }
-
-            return this.timings[item] = new Timing { Lines = lines, FirstSeenAt = now, SameSince = now, LastSeenAt = now, Empty = empty };
-        }
-
-        /// <summary>The clock the item had when the cursor left it a moment ago (or still has), else null.</summary>
-        private Timing? Resume(IntPtr item, long now)
-        {
-            var current = item == this.item;
-            this.item = item;
-            if (this.timings.TryGetValue(item, out var kept) && (current || now - kept.LastSeenAt <= GiveUpMs))
-            {
-                kept.LastSeenAt = now;
-                return kept;
-            }
-
-            return null;
-        }
+        /// <summary>The item in hand has shown no tooltip yet (the wait for its name).</summary>
+        private bool empty;
 
         /// <returns>Whether the item's tooltip may still be filling: its reading waits and is taken again.</returns>
         /// <param name="item">The item's element.</param>
@@ -87,26 +51,25 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            if (lineCount == 0 && (!nameAwaited || this.nameless.Contains(item)))
-            {
-                return false;
-            }
-
-            var timing = this.Resume(item, now);
             if (lineCount == 0)
             {
-                if (timing == null)
+                if (!nameAwaited || this.nameless.Contains(item))
                 {
-                    this.Start(item, 0, now, true);
+                    return false;
+                }
+
+                if (item != this.item)
+                {
+                    (this.item, this.lines, this.firstSeenAt, this.sameSince, this.empty) = (item, 0, now, now, true);
                     return true;
                 }
 
-                if (timing.Empty && now - timing.FirstSeenAt < NameWaitMs)
+                if (this.empty && now - this.firstSeenAt < NameWaitMs)
                 {
                     return true;
                 }
 
-                if (timing.Empty)
+                if (this.empty)
                 {
                     // No tooltip came (an item in the hand, a panel that shows none): its base name is all there is, and
                     // the wait is paid once.
@@ -121,19 +84,19 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            if (timing == null || timing.Empty)
+            if (item != this.item || this.empty)
             {
                 // Also the tooltip that came after the wait for it: its filling is timed from here.
-                this.Start(item, lines, now, false);
+                (this.item, this.lines, this.firstSeenAt, this.sameSince, this.empty) = (item, lines, now, now, false);
                 return true;
             }
 
-            if (lines != timing.Lines)
+            if (lines != this.lines)
             {
-                (timing.Lines, timing.SameSince) = (lines, now);
+                (this.lines, this.sameSince) = (lines, now);
             }
 
-            if (now - timing.SameSince < HoldMs && now - timing.FirstSeenAt < GiveUpMs)
+            if (now - this.sameSince < HoldMs && now - this.firstSeenAt < GiveUpMs)
             {
                 return true;
             }
@@ -152,7 +115,6 @@ namespace Poe2Accessibility.Services
         {
             this.settled.Clear();
             this.nameless.Clear();
-            this.timings.Clear();
             this.item = IntPtr.Zero;
         }
     }
