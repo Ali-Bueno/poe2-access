@@ -544,8 +544,8 @@
 ## Next step
 **2026-11-28, morning (the owner, after listening to the unattended tests: an exit of Villafrey said "con misión" with no
 quest there, the hideout's decorative stones sounded as quests, and "nos han mandado pull requests. Míralas, mergéalas y si
-no están hechas a prueba de romperse, corrígelas"; 1207 tests, 1730 phrases, deployed to the play copy, pushed, NOT
-released):**
+no están hechas a prueba de romperse, corrígelas"; 1207 tests, 1730 phrases, deployed to the play copy, pushed, released
+at the owner's word as v2026.11.28):**
 - **The exit said "tu misión".** The HUD's arrival toast ("Entrando a Villafrey...") is a HUD text that names only the
   area, which the "cross this area" rule took for an objective; with nothing on the tracker every exit but the one back
   became the quest's way. Only an objective line of the tracker (or a carried item's step) asks for that now
@@ -568,8 +568,8 @@ released):**
 
 Next: nothing owed from this session. Open, and why: a filter that hides was not tried on this machine (the owner plays
 without one; the pull request's own live check covers it, and the log line `Item filter: N ground items asked, …` will
-show the first session that has one); the launcher's data step went to 8 with pull request 17, so players get the new
-`dat-columns` entries with the next release, which waits for the owner's word.
+show the first session that has one). The launcher's data step went to 8 with pull request 17: v2026.11.28 carries it,
+so each install makes its `dat-columns` again once on its first start.
 
 **2026-11-28, night (a tester of the fork oasis1701/poe2-access, NeverSink's semi-strict filter on: "our mod still announces its name as I move over it"; branch
 `item-filter`, 1194 tests, deployed to the development host and checked live, pushed, not released):** ground items the game's
