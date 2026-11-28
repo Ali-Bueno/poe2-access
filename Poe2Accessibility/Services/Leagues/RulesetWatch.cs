@@ -16,8 +16,6 @@ namespace Poe2Accessibility.Services
         private const int PollMs = 400;
 
         /// <summary>How often the interface is walked for the Trial of Chaos' elements.</summary>
-        private bool fogRan;
-
         private const int TrialHudWalkMs = 3000;
 
         /// <summary>Once its elements are known the walk is only for new ones (a popup's labels).</summary>
@@ -36,6 +34,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> trialHudLogged = new(StringComparer.Ordinal);
         private readonly HashSet<(string Name, string Text)> trialHudTexts = new();
         private long trialHudFound = long.MinValue / 2;
+        private bool fogRan;
         private bool areaStatsLogged;
 
         /// <summary>

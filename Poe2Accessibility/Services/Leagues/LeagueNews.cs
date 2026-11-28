@@ -212,17 +212,6 @@ namespace Poe2Accessibility.Services
             return began;
         }
 
-        /// <summary>How many charges the area has once a new one appears; null otherwise, and for those there as the area opens.</summary>
-        /// <summary>
-        ///     How many of the area's finds no charge placed reaches yet; null until one find reads as reached, which is what shows
-        ///     the client's state is read at all.
-        /// </summary>
-        public static int? Uncovered(IReadOnlyCollection<bool> findsCovered)
-        {
-            var covered = findsCovered.Count(reached => reached);
-            return covered == 0 ? null : findsCovered.Count - covered;
-        }
-
         /// <summary>
         ///     What no charge placed reaches yet, by kind, the most worth first (a remnant, chests, elites…); null until one find reads
         ///     as reached, which is what shows the client's state is read at all.

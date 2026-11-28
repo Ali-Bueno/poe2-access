@@ -492,10 +492,6 @@ namespace Poe2Accessibility.Tests
 
         private static void TheFindsNoChargeReachesAreCountedOnceTheStateReads()
         {
-            Equal(null, PlacementNews.Uncovered(new[] { false, false, false }), "none reads as reached: the state may not be read at all, nothing is claimed");
-            Equal(2, PlacementNews.Uncovered(new[] { true, false, false }), "one reached: the other two are left");
-            Equal(0, PlacementNews.Uncovered(new[] { true, true }), "every find reached");
-            Equal(null, PlacementNews.Uncovered(Array.Empty<bool>()), "no finds");
             var kinds = PlacementNews.UncoveredKinds(new[] { (ExpeditionFind.Monsters, false), (ExpeditionFind.Chest, true), (ExpeditionFind.Monsters, false), (ExpeditionFind.Remnant, false), (ExpeditionFind.Chest, false) });
             Equal("Remnant 1, Chest 1, Monsters 2", string.Join(", ", kinds!.Select(kind => $"{kind.Find} {kind.Count}")), "what is left by kind, the most worth first (live 2026-11-26: 65 sin cubrir told nothing)");
             Equal(null, PlacementNews.UncoveredKinds(new[] { (ExpeditionFind.Chest, false) }), "nothing claimed before one reads as reached");
