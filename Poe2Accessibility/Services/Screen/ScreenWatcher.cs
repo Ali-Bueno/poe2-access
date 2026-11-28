@@ -42,9 +42,11 @@ namespace Poe2Accessibility.Services
         /// <remarks>
         ///     World and map overlays draw labels over the game world (ground items, monsters); they are not UI to read.
         ///     The HUD's "Game Paused" banner (paused_frame) shows for a moment as a panel closes; the menu that pauses
-        ///     the game is announced itself.
+        ///     the game is announced itself. The world map's quest list builds the popup of its crosshair toggle and never draws
+        ///     it: its "Active" was said after the focused quest as "Active, unavailable", as if the quest were the active one
+        ///     (2026-11-27, docs/research/quest-goals.md).
         /// </remarks>
-        private static readonly string[] IgnoredControlPrefixes = { "couch_coop", "world_", "map_overlay", "paused_frame" };
+        private static readonly string[] IgnoredControlPrefixes = { "couch_coop", "world_", "map_overlay", "paused_frame", GameLayout.QuestList.ToggleModeName };
 
         /// <summary>A text this tall (layout units) may be a long one scrolled in a frame; only those are checked for it.</summary>
         private const float LongTextMinHeight = 2000;

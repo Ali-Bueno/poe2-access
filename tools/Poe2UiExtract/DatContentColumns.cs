@@ -24,6 +24,18 @@ internal static class DatContentColumns
     /// <summary>The ActiveSkills key: target Ids found inside the effect's Id (0.5.5e: 1160 rows, the next column 41).</summary>
     private const int MinNamedKeys = 100;
 
+    /// <summary>The areas a link list holds: some rows have links (0.5.5f: 112 of 448 areas, 252 links).</summary>
+    private const int MinLinkedAreas = 50;
+
+    /// <summary>...and most links run both ways, A listing B and B listing A (0.5.5f: 247 of 252, 98%; the other row-index list of WorldAreas, +0x2A0: none).</summary>
+    private const double MinSymmetricLinks = 0.8;
+
+    /// <summary>The pins the world map marks for a quest step: filled on many states (0.5.5f: +0x45 on 645 of 1491 rows, 656 keys, 115 pins).</summary>
+    private const int MinPinnedStates = 200;
+
+    /// <summary>...and on at least this many times the rows of the next key list into MapPins (0.5.5f: +0x71, another list into the same pins, 285 rows: 2.3 times fewer).</summary>
+    private const double PinnedStatesOverNext = 2.0;
+
     /// <summary>A class's Id is the player's metadata path, which the plugin compares with the player entity's.</summary>
     private const string CharacterFolder = "Metadata/Characters/";
 
@@ -34,13 +46,15 @@ internal static class DatContentColumns
         "PassiveSkills.IsJewelSocket", "Characters.Id", "GrantedEffects.Id", "WorldAreas.Id", "WorldAreas.IsTown", "WorldAreas.AreaLevel",
         "MapPins.WorldArea", "MapPins.Name", "MapPins.Description", "MapPins.Content", "GrantedEffectsPerLevel.GrantedEffect",
         "GrantedEffects.ActiveSkill", "GrantedEffectStatSetsPerLevel.AdditionalStats", "GrantedEffectStatSetsPerLevel.AdditionalStatsValues",
+        "WorldAreas.Connections", "QuestStates.MapPinsKeys",
     };
 
     /// <summary>
     ///     Columns <see cref="Find"/> yields that a step may do without: the file is written and the step runs when they are not
-    ///     found (the mastery flag: a tree with no such rows has none).
+    ///     found (the mastery flag: a tree with no such rows has none; the world map's quest marks, whose plugin reads check each
+    ///     key and say nothing when one does not read, so a patch that blurs the two pin lists costs those marks only).
     /// </summary>
-    internal static readonly string[] Optional = { "PassiveSkills.IsIconOnly" };
+    internal static readonly string[] Optional = { "PassiveSkills.IsIconOnly", "WorldAreas.Connections", "QuestStates.MapPinsKeys" };
 
     /// <summary>What the passive tree's catalog writes beyond <see cref="Names"/>; each is left out of it when not found.</summary>
     internal const string AscendancyColumn = "PassiveSkills.Ascendancy";
@@ -113,6 +127,13 @@ internal static class DatContentColumns
                 yield return ("MapPins.Description", name is { } named ? Nearest(pins, 0x30, offset => offset > named && IsPinText(pins, offset)) : null, 0x30);
                 yield return ("MapPins.Content", Nearest(pins, 0x7C, offset => IsContentIcon(pins, offset)), 0x7C);
             }
+
+            // The areas next to an area (row indexes of WorldAreas itself), and the pins a quest state shows (QuestStates, 2026-11-27).
+            yield return ("WorldAreas.Connections", Nearest(areas, 0x16, offset => IsLinkList(areas, offset)), 0x16);
+            if (DatTable.Open(index, "queststates") is { } states && DatTable.Open(index, "mappins") is { } stepPins)
+            {
+                yield return ("QuestStates.MapPinsKeys", FullestPinList(states, stepPins.RowCount), 0x45);
+            }
         }
 
         var effects = DatTable.Open(index, "grantedeffects");
@@ -171,6 +192,47 @@ internal static class DatContentColumns
         }
 
         return named > 0 && (values == null || rapidShot >= MaxGemLevel);
+    }
+
+    /// <summary>A list of other rows of the table, filled on many rows, whose links mostly run both ways.</summary>
+    private static bool IsLinkList(DatTable table, int offset)
+    {
+        if (offset + 16 > table.RowSize)
+        {
+            return false;
+        }
+
+        using var probe = DatTable.Probe();
+        var lists = new List<IReadOnlyList<long>>();
+        for (var row = 0; row < table.RowCount; row++)
+        {
+            var items = table.RowList(row, offset);
+            if (items.Any(item => item < 0 || item >= table.RowCount || item == row))
+            {
+                return false;
+            }
+
+            lists.Add(items);
+        }
+
+        var links = lists.Sum(items => items.Count);
+        var both = lists.Select((items, row) => items.Count(item => lists[(int)item].Contains(row))).Sum();
+        return lists.Count(items => items.Count > 0) >= MinLinkedAreas && both >= links * MinSymmetricLinks;
+    }
+
+    /// <summary>
+    ///     The key list into MapPins filled on the most rows, when those are many and well over the next such list's (the
+    ///     states' tracker pins; the table has a second list into the same pins that few rows fill).
+    /// </summary>
+    private static int? FullestPinList(DatTable states, int pinRows)
+    {
+        using var probe = DatTable.Probe();
+        var ranked = Enumerable.Range(0, Math.Max(0, states.RowSize - 16))
+            .Where(offset => DatColumnSearch.IsKeyList(states, offset, pinRows))
+            .Select(offset => (Offset: offset, Filled: Enumerable.Range(0, states.RowCount).Count(row => states.KeyList(row, offset).Count > 0)))
+            .OrderByDescending(column => column.Filled)
+            .ToList();
+        return ranked.Count > 0 && ranked[0].Filled >= MinPinnedStates && (ranked.Count == 1 || ranked[0].Filled >= PinnedStatesOverNext * ranked[1].Filled) ? ranked[0].Offset : null;
     }
 
     /// <summary>The fitting offset nearest to where the column was measured.</summary>

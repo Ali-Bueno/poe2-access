@@ -747,6 +747,57 @@ namespace Poe2Accessibility
 
             /// <summary>The area's name as the game shows it (WorldAreas.Name; the data step's anchor is G1_1, "The Riverbank").</summary>
             public static int NameOffset { get; internal set; } = 0x8;
+
+            /// <summary>
+            ///     The areas one exit away (WorldAreas.Connections): (count, pointer) to bare 8-byte pointers at rows of the same
+            ///     table, no file beside them, so a neighbour is taken only when it is the area of a pin the map draws. Live
+            ///     2026-11-27: G1_15's one item was G1_14's row (docs/research/quest-goals.md, the world map's quest marker).
+            /// </summary>
+            public static int ConnectionsOffset { get; internal set; } = 0x16;
+
+            /// <summary>A list's items are row pointers here: one pointer each.</summary>
+            public const int ConnectionSize = 0x8;
+        }
+
+        /// <summary>
+        ///     A QuestStates row (a quest's step, the file's row layout kept in memory): (count, pointer) to 16-byte keys into
+        ///     MapPins, the pins the world map marks with its "Quest Location" for the step. Found by content in the 0.5.x files
+        ///     (every key a MapPins row, the pins' areas where the steps happen); live 2026-11-27 the Mad Wolf's step (order 7)
+        ///     held one key, MapPins G1_15, the pin the map marked, and Grave Tidings' step none, as the map drew none.
+        /// </summary>
+        public static class QuestStateRow
+        {
+            public static int MapPinsOffset { get; internal set; } = 0x45;
+
+            public const string Table = "Data/Balance/QuestStates.dat";
+        }
+
+        /// <summary>
+        ///     The world map's list of quests (Square on the map: WorldScreen > "quest_selector"), built while the map is shown,
+        ///     slid off screen while closed. Each quest is a button keeping dat keys to its Quest row and to the QuestStates row
+        ///     of the step it is on; a finished quest's step key is empty (live 2026-11-27, 12 buttons: two active, ten done).
+        /// </summary>
+        public static class QuestList
+        {
+            public const string ControlName = "quest_selector";
+
+            public const int QuestKeyOffset = 0x2C8;
+
+            public const int StepKeyOffset = 0x2D8;
+
+            public const string QuestTable = "Data/Balance/Quest.dat";
+
+            /// <summary>
+            ///     The crosshair at the list's top: its popup ("Active") is built and never drawn, and the screen reading said it
+            ///     after the focused quest as "Active, unavailable", as if the quest were the active one (2026-11-27).
+            /// </summary>
+            public const string ToggleModeName = "gamepad_Toggle_mode_button";
+
+            /// <summary>No quest step marks more pins than this (0.5.x: one to a few); a longer list is a column read wrong.</summary>
+            public const int MaxStepPins = 16;
+
+            /// <summary>A step's pins are dat keys, (row, file) each.</summary>
+            public const int KeySize = 0x10;
         }
 
         /// <summary>

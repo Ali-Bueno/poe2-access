@@ -370,6 +370,12 @@ namespace Poe2Accessibility
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area, and a barrier that opens.</summary>
         public bool AnnounceDiscoveries = true;
 
+        /// <summary>
+        ///     On the world map, say the places its exclamation marks are on ("Quest location"), the nearest active waypoint to each when
+        ///     the map opens, and where a quest of its list (Square) is marked.
+        /// </summary>
+        public bool AnnounceQuestMarks = true;
+
         /// <summary>Name the enemies coming into view, a pack in one line: "Ahogado, 3, derecha".</summary>
         public bool AnnounceEnemies = true;
 

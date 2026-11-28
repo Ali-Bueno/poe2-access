@@ -113,3 +113,79 @@ Sacrificial Dagger" in English.
 - An object the game names after a quest item the player carries ("Colocar corazón sacrificial") sounds as the quest's
   (`KeyPedestals.TakesCarried`). Unit-tested; not heard live yet.
 
+## The world map's quest marker (2026-11-27)
+
+A player on a DualSense, in Clearfell Encampment with "The Mad Wolf of Ogham" ("Infiltrate the Manor beyond the Village") and
+"Grave Tidings" open, heard the Quest category lead to the Clearfell exit (log "Quest step leads through: Clearfell (from
+G1_town)"), the start of an eight-area walk, and asked whether the waypoint map shows where the quest ends. It does. A
+sighted player sees an exclamation mark over Ogham Manor's "?" pin on the Quests map and on the Teleport map, and the
+active waypoint of The Manor Ramparts right under it. With the quest list open (Square), the focused quest's mark turns gold
+and its pin gets a blue ring. Grave Tidings has no mark. The map legend calls the mark "Quest Location" (ClientStrings
+`WorldScreenLegendQuestMarker`, `MapLegendQuestLocation`). The player chose to hear the mark on the place under the
+cursor, a look at the marks with their nearest waypoint when the map opens, and the place a quest of the list is marked
+on; built 2026-11-28 (`UiSemantics.QuestMarks`, `MapPinNarrator`, [controls](../controls.md)).
+
+MEASURED live, Act 1 Teleport map, with two `dump visible`, `datkeys` and `hex` (list closed, then open on the quest, then
+closed again):
+
+- The marked "?" pin is G1_15 (MapPins `G1_15` at the element's +0x2D0, WorldAreas at +0x2E0). The pin right under it is
+  G1_14, known, entered and waypoint active; the one to its right G1_13_2, the same.
+- No element is drawn where the mark is. The mark belongs to the pin's own picture.
+- +0x31A is 1 on the four G1_15 pins (`G1_15`, `_Underground`, `_Candlemass`, `_IronCount`) and 0 on the other 48 pins the
+  visible dump lists (the pin layer has 94). G1_15 is also the act's only area never entered, so the byte may be the mark or
+  the "?" picture. UNSURE. It is settled by one `hex` of the G1_15 pin once the Manor has been entered: orders 3 to 6 still pin
+  G1_15, so the mark stays while the "?" goes. Outside +0x318 to +0x31F no plain byte or field sets G1_15 apart from G1_14 and
+  G1_13_2 (the UTF-16 scraps in its first 0x400 bytes are stale memory).
+- +0x31C is 1 on `G1_town` alone, where the player stood, so it is the current area.
+- Opening the list and focusing the quest changed no byte of G1_15, G1_14, G1_13_2 (0x400 each) or of the act's canvas
+  (0x600). The ring and the gold come from the list's side and were not found.
+- The crosshair at the top of the list is `gamepad_Toggle_mode_button`. Its popup's header is "Active" (ClientStrings2
+  `Active`). What it toggles is UNSURE; ClientStrings has `ConsoleActionRecenter` "Recenter" and no string to track, pin or
+  locate a quest.
+- The mod reads that header after the focused quest, "The Mad Wolf of Ogham, button, 1 of 12, … Infiltrate the Manor. Active,
+  unavailable", which sounds as if the quest were the active one. It made the player ask how to set an active quest. A
+  bug to fix: the header belongs to the toggle, not to the quest.
+- The session's D-pad route on the Teleport map reached neither Hunting Grounds, Ogham Village, The Manor Ramparts nor
+  Ogham Manor (log, 23:06), so a pin far from the cursor is hard to reach without directions.
+
+MEASURED live, the key chain the mod reads (`hex`, `datkeys`, list closed):
+
+- Each quest button of `quest_selector` (selector > frame > list > button) keeps a dat key to its Quest row at +0x2C8 and
+  one to the QuestStates row of the step it is on at +0x2D8. The Mad Wolf's: `TheIronCount`, the order 7 step. The ten
+  finished quests' +0x2D8 is empty; the separator between active and finished has no key.
+- A loaded QuestStates row keeps the file's layout: +0x45 is (count, pointer) to 16-byte keys. The Mad Wolf's step had
+  one, MapPins `G1_15`; Grave Tidings' step count 0.
+- A loaded WorldAreas row's +0x16 is (count, pointer) to bare 8-byte pointers at WorldAreas rows, with no file beside them:
+  G1_15's one item was G1_14's row (rows 0x2E0 apart in memory, the file's row size). The mod takes a neighbour only when
+  it is the area of a pin the shown map draws.
+- Still open: QuestStates +0x71, a second list of MapPins keys on 285 rows, whose meaning is unknown.
+
+MEASURED from the tables (a scratch copy of `tools/Poe2UiExtract`, 0.5.x):
+
+- `QuestStates.MapPinsKeys` is at +0x45, a list of MapPins keys. Found by content, since every key lands in MapPins and the
+  pins' areas match the steps' places (GraveyardFight gives G1_7, G1_8 and G1_9). TheIronCount order 7, "Infiltrate the
+  Manor beyond the Village / Find Count Geonor", gives MapPins row 90, `G1_15`, the pin the live map marks. Orders 3 to 6 give
+  G1_15 too.
+- Grave Tidings (`RitualGroupLeague1`) has no pin, nor do the other ten `RitualGroupLeague` quests, the endgame Ritual, the
+  class quests, Incursion or Act 5. Of the 1408 states with tracker text 645 have a pin, side quests among them
+  (GraveyardFight, 23 of 23).
+- No main or side flag was found in the Quest table. A quest seems to get a mark when its state has a pin. UNSURE: the
+  client's code was not traced.
+- The bundles hold no `.ui` file of the world map. Among the textures under
+  `art/textures/interface/2d/2dart/uiimages/ingame/worldmap/` are `worldscreenareanodequest.dds` and
+  `areanodeunknown.dds`; which one draws the mark is UNSURE.
+
+After a game patch (the player expects v1.0 in about two weeks from 2026-11-27, with quests changed), the launcher runs `quest-goals` again on the new
+build (`GameDataStamp`). The extractor finds its columns by content but judges them on two BurnTheWaterGoddess states by
+their 0.5.5f English text, Order and goal (`QuestGoalExtractor.KnownStates`). If the patch rewords or reorders those two, the
+step fails and writes nothing; it is optional, so the 0.5 catalog stays. Then a v1.0 tracker line that changed matches
+nothing and the Quest category falls back to the tracker's words, while a line kept word for word whose quest moved still
+leads where 0.5 led, which is worse than silence. The marks avoid that weakness. They are read from the game's loaded rows, the button's
+step and that step's pins, so v1.0's quests are read as v1.0 has them, and no catalog or quest wording is involved. What a
+patch can move is the layout. The button's keys are a `DatKeySite` found again by the Quest table's name, the step's key
+follows the quest key, and each pin key is checked to name MapPins. `QuestStates.MapPinsKeys` and
+`WorldAreas.Connections` are followed by `dat-columns` (`DatContentColumns`), found by content with no named row: the
+connections as the row list whose links mostly run both ways (247 of 252 on 0.5.5f; the table's other row list, none),
+the pins as the MapPins key list filled on the most rows, at least 200 and twice the next (645 against +0x71's 285). Both
+are optional, so a patch that blurs them costs the marks only. A read that does not check out says nothing.
+

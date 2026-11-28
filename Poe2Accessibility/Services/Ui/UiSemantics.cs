@@ -289,6 +289,10 @@ namespace Poe2Accessibility.Services
             {
                 value = trialIcon; // an affliction, boon or modifier icon of the trials
             }
+            else if (this.InGame && value.Length == 0 && role == UiRole.Button && this.QuestMarksShown() && this.QuestPlaces(info) is { Count: > 0 } marked)
+            {
+                value = Announcements.QuestMarkedOn(marked); // a quest of the world map's list: where the map rings its mark
+            }
             else if (this.InGame && value.Length == 0 && role is UiRole.Panel or UiRole.Unknown or UiRole.Button)
             {
                 value = this.MapPointOfInterest(info); // a row of the world map's list of points of interest

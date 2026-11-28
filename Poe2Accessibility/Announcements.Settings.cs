@@ -40,6 +40,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.InspectCompareTable) => T("Read Inspect Mode with the right stick", "Leer el modo inspección con el stick derecho"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
+            nameof(AccessibilitySettings.AnnounceQuestMarks) => T("Quest locations on the world map and the nearest waypoint", "Lugares de misión en el mapa del mundo y el transportador más cercano"),
             nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),
             nameof(AccessibilitySettings.EnemyDirections) => T("Direction of enemies coming into view", "Dirección de los enemigos que aparecen"),
             nameof(AccessibilitySettings.QuietItemsInFights) => T("Silence loot, chests and altars in fights", "Silenciar objetos, cofres y altares en combate"),

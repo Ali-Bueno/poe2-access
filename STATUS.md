@@ -104,6 +104,7 @@
 | Window independence | done (live, five sizes) | the camera's matrix for what is seen and heard, laid-out units instead of pixels ([camera view](docs/research/camera-view.md), [data sources](docs/research/data-sources.md)) |
 | World map: what is done, what is left, what was never entered | done (live) | the pictures a sighted player sees (popup, R3 list, area pins; travel maps of ship and caravan); Spanish "Marca del rey" over Isla del clan corrected ([endgame-ui §7](docs/research/endgame-ui.md), `MapContentIcons`, `UiSemantics.PinArea`) |
 | World map pins from data | done (live, 16:9, 21:9, 5:4) | MapPins/WorldAreas rows the act canvas keeps; told when the popup was not heard (`MapPinNarrator`) |
+| World map quest marks: the place, the nearest waypoint, the list's quest | done (unit tests; the key chain read live 2026-11-27, the speech not heard yet) | the game's rows of each listed quest's step (`UiSemantics.QuestMarks`, `QuestMarkRoutes`), no quest wording; "Active, unavailable" of the list's crosshair popup gone ([quest goals](docs/research/quest-goals.md#the-world-maps-quest-marker-2026-11-27)) |
 | Area announcement on entering / changing area | done (live) | own read of AreaLoadingState+0xEA0 (GameHelper offset stale) |
 | Area banner tagline (arrival) | done (code, 2026-11-22) | `AreaBanner`: the HUD text equal to the area name whose parent holds two texts; appended to the area line once per area id ([ui-layers](docs/research/ui-layers.md)); a banner filled after the line is said on its own, queued, within 4 s (Shrike Island's texts came 40 ms after the line) |
 | Sailing and caravan map: the pin's own button | done (code, 2026-11-22) | D-pad down from a pin, A has the captain talk about the place: "Isla Whakapanu, charla sobre el lugar, botón" (`Announcements.PinTalk`); the talk was already read; the popup said last names where "Viajar, A" goes ([ui-layers](docs/research/ui-layers.md)) |
@@ -539,6 +540,16 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28 (a fork's player, in Clearfell with the Mad Wolf's "Infiltrate the Manor": does the waypoint map show where the
+quest ends?; 1203 tests, branch `quest-markers-on-map`, not deployed, not released):** the world map says the places its
+exclamation marks are on, with the nearest active waypoint, when it opens; the cursor on one says "Quest location"; a
+quest of the list says where it is marked ([controls](docs/controls.md), [research](docs/research/quest-goals.md#the-world-maps-quest-marker-2026-11-27)).
+Read from the game's loaded rows (quest button > step > pins; area > connections), checked at each key, two columns
+followed by `dat-columns` by content. Next: hear it live (Act 1 Teleport map, the Manor marked, the Ramparts' waypoint next
+door), and confirm the button's step key follows the step once the Manor is entered. Open: the Quest category's
+`quest-goals` step judges its columns on two named Keth lines, so a v1.0 that rewords them keeps the 0.5 catalog
+([quest goals](docs/research/quest-goals.md#the-world-maps-quest-marker-2026-11-27), last paragraph).
+
 **2026-11-28, small hours (the owner, on what still failed quiet: "busca algo que los haga menos frágiles; descompila el exe, busca
 en archivos"; 1192 tests, live on kehgan, deployed to the play copy, pushed, not released):** every item the audit left open has a
 guard from the game itself ([audit, second pass](docs/research/robustness-audit-2026-11-27.md#second-pass-2026-11-27-to-28-what-was-left-open),
