@@ -63,45 +63,64 @@ namespace Poe2Accessibility.Services
             if (this.arrivals.Count == 0 && this.departures.Count == 0)
             {
                 (this.goldBefore, this.groundBefore) = this.recent.Peek();
+                this.ClearBatch(); // what a batch that came to nothing left behind
             }
 
-            var salvaging = !playing && enabled && this.TickSalvage(now);
+            var inPanel = !playing && enabled;
+            var side = inPanel ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
+            var salvaging = inPanel && this.TickSalvage(now, side);
             if (!this.movesBaseline && enabled && !salvaging)
             {
+                var moved = false;
                 foreach (var (entity, from) in this.where)
                 {
-                    if (!located.ContainsKey(entity))
+                    if (located.ContainsKey(entity))
                     {
-                        var name = this.names.Last(entity); // its entity is gone: as last read while it was there
-                        this.departures.Add((from, name));
-                        if (this.titled.GetValueOrDefault(entity, string.Empty) is { Length: > 0 } title && this.byBase.GetValueOrDefault(entity) is { } plain)
-                        {
-                            this.batchTitles.Add((name, plain, title));
-                        }
-
-                        this.NoteGem(entity, name);
-                        (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
+                        continue;
                     }
+
+                    moved = true;
+                    if (from == InventoryName.Cursor1 && this.arrivalEntities.IndexOf(entity) is >= 0 and var passed)
+                    {
+                        // Come to the hand and gone before the batch settled: it only passed through (a Y drop).
+                        this.arrivals.RemoveAt(passed);
+                        this.arrivalEntities.RemoveAt(passed);
+                        continue;
+                    }
+
+                    var name = this.names.Last(entity); // its entity is gone: as last read while it was there
+                    this.departures.Add((from, name));
+                    if (this.seen.TryGetValue(entity, out var item) && item.Title.Length > 0)
+                    {
+                        this.batchTitles.Add((name, item.ByBase, item.Title));
+                    }
+
+                    this.NoteKind(entity, name);
                 }
 
                 foreach (var (entity, to) in located)
                 {
                     if (!this.where.ContainsKey(entity))
                     {
+                        moved = true;
                         this.arrivals.Add((to, this.NameOf(entity)));
                         this.arrivalEntities.Add(entity);
-                        this.NoteGem(entity, this.NameOf(entity));
-                        (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
+                        this.NoteKind(entity, this.NameOf(entity));
                     }
                 }
 
                 // A stack that grew in place reads as the game's other way: the old stack gone, the larger one come.
                 foreach (var (entity, before) in grown.Where(stack => this.where.ContainsKey(stack.Entity)))
                 {
+                    moved = true;
                     this.departures.Add((InventoryName.MainInventory1, before));
                     this.arrivals.Add((InventoryName.MainInventory1, this.names.Last(entity)));
                     this.arrivalEntities.Add(entity);
-                    (this.lastMoveAt, this.movedInPanel) = (now, true);
+                }
+
+                if (moved)
+                {
+                    this.NoteMoved(now, !playing, side);
                 }
 
                 if ((this.arrivals.Count > 0 || this.departures.Count > 0) && now - this.lastMoveAt >= SettleMs)
@@ -111,24 +130,13 @@ namespace Poe2Accessibility.Services
             }
             else
             {
-                this.arrivals.Clear();
-                this.arrivalEntities.Clear();
-                this.batchTitles.Clear();
-                this.departures.Clear();
-                this.batchGems.Clear();
-                this.batchUncutSupports.Clear();
+                this.ClearBatch();
             }
 
             this.names.KeepOnly(located.ContainsKey);
-            foreach (var gone in this.titled.Keys.Where(entity => !located.ContainsKey(entity)).ToList())
+            foreach (var gone in this.seen.Keys.Where(entity => !located.ContainsKey(entity)).ToList())
             {
-                this.titled.Remove(gone);
-                this.byBase.Remove(gone);
-            }
-
-            foreach (var gone in this.gems.Keys.Where(entity => !located.ContainsKey(entity)).ToList())
-            {
-                this.gems.Remove(gone);
+                this.seen.Remove(gone);
             }
 
             this.TickWeaponSet(located, enabled);
@@ -171,31 +179,31 @@ namespace Poe2Accessibility.Services
         private void SpeakMoves()
         {
             var goldChange = this.Gold?.Invoke() is { } now && this.goldBefore is { } before ? now - before : 0;
-            var side = this.movedInPanel && this.InFavours?.Invoke() != true ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
+            // The panel as it was when the moves showed: closed since, its moves were "used" (a fast hand).
+            var favours = this.batchInFavours || this.InFavours?.Invoke() == true;
+            var side = !this.movedInPanel || favours ? string.Empty
+                : this.batchSide.Length > 0 ? this.batchSide
+                : this.SidePanel?.Invoke() ?? string.Empty;
             // The skills panel takes and gives back gems only: anything else that leaves beside it was dropped or used.
             Func<string, bool>? sideTakes = side == Announcements.SkillGemPanel ? this.batchGems.Contains : null;
-            var inTrade = this.InTrade?.Invoke() == true;
+            var inTrade = this.batchInTrade || this.InTrade?.Invoke() == true;
             this.NameArrivalsByTitle();
             var byBase = this.batchTitles.GroupBy(gone => gone.Name).ToDictionary(group => group.Key, group => group.First().ByBase);
-            this.arrivalEntities.Clear();
-            this.batchTitles.Clear();
-            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.MoveSlotName,this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade);
+            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.MoveSlotName, this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade,
+                this.batchQuestItems.Contains);
+            this.LogBatch(moves, goldChange, side, inTrade);
             if (this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1))
             {
-                // Picked up with nothing tracked leaving: from the panel beside (a stash tab), said when set down.
-                this.handFrom = this.departures.Count == 0 ? side : string.Empty;
+                // Picked up with nothing tracked leaving but what the hand held: from the panel beside (a stash tab), said when set down.
+                this.handFrom = this.departures.All(departure => departure.From == InventoryName.Cursor1) ? side : string.Empty;
             }
             else if (this.departures.Any(departure => departure.From == InventoryName.Cursor1))
             {
                 this.handFrom = string.Empty;
             }
 
-            this.arrivals.Clear();
-            this.departures.Clear();
             var uncutSupports = this.batchUncutSupports.ToList();
-            this.batchGems.Clear();
-            this.batchUncutSupports.Clear();
-            this.movedInPanel = false;
+            this.ClearBatch();
             if (moves.Count > 0)
             {
                 this.handEmptyDue = 0; // where the hand's item went is said instead
@@ -213,6 +221,7 @@ namespace Poe2Accessibility.Services
                     case ItemMoveKind.Bought:
                         lines.Add(Announcements.Bought(names, -goldChange));
                         break;
+                    case ItemMoveKind.HandedOver:
                     case ItemMoveKind.DroppedOrUsed when inTrade:
                         lines.Add(Announcements.HandedOver(names));
                         break;
@@ -244,6 +253,43 @@ namespace Poe2Accessibility.Services
             }
 
             this.SayMoves(lines);
+        }
+
+        /// <summary>A move just seen: when, and what was open beside the inventory then.</summary>
+        private void NoteMoved(long now, bool inPanel, string side)
+        {
+            (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || inPanel);
+            if (inPanel)
+            {
+                this.batchSide = this.batchSide.Length > 0 ? this.batchSide : side;
+                this.batchInTrade |= this.InTrade?.Invoke() == true;
+                this.batchInFavours |= this.InFavours?.Invoke() == true;
+            }
+        }
+
+        private void ClearBatch()
+        {
+            this.arrivals.Clear();
+            this.arrivalEntities.Clear();
+            this.departures.Clear();
+            this.batchTitles.Clear();
+            this.batchGems.Clear();
+            this.batchUncutSupports.Clear();
+            this.batchQuestItems.Clear();
+            (this.movedInPanel, this.batchSide, this.batchInTrade, this.batchInFavours) = (false, string.Empty, false, false);
+        }
+
+        /// <summary>One log line per batch said or seen beside a panel: what came, what left and how it was read.</summary>
+        private void LogBatch(List<ItemMove> moves, long goldChange, string side, bool inTrade)
+        {
+            if (moves.Count == 0 && !this.movedInPanel)
+            {
+                return; // a flask drunk in play
+            }
+
+            static string Listed(IEnumerable<(InventoryName Where, string Name)> items) => string.Join("; ", items.Select(item => $"{item.Where} {item.Name}"));
+            var read = moves.Count == 0 ? "nothing said" : string.Join("; ", moves.Select(move => $"{move.Kind} {move.Name}"));
+            this.log.Info($"Item moves: in [{Listed(this.arrivals)}], out [{Listed(this.departures)}], gold {goldChange:+0;-0;0}, beside \"{side}\"{(inTrade ? ", trade" : string.Empty)}: {read}");
         }
     }
 }

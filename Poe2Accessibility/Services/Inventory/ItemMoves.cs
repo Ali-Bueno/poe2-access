@@ -23,6 +23,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Gone with no panel to take it: dropped if it shows on the ground soon, else used up.</summary>
         DroppedOrUsed,
+
+        /// <summary>Given to whoever opened the panel beside: an item no panel keeps (a quest item turned in).</summary>
+        HandedOver,
     }
 
     /// <summary>One settled item move: its kind, the item, and the slot or panel it concerns.</summary>
@@ -37,7 +40,9 @@ namespace Poe2Accessibility.Services
     ///     item counting from the panel it was picked up in, unless that panel cannot hold it (the skills hold only gems:
     ///     an orb used or an item dropped beside them was "moved to Skills", user 2026-10-31). In a trade what arrives was
     ///     received and what leaves was handed over, both said: an arrival there is no item of the inventory in a new
-    ///     place unless it carries the same name. A stack that grew, nothing else moving, gained what it grew by. Pure.
+    ///     place unless it carries the same name. A stack that grew, nothing else moving, gained what it grew by. A batch
+    ///     may hold several deeds done in quick succession: what the hand or a slot took is paired with its own departure,
+    ///     so the others are still said. Pure.
     /// </summary>
     public static class ItemMoves
     {
@@ -50,26 +55,50 @@ namespace Poe2Accessibility.Services
             string sidePanel,
             string handFrom = "",
             Func<string, bool>? sideTakes = null,
-            bool inTrade = false)
+            bool inTrade = false,
+            Func<string, bool>? noPanelKeeps = null)
         {
             bool Beside(string name) => sidePanel.Length > 0 && (sideTakes?.Invoke(name) ?? true);
             bool IsEquipment(InventoryName name) => slotName(name) != null;
             var left = new List<(InventoryName From, string Name)>(departures);
             var moves = new List<ItemMove>();
             var alone = arrivals.Count == 1 && departures.Count == 1 && !inTrade;
-            foreach (var (to, name) in arrivals)
+
+            // An item made anew where it is worn (a flask drunk, an orb used on it) is no move, settled before another
+            // arrival can take its departure for an unequip. In play nothing else can arrive where one left; with a panel
+            // open one of its name brought from the inventory or the hand is another item.
+            var remade = new bool[arrivals.Count];
+            for (var index = 0; index < arrivals.Count; index++)
             {
+                var (to, name) = arrivals[index];
+                remade[index] = IsEquipment(to) &&
+                                Take(source => source == to, null, departed => !inPanel || (Title(departed) == Title(name) && !Brought(name))) != null;
+            }
+
+            // What a slot or the hand took is paired with the departure of its own name before the inventory's arrivals
+            // take theirs: a batch may hold another deed, and that one is still said.
+            var paired = new bool[arrivals.Count];
+            for (var index = 0; index < arrivals.Count; index++)
+            {
+                paired[index] = !remade[index] && IsEquipment(arrivals[index].To) && TakeNamed(arrivals[index].Name, source => !IsEquipment(source));
+            }
+
+            for (var index = 0; index < arrivals.Count; index++)
+            {
+                paired[index] |= arrivals[index].To == InventoryName.Cursor1 && TakeNamed(arrivals[index].Name, FromOutsideTheHand);
+            }
+
+            for (var index = 0; index < arrivals.Count; index++)
+            {
+                var (to, name) = arrivals[index];
+                if (remade[index])
+                {
+                    continue;
+                }
+
                 if (slotName(to) is { } slot)
                 {
-                    // A flask drunk is a new entity in its own slot; in play nothing else can arrive where one left, and
-                    // with a panel open one of its name brought from the inventory or the hand is another flask.
-                    if (Take(source => source == to, null, departed => !inPanel || (Title(departed) == Title(name) && !Brought(name))) != null)
-                    {
-                        continue;
-                    }
-
                     moves.Add(new ItemMove(ItemMoveKind.Equipped, name, slot));
-                    Take(source => source != InventoryName.Cursor1 && !IsEquipment(source));
                 }
                 else if (to == InventoryName.PassiveJewels1)
                 {
@@ -113,10 +142,23 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            // What the hand or an equipment slot took is said there; what left the inventory or the hand for nowhere
-            // tracked went to a merchant, a panel, the ground, or was used up.
-            var taken = arrivals.Any(arrival => arrival.To == InventoryName.Cursor1 || IsEquipment(arrival.To));
-            if (!taken && inPanel)
+            // A slot's or the hand's item whose departure has another name takes the one never read, else the only one
+            // left; with several left none can be told from it, and none of them is said.
+            var unsure = false;
+            foreach (var hand in new[] { false, true }) // the slots first: what they leave is the hand's
+            {
+                for (var index = 0; index < arrivals.Count; index++)
+                {
+                    var to = arrivals[index].To;
+                    if (!remade[index] && !paired[index] && (hand ? to == InventoryName.Cursor1 : IsEquipment(to)))
+                    {
+                        unsure |= !TakeUnnamed(hand ? FromOutsideTheHand : source => !IsEquipment(source));
+                    }
+                }
+            }
+
+            // What left the inventory or the hand for nowhere tracked went to a merchant, a panel, the ground, or was used up.
+            if (!unsure && inPanel)
             {
                 foreach (var (from, name) in left.Where(departure => departure.From is InventoryName.MainInventory1 or InventoryName.Cursor1))
                 {
@@ -125,13 +167,50 @@ namespace Poe2Accessibility.Services
                         continue; // set down in the panel it was picked up in: rearranging the stash
                     }
 
-                    moves.Add(goldChange > 0 ? new ItemMove(ItemMoveKind.Sold, name)
-                        : !inTrade && Beside(name) ? new ItemMove(ItemMoveKind.MovedTo, name, sidePanel)
+                    var kept = goldChange > 0 || (!inTrade && Beside(name));
+                    moves.Add(kept && noPanelKeeps?.Invoke(name) == true ? new ItemMove(ItemMoveKind.HandedOver, name)
+                        : goldChange > 0 ? new ItemMove(ItemMoveKind.Sold, name)
+                        : kept ? new ItemMove(ItemMoveKind.MovedTo, name, sidePanel)
                         : new ItemMove(ItemMoveKind.DroppedOrUsed, name));
                 }
             }
 
             return moves;
+
+            static bool FromOutsideTheHand(InventoryName source) => source != InventoryName.Cursor1;
+
+            // Takes the departure of the arrival's own name; false when there is none.
+            bool TakeNamed(string arrival, Func<InventoryName, bool> from)
+            {
+                var index = left.FindIndex(departure => from(departure.From) && Title(departure.Name) == Title(arrival));
+                if (index >= 0)
+                {
+                    left.RemoveAt(index);
+                }
+
+                return index >= 0;
+            }
+
+            // Takes the departure that never read, else the only one there is; false when several are left.
+            bool TakeUnnamed(Func<InventoryName, bool> from)
+            {
+                var index = left.FindIndex(departure => from(departure.From) && departure.Name == Announcements.UnknownItem);
+                if (index < 0)
+                {
+                    index = left.FindIndex(departure => from(departure.From));
+                    if (index != left.FindLastIndex(departure => from(departure.From)))
+                    {
+                        return false;
+                    }
+                }
+
+                if (index >= 0)
+                {
+                    left.RemoveAt(index);
+                }
+
+                return true;
+            }
 
             ItemMove Gained(string name) => goldChange < 0 ? new ItemMove(ItemMoveKind.Bought, name)
                 : !inTrade && Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)

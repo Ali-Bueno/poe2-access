@@ -73,9 +73,27 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> batchGems = new();
         private readonly HashSet<string> batchUncutSupports = new();
 
+        /// <summary>The batch's quest items by name: no panel keeps one, so one that leaves beside a panel was handed over.</summary>
+        private readonly HashSet<string> batchQuestItems = new();
+
+        /// <summary>The panel beside the inventory when the batch's moves showed, empty when none did; a trade or the favours open then.</summary>
+        private string batchSide = string.Empty;
+        private bool batchInTrade;
+        private bool batchInFavours;
+
         /// <summary>The uncut support gem's base type (BaseItemTypes, dat-rows 2026-10-31): engraving one sockets the support at once.</summary>
         private const string UncutSupportBase = "/Gems/SupportGemUncut";
-        private readonly Dictionary<IntPtr, bool> gems = new();
+
+        /// <summary><see cref="InventoryReader.ItemKind"/>'s word for a quest item.</summary>
+        private const string QuestKind = "quest";
+
+        /// <summary>
+        ///     What is kept of an item in reach besides its name, read while it is there and used once it is gone: the tooltip
+        ///     title its name was read with (empty: by its base) and what its new entity will be read as.
+        /// </summary>
+        private readonly record struct Seen(string Title, string ByBase, bool Gem, bool QuestItem);
+
+        private readonly Dictionary<IntPtr, Seen> seen = new();
         private readonly List<(string Name, string ByBase, long Due, IReadOnlyCollection<uint> GroundBefore)> drops = new();
         private readonly Queue<(long? Gold, IReadOnlyCollection<uint> Ground)> recent = new();
         private long? goldBefore;
@@ -95,16 +113,22 @@ namespace Poe2Accessibility.Services
         private long lastMovesPoll;
         private long lastMoveAt;
 
-        /// <summary>Remembers a moved item that is a gem, by name, for the batch (its entity may be gone when the batch settles).</summary>
-        private void NoteGem(IntPtr entity, string name)
+        /// <summary>Remembers a moved item that is a gem or a quest item, by name, for the batch (its entity may be gone when the batch settles).</summary>
+        private void NoteKind(IntPtr entity, string name)
         {
-            if (this.gems.TryGetValue(entity, out var gem) ? gem : this.reader.IsGem(entity))
+            var known = this.seen.TryGetValue(entity, out var item);
+            if (known ? item.Gem : this.reader.IsGem(entity))
             {
                 this.batchGems.Add(name);
                 if (this.reader.ItemBaseId(entity).EndsWith(UncutSupportBase, StringComparison.Ordinal))
                 {
                     this.batchUncutSupports.Add(name);
                 }
+            }
+
+            if (known && item.QuestItem)
+            {
+                this.batchQuestItems.Add(name);
             }
         }
 
@@ -117,25 +141,14 @@ namespace Poe2Accessibility.Services
             var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
             var rarity = item.TryGetComponent<Mods>(out var mods) ? (int)mods.Rarity : 0;
             var title = this.reader.TitleOf(item.Address);
-            if (this.names.IsStale(item.Address, count, rarity) || this.titled.GetValueOrDefault(item.Address, string.Empty) != title)
+            if (this.names.IsStale(item.Address, count, rarity) || (this.seen.TryGetValue(item.Address, out var kept) ? kept.Title : string.Empty) != title)
             {
                 // By the name its tooltip gave it once the cursor has been on it; by its base until then.
                 this.names.Read(item.Address, this.reader.DescribeItemEntity(item.Address, title), count, rarity);
-                this.titled[item.Address] = title;
-                if (title.Length > 0)
-                {
-                    this.byBase[item.Address] = this.reader.DescribeItemEntity(item.Address) ?? string.Empty;
-                }
-
-                this.gems[item.Address] = this.reader.IsGem(item.Address);
+                var byBase = title.Length > 0 ? this.reader.DescribeUntitled(item.Address) ?? string.Empty : string.Empty;
+                this.seen[item.Address] = new Seen(title, byBase, this.reader.IsGem(item.Address), this.reader.ItemKind(item.Address).Kind == QuestKind);
             }
         }
-
-        /// <summary>The tooltip title each item's name was read with (empty: by its base).</summary>
-        private readonly Dictionary<IntPtr, string> titled = new();
-
-        /// <summary>What a titled item is called by its base alone, as its new entity will be read.</summary>
-        private readonly Dictionary<IntPtr, string> byBase = new();
 
         /// <summary>The batch's departed items that had a title: their name, their name by base, and the title.</summary>
         private readonly List<(string Name, string ByBase, string Title)> batchTitles = new();

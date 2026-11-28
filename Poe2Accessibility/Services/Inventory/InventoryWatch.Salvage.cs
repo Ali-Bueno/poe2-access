@@ -18,9 +18,9 @@ namespace Poe2Accessibility.Services
         private long salvageChangedAt;
 
         /// <summary>Per moves poll with a panel open; true while the salvage bench is beside the inventory (moves are not said then).</summary>
-        private bool TickSalvage(long now)
+        private bool TickSalvage(long now, string side)
         {
-            if (this.SidePanel?.Invoke() != Announcements.SalvageBenchPanel ||
+            if (side != Announcements.SalvageBenchPanel ||
                 !this.readers.TryGetValue(InventoryName.MainInventory1, out var main))
             {
                 this.salvageBefore = null;

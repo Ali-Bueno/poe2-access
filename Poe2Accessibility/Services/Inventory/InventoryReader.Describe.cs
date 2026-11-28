@@ -28,11 +28,14 @@ namespace Poe2Accessibility.Services
         /// <summary>An item entity with its base after its own name ("Solaz de perdición, Esmeralda, raro"): a jewel in a socket.</summary>
         public string? DescribeWithBase(IntPtr entity) => this.Describe(entity, string.Empty, false, true);
 
+        /// <summary>The item as the new entity a move or a drop makes of it reads: never by the title a tooltip gave this one.</summary>
+        public string? DescribeUntitled(IntPtr entity) => this.Describe(entity, string.Empty, false, remembered: false);
+
         /// <summary>
         ///     Only a tooltip's title checks where base names are read (<see cref="BaseNames"/>): a ground item's label
         ///     is not known to hold the base name.
         /// </summary>
-        private string? Describe(IntPtr entity, string tooltipTitle, bool fromTooltip, bool withBase = false)
+        private string? Describe(IntPtr entity, string tooltipTitle, bool fromTooltip, bool withBase = false, bool remembered = true)
         {
             if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
             {
@@ -61,7 +64,7 @@ namespace Poe2Accessibility.Services
                 this.Report?.Missing("item names");
             }
 
-            if (tooltipTitle.Length == 0 && rarity != Rarity.Normal)
+            if (remembered && tooltipTitle.Length == 0 && rarity != Rarity.Normal)
             {
                 // No tooltip up (yet): the name its tooltip gave it before, so a second look says the same line as the first.
                 tooltipTitle = this.TitleOf(entity);

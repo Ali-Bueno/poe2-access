@@ -115,7 +115,7 @@ namespace Poe2Accessibility.Services
                 present.Add(address);
                 if (!this.questNames.ContainsKey(address))
                 {
-                    var quest = this.reader.ItemKind(item.Address).Kind == "quest";
+                    var quest = this.reader.ItemKind(item.Address).Kind == QuestKind;
                     var name = quest ? this.reader.ItemBaseName(item.Address) : string.Empty;
                     if (!quest || name.Length > 0) // a quest item's name not read yet: asked again next poll
                     {

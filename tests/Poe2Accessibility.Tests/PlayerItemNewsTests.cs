@@ -27,7 +27,70 @@ namespace Poe2Accessibility.Tests
             (nameof(ABuffListMayBeginWithACapitalisedId), ABuffListMayBeginWithACapitalisedId),
             (nameof(AFlaskDrunkIsNotEquippedAgain), AFlaskDrunkIsNotEquippedAgain),
             (nameof(ATitledItemDroppedLiesAsItsBase), ATitledItemDroppedLiesAsItsBase),
+            (nameof(DeedsDoneInQuickSuccessionAreEachSaid), DeedsDoneInQuickSuccessionAreEachSaid),
+            (nameof(AnItemMadeAnewWhereItIsWornIsNoMove), AnItemMadeAnewWhereItIsWornIsNoMove),
+            (nameof(AQuestItemGoneBesideAPanelWasHandedOver), AQuestItemGoneBesideAPanelWasHandedOver),
         };
+
+        private static string Said(List<ItemMove> moves) => string.Join(" | ", moves.Select(move => $"{move.Kind} {move.Name} {move.Where}".Trim()));
+
+        private static List<(InventoryName, string)> Items(params (InventoryName, string)[] items) => items.ToList();
+
+        /// <summary>One batch holding two deeds: the hand's or a slot's item is paired with its own departure, the other is said (2026-11-27).</summary>
+        private static void DeedsDoneInQuickSuccessionAreEachSaid()
+        {
+            const InventoryName Main = InventoryName.MainInventory1;
+            const InventoryName Hand = InventoryName.Cursor1;
+            Equal("DroppedOrUsed Casco", Said(ItemMoves.Read(Items((Hand, "Arco")), Items((Main, "Casco"), (Main, "Arco")), Announcements.SlotName, true, 0, string.Empty)),
+                  "one thrown down and another picked up at once: the throw is still said");
+            Equal("Equipped Casco Helmet | Sold Brazales", Said(ItemMoves.Read(Items((InventoryName.Helm1, "Casco")), Items((Main, "Brazales"), (Main, "Casco")),
+                      Announcements.SlotName, true, 19, "Mercader")),
+                  "one sold and another put on");
+            Equal("MovedTo Casco Alijo", Said(ItemMoves.Read(Items((Hand, "Runa")), Items((Hand, "Casco")), Announcements.SlotName, true, 0, "Alijo")),
+                  "the hand's item left in the stash for another taken from it");
+            Equal("Unequipped Anillo", Said(ItemMoves.Read(Items((Main, "Anillo"), (Hand, "Runa")), Items((InventoryName.Ring1, "Anillo")), Announcements.SlotName, true, 0, "Alijo")),
+                  "a ring taken off while the hand took a rune from the stash: the ring is not the hand's");
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Hand, "Arco corto")), Items((Main, "Aguijón, raro")), Announcements.SlotName, true, 0, string.Empty)),
+                  "picked up, read by another name in the hand: the only departure is its own");
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Hand, "Arco corto")), Items((Main, "Casco"), (Main, "Aguijón, raro")), Announcements.SlotName, true, 0, string.Empty)),
+                  "two left and neither carries the hand's name: none can be told from it, none is said");
+            Equal("DroppedOrUsed Casco", Said(ItemMoves.Read(Items((Hand, "Arco corto")), Items((Main, "Casco"), (Main, Announcements.UnknownItem)), Announcements.SlotName, true, 0, string.Empty)),
+                  "the one that never read is the hand's");
+        }
+
+        /// <summary>
+        ///     A worn item made anew took the next arrival's place: "Desequipado: Corona. Equipado: Corona, Casco" on using an
+        ///     orb on the helmet, and the same on a flask drunk while an item was picked up (log 2026-11-27).
+        /// </summary>
+        private static void AnItemMadeAnewWhereItIsWornIsNoMove()
+        {
+            const InventoryName Main = InventoryName.MainInventory1;
+            const InventoryName Helm = InventoryName.Helm1;
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Main, "Chatarra de armero, 4"), (Helm, "Corona, único")), Items((Helm, "Corona, único"), (Main, "Chatarra de armero, 5")),
+                      Announcements.SlotName, true, 0, string.Empty)),
+                  "an orb used on the helmet worn: the stack it came from is a new entity too");
+            Equal("DroppedOrUsed Orbe exaltado", Said(ItemMoves.Read(Items((Helm, "Corona, único")), Items((Helm, "Corona, único"), (Main, "Orbe exaltado")),
+                      Announcements.SlotName, true, 0, string.Empty)),
+                  "its last orb: used up, as on an item in the bag");
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Main, "Orbe"), (InventoryName.Flask1, "Frasco de vida, Mágico")), Items((InventoryName.Flask1, "Frasco de vida, Mágico")),
+                      Announcements.MoveSlotName, false, 0, string.Empty)),
+                  "a flask drunk as an item is picked up: the pick-up is the pick-up watch's");
+        }
+
+        /// <summary>"Movido a Selecciona una recompensa: Colmillos helados" on turning a quest item in (log 2026-11-27).</summary>
+        private static void AQuestItemGoneBesideAPanelWasHandedOver()
+        {
+            var fangs = Items((InventoryName.MainInventory1, "Colmillos helados"));
+            Func<string, bool> quest = name => name == "Colmillos helados";
+            Equal("HandedOver Colmillos helados", Said(ItemMoves.Read(Items(), fangs, Announcements.SlotName, true, 0, "Selecciona una recompensa", noPanelKeeps: quest)),
+                  "no panel keeps a quest item: the one who opened it took it");
+            Equal("HandedOver Colmillos helados", Said(ItemMoves.Read(Items(), fangs, Announcements.SlotName, true, 500, "Selecciona una recompensa", noPanelKeeps: quest)),
+                  "nor was it sold when gold came with it");
+            Equal("DroppedOrUsed Colmillos helados", Said(ItemMoves.Read(Items(), fangs, Announcements.SlotName, true, 0, string.Empty, noPanelKeeps: quest)),
+                  "with only the inventory open it was used, as a book is");
+            Equal("MovedTo Arco Alijo", Said(ItemMoves.Read(Items(), Items((InventoryName.MainInventory1, "Arco")), Announcements.SlotName, true, 0, "Alijo", noPanelKeeps: quest)),
+                  "any other item went into the panel");
+        }
 
         /// <summary>An identified magic flask thrown down was "Usado": on the ground it reads by its base (live 2026-11-11).</summary>
         private static void ATitledItemDroppedLiesAsItsBase()
