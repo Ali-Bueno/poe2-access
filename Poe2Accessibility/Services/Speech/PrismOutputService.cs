@@ -21,10 +21,17 @@ namespace Poe2Accessibility.Services
         /// <summary>A backend call slower than this is logged, to measure how long speech blocks.</summary>
         private const int SlowCallMs = 100;
 
+        /// <summary>How long the worker waits before trying again after its loop failed.</summary>
+        private const int WorkerRetryMs = 250;
+
+        /// <summary>At most one worker failure is logged per this long.</summary>
+        private const int WorkerFaultLogMs = 10000;
+
         /// <summary>How long Dispose waits for the worker to release PRISM before giving up.</summary>
         private const int ShutdownWaitMs = 2000;
 
         private readonly PluginLog log;
+        private long lastFaultLogMs = -WorkerFaultLogMs;
         private readonly object queueGate = new();
         private readonly Queue<SpeechRequest> pending = new();
         private readonly AutoResetEvent pendingSignal = new(false);
