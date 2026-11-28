@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(UnderWineTheDialogsAskTheLinuxDesktop), UnderWineTheDialogsAskTheLinuxDesktop),
             (nameof(AMentionBeingHeardIsNotSaidAgain), AMentionBeingHeardIsNotSaidAgain),
             (nameof(WhatAUsesCutsWhatIsBeingSaid), WhatAUsesCutsWhatIsBeingSaid),
+            (nameof(AStoppedMentionIsNotSaidAgain), AStoppedMentionIsNotSaidAgain),
         };
 
         /// <summary>
@@ -257,6 +258,22 @@ namespace Poe2Accessibility.Tests
             speech.Say(SpeechKind.LifeAndMana, "Vida 10 por ciento", urgent: true);
             speech.Moved("Maza liviana, A");
             Equal("Vida 10 por ciento/True|Maza liviana, A/False", pending(), "urgent news is heard first");
+        }
+
+        /// <summary>The player stopped the speech: a mention it cut off is not prepended to the next phrase.</summary>
+        private static void AStoppedMentionIsNotSaidAgain()
+        {
+            var (speech, pending) = Unstarted();
+            speech.Mention("Vida 50 por ciento");
+            speech.Stop();
+            speech.Urge("Enfriado");
+            Equal("Enfriado/True", pending(), "a plain stop forgets the mention");
+
+            (speech, pending) = Unstarted();
+            speech.Mention("Vida 50 por ciento");
+            speech.StopBefore(DateTime.UtcNow.AddSeconds(1));
+            speech.Urge("Enfriado");
+            Equal("Enfriado/True", pending(), "so does a stop that keeps nothing");
         }
 
         /// <summary>A speech service whose worker never started, and what it has queued ("text/interrupt|…").</summary>
