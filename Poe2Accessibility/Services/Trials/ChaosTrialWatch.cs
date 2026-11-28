@@ -54,6 +54,8 @@ namespace Poe2Accessibility.Services
             this.nextLift.Reset();
             this.leverWas.Clear();
             this.selectorWas.Clear();
+            this.plateWas.Clear();
+            this.logged.Clear();
             this.lifts.Reset();
         }
 
