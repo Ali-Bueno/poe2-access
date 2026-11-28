@@ -32,7 +32,13 @@ namespace Poe2Accessibility.Services
         public int Generation { get; private set; }
 
         /// <summary>The part holds what it must where it was measured.</summary>
-        public void Found(string part) => this.Note(part, "ok", $"Layout: {part} where measured");
+        public void Found(string part)
+        {
+            if (!this.Is(part, "ok")) // asked every frame by some readers: no line is made for what is already known
+            {
+                this.Note(part, "ok", $"Layout: {part} where measured");
+            }
+        }
 
         /// <summary>The part was found elsewhere (a game update moved it): readings go on from there.</summary>
         public void Moved(string part, int from, int to) =>
@@ -41,7 +47,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The part could not be found; the readings that need it may fail.</summary>
         public void Missing(string part)
         {
-            if (this.Note(part, "missing", $"Layout: {part} NOT FOUND (game update?); readings that need it may fail"))
+            if (!this.Is(part, "missing") && this.Note(part, "missing", $"Layout: {part} NOT FOUND (game update?); readings that need it may fail"))
             {
                 if (this.unsaid.Count == 0)
                 {
@@ -53,7 +59,9 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Whether the part is recorded as not found now.</summary>
-        public bool IsMissing(string part) => this.outcomes.TryGetValue(part, out var outcome) && outcome == "missing";
+        public bool IsMissing(string part) => this.Is(part, "missing");
+
+        private bool Is(string part, string outcome) => this.outcomes.TryGetValue(part, out var known) && known == outcome;
 
         /// <summary>Gets whether any part is recorded as not found now.</summary>
         public bool AnyMissing => this.outcomes.ContainsValue("missing");
