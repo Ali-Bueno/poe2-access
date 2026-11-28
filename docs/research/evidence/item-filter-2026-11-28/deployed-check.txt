@@ -1,0 +1,52 @@
+# The deployed mod, 2026-11-28 01:33-01:38: start-up checks, scanner lists (dev command scan, Items only) under NeverSink,
+# helmets hidden, the setting off, and NeverSink again; the failed pick-up and the portal round trip in between.
+2026-11-28 01:33:35.163 INFO State GameNotLoaded -> EscapeState
+2026-11-28 01:33:35.168 INFO Area: The Manor Ramparts (G1_14) resumed
+2026-11-28 01:33:35.511 INFO Speech queued, kept: Area: The Manor Ramparts, level 14. Fixed map. Bottom right corner.
+2026-11-28 01:33:36.244 INFO Exe names: 103 of 103 still in the game's exe
+2026-11-28 01:33:36.254 INFO Code fields: 88 of 88 read in 682 ms; moved: none
+2026-11-28 01:34:36.893 INFO State EscapeState -> InGameState
+2026-11-28 01:34:37.319 INFO Game option hide_all_filtered_ground_items=true
+2026-11-28 01:34:39.692 INFO State InGameState -> EscapeState
+2026-11-28 01:34:45.810 INFO Dev commands: scan
+2026-11-28 01:34:45.821 INFO Scan Items id=758 kind=item sound= "Rusted Greathelm" 198 cell 826,421
+2026-11-28 01:34:45.821 INFO Scan Items id=725 kind=gold sound= "Gold, 5" 964 cell 824,344
+2026-11-28 01:34:45.822 INFO Scan Items id=815 kind=item sound= "Hunting Spear" 2014 cell 805,618
+2026-11-28 01:34:49.626 INFO State EscapeState -> InGameState
+2026-11-28 01:35:09.709 INFO State InGameState -> EscapeState
+2026-11-28 01:35:11.409 INFO State EscapeState -> InGameState
+2026-11-28 01:35:23.243 INFO Ground item hidden by the game's item filter: 758 Rusted Greathelm
+2026-11-28 01:35:37.944 INFO Dev commands: scan
+2026-11-28 01:35:37.944 INFO Scan Items id=725 kind=gold sound= "Gold, 5" 964 cell 824,344
+2026-11-28 01:35:37.944 INFO Scan Items id=815 kind=item sound= "Hunting Spear" 2014 cell 805,618
+2026-11-28 01:35:44.093 INFO A pressed on: 758 Metadata/MiscellaneousObjects/WorldItem icon "" states []
+2026-11-28 01:35:44.344 INFO Ground item hidden by the game's item filter: 919 Rusted Greathelm
+2026-11-28 01:35:44.410 INFO Screen TextsAppeared layer 12: Inventory Full
+2026-11-28 01:35:44.410 INFO Speech queued, kept: Inventory Full
+2026-11-28 01:35:47.894 INFO Settings file changed on disk, reloaded
+2026-11-28 01:35:55.277 INFO Dev commands: scan
+2026-11-28 01:35:55.277 INFO Scan Items id=725 kind=gold sound= "Gold, 5" 655 cell 824,344
+2026-11-28 01:35:55.277 INFO Scan Items id=815 kind=item sound= "Hunting Spear" 2324 cell 805,618
+2026-11-28 01:36:39.793 INFO Dev commands: scan
+2026-11-28 01:36:39.795 INFO Scan Items id=725 kind=gold sound= "Gold, 5" 704 cell 824,344
+2026-11-28 01:36:39.795 INFO Scan Items id=815 kind=item sound= "Hunting Spear" 2273 cell 805,618
+2026-11-28 01:37:22.659 INFO State InGameState -> AreaLoadingState
+2026-11-28 01:37:22.665 INFO Loading: G1_town known 15 ms in (leaving G1_14)
+2026-11-28 01:37:22.960 INFO Settings file changed on disk, reloaded
+2026-11-28 01:37:23.543 INFO State AreaLoadingState -> InGameState
+2026-11-28 01:37:23.794 INFO Screen TopLayerChanged layer 12: 7 | 9 | Inventory Full | The Mad Wolf of Ogham | Infiltrate the Manor beyond the Village | Find Count Geonor | Forbidden Rites | Grave Tidings | Complete Rituals in these areas: | Cemetery of the Eternals | Mausoleum of the Praetor | Tomb of the Consort | Ogham Village
+2026-11-28 01:37:25.309 INFO State InGameState -> AreaLoadingState
+2026-11-28 01:37:25.319 INFO Loading: G1_14 known 16 ms in (leaving G1_town)
+2026-11-28 01:37:26.092 INFO State AreaLoadingState -> InGameState
+2026-11-28 01:37:26.092 INFO Area: The Manor Ramparts (G1_14)
+2026-11-28 01:37:26.111 INFO Ground item hidden by the game's item filter: 919 Rusted Greathelm
+2026-11-28 01:37:26.423 INFO Speech queued, kept: Area: The Manor Ramparts, level 14. Fixed map. Bottom right corner.
+2026-11-28 01:37:26.451 INFO Screen TopLayerChanged layer 12: 7 | 9 | Inventory Full | The Mad Wolf of Ogham | Infiltrate the Manor beyond the Village | Find Count Geonor | Cycle Quest 1/2 L2 + D-pad right
+2026-11-28 01:37:49.121 INFO Screen LayerOpened layer 12: 7 | 9 | Inventory Full | The Mad Wolf of Ogham | Infiltrate the Manor beyond the Village | Find Count Geonor | Cycle Quest 1/2 L2 + D-pad right
+2026-11-28 01:37:49.670 INFO State InGameState -> EscapeState
+2026-11-28 01:37:51.570 INFO State EscapeState -> InGameState
+2026-11-28 01:37:57.340 INFO Screen TopLayerChanged layer 12: 7 | 9 | Inventory Full | The Mad Wolf of Ogham | Infiltrate the Manor beyond the Village | Find Count Geonor | Cycle Quest 1/2 L2 + D-pad right
+2026-11-28 01:38:21.304 INFO Dev commands: scan
+2026-11-28 01:38:21.305 INFO Scan Items id=919 kind=item sound= "Rusted Greathelm" 1048 cell 826,421
+2026-11-28 01:38:21.305 INFO Scan Items id=815 kind=item sound= "Hunting Spear" 1315 cell 805,618
+2026-11-28 01:38:21.305 INFO Scan Items id=725 kind=gold sound= "Gold, 5" 1794 cell 824,344

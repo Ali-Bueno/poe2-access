@@ -60,9 +60,27 @@ shown. A one-line filter `Hide Class == "Helmets"` then hid the helmet.
 | NeverSink again | 0, 1 | 0, 1 | visible again |
 | helmets hidden (second switch) | 1, 1 | 0, 1 | not read |
 
-The helmet stayed in the area's entity list throughout, which is why the mod kept naming it. Not seen yet are a fresh drop
-the filter hides (each case above switched the filter on items already lying there), the option off, and an item with
-+0x54 or the item's +0x2E set. A later session's log confirms the first through its `Ground item hidden` lines.
+The helmet stayed in the area's entity list throughout, which is why the mod kept naming it.
+
+The built mod was then deployed to the development host with the game open (`evidence/item-filter-2026-11-28/deployed-check.txt`).
+At attach it read `Code fields: 88 of 88 … moved: none` and `Game option hide_all_filtered_ground_items=true`.
+
+| Filter, in order | The scanner's Items | Log |
+|---|---|---|
+| NeverSink semi-strict | Rusted Greathelm (758), Hunting Spear, Gold | |
+| helmets hidden | Hunting Spear, Gold | `Ground item hidden by the game's item filter: 758 Rusted Greathelm` |
+| NeverSink again | Rusted Greathelm (919, at the same cell 826,421), Hunting Spear, Gold | |
+
+While the helmet was hidden the tester pressed A on it on purpose. The game targeted it (`A pressed on: 758`) and answered
+"Inventory Full". About a second later 758 was gone and a new entity, 919, held the same item, with no model (bounds 0,0,0)
+at the map's origin, still hidden. After a portal to town and back it lay at its own place again with its model. So a
+hidden item can lose its place in the client. With the setting off at that moment the mod did not list 919, as its origin
+was ground never seen (`Sighted`); the setting off was therefore not seen listing a hidden item at its true place, though its
+code path is the plain one every shown item takes.
+
+Not seen yet are a fresh drop the filter hides (each case above switched the filter on items already lying there), the
+option off, and an item with +0x54 or the item's +0x2E set. A later session's log confirms the first through its
+`Ground item hidden` lines.
 
 ## The label layer (not used)
 
