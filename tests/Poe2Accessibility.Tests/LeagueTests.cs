@@ -14,6 +14,35 @@ namespace Poe2Accessibility.Tests
         private const string Marker = "Metadata/MiscellaneousObjects/Expedition/ExpeditionMarker";
         private const string Shard = "Metadata/MiscellaneousObjects/Delirium/DeliriumShardSeethingChyme";
 
+        private static void AMovedSessionIsFoundByItsAreaAndItsOwnRuleset()
+        {
+            const long Session = 0x10000, Area = 0x7000, Omen = 0x90000, Other = 0xA0000;
+            const int Rows = 0x66, OmenRow = 79;
+            var measured = new RulesetSessionSearch.Places(0x20F0, 0x2400, 0x48);
+
+            // A session whose fields a patch moved: the area's pointer and the array each by areaMove and arrayMove, a ruleset's
+            // session by backMove. The ruleset sits in the array's slot 79; the game's files give its name the row nameRow.
+            RulesetSessionSearch.Places? Found(int areaMove, int arrayMove, int backMove, int nameRow = OmenRow, bool pointsBack = true)
+            {
+                var memory = new Dictionary<long, long>
+                {
+                    [Session + measured.Area + areaMove] = Area,
+                    [Session + measured.Rulesets + arrayMove + (OmenRow * IntPtr.Size)] = Omen,
+                    [Omen + measured.Back + backMove] = pointsBack ? Session : Other,
+                };
+                return RulesetSessionSearch.Of(
+                    address => memory.GetValueOrDefault(address), (rules, row) => rules == Omen && row == nameRow, Session, Area, measured, Rows);
+            }
+
+            Expect((RulesetSessionSearch.Places?)measured, Found(0, 0, 0), "nothing moved: where measured");
+            Expect((RulesetSessionSearch.Places?)new RulesetSessionSearch.Places(0x2100, 0x2410, 0x48), Found(0x10, 0x10, 0), "the session grew by two fields: both follow");
+            Expect((RulesetSessionSearch.Places?)new RulesetSessionSearch.Places(0x2100, 0x2428, 0x50), Found(0x10, 0x28, 8), "the array moved farther than the area, and the rulesets' base grew");
+            Expect((RulesetSessionSearch.Places?)null, Found(0x10, 0x10, 0, pointsBack: false), "an object that holds the area and no ruleset of its own is no session");
+            Expect((RulesetSessionSearch.Places?)new RulesetSessionSearch.Places(0x2100, 0x2410 + ((OmenRow - 60) * IntPtr.Size), 0x48), Found(0x10, 0x10, 0, nameRow: 60),
+                "the array starts where the ruleset is in the row of its name, not where a pointer happens to be");
+            Expect((RulesetSessionSearch.Places?)null, Found(RulesetSessionSearch.Reach + 0x10, 0, 0), "an area farther than a session grows is not looked for");
+        }
+
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(APieceIsListedWhileItsStatesSayItIsThereToFind), APieceIsListedWhileItsStatesSayItIsThereToFind),
@@ -34,6 +63,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep), TheEncounterTrackerSaysItsTitleOnceAndItsCountsAsTheyStep),
             (nameof(ABreachRingIsSaidByQuartersAndAtItsEdge), ABreachRingIsSaidByQuartersAndAtItsEdge),
             (nameof(ATrialRoundIsSaidAsItChanges), ATrialRoundIsSaidAsItChanges),
+            (nameof(AMovedSessionIsFoundByItsAreaAndItsOwnRuleset), AMovedSessionIsFoundByItsAreaAndItsOwnRuleset),
             (nameof(TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear), TheTrialsOwnLinesOnScreenAreSaidAsTheyAppear),
             (nameof(TheFogsFrontAndRearMoveAsTheGameMovesThem), TheFogsFrontAndRearMoveAsTheGameMovesThem),
             (nameof(TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame), TheFogIsSpokenOfOnlyOnceItAgreesWithTheGame),

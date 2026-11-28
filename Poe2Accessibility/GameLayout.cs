@@ -374,19 +374,19 @@ namespace Poe2Accessibility
             public const string MapRulesName = "AfflictionMapRules";
 
             public const int RulesBytes = 0x140;
-            public const int Balance = 0x58;
-            public const int GainFactor = 0x70;
-            public const int ExtraDelay = 0x74;
-            public const int Time = 0x78;
-            public const int RearTime = 0x7C;
-            public const int End = 0x84;
-            public const int PauseLeft = 0x88;
-            public const int Active = 0x8C;
-            public const int Finished = 0x8D;
-            public const int Never = 0x8E;
-            public const int Map = 0xA0;
-            public const int Most = 0x128;
-            public const int Hold = 0x130;
+            public static int Balance { get; internal set; } = 0x58;
+            public static int GainFactor { get; internal set; } = 0x70;
+            public static int ExtraDelay { get; internal set; } = 0x74;
+            public static int Time { get; internal set; } = 0x78;
+            public static int RearTime { get; internal set; } = 0x7C;
+            public static int End { get; internal set; } = 0x84;
+            public static int PauseLeft { get; internal set; } = 0x88;
+            public static int Active { get; internal set; } = 0x8C;
+            public static int Finished { get; internal set; } = 0x8D;
+            public static int Never { get; internal set; } = 0x8E;
+            public static int Map { get; internal set; } = 0xA0;
+            public static int Most { get; internal set; } = 0x128;
+            public static int Hold { get; internal set; } = 0x130;
 
             /// <summary>In the depth map: the area it is of, its header (width, height and origin as four words), the regions' rows, the cells' regions, the distance grid.</summary>
             public const int MapArea = 0x08;
@@ -410,6 +410,25 @@ namespace Poe2Accessibility
 
             public const int DeepestBelievable = 20000;
             public const int WidestMap = 4096;
+
+            /// <summary>How far into the ruleset the fields above reach, wherever the game's code put them (catalog/code-fields.txt): the reader's block holds this much.</summary>
+            public static int Extent
+            {
+                get
+                {
+                    var last = RulesBytes;
+                    foreach (var end in new[]
+                    {
+                        Balance + sizeof(long), GainFactor + sizeof(float), ExtraDelay + sizeof(float), Time + sizeof(float), RearTime + sizeof(float),
+                        End + sizeof(float), PauseLeft + sizeof(float), Active + 1, Finished + 1, Never + 1, Map + MapGrid + sizeof(long), Most + sizeof(int), Hold + 1,
+                    })
+                    {
+                        last = System.Math.Max(last, end);
+                    }
+
+                    return last;
+                }
+            }
         }
 
         /// <summary>
@@ -497,13 +516,13 @@ namespace Poe2Accessibility
 
             public static int BreachEncounters { get; internal set; } = 0x190;
 
-            public const int BreachStride = 0x48;
+            public static int BreachStride { get; internal set; } = 0x48;
             public const int BreachFrom = 0x0;
             public const int BreachTo = 0x4;
             public const int BreachDuration = 0x8;
-            public const int BreachElapsed = 0xC;
-            public const int BreachCentre = 0x24;
-            public const int BreachState = 0x38;
+            public static int BreachElapsed { get; internal set; } = 0xC;
+            public static int BreachCentre { get; internal set; } = 0x24;
+            public static int BreachState { get; internal set; } = 0x38;
             public const int BreachLastState = 4;
 
             /// <summary>
@@ -515,11 +534,11 @@ namespace Poe2Accessibility
 
             public static int ExpeditionSites { get; internal set; } = 0x1E0;
 
-            public const int ExpeditionStride = 0x70;
-            public const int ExpeditionPlaced = 0x40;
+            public static int ExpeditionStride { get; internal set; } = 0x70;
+            public static int ExpeditionPlaced { get; internal set; } = 0x40;
             public const int ExpeditionChargeBytes = 8;
-            public const int ExpeditionPlace = 0x60;
-            public const int ExpeditionTotal = 0x68;
+            public static int ExpeditionPlace { get; internal set; } = 0x60;
+            public static int ExpeditionTotal { get; internal set; } = 0x68;
             public const int ExpeditionMostCharges = 60;
 
             /// <summary>

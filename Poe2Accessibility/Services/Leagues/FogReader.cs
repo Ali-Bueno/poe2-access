@@ -55,8 +55,9 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var block = this.memory.ReadBytes(rules, GameLayout.Fog.RulesBytes);
-            if (block.Length < GameLayout.Fog.RulesBytes)
+            var extent = GameLayout.Fog.Extent;
+            var block = this.memory.ReadBytes(rules, extent);
+            if (block.Length < extent)
             {
                 this.Why = "ruleset unread";
                 return null;

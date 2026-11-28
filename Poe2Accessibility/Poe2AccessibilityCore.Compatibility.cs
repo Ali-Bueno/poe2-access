@@ -45,6 +45,43 @@ namespace Poe2Accessibility
             ["ModEntrySize"] = (() => GameLayout.ModArray.EntrySize, value => GameLayout.ModArray.EntrySize = value),
             ["StateListOffset"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateListOffset, value => GameReader.RemoteObjects.Components.StateMachine.StateListOffset = value),
             ["StateStride"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateStride, value => GameReader.RemoteObjects.Components.StateMachine.StateStride = value),
+            ["MinimapIconHidden"] = (() => GameLayout.MinimapIconRow.ComponentHiddenOffset, value => GameLayout.MinimapIconRow.ComponentHiddenOffset = value),
+            ["MonolithEssences"] = (() => GameLayout.MonolithComponent.EssencesOffset, value => GameLayout.MonolithComponent.EssencesOffset = value),
+
+            // The league rulesets (GameLayout.Rulesets): the session, each ruleset's base and what each mechanic keeps in its own.
+            ["RulesetsAreaSession"] = (() => GameLayout.Rulesets.AreaSession, value => GameLayout.Rulesets.AreaSession = value),
+            ["RulesetsSessionArea"] = (() => GameLayout.Rulesets.SessionArea, value => GameLayout.Rulesets.SessionArea = value),
+            ["RulesetsSessionRulesets"] = (() => GameLayout.Rulesets.SessionRulesets, value => GameLayout.Rulesets.SessionRulesets = value),
+            ["RulesetRow"] = (() => GameLayout.Rulesets.RulesetRow, value => GameLayout.Rulesets.RulesetRow = value),
+            ["RulesetSession"] = (() => GameLayout.Rulesets.RulesetSession, value => GameLayout.Rulesets.RulesetSession = value),
+            ["BreachEncounters"] = (() => GameLayout.Rulesets.BreachEncounters, value => GameLayout.Rulesets.BreachEncounters = value),
+            ["BreachStride"] = (() => GameLayout.Rulesets.BreachStride, value => GameLayout.Rulesets.BreachStride = value),
+            ["BreachElapsed"] = (() => GameLayout.Rulesets.BreachElapsed, value => GameLayout.Rulesets.BreachElapsed = value),
+            ["BreachCentre"] = (() => GameLayout.Rulesets.BreachCentre, value => GameLayout.Rulesets.BreachCentre = value),
+            ["BreachState"] = (() => GameLayout.Rulesets.BreachState, value => GameLayout.Rulesets.BreachState = value),
+            ["ExpeditionSites"] = (() => GameLayout.Rulesets.ExpeditionSites, value => GameLayout.Rulesets.ExpeditionSites = value),
+            ["ExpeditionStride"] = (() => GameLayout.Rulesets.ExpeditionStride, value => GameLayout.Rulesets.ExpeditionStride = value),
+            ["ExpeditionPlaced"] = (() => GameLayout.Rulesets.ExpeditionPlaced, value => GameLayout.Rulesets.ExpeditionPlaced = value),
+            ["ExpeditionPlace"] = (() => GameLayout.Rulesets.ExpeditionPlace, value => GameLayout.Rulesets.ExpeditionPlace = value),
+            ["ExpeditionTotal"] = (() => GameLayout.Rulesets.ExpeditionTotal, value => GameLayout.Rulesets.ExpeditionTotal = value),
+            ["UltimatumRound"] = (() => GameLayout.Rulesets.UltimatumRound, value => GameLayout.Rulesets.UltimatumRound = value),
+            ["UltimatumTotal"] = (() => GameLayout.Rulesets.UltimatumTotal, value => GameLayout.Rulesets.UltimatumTotal = value),
+            ["UltimatumRoom"] = (() => GameLayout.Rulesets.UltimatumRoom, value => GameLayout.Rulesets.UltimatumRoom = value),
+
+            // The Delirium fog in its ruleset (GameLayout.Fog).
+            ["FogBalance"] = (() => GameLayout.Fog.Balance, value => GameLayout.Fog.Balance = value),
+            ["FogGainFactor"] = (() => GameLayout.Fog.GainFactor, value => GameLayout.Fog.GainFactor = value),
+            ["FogExtraDelay"] = (() => GameLayout.Fog.ExtraDelay, value => GameLayout.Fog.ExtraDelay = value),
+            ["FogTime"] = (() => GameLayout.Fog.Time, value => GameLayout.Fog.Time = value),
+            ["FogRearTime"] = (() => GameLayout.Fog.RearTime, value => GameLayout.Fog.RearTime = value),
+            ["FogEnd"] = (() => GameLayout.Fog.End, value => GameLayout.Fog.End = value),
+            ["FogPauseLeft"] = (() => GameLayout.Fog.PauseLeft, value => GameLayout.Fog.PauseLeft = value),
+            ["FogActive"] = (() => GameLayout.Fog.Active, value => GameLayout.Fog.Active = value),
+            ["FogFinished"] = (() => GameLayout.Fog.Finished, value => GameLayout.Fog.Finished = value),
+            ["FogNever"] = (() => GameLayout.Fog.Never, value => GameLayout.Fog.Never = value),
+            ["FogMap"] = (() => GameLayout.Fog.Map, value => GameLayout.Fog.Map = value),
+            ["FogMost"] = (() => GameLayout.Fog.Most, value => GameLayout.Fog.Most = value),
+            ["FogHold"] = (() => GameLayout.Fog.Hold, value => GameLayout.Fog.Hold = value),
         };
 
         /// <summary>
