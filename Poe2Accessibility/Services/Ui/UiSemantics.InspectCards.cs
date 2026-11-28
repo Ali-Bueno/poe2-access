@@ -183,13 +183,26 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
+        private bool cardTitleMissingLogged;
+
         private UiElementReader.ElementInfo? CardLayout(in UiElementReader.ElementInfo card)
         {
             foreach (var child in this.elements.ReadChildren(card).Skip(1))
             {
                 if (this.elements.TryReadElement(child, out var layout) && layout.Name == InspectLayout.LayoutName && layout.IsVisibleFlag)
                 {
-                    return this.CardTitle(card).Length > 0 ? layout : null;
+                    if (this.CardTitle(card).Length > 0)
+                    {
+                        return layout;
+                    }
+
+                    if (!this.cardTitleMissingLogged)
+                    {
+                        this.cardTitleMissingLogged = true;
+                        this.ArtLog?.Invoke("Inspect card has lines but no title in its first child: the layout may have moved");
+                    }
+
+                    return null;
                 }
             }
 
