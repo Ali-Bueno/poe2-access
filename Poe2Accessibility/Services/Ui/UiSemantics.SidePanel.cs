@@ -17,9 +17,26 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public IntPtr ShopPage(IntPtr inventoryPanel)
         {
+            foreach (var (page, alone) in this.ShownPanels(inventoryPanel))
+            {
+                if (alone && page.Name == GameLayout.InGameUi.ShopPageName)
+                {
+                    return page.Address;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>
+        ///     The panels shown under the inventory panel's root (panels_parent > a shown group > a shown panel), each with
+        ///     whether it is its group's only child; none while the root is hidden.
+        /// </summary>
+        private IEnumerable<(UiElementReader.ElementInfo Panel, bool Alone)> ShownPanels(IntPtr inventoryPanel)
+        {
             if (!this.elements.TryReadElement(inventoryPanel, out var root) || !root.IsVisibleFlag)
             {
-                return IntPtr.Zero;
+                yield break;
             }
 
             foreach (var child in this.elements.ReadChildren(root))
@@ -31,16 +48,21 @@ namespace Poe2Accessibility.Services
 
                 foreach (var group in this.elements.ReadChildren(parent))
                 {
-                    if (this.elements.TryReadElement(group, out var groupInfo) && groupInfo.IsVisibleFlag &&
-                        this.elements.ReadChildren(groupInfo) is [var page] && this.elements.TryReadElement(page, out var pageInfo) &&
-                        pageInfo.IsVisibleFlag && pageInfo.Name == GameLayout.InGameUi.ShopPageName)
+                    if (!this.elements.TryReadElement(group, out var groupInfo) || !groupInfo.IsVisibleFlag)
                     {
-                        return page;
+                        continue;
+                    }
+
+                    var panels = this.elements.ReadChildren(groupInfo);
+                    foreach (var panel in panels)
+                    {
+                        if (this.elements.TryReadElement(panel, out var info) && info.IsVisibleFlag)
+                        {
+                            yield return (info, panels.Length == 1);
+                        }
                     }
                 }
             }
-
-            return IntPtr.Zero;
         }
 
         /// <summary>
@@ -59,30 +81,11 @@ namespace Poe2Accessibility.Services
             var shift = this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
             var shown = new List<(UiElementReader.ElementInfo Info, string Title)>();
             var key = inventoryPanel.ToInt64();
-            foreach (var child in this.elements.ReadChildren(root))
+            foreach (var (info, _) in this.ShownPanels(inventoryPanel))
             {
-                if (!this.elements.TryReadElement(child, out var parent) || parent.Name != GameLayout.InGameUi.PanelsParentName)
-                {
-                    continue;
-                }
-
-                foreach (var group in this.elements.ReadChildren(parent))
-                {
-                    if (!this.elements.TryReadElement(group, out var groupInfo) || !groupInfo.IsVisibleFlag)
-                    {
-                        continue;
-                    }
-
-                    foreach (var panel in this.elements.ReadChildren(groupInfo))
-                    {
-                        if (this.elements.TryReadElement(panel, out var info) && info.IsVisibleFlag)
-                        {
-                            var title = this.TitleAt(panel, shift);
-                            shown.Add((info, title));
-                            key = MixKey(MixKey(key, panel.ToInt64()), title.GetHashCode());
-                        }
-                    }
-                }
+                var title = this.TitleAt(info.Address, shift);
+                shown.Add((info, title));
+                key = MixKey(MixKey(key, info.Address.ToInt64()), title.GetHashCode());
             }
 
             // Which panel is the side one takes a walk of each (hundreds of elements, four times a second from the salvage

@@ -45,32 +45,11 @@ namespace Poe2Accessibility.Services
         /// <summary>The world map (panels_parent > a shown group > "WorldScreen") while it is shown, else zero.</summary>
         public IntPtr WorldScreen(IntPtr inventoryPanel)
         {
-            if (!this.elements.TryReadElement(inventoryPanel, out var root) || !root.IsVisibleFlag)
+            foreach (var (panel, _) in this.ShownPanels(inventoryPanel))
             {
-                return IntPtr.Zero;
-            }
-
-            foreach (var child in this.elements.ReadChildren(root))
-            {
-                if (!this.elements.TryReadElement(child, out var parent) || parent.Name != GameLayout.InGameUi.PanelsParentName)
+                if (panel.Name == WorldScreenName)
                 {
-                    continue;
-                }
-
-                foreach (var group in this.elements.ReadChildren(parent))
-                {
-                    if (!this.elements.TryReadElement(group, out var groupInfo) || !groupInfo.IsVisibleFlag)
-                    {
-                        continue;
-                    }
-
-                    foreach (var panel in this.elements.ReadChildren(groupInfo))
-                    {
-                        if (this.elements.TryReadElement(panel, out var info) && info.IsVisibleFlag && info.Name == WorldScreenName)
-                        {
-                            return panel;
-                        }
-                    }
+                    return panel.Address;
                 }
             }
 
