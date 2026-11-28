@@ -138,7 +138,9 @@ namespace Poe2Accessibility.Services
             var lines = new List<string>();
             if (quest && this.semantics.QuestMarkOf(worldScreen, hovered) is { } mark)
             {
-                lines.Add(Announcements.QuestLocation(mark.Quests));
+                // The popup names the area's quests ("The Mad Wolf of Ogham. Infiltrate the Manor", live 2026-11-28): the mark
+                // adds its own word, and a quest's name only when the popup did not say it.
+                lines.Add(Announcements.QuestLocation(mark.Quests.Where(name => !this.output.SaidSince(name, this.since))));
             }
 
             if (pictures.RealName.Length > 0)
