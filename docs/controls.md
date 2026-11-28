@@ -762,7 +762,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   Padded Boots, for 9 gold" (Y at a merchant), "Bought: …, for 9 gold", "Moved to Stash: …" and "Taken from Stash: …"
   (any panel beside the inventory, by its own title: the stash, the skills — which take and give back only gems:
   anything else that leaves beside them was dropped or used), "Dropped: …" (it lands on the ground),
-  "Used: …" (a currency's last orb, a rune socketed), "Obtained: …" (a ritual favour, a reward; also when it joins a stack you carry, with how many came). The favours window says
+  "Used: …" (a currency's last orb, a rune socketed), "Obtained: …" (a ritual favour, a reward; also when it joins a stack you carry, with how many came).
+  Several done quickly are each said: two sold are one line with what both fetched; one sold and another bought at once are
+  "Bought: … . Sold: …" with no amount when you spent more than you earned (the gold that moved is one price less the
+  other), else "Taken from <merchant>: … . Sold: …, for <what your gold rose by> gold"; what joins a stack you carry says
+  how many came ("Bought: Regal Orb, 2, for 100 gold") beside whatever else you did. The last orb of a stack used on an
+  item is "Used: …" with the stash open too. The favours window says
   the tribute you have once it shows the right one, and what is left after each favour. The focus update the
   move causes waits for them instead of cutting them off.
 - Messages the game or your action produces ("Inventory full", "The item has no room for more mods", "Game menu",

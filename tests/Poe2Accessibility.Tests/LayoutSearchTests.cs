@@ -250,9 +250,13 @@ namespace Poe2Accessibility.Tests
                 true,
                 0,
                 string.Empty);
-            Equal(1, moves.Count, "one thing really left");
-            Equal("Frasco de vida", moves[0].Name, "the flask left, not the shards");
-            Equal(ItemMoveKind.DroppedOrUsed, moves[0].Kind, "it left for nowhere tracked");
+            // Outside a trade the stack's growth is said beside whatever else the batch holds (2026-11-28); in one it is not
+            // (PlayerItemNewsTests.WhatATradeGivesAndTakesIsBothSaid).
+            Equal(2, moves.Count, "one thing really left, and the stack gained one");
+            Equal("Esquirla de transmutación", moves[0].Name, "the shard gained");
+            Equal(ItemMoveKind.Obtained, moves[0].Kind, "gained, not left");
+            Equal("Frasco de vida", moves[1].Name, "the flask left, not the shards");
+            Equal(ItemMoveKind.DroppedOrUsed, moves[1].Kind, "it left for nowhere tracked");
         }
 
         private static void ANewKeyIsNewsAndAReaderUpdateIsNot()

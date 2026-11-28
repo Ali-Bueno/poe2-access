@@ -539,18 +539,29 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
-**2026-11-28, small hours (the owner, on what still failed quiet: "busca algo que los haga menos frágiles; descompila el exe, busca
-en archivos"; 1192 tests, live on kehgan, deployed to the play copy, pushed, not released):** every item the audit left open has a
+**2026-11-28 (the owner, on what still failed quiet: "busca algo que los haga menos frágiles; descompila el exe, busca
+en archivos", then "sigue con lo que faltó y no pares hasta que no quede nada pendiente"; 1193 tests, live on kehgan, deployed to
+the play copy, pushed, not released):** every item the audit left open has a
 guard from the game itself ([audit, second pass](docs/research/robustness-audit-2026-11-27.md#second-pass-2026-11-27-to-28-what-was-left-open),
 [how](docs/compatibility.md#the-atlass-nodes-and-the-leagues-session)). The 102 control and table names the source matches are read
-against the running exe at attach (`Exe names: 102 of 102`); 33 more fields are placed from the game's code (85 lines; live `Code fields: 84 of
-84`: the rulesets, Breach, Expedition, Trial of Chaos, the fog, the MinimapIcon's hidden byte, the Atlas node), alike on seven
+against the running exe at attach (`Exe names: 102 of 102`); 33 more fields are placed from the game's code (85 lines; live `Code fields: 85 of
+85`: the rulesets, Breach, Expedition, Trial of Chaos, the fog, the MinimapIcon's hidden byte, the Atlas node), alike on seven
 builds; the Atlas node's keys, grid, status and selected node and the rulesets' session are found again when moved and said when
-lost; 65 `Metadata/` paths and the five rulesets are checked against the game's files by the step "game names". **Found: a
+lost; 65 `Metadata/` paths and the five rulesets are checked against the game's files by the step "game names". A second reader's
+findings on it are fixed (`fbcee5f6`) and the whole was read live again after them: six areas, the Atlas, the teleport map opened
+first on a fresh mod, no error. **Heard at last: "Tirado" on an identified magic item, and two drops within half a second said as
+two drops** (Villafrey; the bag put back as it was). **Found: a
 Breach's ring had never been read** (its vector holds pointers, not the encounters); it reads through them now, not yet heard
 live. Next, when a Breach or a Delirium mirror is met: read `Rulesets:` and `Delirium fog:` in the log, as neither reading has
-been heard. The launcher's new checks (rulesets, paths) reach the play copy with a release only: its launcher is v2026.11.27-2
-and offers -4 at each start.
+been heard (a map spends the owner's waystones and needs a fight, so no unattended test reaches one). **Fast buying and selling,
+read from the code** ([audit, item moves](docs/research/robustness-audit-2026-11-27.md#item-moves)): one sold and another bought in
+one batch said nothing, a stack that grew beside another deed was silent, and the last orb of a stack used beside the stash was
+"Movido a Alijo"; each is said as what it was now, a second reader's five findings on it settled (one left, said there). Heard
+live at the stash (two withdrawn within half a second, one onto its stack: both said; silent before); the merchant's side is unit
+tests only (`BuyingAndSellingFastIsEachSaid`): heard live it would spend the owner's gold or sell their items. The launcher's new checks
+(rulesets, paths) reach the play copy with a release only: its launcher is v2026.11.27-2
+and offers -4 at each start. Test tools added: `desktop.py burst`, `decline_update.ps1`, the way back to the refuge
+(`tools/computer_use/README.md`).
 
 **2026-11-27, night (the owner: "analiza bien todo el código… refactorea, que no se rompa tras cada parche; al tirar dos objetos
 seguidos uno dice usado o equipado"; 1183 tests, live on kehgan, deployed to the play copy, pushed, not released):** a read of the

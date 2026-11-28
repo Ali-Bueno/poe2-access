@@ -81,6 +81,9 @@ namespace Poe2Accessibility.Services
         private bool batchInTrade;
         private bool batchInFavours;
 
+        /// <summary>An item came to the hand and left it within the batch: one of the bag come again under its name may have been moved by it.</summary>
+        private bool batchHandPassed;
+
         /// <summary>The uncut support gem's base type (BaseItemTypes, dat-rows 2026-10-31): engraving one sockets the support at once.</summary>
         private const string UncutSupportBase = "/Gems/SupportGemUncut";
 

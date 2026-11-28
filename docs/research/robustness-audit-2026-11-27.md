@@ -34,13 +34,49 @@ Made for quick hands, each with a unit test in `PlayerItemNewsTests`:
   stack's (the hand's part would have left the rest "Obtenido").
 - An item made anew in the inventory it was in (an orb used on it) is read by its old title for that batch only: its
   tooltip names it again.
+- Fast buying and selling (2026-11-28, read from the code: neither was in the day's log). One sold and another bought in
+  one batch said nothing: the arrival took the departure for the bag's own item changed in place. Where gold moved beside
+  a panel that pairing is not made. With more spent than earned gold fell, so something was bought and what left was sold:
+  "Comprado: Lanza. Vendido: Brazales", with no amount (the gold that moved is the one's price less the other's). With
+  more earned than spent the sale stands as read and what came is "Sacado de Mercader: Lanza": gold that rose does not say
+  a thing was bought, and a keeper that paid in more than gold would have made every such sale a purchase.
+- A stack that grew was said only when nothing else moved in the batch: one bought onto the stack carried beside another
+  purchase was silent, one bought into twice came and left twice and was silent, and what overflowed a full stack was said
+  as the whole new stack. It is said by all that came and left under its name, once ("Comprado: Orbe regio, 2"); not in a
+  trade between players, nor when the hand or a slot dealt in it (a split). Two stacks made one by a quick hand are no
+  stack gone ("Movido a Alijo: Orbe, 5" for the one that was only merged).
+- An arrival of a new name never takes for itself a departure whose own name arrives too: an item paid for in artifacts
+  took the stack it was paid from, and the stack was said in its place when the item came first. The same for what comes
+  off a slot: one bought and put on at once took the old weapon's departure, and the weapon was then "bought".
+- The last orb of its stack, used on an item beside the stash, was "Movido a Alijo: Orbe de caos": gone with a panel
+  beside, it was taken for put there. When an item was made anew where it was (worn, or in the bag under its own name
+  with nothing passing through the hand: `handPassed`) and one thing left with it, that thing was used on it. A flask
+  drunk is made anew by nothing used on it.
+
+A second reader went over these four (five findings: two in the change, three older; all but one fixed). Left: a stack
+split and gone within one batch (one orb of five sold or stored) is one stack one less, as an orb used is, and says
+nothing; the unstack window makes it two batches in practice.
+
+Live on kehgan, 2026-11-28 (the refuge's stash, final build): one Regal Orb unstacked and set in the stash ("Movido a
+Alijo: Orbe regio"), then it and the gem above it withdrawn within half a second (`desktop.py burst triangle dpad-up
+triangle`): `in [MainInventory1 Orbe regio, 2; MainInventory1 Gema de asistencia sin tallar (nivel 5)], out
+[MainInventory1 Orbe regio]`, said "Sacado de Alijo: Orbe regio. Sacado de Alijo: Gema de asistencia sin tallar (nivel
+5)": that batch was silent before. The hand, X to wear and back, and a split read as on 2026-11-27; the gem went back to
+its cell and the bag read the same afterwards.
 
 Live on kehgan, 2026-11-27 (El refugio del zigurat; a town refuses drops, so the title was proved by the hand and a
 slot): the identified magic amulet picked up and set down logged `in [Cursor1 Amuleto de piedra de sangre reforzado del
 caleidoscopio, mágico]` and said nothing; X on it said "Desequipado: Collar de venganza, raro. Equipado: Amuleto de piedra
 de sangre reforzado del caleidoscopio, mágico, Amuleto" (and back); one Regal Orb split off its stack and put back logged
-`in [MainInventory1 Orbe regio; Cursor1 Orbe regio], out [MainInventory1 Orbe regio, 2]` and said nothing. Not heard
-live: "Tirado" on an identified magic item (it needs an area that takes drops).
+`in [MainInventory1 Orbe regio; Cursor1 Orbe regio], out [MainInventory1 Orbe regio, 2]` and said nothing.
+
+Live on kehgan, 2026-11-28 (Villafrey, at its waypoint: an area that takes drops): Y on that amulet logged `out
+[MainInventory1 Amuleto de piedra de sangre reforzado del caleidoscopio, mágico] … DroppedOrUsed` and said "Tirado: Amuleto
+de piedra de sangre reforzado del caleidoscopio, mágico". The owner's case, two drops one right after the other (Y, D-pad
+down, Y within half a second: a magic ring, then a whetstone), came as one batch and said "Tirado: Anillo inconcluso,
+mágico. Tirado: Piedra de afilar": neither was "Usado" or "Equipado". The three were picked up ("Recogido: …") and set
+back in their cells; the bag read the same line by line afterwards. Not tried live: buying or selling fast, which would
+spend the owner's gold or sell their items; its rules are unit tests (`BuyingAndSellingFastIsEachSaid`).
 
 Not changed: how a sale's gold is measured (two polls before the batch against the moment it is said); a number that
 changes after A is still said at most every 1.5 s (`NumberChanges`: a new press could let a running counter chatter);
@@ -95,7 +131,19 @@ and the reader took it for the encounters themselves, 0x48 bytes each: only a ve
 that fitted. It reads through the pointers now; the fields inside (+0x4, +0x8, +0xC, +0x24, +0x38) are confirmed by the same
 code. Not heard live: it needs a Breach. `Rulesets.RulesetRow` is the row's number (an int32), not a pointer to the row.
 
+A second reader went over the second pass too (`bbf2e974..a15d8238`) and found no way to a false spoken warning or a
+broken reading on a healthy game. What it did find is fixed (`fbcee5f6`): map_control's pointers were looked over twice a
+second for as long as an act's map stayed open (now only while the field reads no node, down to once in eight seconds);
+one key read on something not known to be a node could decide the Atlas's shift (a read there teaches nothing now, and
+only keys a node proved count); the Trial's bar could be moved twice, by the code and by the session's search; a stride
+of nothing or a place before a struct, from a bad override, threw. Live again after it, 2026-11-28
+([what the log said](../compatibility.md#the-atlass-nodes-and-the-leagues-session)).
+
 Still open:
+- A Breach's ring and the Delirium fog heard live. Both need the encounter, which a campaign area did not offer (six areas
+  entered on 2026-11-28 held Ritual, AncestralOmen, SailAway and WobblePoint rules only): a map would spend the owner's
+  waystones and need a fight on their character (AGENTS rules 25 and 26). The log line to read when one is met:
+  `Rulesets: … BreachRules`, `Delirium fog: …`.
 - The fog reader when it never comes to be trusted: its reason is logged (`Delirium fog: …`), not said. No log of a real
   encounter was at hand to tell a broken reading from a healthy one that has not agreed yet, so a spoken warning would be
   a guess. Three of its fields (`GainFactor`, `ExtraDelay`, `Never`) have no instruction of their own in the exe.

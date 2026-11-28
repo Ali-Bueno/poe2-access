@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ACountBackWhereItWasIsNotSaidAgain), ACountBackWhereItWasIsNotSaidAgain),
             (nameof(WhatATradeGivesAndTakesIsBothSaid), WhatATradeGivesAndTakesIsBothSaid),
             (nameof(AStackThatGrewAloneGainedWhatItGrewBy), AStackThatGrewAloneGainedWhatItGrewBy),
+            (nameof(BuyingAndSellingFastIsEachSaid), BuyingAndSellingFastIsEachSaid),
             (nameof(AMovedBitNeedsASecondRound), AMovedBitNeedsASecondRound),
             (nameof(ANodesRowIsBelievedOnlyWhileMostRowsAgree), ANodesRowIsBelievedOnlyWhileMostRowsAgree),
             (nameof(AnotherAreaAtTheSameAddressIsASecondWitness), AnotherAreaAtTheSameAddressIsASecondWitness),
@@ -242,6 +243,74 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, Said("Orbe regio, 8", "Orbe regio, 8"), "a stack in a new place");
             Equal(string.Empty, Said("Orbe regio, 8", "Orbe regio, 7", inPanel: false), "during play the pick-up watch speaks");
             Equal(0, ItemMoves.Growth("Orbe regio", "Orbe de caos, 2"), "another item");
+        }
+
+        /// <summary>
+        ///     Fast buying and selling (the owner, 2026-11-27: "cuando compro o vendo muy rápido"): a batch that holds a sale and a
+        ///     purchase said nothing (the arrival took the departure for its own item in a new place), and a stack bought into
+        ///     beside another deed was not said.
+        /// </summary>
+        private static void BuyingAndSellingFastIsEachSaid()
+        {
+            const InventoryName Main = InventoryName.MainInventory1;
+            const InventoryName Hand = InventoryName.Cursor1;
+            const string Shop = "Mercader";
+            static string At(List<(InventoryName, string)> arrivals, List<(InventoryName, string)> departures, long gold, string side = Shop, bool inTrade = false,
+                bool handPassed = false) =>
+                Said(ItemMoves.Read(arrivals, departures, Announcements.SlotName, true, gold, side, inTrade: inTrade, handPassed: handPassed));
+
+            Equal("Bought Lanza | Sold Brazales", At(Items((Main, "Lanza")), Items((Main, "Brazales")), -30), "one sold and another bought, more spent than earned");
+            Equal("TakenFrom Lanza Mercader | Sold Brazales", At(Items((Main, "Lanza")), Items((Main, "Brazales")), 30),
+                  "more earned than spent: the sale stands, and gold that rose does not say what came was bought");
+            Equal("TakenFrom Esquirla regia Mercader | Sold Anillo, raro", At(Items((Main, "Esquirla regia, 5")), Items((Main, "Anillo, raro"), (Main, "Esquirla regia, 4")), 30),
+                  "a keeper that paid a shard with the gold: a sale, never a purchase");
+            Equal("Sold Brazales | Sold Casco", At(Items(), Items((Main, "Brazales"), (Main, "Casco")), 40), "two sold");
+            Equal("Bought Lanza | Bought Arco", At(Items((Main, "Lanza"), (Main, "Arco")), Items(), -90), "two bought");
+            Equal("Bought Orbe regio | Bought Lanza", At(Items((Main, "Orbe regio, 8"), (Main, "Lanza")), Items((Main, "Orbe regio, 7")), -90),
+                  "one bought onto the stack carried, another beside it");
+            Equal("Bought Orbe regio, 2", At(Items((Main, "Orbe regio, 8"), (Main, "Orbe regio, 9")), Items((Main, "Orbe regio, 7"), (Main, "Orbe regio, 8")), -100),
+                  "the same stack bought into twice: it came and left twice, and is said once");
+            Equal("Bought Orbe regio, 4", At(Items((Main, "Orbe regio, 20"), (Main, "Orbe regio, 3")), Items((Main, "Orbe regio, 19")), -200),
+                  "what did not fit the stack began another: counted with it");
+            Equal("Bought Orbe regio | Sold Brazales", At(Items((Main, "Orbe regio, 8")), Items((Main, "Orbe regio, 7"), (Main, "Brazales")), -5),
+                  "one sold and a stack bought into");
+
+            // Found by a second reader of the change (2026-11-28).
+            const InventoryName Weapon = InventoryName.Weapon1;
+            var boughtAndWorn = Items((Main, "Lanza"), (Weapon, "Lanza"), (Main, "Espada vieja"));
+            var itsDepartures = Items((Main, "Lanza"), (Weapon, "Espada vieja"));
+            Equal("Equipped Lanza Main hand | Unequipped Espada vieja", At(boughtAndWorn, itsDepartures, -30),
+                  "one bought and put on at once: the weapon taken off is not what was bought");
+            boughtAndWorn.Reverse();
+            Equal("Unequipped Espada vieja | Equipped Lanza Main hand", At(boughtAndWorn, itsDepartures, -30), "whichever came first");
+            Equal(string.Empty, At(Items((Main, "Orbe, 8")), Items((Main, "Orbe, 3"), (Main, "Orbe, 5")), 0, side: "Alijo", handPassed: true),
+                  "two stacks of the bag made one by hand: neither went to the stash");
+            Equal("DroppedOrUsed Orbe de caos", At(Items((Main, "Arco corto, raro")), Items((Main, "Arco corto, mágico"), (Main, "Orbe de caos")), 0, side: "Alijo"),
+                  "the last orb of its stack used on an item beside the stash: used, not moved to it");
+            Equal("DroppedOrUsed Orbe de caos", At(Items((Main, "Aguijón, raro")), Items((Main, "Arco corto"), (Main, "Orbe de caos")), 0, side: "Alijo"),
+                  "the same with the item read by another name (the watch names it by its old title, so this is the rare case): nothing moved to the stash");
+            Equal("MovedTo Orbe de caos Alijo", At(Items((Main, "Arco corto")), Items((Main, "Arco corto"), (Main, "Orbe de caos")), 0, side: "Alijo", handPassed: true),
+                  "an item moved by hand and another put in the stash: that one was moved");
+            Equal("DroppedOrUsed Orbe exaltado", At(Items((InventoryName.Helm1, "Corona, único")), Items((InventoryName.Helm1, "Corona, único"), (Main, "Orbe exaltado")), 0, side: "Alijo"),
+                  "the last orb used on the helmet worn, beside the stash");
+            Equal("MovedTo Casco Alijo", At(Items(), Items((Main, "Casco")), 0, side: "Alijo"), "one put in the stash and nothing made anew: moved, as before");
+            Equal("MovedTo Casco Alijo", At(Items((InventoryName.Flask1, "Frasco de vida")), Items((InventoryName.Flask1, "Frasco de vida"), (Main, "Casco")), 0, side: "Alijo"),
+                  "a flask drunk is made anew by nothing used on it");
+            Equal(string.Empty, At(Items((Main, "Aguijón, raro")), Items((Main, "Arco corto")), 0), "no gold moved: an item changed in place beside a panel is still no news");
+            Equal(string.Empty, At(Items((Main, "Lanza")), Items((Main, "Brazales")), 0, side: string.Empty), "nor with no panel beside");
+            Equal(string.Empty, At(Items((Main, "Lanza")), Items((Main, "Brazales")), -30, side: string.Empty),
+                  "gold that moved with no panel beside is no keeper's: the item changed in place");
+            Equal(string.Empty, At(Items((Main, "Lanza")), Items((Main, Announcements.UnknownItem)), -30), "an item whose departure never read is still the inventory's own");
+            Equal(string.Empty, At(Items((Main, "Orbe, 4"), (Hand, "Orbe")), Items((Main, "Orbe, 5")), 0, side: "Alijo"), "a stack split by hand is the hand's");
+            Equal("TakenFrom Orbe regio Alijo | MovedTo Casco Alijo", At(Items((Main, "Orbe regio, 8")), Items((Main, "Orbe regio, 7"), (Main, "Casco")), 0, side: "Alijo"),
+                  "a stack that grew from the stash while another item went into it");
+            Equal("Obtained Anillo de hierro | DroppedOrUsed Orbe de caos, 3", At(Items((Main, "Anillo de hierro")), Items((Main, "Orbe de caos, 3")), 0, side: "Comercio", inTrade: true),
+                  "a trade between players is read as before");
+            Equal("TakenFrom Lanza Rog", At(Items((Main, "Lanza"), (Main, "Artefacto, 40")), Items((Main, "Artefacto, 45")), 0, side: "Rog"),
+                  "paid in artifacts: the item is said, and it does not take the stack it was paid from for itself");
+            Equal("TakenFrom Lanza Rog", At(Items((Main, "Artefacto, 40"), (Main, "Lanza")), Items((Main, "Artefacto, 45")), 0, side: "Rog"), "whichever came first");
+            Equal(string.Empty, At(Items((Main, "Aguijón, raro"), (Main, "Orbe, 4")), Items((Main, "Orbe, 5"), (Main, "Arco corto")), 0, side: string.Empty),
+                  "an orb used on an item of the bag: the item changed in place and its stack is one less");
         }
 
         private static void ABuffThatRunsOutIsToldHoweverOftenItComes()

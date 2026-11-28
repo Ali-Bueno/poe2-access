@@ -85,6 +85,7 @@ namespace Poe2Accessibility.Services
                         // Come to the hand and gone before the batch settled: it only passed through (a Y drop).
                         this.arrivals.RemoveAt(passed);
                         this.arrivalEntities.RemoveAt(passed);
+                        this.batchHandPassed = true;
                         continue;
                     }
 
@@ -190,7 +191,7 @@ namespace Poe2Accessibility.Services
             this.NameArrivalsByTitle();
             var byBase = this.batchTitles.GroupBy(gone => gone.Name).ToDictionary(group => group.Key, group => group.First().ByBase);
             var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.MoveSlotName, this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade,
-                this.batchQuestItems.Contains);
+                this.batchQuestItems.Contains, this.batchHandPassed);
             this.LogBatch(moves, goldChange, side, inTrade);
             if (this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1))
             {
@@ -210,16 +211,18 @@ namespace Poe2Accessibility.Services
             }
 
             var lines = new List<string>();
+            // One sold and another bought in the batch: the gold that moved is neither's price, so none is said.
+            var bothWays = moves.Any(move => move.Kind == ItemMoveKind.Sold) && moves.Any(move => move.Kind == ItemMoveKind.Bought);
             foreach (var group in moves.GroupBy(move => (move.Kind, move.Where)))
             {
                 var names = string.Join(", ", group.Select(move => move.Name));
                 switch (group.Key.Kind)
                 {
                     case ItemMoveKind.Sold:
-                        lines.Add(Announcements.Sold(names, goldChange));
+                        lines.Add(bothWays ? Announcements.Sold(names) : Announcements.Sold(names, goldChange));
                         break;
                     case ItemMoveKind.Bought:
-                        lines.Add(Announcements.Bought(names, -goldChange));
+                        lines.Add(bothWays ? Announcements.Bought(names) : Announcements.Bought(names, -goldChange));
                         break;
                     case ItemMoveKind.HandedOver:
                     case ItemMoveKind.DroppedOrUsed when inTrade:
@@ -276,7 +279,7 @@ namespace Poe2Accessibility.Services
             this.batchGems.Clear();
             this.batchUncutSupports.Clear();
             this.batchQuestItems.Clear();
-            (this.movedInPanel, this.batchSide, this.batchInTrade, this.batchInFavours) = (false, string.Empty, false, false);
+            (this.movedInPanel, this.batchSide, this.batchInTrade, this.batchInFavours, this.batchHandPassed) = (false, string.Empty, false, false, false);
         }
 
         /// <summary>One log line per batch said or seen beside a panel: what came, what left and how it was read.</summary>

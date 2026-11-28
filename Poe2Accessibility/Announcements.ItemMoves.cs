@@ -30,6 +30,12 @@ namespace Poe2Accessibility
 
         public static string Bought(string names, long gold) => T($"Bought: {names}, for {gold} gold", $"Comprado: {names}, por {gold} de oro");
 
+        /// <summary>A sale in a batch that holds a purchase too: the gold that moved is neither's price.</summary>
+        public static string Sold(string names) => T($"Sold: {names}", $"Vendido: {names}");
+
+        /// <summary>A purchase in a batch that holds a sale too.</summary>
+        public static string Bought(string names) => T($"Bought: {names}", $"Comprado: {names}");
+
         /// <summary>The game's Skills panel title (ClientStrings SkillGemPanelTitle), to know it beside the inventory.</summary>
         public static string SkillGemPanel => T("Skills", "Habilidades");
 
