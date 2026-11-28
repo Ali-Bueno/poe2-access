@@ -72,10 +72,36 @@ Everything added since 2026-11-12 fails quiet except what follows, which would h
 | Atlas node status byte and grid (`AtlasNode`) | `AtlasState.Plausible` judges each scan (cells are small numbers, some node is accessible, a completed one is accessible too once four are completed) and reports the part "Atlas nodes" after two scans that read wrong; the scan's census is logged (live, kehgan: `542 nodes, 368 catalogued, status bits 0:362 1:4 2:0 3:2, 368 cells in range`) |
 | `MinimapIconRow.PointerDistanceOffset` | In `DatColumns`: judged by its table's row size |
 
-Open, each quiet when wrong and nothing says so: the MinimapIcon component's hidden byte, the league rulesets' inner
-fields, the fog reader when it never comes to be trusted, the Atlas node's dat keys (not through `DatKeySite`), the UI
-names of the dialogue speaker, the Ritual buttons and the cinematic skip. Boss and league pieces typed in code now log
-once when a fought boss or a matched piece lacks what its rules read (`BossThrowWatch`, `BossMazeWatch`, `LeagueWatch`).
+Boss and league pieces typed in code now log once when a fought boss or a matched piece lacks what its rules read
+(`BossThrowWatch`, `BossMazeWatch`, `LeagueWatch`).
+
+### Second pass (2026-11-27 to 28): what was left open
+
+The owner, on the list of what stayed quiet when wrong: "intenta buscar algo que los haga menos frágiles; descompila el exe,
+investiga direcciones de memoria, busca en archivos". Each open item got the strongest source the game itself offers
+([how each works](../compatibility.md#the-atlass-nodes-and-the-leagues-session)):
+
+| Was open | Now |
+|---|---|
+| UI names (the dialogue's speaker, the Ritual buttons, the cinematic skip, and 99 more) | The exe holds every control's name as a whole UTF-16 string: `catalog/exe-names.txt` is made from the source and read against the running exe at attach; a name gone is logged with its file and said. 102 of 102 on seven builds |
+| The league rulesets' inner fields, the MinimapIcon's hidden byte, the Monolith's essences, the fog's fields | 30 lines of `catalog/code-fields.txt`, read from the game's code at every start and alike on seven builds; all are plugin offsets now, so `config/layout-overrides.txt` can set them for a build too |
+| The rulesets' session | Found again by what it must hold when its fields move (`RulesetSessionSearch`); a ruleset believed only with its row's number in it; no session in two areas said. The five rulesets read are checked by name against Rulesets.dat after a patch |
+| The Atlas node's dat keys, grid, status and the selected node | `DatKeySite`s, the keys' shared move or the game's code for the grid and status (which three older builds hold 0x10 before: read as a move), `ChangingField` for the selected node |
+| Paths typed in code (65 `"Metadata/…"`: boss pieces, league objects, kinds of chest) | `catalog/path-names.txt`, made from the source and looked up in the game's files by the step "game names" |
+
+Found on the way, in the game's code: **a Breach's ring had never been read.** The ruleset's vector at +0x190 holds a pointer
+to each encounter (the update walks it `mov rax,[rdi]` … `add rdi,8`; the packet reader allocates each with `mov ecx,0x48`),
+and the reader took it for the encounters themselves, 0x48 bytes each: only a vector of nine pointers would have had a length
+that fitted. It reads through the pointers now; the fields inside (+0x4, +0x8, +0xC, +0x24, +0x38) are confirmed by the same
+code. Not heard live: it needs a Breach. `Rulesets.RulesetRow` is the row's number (an int32), not a pointer to the row.
+
+Still open:
+- The fog reader when it never comes to be trusted: its reason is logged (`Delirium fog: …`), not said. No log of a real
+  encounter was at hand to tell a broken reading from a healthy one that has not agreed yet, so a spoken warning would be
+  a guess. Three of its fields (`GainFactor`, `ExtraDelay`, `Never`) have no instruction of their own in the exe.
+- `AtlasNode.SelectedNodeOffset` from the game's code: map_control's class could not be tied to code (the live search covers it).
+- The name checks of the launcher's step (rulesets, paths) reach a player with a release, not with the plugin's files.
+- None of the searches has run on a real move; the Atlas node's is the only field seen to have moved in the builds kept.
 
 ## Repeated code
 

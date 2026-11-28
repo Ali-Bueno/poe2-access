@@ -45,3 +45,13 @@
 27. One game at a time on this PC: other agents test other mods here (Dragon Ball Z: Kakarot, 2026-11-19). Before
     starting PoE2, look for another game running (`tasklist`); if one is, ask the owner first. Close PoE2 as soon as the
     live check is done.
+28. Steam starts the game through the owner's play copy (`dist/Poe2Access/Poe2Access.exe <game exe> --nopatch`), which
+    asks "Hay una versión nueva… ¿instalarla ahora?" while a newer release exists and starts nothing until answered:
+    `launch.py` then times out "waiting for the game window". Read the dialog's text first; "No" declines for that start
+    only (log `Update declined`), and the owner is asked again at theirs. Never answer "Sí": it replaces the play copy.
+29. A name the game gives something goes where a check will find it: a control's name or a table's path as a string
+    literal (`catalog/exe-names.txt`), a file's path starting `Metadata/` (`catalog/path-names.txt`). The tests fail
+    until the list is made again when one is added or removed: `dotnet run --project tests/Poe2Accessibility.Tests -c
+    Release -- exe-names <the game's exe>` and `-- path-names`. An offset the game's code reads gets a line in
+    `catalog/code-fields.txt`, made and checked with `tools/exe_reader/signatures.py` on every build kept
+    (docs/patch-day.md, section 4).

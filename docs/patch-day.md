@@ -81,7 +81,8 @@ exe checks, then what each log says since the mod last attached) and exits 0 whe
    and the depot manifest are in Steam's `logs/content_log.txt`; an older build: `steam://open/console`, then
    `download_depot 2694490 2694492 <manifest>`, [how](research/exe-layouts.md#measured-on-five-builds)).
 2. Run `powershell -File tools/Check-GameExe.ps1 <exe>` (2 s, the game not running): the static patterns (each must match
-   once and point into writable data), `catalog/code-fields.txt` and the 80 rules of `catalog/semantic-fields.txt`. It exits 0
+   once and point into writable data), `catalog/code-fields.txt`, the 80 rules of `catalog/semantic-fields.txt` and the names
+   of `catalog/exe-names.txt` (`GONE`: a control or a table the patch renamed, with the source file that matches it). It exits 0
    when everything reads where it was measured. `MOVED` is a field the mod follows by itself at the start; `UNREAD`, `WRONG`
    with nothing read, or a pattern not right is what to look at before the game is started. On the five archived builds the
    patterns are right on all and the rules name the area fields that moved between them. `py -I tools/exe_reader/reader.py <exe>`
@@ -99,7 +100,10 @@ the passive tree and with the left trigger held), `sounds` (what played), `costs
 | What was lost | Where it lives | How to find the new value | How to confirm |
 |---|---|---|---|
 | A host struct field (area, entity, component, terrain) | `host/GameOffsets/Objects/**` (`[FieldOffset]`) | the search that judges it prints where it looked; `tools/computer_use/peek.py` reads memory (`hex`, `ptr`, `find`); the exe's code: [exe layouts](research/exe-layouts.md) | `structs` says intact; the feature heard live; `dotnet run --project tests/Poe2Accessibility.Tests` |
-| A field the code catalog reads | also `Poe2Accessibility/catalog/code-fields.txt` (value at the current build) | update the value with the constant; a sequence that no longer hits: make a new one from a function that reads the field (`D:\code\decompilers\projects\poe2-research\re\`) | `Code fields: … moved: none` |
+| A field the code catalog reads | also `Poe2Accessibility/catalog/code-fields.txt` (value at the current build) | update the value with the constant; a sequence that no longer hits: `py -B -I tools/exe_reader/signatures.py check` names it, `sites <value>` lists the instructions that use the displacement and `make <rva>` builds a new one from a function that reads the field (two from different functions; `POE2_EXE=<older exe>` checks it on each build kept); the proof of each site: `docs/research/evidence/code-fields-*.json` | `Code fields: … moved: none`; `signatures.py check` says 0 lines the mod would not believe |
+| A control found by its name (`Exe names: … gone`) | the constant named in the log's line, in the file it names (most in `Poe2Accessibility/GameLayout.cs`) | a UI dump (`dump`) of the screen shows the control's new name | the screen reads again; regenerate the list: `dotnet run --project tests/Poe2Accessibility.Tests -c Release -- exe-names <exe>` |
+| A path of the game's files (`game names failed: … Path Metadata/…`) | the source file the step names | the game's files (`tools/Poe2UiExtract`), or the `entities` dev command beside the thing | the step passes; regenerate the list: `dotnet run --project tests/Poe2Accessibility.Tests -c Release -- path-names` |
+| The rulesets' session, a ruleset's row, an Atlas node's fields | `GameLayout.Rulesets`, `GameLayout.AtlasNode` | each is found again by itself (`Layout: rulesets moved …`, `Atlas node … key moved …`); when said lost, the dev command `rulesets` probes the session and `dump` on the Atlas the node | `Rulesets: session …, N of this area: …`; `Atlas scan: …` with completed and accessible nodes |
 | A plugin offset (UI element, UI manager, in-game layer, control kind) | `Poe2Accessibility/GameLayout.cs` | `layout` says what it found instead; a UI dump (`dump`) shows the tree | `layout` all ok |
 | A dat column (names, flags, keys) | `catalog/dat-columns.json`, made by `tools/Poe2UiExtract dat-columns` | rerun the extractor on the new install; `dat-kinds <table>` lays the table out | log `Dat columns: … where measured` |
 | An animation or stat id | `catalog/game-ids.txt`, made by `tools/Poe2UiExtract game-ids` | rerun it | the dodge warning and Rage read right |
@@ -113,6 +117,7 @@ A host struct field or a plugin offset that the code catalog names can be set by
 build 78440792                               # the game exe's size in bytes: lines count only for that build
 AreaInstanceOffsets:PlayerInfo 0x5B8 0x5C0   # Struct:Field (dotted for nested structs), where the mod has it, where this build has it
 layout:SkillLevelKey 0x58 0x60              # a GameLayout offset by its code-catalog name
+layout:BreachEncounters 0x190 0x198         # the leagues', the fog's and the Atlas node's offsets are settable too (LayoutFields)
 ```
 
 Each line is placed as the code catalog would place it: it replaces the code's reading of that field, every later field of

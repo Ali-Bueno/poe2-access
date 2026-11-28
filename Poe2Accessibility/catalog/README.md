@@ -21,16 +21,17 @@ A new catalog needs no change to the project file or the package script, only a 
 | `boss-mechanics.txt` | boss fights' hides, hide-and-seek states, phases, adds, the adds that are walls, unhurtable buffs, movement rules, mechanic lines | `boss-mechanics`, start | `BossMechanicsCatalog` |
 | `buff-names.json` | harmful buffs' names per language | `buff-names`, start | `HarmfulBuffs` |
 | `class-mechanics.json` | class resources, limits, buff names, skill types | `class-mechanics`, start | `ClassMechanicCatalog` |
-| `code-fields.txt` | what the game's code reads, to catch a field a patch moved | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | `CodeFieldCatalog`, tests |
+| `code-fields.txt` | what the game's code reads, to catch a field a patch moved | by hand, with `tools/exe_reader/signatures.py` ([exe layouts](../../docs/research/exe-layouts.md)) | `CodeFieldCatalog`, tests |
 | `cull-skills.txt` | granted effects that deal Culling Strike | `cull-skills`, start | `CullSkills` |
 | `currency-art.json` | the item each currency icon shows, for prices | `currency-art`, start | `CurrencyIcons` |
 | `dat-columns.json` | the dat columns the plugin reads (all of them, or the step fails and the old file stays) and each table's row size, by which a compiled offset is judged | `dat-columns`, start | `DatColumns` |
 | `dodge-timings.txt` | dodge timings measured in development | by hand, from `BossWatch` "Dodge timing" log lines | `DodgeTimings` (seed) |
 | `endgame.json` | map objectives, contents, the Atlas's graphs | `endgame`, start | `EndgameCatalog` |
+| `exe-names.txt` | the names the source matches by their text (a control of the UI tree, a table's path) and whether the game's exe held each as a whole string; one it held that the running exe lacks is said | the tests' dev command `exe-names <exe>` (a test keeps it equal to the source) | `ExeNames`, at attach with the code fields |
 | `experience.json` | the total experience each level starts at | `experience`, start | `ExperienceTable` |
 | `game-ids.txt` | the game's numbers for animations and stats | `game-ids`, start | `GameIds` |
 | `game-keys.txt` | the Ids of the tables a player meets, to tell what a patch added | `game-keys`, start | `GameNews` |
-| `game-names.txt` | the names the plugin's rules match (buff and animation Ids, trap and door scripts and states, boss tails, minimap icons, the Trial map's art), each found in the game's files; a name gone fails the step, which names it | `game-names`, start | none (the check is the step; `GameNames` lists them) |
+| `game-names.txt` | the names the plugin's rules match (buff and animation Ids, trap and door scripts and states, boss tails, minimap icons, the Trial map's art, the rulesets read), each found in the game's files; a name gone fails the step, which names it, as does a path of `path-names.txt` | `game-names`, start | none (the check is the step; `GameNames` lists them) |
 | `gems.json` | skill and support gems by base item Id: kind, effects, skills, tags, attribute shares; names, tag names, support texts and skill names per language | `gems`, start | `GemCatalog` (skill names for `PlayerSkills`, the gems for `GemIndex`, which names the Build Planner's gems through `GemNames` and a moved gem without a tooltip) |
 | `hazards.txt` | buffs from standing in harmful ground | `hazards`, start | `HazardGround` |
 | `hit-times.txt` | when monster attacks land | `hit-times`, start | `DodgeTimings` |
@@ -45,6 +46,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `mod-texts.json` | the game's stat description blocks (`stat_descriptions.csd`), a block a line: its stat Ids and, per language, its lines as the file holds them (conditions, text, handlers) | `mod-texts`, start | `ModTextCatalog` (`IModTexts`: a modifier line told in one language and said in another) |
 | `monster-names.json` | the radar's boss names as the game names them | `monster-names` | `LandmarkTable` |
 | `passive-tree.json` | the main passive tree by graph id: PassiveSkills Id and kind (flags `k n j i`, `a` of an ascendancy, `s` its start), links, class starts, each ascendancy node's ascendancy, the nodes that offer a choice; node and class names per language | `passive-tree`, start | `PassiveTreeCatalog` |
+| `path-names.txt` | every `"Metadata/…"` path the source matches an entity by, with the source file holding it; the step `game-names` looks each up among the game's files and its monsters' Ids | the tests' dev command `path-names` (a test keeps it equal to the source) | `PathNames`, in the step `game-names` |
 | `places.json` | named map pieces and props from the terrain files | `places`, start | `PlaceCatalog` |
 | `rooms.json` | the named rooms of the room files as tile-class patterns, and the class of each tile they can meet ([rooms](../../docs/research/rooms.md)) | `rooms`, start | `RoomCatalog` (`RoomMatcher`: the rooms on the live tiles) |
 | `quest-goals.json` | the areas each quest tracker line ends on entering, per language, and every area's connections | `quest-goals`, start | `QuestGoalCatalog` |

@@ -497,6 +497,9 @@
   (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Item moves: `InventoryWatch.Moves` (the batch, what is kept of each item in `Seen`, the panel open when a move showed, one `Item moves:` log line a batch) → pure `ItemMoves.Read`; `InventoryWatch.Drops` (thrown or used, `InventoryReader.DescribeUntitled`).
+- Surviving a patch, added 2026-11-28: `Services/Layout/ExeNames.cs` (+ `catalog/exe-names.txt`, made by the tests' `exe-names <exe>`),
+  `PathNames.cs` (+ `catalog/path-names.txt`, tests' `path-names`), `AtlasNodeFields.cs`, `Services/Leagues/RulesetSessionSearch.cs`,
+  `RulesetNames.cs`; `tools/exe_reader/signatures.py` makes and checks `catalog/code-fields.txt` (`sites`, `make`, `check`, `show`).
 - Shared helpers (2026-11-27): `ThrottledLookup`, `DistinctLog`, `StateReading`, `UiSemantics.ShownPanels`, `AtlasNearestFirst`, `AtlasState.Plausible`; `EntityCatalog` also in `.Containers`, `.Targeting`, `.Predicates`.
 - Salvage bench: `InventoryWatch.Salvage` (+ pure `SalvageOutcome`), `UiSemantics.FirstLabel` (side panel without a framed title).
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`;
@@ -536,6 +539,19 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28, small hours (the owner, on what still failed quiet: "busca algo que los haga menos frágiles; descompila el exe, busca
+en archivos"; 1192 tests, live on kehgan, deployed to the play copy, pushed, not released):** every item the audit left open has a
+guard from the game itself ([audit, second pass](docs/research/robustness-audit-2026-11-27.md#second-pass-2026-11-27-to-28-what-was-left-open),
+[how](docs/compatibility.md#the-atlass-nodes-and-the-leagues-session)). The 102 control and table names the source matches are read
+against the running exe at attach (`Exe names: 102 of 102`); 32 more fields are placed from the game's code (`Code fields: 84 of
+84`: the rulesets, Breach, Expedition, Trial of Chaos, the fog, the MinimapIcon's hidden byte, the Atlas node), alike on seven
+builds; the Atlas node's keys, grid, status and selected node and the rulesets' session are found again when moved and said when
+lost; 65 `Metadata/` paths and the five rulesets are checked against the game's files by the step "game names". **Found: a
+Breach's ring had never been read** (its vector holds pointers, not the encounters); it reads through them now, not yet heard
+live. Next, when a Breach or a Delirium mirror is met: read `Rulesets:` and `Delirium fog:` in the log, as neither reading has
+been heard. The launcher's new checks (rulesets, paths) reach the play copy with a release only: its launcher is v2026.11.27-2
+and offers -4 at each start.
+
 **2026-11-27, night (the owner: "analiza bien todo el código… refactorea, que no se rompa tras cada parche; al tirar dos objetos
 seguidos uno dice usado o equipado"; 1183 tests, live on kehgan, deployed to the play copy, pushed, not released):** a read of the
 whole plugin ([audit](docs/research/robustness-audit-2026-11-27.md)). Item moves are said as what they were: a thrown identified

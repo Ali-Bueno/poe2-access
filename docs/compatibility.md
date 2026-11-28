@@ -330,6 +330,36 @@ sub-tiles name a tile; …; a search finds it too)", "item base names ok", "sele
 selector, name field), in town (an NPC with a quest marker), in the options, the inventory (a tooltip), the passive
 tree, and with the left trigger pressed alone (2026-10-25: all ok, every part judged live).
 
+### The Atlas's nodes and the leagues' session
+Added 2026-11-27, after an audit found them the only readings of the month that a moved field would have made wrong or
+silent with nothing said ([audit](research/robustness-audit-2026-11-27.md)).
+
+- **An Atlas node's three dat keys** (EndgameMaps, WorldAreas, EndgameMapAtlas) are `DatKeySite`s (`AtlasNodeFields`): each is
+  looked for by the table it names, on the nodes of a scan, and taken once two nodes agree. On an element not yet known to
+  be a node they are read where they are, with no search (`DatKeySite.RowAt`): map_control's selected field is another
+  thing on the act maps, and a search would take that thing's keys for a node's.
+- **Its grid and status** sit right after the keys and have nothing to be told by. They are read where the game's code puts
+  them (`AtlasNode.Grid`, `AtlasNode.Status` in the code catalog), else as far from where measured as the keys moved
+  (`DatKeySearch.SharedMove`: the one move the keys that moved share; nothing when two differ), never both. Three builds of
+  September to November hold all five fields 0x10 before, which is the move this follows. `AtlasState.Plausible` then
+  judges every scan (log `Atlas scan: 542 nodes, 368 catalogued, status bits 0:362 1:4 2:0 3:2, 368 cells in range`), and
+  two scans that read wrong say "los nodos del Atlas".
+- **The selected node** on map_control is a `ControlGroup` found by `ChangingField`: of the control's pointers to a node, the
+  one that changes as the cursor moves. A pointer counts when the element's key reads where the keys are, or when the
+  element sits where a node does (a child of a child of map_control) and its key is found again.
+- **The rulesets' session** (`RulesetReader`): when no pointer of the area or the game state leads to an object that holds
+  the area where a session did, each is tried as a session whose fields moved (`RulesetSessionSearch`): the area's pointer
+  within 0x400 of where it was, and an array near where the rulesets' was that holds, at some row, a ruleset pointing back
+  to it with that row's number in it. The three places are then read from there (`Layout: rulesets moved …`). A ruleset is
+  believed only when it holds its row's number (an int32 the base constructor stores; found again within 0x20 when all the
+  area's rulesets agree on another place). Every area has a session (43 of 43 in a day's log, each with
+  AncestralOmenRules at least): none found in two areas, or rulesets that cannot be told apart, is said ("los datos en
+  vivo de los encuentros de liga").
+
+Live 2026-11-28 (kehgan, El refugio del zigurat and its Atlas): `Layout: rulesets where measured`, `Atlas selected node`,
+`Atlas node area key`, `Atlas node map key` and `Atlas nodes where measured`; the landings read as before. No search has
+run on a real move: the pure parts have unit tests.
+
 ### When a part is said lost
 Reviewed 2026-11-10: every place that says a part lost (`CompatibilityReport.Missing`) was asked whether a healthy game can
 reach it (a screen without the evidence, a load in progress, a first frame, one bad read). Each now needs proof that holds;
@@ -501,9 +531,9 @@ re-derived: a new rule is heard as "lost" and needs the exe read again. The 240 
 (`tests/Fixtures/stick-walks.txt`) must be recorded again on the new tree before the rule is trusted.
 
 ## Read from the game's code
-Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 52
+Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 84
 lines of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
-called from `CheckCodeFields`; 0.6 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
+called from `CheckCodeFields`; 0.9 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
 sequences hit exactly once and agree; a miss keeps the constant, and a miss is the usual result for a function a patch
 recompiled. What the code settles:
 
@@ -518,9 +548,40 @@ recompiled. What the code settles:
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 52 of 52 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
-Six of the 52 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
-does not read: they count in the 52 but protect nothing heard.
+read the line `Code fields: 84 of 84 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 84 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+does not read: they count in the 84 but protect nothing heard.
+
+32 of the lines were added on 2026-11-27 for what the league mechanics and the Atlas read, none of which had any guard: the
+rulesets' session and base (`Rulesets.*`), the Breach's, the Expedition's and the Trial of Chaos' own fields, the Delirium
+fog's ten, the MinimapIcon's hidden byte, the Monolith's essences and the Atlas node's grid and status
+([evidence](research/evidence/code-fields-leagues-2026-11-27.json): each signature's site, function and proof, and the value on
+seven builds). All read alike on the seven builds kept, but the Atlas node's two: three older builds hold them 0x10 before,
+and the catalog reads that move. They are made and checked with `py -B -I tools/exe_reader/signatures.py` (`sites <value>`
+lists the instructions that use a displacement, `make <rva>` builds a signature, `check` reads the whole catalog; `POE2_EXE`
+names another build). Three lines have one site only (`Rulesets.RulesetRow`, `Ultimatum.Total`, `Fog.RearTime`): their two
+sequences cannot disagree. A league or Atlas field the code no longer settles is logged, not said: its reader believes a
+value only within its range, and the session and the nodes have their own search (below), so an unread line leaves a
+reading that fails, not one that lies (`CodeFieldCatalog.RefusedWhenWrong`).
+
+### Names in the exe
+The game names every control of its UI tree in code: the name is a whole UTF-16 string of the exe ("tribute_button",
+"name_label_panel", "Skip_Cutscene"), and so is each table's path ("Data/Balance/MapPins.dat"). `catalog/exe-names.txt`
+lists every such name the plugin's source matches (its string literals shaped `words_joined_by_underscores`, and every string
+constant of `GameLayout.cs`), marked `+` when the exe held it as a whole string when the list was made (102 of 353). At
+attach the running game's exe is read for the `+` names (`ExeNames`, with the code fields): log `Exe names: 102 of 102 still
+in the game's exe`, or the names gone with the file that matches each, said once ("algunos controles de la interfaz por su
+nombre, así que alguna pantalla o algún botón puede quedar sin leer"). All 102 are in the seven builds kept. A test keeps the
+list equal to the source: a new name fails it until `dotnet run --project tests/Poe2Accessibility.Tests -c Release --
+exe-names <the game's exe>` is run. The name being there does not prove the tree still uses it for the same control.
+
+### Names in the game's files
+Every `"Metadata/…"` the source holds is a path it matches an entity by, whole or as its start (a boss's piece, a league's
+object, a kind of chest): `catalog/path-names.txt` lists the 65 of them (`PathNames`; kept equal to the source by a test,
+made by the tests' dev command `path-names`). The data step "game names" looks each up after a patch among the game's files
+and its monsters' Ids and fails, naming the path and the source file, when none starts so. The same step checks the five
+rulesets the mod reads (`RulesetNames`) against Rulesets.dat. Both reach a player with the launcher of a release, not with
+the plugin alone.
 Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and the level read 19; `TerrainStruct.BytesPerRow` at
 +0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
 real patch yet, so this is proved on simulations and on five past builds that all read the same.
