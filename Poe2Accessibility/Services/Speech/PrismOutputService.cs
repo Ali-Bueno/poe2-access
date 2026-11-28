@@ -236,11 +236,6 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.floor.Clear(DateTime.UtcNow);
-                if (this.mentioned is { } mention && !again.Contains(mention.Text))
-                {
-                    this.mentioned = null; // stopped with the rest: a later line must not say it again
-                }
-
                 this.EnqueueLocked(new SpeechRequest(null, true));
                 foreach (var text in again)
                 {
@@ -257,7 +252,6 @@ namespace Poe2Accessibility.Services
             lock (this.queueGate)
             {
                 this.floor.Clear(DateTime.UtcNow);
-                this.mentioned = null;
             }
 
             this.Enqueue(new SpeechRequest(null, true));
