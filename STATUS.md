@@ -105,7 +105,7 @@
 | Window independence | done (live, five sizes) | the camera's matrix for what is seen and heard, laid-out units instead of pixels ([camera view](docs/research/camera-view.md), [data sources](docs/research/data-sources.md)) |
 | World map: what is done, what is left, what was never entered | done (live) | the pictures a sighted player sees (popup, R3 list, area pins; travel maps of ship and caravan); Spanish "Marca del rey" over Isla del clan corrected ([endgame-ui §7](docs/research/endgame-ui.md), `MapContentIcons`, `UiSemantics.PinArea`) |
 | World map pins from data | done (live, 16:9, 21:9, 5:4) | MapPins/WorldAreas rows the act canvas keeps; told when the popup was not heard (`MapPinNarrator`) |
-| World map quest marks: the place, the nearest waypoint, the list's quest | done (live 2026-11-28, Act 1 Teleport map: the look, the hover, the list, Grave Tidings silent) | the game's rows of each listed quest's step (`UiSemantics.QuestMarks`, `QuestMarkRoutes`), no quest wording; "Active, unavailable" of the list's crosshair popup gone ([quest goals](docs/research/quest-goals.md#the-world-maps-quest-marker-2026-11-27)) |
+| World map quest marks: the place, the nearest waypoint, the list's quest | done (live 2026-11-28, Act 1 Teleport map: the look, the hover, the list, Grave Tidings silent; again after the merge on hairin, and silent where the game draws none, on kehgan) | the game's rows of each listed quest's step (`UiSemantics.QuestMarks`, `QuestMarkRoutes`), no quest wording; "Active, unavailable" of the list's crosshair popup gone ([quest goals](docs/research/quest-goals.md#the-world-maps-quest-marker-2026-11-27)) |
 | Area announcement on entering / changing area | done (live) | own read of AreaLoadingState+0xEA0 (GameHelper offset stale) |
 | Area banner tagline (arrival) | done (code, 2026-11-22) | `AreaBanner`: the HUD text equal to the area name whose parent holds two texts; appended to the area line once per area id ([ui-layers](docs/research/ui-layers.md)); a banner filled after the line is said on its own, queued, within 4 s (Shrike Island's texts came 40 ms after the line) |
 | Sailing and caravan map: the pin's own button | done (code, 2026-11-22) | D-pad down from a pin, A has the captain talk about the place: "Isla Whakapanu, charla sobre el lugar, botón" (`Announcements.PinTalk`); the talk was already read; the popup said last names where "Viajar, A" goes ([ui-layers](docs/research/ui-layers.md)) |
@@ -186,7 +186,7 @@
 | Vitals: flask uses, level progress, gold, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges; uses only once two drinks showed what one costs, the charges until then: the base type's cost ignores the flask's modifiers, code 2026-11-10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning heard: "Frasco de maná menor vacío" after six drinks in Clearfell, then the game's own "Sin frascos" (2026-10-25; flasks are not drunk in town or at full life/mana); the uses left said after each drink, "Frasco de vida menor, 3 usos" (code, user asked 2026-10-26): flasks tracked by belt slot, since a drink makes a new item entity (`FlaskDrinks`, seen in the log); a use gained and a flask put on the belt said too |
 | Minions in the vitals readout (D2R) | done (code) | `MinionReport` + pure `MinionGroups`: friendly living creatures without the NPC component within object range, by kind with average life ("Esbirros: 3 Esqueleto arquero, 80 por ciento"); a party member's minions count too |
 | Loot filter for item sounds and approach names (D2R) | done (code) | `LootFilter`, setting "Objetos que suenan y se nombran": todos / mágicos o mejores / solo monedas, gemas, objetos de misión, raros y únicos; the scanner lists every item the game's own filter shows (next row); not heard live (no ground items in town) |
-| The game's item filter (Options > Game > Item Filter) | done (live 2026-11-28: deployed, the helmet left the scanner under a Hide filter and came back with NeverSink) | `GameItemFilter` + `GameConfigOption`, no mod setting (the game's option is the switch): an item the filter hides is not listed, heard or named. Read from the WorldItem component's verdict (+0x70 bit 0, computed +0xB0, never-hide +0x54, item +0x2E), as the game's own test 0x17E2E60 reads it, when `hide_all_filtered_ground_items=true` in the game's config; anything unread keeps the item listed. Live: a helmet under a one-line Hide filter read 1, the spear beside it 0. A fresh hidden drop not yet seen: look for `Ground item hidden by the game's item filter` in a session log. A failed pick-up of a hidden item rebuilds it at the map's origin until the area is entered again ([item filter](docs/research/item-filter.md)) |
+| The game's item filter (Options > Game > Item Filter) | done (live 2026-11-28: deployed, the helmet left the scanner under a Hide filter and came back with NeverSink; after the merge it hides only on four fields placed by the game's code, a "computed" byte of 1 and a filter chosen, and the owner's own settings, the option on with no filter, list every drop) | `GameItemFilter` + `GameConfigOption`, no mod setting (the game's option is the switch): an item the filter hides is not listed, heard or named. Read from the WorldItem component's verdict (+0x70 bit 0, computed +0xB0, never-hide +0x54, item +0x2E), as the game's own test 0x17E2E60 reads it, when `hide_all_filtered_ground_items=true` in the game's config; anything unread keeps the item listed. Live: a helmet under a one-line Hide filter read 1, the spear beside it 0. A fresh hidden drop not yet seen: look for `Ground item hidden by the game's item filter` in a session log. A failed pick-up of a hidden item rebuilds it at the map's origin until the area is entered again ([item filter](docs/research/item-filter.md)) |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
 | Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
 | Overheated crossbow (Rapid Shot) | done (heard 2026-11-05) | `StatusAilment.Overheated` from buff `overheated`: "Arma sobrecalentada", then "Arma lista" (user 2026-11-05); under the "Estados alterados" switch |
@@ -542,6 +542,35 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28, morning (the owner, after listening to the unattended tests: an exit of Villafrey said "con misión" with no
+quest there, the hideout's decorative stones sounded as quests, and "nos han mandado pull requests. Míralas, mergéalas y si
+no están hechas a prueba de romperse, corrígelas"; 1207 tests, 1730 phrases, deployed to the play copy, pushed, NOT
+released):**
+- **The exit said "tu misión".** The HUD's arrival toast ("Entrando a Villafrey...") is a HUD text that names only the
+  area, which the "cross this area" rule took for an objective; with nothing on the tracker every exit but the one back
+  became the quest's way. Only an objective line of the tracker (or a carried item's step) asks for that now
+  (`QuestMatcher.OnlyItsArea`). Live: "Nueva salida: Terrenos de caza, 20 pasos, …", no quest entry.
+- **The hideout's decorations.** They are entities with the component `HideoutDoodad` and no minimap icon, listed as
+  Objects (28 of the 59 entries of the owner's hideout), and fourteen "… de campamento" were quest targets for sharing
+  "Campamento" with the tracker's "Ve al Campamento de Hilda". Left out (`EntityCatalog.IsDecoration`): 20 entries, none
+  named on approach.
+- **Pull request 17, the world map's quest marks (merged, then changed):** "no active waypoint near" only of a walk that
+  left no area out; the step's key says its loss; the extractor writes `QuestStates.RowSize` and does not take the wrong
+  one of two pin lists; the learning lookup only on a real quest button; one reading of the map a second
+  ([quest goals](docs/research/quest-goals.md), "Made safe to merge"). Heard live on hairin and silent, rightly, on kehgan.
+- **Pull request 18, the game's item filter (merged, then changed):** a wrong "hidden" loses loot with nothing said, so it
+  hides only when the code catalog placed all four fields on this build (89 lines now, the fourth is new and all four
+  read on the seven builds kept), the "computed" byte is the game's 1 and a filter is chosen; the option is read under
+  `[UI]` and not kept for good from a file that stopped reading; a loss is said once and each area logs its tally
+  ([item filter](docs/research/item-filter.md), "Made safe to merge"). Live with the owner's settings: a dropped whetstone
+  said and listed.
+- New standing rule 30 (`AGENTS.md`): everything said in a test is under test.
+
+Next: nothing owed from this session. Open, and why: a filter that hides was not tried on this machine (the owner plays
+without one; the pull request's own live check covers it, and the log line `Item filter: N ground items asked, …` will
+show the first session that has one); the launcher's data step went to 8 with pull request 17, so players get the new
+`dat-columns` entries with the next release, which waits for the owner's word.
+
 **2026-11-28, night (a tester of the fork oasis1701/poe2-access, NeverSink's semi-strict filter on: "our mod still announces its name as I move over it"; branch
 `item-filter`, 1194 tests, deployed to the development host and checked live, pushed, not released):** ground items the game's
 item filter hides are left out of the scanner, its sounds and its names ([item filter](docs/research/item-filter.md)). Next:

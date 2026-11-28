@@ -177,7 +177,7 @@ Every message re-sends the whole context, so its size is what costs. Evidence an
 
 ## 13. Working with the user (this mod)
 
-The user's standing rules; the same list, with the PoE2 commands, is in [`AGENTS.md`](AGENTS.md) (rules 20-24).
+The user's standing rules; the same list, with the PoE2 commands, is in [`AGENTS.md`](AGENTS.md) (rules 20-30).
 
 - **No assistant memory for this project:** every note, preference and finding goes in a repo document
   (`AGENTS.md`, `STATUS.md`, `docs/`), never in the auto-memory.
@@ -185,6 +185,8 @@ The user's standing rules; the same list, with the PoE2 commands, is in [`AGENTS
   virtual pad (`AGENTS.md` rule 21).
 - **Nothing pending:** fix every finding of a test or sweep before reporting, then commit, push and deploy;
   leave something open only when truly blocked, and say why.
+- **Tests are listened to:** the user hears the unattended tests; read everything the mod said in each step, not
+  only the line under test, and treat whatever sounds wrong as a finding (`AGENTS.md` rule 30).
 - **Never plan on the user's play:** no "fight it first and I read the log", no learning from how the user plays;
   mechanics are found beforehand from the game's data and other sources (`AGENTS.md` rule 26).
 - **New sounds:** render candidates from the mod's own synth code and publish one Artifact page with a

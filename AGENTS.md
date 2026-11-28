@@ -57,3 +57,11 @@
     Release -- exe-names <the game's exe>` and `-- path-names`. An offset the game's code reads gets a line in
     `catalog/code-fields.txt`, made and checked with `tools/exe_reader/signatures.py` on every build kept
     (docs/patch-day.md, section 4).
+30. The owner listens to the unattended tests, and everything the mod says in one is under test, not only what the
+    test set out to check (2026-11-28: "estuve escuchando tus tests y vi algunas cosas que no me cuadra que no las hayas
+    pillado": on arriving at Villafrey an exit was said "tu misión" with no quest there, and a hideout's decorative
+    stones were listed and sounded as quest targets; both had been spoken during tests of other things). After each
+    step of a test read all the speech it caused (`Speech interrupts|Speech queued`), not a filter for the expected
+    line, and ask of each line whether a sighted player would be told that there and then: a quest named where the
+    tracker has none, a thing listed that nobody would call a thing, a count that does not fit. Each such line is a
+    finding (rule 22). (The reading of the lines as "ask whether a sighted player would be told" is the agent's.)

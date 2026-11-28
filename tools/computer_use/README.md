@@ -126,6 +126,17 @@ new `serve`, which disconnects the game to the login screen.
   `poe2_production_Config.ini`); the mod follows it.
 - A second dump in the same second overwrites the first (`dump visible` lost to a full dump once): copy it at once.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
+- A on the tab of the act the map already shows does nothing: the cursor stays where it was. The map opens on the act the
+  character is in, and from El refugio del zigurat on the Interlude. A character entering the game stands on its town's
+  waypoint, so A opens the map at once (2026-11-28).
+- Another character for a check: at selection `key up` / `key down` moves (the mod reads "hairin, Nivel 4 Cazadora, …, 2 de
+  6"), `key enter` enters and the pad still drives. Afterwards the game menu's "Selección de personajes" (7 of 8, confirm
+  with A), `key down` to the owner's character and `key enter`, so the one the owner plays is the last one played; then
+  quit as always. hairin (Act 1, a quest that marks a place on the map) and malgdhler (Act 2) are the owner's: read only
+  (2026-11-28).
+- A half-size capture misleads on small icons: a glowing pillar beside a pin (a Molten Shrine) read as an orange
+  exclamation mark, the shape of a quest mark. Capture with `--scale 1` and crop the place before calling an icon anything
+  (2026-11-28).
 - The game menu's "Salir de Path of Exile" asks to confirm (Confirmar focused): A twice (2026-11-27).
 - Escape on the login screen quits the game; the host closes with it, so start both again with
   `launch.py all`.

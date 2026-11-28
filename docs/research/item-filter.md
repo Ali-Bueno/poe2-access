@@ -33,15 +33,20 @@ has its verdict whether or not a label is ever drawn. The label code (0xE580C4) 
 named. Its earlier entry is dropped from the remembered list on the next listing, so a filter changed while items lie
 there takes effect too.
 
-- the game's config file reads `hide_all_filtered_ground_items=true` (`GameConfigOption`, read again when the file's
-  write time changes, at most every 2 s; a missing or unreadable key hides nothing and is logged once);
-- the component's +0xB0 is non-zero, +0x70 has bit 0 set and +0x54 is zero (`GameItemFilter.VerdictHides`, one read of
+- the game's config file reads `hide_all_filtered_ground_items=true` under `[UI]` (`GameConfigOption`, read again when
+  the file's write time changes, at most every 2 s; a missing or unreadable key hides nothing and is logged once; a value
+  read before stands 10 s while the file cannot be read, not for good);
+- the same section's `item_filter` is not `None`, the game's word for no filter chosen (`GameItemFilter.Wanted`): with
+  none there is nothing to hide, and the verdict is not read at all;
+- the code catalog placed all four fields of the verdict on this build (`EntityCatalog.ItemFilterPlaced`, set when the
+  code fields are read; `GameItemFilter.Fields`);
+- the component's +0xB0 is 1, +0x70 has bit 0 set and +0x54 is zero (`GameItemFilter.VerdictHides`, one read of
   the component from +0x54 to +0xB0);
 - the item entity's +0x2E is zero (read only for an item the verdict hides).
 
-The three component offsets are plugin offsets (`GameLayout.WorldItemComponent`) that the code catalog places on each
-build (`layout:WorldItemFilterResult`, `layout:WorldItemFilterReady`, `layout:WorldItemNeverHidden`;
-[evidence](evidence/code-fields-item-filter-2026-11-28.json)). Every way a read can fail leaves the item listed. The drop
+The four offsets are plugin offsets (`GameLayout.WorldItemComponent`) that the code catalog places on each
+build (`layout:WorldItemFilterResult`, `layout:WorldItemFilterReady`, `layout:WorldItemNeverHidden`,
+`layout:WorldItemItemNeverHidden`; [evidence](evidence/code-fields-item-filter-2026-11-28.json)). Every way a read can fail leaves the item listed. The drop
 detection of `InventoryWatch` (`GroundItemIds`, `GroundItemName`) still sees every ground item. Each hidden item is logged
 once per area (`Ground item hidden by the game's item filter: <id> <base>`).
 
@@ -81,6 +86,33 @@ mod settings).
 Not seen yet are a fresh drop the filter hides (each case above switched the filter on items already lying there), the
 option off, and an item with +0x54 or the item's +0x2E set. A later session's log confirms the first through its
 `Ground item hidden` lines.
+
+## Made safe to merge (the owner's review, 2026-11-28)
+
+This reading hides loot from a player who cannot see it, so a wrong "hidden" loses items with nothing said, while a wrong
+"shown" is only how the mod was before. A second reader went through every way to the first, and each now lists the item:
+
+| Way to a wrong "hidden" | Now |
+|---|---|
+| A patch changes the code around a field: its line does not settle, the compiled offset stood "right or wrong", and bytes that are another field pass the test often (any non-zero "computed", a set bit 0, two zero bytes) | Nothing is hidden unless the catalog placed all four fields on this build (`ItemFilterPlaced`; null until the code is read, false when it is not). When the player has the option on and a filter chosen it is said once ("qué objetos del suelo oculta el filtro de objetos del juego, así que esos también se listan") and logged |
+| The "computed" byte read as any non-zero value | It must be the game's 1 (0x17E2FAF sets it, 0x17E2EC2 tests it) |
+| The item's keep byte (+0x2E) was a bare constant: read as zero somewhere else, it lets a hide through | A catalog line of its own, `WorldItem.ItemNeverHidden`: two signatures over the one site that reads it (0x17E2E89) |
+| The option on with no filter chosen: what the verdict holds then was not measured (the owner's own file: `hide_all_filtered_ground_items=true`, `item_filter=None`) | `item_filter=None` hides nothing; any other value, or a key not read, leaves the verdict to decide |
+| The first `hide_all_filtered_ground_items` line of the file was taken, whatever its section | Its `[UI]` section only |
+| A file that stays unreadable kept the last value for good | For 10 s (`GameConfigOption.StaleMs`), then it is not known |
+
+The four lines read alike on the seven builds kept (25244054 to the installed 26744644): `signatures.py check`, "0 lines
+the mod would not believe". The second signature of the new line first hit twice on two of them (the same test in a
+sibling class) and was lengthened to the one `WorldItem.NeverHidden` already proves unique.
+
+Each area's log line says how the filter read: `Item filter: 12 ground items asked, 12 with a verdict, 3 hidden`. Many
+asked and none with a verdict, with a filter chosen, is the "computed" byte gone from where it was; that is seen in the
+log only, as a filter being reloaded reads the same for a moment.
+
+Live on kehgan, 2026-11-28 (0.5.5h, the owner's settings): `Game option hide_all_filtered_ground_items=true`, `Game
+option item_filter=None`, `Code fields: 89 of 89 … moved: none`; a whetstone dropped in Villafrey said "Tirado: Piedra de
+afilar" and was listed (`Scan Items id=352 kind=currency "Piedra de afilar"`), then picked up. With a filter that hides
+was not tried here: the owner plays without one.
 
 ## The label layer (not used)
 

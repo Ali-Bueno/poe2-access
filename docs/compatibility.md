@@ -562,8 +562,8 @@ recompiled. What the code settles:
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 88 of 88 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
-Six of the 88 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+read the line `Code fields: 89 of 89 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 89 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
 does not read: they count in the 88 but protect nothing heard.
 
 33 of the lines were added on 2026-11-27 and 28 for what the league mechanics and the Atlas read, none of which had any guard: the
