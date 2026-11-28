@@ -78,6 +78,7 @@ namespace Poe2Accessibility
             "poise" => T("when an enemy is about to be stunned, so that warning stays silent", "cuándo un enemigo está a punto de aturdirse, así que ese aviso no sonará"),
             "walkable" => T("where you can walk, so the guide and the radar may fail", "por dónde se puede andar, así que el guía y el radar pueden fallar"),
             "code fields" => T("some of the game's data, so some readings may be wrong", "parte de los datos del juego, así que alguna lectura puede ser errónea"),
+            Services.QuestMark.StepsPart => T("the step each quest of the world map's list is on, so the map says no quest location", "el paso en que está cada misión de la lista del mapa del mundo, así que el mapa no dirá ningún lugar de misión"),
             Services.GameItemFilter.Part => T("which ground items the game's item filter hides, so those are listed too", "qué objetos del suelo oculta el filtro de objetos del juego, así que esos también se listan"),
             Services.RulesetSessionSearch.Part => T("the league encounters' live data, so a Breach's ring, an Expedition's charges and the Trial of Chaos' round stay silent", "los datos en vivo de los encuentros de liga, así que el anillo de una Brecha, las cargas de una Expedición y la ronda de la Prueba del caos no se dirán"),
             Services.ExeNames.Part => T("some of the interface's controls by their name, so a screen or a button may stay silent", "algunos controles de la interfaz por su nombre, así que alguna pantalla o algún botón puede quedar sin leer"),

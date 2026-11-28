@@ -39,10 +39,48 @@ namespace Poe2Accessibility.Services
                 return (IntPtr.Zero, Array.Empty<QuestMark>());
             }
 
+            var now = Environment.TickCount64;
+            if (this.questMarksKept is { } kept && kept.Screen == worldScreen && kept.Canvas == canvas && now - kept.At < QuestMarksKeptMs)
+            {
+                return (canvas, kept.Marks);
+            }
+
+            var read = this.ReadQuestMarks(worldScreen, canvas);
+            this.questMarksKept = (worldScreen, canvas, now, read);
+            return (canvas, read);
+        }
+
+        /// <summary>
+        ///     How long one reading of a canvas's marks, or of the areas it shows, serves the next: the focused quest of the list
+        ///     is asked every 150 ms and each pin the cursor rests on asks again, each a walk of the canvas's pins (about a
+        ///     hundred, two keys each) and of the ways between areas. A mark changes with a quest step, an area with a visit.
+        /// </summary>
+        private const int QuestMarksKeptMs = 1000;
+
+        private (IntPtr Screen, IntPtr Canvas, long At, IReadOnlyList<QuestMark> Marks)? questMarksKept;
+        private (IntPtr Canvas, long At, HashSet<IntPtr> Areas)? shownAreasKept;
+
+        /// <summary>The areas the canvas shows, read at most once in <see cref="QuestMarksKeptMs"/>.</summary>
+        private HashSet<IntPtr> ShownAreasOf(IntPtr canvas)
+        {
+            var now = Environment.TickCount64;
+            if (this.shownAreasKept is { } kept && kept.Canvas == canvas && now - kept.At < QuestMarksKeptMs)
+            {
+                return kept.Areas;
+            }
+
+            var areas = this.ShownAreas(this.PinsOf(canvas).ToList());
+            this.shownAreasKept = (canvas, now, areas);
+            return areas;
+        }
+
+        private IReadOnlyList<QuestMark> ReadQuestMarks(IntPtr worldScreen, IntPtr canvas)
+        {
+
             var quests = this.QuestSteps(worldScreen);
             if (quests.Count == 0)
             {
-                return (canvas, Array.Empty<QuestMark>());
+                return Array.Empty<QuestMark>();
             }
 
             var pins = this.PinsOf(canvas).ToList();
@@ -81,21 +119,29 @@ namespace Poe2Accessibility.Services
                 {
                     steps = 0;
                 }
-                else if (!travel && this.Neighbours(area, shown) is { Count: > 0 })
+                else if (!travel && this.Neighbours(area, shown, out _) is { Count: > 0 })
                 {
-                    // Only a list that reads, and leads to a place the map shows, is walked: "no waypoint near" is said of a
-                    // way known, never of connections that did not read.
-                    var (found, goals) = QuestMarkRoutes.Nearest(
-                        area, each => this.Neighbours(each, shown) ?? new List<IntPtr>(), each => this.AreaPinState(pins, each) == MapAreaState.Waypoint);
+                    // Only a list that reads, and leads to a place the map shows, is walked. "No waypoint near" is said only
+                    // of a walk that lost nothing: an area between that the map does not show yet, or a list that did not
+                    // read, may hide the waypoint a sighted player sees two areas on (a second reader, 2026-11-28).
+                    var whole = true;
+                    IEnumerable<IntPtr> Next(IntPtr each)
+                    {
+                        var next = this.Neighbours(each, shown, out var all);
+                        whole &= all;
+                        return next ?? new List<IntPtr>();
+                    }
+
+                    var (found, goals) = QuestMarkRoutes.Nearest(area, Next, each => this.AreaPinState(pins, each) == MapAreaState.Waypoint);
                     names = goals.Select(goal => this.PinText(goal, GameLayout.WorldAreaRow.NameOffset)).Where(name => name.Length > 0).ToList();
-                    steps = found == QuestMark.NoneNear ? found : names.Count == goals.Count ? found : QuestMark.NotKnown;
+                    steps = found == QuestMark.NoneNear ? (whole ? found : QuestMark.NotKnown) : names.Count == goals.Count ? found : QuestMark.NotKnown;
                     side = names.Count > 0 && steps > 0 ? this.PinSide(pins, area, goals[0]) : string.Empty;
                 }
 
                 marks.Add(new QuestMark(titles[area], this.PinText(area, GameLayout.WorldAreaRow.NameOffset), state, area, names, steps, side));
             }
 
-            return (canvas, marks);
+            return marks;
         }
 
         /// <summary>The areas whose own pin the map shows: the only places a mark, a way or a waypoint is said of.</summary>
@@ -126,13 +172,15 @@ namespace Poe2Accessibility.Services
         {
             var ancestors = this.elements.ReadAncestors(button, QuestButtonDepth + 1);
             var list = ancestors.FindIndex(ancestor => ancestor.Name == GameLayout.QuestList.ControlName);
-            if (list < 0 || list + 1 >= ancestors.Count || this.ShownCanvas(ancestors[list + 1].Address) is not { } canvas ||
+            // Only a button where the list keeps them (quest_selector > frame > list > button) is asked for its key by the
+            // search that learns where the key is: the crosshair and the quick-travel buttons sit under the same control.
+            if (list != QuestButtonDepth - 1 || list + 1 >= ancestors.Count || this.ShownCanvas(ancestors[list + 1].Address) is not { } canvas ||
                 QuestKey.Row(this.reader, this.elements, button.Address) == null || this.StepOf(button.Address) is not { } step)
             {
                 return Array.Empty<string>();
             }
 
-            var shown = this.ShownAreas(this.PinsOf(canvas).ToList());
+            var shown = this.ShownAreasOf(canvas);
             return this.StepPins(step).Select(this.AreaOfPin).OfType<IntPtr>().Where(shown.Contains)
                 .Select(area => this.PinText(area, GameLayout.WorldAreaRow.NameOffset)).Where(name => name.Length > 0).Distinct(StringComparer.Ordinal).ToList();
         }
@@ -152,32 +200,99 @@ namespace Poe2Accessibility.Services
                 return found;
             }
 
-            foreach (var (button, depth) in this.Descendants(list, QuestButtonDepth))
+            // The quests in hand come first, then a separator that holds nothing, then the finished ones (0.5.5h, the
+            // Interlude's list: four, the separator, five). A quest in hand is on a step: when a list has some before its
+            // separator and none reads a step, the step's key is not where it was.
+            var buttons = new List<(IntPtr Parent, IntPtr Quest, bool OnStep, bool Marks)>();
+            var separators = new Dictionary<IntPtr, int>();
+            foreach (var (button, depth, parent) in this.Descendants(list, QuestButtonDepth))
             {
-                // A button holds its title and texts; the separator between active and finished quests holds nothing.
-                if (depth != QuestButtonDepth || this.elements.ReadChildren(button).Length == 0 || QuestKey.Row(this.reader, this.elements, button.Address) == null ||
-                    this.StepOf(button.Address) is not { } step || this.StepPins(step) is not { Count: > 0 } pins)
+                if (depth != QuestButtonDepth)
                 {
                     continue;
                 }
 
-                found.Add((this.FindDescendantText(button, QuestTitleDepth, null), pins));
+                // A button holds its title and texts; the separator between active and finished quests holds nothing.
+                if (this.elements.ReadChildren(button).Length == 0)
+                {
+                    separators.TryAdd(parent, buttons.Count(seen => seen.Parent == parent));
+                    continue;
+                }
+
+                if (QuestKey.Row(this.reader, this.elements, button.Address) is not { } quest)
+                {
+                    continue;
+                }
+
+                var step = this.StepOf(button.Address);
+                var pins = step is { } on ? this.StepPins(on) : Array.Empty<IntPtr>();
+                buttons.Add((parent, quest, step != null, pins.Count > 0));
+                if (pins.Count > 0)
+                {
+                    found.Add((this.FindDescendantText(button, QuestTitleDepth, null), pins));
+                }
+            }
+
+            foreach (var (parent, before) in separators)
+            {
+                this.JudgeQuestSteps(buttons.Where(seen => seen.Parent == parent).Take(before).ToList());
             }
 
             return found;
         }
 
-        /// <summary>Every element under <paramref name="root"/> down to <paramref name="maxDepth"/> levels, visible or not (the list is built off screen).</summary>
-        private IEnumerable<(UiElementReader.ElementInfo Info, int Depth)> Descendants(UiElementReader.ElementInfo root, int maxDepth)
+        private readonly LossWitnesses questStepLoss = new();
+        private readonly HashSet<long> questStepsLogged = new();
+
+        /// <summary>Different lists whose reading is logged in a session: one line each.</summary>
+        private const int MaxQuestListsLogged = 16;
+
+        /// <summary>The log, for one line a list: how many of its quests in hand read a step, and how many steps mark a place.</summary>
+        public Action<string>? QuestMarksLog { get; set; }
+
+        /// <summary>
+        ///     The quests in hand of one list: any on a step and the key reads; none on two different lists and it is said lost
+        ///     (<see cref="LossWitnesses"/>), as every quest then looks finished and the map marks nothing with nothing said.
+        /// </summary>
+        private void JudgeQuestSteps(IReadOnlyList<(IntPtr Parent, IntPtr Quest, bool OnStep, bool Marks)> inHand)
         {
-            var stack = new Stack<(UiElementReader.ElementInfo, int)>();
-            stack.Push((root, 0));
+            if (inHand.Count == 0)
+            {
+                return;
+            }
+
+            var witness = LossWitnesses.KeyOf(inHand.Select(quest => quest.Quest.ToInt64()));
+            if (this.questStepsLogged.Count < MaxQuestListsLogged && this.questStepsLogged.Add(witness))
+            {
+                this.QuestMarksLog?.Invoke(
+                    $"Quest marks: {inHand.Count} quests in hand of a list, {inHand.Count(quest => quest.OnStep)} on a step, {inHand.Count(quest => quest.Marks)} marking a place");
+            }
+
+            if (inHand.Any(quest => quest.OnStep))
+            {
+                this.questStepLoss.Clear();
+                CompatibilityReport.Current?.Found(QuestMark.StepsPart);
+            }
+            else if (this.questStepLoss.Against(witness))
+            {
+                CompatibilityReport.Current?.Missing(QuestMark.StepsPart);
+            }
+        }
+
+        /// <summary>
+        ///     Every element under <paramref name="root"/> down to <paramref name="maxDepth"/> levels, in the order drawn, with the
+        ///     element it is a child of; visible or not (the list is built off screen).
+        /// </summary>
+        private IEnumerable<(UiElementReader.ElementInfo Info, int Depth, IntPtr Parent)> Descendants(UiElementReader.ElementInfo root, int maxDepth)
+        {
+            var stack = new Stack<(UiElementReader.ElementInfo, int, IntPtr)>();
+            stack.Push((root, 0, IntPtr.Zero));
             while (stack.Count > 0)
             {
-                var (info, depth) = stack.Pop();
+                var (info, depth, parent) = stack.Pop();
                 if (depth > 0)
                 {
-                    yield return (info, depth);
+                    yield return (info, depth, parent);
                 }
 
                 if (depth >= maxDepth)
@@ -190,7 +305,7 @@ namespace Poe2Accessibility.Services
                 {
                     if (this.elements.TryReadElement(children[i], out var child))
                     {
-                        stack.Push((child, depth + 1));
+                        stack.Push((child, depth + 1, info.Address));
                     }
                 }
             }
@@ -231,8 +346,10 @@ namespace Poe2Accessibility.Services
         ///     The areas next to one that the map shows; null when the list does not read as one (a column read wrong). Its items
         ///     are bare row pointers, taken only when a shown pin's area is one.
         /// </summary>
-        private List<IntPtr>? Neighbours(IntPtr area, IReadOnlySet<IntPtr> shown)
+        /// <param name="whole">Whether the list read and every area of it is one the map shows: nothing was left out of the walk.</param>
+        private List<IntPtr>? Neighbours(IntPtr area, IReadOnlySet<IntPtr> shown, out bool whole)
         {
+            whole = false;
             var at = area + GameLayout.WorldAreaRow.ConnectionsOffset;
             if (!this.reader.TryRead<long>(at, out var count) || count is < 1 or > MaxConnections ||
                 !this.reader.TryRead<IntPtr>(at + sizeof(long), out var items) || !this.reader.IsValidAddress(items))
@@ -249,6 +366,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            whole = next.Count == count;
             return next;
         }
 

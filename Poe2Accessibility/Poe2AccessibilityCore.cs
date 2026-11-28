@@ -555,6 +555,7 @@ namespace Poe2Accessibility
                 this.semantics.MapLegendWord = picture => this.entities?.MapLegendWord(picture) ?? string.Empty;
                 this.semantics.AreasBehind = (area, towns) => this.entities?.QuestGoals.Behind(area, towns) ?? Array.Empty<string>();
                 this.semantics.QuestMarksShown = () => this.Settings.AnnounceQuestMarks;
+                this.semantics.QuestMarksLog = line => this.log?.Info(line);
                 this.screen.MapLegendWord = this.semantics.MapLegendWord;
                 this.semantics.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log, () => this.Settings.AnnounceQuestMarks);

@@ -78,6 +78,15 @@ namespace Poe2Accessibility.Tests
             var loop = new Dictionary<int, int[]> { [1] = new[] { 2 }, [2] = new[] { 3 }, [3] = new[] { 1 } };
             var (steps, _) = QuestMarkRoutes.Nearest(1, area => loop[area], _ => false);
             Expect(-1, steps, "a loop with no waypoint");
+
+            // A line of areas, each leading to the next: the walk reaches as far as it says and no further.
+            IEnumerable<int> Line(int area) => new[] { area + 1 };
+            var (reached, ends) = QuestMarkRoutes.Nearest(0, Line, area => area == QuestMarkRoutes.MaxSteps);
+            Expect(QuestMarkRoutes.MaxSteps, reached, "a waypoint at the walk's last step is found");
+            Expect(1, ends.Count, "that one");
+            var (beyond, none) = QuestMarkRoutes.Nearest(0, Line, area => area == QuestMarkRoutes.MaxSteps + 1);
+            Expect(QuestMark.NoneNear, beyond, "one step further is out of reach");
+            Expect(0, none.Count, "and not named");
         }
 
         private static QuestMark Manor(IReadOnlyList<string> waypoints, int steps, string side, MapAreaState state = MapAreaState.Unknown) =>

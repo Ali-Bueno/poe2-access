@@ -50,7 +50,8 @@ internal static class DatColumnExtractor
         }
 
         // The row size of every table read: the plugin trusts an offset it compiled only while the table has the size it was measured at.
-        foreach (var table in ExpectedColumns.Select(column => column[..column.IndexOf('.')]).Append("MinimapIcons").Distinct(StringComparer.Ordinal))
+        // Of an optional column's table too: one not found is read by the plugin where it was compiled, and judged by this size.
+        foreach (var table in ExpectedColumns.Concat(DatContentColumns.Names).Select(column => column[..column.IndexOf('.')]).Append("MinimapIcons").Distinct(StringComparer.Ordinal))
         {
             if (DatTable.Open(index, table.ToLowerInvariant()) is { } opened)
             {

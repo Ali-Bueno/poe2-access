@@ -132,7 +132,7 @@ internal static class DatContentColumns
             yield return ("WorldAreas.Connections", Nearest(areas, 0x16, offset => IsLinkList(areas, offset)), 0x16);
             if (DatTable.Open(index, "queststates") is { } states && DatTable.Open(index, "mappins") is { } stepPins)
             {
-                yield return ("QuestStates.MapPinsKeys", FullestPinList(states, stepPins.RowCount), 0x45);
+                yield return ("QuestStates.MapPinsKeys", FullestPinList(states, stepPins.RowCount, 0x45), 0x45);
             }
         }
 
@@ -224,15 +224,24 @@ internal static class DatContentColumns
     ///     The key list into MapPins filled on the most rows, when those are many and well over the next such list's (the
     ///     states' tracker pins; the table has a second list into the same pins that few rows fill).
     /// </summary>
-    private static int? FullestPinList(DatTable states, int pinRows)
+    private static int? FullestPinList(DatTable states, int pinRows, int measured)
     {
         using var probe = DatTable.Probe();
-        var ranked = Enumerable.Range(0, Math.Max(0, states.RowSize - 16))
+        var ranked = Enumerable.Range(0, Math.Max(0, states.RowSize - 16 + 1))
             .Where(offset => DatColumnSearch.IsKeyList(states, offset, pinRows))
             .Select(offset => (Offset: offset, Filled: Enumerable.Range(0, states.RowCount).Count(row => states.KeyList(row, offset).Count > 0)))
             .OrderByDescending(column => column.Filled)
             .ToList();
-        return ranked.Count > 0 && ranked[0].Filled >= MinPinnedStates && (ranked.Count == 1 || ranked[0].Filled >= PinnedStatesOverNext * ranked[1].Filled) ? ranked[0].Offset : null;
+        if (ranked.Count == 0 || ranked[0].Filled < MinPinnedStates || (ranked.Count > 1 && ranked[0].Filled < PinnedStatesOverNext * ranked[1].Filled))
+        {
+            return null;
+        }
+
+        // The fullest by far, and no other list of pins nearer where it was measured: the second list (0.5.5f: +0x71) passes
+        // every check the plugin makes of a key, so a patch that made it the fuller would have the map's marks said of the
+        // wrong places with nothing to tell. Then neither is taken, and the plugin judges its own offset by the row's size.
+        var nearest = ranked.MinBy(column => Math.Abs(column.Offset - measured));
+        return nearest.Offset == ranked[0].Offset ? ranked[0].Offset : null;
     }
 
     /// <summary>The fitting offset nearest to where the column was measured.</summary>

@@ -189,3 +189,45 @@ connections as the row list whose links mostly run both ways (247 of 252 on 0.5.
 the pins as the MapPins key list filled on the most rows, at least 200 and twice the next (645 against +0x71's 285). Both
 are optional, so a patch that blurs them costs the marks only. A read that does not check out says nothing.
 
+### Made safe to merge (the owner's review, 2026-11-28)
+
+A second reader went through the branch before it was merged; what it found is changed on top of it:
+
+- **"No active waypoint near it" could be false on a healthy game.** The walk between areas keeps only the areas whose pin
+  the map shows, so an area in between not shown yet, or a list that did not read, ended it short. It is said only of a
+  walk that left nothing out (`Neighbours`' `whole`); otherwise nothing is said of waypoints, as on a travel map.
+- **The step's key failed with nothing said.** It follows the quest key's proven move, so a patch that parts the two
+  made every quest look finished. The list keeps its quests in hand first, then a separator that holds nothing, then the
+  finished ones (the Interlude's list on 0.5.5h: four, the separator, five): when a list has quests before its separator
+  and none reads a step, on two different lists, it is said ("el paso en que está cada misión de la lista del mapa del
+  mundo, así que el mapa no dirá ningún lugar de misión"). Each list logs `Quest marks: 3 quests in hand of a list, 3 on a
+  step, 1 marking a place` once, which also tells a mark the game does not draw from one the mod did not read.
+- **The pin list could be the wrong one.** `QuestStates` holds a second list of MapPins keys (+0x71) that passes every
+  check the plugin makes; it lost to +0x45 by 2.3 to a threshold of 2. The extractor now takes the fullest only when no
+  other list of pins lies nearer where the column was measured, else none, and the plugin judges its own offset.
+- **`QuestStates.RowSize` was never written** by the extractor (its table has only an optional column, and the row sizes
+  were listed from the others): with the column not found, the plugin could not judge its offset and would have said
+  "some readings may be wrong" at every start. The sizes are listed from every column's table. Run on the installed
+  game (26744644), the branch's extractor wrote 37 entries, without it; the changed one writes the 38 of the shipped file.
+- The key lookup that learns runs only on a button where the list keeps them (quest_selector > frame > list > button),
+  and one reading of a canvas's marks and shown areas serves a second: the focused quest asked for the whole map every
+  150 ms.
+
+Live with these changes, 2026-11-28 (0.5.5h, build 26744644, unattended):
+
+- **hairin (Huntress 4, Clearfell Encampment), Act 1's Teleport map.** On opening: `Quest marks: 3 quests in hand of a
+  list, 3 on a step, 1 marking a place`, `Layout: quest marks where measured`, and "Lugar de misión: Secretos en la
+  oscuridad, El bosque singular, Sin visitar. Transportador activo más cercano: Sierraclara, a una zona, abajo a su
+  izquierda en el mapa". The screenshot agrees: a gold exclamation mark over the "?" pin at the top right, the one blue
+  waypoint below it to the left. The list: "Secretos en la oscuridad, marcada en El bosque singular, botón, 1 de 7, …",
+  and "Legado de los precursores" and "Presagios sombríos" with no place, with no "Activo, no disponible" after any. The
+  cursor on the place: "El bosque singular. Nivel de monstruos: 4. … Lugar de misión. Sin visitar".
+- **kehgan (65, the refuge), the Interlude's and Act 4's maps.** `Quest marks: 4 quests in hand of a list, 4 on a step, 0
+  marking a place` and nothing said, which is right: the game draws no quest mark there. What looked like an orange "!"
+  beside El cruce de Khari in a half-size capture is, cropped at full size, a glowing pillar: the icon of that area's
+  "Santuario fundido, Evento notable con mejora", which the pin's own reading says. Its ritual quests ("Completa rituales
+  en estas áreas: …") mark no place on either character.
+
+Not heard: "no active waypoint near" (a mark more than six areas from any waypoint) and the loss warning, which need a
+game no test here can make; the first is unit-tested (`QuestMarkTests`), the second is the witness rule every other part
+uses.

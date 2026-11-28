@@ -19,6 +19,9 @@ namespace Poe2Accessibility.Services
     {
         public const int NoneNear = -1;
 
+        /// <summary>The compatibility report's name for the step a quest of the map's list is on (UiSemantics.QuestMarks).</summary>
+        public const string StepsPart = "quest marks";
+
         public const int NotKnown = -2;
     }
 

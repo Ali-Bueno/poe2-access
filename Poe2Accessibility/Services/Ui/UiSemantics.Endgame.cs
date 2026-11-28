@@ -267,7 +267,7 @@ namespace Poe2Accessibility.Services
             var seen = 0;
             foreach (var child in this.elements.ReadChildren(screen))
             {
-                if (!this.elements.TryReadElement(child, out var subtree) || !subtree.IsVisibleFlag || subtree.Name == GameLayout.WorldMap.ControlName || subtree.Name == "quest_selector")
+                if (!this.elements.TryReadElement(child, out var subtree) || !subtree.IsVisibleFlag || subtree.Name == GameLayout.WorldMap.ControlName || subtree.Name == GameLayout.QuestList.ControlName)
                 {
                     continue;
                 }
