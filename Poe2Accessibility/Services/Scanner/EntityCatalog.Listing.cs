@@ -120,6 +120,31 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public ScanEntry? QuestExit() => this.questExit;
 
+        /// <summary>How many entity paths whose classification failed are logged (one line each).</summary>
+        private const int MaxLoggedFaults = 32;
+
+        private readonly HashSet<string> faultedPaths = new(StringComparer.Ordinal);
+
+        private bool TryClassify(Entity entity, Render render, out ScanEntry? entry)
+        {
+            try
+            {
+                entry = this.Classify(entity, render);
+                return true;
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                entry = null;
+                var path = entity.Path ?? string.Empty;
+                if (this.faultedPaths.Count < MaxLoggedFaults && this.faultedPaths.Add(path))
+                {
+                    this.log.Warn($"Scanner: could not classify {path}: {ex.Message}");
+                }
+
+                return false;
+            }
+        }
+
         private List<ScanEntry> List(AreaInstance area, Render player, long now, ListingScratch scratch)
         {
             this.bossWays.Clear();
@@ -144,7 +169,12 @@ namespace Poe2Accessibility.Services
                     this.Fields!.Sample(entity, render);
                 }
 
-                if (this.Classify(entity, render) is not { } entry)
+                if (!this.TryClassify(entity, render, out var classified))
+                {
+                    continue; // one unreadable entity does not take the listing down
+                }
+
+                if (classified is not { } entry)
                 {
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
                     this.doors.Forget(entity.Id); // opened: the game takes its target away
