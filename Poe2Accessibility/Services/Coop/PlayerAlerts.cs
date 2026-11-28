@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Runtime.ExceptionServices;
     using GameReader.RemoteObjects.Components;
     using GameReader.RemoteObjects.States.InGameStateObjects;
 
@@ -74,62 +75,28 @@ namespace Poe2Accessibility.Services
 
             // Each watch runs whatever the one before it did: a status reading that throws must not take the charges, the
             // resources and the cooldowns with it. The first fault is thrown on once all have run, for the caller's report.
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo? fault = null;
-            try
-            {
-                this.WatchLife(entity, settings);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
-            }
-
-            try
-            {
-                this.WatchLevel(entity, settings);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
-            }
-
-            try
-            {
-                this.Statuses.Tick(playing && settings.StatusAlerts);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
-            }
-
-            try
-            {
-                this.Charges.Tick(playing, settings);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
-            }
-
-            try
-            {
-                this.Resources.Tick(playing, settings);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
-            }
-
-            try
-            {
-                this.Cooldowns.Tick(playing, settings);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
-            }
-
+            ExceptionDispatchInfo? fault = null;
+            var args = (alerts: this, entity, settings, playing);
+            Attempt(ref fault, args, static a => a.alerts.WatchLife(a.entity, a.settings));
+            Attempt(ref fault, args, static a => a.alerts.WatchLevel(a.entity, a.settings));
+            Attempt(ref fault, args, static a => a.alerts.Statuses.Tick(a.playing && a.settings.StatusAlerts));
+            Attempt(ref fault, args, static a => a.alerts.Charges.Tick(a.playing, a.settings));
+            Attempt(ref fault, args, static a => a.alerts.Resources.Tick(a.playing, a.settings));
+            Attempt(ref fault, args, static a => a.alerts.Cooldowns.Tick(a.playing, a.settings));
             fault?.Throw();
+        }
+
+        /// <summary>Runs one watch; its exception is kept (the first one) to be thrown once all have run.</summary>
+        private static void Attempt<TState>(ref ExceptionDispatchInfo? fault, TState state, Action<TState> step)
+        {
+            try
+            {
+                step(state);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= ExceptionDispatchInfo.Capture(ex);
+            }
         }
 
         /// <summary>"Level 3" when the character levels up; the first reading of a character is only remembered.</summary>
