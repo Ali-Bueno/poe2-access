@@ -531,7 +531,7 @@ re-derived: a new rule is heard as "lost" and needs the exe read again. The 240 
 (`tests/Fixtures/stick-walks.txt`) must be recorded again on the new tree before the rule is trusted.
 
 ## Read from the game's code
-Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 84
+Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 85
 lines of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
 called from `CheckCodeFields`; 0.9 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
 sequences hit exactly once and agree; a miss keeps the constant, and a miss is the usual result for a function a patch
@@ -548,12 +548,12 @@ recompiled. What the code settles:
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 84 of 84 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
-Six of the 84 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
-does not read: they count in the 84 but protect nothing heard.
+read the line `Code fields: 85 of 85 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 85 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+does not read: they count in the 85 but protect nothing heard.
 
-32 of the lines were added on 2026-11-27 for what the league mechanics and the Atlas read, none of which had any guard: the
-rulesets' session and base (`Rulesets.*`), the Breach's, the Expedition's and the Trial of Chaos' own fields, the Delirium
+33 of the lines were added on 2026-11-27 and 28 for what the league mechanics and the Atlas read, none of which had any guard: the
+rulesets' session and base and the Trial's bar in the session (`Rulesets.*`), the Breach's, the Expedition's and the Trial of Chaos' own fields, the Delirium
 fog's ten, the MinimapIcon's hidden byte, the Monolith's essences and the Atlas node's grid and status
 ([evidence](research/evidence/code-fields-leagues-2026-11-27.json): each signature's site, function and proof, and the value on
 seven builds). All read alike on the seven builds kept, but the Atlas node's two: three older builds hold them 0x10 before,

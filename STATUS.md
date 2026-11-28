@@ -543,7 +543,7 @@
 en archivos"; 1192 tests, live on kehgan, deployed to the play copy, pushed, not released):** every item the audit left open has a
 guard from the game itself ([audit, second pass](docs/research/robustness-audit-2026-11-27.md#second-pass-2026-11-27-to-28-what-was-left-open),
 [how](docs/compatibility.md#the-atlass-nodes-and-the-leagues-session)). The 102 control and table names the source matches are read
-against the running exe at attach (`Exe names: 102 of 102`); 32 more fields are placed from the game's code (`Code fields: 84 of
+against the running exe at attach (`Exe names: 102 of 102`); 33 more fields are placed from the game's code (85 lines; live `Code fields: 84 of
 84`: the rulesets, Breach, Expedition, Trial of Chaos, the fog, the MinimapIcon's hidden byte, the Atlas node), alike on seven
 builds; the Atlas node's keys, grid, status and selected node and the rulesets' session are found again when moved and said when
 lost; 65 `Metadata/` paths and the five rulesets are checked against the game's files by the step "game names". **Found: a

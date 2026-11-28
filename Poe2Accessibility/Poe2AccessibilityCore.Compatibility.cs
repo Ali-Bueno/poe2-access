@@ -54,6 +54,7 @@ namespace Poe2Accessibility
             ["RulesetsAreaSession"] = (() => GameLayout.Rulesets.AreaSession, value => GameLayout.Rulesets.AreaSession = value),
             ["RulesetsSessionArea"] = (() => GameLayout.Rulesets.SessionArea, value => GameLayout.Rulesets.SessionArea = value),
             ["RulesetsSessionRulesets"] = (() => GameLayout.Rulesets.SessionRulesets, value => GameLayout.Rulesets.SessionRulesets = value),
+            ["RulesetsTrialProgress"] = (() => GameLayout.Rulesets.SessionTrialProgress, value => GameLayout.Rulesets.SessionTrialProgress = value),
             ["RulesetRow"] = (() => GameLayout.Rulesets.RulesetRow, value => GameLayout.Rulesets.RulesetRow = value),
             ["RulesetSession"] = (() => GameLayout.Rulesets.RulesetSession, value => GameLayout.Rulesets.RulesetSession = value),
             ["BreachEncounters"] = (() => GameLayout.Rulesets.BreachEncounters, value => GameLayout.Rulesets.BreachEncounters = value),

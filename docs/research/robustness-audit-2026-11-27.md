@@ -84,7 +84,7 @@ investiga direcciones de memoria, busca en archivos". Each open item got the str
 | Was open | Now |
 |---|---|
 | UI names (the dialogue's speaker, the Ritual buttons, the cinematic skip, and 99 more) | The exe holds every control's name as a whole UTF-16 string: `catalog/exe-names.txt` is made from the source and read against the running exe at attach; a name gone is logged with its file and said. 102 of 102 on seven builds |
-| The league rulesets' inner fields, the MinimapIcon's hidden byte, the Monolith's essences, the fog's fields | 30 lines of `catalog/code-fields.txt`, read from the game's code at every start and alike on seven builds; all are plugin offsets now, so `config/layout-overrides.txt` can set them for a build too |
+| The league rulesets' inner fields, the MinimapIcon's hidden byte, the Monolith's essences, the fog's fields | 31 lines of `catalog/code-fields.txt`, read from the game's code at every start and alike on seven builds; all are plugin offsets now, so `config/layout-overrides.txt` can set them for a build too |
 | The rulesets' session | Found again by what it must hold when its fields move (`RulesetSessionSearch`); a ruleset believed only with its row's number in it; no session in two areas said. The five rulesets read are checked by name against Rulesets.dat after a patch |
 | The Atlas node's dat keys, grid, status and the selected node | `DatKeySite`s, the keys' shared move or the game's code for the grid and status (which three older builds hold 0x10 before: read as a move), `ChangingField` for the selected node |
 | Paths typed in code (65 `"Metadata/…"`: boss pieces, league objects, kinds of chest) | `catalog/path-names.txt`, made from the source and looked up in the game's files by the step "game names" |
