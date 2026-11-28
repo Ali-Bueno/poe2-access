@@ -46,14 +46,14 @@ namespace Poe2Accessibility.Services
             }
 
             var pins = this.PinsOf(canvas).ToList();
-            var drawn = pins.Select(pin => pin.Area).ToHashSet();
+            var shown = this.ShownAreas(pins);
             var titles = new Dictionary<IntPtr, List<string>>();
             var order = new List<IntPtr>();
             foreach (var (title, rows) in quests)
             {
                 foreach (var row in rows)
                 {
-                    if (this.AreaOfPin(row) is not { } area || !drawn.Contains(area))
+                    if (this.AreaOfPin(row) is not { } area || !shown.Contains(area))
                     {
                         continue;
                     }
@@ -71,19 +71,42 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            var travel = this.IsTravelMap(pins);
             var marks = new List<QuestMark>(order.Count);
             foreach (var area in order)
             {
-                var (steps, goals) = QuestMarkRoutes.Nearest(area, each => this.Neighbours(each, drawn), each => this.AreaPinState(pins, each) == MapAreaState.Waypoint);
-                var names = steps > 0 ? goals.Select(goal => this.PinText(goal, GameLayout.WorldAreaRow.NameOffset)).Where(name => name.Length > 0).ToList() : new List<string>();
-                var side = names.Count > 0 ? this.PinSide(pins, area, goals[0]) : string.Empty;
-                marks.Add(new QuestMark(
-                    titles[area], this.PinText(area, GameLayout.WorldAreaRow.NameOffset), this.AreaPinState(pins, area), area, names,
-                    steps == 0 || names.Count > 0 ? steps : -1, side));
+                var state = this.AreaPinState(pins, area);
+                var (steps, names, side) = (QuestMark.NotKnown, new List<string>(), string.Empty);
+                if (!travel && state == MapAreaState.Waypoint)
+                {
+                    steps = 0;
+                }
+                else if (!travel && this.Neighbours(area, shown) is { Count: > 0 })
+                {
+                    // Only a list that reads, and leads to a place the map shows, is walked: "no waypoint near" is said of a
+                    // way known, never of connections that did not read.
+                    var (found, goals) = QuestMarkRoutes.Nearest(
+                        area, each => this.Neighbours(each, shown) ?? new List<IntPtr>(), each => this.AreaPinState(pins, each) == MapAreaState.Waypoint);
+                    names = goals.Select(goal => this.PinText(goal, GameLayout.WorldAreaRow.NameOffset)).Where(name => name.Length > 0).ToList();
+                    steps = found == QuestMark.NoneNear ? found : names.Count == goals.Count ? found : QuestMark.NotKnown;
+                    side = names.Count > 0 && steps > 0 ? this.PinSide(pins, area, goals[0]) : string.Empty;
+                }
+
+                marks.Add(new QuestMark(titles[area], this.PinText(area, GameLayout.WorldAreaRow.NameOffset), state, area, names, steps, side));
             }
 
             return (canvas, marks);
         }
+
+        /// <summary>The areas whose own pin the map shows: the only places a mark, a way or a waypoint is said of.</summary>
+        private HashSet<IntPtr> ShownAreas(IReadOnlyList<(UiElementReader.ElementInfo Pin, IntPtr Row, IntPtr Area)> pins) =>
+            pins.Where(pin => pin.Pin.IsVisibleFlag).Select(pin => pin.Area).Distinct().Where(area => this.AreaPinState(pins, area) != MapAreaState.None).ToHashSet();
+
+        /// <summary>A travel map (the ship's, the caravan's) draws no waypoints: its pins say so (<see cref="GameLayout.MapPinRow.ElementTravelOffset"/>).</summary>
+        private bool IsTravelMap(IReadOnlyList<(UiElementReader.ElementInfo Pin, IntPtr Row, IntPtr Area)> pins) =>
+            pins.Any(pin => pin.Pin.IsVisibleFlag &&
+                this.reader.TryRead<byte>(pin.Pin.Address + PinKey.Offset - GameLayout.MapPinRow.ElementPinOffset + GameLayout.MapPinRow.ElementTravelOffset, out var travel) &&
+                travel != 0);
 
         /// <summary>Whether a quest of the map's list says where it is marked (setting AnnounceQuestMarks).</summary>
         public Func<bool> QuestMarksShown { get; set; } = () => true;
@@ -96,18 +119,21 @@ namespace Poe2Accessibility.Services
             this.AreaOfPin(pinRow) is { } area ? this.QuestMarks(worldScreen).Marks.FirstOrDefault(mark => mark.Area == area) : null;
 
         /// <summary>
-        ///     The places a quest button of the map's list marks (its step's pins, on any act), as their areas' names; empty for
-        ///     any other control, a finished quest, or a step the map marks nowhere.
+        ///     The places a quest button of the map's list marks on the act the map shows, as their areas' names; empty for any
+        ///     other control, a finished quest, or a step the shown map marks nowhere (a sighted player sees no ring there).
         /// </summary>
         public IReadOnlyList<string> QuestPlaces(in UiElementReader.ElementInfo button)
         {
-            if (!this.elements.ReadAncestors(button, QuestButtonDepth).Any(ancestor => ancestor.Name == GameLayout.QuestList.ControlName) ||
+            var ancestors = this.elements.ReadAncestors(button, QuestButtonDepth + 1);
+            var list = ancestors.FindIndex(ancestor => ancestor.Name == GameLayout.QuestList.ControlName);
+            if (list < 0 || list + 1 >= ancestors.Count || this.ShownCanvas(ancestors[list + 1].Address) is not { } canvas ||
                 QuestKey.Row(this.reader, this.elements, button.Address) == null || this.StepOf(button.Address) is not { } step)
             {
                 return Array.Empty<string>();
             }
 
-            return this.StepPins(step).Select(this.AreaOfPin).OfType<IntPtr>()
+            var shown = this.ShownAreas(this.PinsOf(canvas).ToList());
+            return this.StepPins(step).Select(this.AreaOfPin).OfType<IntPtr>().Where(shown.Contains)
                 .Select(area => this.PinText(area, GameLayout.WorldAreaRow.NameOffset)).Where(name => name.Length > 0).Distinct(StringComparer.Ordinal).ToList();
         }
 
@@ -201,23 +227,29 @@ namespace Poe2Accessibility.Services
         private IntPtr? AreaOfPin(IntPtr pinRow) =>
             DatKey.Row(this.reader, this.elements, pinRow + GameLayout.MapPinRow.AreaKeyOffset, GameLayout.WorldMap.AreaTable);
 
-        /// <summary>The areas next to one that the map draws: the list's items are bare row pointers, taken only when a drawn pin's area is one.</summary>
-        private IEnumerable<IntPtr> Neighbours(IntPtr area, IReadOnlySet<IntPtr> drawn)
+        /// <summary>
+        ///     The areas next to one that the map shows; null when the list does not read as one (a column read wrong). Its items
+        ///     are bare row pointers, taken only when a shown pin's area is one.
+        /// </summary>
+        private List<IntPtr>? Neighbours(IntPtr area, IReadOnlySet<IntPtr> shown)
         {
             var at = area + GameLayout.WorldAreaRow.ConnectionsOffset;
             if (!this.reader.TryRead<long>(at, out var count) || count is < 1 or > MaxConnections ||
                 !this.reader.TryRead<IntPtr>(at + sizeof(long), out var items) || !this.reader.IsValidAddress(items))
             {
-                yield break;
+                return null;
             }
 
+            var next = new List<IntPtr>((int)count);
             for (var i = 0; i < count; i++)
             {
-                if (this.reader.TryRead<IntPtr>(items + (i * GameLayout.WorldAreaRow.ConnectionSize), out var next) && drawn.Contains(next))
+                if (this.reader.TryRead<IntPtr>(items + (i * GameLayout.WorldAreaRow.ConnectionSize), out var item) && shown.Contains(item))
                 {
-                    yield return next;
+                    next.Add(item);
                 }
             }
+
+            return next;
         }
 
         /// <summary>Where one area's own pin lies on the map from another's ("down"), empty when either is not placed.</summary>

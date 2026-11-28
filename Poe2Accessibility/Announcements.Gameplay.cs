@@ -138,9 +138,9 @@ namespace Poe2Accessibility
             var first = Clauses(new[] { QuestLocation(mark.Quests), mark.Place, MapArea(mark.State) }.Where(part => part.Length > 0));
             return mark.Steps switch
             {
-                0 => first,
-                < 0 => Sentences(new[] { first, T("No active waypoint near it", "Ningún transportador activo cerca") }),
-                _ => Sentences(new[] { first, NearestWaypoint(mark.Waypoints, mark.Steps, mark.Waypoints.Count == 1 ? mark.Side : string.Empty) }),
+                Services.QuestMark.NoneNear => Sentences(new[] { first, T("No active waypoint near it", "Ningún transportador activo cerca") }),
+                > 0 => Sentences(new[] { first, NearestWaypoint(mark.Waypoints, mark.Steps, mark.Waypoints.Count == 1 ? mark.Side : string.Empty) }),
+                _ => first, // its own waypoint is active (its state says so), or nothing is known of the way: nothing claimed
             };
         }
 

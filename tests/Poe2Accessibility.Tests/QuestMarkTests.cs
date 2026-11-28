@@ -19,6 +19,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheGlanceSaysQuestPlaceStateAndWaypoint), TheGlanceSaysQuestPlaceStateAndWaypoint),
             (nameof(TheGlanceOfAPlaceWithItsWaypointEndsAtItsState), TheGlanceOfAPlaceWithItsWaypointEndsAtItsState),
             (nameof(TheGlanceSaysWhenNoWaypointIsNear), TheGlanceSaysWhenNoWaypointIsNear),
+            (nameof(AWayNotReadClaimsNoWaypoint), AWayNotReadClaimsNoWaypoint),
             (nameof(TwoWaypointsAsNearGiveNoSide), TwoWaypointsAsNearGiveNoSide),
             (nameof(AQuestOfTheListSaysWhereItIsMarked), AQuestOfTheListSaysWhereItIsMarked),
         };
@@ -94,8 +95,14 @@ namespace Poe2Accessibility.Tests
 
         private static void TheGlanceSaysWhenNoWaypointIsNear() => Expect(
             "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. No active waypoint near it",
-            Announcements.QuestMarkGlance(Manor(Array.Empty<string>(), -1, string.Empty)),
+            Announcements.QuestMarkGlance(Manor(Array.Empty<string>(), QuestMark.NoneNear, string.Empty)),
             "none near");
+
+        // Connections that did not read, or a travel map: nothing is said of waypoints, rather than "none near".
+        private static void AWayNotReadClaimsNoWaypoint() => Expect(
+            "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited",
+            Announcements.QuestMarkGlance(Manor(Array.Empty<string>(), QuestMark.NotKnown, string.Empty)),
+            "not known");
 
         private static void TwoWaypointsAsNearGiveNoSide() => Expect(
             "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts or Ogham Village, 2 areas away",
