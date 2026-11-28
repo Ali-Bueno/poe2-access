@@ -4,7 +4,7 @@ The loot filter a player picks in Options > Game > Item Filter (NeverSink's, the
 for each item on the ground whether the game draws its label. Before 2026-11-28 the mod listed every ground item in the
 scanner, played its drop sound and named it on approach, hidden or not. A tester of the fork oasis1701/poe2-access noticed a helmet with no pick-up prompt
 that the mod still named. The game keeps the filter's verdict on the item's WorldItem component, and the mod now reads it
-there (`GameItemFilter`, setting `FollowGameItemFilter`, on by default).
+there (`GameItemFilter`). The mod has no setting for it, because the game's own option `hide_all_filtered_ground_items` is the switch.
 
 ## The verdict on the WorldItem component
 
@@ -33,7 +33,6 @@ has its verdict whether or not a label is ever drawn. The label code (0xE580C4) 
 named. Its earlier entry is dropped from the remembered list on the next listing, so a filter changed while items lie
 there takes effect too.
 
-- the setting `FollowGameItemFilter` is on;
 - the game's config file reads `hide_all_filtered_ground_items=true` (`GameConfigOption`, read again when the file's
   write time changes, at most every 2 s; a missing or unreadable key hides nothing and is logged once);
 - the component's +0xB0 is non-zero, +0x70 has bit 0 set and +0x54 is zero (`GameItemFilter.VerdictHides`, one read of
@@ -74,9 +73,10 @@ At attach it read `Code fields: 88 of 88 … moved: none` and `Game option hide_
 While the helmet was hidden the tester pressed A on it on purpose. The game targeted it (`A pressed on: 758`) and answered
 "Inventory Full". About a second later 758 was gone and a new entity, 919, held the same item, with no model (bounds 0,0,0)
 at the map's origin, still hidden. After a portal to town and back it lay at its own place again with its model. So a
-hidden item can lose its place in the client. With the setting off at that moment the mod did not list 919, as its origin
-was ground never seen (`Sighted`); the setting off was therefore not seen listing a hidden item at its true place, though its
-code path is the plain one every shown item takes.
+hidden item can lose its place in the client, one more reason a hidden item is not listed at all: a mod setting that listed
+them anyway (`FollowGameItemFilter`, in the first version of this change) did not list 919, whose origin was ground never seen
+(`Sighted`). The setting was taken out the same day (the tester said the game's option is the switch and the project has too many
+mod settings).
 
 Not seen yet are a fresh drop the filter hides (each case above switched the filter on items already lying there), the
 option off, and an item with +0x54 or the item's +0x2E set. A later session's log confirms the first through its

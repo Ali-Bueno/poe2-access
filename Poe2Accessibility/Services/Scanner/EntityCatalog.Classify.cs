@@ -35,7 +35,7 @@ namespace Poe2Accessibility.Services
 
         private const int MaxLoggedFiltered = 64;
 
-        /// <summary>Whether the game's item filter hides items for this listing (<see cref="FollowItemFilter"/> and the game's option).</summary>
+        /// <summary>Whether the game's item filter hides items for this listing (the game's option, <see cref="GameHidesFilteredItems"/>).</summary>
         private bool filterHides;
 
         /// <summary>

@@ -126,7 +126,6 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.PlayerSounds))),
             Menu("items",
                 Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
-                Switch(nameof(AccessibilitySettings.FollowGameItemFilter)),
                 Switch(nameof(AccessibilitySettings.AnnouncePickups)),
                 Switch(nameof(AccessibilitySettings.AnnounceHand)),
                 Switch(nameof(AccessibilitySettings.AnnounceMoves)),

@@ -132,10 +132,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<bool> LayoutRevealed { get; set; } = () => false;
 
-        /// <summary>Whether ground items the game's own item filter hides are left out of the scanner, its sounds and its names (setting, set by the plugin).</summary>
-        public bool FollowItemFilter { get; set; } = true;
-
-        /// <summary>The game's "hide all filtered ground items" option (<see cref="GameItemFilter.HideOptionKey"/>); null when unread, which hides nothing.</summary>
+        /// <summary>
+        ///     The game's "hide all filtered ground items" option (<see cref="GameItemFilter.HideOptionKey"/>): while it is on, the items
+        ///     its item filter hides are left out of the scanner, its sounds and its names. The mod has no switch of its own, as the
+        ///     game's option already is one; null when unread, which hides nothing.
+        /// </summary>
         public Func<bool?> GameHidesFilteredItems { get; set; } = () => null;
 
         /// <summary>How much ground has been seen in this area: it grows while the player finds new ground.</summary>

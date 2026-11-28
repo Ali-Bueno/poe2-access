@@ -154,7 +154,7 @@ namespace Poe2Accessibility.Services
             var unseen = scratch.Unseen;
             var renders = scratch.Renders;
             var sampling = this.Fields?.StartPass() ?? false;
-            this.filterHides = this.FollowItemFilter && this.GameHidesFilteredItems() == true;
+            this.filterHides = this.GameHidesFilteredItems() == true;
             var town = this.InTown();
             var areaName = this.AreaName();
             foreach (var (_, entity) in area.AwakeEntities)
