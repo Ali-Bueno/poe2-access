@@ -56,6 +56,12 @@ namespace Poe2Accessibility.Tests
                   "two left and neither carries the hand's name: none can be told from it, none is said");
             Equal("DroppedOrUsed Casco", Said(ItemMoves.Read(Items((Hand, "Arco corto")), Items((Main, "Casco"), (Main, Announcements.UnknownItem)), Announcements.SlotName, true, 0, string.Empty)),
                   "the one that never read is the hand's");
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Main, "Orbe, 4"), (Hand, "Orbe")), Items((Main, "Orbe, 5")), Announcements.SlotName, true, 0, "Alijo")),
+                  "a stack split by hand: what stays is the stack that left, and the hand's part came from nowhere else");
+            Equal("Equipped Anillo de hierro, mágico Left ring | Unequipped Anillo de hierro", Said(ItemMoves.Read(
+                      Items((InventoryName.Ring1, "Anillo de hierro, mágico"), (Main, "Anillo de hierro")), Items((Main, "Anillo de hierro, mágico"), (InventoryName.Ring1, "Anillo de hierro")),
+                      Announcements.SlotName, true, 0, string.Empty)),
+                  "one swapped for another of its name: the slot's item still came from the inventory");
         }
 
         /// <summary>

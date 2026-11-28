@@ -76,16 +76,19 @@ namespace Poe2Accessibility.Services
             }
 
             // What a slot or the hand took is paired with the departure of its own name before the inventory's arrivals
-            // take theirs: a batch may hold another deed, and that one is still said.
+            // take theirs: a batch may hold another deed, and that one is still said. Not when one of its name arrives in
+            // the inventory too (the stack it was split from): that departure is the stack's.
             var paired = new bool[arrivals.Count];
             for (var index = 0; index < arrivals.Count; index++)
             {
-                paired[index] = !remade[index] && IsEquipment(arrivals[index].To) && TakeNamed(arrivals[index].Name, source => !IsEquipment(source));
+                var (to, name) = arrivals[index];
+                paired[index] = !remade[index] && IsEquipment(to) && !StaysInTheBag(name) && TakeNamed(name, source => !IsEquipment(source));
             }
 
             for (var index = 0; index < arrivals.Count; index++)
             {
-                paired[index] |= arrivals[index].To == InventoryName.Cursor1 && TakeNamed(arrivals[index].Name, FromOutsideTheHand);
+                var (to, name) = arrivals[index];
+                paired[index] |= to == InventoryName.Cursor1 && !StaysInTheBag(name) && TakeNamed(name, FromOutsideTheHand);
             }
 
             for (var index = 0; index < arrivals.Count; index++)
@@ -178,6 +181,8 @@ namespace Poe2Accessibility.Services
             return moves;
 
             static bool FromOutsideTheHand(InventoryName source) => source != InventoryName.Cursor1;
+
+            bool StaysInTheBag(string name) => arrivals.Any(arrival => arrival.To == InventoryName.MainInventory1 && Title(arrival.Name) == Title(name));
 
             // Takes the departure of the arrival's own name; false when there is none.
             bool TakeNamed(string arrival, Func<InventoryName, bool> from)
