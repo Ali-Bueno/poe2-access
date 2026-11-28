@@ -49,6 +49,26 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static int? Site(int near, Func<int, bool> reads) => OffsetSearch.First(near, Reach, IntPtr.Size, at => at != near && reads(at));
 
+        /// <summary>
+        ///     How far a struct's fields moved, from how far each of its keys did: the one move those that moved share; 0 when
+        ///     none moved or two differ, as nothing is guessed between them.
+        /// </summary>
+        public static int SharedMove(params int[] moves)
+        {
+            var shared = 0;
+            foreach (var move in moves)
+            {
+                if (move != 0 && shared != 0 && move != shared)
+                {
+                    return 0;
+                }
+
+                shared = move != 0 ? move : shared;
+            }
+
+            return shared;
+        }
+
         /// <summary>A struct is searched whole this far when its key is not near where measured: twice as far as that, and at least this.</summary>
         public const int MinWide = 0x200;
 

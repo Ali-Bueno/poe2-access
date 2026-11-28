@@ -47,13 +47,28 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     The row of the key <paramref name="owner"/> keeps where the site is now, with no search: for something not yet
+        ///     known to be such a struct, which a search would take another struct's key from.
+        /// </summary>
+        public IntPtr? RowAt(HostMemoryReader reader, UiElementReader elements, IntPtr owner)
+        {
+            var at = this.Offset;
+            if (DatKey.Row(reader, elements, owner + at, this.table) is not { } row)
+            {
+                return null;
+            }
+
+            this.Settle(at);
+            return row;
+        }
+
         /// <summary>The row of the key that <paramref name="owner"/> keeps, only when its file is the site's table.</summary>
         public IntPtr? Row(HostMemoryReader reader, UiElementReader elements, IntPtr owner)
         {
             var at = this.Offset;
-            if (DatKey.Row(reader, elements, owner + at, this.table) is { } row)
+            if (this.RowAt(reader, elements, owner) is { } row)
             {
-                this.Settle(at);
                 return row;
             }
 

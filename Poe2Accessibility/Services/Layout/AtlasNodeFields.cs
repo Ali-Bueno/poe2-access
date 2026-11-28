@@ -1,0 +1,64 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+
+    /// <summary>
+    ///     An Atlas node element's own fields (<see cref="GameLayout.AtlasNode"/>), each found again when a game update moves
+    ///     it: its three dat keys by the table each names (<see cref="DatKeySite"/>), and its grid and status, which sit
+    ///     right after the keys and have nothing of their own to be told by, by as far as the keys moved.
+    ///     <see cref="AtlasState.Plausible"/> then judges what they read.
+    /// </summary>
+    public static class AtlasNodeFields
+    {
+        public static readonly DatKeySite MapsKey = new("Atlas node map key", GameLayout.AtlasNode.EndgameMapsKeyOffset, GameLayout.AtlasNode.EndgameMapsTable);
+
+        public static readonly DatKeySite AreaKey = new("Atlas node area key", GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable);
+
+        public static readonly DatKeySite AtlasKey = new("Atlas node atlas key", GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable);
+
+        /// <summary>
+        ///     How far the node's fields moved: as far as its keys, when those that moved agree; 0 when none moved or two say
+        ///     otherwise (nothing is guessed between them).
+        /// </summary>
+        public static int Shift => DatKeySearch.SharedMove(
+            MapsKey.Offset - GameLayout.AtlasNode.EndgameMapsKeyOffset,
+            AreaKey.Offset - GameLayout.AtlasNode.AreaKeyOffset,
+            AtlasKey.Offset - GameLayout.AtlasNode.AtlasKeyOffset);
+
+        /// <summary>
+        ///     Whether an element holds a node's key where the keys are now, with no search: map_control's selected field is
+        ///     something else on the act maps, and a search would take that thing's keys for a node's.
+        /// </summary>
+        public static bool Reads(HostMemoryReader reader, UiElementReader elements, IntPtr element) =>
+            AtlasKey.RowAt(reader, elements, element) != null || MapsKey.RowAt(reader, elements, element) != null;
+
+        /// <summary>
+        ///     As <see cref="Reads"/>, looking for the keys when they are not where they were: only for an element that sits
+        ///     where a node does, as the search takes any key to the Atlas's tables.
+        /// </summary>
+        public static bool Finds(HostMemoryReader reader, UiElementReader elements, IntPtr element) =>
+            AtlasKey.Row(reader, elements, element) != null || MapsKey.Row(reader, elements, element) != null;
+
+        /// <summary>Nodes of a scan each key is looked for on: a key is null on some (a node with no EndgameMapAtlas row).</summary>
+        public const int NodesTaught = 8;
+
+        /// <summary>Lets each key be found again on an element known to be a node: a child of the Atlas's canvas, of the nodes' class.</summary>
+        public static void Learn(HostMemoryReader reader, UiElementReader elements, IntPtr node)
+        {
+            _ = MapsKey.Row(reader, elements, node);
+            _ = AreaKey.Row(reader, elements, node);
+            _ = AtlasKey.Row(reader, elements, node);
+        }
+
+        /// <summary>A node's grid cell and status byte, read at once; null when unreadable.</summary>
+        public static (int X, int Y, byte Status)? Read(HostMemoryReader reader, IntPtr node, int shift)
+        {
+            var grid = GameLayout.AtlasNode.GridOffset + shift;
+            var status = GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset;
+            var bytes = reader.ReadBytes(node + grid, Math.Max(GameLayout.AtlasNode.GridBytes, status + 1));
+            return bytes.Length > status && bytes.Length >= GameLayout.AtlasNode.GridBytes
+                ? (BitConverter.ToInt32(bytes, 0), BitConverter.ToInt32(bytes, sizeof(int)), bytes[status])
+                : null;
+        }
+    }
+}

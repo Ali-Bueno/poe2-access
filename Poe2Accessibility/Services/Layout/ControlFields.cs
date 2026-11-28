@@ -57,6 +57,12 @@ namespace Poe2Accessibility.Services
         ///     pins (the current area's key beside it stays put; <see cref="ChangingField"/>).
         /// </summary>
         HoveredPin,
+
+        /// <summary>
+        ///     GameLayout.AtlasNode selected node: of map_control's pointers to a node of the Atlas, the one that changes as the
+        ///     cursor moves from node to node (<see cref="ChangingField"/>).
+        /// </summary>
+        AtlasSelectedNode,
     }
 
     /// <summary>
@@ -312,6 +318,7 @@ namespace Poe2Accessibility.Services
             ControlGroup.OptionsSection => "options sections",
             ControlGroup.MapDepth => "quest map depth",
             ControlGroup.HoveredPin => "world map hovered pin",
+            ControlGroup.AtlasSelectedNode => "Atlas selected node",
             _ => "inventory grid",
         };
 
@@ -333,6 +340,7 @@ namespace Poe2Accessibility.Services
             ControlGroup.OptionsSection => GameLayout.OptionsSection.RowIndexOffset,
             ControlGroup.MapDepth => GameLayout.WorldMap.SurfaceShownOffset,
             ControlGroup.HoveredPin => GameLayout.WorldMap.HoveredPinOffset,
+            ControlGroup.AtlasSelectedNode => GameLayout.AtlasNode.SelectedNodeOffset,
             _ => GameLayout.InventoryGrid.CellSizeOffset,
         };
 

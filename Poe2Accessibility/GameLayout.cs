@@ -621,11 +621,16 @@ namespace Poe2Accessibility
         /// </summary>
         public static class AtlasNode
         {
-            /// <summary>On map_control: the node element the cursor rests on.</summary>
+            /// <summary>
+            ///     On map_control: the node element the cursor rests on. Found again when it moves by watching which pointer to a
+            ///     node changes with the cursor (<see cref="Services.ControlGroup.AtlasSelectedNode"/>).
+            /// </summary>
             public const int SelectedNodeOffset = 0x2E0;
 
-
-            /// <summary>On a node element: dat keys (row, file) to its EndgameMaps, WorldAreas and EndgameMapAtlas rows.</summary>
+            /// <summary>
+            ///     On a node element: dat keys (row, file) to its EndgameMaps, WorldAreas and EndgameMapAtlas rows. Each is found
+            ///     again by the table it names, and the grid and the status after them follow (<see cref="Services.AtlasNodeFields"/>).
+            /// </summary>
             public const int EndgameMapsKeyOffset = 0x2F0;
 
             public const int AreaKeyOffset = 0x300;
@@ -634,6 +639,9 @@ namespace Poe2Accessibility
 
             /// <summary>On a node element: its place as two i32, read directly, never computed. It tracks the catalog place scaled by about 1/173 with y flipped (x exact on 3 of 4 as round(x/173)+16, y off by one once, §6) — descriptive only, not a conversion.</summary>
             public const int GridOffset = 0x320;
+
+            /// <summary>The grid's two i32.</summary>
+            public const int GridBytes = 2 * sizeof(int);
 
             /// <summary>
             ///     On a node element: its state as bits — bit0 the node can be opened, bit1 its map is completed (live

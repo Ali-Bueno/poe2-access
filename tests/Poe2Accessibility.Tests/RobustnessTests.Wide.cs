@@ -229,6 +229,11 @@ namespace Poe2Accessibility.Tests
             Equal((int?)0x4D0, DatKeySearch.SiteWide(measured, at => at is 0x4D0 or 0x580 ? 0x6000 : 0), "two keys to the same row: the nearest");
             Equal((int?)null, DatKeySearch.SiteWide(measured, at => at == 0x5A0 ? 0x6000 : 0), "beyond twice where it was measured");
             Equal((int?)0x1F8, DatKeySearch.SiteWide(0, at => at == 0x1F8 ? 0x6000 : 0), "a key measured at the struct's start is looked for through its first 0x200 bytes");
+
+            // An Atlas node's grid and status follow its three keys (AtlasNodeFields).
+            Equal(0, DatKeySearch.SharedMove(0, 0, 0), "no key moved: nor did the rest");
+            Equal(8, DatKeySearch.SharedMove(8, 0, 8), "a key not yet found again says nothing against the two that moved alike");
+            Equal(0, DatKeySearch.SharedMove(8, 16, 0), "two keys moved differently: nothing is guessed between them");
         }
 
         private static void TheStunRecordMovedFarNeedsOneSharedPlace()

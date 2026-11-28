@@ -238,8 +238,8 @@ namespace Poe2Accessibility.Services
             var catalog = EndgameCatalog.Shared;
             var biome = popup.Select(text => catalog.BiomeNameIn(text, language)).FirstOrDefault(found => found.Length > 0) ?? string.Empty;
             var held = popup.SelectMany(text => catalog.ContentNamesIn(text, language)).Distinct(StringComparer.Ordinal).ToList();
-            var state = this.reader.TryRead<byte>(node + GameLayout.AtlasNode.StatusOffset, out var status)
-                ? Announcements.AtlasState(AtlasState.Of(status))
+            var state = AtlasNodeFields.Read(this.reader, node, AtlasNodeFields.Shift) is { } fields
+                ? Announcements.AtlasState(AtlasState.Of(fields.Status))
                 : string.Empty;
             var contents = held.Count > 0 ? Announcements.AtlasContents(held) : described == null ? string.Empty : FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
             var links = described == null ? string.Empty : FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
@@ -331,15 +331,63 @@ namespace Poe2Accessibility.Services
             foreach (var child in this.elements.ReadChildren(screen))
             {
                 if (this.elements.TryReadElement(child, out var control) && control.Name == GameLayout.WorldMap.ControlName &&
-                    this.reader.TryRead<IntPtr>(child + GameLayout.AtlasNode.SelectedNodeOffset, out var node) && node != IntPtr.Zero &&
-                    (DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable) != null ||
-                     DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.EndgameMapsKeyOffset, GameLayout.AtlasNode.EndgameMapsTable) != null))
+                    this.AtlasNodeAt(child, this.SelectedNodeShift(child)) is { } node)
                 {
                     return node;
                 }
             }
 
             return null;
+        }
+
+        /// <summary>How often map_control is looked over for its selected node until the field is proved.</summary>
+        private const int SelectedNodeLookMs = 500;
+
+        /// <summary>A node is a child of the canvas, itself a child of map_control.</summary>
+        private const int NodeDepthInControl = 2;
+
+        private long nextSelectedNodeLook;
+
+        /// <summary>
+        ///     Where map_control keeps the selected node, as a shift from where it was measured: of its pointers to a node, the
+        ///     one that changes as the cursor moves (<see cref="ControlFields.ChangingAt"/>), looked for twice a second until proved.
+        /// </summary>
+        private int SelectedNodeShift(IntPtr control)
+        {
+            if (this.elements.Controls is not { } controls)
+            {
+                return 0;
+            }
+
+            if (controls.IsKnown(ControlGroup.AtlasSelectedNode) || Environment.TickCount64 < this.nextSelectedNodeLook)
+            {
+                return controls.Current(ControlGroup.AtlasSelectedNode);
+            }
+
+            this.nextSelectedNodeLook = Environment.TickCount64 + SelectedNodeLookMs;
+            return controls.ChangingAt(ControlGroup.AtlasSelectedNode, control, shift => this.AtlasNodeAt(control, shift)?.ToInt64() ?? 0);
+        }
+
+        /// <summary>
+        ///     The node element map_control points at from the selected node's place moved by <paramref name="shift"/>: one
+        ///     whose key reads where the keys are, or one that sits where a node does and whose key is found again.
+        /// </summary>
+        private IntPtr? AtlasNodeAt(IntPtr control, int shift)
+        {
+            if (!this.reader.TryRead<IntPtr>(control + GameLayout.AtlasNode.SelectedNodeOffset + shift, out var node) || node == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            if (AtlasNodeFields.Reads(this.reader, this.elements, node))
+            {
+                return node;
+            }
+
+            return this.elements.TryReadElement(node, out var info) && this.elements.ReadAncestors(info, NodeDepthInControl) is { Count: NodeDepthInControl } above &&
+                   above[^1].Address == control && AtlasNodeFields.Finds(this.reader, this.elements, node)
+                ? node
+                : null;
         }
 
         /// <summary>
@@ -350,14 +398,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private string AtlasNodeDetails(IntPtr node)
         {
-            if (DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AtlasKeyOffset, GameLayout.AtlasNode.AtlasTable) is not { } atlasRow)
+            if (AtlasNodeFields.AtlasKey.RowAt(this.reader, this.elements, node) is not { } atlasRow)
             {
                 return string.Empty;
             }
 
             var passive = DatKey.Row(this.reader, this.elements, atlasRow + GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
-            var area = DatKey.Row(this.reader, this.elements, node + GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable);
-            var bytes = this.reader.ReadBytes(node + GameLayout.AtlasNode.GridOffset, 0x20);
+            var area = AtlasNodeFields.AreaKey.RowAt(this.reader, this.elements, node);
+            var bytes = this.reader.ReadBytes(node + GameLayout.AtlasNode.GridOffset + AtlasNodeFields.Shift, 0x20);
             var fields = bytes.Length == 0x20
                 ? $" grid {BitConverter.ToInt32(bytes, 0)},{BitConverter.ToInt32(bytes, 4)} status {bytes[GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset]} +328 {BitConverter.ToUInt64(bytes, 8):X16} +330 {BitConverter.ToUInt32(bytes, 0x10)} +338 {Convert.ToHexString(bytes, 0x18, 8)}"
                 : string.Empty;
@@ -555,7 +603,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The name of the map a node element rolled, by its area key; empty when the key or its name does not read.</summary>
         private string AtlasAreaName(IntPtr element, string language) =>
-            element != IntPtr.Zero && DatKey.Row(this.reader, this.elements, element + GameLayout.AtlasNode.AreaKeyOffset, GameLayout.WorldMap.AreaTable) is { } row &&
+            element != IntPtr.Zero && AtlasNodeFields.AreaKey.RowAt(this.reader, this.elements, element) is { } row &&
             this.AtlasRowId(row) is { Length: > 0 } areaId && areaId != "?"
                 ? EndgameCatalog.Shared.Text("area/" + areaId, language)
                 : string.Empty;

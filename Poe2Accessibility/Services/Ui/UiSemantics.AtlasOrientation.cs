@@ -89,6 +89,14 @@ namespace Poe2Accessibility.Services
             }
 
             var offset = this.endgameRecordByClass.TryGetValue(nodeClass, out var learnt) ? learnt : -1;
+
+            // The keys first, on a few nodes: the grid and the status are read as far from where measured as the keys are.
+            foreach (var child in this.elements.ReadChildren(canvas).Where(child => this.reader.TryRead<IntPtr>(child, out var itsClass) && itsClass == nodeClass).Take(AtlasNodeFields.NodesTaught))
+            {
+                AtlasNodeFields.Learn(this.reader, this.elements, child);
+            }
+
+            var shift = AtlasNodeFields.Shift;
             var entries = new List<AtlasScanEntry>();
             foreach (var child in this.elements.ReadChildren(canvas))
             {
@@ -98,21 +106,20 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var bytes = this.reader.ReadBytes(child + GameLayout.AtlasNode.GridOffset, 0x20);
-                if (bytes.Length != 0x20)
+                if (AtlasNodeFields.Read(this.reader, child, shift) is not { } fields)
                 {
                     continue;
                 }
 
                 var id = offset >= 0 ? this.EndgameIdAt(child, offset) : null;
                 var revealed = PluginUiElementReflection.TryGetAbsoluteRect(child, out var position, out var size);
-                var status = bytes[GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset];
+                var status = fields.Status;
                 entries.Add(new AtlasScanEntry
                 {
                     Element = child,
                     Id = id,
-                    GridX = BitConverter.ToInt32(bytes, 0),
-                    GridY = BitConverter.ToInt32(bytes, 4),
+                    GridX = fields.X,
+                    GridY = fields.Y,
                     State = AtlasState.Of(status),
                     Status = status,
                     Name = id != null ? this.EndgameNodeLabel(id, child, language) : this.AtlasAreaName(child, language),

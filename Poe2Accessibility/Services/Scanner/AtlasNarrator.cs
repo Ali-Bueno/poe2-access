@@ -148,7 +148,12 @@ namespace Poe2Accessibility.Services
             if (AtlasState.Plausible(catalogued) is { } plausible)
             {
                 this.implausibleScans = plausible ? 0 : this.implausibleScans + 1;
-                if (plausible)
+                if (plausible && AtlasNodeFields.Shift is var shift && shift != 0)
+                {
+                    // Read where the node's keys went, and what is read there holds: followed, as the log should say.
+                    CompatibilityReport.Current?.Moved(AtlasState.NodesPart, GameLayout.AtlasNode.GridOffset, GameLayout.AtlasNode.GridOffset + shift);
+                }
+                else if (plausible)
                 {
                     CompatibilityReport.Current?.Found(AtlasState.NodesPart);
                 }
