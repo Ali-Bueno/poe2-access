@@ -436,7 +436,6 @@ namespace Poe2Accessibility
             return sets.Count == 0 ? null : Announcements.Sentences(sets.Select(set => Announcements.SkillSet(set.Title, set.Bindings)));
         }
 
-        /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>
         /// <summary>The shop page is looked for this often while nothing has the focus (its search walks panels_parent).</summary>
         private const int ShopLookupMs = 250;
 

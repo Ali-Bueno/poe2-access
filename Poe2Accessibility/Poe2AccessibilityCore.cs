@@ -291,8 +291,8 @@ namespace Poe2Accessibility
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
                 CurrencyIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "currency-art.json"));
                 EndgameCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "endgame.json"));
-            ControllerGlyphs.Dropped = message => this.log.Info(message);
-            InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
+                ControllerGlyphs.Dropped = message => this.log.Info(message);
+                InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
                 // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
                 var landmarks = this.landmarks = LandmarkTable.Load(
                     this.log,
