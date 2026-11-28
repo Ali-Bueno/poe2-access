@@ -498,6 +498,10 @@ namespace Poe2Accessibility
             /// <summary>The rows the game's own getter allows (below 0x66).</summary>
             public const int MostRows = 0x66;
 
+            /// <summary>
+            ///     In a ruleset: the number of its row of Rulesets.dat, an int32 the base constructor stores (89 59 30), which no
+            ///     ruleset's own code reads; the slot of the session's array that holds the ruleset has the same number.
+            /// </summary>
             public static int RulesetRow { get; internal set; } = 0x30;
 
             public static int RulesetSession { get; internal set; } = 0x48;
@@ -506,8 +510,11 @@ namespace Poe2Accessibility
             public const int MostGridCells = 100000;
 
             /// <summary>
-            ///     A Breach growing (Rulesets row 92; packet reader 0x172A8F0, per-frame update 0x172A3E0): a vector of 0x48-byte
-            ///     encounters at +0x190. Each: the size it grows from and to (floats +0 and +4, 0 to 100), over a duration (+8) of which
+            ///     A Breach growing (Rulesets row 92; packet reader 0x172A8F0, per-frame update 0x172A3E0): a vector at +0x190 of
+            ///     pointers to its encounters, each an object of 0x48 bytes of its own. The update walks it a pointer at a time
+            ///     (48 8B 07, then add rdi,8) and the packet reader allocates each (B9 48 00 00 00 before operator new); read as
+            ///     the encounters themselves until 2026-11-27, which no vector of fewer than nine ever fitted. Each: the size it
+            ///     grows from and to (floats +0 and +4, 0 to 100), over a duration (+8) of which
             ///     +0xC has elapsed (0x172A4E7 adds each frame), its centre in grid cells (int32 pair, 0x172AA63: 48 89 48 24) and its
             ///     state (0x172AAD5: 89 4B 38; 2 plays BreachEnrageStinger, as encounter_state of BrequelInitiator). The ring is drawn
             ///     with a radius of 300 × (size / 100) ^ 0.6 grid cells (0x172A627).
@@ -516,10 +523,9 @@ namespace Poe2Accessibility
 
             public static int BreachEncounters { get; internal set; } = 0x190;
 
-            public static int BreachStride { get; internal set; } = 0x48;
             public const int BreachFrom = 0x0;
-            public const int BreachTo = 0x4;
-            public const int BreachDuration = 0x8;
+            public static int BreachTo { get; internal set; } = 0x4;
+            public static int BreachDuration { get; internal set; } = 0x8;
             public static int BreachElapsed { get; internal set; } = 0xC;
             public static int BreachCentre { get; internal set; } = 0x24;
             public static int BreachState { get; internal set; } = 0x38;
@@ -657,7 +663,12 @@ namespace Poe2Accessibility
             public const int AtlasKeyOffset = 0x310;
 
             /// <summary>On a node element: its place as two i32, read directly, never computed. It tracks the catalog place scaled by about 1/173 with y flipped (x exact on 3 of 4 as round(x/173)+16, y off by one once, §6) — descriptive only, not a conversion.</summary>
-            public const int GridOffset = 0x320;
+            public static int GridOffset { get; internal set; } = GridMeasured;
+
+            /// <summary>Where the grid and the status were measured: one the game's code did not place follows the node's keys from here.</summary>
+            public const int GridMeasured = 0x320;
+
+            public const int StatusMeasured = 0x32F;
 
             /// <summary>The grid's two i32.</summary>
             public const int GridBytes = 2 * sizeof(int);
@@ -668,7 +679,7 @@ namespace Poe2Accessibility
             ///     1 → 3 across its completion; higher bits occur on special nodes, so read the two bits, never equality).
             ///     Upstream GameHelper documented the same bits at its stale +0x2BF.
             /// </summary>
-            public const int StatusOffset = 0x32F;
+            public static int StatusOffset { get; internal set; } = StatusMeasured;
 
             public const int StatusAccessibleBit = 1 << 0;
 

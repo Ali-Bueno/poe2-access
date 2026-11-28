@@ -248,8 +248,14 @@ namespace Poe2Accessibility.Tests
             }
 
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
-            Equal(52, shipped.Count, "every shipped line parses");
+            Equal(84, shipped.Count, "every shipped line parses");
             Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
+
+            // A line naming a plugin offset the core does not list would be read and never applied, and nothing would say so until a patch.
+            var core = System.IO.File.ReadAllText(System.IO.Path.Join(directory, "Poe2Accessibility", "Poe2AccessibilityCore.Compatibility.cs"));
+            var listed = System.Text.RegularExpressions.Regex.Matches(core, "\\[\"(\\w+)\"\\] = \\(\\(\\) =>").Select(match => match.Groups[1].Value).ToHashSet();
+            Equal(string.Empty, string.Join(", ", shipped.Select(entry => entry.Layout).Where(layout => layout != null && !listed.Contains(layout)).Distinct()),
+                "every layout: target of the catalog is an offset the core can set");
         }
 
         private static void CodeFieldsSettleEachFieldApart()

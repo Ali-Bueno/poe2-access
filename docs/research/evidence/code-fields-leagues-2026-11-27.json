@@ -1,0 +1,1747 @@
+{
+ "made": "2026-11-27",
+ "exe": "PathOfExileSteam.exe installed, built 2026-11-17, read as a file (signatures.py, capstone); checked on six archived builds",
+ "builds": [
+  "installed",
+  "25244054",
+  "25740136",
+  "26261440",
+  "26473991",
+  "26476662",
+  "26579160"
+ ],
+ "rules": "each signature hits once in .text; displacements, immediates and branch operands wildcarded; >= 12 fixed bytes; value per build is what signatures.py check reads (\"0 hits\" = gone)",
+ "contradictions": [
+  "Breach: [ruleset+0x190] is a std::vector of 8-byte POINTERS to separately allocated 0x48-byte encounters, not inline 0x48-byte records. Update 0x172a630 walks it with add rdi,8 and mov rax,[rdi]; slot 14 0x172a0f0 the same; the packet reader 0x172ab40 divides its byte length by 8 (sar rcx,3), allocates each with operator new(0x48) (0x172ac99) and frees with sized delete 0x48 (0x172abea). RulesetReader.Records(BreachEncounters, BreachStride) reads first + i*0x48: it must read the pointer at first + i*8 and the fields from there. BreachStride (0x48) is the object size, not a stride, so no line was made for it. The same pointer-vector shape (sub/sar of the vector length after lea +0x190) is in 25244054 and 26579160.",
+  "Fog GainFactor +0x70, ExtraDelay +0x74 and Never +0x8E are only ever addressed relative to the balance block at +0x58 (the chooser 0x1f67060 and Front/Rear 0x1f67140/0x1f671b0 take this+0x58 and use +0x18, +0x1C, +0x36): no instruction in .text has those displacements on the ruleset, so no line can read them as 0x70/0x74/0x8E. The values themselves agree (0x58 + 0x18/0x1C/0x36).",
+  "RulesetRow +0x30 is a dword row index (mov [rcx+0x30], ebx after movsxd rbx, r8d), not a pointer to the row."
+ ],
+ "not_done": {
+  "Breach.From (+0x0)": "no displacement byte (movss [rbx], xmm0): nothing to read",
+  "Breach.Stride": "see contradictions",
+  "Fog.GainFactor / Fog.ExtraDelay / Fog.Never": "see contradictions",
+  "AtlasNode.SelectedNode (map_control +0x2E0)": "map_control class not tied in the time given; +0x2E0 is also a field of the node element itself (its constructor 0xb59320 stores it), so a bare-displacement search is unsafe"
+ },
+ "fields": [
+  {
+   "field": "Rulesets.SessionArea",
+   "target": "layout:RulesetsSessionArea",
+   "value": "0x20f0",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "45 0F 29 43 ?? 48 8B B0 ^ ?? ?? ?? ?? F3 44 0F 10 05",
+     "site": "0x172a659",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules vtable 0x33bd258 slot 12 (per-frame update): rax = this+0x48 (the session), then +0x20F0",
+     "values": {
+      "installed": "0x20f0",
+      "25244054": "0x20f0",
+      "25740136": "0x20f0",
+      "26261440": "0x20f0",
+      "26473991": "0x20f0",
+      "26476662": "0x20f0",
+      "26579160": "0x20f0"
+     }
+    },
+    {
+     "sig": "48 8B 57 ?? 4C 8B C0 48 8B 92 ^ ?? ?? ?? ?? 48 8D 8F",
+     "site": "0x1802c9d",
+     "function": "0x1802c10",
+     "proof": "AfflictionEncounterRules constructor (row 40 to the ruleset base constructor): this+0x48 (the session), then +0x20F0",
+     "values": {
+      "installed": "0x20f0",
+      "25244054": "0x20f0",
+      "25740136": "0x20f0",
+      "26261440": "0x20f0",
+      "26473991": "0x20f0",
+      "26476662": "0x20f0",
+      "26579160": "0x20f0"
+     }
+    },
+    {
+     "sig": "48 89 30 48 89 91 ^ ?? ?? ?? ?? 48 89 B1 ?? ?? ?? ?? 48 89 B1",
+     "site": "0x212da55",
+     "function": "0x212d3b0",
+     "proof": "instance-server session constructor (the function that logs \"Connecting to instance server at {}:{}\") stores its area argument",
+     "values": {
+      "installed": "0x20f0",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x20f0",
+      "26476662": "0x20f0",
+      "26579160": "0x20f0"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Rulesets.SessionRulesets",
+   "target": "layout:RulesetsSessionRulesets",
+   "value": "0x2400",
+   "size": 4,
+   "strength": "fair (getters tied by the 0x66 bound and the +0x1A8 route, not by a vtable)",
+   "signatures": [
+    {
+     "sig": "48 8B CB FF 50 ?? 4A 89 9C F6 ^ ?? ?? ?? ?? 48 8D 8E",
+     "site": "0x212fa4b",
+     "function": "0x212f9d0",
+     "proof": "session ruleset creator: row < 0x66, slot [session + row*8 + 0x2400] checked, then filled with the factory result, which is also pushed to the session vector at +0x23E8",
+     "values": {
+      "installed": "0x2400",
+      "25244054": "0x2400",
+      "25740136": "0x2400",
+      "26261440": "0x2400",
+      "26473991": "0x2400",
+      "26476662": "0x2400",
+      "26579160": "0x2400"
+     }
+    },
+    {
+     "sig": "48 63 C2 48 8B 84 C1 ^ ?? ?? ?? ?? 48 85 C0 0F 95 C0",
+     "site": "0x16d1d1",
+     "function": "0x16d1c0",
+     "proof": "\"has ruleset\" leaves: row < 0x66, [session + row*8 + 0x2400] != 0 (one through +0x1A8 like the getter)",
+     "values": {
+      "installed": "0x2400",
+      "25244054": "0x2400",
+      "25740136": "0x2400",
+      "26261440": "0x2400",
+      "26473991": "0x2400",
+      "26476662": "0x2400",
+      "26579160": "0x2400"
+     }
+    },
+    {
+     "sig": "C3 48 8B 80 ?? ?? ?? ?? 48 63 CA 48 8B 84 C8 ^ ?? ?? ?? ?? C3",
+     "site": "0x284bc5",
+     "function": "0x284bb0",
+     "proof": "ruleset getter (leaf): row < 0x66, session = [x+0x1A8], returns [session + row*8 + 0x2400]; the Ultimatum and Expedition HUDs take the same route with the row baked in (+0x1A8, then +0x2588 / +0x2598)",
+     "values": {
+      "installed": "0x2400",
+      "25244054": "0x2400",
+      "25740136": "0x2400",
+      "26261440": "0x2400",
+      "26473991": "0x2400",
+      "26476662": "0x2400",
+      "26579160": "0x2400"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Rulesets.RulesetRow",
+   "target": "layout:RulesetRow",
+   "value": "0x30",
+   "size": 1,
+   "strength": "weak (one instruction)",
+   "signatures": [
+    {
+     "sig": "48 8D 05 ?? ?? ?? ?? 48 89 01 89 59 ^ ?? 48 8D 4C 24",
+     "site": "0x1729d05",
+     "function": "0x1729cd0",
+     "proof": "ruleset base constructor (every ruleset factory calls it with the row in r8d: 92 Breach, 51 Expedition, 49 Ultimatum, 40 Affliction): stores the row as a dword",
+     "values": {
+      "installed": "0x30",
+      "25244054": "0x30",
+      "25740136": "0x30",
+      "26261440": "0x30",
+      "26473991": "0x30",
+      "26476662": "0x30",
+      "26579160": "0x30"
+     }
+    },
+    {
+     "sig": "48 89 01 89 59 ^ ?? 48 8D 4C 24 ?? E8 ?? ?? ?? ?? 90 48 8D 4F",
+     "site": "0x1729d05",
+     "function": "0x1729cd0",
+     "proof": "ruleset base constructor (every ruleset factory calls it with the row in r8d: 92 Breach, 51 Expedition, 49 Ultimatum, 40 Affliction): stores the row as a dword",
+     "values": {
+      "installed": "0x30",
+      "25244054": "0x30",
+      "25740136": "0x30",
+      "26261440": "0x30",
+      "26473991": "0x30",
+      "26476662": "0x30",
+      "26579160": "0x30"
+     }
+    }
+   ],
+   "flag": "one instruction only (ruleset base constructor 0x1729cd0): both signatures cover the same store, so they cannot disagree; no reader of +0x30 exists in any ruleset vtable"
+  },
+  {
+   "field": "Rulesets.RulesetSession",
+   "target": "layout:RulesetSession",
+   "value": "0x48",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 89 77 ^ ?? 48 8B C7 48 83 C4 ?? 5F 5E 5B",
+     "site": "0x1729d36",
+     "function": "0x1729cd0",
+     "proof": "ruleset base constructor: stores its session argument",
+     "values": {
+      "installed": "0x48",
+      "25244054": "0x48",
+      "25740136": "0x48",
+      "26261440": "0x48",
+      "26473991": "0x48",
+      "26476662": "0x48",
+      "26579160": "0x48"
+     }
+    },
+    {
+     "sig": "48 89 07 48 8D 4F ?? 48 8B 47 ^ ?? 48 8B 90",
+     "site": "0x1802c3d",
+     "function": "0x1802c10",
+     "proof": "AfflictionEncounterRules constructor: this+0x48, then +0x20F0",
+     "values": {
+      "installed": "0x48",
+      "25244054": "0x48",
+      "25740136": "0x48",
+      "26261440": "0x48",
+      "26473991": "0x48",
+      "26476662": "0x48",
+      "26579160": "0x48"
+     }
+    },
+    {
+     "sig": "48 81 EC ?? ?? ?? ?? 48 8B 41 ^ ?? 48 8B E9 48 8B B9",
+     "site": "0x172a63e",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules slot 12 (update): this+0x48, then that object +0x20F0 (the area)",
+     "values": {
+      "installed": "0x48",
+      "25244054": "0x48",
+      "25740136": "0x48",
+      "26261440": "0x48",
+      "26473991": "0x48",
+      "26476662": "0x48",
+      "26579160": "0x48"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Breach.Encounters",
+   "target": "layout:BreachEncounters",
+   "value": "0x190",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 8B E9 48 8B B9 ^ ?? ?? ?? ?? 0F 29 74 24 ?? 0F 57 F6",
+     "site": "0x172a645",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules slot 12 (per-frame update): iterates [this+0x190, this+0x198) by 8, each a pointer to an encounter",
+     "values": {
+      "installed": "0x190",
+      "25244054": "0x190",
+      "25740136": "0x190",
+      "26261440": "0x190",
+      "26473991": "0x190",
+      "26476662": "0x190",
+      "26579160": "0x190"
+     }
+    },
+    {
+     "sig": "4D 89 73 ?? 4D 8D B7 ^ ?? ?? ?? ?? 49 8B 7E ?? 49 8B 16",
+     "site": "0x172aba8",
+     "function": "0x172ab40",
+     "proof": "ExpandingBrequelEncounterRules slot 17 (packet reader, references BreachEnrageStinger): lea of the vector, resizes it, allocates 0x48-byte encounters into it",
+     "values": {
+      "installed": "0x190",
+      "25244054": "0x190",
+      "25740136": "0x190",
+      "26261440": "0x190",
+      "26473991": "0x190",
+      "26476662": "0x190",
+      "26579160": "0x190"
+     }
+    },
+    {
+     "sig": "48 89 43 ?? 48 89 AB ^ ?? ?? ?? ?? 48 89 AB ?? ?? ?? ?? 48 89 AB ?? ?? ?? ?? 48 C7 83",
+     "site": "0x173e0bc",
+     "function": "0x173e020",
+     "proof": "row-92 factory 0x173e020 (allocates 0x1B0, base constructor with row 0x5C, installs vtable 0x33bd258): zeroes the vector",
+     "values": {
+      "installed": "0x190",
+      "25244054": "0x190",
+      "25740136": "0x190",
+      "26261440": "0x190",
+      "26473991": "0x190",
+      "26476662": "0x190",
+      "26579160": "0x190"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Expedition.Sites",
+   "target": "layout:ExpeditionSites",
+   "value": "0x1e0",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 8B 83 ^ ?? ?? ?? ?? 48 8B 74 01 ?? 48 2B 74 01 ?? 48 C1 FE",
+     "site": "0x4f431c",
+     "function": "0x4f4140",
+     "proof": "Expedition HUD \"Explosives Placed\" (called by 0x4f3df0 with the row-51 ruleset)",
+     "values": {
+      "installed": "0x1e0",
+      "25244054": "0x1e0",
+      "25740136": "0x1e0",
+      "26261440": "0x1e0",
+      "26473991": "0x1e0",
+      "26476662": "0x1e0",
+      "26579160": "0x1e0"
+     }
+    },
+    {
+     "sig": "4C 8B 87 ^ ?? ?? ?? ?? 48 6B D0 ?? 4E 8B 4C 02 ?? 4E 2B 4C 02",
+     "site": "0x4f3fb0",
+     "function": "0x4f3df0",
+     "proof": "Expedition HUD (ruleset = session +0x2598, row 51)",
+     "values": {
+      "installed": "0x1e0",
+      "25244054": "0x1e0",
+      "25740136": "0x1e0",
+      "26261440": "0x1e0",
+      "26473991": "0x1e0",
+      "26476662": "0x1e0",
+      "26579160": "0x1e0"
+     }
+    },
+    {
+     "sig": "48 8B B9 ^ ?? ?? ?? ?? BB ?? ?? ?? ?? 48 8B 89 ?? ?? ?? ?? 45 8B D1 48 2B CF",
+     "site": "0x172bf17",
+     "function": "0x172bee0",
+     "proof": "Expedition nearest-detonator helper (rcx = ruleset, reads +0x1E0/+0x1E8, divides by 0x70)",
+     "values": {
+      "installed": "0x1e0",
+      "25244054": "0x1e0",
+      "25740136": "0x1e0",
+      "26261440": "0x1e0",
+      "26473991": "0x1e0",
+      "26476662": "0x1e0",
+      "26579160": "0x1e0"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Ultimatum.Round",
+   "target": "layout:UltimatumRound",
+   "value": "0x1a8",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "41 88 87 ^ ?? ?? ?? ?? 49 8B 4E ?? 48 FF C1 49 89 4E",
+     "site": "0x181fbf2",
+     "function": "0x181fb90",
+     "proof": "UltimatumRules vtable 0x33d2d88 slot 18 (packet reader, references UltimatumRoomCompleted): stores the round byte; increments it",
+     "values": {
+      "installed": "0x1a8",
+      "25244054": "0x1a8",
+      "25740136": "0x1a8",
+      "26261440": "0x1a8",
+      "26473991": "0x1a8",
+      "26476662": "0x1a8",
+      "26579160": "0x1a8"
+     }
+    },
+    {
+     "sig": "41 0F B6 87 ^ ?? ?? ?? ?? FF C0 48 8D 4D ?? 48 89 4D",
+     "site": "0x5721a4",
+     "function": "0x571ea0",
+     "proof": "Ultimatum window: ruleset = session +0x2588 (row 49); byte +0x1A8 plus 1 and +0x1A9 formatted into text 0x1F66",
+     "values": {
+      "installed": "0x1a8",
+      "25244054": "0x1a8",
+      "25740136": "0x1a8",
+      "26261440": "0x1a8",
+      "26473991": "0x1a8",
+      "26476662": "0x1a8",
+      "26579160": "0x1a8"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Ultimatum.Total",
+   "target": "layout:UltimatumTotal",
+   "value": "0x1a9",
+   "size": 4,
+   "strength": "fair (one instruction, but the window formats it beside the proven round)",
+   "signatures": [
+    {
+     "sig": "48 89 45 ?? 41 0F B6 9F ^ ?? ?? ?? ?? 33 D2 48 8D 4D",
+     "site": "0x5721e5",
+     "function": "0x571ea0",
+     "proof": "Ultimatum window: byte +0x1A9 of the row-49 ruleset, the second number of the round text; the only read of +0x1A9 in .text",
+     "values": {
+      "installed": "0x1a9",
+      "25244054": "0x1a9",
+      "25740136": "0x1a9",
+      "26261440": "0x1a9",
+      "26473991": "0x1a9",
+      "26476662": "0x1a9",
+      "26579160": "0x1a9"
+     }
+    },
+    {
+     "sig": "48 8D 45 ?? 48 89 45 ?? 41 0F B6 9F ^ ?? ?? ?? ?? 33 D2",
+     "site": "0x5721e5",
+     "function": "0x571ea0",
+     "proof": "Ultimatum window: byte +0x1A9 of the row-49 ruleset, the second number of the round text; the only read of +0x1A9 in .text",
+     "values": {
+      "installed": "0x1a9",
+      "25244054": "0x1a9",
+      "25740136": "0x1a9",
+      "26261440": "0x1a9",
+      "26473991": "0x1a9",
+      "26476662": "0x1a9",
+      "26579160": "0x1a9"
+     }
+    }
+   ],
+   "flag": "one instruction only (the Ultimatum window 0x571ea0, the only read of +0x1A9 in .text): both signatures cover it"
+  },
+  {
+   "field": "Ultimatum.Room",
+   "target": "layout:UltimatumRoom",
+   "value": "0x1b0",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 8B 92 ^ ?? ?? ?? ?? 48 85 D2 74 ?? 48 8B 52 ?? 48 81 C1",
+     "site": "0x572860",
+     "function": "0x572840",
+     "proof": "Ultimatum HUD label leaf: [session+0x2588] (row 49) +0x1B0, then +0x10, then +8 is the text it sets",
+     "values": {
+      "installed": "0x1b0",
+      "25244054": "0x1b0",
+      "25740136": "0x1b0",
+      "26261440": "0x1b0",
+      "26473991": "0x1b0",
+      "26476662": "0x1b0",
+      "26579160": "0x1b0"
+     }
+    },
+    {
+     "sig": "90 4C 8B C0 49 8D 97 ^ ?? ?? ?? ?? 49 8B CE E8 ?? ?? ?? ?? 90",
+     "site": "0x181fe3e",
+     "function": "0x181fb90",
+     "proof": "UltimatumRules slot 18 (packet reader): passes this+0x1B0 to the UltimatumRooms row loader",
+     "values": {
+      "installed": "0x1b0",
+      "25244054": "0x1b0",
+      "25740136": "0x1b0",
+      "26261440": "0x1b0",
+      "26473991": "0x1b0",
+      "26476662": "0x1b0",
+      "26579160": "0x1b0"
+     }
+    }
+   ]
+  },
+  {
+   "field": "MinimapIcon.Hidden",
+   "target": "layout:MinimapIconHidden",
+   "value": "0x38",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "40 80 F7 ?? 80 78 ?? ?? 40 88 78 ^ ?? 74 ?? 48 8B 48",
+     "site": "0x173b12f",
+     "function": "0x173afa0",
+     "proof": "calls the MinimapIcon getter 0x1571530 and stores a computed byte at +0x38, same dirty-marking tail as Hide/ShowMinimapIcon",
+     "values": {
+      "installed": "0x38",
+      "25244054": "0x38",
+      "25740136": "0x38",
+      "26261440": "0x38",
+      "26473991": "0x38",
+      "26476662": "0x38",
+      "26579160": "0x38"
+     }
+    },
+    {
+     "sig": "C6 40 ^ ?? ?? 74 ?? 48 8B 48 ?? 80 89 ?? ?? ?? ?? ?? C6 40 ?? ?? 48 83 C4 ?? C3 4C 8B C1",
+     "site": "0x156d4f4",
+     "function": "0x156d4b0",
+     "proof": "calls the MinimapIcon component getter 0x1571530 (it names \"MinimapIcon\"), sets byte +0x38 to 1, marks the component dirty when +0x39: the sequence of the HideMinimapIcon action 0x19306c0 (ShowMinimapIcon 0x1930600 stores 0)",
+     "values": {
+      "installed": "0x38",
+      "25244054": "0x38",
+      "25740136": "0x38",
+      "26261440": "0x38",
+      "26473991": "0x38",
+      "26476662": "0x38",
+      "26579160": "0x38"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Monolith.Essences",
+   "target": "layout:MonolithEssences",
+   "value": "0xc8",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "4D 8D B5 ^ ?? ?? ?? ?? 49 8B 06 49 8B 56 ?? 48 3B C2",
+     "site": "0x16f7960",
+     "function": "0x16f7830",
+     "proof": "Monolith component vtable 0x33b9ab8 slot 19 (network reader; stores the MonsterVarieties row at +0xE0): lea of the vector it fills",
+     "values": {
+      "installed": "0xc8",
+      "25244054": "0xc8",
+      "25740136": "0xc8",
+      "26261440": "0xc8",
+      "26473991": "0xc8",
+      "26476662": "0xc8",
+      "26579160": "0xc8"
+     }
+    },
+    {
+     "sig": "C6 40 ?? ?? 89 88 ?? ?? ?? ?? 48 89 88 ^ ?? ?? ?? ?? 48 89 88 ?? ?? ?? ?? 48 89 88",
+     "site": "0x16f7486",
+     "function": "0x16f7440",
+     "proof": "Monolith component creator 0x16f7440 (installs vtable 0x33b9ab8): initialises +0xC8 and +0xE0",
+     "values": {
+      "installed": "0xc8",
+      "25244054": "0xc8",
+      "25740136": "0xc8",
+      "26261440": "0xc8",
+      "26473991": "0xc8",
+      "26476662": "0xc8",
+      "26579160": "0xc8"
+     }
+    },
+    {
+     "sig": "F0 FF 48 ?? 48 C7 87 ?? ?? ?? ?? ?? ?? ?? ?? 48 8D 8F ^ ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4F",
+     "site": "0x16f76d7",
+     "function": "0x16f7610",
+     "proof": "Monolith component vtable slot 0 (destructor): frees the vector at +0xC8",
+     "values": {
+      "installed": "0xc8",
+      "25244054": "0xc8",
+      "25740136": "0xc8",
+      "26261440": "0xc8",
+      "26473991": "0xc8",
+      "26476662": "0xc8",
+      "26579160": "0xc8"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Breach.Elapsed",
+   "target": "layout:BreachElapsed",
+   "value": "0xc",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "F3 0F 10 47 ^ ?? F3 0F 5E C1 F3 0F 11 45",
+     "site": "0x172a2d0",
+     "function": "0x172a140",
+     "proof": "encounter method 0x172a140, called by slot 14 on each element of [this+0x190] (rcx = the encounter)",
+     "values": {
+      "installed": "0xc",
+      "25244054": "0xc",
+      "25740136": "0xc",
+      "26261440": "0xc",
+      "26473991": "0xc",
+      "26476662": "0xc",
+      "26579160": "0xc"
+     }
+    },
+    {
+     "sig": "0F 28 C6 EB ?? F3 0F 10 43 ^ ?? 4C 8D 84 24",
+     "site": "0x172a7e1",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules slot 12 (update): register = *element of [this+0x190]",
+     "values": {
+      "installed": "0xc",
+      "25244054": "0xc",
+      "25740136": "0xc",
+      "26261440": "0xc",
+      "26473991": "0xc",
+      "26476662": "0xc",
+      "26579160": "0xc"
+     }
+    },
+    {
+     "sig": "F3 0F 11 4B ?? F3 0F 11 43 ?? 89 7B ^ ?? 88 43",
+     "site": "0x172adff",
+     "function": "0x172ab40",
+     "proof": "ExpandingBrequelEncounterRules slot 17 (packet reader): register = element of [this+0x190] (allocated 0x48)",
+     "values": {
+      "installed": "0xc",
+      "25244054": "0xc",
+      "25740136": "0xc",
+      "26261440": "0xc",
+      "26473991": "0xc",
+      "26476662": "0xc",
+      "26579160": "0xc"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Breach.Duration",
+   "target": "layout:BreachDuration",
+   "value": "0x8",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "F3 0F 10 4B ^ ?? 0F 2F F1 72 ?? 0F 28 C6 EB",
+     "site": "0x172a7d2",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules slot 12 (update): register = *element of [this+0x190]",
+     "values": {
+      "installed": "0x8",
+      "25244054": "0x8",
+      "25740136": "0x8",
+      "26261440": "0x8",
+      "26473991": "0x8",
+      "26476662": "0x8",
+      "26579160": "0x8"
+     }
+    },
+    {
+     "sig": "F3 0F 10 45 ?? F3 0F 11 4B ^ ?? F3 0F 10 4D",
+     "site": "0x172ade4",
+     "function": "0x172ab40",
+     "proof": "ExpandingBrequelEncounterRules slot 17 (packet reader): register = element of [this+0x190] (allocated 0x48)",
+     "values": {
+      "installed": "0x8",
+      "25244054": "0x8",
+      "25740136": "0x8",
+      "26261440": "0x8",
+      "26473991": "0x8",
+      "26476662": "0x8",
+      "26579160": "0x8"
+     }
+    },
+    {
+     "sig": "F3 0F 10 4F ^ ?? 0F 57 F6 0F 2F F1 72 ?? 0F 57 C0",
+     "site": "0x172a2b0",
+     "function": "0x172a140",
+     "proof": "encounter method 0x172a140, called by slot 14 on each element of [this+0x190] (rcx = the encounter)",
+     "values": {
+      "installed": "0x8",
+      "25244054": "0x8",
+      "25740136": "0x8",
+      "26261440": "0x8",
+      "26473991": "0x8",
+      "26476662": "0x8",
+      "26579160": "0x8"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Breach.To",
+   "target": "layout:BreachTo",
+   "value": "0x4",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "0F 28 F0 0F 28 D6 48 8D 53 ^ ?? 48 8B CB",
+     "site": "0x172ada2",
+     "function": "0x172ab40",
+     "proof": "ExpandingBrequelEncounterRules slot 17 (packet reader): register = element of [this+0x190] (allocated 0x48)",
+     "values": {
+      "installed": "0x4",
+      "25244054": "0x4",
+      "25740136": "0x4",
+      "26261440": "0x4",
+      "26473991": "0x4",
+      "26476662": "0x4",
+      "26579160": "0x4"
+     }
+    },
+    {
+     "sig": "48 8D 57 ^ ?? 0F 28 D0 48 8B CF E8 ?? ?? ?? ?? C7 45",
+     "site": "0x172a2ef",
+     "function": "0x172a140",
+     "proof": "encounter method 0x172a140, called by slot 14 on each element of [this+0x190] (rcx = the encounter)",
+     "values": {
+      "installed": "0x4",
+      "25244054": "0x4",
+      "25740136": "0x4",
+      "26261440": "0x4",
+      "26473991": "0x4",
+      "26476662": "0x4",
+      "26579160": "0x4"
+     }
+    },
+    {
+     "sig": "48 8D 53 ^ ?? C7 84 24 ?? ?? ?? ?? ?? ?? ?? ?? 0F 28 D0 48 8B CB",
+     "site": "0x172a826",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules slot 12 (update): register = *element of [this+0x190]",
+     "values": {
+      "installed": "0x4",
+      "25244054": "0x4",
+      "25740136": "0x4",
+      "26261440": "0x4",
+      "26473991": "0x4",
+      "26476662": "0x4",
+      "26579160": "0x4"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Breach.Centre",
+   "target": "layout:BreachCentre",
+   "value": "0x24",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "4C 8D 43 ^ ?? F3 41 0F 59 C3 48 8B CE 0F 28 D8",
+     "site": "0x172a873",
+     "function": "0x172a630",
+     "proof": "ExpandingBrequelEncounterRules slot 12 (update): register = *element of [this+0x190]; lea of the int32 pair passed to the ring drawer 0x1691720",
+     "values": {
+      "installed": "0x24",
+      "25244054": "0x24",
+      "25740136": "0x24",
+      "26261440": "0x24",
+      "26473991": "0x24",
+      "26476662": "0x24",
+      "26579160": "0x24"
+     }
+    },
+    {
+     "sig": "40 88 78 ?? 48 89 48 ^ ?? 40 88 78 ?? 40 88 78",
+     "site": "0x172acb3",
+     "function": "0x172ab40",
+     "proof": "ExpandingBrequelEncounterRules slot 17 (packet reader): register = element of [this+0x190] (allocated 0x48)",
+     "values": {
+      "installed": "0x24",
+      "25244054": "0x24",
+      "25740136": "0x24",
+      "26261440": "0x24",
+      "26473991": "0x24",
+      "26476662": "0x24",
+      "26579160": "0x24"
+     }
+    },
+    {
+     "sig": "48 8B 47 ^ ?? 48 89 45 ?? C6 45 ?? ?? 48 8B 57 ?? 8B 92",
+     "site": "0x172a34d",
+     "function": "0x172a140",
+     "proof": "encounter method 0x172a140, called by slot 14 on each element of [this+0x190] (rcx = the encounter)",
+     "values": {
+      "installed": "0x24",
+      "25244054": "0x24",
+      "25740136": "0x24",
+      "26261440": "0x24",
+      "26473991": "0x24",
+      "26476662": "0x24",
+      "26579160": "0x24"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Breach.State",
+   "target": "layout:BreachState",
+   "value": "0x38",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "0F B6 0C 01 4C 89 46 ?? 89 4B ^ ?? 48 8B CE",
+     "site": "0x172ad25",
+     "function": "0x172ab40",
+     "proof": "ExpandingBrequelEncounterRules slot 17 (packet reader): register = element of [this+0x190] (allocated 0x48)",
+     "values": {
+      "installed": "0x38",
+      "25244054": "0x38",
+      "25740136": "0x38",
+      "26261440": "0x38",
+      "26473991": "0x38",
+      "26476662": "0x38",
+      "26579160": "0x38"
+     }
+    },
+    {
+     "sig": "48 8B 45 ?? 48 89 47 ?? 83 7F ^ ?? ?? 0F 85 ?? ?? ?? ?? 80 7F",
+     "site": "0x172a29c",
+     "function": "0x172a140",
+     "proof": "encounter method 0x172a140, called by slot 14 on each element of [this+0x190] (rcx = the encounter)",
+     "values": {
+      "installed": "0x38",
+      "25244054": "0x38",
+      "25740136": "0x38",
+      "26261440": "0x38",
+      "26473991": "0x38",
+      "26476662": "0x38",
+      "26579160": "0x38"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Expedition.Stride",
+   "target": "layout:ExpeditionStride",
+   "value": "0x70",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 6B C3 ^ ?? 0F B6 4C 38 ?? 45 33 C9 3B CA",
+     "site": "0x172fad4",
+     "function": "0x172f840",
+     "proof": "ExpeditionRules vtable slot 14; index times 0x70 into [this+0x1E0]",
+     "values": {
+      "installed": "0x70",
+      "25244054": "0x70",
+      "25740136": "0x70",
+      "26261440": "0x70",
+      "26473991": "0x70",
+      "26476662": "0x70",
+      "26579160": "0x70"
+     }
+    },
+    {
+     "sig": "48 6B C3 ^ ?? 0F B6 4C 38 ?? 3B CA 40 0F 94 C5",
+     "site": "0x4f4037",
+     "function": "0x4f3df0",
+     "proof": "Expedition HUD (ruleset = session +0x2598, row 51); index times 0x70 into [this+0x1E0]",
+     "values": {
+      "installed": "0x70",
+      "25244054": "0x70",
+      "25740136": "0x70",
+      "26261440": "0x70",
+      "26473991": "0x70",
+      "26476662": "0x70",
+      "26579160": "0x70"
+     }
+    },
+    {
+     "sig": "49 6B C2 ^ ?? 8B D6 8B CD 2B 54 38 ?? 2B 4C 38",
+     "site": "0x172bf70",
+     "function": "0x172bee0",
+     "proof": "Expedition nearest-detonator helper (rcx = ruleset, reads +0x1E0/+0x1E8, divides by 0x70); index times 0x70 into [this+0x1E0]",
+     "values": {
+      "installed": "0x70",
+      "25244054": "0x70",
+      "25740136": "0x70",
+      "26261440": "0x70",
+      "26473991": "0x70",
+      "26476662": "0x70",
+      "26579160": "0x70"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Expedition.Placed",
+   "target": "layout:ExpeditionPlaced",
+   "value": "0x40",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 8B 74 01 ?? 48 2B 74 01 ^ ?? 48 C1 FE ?? E8",
+     "site": "0x4f4328",
+     "function": "0x4f4140",
+     "proof": "Expedition HUD \"Explosives Placed\" (called by 0x4f3df0 with the row-51 ruleset); record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x40",
+      "25244054": "0x40",
+      "25740136": "0x40",
+      "26261440": "0x40",
+      "26473991": "0x40",
+      "26476662": "0x40",
+      "26579160": "0x40"
+     }
+    },
+    {
+     "sig": "48 8B 44 19 ?? 48 2B 44 19 ^ ?? 48 C1 F8 ?? 2B C7",
+     "site": "0x172fb20",
+     "function": "0x172f840",
+     "proof": "ExpeditionRules vtable slot 14; record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x40",
+      "25244054": "0x40",
+      "25740136": "0x40",
+      "26261440": "0x40",
+      "26473991": "0x40",
+      "26476662": "0x40",
+      "26579160": "0x40"
+     }
+    },
+    {
+     "sig": "4E 8B 4C 02 ?? 4E 2B 4C 02 ^ ?? 49 C1 F9 ?? 48 6B C3",
+     "site": "0x4f3fc0",
+     "function": "0x4f3df0",
+     "proof": "Expedition HUD (ruleset = session +0x2598, row 51); record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x40",
+      "25244054": "0x40",
+      "25740136": "0x40",
+      "26261440": "0x40",
+      "26473991": "0x40",
+      "26476662": "0x40",
+      "26579160": "0x40"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Expedition.Place",
+   "target": "layout:ExpeditionPlace",
+   "value": "0x60",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "2B 54 38 ^ ?? 2B 4C 38 ?? 49 8B C2 0F AF C9",
+     "site": "0x172bf78",
+     "function": "0x172bee0",
+     "proof": "Expedition nearest-detonator helper (rcx = ruleset, reads +0x1E0/+0x1E8, divides by 0x70); record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x60",
+      "25244054": "0x60",
+      "25740136": "0x60",
+      "26261440": "0x60",
+      "26473991": "0x60",
+      "26476662": "0x60",
+      "26579160": "0x60"
+     }
+    },
+    {
+     "sig": "48 6B D0 ?? 49 8B 8D ?? ?? ?? ?? 4C 8B 44 0A ^ ?? 48 8B 8E",
+     "site": "0x172f98e",
+     "function": "0x172f840",
+     "proof": "ExpeditionRules vtable slot 14; record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x60",
+      "25244054": "0x60",
+      "25740136": "0x60",
+      "26261440": "0x60",
+      "26473991": "0x60",
+      "26476662": "0x60",
+      "26579160": "0x60"
+     }
+    },
+    {
+     "sig": "E8 ?? ?? ?? ?? 48 6B C8 ?? 4A 8B 44 39 ^ ?? EB ?? 49 8B 86",
+     "site": "0x173037f",
+     "function": "0x1730220",
+     "proof": "ExpeditionRules vtable slot 12; record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x60",
+      "25244054": "0x60",
+      "25740136": "0x60",
+      "26261440": "0x60",
+      "26473991": "0x60",
+      "26476662": "0x60",
+      "26579160": "0x60"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Expedition.Total",
+   "target": "layout:ExpeditionTotal",
+   "value": "0x68",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "0F B6 4C 38 ^ ?? 3B CA 40 0F 94 C5 89 AE",
+     "site": "0x4f403b",
+     "function": "0x4f3df0",
+     "proof": "Expedition HUD (ruleset = session +0x2598, row 51); record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x68",
+      "25244054": "0x68",
+      "25740136": "0x68",
+      "26261440": "0x68",
+      "26473991": "0x68",
+      "26476662": "0x68",
+      "26579160": "0x68"
+     }
+    },
+    {
+     "sig": "0F B6 4C 38 ^ ?? 45 33 C9 3B CA 41 0F 94 C1",
+     "site": "0x172fad8",
+     "function": "0x172f840",
+     "proof": "ExpeditionRules vtable slot 14; record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x68",
+      "25244054": "0x68",
+      "25740136": "0x68",
+      "26261440": "0x68",
+      "26473991": "0x68",
+      "26476662": "0x68",
+      "26579160": "0x68"
+     }
+    },
+    {
+     "sig": "42 0F B6 4C 38 ^ ?? 3B CA 74 ?? 48 8B D6 49 8B CE",
+     "site": "0x1730366",
+     "function": "0x1730220",
+     "proof": "ExpeditionRules vtable slot 12; record = [this+0x1E0] + index*0x70",
+     "values": {
+      "installed": "0x68",
+      "25244054": "0x68",
+      "25740136": "0x68",
+      "26261440": "0x68",
+      "26473991": "0x68",
+      "26476662": "0x68",
+      "26579160": "0x68"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Balance",
+   "target": "layout:FogBalance",
+   "value": "0x58",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 89 07 48 8D 4F ^ ?? 48 8B 47 ?? 48 8B 90",
+     "site": "0x1802c39",
+     "function": "0x1802c10",
+     "proof": "AfflictionEncounterRules constructor: lea this+0x58 passed to the balance chooser 0x1f67060 (with the area level and stats)",
+     "values": {
+      "installed": "0x58",
+      "25244054": "0x58",
+      "25740136": "0x58",
+      "26261440": "0x58",
+      "26473991": "0x58",
+      "26476662": "0x58",
+      "26579160": "0x58"
+     }
+    },
+    {
+     "sig": "48 8D 4B ^ ?? F3 44 0F 10 08 E8 ?? ?? ?? ?? F3 41 0F 5C C2",
+     "site": "0x1803dd5",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x58",
+      "25244054": "0x58",
+      "25740136": "0x58",
+      "26261440": "0x58",
+      "26473991": "0x58",
+      "26476662": "0x58",
+      "26579160": "0x58"
+     }
+    },
+    {
+     "sig": "48 83 EC ?? 4C 8B D1 48 83 C1 ^ ?? E8 ?? ?? ?? ?? 41 8B 82",
+     "site": "0x1802f07",
+     "function": "0x1802f00",
+     "proof": "rear-depth getter 0x1802f00: add rcx, 0x58 before calling Rear (0x1f671b0, which reads the balance row at its +0)",
+     "values": {
+      "installed": "0x58",
+      "25244054": "0x58",
+      "25740136": "0x58",
+      "26261440": "0x58",
+      "26473991": "0x58",
+      "26476662": "0x58",
+      "26579160": "0x58"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Time",
+   "target": "layout:FogTime",
+   "value": "0x78",
+   "size": 1,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "F3 0F 58 43 ^ ?? F3 0F 11 43 ?? F3 0F 10 83",
+     "site": "0x1803cc8",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x78",
+      "25244054": "0x78",
+      "25740136": "0x78",
+      "26261440": "0x78",
+      "26473991": "0x78",
+      "26476662": "0x78",
+      "26579160": "0x78"
+     }
+    },
+    {
+     "sig": "88 8E ?? ?? ?? ?? 48 8B 4F ?? 48 FF C1 48 89 4F ?? 48 8B 57 ?? 48 8D 41 ?? 48 3B C2 0F 87 ?? ?? ?? ?? 48 8B 07 8B 0C 01 89 4E ^ ??",
+     "site": "0x1804055",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules vtable 0x33d0288 slot 17 (packet reader): stores the front clock read from the packet; a long signature (the reader repeats one block per field)",
+     "values": {
+      "installed": "0x78",
+      "25244054": "0x78",
+      "25740136": "0x78",
+      "26261440": "0x78",
+      "26473991": "0x78",
+      "26476662": "0x78",
+      "26579160": "0x78"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.RearTime",
+   "target": "layout:FogRearTime",
+   "value": "0x7c",
+   "size": 1,
+   "strength": "fair (one function)",
+   "signatures": [
+    {
+     "sig": "F3 0F 58 7B ^ ?? F3 0F 11 7B ?? 44 0F 2F 43",
+     "site": "0x1803d06",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x7c",
+      "25244054": "0x7c",
+      "25740136": "0x7c",
+      "26261440": "0x7c",
+      "26473991": "0x7c",
+      "26476662": "0x7c",
+      "26579160": "0x7c"
+     }
+    },
+    {
+     "sig": "F3 0F 58 7B ?? F3 0F 11 7B ^ ?? 44 0F 2F 43",
+     "site": "0x1803d0b",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x7c",
+      "25244054": "0x7c",
+      "25740136": "0x7c",
+      "26261440": "0x7c",
+      "26473991": "0x7c",
+      "26476662": "0x7c",
+      "26579160": "0x7c"
+     }
+    }
+   ],
+   "flag": "one function only (AfflictionEncounterRules tick, slot 12, two different instructions); the packet reader store has no unique signature"
+  },
+  {
+   "field": "Fog.End",
+   "target": "layout:FogEnd",
+   "value": "0x84",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "F3 0F 10 8B ^ ?? ?? ?? ?? 0F 28 F0 0F 2E CE 0F 8A",
+     "site": "0x1803b85",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x84",
+      "25244054": "0x84",
+      "25740136": "0x84",
+      "26261440": "0x84",
+      "26473991": "0x84",
+      "26476662": "0x84",
+      "26579160": "0x84"
+     }
+    },
+    {
+     "sig": "E8 ?? ?? ?? ?? F3 0F 10 8F ^ ?? ?? ?? ?? 0F 2E C8 0F 8A ?? ?? ?? ?? 0F 85",
+     "site": "0x18034e3",
+     "function": "0x1802f80",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 14 (this)",
+     "values": {
+      "installed": "0x84",
+      "25244054": "0x84",
+      "25740136": "0x84",
+      "26261440": "0x84",
+      "26473991": "0x84",
+      "26476662": "0x84",
+      "26579160": "0x84"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.PauseLeft",
+   "target": "layout:FogPauseLeft",
+   "value": "0x88",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "F3 0F 10 83 ^ ?? ?? ?? ?? 41 0F 2F C0 76 ?? F3 0F 5C C7",
+     "site": "0x1803cea",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x88",
+      "25244054": "0x88",
+      "25740136": "0x88",
+      "26261440": "0x88",
+      "26473991": "0x88",
+      "26476662": "0x88",
+      "26579160": "0x88"
+     }
+    },
+    {
+     "sig": "80 B9 ?? ?? ?? ?? ?? 75 ?? F3 0F 10 89 ^ ?? ?? ?? ?? 0F 57 C0 0F 2F C8",
+     "site": "0x1802f69",
+     "function": "0x1802f60",
+     "proof": "AfflictionEncounterRules \"paused\" getter 0x1802f60 (leaf; the progress bar reads it): hold byte, then pause seconds > 0",
+     "values": {
+      "installed": "0x88",
+      "25244054": "0x88",
+      "25740136": "0x88",
+      "26261440": "0x88",
+      "26473991": "0x88",
+      "26476662": "0x88",
+      "26579160": "0x88"
+     }
+    },
+    {
+     "sig": "89 8E ^ ?? ?? ?? ?? 48 8B 4F ?? 48 83 C1 ?? 48 89 4F ?? 48 8B 57 ?? 48 8D 41 ?? 48 3B C2 0F 87 ?? ?? ?? ?? 48 8B 07 0F B6 0C 01 88 8E ?? ?? ?? ?? 48 FF 47 ?? 48 8D 56 ??",
+     "site": "0x18040ca",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules slot 17 (packet reader): stores the pause seconds; long signature",
+     "values": {
+      "installed": "0x88",
+      "25244054": "0x88",
+      "25740136": "0x88",
+      "26261440": "0x88",
+      "26473991": "0x88",
+      "26476662": "0x88",
+      "26579160": "0x88"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Active",
+   "target": "layout:FogActive",
+   "value": "0x8c",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "42 0F B6 04 01 88 86 ^ ?? ?? ?? ?? 48 8B 4F ?? 48 FF C1",
+     "site": "0x1804004",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 17 (this)",
+     "values": {
+      "installed": "0x8c",
+      "25244054": "0x8c",
+      "25740136": "0x8c",
+      "26261440": "0x8c",
+      "26473991": "0x8c",
+      "26476662": "0x8c",
+      "26579160": "0x8c"
+     }
+    },
+    {
+     "sig": "0F B6 87 ^ ?? ?? ?? ?? 44 38 BF ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? 48 8B F3 84 C0",
+     "site": "0x180307a",
+     "function": "0x1802f80",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 14 (this)",
+     "values": {
+      "installed": "0x8c",
+      "25244054": "0x8c",
+      "25740136": "0x8c",
+      "26261440": "0x8c",
+      "26473991": "0x8c",
+      "26476662": "0x8c",
+      "26579160": "0x8c"
+     }
+    },
+    {
+     "sig": "EB ?? 33 FF 80 BB ^ ?? ?? ?? ?? ?? 0F 84 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? E8",
+     "site": "0x1803b66",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x8c",
+      "25244054": "0x8c",
+      "25740136": "0x8c",
+      "26261440": "0x8c",
+      "26473991": "0x8c",
+      "26476662": "0x8c",
+      "26579160": "0x8c"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Finished",
+   "target": "layout:FogFinished",
+   "value": "0x8d",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "84 DB 75 ?? 38 9E ^ ?? ?? ?? ?? 74 ?? 48 8B 4E ?? 48 81 C1",
+     "site": "0x1804165",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 17 (this)",
+     "values": {
+      "installed": "0x8d",
+      "25244054": "0x8d",
+      "25740136": "0x8d",
+      "26261440": "0x8d",
+      "26473991": "0x8d",
+      "26476662": "0x8d",
+      "26579160": "0x8d"
+     }
+    },
+    {
+     "sig": "48 8B F3 44 38 BF ^ ?? ?? ?? ?? 74 ?? 44 88 BF ?? ?? ?? ?? C7 44 24",
+     "site": "0x18031ae",
+     "function": "0x1802f80",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 14 (this)",
+     "values": {
+      "installed": "0x8d",
+      "25244054": "0x8d",
+      "25740136": "0x8d",
+      "26261440": "0x8d",
+      "26473991": "0x8d",
+      "26476662": "0x8d",
+      "26579160": "0x8d"
+     }
+    },
+    {
+     "sig": "80 BB ^ ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 0F 10 8B ?? ?? ?? ?? 0F 28 F0",
+     "site": "0x1803b73",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x8d",
+      "25244054": "0x8d",
+      "25740136": "0x8d",
+      "26261440": "0x8d",
+      "26473991": "0x8d",
+      "26476662": "0x8d",
+      "26579160": "0x8d"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Map",
+   "target": "layout:FogMap",
+   "value": "0xa0",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 8D 8E ^ ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 4F ?? 48 8B 57 ?? 48 8D 41",
+     "site": "0x180418c",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 17 (this)",
+     "values": {
+      "installed": "0xa0",
+      "25244054": "0xa0",
+      "25740136": "0xa0",
+      "26261440": "0xa0",
+      "26473991": "0xa0",
+      "26476662": "0xa0",
+      "26579160": "0xa0"
+     }
+    },
+    {
+     "sig": "48 8B 97 ?? ?? ?? ?? 48 8D 8B ^ ?? ?? ?? ?? 44 8B 83 ?? ?? ?? ?? 48 81 C2",
+     "site": "0x1803e08",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0xa0",
+      "25244054": "0xa0",
+      "25740136": "0xa0",
+      "26261440": "0xa0",
+      "26473991": "0xa0",
+      "26476662": "0xa0",
+      "26579160": "0xa0"
+     }
+    },
+    {
+     "sig": "48 89 AF ?? ?? ?? ?? 48 8D 8F ^ ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 8F ?? ?? ?? ?? 48 85 C9 74 ?? B8",
+     "site": "0x1802df1",
+     "function": "0x1802d40",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 8 (this)",
+     "values": {
+      "installed": "0xa0",
+      "25244054": "0xa0",
+      "25740136": "0xa0",
+      "26261440": "0xa0",
+      "26473991": "0xa0",
+      "26476662": "0xa0",
+      "26579160": "0xa0"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Most",
+   "target": "layout:FogMost",
+   "value": "0x128",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "41 8B 82 ^ ?? ?? ?? ?? F3 0F 2C D0 3B D0 0F 4C C2",
+     "site": "0x1802f10",
+     "function": "0x1802f00",
+     "proof": "AfflictionEncounterRules rear-depth getter 0x1802f00: Rear(this+0x58) (0x1f671b0, reads the never-dissipates byte) clamped to +0x128",
+     "values": {
+      "installed": "0x128",
+      "25244054": "0x128",
+      "25740136": "0x128",
+      "26261440": "0x128",
+      "26473991": "0x128",
+      "26476662": "0x128",
+      "26579160": "0x128"
+     }
+    },
+    {
+     "sig": "41 8B 80 ^ ?? ?? ?? ?? F3 0F 2C D0 3B D0 0F 4C C2",
+     "site": "0x1802f40",
+     "function": "0x1802f30",
+     "proof": "AfflictionEncounterRules front-depth getter 0x1802f30: Front(this+0x58) (0x1f67140) clamped to +0x128",
+     "values": {
+      "installed": "0x128",
+      "25244054": "0x128",
+      "25740136": "0x128",
+      "26261440": "0x128",
+      "26473991": "0x128",
+      "26476662": "0x128",
+      "26579160": "0x128"
+     }
+    },
+    {
+     "sig": "89 8E ^ ?? ?? ?? ?? 48 83 47 ?? ?? 48 8B D7 48 8D 4D ?? E8",
+     "site": "0x18041b3",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 17 (this)",
+     "values": {
+      "installed": "0x128",
+      "25244054": "0x128",
+      "25740136": "0x128",
+      "26261440": "0x128",
+      "26473991": "0x128",
+      "26476662": "0x128",
+      "26579160": "0x128"
+     }
+    }
+   ]
+  },
+  {
+   "field": "Fog.Hold",
+   "target": "layout:FogHold",
+   "value": "0x130",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "0F B6 0C 01 88 8E ^ ?? ?? ?? ?? 48 FF 47 ?? 48 8D 56",
+     "site": "0x18040f4",
+     "function": "0x1803f90",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 17 (this)",
+     "values": {
+      "installed": "0x130",
+      "25244054": "0x130",
+      "25740136": "0x130",
+      "26261440": "0x130",
+      "26473991": "0x130",
+      "26476662": "0x130",
+      "26579160": "0x130"
+     }
+    },
+    {
+     "sig": "80 BB ^ ?? ?? ?? ?? ?? 75 ?? F3 0F 10 83 ?? ?? ?? ?? 41 0F 2F C0 76",
+     "site": "0x1803ce1",
+     "function": "0x1803880",
+     "proof": "AfflictionEncounterRules vtable 33d0288 slot 12 (this)",
+     "values": {
+      "installed": "0x130",
+      "25244054": "0x130",
+      "25740136": "0x130",
+      "26261440": "0x130",
+      "26473991": "0x130",
+      "26476662": "0x130",
+      "26579160": "0x130"
+     }
+    },
+    {
+     "sig": "80 B9 ^ ?? ?? ?? ?? ?? 75 ?? F3 0F 10 89 ?? ?? ?? ?? 0F 57 C0 0F 2F C8",
+     "site": "0x1802f60",
+     "function": "0x1802f60",
+     "proof": "AfflictionEncounterRules \"paused\" getter 0x1802f60 (leaf; the progress bar reads it): hold byte, then pause seconds > 0",
+     "values": {
+      "installed": "0x130",
+      "25244054": "0x130",
+      "25740136": "0x130",
+      "26261440": "0x130",
+      "26473991": "0x130",
+      "26476662": "0x130",
+      "26579160": "0x130"
+     }
+    }
+   ]
+  },
+  {
+   "field": "AtlasNode.Status",
+   "target": "layout:AtlasNodeStatus",
+   "value": "0x32f",
+   "size": 4,
+   "strength": "strong",
+   "signatures": [
+    {
+     "sig": "48 89 44 24 ?? 0F B6 81 ^ ?? ?? ?? ?? 0F B6 D0 80 E2",
+     "site": "0xb5691f",
+     "function": "0xb56900",
+     "proof": "node test 0xb56900 (its callers test the same node +0x32F first): reads +0x320 and the two status bits",
+     "values": {
+      "installed": "0x32f",
+      "25244054": "0x31f",
+      "25740136": "0x31f",
+      "26261440": "0x31f",
+      "26473991": "0x32f",
+      "26476662": "0x32f",
+      "26579160": "0x32f"
+     }
+    },
+    {
+     "sig": "EB ?? 0F B6 87 ^ ?? ?? ?? ?? 0F B6 C8 80 E1 ?? 24 ?? 02 C8",
+     "site": "0xb58cc9",
+     "function": "0xb58c90",
+     "proof": "atlas node vtable 0x30f5718 slot 80: (b & 2) + (b & 1) of the status byte",
+     "values": {
+      "installed": "0x32f",
+      "25244054": "0x31f",
+      "25740136": "0x31f",
+      "26261440": "0x31f",
+      "26473991": "0x32f",
+      "26476662": "0x32f",
+      "26579160": "0x32f"
+     }
+    },
+    {
+     "sig": "0F B6 87 ^ ?? ?? ?? ?? 0F B6 D0 80 E2 ?? 24 ?? 02 D0 84 D2",
+     "site": "0xb58eae",
+     "function": "0xb58e80",
+     "proof": "atlas node vtable slot 81: (b & 2) + (b & 1) of the status byte",
+     "values": {
+      "installed": "0x32f",
+      "25244054": "0x31f",
+      "25740136": "0x31f",
+      "26261440": "0x31f",
+      "26473991": "0x32f",
+      "26476662": "0x32f",
+      "26579160": "0x32f"
+     }
+    }
+   ],
+   "older_builds": "The three oldest builds (25244054, 25740136, 26261440) read the node fields 0x10 lower (status 0x31F in all three functions, grid 0x310): a real move of the class, not a lookalike."
+  },
+  {
+   "field": "AtlasNode.Grid",
+   "target": "layout:AtlasNodeGrid",
+   "value": "0x320",
+   "size": 4,
+   "strength": "fair",
+   "signatures": [
+    {
+     "sig": "49 8B 06 48 89 86 ^ ?? ?? ?? ?? 4C 8B 7D ?? 41 8B 07",
+     "site": "0xb59433",
+     "function": "0xb59320",
+     "proof": "atlas node element constructor 0xb59320 (installs vtable 0x30f5718; loads Data/Balance/WorldAreas.dat, PowerfulMapBoss)",
+     "values": {
+      "installed": "0x320",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x320",
+      "26476662": "0x320",
+      "26579160": "0x320"
+     }
+    },
+    {
+     "sig": "83 F9 ?? EB ?? 49 8B 87 ^ ?? ?? ?? ?? 48 89 85 ?? ?? ?? ?? 49 8D 8F",
+     "site": "0xb5a58c",
+     "function": "0xb5a520",
+     "proof": "node refresh 0xb5a520, called by the constructor with rcx = the node (r15 = this)",
+     "values": {
+      "installed": "0x320",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x320",
+      "26476662": "0x320",
+      "26579160": "0x320"
+     }
+    },
+    {
+     "sig": "33 DB 89 5C 24 ?? 48 8B 81 ^ ?? ?? ?? ?? 48 89 44 24",
+     "site": "0xb56913",
+     "function": "0xb56900",
+     "proof": "node test 0xb56900: reads the grid pair as a qword next to the status bits",
+     "values": {
+      "installed": "0x320",
+      "25244054": "0x310",
+      "25740136": "0x310",
+      "26261440": "0x310",
+      "26473991": "0x320",
+      "26476662": "0x320",
+      "26579160": "0x320"
+     }
+    }
+   ],
+   "older_builds": "The three oldest builds (25244054, 25740136, 26261440) read the node fields 0x10 lower (status 0x31F in all three functions, grid 0x310): a real move of the class, not a lookalike."
+  },
+  {
+   "field": "AtlasNode.EndgameMapsKey",
+   "target": "layout:AtlasNodeMapsKey",
+   "value": "0x2f0",
+   "size": 4,
+   "strength": "fair (constructor and its refresh)",
+   "signatures": [
+    {
+     "sig": "66 44 89 BE ?? ?? 00 00 48 8D BE ^ ?? ?? ?? ?? 48 89 7C 24",
+     "site": "0xb593ca",
+     "function": "0xb59320",
+     "proof": "atlas node element constructor 0xb59320 (installs vtable 0x30f5718; loads Data/Balance/WorldAreas.dat, PowerfulMapBoss)",
+     "values": {
+      "installed": "0x2f0",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x2f0",
+      "26476662": "0x2f0",
+      "26579160": "0x2f0"
+     }
+    },
+    {
+     "sig": "48 8D 4D ?? E8 ?? ?? ?? ?? 49 8B BF ^ ?? ?? ?? ?? 48 85 FF 0F 84",
+     "site": "0xb5bb3c",
+     "function": "0xb5a520",
+     "proof": "node refresh 0xb5a520, called by the constructor with rcx = the node (r15 = this)",
+     "values": {
+      "installed": "0x2f0",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x2f0",
+      "26476662": "0x2f0",
+      "26579160": "0x2f0"
+     }
+    }
+   ],
+   "older_builds": "The three oldest builds (25244054, 25740136, 26261440) read the node fields 0x10 lower (status 0x31F in all three functions, grid 0x310): a real move of the class, not a lookalike."
+  },
+  {
+   "field": "AtlasNode.AreaKey",
+   "target": "layout:AtlasNodeAreaKey",
+   "value": "0x300",
+   "size": 4,
+   "strength": "fair (one function)",
+   "signatures": [
+    {
+     "sig": "48 8B 08 48 89 8E ^ ?? ?? ?? ?? 48 8D 48 ?? 48 3B D9",
+     "site": "0xb595f2",
+     "function": "0xb59320",
+     "proof": "atlas node element constructor 0xb59320 (installs vtable 0x30f5718; loads Data/Balance/WorldAreas.dat, PowerfulMapBoss); +0x300 set right after WorldAreas.dat is named",
+     "values": {
+      "installed": "0x300",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x300",
+      "26476662": "0x300",
+      "26579160": "0x300"
+     }
+    },
+    {
+     "sig": "48 8B 01 48 89 86 ^ ?? ?? ?? ?? 48 83 C1 ?? 48 3B D9",
+     "site": "0xb59785",
+     "function": "0xb59320",
+     "proof": "atlas node element constructor 0xb59320 (installs vtable 0x30f5718; loads Data/Balance/WorldAreas.dat, PowerfulMapBoss); +0x300 set right after WorldAreas.dat is named",
+     "values": {
+      "installed": "0x300",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x300",
+      "26476662": "0x300",
+      "26579160": "0x300"
+     }
+    }
+   ],
+   "flag": "one function only (atlas node constructor 0xb59320, two different stores)",
+   "older_builds": "The three oldest builds (25244054, 25740136, 26261440) read the node fields 0x10 lower (status 0x31F in all three functions, grid 0x310): a real move of the class, not a lookalike."
+  },
+  {
+   "field": "AtlasNode.AtlasKey",
+   "target": "layout:AtlasNodeAtlasKey",
+   "value": "0x310",
+   "size": 4,
+   "strength": "fair (one function)",
+   "signatures": [
+    {
+     "sig": "4C 89 3B E8 ?? ?? ?? ?? 48 8D 96 ^ ?? ?? ?? ?? 4D 8B C6 48 8B C8",
+     "site": "0xb5941d",
+     "function": "0xb59320",
+     "proof": "atlas node element constructor 0xb59320 (installs vtable 0x30f5718; loads Data/Balance/WorldAreas.dat, PowerfulMapBoss)",
+     "values": {
+      "installed": "0x310",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x310",
+      "26476662": "0x310",
+      "26579160": "0x310"
+     }
+    },
+    {
+     "sig": "48 8D 8E ?? ?? ?? ?? E8 ?? ?? ?? ?? 4C 8B B6 ^ ?? ?? ?? ?? 49 8B 4E ?? 48 85 C9",
+     "site": "0xb59f3b",
+     "function": "0xb59320",
+     "proof": "atlas node element constructor 0xb59320 (installs vtable 0x30f5718; loads Data/Balance/WorldAreas.dat, PowerfulMapBoss)",
+     "values": {
+      "installed": "0x310",
+      "25244054": "0 hits",
+      "25740136": "0 hits",
+      "26261440": "0 hits",
+      "26473991": "0x310",
+      "26476662": "0x310",
+      "26579160": "0x310"
+     }
+    }
+   ],
+   "flag": "one function only (atlas node constructor 0xb59320, two different instructions)",
+   "older_builds": "The three oldest builds (25244054, 25740136, 26261440) read the node fields 0x10 lower (status 0x31F in all three functions, grid 0x310): a real move of the class, not a lookalike."
+  }
+ ]
+}

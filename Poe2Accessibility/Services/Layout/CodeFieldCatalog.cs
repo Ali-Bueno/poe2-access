@@ -148,7 +148,12 @@ namespace Poe2Accessibility.Services
         ///     animation, the stun record, the in-play flag): for these an unread code is a recompiled function, not a loss.
         /// </summary>
         public static IReadOnlyList<string> Heard(IEnumerable<string> unsettled) =>
-            unsettled.Where(name => !Unread.Contains(name) && !JudgedLive.Contains(name)).ToList();
+            unsettled.Where(name => !Unread.Contains(name) && !JudgedLive.Contains(name) && !RefusedWhenWrong.Any(start => name.StartsWith(start, StringComparison.Ordinal))).ToList();
+
+        // The leagues' live data and the Atlas's nodes: the session and the nodes are found again or said lost by their own
+        // search (RulesetReader, AtlasNodeFields), and what is read inside a ruleset is believed only within its range (a
+        // ring's size, a round of its total, a fog that agrees with the game's stat), so a wrong place reads nothing.
+        private static readonly string[] RefusedWhenWrong = { "Rulesets.", "Breach.", "Expedition.", "Ultimatum.", "Fog.", "Monolith.", "AtlasNode." };
 
         // In the catalogs for the count only (docs/compatibility.md, "Read from the game's code").
         private static readonly HashSet<string> Unread = new(StringComparer.Ordinal)

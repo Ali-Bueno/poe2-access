@@ -47,6 +47,8 @@ namespace Poe2Accessibility
             ["StateStride"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateStride, value => GameReader.RemoteObjects.Components.StateMachine.StateStride = value),
             ["MinimapIconHidden"] = (() => GameLayout.MinimapIconRow.ComponentHiddenOffset, value => GameLayout.MinimapIconRow.ComponentHiddenOffset = value),
             ["MonolithEssences"] = (() => GameLayout.MonolithComponent.EssencesOffset, value => GameLayout.MonolithComponent.EssencesOffset = value),
+            ["AtlasNodeGrid"] = (() => GameLayout.AtlasNode.GridOffset, value => GameLayout.AtlasNode.GridOffset = value),
+            ["AtlasNodeStatus"] = (() => GameLayout.AtlasNode.StatusOffset, value => GameLayout.AtlasNode.StatusOffset = value),
 
             // The league rulesets (GameLayout.Rulesets): the session, each ruleset's base and what each mechanic keeps in its own.
             ["RulesetsAreaSession"] = (() => GameLayout.Rulesets.AreaSession, value => GameLayout.Rulesets.AreaSession = value),
@@ -55,7 +57,8 @@ namespace Poe2Accessibility
             ["RulesetRow"] = (() => GameLayout.Rulesets.RulesetRow, value => GameLayout.Rulesets.RulesetRow = value),
             ["RulesetSession"] = (() => GameLayout.Rulesets.RulesetSession, value => GameLayout.Rulesets.RulesetSession = value),
             ["BreachEncounters"] = (() => GameLayout.Rulesets.BreachEncounters, value => GameLayout.Rulesets.BreachEncounters = value),
-            ["BreachStride"] = (() => GameLayout.Rulesets.BreachStride, value => GameLayout.Rulesets.BreachStride = value),
+            ["BreachTo"] = (() => GameLayout.Rulesets.BreachTo, value => GameLayout.Rulesets.BreachTo = value),
+            ["BreachDuration"] = (() => GameLayout.Rulesets.BreachDuration, value => GameLayout.Rulesets.BreachDuration = value),
             ["BreachElapsed"] = (() => GameLayout.Rulesets.BreachElapsed, value => GameLayout.Rulesets.BreachElapsed = value),
             ["BreachCentre"] = (() => GameLayout.Rulesets.BreachCentre, value => GameLayout.Rulesets.BreachCentre = value),
             ["BreachState"] = (() => GameLayout.Rulesets.BreachState, value => GameLayout.Rulesets.BreachState = value),

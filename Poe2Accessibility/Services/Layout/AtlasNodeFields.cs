@@ -50,14 +50,30 @@ namespace Poe2Accessibility.Services
             _ = AtlasKey.Row(reader, elements, node);
         }
 
+        /// <summary>
+        ///     Where a field after the keys is now: where the game's code put it (catalog/code-fields.txt), else as far from
+        ///     where measured as the keys moved. Never both: the code's place already has the move in it.
+        /// </summary>
+        public static int Placed(int now, int measured, int shift) => now != measured ? now : measured + shift;
+
+        /// <summary>No two fields of a node are this far apart: one read holds its grid and its status.</summary>
+        private const int MostApart = 0x100;
+
         /// <summary>A node's grid cell and status byte, read at once; null when unreadable.</summary>
         public static (int X, int Y, byte Status)? Read(HostMemoryReader reader, IntPtr node, int shift)
         {
-            var grid = GameLayout.AtlasNode.GridOffset + shift;
-            var status = GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset;
-            var bytes = reader.ReadBytes(node + grid, Math.Max(GameLayout.AtlasNode.GridBytes, status + 1));
-            return bytes.Length > status && bytes.Length >= GameLayout.AtlasNode.GridBytes
-                ? (BitConverter.ToInt32(bytes, 0), BitConverter.ToInt32(bytes, sizeof(int)), bytes[status])
+            var grid = Placed(GameLayout.AtlasNode.GridOffset, GameLayout.AtlasNode.GridMeasured, shift);
+            var status = Placed(GameLayout.AtlasNode.StatusOffset, GameLayout.AtlasNode.StatusMeasured, shift);
+            var first = Math.Min(grid, status);
+            var length = Math.Max(grid + GameLayout.AtlasNode.GridBytes, status + 1) - first;
+            if (first < 0 || length > MostApart)
+            {
+                return null;
+            }
+
+            var bytes = reader.ReadBytes(node + first, length);
+            return bytes.Length == length
+                ? (BitConverter.ToInt32(bytes, grid - first), BitConverter.ToInt32(bytes, grid - first + sizeof(int)), bytes[status - first])
                 : null;
         }
     }

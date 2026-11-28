@@ -405,9 +405,9 @@ namespace Poe2Accessibility.Services
 
             var passive = DatKey.Row(this.reader, this.elements, atlasRow + GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
             var area = AtlasNodeFields.AreaKey.RowAt(this.reader, this.elements, node);
-            var bytes = this.reader.ReadBytes(node + GameLayout.AtlasNode.GridOffset + AtlasNodeFields.Shift, 0x20);
+            var bytes = this.reader.ReadBytes(node + AtlasNodeFields.Placed(GameLayout.AtlasNode.GridOffset, GameLayout.AtlasNode.GridMeasured, AtlasNodeFields.Shift), 0x20);
             var fields = bytes.Length == 0x20
-                ? $" grid {BitConverter.ToInt32(bytes, 0)},{BitConverter.ToInt32(bytes, 4)} status {bytes[GameLayout.AtlasNode.StatusOffset - GameLayout.AtlasNode.GridOffset]} +328 {BitConverter.ToUInt64(bytes, 8):X16} +330 {BitConverter.ToUInt32(bytes, 0x10)} +338 {Convert.ToHexString(bytes, 0x18, 8)}"
+                ? $" grid {BitConverter.ToInt32(bytes, 0)},{BitConverter.ToInt32(bytes, 4)} status {bytes[GameLayout.AtlasNode.StatusMeasured - GameLayout.AtlasNode.GridMeasured]} +328 {BitConverter.ToUInt64(bytes, 8):X16} +330 {BitConverter.ToUInt32(bytes, 0x10)} +338 {Convert.ToHexString(bytes, 0x18, 8)}"
                 : string.Empty;
             var textures = new List<string>();
             if (this.elements.TryReadElement(node, out var info))
