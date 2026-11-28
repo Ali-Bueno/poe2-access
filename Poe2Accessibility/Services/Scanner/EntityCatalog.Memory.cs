@@ -205,6 +205,10 @@ namespace Poe2Accessibility.Services
             this.unexploredAt = long.MinValue / 2;
             this.frontierSearch = null; // what it finds is another area's: the map it read is no longer this one
             this.frontierFor = null;
+            this.topologyCancel?.Cancel(); // a shape still being worked out is the area left's
+            this.topologyBuild = null;
+            this.topologyFor = string.Empty;
+            this.topology = null;
         }
 
         /// <summary>
