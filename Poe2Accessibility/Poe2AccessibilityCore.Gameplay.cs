@@ -440,53 +440,30 @@ namespace Poe2Accessibility
         /// <summary>The shop page is looked for this often while nothing has the focus (its search walks panels_parent).</summary>
         private const int ShopLookupMs = 250;
 
-        private long shopLookedUpAt = long.MinValue / 2;
-        private IntPtr shopPage;
+        private readonly ThrottledLookup<IntPtr> shopPage = new(ShopLookupMs);
+        private readonly ThrottledLookup<IntPtr> shopRoot = new(ShopLookupMs);
+        private readonly ThrottledLookup<IntPtr> worldScreen = new(ShopLookupMs);
+
+        /// <summary>The inventory panel of the HUD's layer container; zero when it is not found.</summary>
+        private IntPtr InventoryPanel() =>
+            this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero;
 
         /// <summary>The shop's page while it is shown (<see cref="UiSemantics.ShopPage"/>), looked up at most every ShopLookupMs.</summary>
-        private IntPtr ShopPage()
-        {
-            var now = Environment.TickCount64;
-            if (now - this.shopLookedUpAt >= ShopLookupMs)
-            {
-                this.shopLookedUpAt = now;
-                this.shopPage = this.semantics?.ShopPage(this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero) ?? IntPtr.Zero;
-            }
-
-            return this.shopPage;
-        }
+        private IntPtr ShopPage() =>
+            this.shopPage.Get(this, static core => core.semantics?.ShopPage(core.InventoryPanel()) ?? IntPtr.Zero, Environment.TickCount64);
 
         /// <summary>Where the shop's chosen card shows: its open item page, else the whole page; looked up as often as the page.</summary>
         private IntPtr ShopHighlightRoot()
         {
             var page = this.ShopPage();
-            if (page == IntPtr.Zero || Environment.TickCount64 - this.shopRootLookedUpAt < ShopLookupMs)
-            {
-                return page == IntPtr.Zero ? page : this.shopRoot;
-            }
-
-            this.shopRootLookedUpAt = Environment.TickCount64;
-            return this.shopRoot = this.semantics?.ShopHighlightRoot(page) ?? page;
+            return page == IntPtr.Zero
+                ? page
+                : this.shopRoot.Get((core: this, page), static args => args.core.semantics?.ShopHighlightRoot(args.page) ?? args.page, Environment.TickCount64);
         }
-
-        private long shopRootLookedUpAt = long.MinValue / 2;
-        private IntPtr shopRoot;
-
-        private long worldScreenLookedUpAt = long.MinValue / 2;
-        private IntPtr worldScreen;
 
         /// <summary>The world map while it is shown (<see cref="UiSemantics.WorldScreen"/>), looked up at most every ShopLookupMs.</summary>
-        private IntPtr WorldScreen()
-        {
-            var now = Environment.TickCount64;
-            if (now - this.worldScreenLookedUpAt >= ShopLookupMs)
-            {
-                this.worldScreenLookedUpAt = now;
-                this.worldScreen = this.semantics?.WorldScreen(this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero) ?? IntPtr.Zero;
-            }
-
-            return this.worldScreen;
-        }
+        private IntPtr WorldScreen() =>
+            this.worldScreen.Get(this, static core => core.semantics?.WorldScreen(core.InventoryPanel()) ?? IntPtr.Zero, Environment.TickCount64);
 
         /// <summary>How often the Atlas tree's root at the view's centre is looked for while nothing has the focus on the Atlas.</summary>
         private const int HoverlessLookupMs = 1000;

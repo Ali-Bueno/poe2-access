@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine),
             (nameof(QuestPageWaitsForTheMenuToClose), QuestPageWaitsForTheMenuToClose),
             (nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt),
+            (nameof(ALookupIsRepeatedOnlyOncePerPeriod), ALookupIsRepeatedOnlyOncePerPeriod),
             (nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud),
             (nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown),
             (nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3),
@@ -362,6 +363,18 @@ namespace Poe2Accessibility.Tests
             Equal(false, page.Waiting, "said");
             Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, waits: true), "the same page in a menu is no news");
             Equal(false, page.Waiting, "and nothing waits");
+        }
+
+        private static void ALookupIsRepeatedOnlyOncePerPeriod()
+        {
+            var lookup = new ThrottledLookup<int>(250);
+            var calls = 0;
+            Func<int, int> find = answer => { calls++; return answer; };
+            Equal(1, lookup.Get(1, find, 1000), "the first call looks up");
+            Equal(1, lookup.Get(2, find, 1249), "within the period the last answer stands");
+            Equal(1, calls, "and nothing is looked up");
+            Equal(3, lookup.Get(3, find, 1250), "after the period it looks up again");
+            Equal(2, calls, "once");
         }
 
         private static void WorldIsBackOnlyOnceNothingCoversIt()

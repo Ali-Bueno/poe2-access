@@ -352,8 +352,7 @@ namespace Poe2Accessibility
                 this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);
                 this.pickups.InTrade = () => tradeOffers.Open;
                 this.pickups.InFavours = () => this.narrator?.FavoursShown == true;
-                this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
-                    this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
+                this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(this.InventoryPanel()) ?? string.Empty;
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
                 this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
