@@ -31,7 +31,7 @@ namespace Poe2Accessibility.Services
         private readonly LostWatch watch = new();
         private AudioCueService.Bed? bed;
         private Vector2? target;
-        private Vector2 lastPlace;
+        private Vector2? lastPlace;
         private long startedAt;
         private long lastPoll;
 
@@ -70,6 +70,8 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.target = null;
+            this.lastPlace = null;
+            this.lastPoll = 0;
             this.watch.Reset();
         }
 
@@ -95,7 +97,7 @@ namespace Poe2Accessibility.Services
             if (now - this.lastPoll >= PollMs)
             {
                 this.lastPoll = now;
-                var moving = Vector2.Distance(here, this.lastPlace) >= WalkingWorld;
+                var moving = this.lastPlace is { } before && Vector2.Distance(here, before) >= WalkingWorld;
                 this.lastPlace = here;
                 var lost = this.watch.Update(now, this.catalog.SeenBlocks, moving && !inFight, this.LostAfterMs, moving);
                 var news = this.watch.Explored(this.SoundAfterAreaMs, this.SpokenAfterAreaMs);
