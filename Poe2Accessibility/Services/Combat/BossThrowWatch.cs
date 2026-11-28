@@ -95,7 +95,7 @@ namespace Poe2Accessibility.Services
                         boss = entity;
                         break;
                     case 2:
-                        this.helpers.Add((at, StateOf(entity, fight.Busy) is var state && state > 0 && state < fight.Stopped));
+                        this.helpers.Add((at, StateReading.Of(entity, fight.Busy) is var state && state > 0 && state < fight.Stopped));
                         break;
                     case 3:
                         this.targets.Add(at);
@@ -103,7 +103,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var carried = boss != null && StateOf(boss, fight.Carries) > 0;
+            var carried = boss != null && StateReading.Of(boss, fight.Carries) > 0;
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var picked = boss == null ? null : this.throws.Pick(this.helpers, this.targets, here);
             if (picked != this.target || carried != this.carrying)
@@ -136,9 +136,5 @@ namespace Poe2Accessibility.Services
             return kind;
         }
 
-        private static long StateOf(Entity entity, string name) =>
-            entity.TryGetComponent<StateMachine>(out var machine)
-                ? machine.States.Where(state => string.Equals(state.Name, name, StringComparison.OrdinalIgnoreCase)).Select(state => state.Value).FirstOrDefault()
-                : 0;
     }
 }

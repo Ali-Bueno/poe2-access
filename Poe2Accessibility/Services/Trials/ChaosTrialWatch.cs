@@ -20,7 +20,7 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly ChaosRoundNews news = new();
-        private readonly HashSet<string> logged = new(StringComparer.Ordinal);
+        private readonly DistinctLog logged;
         private readonly List<(uint Id, ChaosPiece Piece)> pieces = new();
         private readonly ExitLeverNews exitLever = new();
         private readonly ExitLeverNews nextLift = new();
@@ -44,6 +44,7 @@ namespace Poe2Accessibility.Services
             this.memory = memory;
             this.output = output;
             this.log = log;
+            this.logged = new DistinctLog(log, "Chaos trial piece seen");
         }
 
         /// <summary>A new area: nothing is known of its rounds.</summary>
@@ -261,11 +262,7 @@ namespace Poe2Accessibility.Services
 
         private void LogOnce(string path, List<(string Name, long Value)> states)
         {
-            var line = $"{path}: {string.Join(", ", states.Select(state => $"{state.Name}={state.Value}"))}";
-            if (this.logged.Add(line))
-            {
-                this.log.Info($"Chaos trial piece seen: {line}");
-            }
+            this.logged.Note($"{path}: {string.Join(", ", states.Select(state => $"{state.Name}={state.Value}"))}");
         }
     }
 }

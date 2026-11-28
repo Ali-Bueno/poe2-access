@@ -34,7 +34,7 @@ namespace Poe2Accessibility.Services
         private readonly PlacementNews placement = new();
         private readonly PlacementGuide guide = new();
         private readonly EncounterNews tracker = new();
-        private readonly HashSet<string> logged = new(StringComparer.Ordinal);
+        private readonly DistinctLog logged;
         private readonly HashSet<string> loggedMonsters = new(StringComparer.Ordinal);
         private readonly List<(uint Id, ExpeditionFind Find)> covered = new();
         private readonly List<uint> charges = new();
@@ -52,6 +52,7 @@ namespace Poe2Accessibility.Services
         {
             this.output = output;
             this.log = log;
+            this.logged = new DistinctLog(log, "League piece seen");
             this.elements = elements;
             this.memory = memory;
         }
@@ -461,10 +462,7 @@ namespace Poe2Accessibility.Services
         {
             var line = $"{FileOf(path)}: {string.Join(", ", states.Select(state => $"{state.Name}={state.Value}"))}{(icon.Length > 0 ? $"; icon {icon}" : string.Empty)}" +
                        (zoneRadius is { } radius ? $"; zone radius {radius}" : string.Empty) + (sacrifice is { } gone ? $"; sacrifice {gone}" : string.Empty);
-            if (this.logged.Add(line))
-            {
-                this.log.Info($"League piece seen: {line}");
-            }
+            this.logged.Note(line);
         }
 
         /// <summary>

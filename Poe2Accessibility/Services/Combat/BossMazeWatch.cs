@@ -161,7 +161,7 @@ namespace Poe2Accessibility.Services
 
                 if (kind == 1)
                 {
-                    falling |= EntityCatalog.IsAliveEnemy(entity) && StateOf(entity, PillarState) == 1;
+                    falling |= EntityCatalog.IsAliveEnemy(entity) && StateReading.Of(entity, PillarState) == 1;
                 }
                 else if (this.positions.Of(entity) is { } at)
                 {
@@ -330,15 +330,15 @@ namespace Poe2Accessibility.Services
         {
             switch (kind)
             {
-                case 2 when StateOf(entity, ShatterState) == 0:
-                    this.rocks.Add(new MazeRock(at, StateOf(entity, "left") == 1, StateOf(entity, "right") == 1));
+                case 2 when StateReading.Of(entity, ShatterState) == 0:
+                    this.rocks.Add(new MazeRock(at, StateReading.Of(entity, "left") == 1, StateReading.Of(entity, "right") == 1));
                     break;
                 case 3:
                     this.middle = at;
                     break;
                 case 4:
                     this.pillars.Add(at);
-                    broken |= StateOf(entity, BrokenState) > 0;
+                    broken |= StateReading.Of(entity, BrokenState) > 0;
                     break;
                 case 5 when !this.raised.ContainsKey(entity.Id):
                     this.raised[entity.Id] = (at, now, false);
@@ -381,9 +381,5 @@ namespace Poe2Accessibility.Services
             return kind;
         }
 
-        private static long StateOf(Entity entity, string name) =>
-            entity.TryGetComponent<StateMachine>(out var machine)
-                ? machine.States.Where(state => string.Equals(state.Name, name, StringComparison.OrdinalIgnoreCase)).Select(state => state.Value).FirstOrDefault()
-                : 0;
     }
 }
