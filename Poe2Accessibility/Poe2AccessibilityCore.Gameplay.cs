@@ -161,7 +161,7 @@ namespace Poe2Accessibility
             this.bosses.AllMonsters = allMonsters;
             this.bosses.ParryCues = this.Settings.ParryCues;
             this.bosses.UnblockableCues = this.Settings.UnblockableCues;
-            this.bosses.CatalogDirectory = System.IO.Path.Join(this.DllDirectory, "catalog");
+            this.bosses.CatalogDirectory = this.catalogDirectory ??= System.IO.Path.Join(this.DllDirectory, "catalog");
             this.bosses.Tick(playing);
             foreach (var (part, trust) in this.bosses.FieldNews())
             {
@@ -176,6 +176,8 @@ namespace Poe2Accessibility
                 }
             }
         }
+
+        private string? catalogDirectory;
 
         /// <summary>The panel covering the game; none in local co-op, where it may be the other player's and this one's game goes on.</summary>
         private ScreenLayer? PanelOverGame() =>
