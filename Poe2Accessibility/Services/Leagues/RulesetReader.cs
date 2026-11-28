@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
         private int areaMisses;
         private int healTries;
         private bool moved;
+        private bool rowMissLogged;
         private int generation = -1;
 
         /// <summary>More records than this in one vector says the pointers are not a vector's.</summary>
@@ -59,16 +60,17 @@ namespace Poe2Accessibility.Services
         {
             (this.session, this.area, this.lastSearch) = (IntPtr.Zero, IntPtr.Zero, long.MinValue / 2);
             (this.areaMisses, this.healTries) = (0, 0);
-            this.names.Clear();
         }
 
         /// <summary>The ring of the Breach nearest a place, while one is open; null without one or when its numbers cannot be a ring's.</summary>
         public BreachRing? BreachNear(Vector2 playerGrid)
         {
             BreachRing? nearest = null;
-            foreach (var record in this.Records(GameLayout.Rulesets.BreachName, GameLayout.Rulesets.BreachEncounters, GameLayout.Rulesets.BreachStride))
+            // The vector holds a pointer to each encounter, not the encounters (GameLayout.Rulesets.BreachEncounters).
+            foreach (var slot in this.Records(GameLayout.Rulesets.BreachName, GameLayout.Rulesets.BreachEncounters, IntPtr.Size))
             {
-                if (!this.memory.TryRead<float>(record + GameLayout.Rulesets.BreachFrom, out var from) ||
+                if (!this.memory.TryRead<IntPtr>(slot, out var record) || !this.memory.IsValidAddress(record) ||
+                    !this.memory.TryRead<float>(record + GameLayout.Rulesets.BreachFrom, out var from) ||
                     !this.memory.TryRead<float>(record + GameLayout.Rulesets.BreachTo, out var to) ||
                     !this.memory.TryRead<float>(record + GameLayout.Rulesets.BreachDuration, out var duration) ||
                     !this.memory.TryRead<float>(record + GameLayout.Rulesets.BreachElapsed, out var elapsed) ||
@@ -169,12 +171,9 @@ namespace Poe2Accessibility.Services
             var present = new List<string>();
             for (var row = 0; row < GameLayout.Rulesets.MostRows; row++)
             {
-                if (this.RulesetAt(this.session, row) is { } rules)
+                if (this.RulesetAt(this.session, row) != null)
                 {
-                    // By the files' name of the row; what the ruleset itself says is added when it is another (a table that gained a row).
-                    var listed = GameIds.Current.RulesetName(row) ?? $"row {row}";
-                    var own = this.NameOf(rules);
-                    present.Add(own == listed ? listed : $"{listed} (its own row says {(own is { Length: > 0 } ? own : "nothing")})");
+                    present.Add(GameIds.Current.RulesetName(row) ?? $"row {row}");
                 }
             }
 
@@ -236,7 +235,7 @@ namespace Poe2Accessibility.Services
                 if (rules != IntPtr.Zero && this.memory.IsValidAddress(rules) &&
                     this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetSession, out var owner) && owner == candidate)
                 {
-                    names.Add($"{row}={this.NameOf(rules) ?? "?"}");
+                    names.Add($"{row}={(this.OwnRow(rules) == row ? GameIds.Current.RulesetName(row) ?? "row" : "?")}");
                 }
             }
 
@@ -352,38 +351,68 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private IntPtr? Find(string name)
         {
-            if (!this.EnsureSession() || RowOf(name) is not { } row || row < 0 || row >= GameLayout.Rulesets.MostRows ||
-                this.RulesetAt(this.session, row) is not { } rules)
+            if (!this.EnsureSession() || RowOf(name) is not { } row || row < 0 || row >= GameLayout.Rulesets.MostRows)
             {
                 return null;
             }
 
-            // The row's number is the files' or, failing them, an older build's: the ruleset's own row must be named so, or a
-            // table that gained a row would give another mechanic's object to this one's reader.
-            if (!this.names.TryGetValue(rules, out var own))
-            {
-                this.names[rules] = own = this.NameOf(rules);
-                if (own != name)
-                {
-                    this.log.Info($"Rulesets: row {row} holds {(own is { Length: > 0 } ? own : "an unnamed ruleset")}, not {name}: not read as it");
-                }
-            }
-
-            return own == name ? rules : null;
+            return this.RulesetAt(this.session, row);
         }
-
-        /// <summary>The Id each ruleset of the session says it is, read once.</summary>
-        private readonly Dictionary<IntPtr, string?> names = new();
 
         private static int? RowOf(string name) =>
             GameIds.Current.Ruleset(name) ?? (GameLayout.Rulesets.RowsOfThisBuild.TryGetValue(name, out var row) ? row : null);
 
-        /// <summary>The ruleset of a row in a session's array; null when there is none or it does not point back to the session.</summary>
-        private IntPtr? RulesetAt(IntPtr owner, int row) =>
+        /// <summary>
+        ///     The ruleset of a row in a session's array; null when there is none, it does not point back to the session, or
+        ///     it does not hold that row's number (the base constructor stores it: 89 59 30).
+        /// </summary>
+        private IntPtr? RulesetAt(IntPtr owner, int row) => this.BackedAt(owner, row) is { } rules && this.OwnRow(rules) == row ? rules : null;
+
+        /// <summary>What a row of a session's array points at, when it points back to the session.</summary>
+        private IntPtr? BackedAt(IntPtr owner, int row) =>
             this.memory.TryRead<IntPtr>(owner + GameLayout.Rulesets.SessionRulesets + (row * IntPtr.Size), out var rules) && this.memory.IsValidAddress(rules) &&
             this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetSession, out var back) && back == owner
                 ? rules
                 : null;
+
+        /// <summary>The number of the Rulesets.dat row a ruleset says it is of; null when unread.</summary>
+        private int? OwnRow(IntPtr rules) => this.memory.TryRead<int>(rules + GameLayout.Rulesets.RulesetRow, out var row) ? row : null;
+
+        /// <summary>How far either side of where a ruleset kept its row's number it is looked for: the rulesets' base is a few fields long.</summary>
+        private const int RowReach = 0x20;
+
+        /// <summary>
+        ///     Once per area, with its session found: when rulesets point back to it and none holds its row's number where
+        ///     measured, the number is looked for near there on all of them, and a session whose rulesets cannot be told apart
+        ///     is no session to read from.
+        /// </summary>
+        private bool RowsRead()
+        {
+            var backed = Enumerable.Range(0, GameLayout.Rulesets.MostRows).Select(row => (Row: row, Rules: this.BackedAt(this.session, row)))
+                .Where(slot => slot.Rules != null).Select(slot => (slot.Row, Rules: slot.Rules!.Value)).ToList();
+            if (backed.Count == 0 || backed.Any(slot => this.OwnRow(slot.Rules) == slot.Row))
+            {
+                return true;
+            }
+
+            var measured = GameLayout.Rulesets.RulesetRow;
+            if (OffsetSearch.First(measured, RowReach, sizeof(int), at => backed.All(slot => this.memory.TryRead<int>(slot.Rules + at, out var row) && row == slot.Row)) is { } found)
+            {
+                this.log.Info($"Rulesets: a ruleset's row found again, +0x{measured:X} to +0x{found:X}, on {backed.Count} of this area");
+                GameLayout.Rulesets.RulesetRow = found;
+                CompatibilityReport.Current?.Moved(Part, measured, found);
+                this.moved = true;
+                return true;
+            }
+
+            if (!this.rowMissLogged)
+            {
+                this.rowMissLogged = true;
+                this.log.Info($"Rulesets: {backed.Count} rulesets point back to the session and none holds its row's number near +0x{measured:X}: they cannot be told apart, nothing is read from them");
+            }
+
+            return false;
+        }
 
         /// <summary>Whether the session is known and still the area's; finds it when it is not.</summary>
         private bool EnsureSession()
@@ -416,6 +445,13 @@ namespace Poe2Accessibility.Services
             {
                 this.healTries++;
                 this.session = this.HealSession(state.Address, areaNow);
+            }
+
+            // A session whose rulesets cannot be told apart is as good as none, and counts against the layout as one not found.
+            if (this.session != IntPtr.Zero && !this.RowsRead())
+            {
+                (this.session, this.missLogged) = (IntPtr.Zero, true);
+                this.areaMisses++;
             }
 
             if (this.session == IntPtr.Zero)
@@ -463,7 +499,7 @@ namespace Poe2Accessibility.Services
                 return value;
             }
 
-            bool Named(long rules, int row) => GameIds.Current.RulesetName(row) is { Length: > 0 } name && this.NameOf(new IntPtr(rules)) == name;
+            bool Named(long rules, int row) => this.OwnRow(new IntPtr(rules)) == row;
 
             // One read per candidate for where its pointer to the area may be, and one for its array: the search then reads memory only for the rulesets.
             void Prime(IntPtr from, byte[] block)
@@ -560,13 +596,6 @@ namespace Poe2Accessibility.Services
                 }
             }
         }
-
-        /// <summary>The Id of a ruleset's row of Rulesets.dat; null when it does not read.</summary>
-        private string? NameOf(IntPtr rules) =>
-            this.memory.TryRead<IntPtr>(rules + GameLayout.Rulesets.RulesetRow, out var datRow) && this.memory.IsValidAddress(datRow) &&
-            this.memory.TryRead<IntPtr>(datRow, out var text) && this.memory.IsValidAddress(text)
-                ? this.elements.ReadUtf16BufferAt(text, MaxNameChars)
-                : null;
 
         private bool PointsBackToArea(IntPtr candidate, IntPtr areaNow) =>
             this.memory.TryRead<IntPtr>(candidate + GameLayout.Rulesets.SessionArea, out var held) && held == areaNow;

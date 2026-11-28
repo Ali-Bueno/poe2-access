@@ -6,7 +6,7 @@ namespace Poe2Accessibility.Services
     ///     Where a session keeps its area and its rulesets once a game update moved them (<see cref="GameLayout.Rulesets"/>).
     ///     A session is still the object that holds the area's address, and its rulesets still the pointers of one array, by
     ///     row of Rulesets.dat, that each point back to it; every area has one at least (AncestralOmenRules). Both must hold,
-    ///     and a ruleset must be named as the game's files name its row, for a place to be taken. Pure.
+    ///     and a ruleset must hold the number of the row it is found in, for a place to be taken. Pure.
     /// </summary>
     public static class RulesetSessionSearch
     {
@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The places of <paramref name="session"/> nearest <paramref name="measured"/>; null unless it holds
-        ///     <paramref name="area"/> and a ruleset that points back to it from the row its name has in the game's files.
+        ///     <paramref name="area"/> and a ruleset that points back to it from the row whose number it holds.
         ///     <paramref name="pointerAt"/> reads a pointer (0 when unreadable); <paramref name="named"/> says whether a
         ///     ruleset is the one of a row.
         /// </summary>
