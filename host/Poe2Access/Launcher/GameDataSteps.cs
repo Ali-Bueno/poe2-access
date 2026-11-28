@@ -43,7 +43,7 @@ internal static class GameDataSteps
         // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
         new Step("game ids", 5, "game-ids.txt", "game-ids", true), // 5: the rows of Rulesets, for the client's rulesets
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
-        new Step("game names", 7, "game-names.txt", "game-names", true), // 7: the rulesets the mod reads and every Metadata path its source matches (path-names.txt); 6: the Expedition explosive objects; 5: the Verisium Anvil's icon; 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
+        new Step("game names", 8, "game-names.txt", "game-names", true), // 8: the Map Device's icon; 7: the rulesets the mod reads and every Metadata path its source matches (path-names.txt); 6: the Expedition explosive objects; 5: the Verisium Anvil's icon; 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
         new Step("places", 2, "places.json", "places", true), // 2: the props vocabulary, every rotation, each tile's own .tmd (2026-11-16)
         new Step("rooms", 3, "rooms.json", "rooms", true), // 3: generic labels named by file name or props (2026-11-16)
         new Step("endgame", 5, "endgame.json", "endgame", true), // 5: each graph's file path; 4: skill-graph nodes carry their PassiveSkills marks and roots
@@ -57,7 +57,7 @@ internal static class GameDataSteps
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
         new Step("mod stats", 3, "mod-stats.json", "mod-stats", true), // 3: what runes and soul cores give socketed; 2: a modifier keying its own buff is told apart
-        new Step(Sounds, 22, null, null, Input: ItemSounds), // 22: the Verisium Anvil's six hammer takes; 21: the Reforging Bench's six hammer blows; 19: the powder barrels; 18: the bench's six anvil strikes; 17: a petrifying statue opening its eyes; 16: the Trial of Chaos lift's own (ElevatorEnd_02); 15: the strongbox's sound louder (0.16), the Essence's a little (0.13), the Abyss chests' own, the boss shelter's loop and its end; 14: the exits' ambient sounds (exits/, from exit-sounds.json); 13: the Delirium, Essence, spirit and strongbox sounds the user picked by ear
+        new Step(Sounds, 23, null, null, Input: ItemSounds), // 23: the Map Device's frozen mechanism (loops/map_device); 22: the Verisium Anvil's six hammer takes; 21: the Reforging Bench's six hammer blows; 19: the powder barrels; 18: the bench's six anvil strikes; 17: a petrifying statue opening its eyes; 16: the Trial of Chaos lift's own (ElevatorEnd_02); 15: the strongbox's sound louder (0.16), the Essence's a little (0.13), the Abyss chests' own, the boss shelter's loop and its end; 14: the exits' ambient sounds (exits/, from exit-sounds.json); 13: the Delirium, Essence, spirit and strongbox sounds the user picked by ear
     ];
 
     /// <summary>

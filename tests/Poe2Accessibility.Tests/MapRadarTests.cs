@@ -431,6 +431,8 @@ namespace Poe2Accessibility.Tests
             Equal(false, MinimapMarks.IsLitMark("TreasureVaultHammerActive") || !MinimapMarks.IsService(MinimapMarks.ReforgeKind), "never a quest's mark");
             Equal(MinimapMarks.AnvilKind, MinimapMarks.ServiceKind("ExpeditionCraftingBenchAct1"), "the Verisium Anvil is a service of its own");
             Equal(true, MinimapMarks.IsService(MinimapMarks.AnvilKind) && MinimapMarks.ServiceKind("ExpeditionCraftingBenchAct2").Length == 0, "the runesmithing knowledge is no anvil");
+            Equal(MinimapMarks.MapDeviceKind, MinimapMarks.ServiceKind("MapDevice"), "the Map Device is a service of its own (owner, 2026-11-28)");
+            Equal(true, MinimapMarks.IsService(MinimapMarks.MapDeviceKind) && !MinimapMarks.IsLitMark("MapDevice"), "never a quest's mark, so it keeps its own loop");
             Equal(true, MinimapMarks.IsLitMark("RustObeliskActive"), "an area's own mark, lit: the obelisk still to use");
             Equal(false, MinimapMarks.IsLitMark("RustObeliskInactive") || MinimapMarks.IsLitMark("TitanGrottoEntranceInActive"), "dimmed once done, in either spelling");
             Equal(false, MinimapMarks.IsLitMark("CheckpointNotActive") || MinimapMarks.IsLitMark("Stash") || MinimapMarks.IsLitMark(string.Empty), "and no other icon is one");

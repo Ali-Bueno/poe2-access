@@ -225,6 +225,7 @@ namespace Poe2Accessibility
             Services.MinimapMarks.BenchKind => T("Crafting bench", "Mesa de reciclaje"),
             Services.MinimapMarks.ReforgeKind => T("Reforging Bench", "Mesa de reforja"),
             Services.MinimapMarks.AnvilKind => T("Verisium Anvil", "Yunque de verisium"),
+            Services.MinimapMarks.MapDeviceKind => T("Map Device", "Artefacto de mapas"),
             Services.MinimapMarks.SignKind => T("Sign to read", "Letrero para leer"),
             Services.OpenedWays.Kind => OpenedWay,
             Services.ClosedDoors.Kind => T("Door to open", "Puerta por abrir"),
@@ -353,7 +354,7 @@ namespace Poe2Accessibility
             "exit" => T(
                 "the nearest one, on its side, repeated faster and louder as you get closer",
                 "la más cercana, a su lado, se repite más rápido y más fuerte al acercarte"),
-            "portal" or "waypoint" or "checkpoint" => T(
+            "portal" or "waypoint" or "checkpoint" or Services.MinimapMarks.MapDeviceKind => T(
                 "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
                 "el más cercano, a su lado, sin parar; más fuerte al acercarte, al centro cuando estás encima"),
             "chest" or "corpse" or "breakable" => T("every one within about a screen, each on its side", "todos los que hay a una pantalla, cada uno a su lado"),

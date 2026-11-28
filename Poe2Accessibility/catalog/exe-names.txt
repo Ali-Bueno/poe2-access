@@ -173,6 +173,7 @@
 -	mages_legacy_index	StatHandlers.cs
 +	main_frame	UiSemantics.OptionLists.cs
 +	map_control	GameLayout.cs
+-	map_device	MinimapMarks.cs
 +	map_overlay	InGameFields.cs
 -	max_stage	PerfectTimingWindow.cs
 +	message_label	GameLayout.cs

@@ -142,6 +142,10 @@ internal static partial class SoundExtractor
         new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
         new("loops/waypoint",   "Waypoint4.0",        "WaypointActive_01", LoopMaxSeconds, true),
         new("loops/checkpoint", "BossCheckpoints",    "BossCheckpoints_Loop_01", LoopMaxSeconds, true),
+        // The Map Device: its own mechanism, frozen so the bed has no start or end (user's pick 2026-11-28, loop 3 of
+        // https://claude.ai/artifact/UyLmaPSGVCfkpcSUYeJ8Tb); the game plays it only when the device opens.
+        new("loops/map_device", "EndgameTown_MapDevice", "Environment_EndgameTown_MapDevice_Activate_Mechanical_01", LoopMaxSeconds, true,
+            FreezeFrom: 0.05, FreezeTo: 2.1, Rms: 0.10),
     };
 
     private const string Lib = "fmod";

@@ -14,7 +14,7 @@ namespace Poe2Accessibility.Services
     ///     on them. One voice per group so chests and exits stay apart, one per item for the nearest few (several drops
     ///     were heard as one, user 2026-10-24); voices take turns so two never start together. Every breakable in range
     ///     sounds, each with its material's sound (user 2026-10-27), and every chest and searchable body (user 2026-10-28),
-    ///     each crowd staggered only among itself. A portal, exit, waypoint or checkpoint plays its idle bed without a
+    ///     each crowd staggered only among itself. A portal, exit, waypoint, checkpoint or map device plays its idle bed without a
     ///     break instead (user 2026-10-27), louder as the player nears. The Diablo IV set (<see cref="ItemSoundSet"/>) is
     ///     all loops: each item, chest or shrine heard keeps its own voice going, as in D2R; repeating a piece of those
     ///     recordings was heard to stop and start (user 2026-11-04).
@@ -104,6 +104,7 @@ namespace Poe2Accessibility.Services
             ("benches", 1, entry => entry.Kind == MinimapMarks.BenchKind),
             ("reforging benches", 1, entry => entry.Kind == MinimapMarks.ReforgeKind),
             ("anvils", 1, entry => entry.Kind == MinimapMarks.AnvilKind),
+            ("map devices", 1, entry => entry.Kind == MinimapMarks.MapDeviceKind),
             // A sign to read was listed and named but never sounded (user 2026-11-12); one the quest names sounds as a quest object.
             ("signs", 1, entry => entry.Kind == MinimapMarks.SignKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("opened ways", 1, entry => entry.Kind == OpenedWays.Kind),

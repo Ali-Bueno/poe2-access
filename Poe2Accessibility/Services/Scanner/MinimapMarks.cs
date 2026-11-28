@@ -248,15 +248,19 @@ namespace Poe2Accessibility.Services
         /// <summary>The Verisium Anvil: its icon is no `CraftingBench*`, so it sounded nothing (the owner, 2026-11-26).</summary>
         public const string AnvilKind = "verisium_anvil";
 
+        /// <summary>The Map Device that opens the Atlas: it sounded only while a quest named it (the owner, 2026-11-28).</summary>
+        public const string MapDeviceKind = "map_device";
+
         /// <summary>A town service by its minimap icon ("StashPlayer", "HealingWell"; entity dump of G2_town, 0.5.5f), or empty.</summary>
         public static string ServiceKind(string icon) =>
             icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind
             : icon.StartsWith("CraftingBench", StringComparison.Ordinal) ? BenchKind
             : icon == MinimapIconIds.ReforgingBench || icon.StartsWith(MinimapIconIds.TempleBenchPrefix, StringComparison.Ordinal) ? ReforgeKind
-            : icon == MinimapIconIds.VerisiumAnvil ? AnvilKind : string.Empty;
+            : icon == MinimapIconIds.VerisiumAnvil ? AnvilKind
+            : icon == MinimapIconIds.MapDevice ? MapDeviceKind : string.Empty;
 
         /// <summary>The kinds <see cref="ServiceKind"/> gives: with a sound of their own, never the quest object's.</summary>
-        public static bool IsService(string kind) => kind is StashKind or WellKind or BenchKind or ReforgeKind or AnvilKind;
+        public static bool IsService(string kind) => kind is StashKind or WellKind or BenchKind or ReforgeKind or AnvilKind or MapDeviceKind;
 
         /// <summary>
         ///     A named barrier a campaign area made for itself, such as the Ancient Seal at Balbala's door (Act2/2_2/Objects/BossDoor,

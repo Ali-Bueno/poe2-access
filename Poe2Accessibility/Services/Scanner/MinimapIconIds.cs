@@ -44,6 +44,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const string TempleBenchPrefix = "IncursionCraft";
 
-        public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence, ReforgingBench, VerisiumAnvil });
+        /// <summary>
+        ///     The Map Device that opens the Atlas: the Ziggurat's MapDeviceSunTown.ot, the hideouts' StrDexIntMappingDevice.ot and the
+        ///     cosmetic devices built on it (`ot-with`, 2026-11-28); the base MapDevice.ot's QuestObject is overridden in all of them.
+        /// </summary>
+        public const string MapDevice = "MapDevice";
+
+        public static IEnumerable<string> All => Quest.Concat(new[] { StoryGlyph, Ritual, RitualDone, Essence, ReforgingBench, VerisiumAnvil, MapDevice });
     }
 }

@@ -186,8 +186,8 @@ A quest item keeps its own drop sound with the quest sound laid over it at the r
 quest items `Item_Quest.ogg` beside the base's sound. Every `kind` "quest" gets it, books and scrolls among them. Not heard yet.
 
 Everything else under a quest icon sounds too (user 2026-11-07, "para todos"): with no sound of its own it plays `quest_item`, with one
-(a chest, in the game's set) the quest sound goes over it. The icon is the only sign read: the map device always carries `QuestObject`
-(`show_league_flag` only hides the icon, and no hidden flag of `MinimapIcon` is known), so it sounds in the hideout too.
+(a chest, in the game's set) the quest sound goes over it. The icon is the only sign read. The map device's base object carries
+`QuestObject`, but every device placed overrides it with `MapDevice`, a sound of its own ([below](#the-map-device-2026-11-28)).
 
 An object or device the quest tracker names sounds the same while it names it (`QuestMatcher`, `ObjectSounds.WhileWanted`, user 2026-11-07):
 the Relic Altar (`Act2/2_13/Objects/SanctumRelicDevice`) carries no quest icon, only "Coloca tu barya en el Altar de reliquias".
@@ -274,6 +274,18 @@ apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB
   twice the speed at the same pitch (ffmpeg `atempo=2`), held 0.22 s then decaying (tau 0.17 s) to 0.85 s. Three other
   takes (1.5x same pitch, 1.5x and 2x as a sampler) are on the page above.
 - The loader caps every sound at 0.9 s (`GameSoundSeconds`), so a longer recording is cut there.
+
+## The Map Device (2026-11-28)
+"Artefacto de mapas", the device that opens the Atlas, sounded only while the tracker named it ("Usa el artefacto de mapas"),
+as a quest object; after that step nothing. Its icon is `MapDevice` (PROVEN, `ot-with 'icon = "MapDevice"'`): the Ziggurat's
+`MiscellaneousObjects/MapDeviceSunTown.ot` (seen live, entity dumps 2026-11-27/28), the hideouts' `StrDexIntMappingDevice.ot`,
+and the cosmetic devices built on it. The base `MapDevice.ot` carries `QuestObject` behind `show_league_flag`, overridden by
+every device placed. Now kind `map_device`, a town service, heard as a bed like the waypoint's (quiet behind the Atlas, live).
+The standard hideout device plays no sound of its own; the Ziggurat's activation (`EndgameTown_MapDevice` bank: Tonal,
+Mechanical_01…06, Stone_Impact_01…05, reused Ultimatum door impacts and rumbles) is the device's. The user picked the
+mechanism (C of four on [its page](https://claude.ai/artifact/UyLmaPSGVCfkpcSUYeJ8Tb)), then as a loop with no start or end
+the frozen one (3 of three: two chains of the six takes crossfaded round a circle, and the freeze): `loops/map_device` =
+`Mechanical_01` frozen over 0.05–2.1 s (`Cue.FreezeFrom`/`FreezeTo`, 120 ms grains, 6 s), RMS 0.10, peak 0.47.
 
 ## The Verisium Anvil (2026-11-26)
 "Yunque de verisium" (`CraftingBenchExpedition.ot` in the Act 1 and Act 4 towns and the Fallen Star, the hideout's

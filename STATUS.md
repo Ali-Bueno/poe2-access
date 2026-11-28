@@ -542,6 +542,15 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28, afternoon (the owner: "un sonido para el interactuable este que abre el mapa del atlas", C, then "que se lopee de
+forma que no se detecte el inicio y el fin": loop 3; 1207 tests, 1731 phrases, deployed to the play copy, pushed, not
+released):** the Map Device is a service of its own (`MinimapMarks.MapDeviceKind`, icon `MapDevice`), heard as a bed of its own
+frozen mechanism ([notes](docs/research/game-audio.md#the-map-device-2026-11-28)). Live on kehgan in the Ziggurat: the bed
+heard from the waypoint, "Artefacto de mapas, A" at it, quiet behind the Atlas and back on closing. The play copy's exe is the
+released one: its data steps (game names 8, sounds 23) run with the next release; the loop was copied in place. Heard on
+opening the Atlas, not changed (the navigator's since 2026-11-25): the node's popup "Oasis. Bioma: Desierto. …" and then the
+readout "Oasis. Completado. Bioma: Desierto. Conexiones…" say the name and biome twice.
+
 **2026-11-28, morning (the owner, after listening to the unattended tests: an exit of Villafrey said "con misión" with no
 quest there, the hideout's decorative stones sounded as quests, and "nos han mandado pull requests. Míralas, mergéalas y si
 no están hechas a prueba de romperse, corrígelas"; 1207 tests, 1730 phrases, deployed to the play copy, pushed, released
