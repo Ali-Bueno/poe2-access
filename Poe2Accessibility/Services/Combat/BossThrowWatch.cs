@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using GameOffsets.Objects.States.InGameState;
     using GameReader;
     using GameReader.RemoteObjects.Components;
     using Entity = GameReader.RemoteObjects.States.InGameStateObjects.Entity;
@@ -36,8 +37,14 @@ namespace Poe2Accessibility.Services
         {
             get
             {
-                if (this.target is not { } at || this.thrower is not { } boss || !Seats.Followed.TryGetComponent<Render>(out var player) ||
-                    !boss.TryGetComponent<Render>(out var render))
+                if (this.target is not { } at || this.thrower is not { } boss || !Seats.Followed.TryGetComponent<Render>(out var player))
+                {
+                    return null;
+                }
+
+                // The boss kept from the last poll may be gone with its area: only an entity still among the area's is read.
+                if (!Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.TryGetValue(new EntityNodeKey { id = boss.Id }, out var still) ||
+                    !still.IsValid || !still.TryGetComponent<Render>(out var render))
                 {
                     return null;
                 }
