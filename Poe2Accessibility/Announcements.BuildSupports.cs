@@ -11,11 +11,12 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     A skill's supports in the build, the count first and then each group that holds something: "Build supports: 1 of
-        ///     4 socketed. Socketed: Rage II. Missing: Zenith II; Bludgeon, from level 26". All socketed, the count alone.
+        ///     4 socketed. Socketed: Rage II. Missing: Zenith II; Bludgeon, from level 26". All socketed, the count alone. A meta
+        ///     gem's list holds a skill too (<paramref name="holdsSkills"/>): "Build gems: …".
         /// </summary>
         public static string BuildSupportGroups(
             int wanted, IReadOnlyList<string> socketed, IEnumerable<string> inBag, IEnumerable<string> otherTier, IEnumerable<string> inOtherSkill,
-            IEnumerable<string> missing, IEnumerable<string> outside)
+            IEnumerable<string> missing, IEnumerable<string> outside, bool holdsSkills = false)
         {
             var parts = new List<string>();
             void Group(string label, IEnumerable<string> gems)
@@ -28,7 +29,9 @@ namespace Poe2Accessibility
 
             if (wanted > 0)
             {
-                parts.Add(T($"Build supports: {socketed.Count} of {wanted} socketed", $"Asistencias de la build: {socketed.Count} de {wanted} engarzadas"));
+                parts.Add(holdsSkills
+                    ? T($"Build gems: {socketed.Count} of {wanted} socketed", $"Gemas de la build: {socketed.Count} de {wanted} engarzadas")
+                    : T($"Build supports: {socketed.Count} of {wanted} socketed", $"Asistencias de la build: {socketed.Count} de {wanted} engarzadas"));
             }
 
             if (socketed.Count < wanted)
@@ -43,6 +46,9 @@ namespace Poe2Accessibility
             Group(T("Outside the build: ", "Fuera de la build: "), outside);
             return string.Join(". ", parts);
         }
+
+        /// <summary>A skill the build puts in a meta gem, next to socket: "Next: Thunderstorm in Cast on Critical".</summary>
+        public static string BuildNextHeldSkill(string skill, string meta) => T($"Next: {skill} in {meta}", $"Siguiente: {skill} en {meta}");
 
         /// <summary>A build support held at another tier: "you have Rage I, the build asks for Rage II".</summary>
         public static string BuildTierHeld(string held, string wanted) => T($"you have {held}, the build asks for {wanted}", $"tienes {held}, la build pide {wanted}");

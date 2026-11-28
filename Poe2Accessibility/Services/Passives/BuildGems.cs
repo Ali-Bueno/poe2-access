@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
     /// <summary>A skill gem the character has, with the supports socketed in it (gem keys, <see cref="BuildGem.Key"/>).</summary>
     public sealed record OwnedSkill(string Key, IReadOnlyList<string> Supports);
 
+    /// <summary>A gem item by its key, with what its sockets hold (a meta gem holds skills, and supports for them).</summary>
+    public sealed record HeldGem(string Key, IReadOnlyList<HeldGem> Socketed);
+
     /// <summary>The character's gems: the skills with their supports, and the cut gems lying in the inventory.</summary>
     public sealed record GemHoldings(IReadOnlyList<OwnedSkill> Skills, IReadOnlyCollection<string> Bag)
     {
@@ -155,6 +158,26 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The key without its tier ("SupportGemRageTwo" → "SupportGemRage"): tiers of one support share it.</summary>
         public static string FamilyOf(string key) => Tier.Replace(key, string.Empty);
+
+        /// <summary>
+        ///     The skill slots' gems as owned skills, each with every gem in its sockets (the build file lists a meta gem's
+        ///     skill among its supports), then each skill a meta gem holds that no slot holds, supported by the meta's supports
+        ///     too (docs/research/ui-layers.md#a-meta-gems-skills).
+        /// </summary>
+        public static IReadOnlyList<OwnedSkill> Owned(IReadOnlyList<HeldGem> slots, GemIndex index)
+        {
+            var owned = slots.Select(slot => new OwnedSkill(slot.Key, slot.Socketed.Select(gem => gem.Key).ToList())).ToList();
+            foreach (var slot in slots)
+            {
+                var supports = slot.Socketed.Where(gem => IsSupport(gem.Key, index)).Select(gem => gem.Key).ToList();
+                foreach (var held in slot.Socketed.Where(gem => !IsSupport(gem.Key, index) && owned.All(skill => skill.Key != gem.Key)))
+                {
+                    owned.Add(new OwnedSkill(held.Key, held.Socketed.Select(gem => gem.Key).Concat(supports).Distinct().ToList()));
+                }
+            }
+
+            return owned;
+        }
 
         /// <summary>The skills the build uses at this level or later, each set against what the character has.</summary>
         public static IReadOnlyList<SkillStatus> Status(BuildPlan plan, int level, GemHoldings holdings) =>

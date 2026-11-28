@@ -511,6 +511,27 @@ tree's planner, the Skills panel and the inventory, a UI dump with the Skills pa
 - Not read: which gems are Spirit gems before they are owned (BaseItemTypes only tells skill from support; an owned one's
   tooltip says "Reserva: 30 Espíritu").
 
+### A meta gem's skills
+
+From the files on 2026-11-28; not seen live.
+
+- **The game's files:** 44 gems are `MetaSkillGem` (`catalog/gems.json`): Cast on Critical, the Invocations, Mirage
+  Archer, Ancestral Warrior Totem (tags `totem`, `meta`, Str 100), Hollow Form… Their sockets take skill gems and
+  supports alike, and the supports there support the skills held too (poe2wiki "Meta gem", read 2026-11-28).
+- **The build files** in the owner's BuildPlanner folder list a meta gem's skill among its `support_skills`, then the
+  supports: Raxx's Oracle "Act 4+" has `SkillGemCastOnCritical` [58-100] ← Thunderstorm, Conduction, Magnified Effect II,
+  and Thunderstorm [14-100] on its own with the same two supports; the Grenades and Whirling builds do the same with
+  Mirage Archer ← Cluster Grenade and Hollow Form ← Whirling Assault.
+- **What the mod reads:** the slot's gem with every gem of its `Sockets` component (skills too, not only supports),
+  and each skill read there gets its own sockets read once more. `BuildGems.Owned` makes the skills of it: the meta gem
+  with all it holds (so the file's Thunderstorm under Cast on Critical is "socketed"), then each skill held that no
+  slot holds, owned, with its own sockets plus the meta's supports (so the file's Thunderstorm entry is owned and its
+  supports socketed). A meta gem's line says "Gemas de la build: …" instead of "Asistencias de la build: …", the panel's
+  count of supports leaves its skills out, and the next one to socket is "Siguiente: Tormenta en Lanzar al crítico".
+- **Unverified:** that the held skill gem's entity is in the meta gem's `Sockets` component like a support's (the
+  layout was measured on supports and runes only), and whether a held skill has sockets of its own. Check with any meta
+  gem a character can socket (a Monk: Cast on Dodge, the Invocations): open its Manage Sockets and hear the build lines.
+
 ## Build Planner gear (0.5.5f, 2026-11-10)
 
 Code and unit tests only (the game was in use): what a live session must check is listed last.

@@ -453,7 +453,9 @@ Frost; Barrage; Combat Frenzy, from level 26"). In Manage Sockets a socketed sup
 for Martial Tempo II" or "outside the build", and an empty socket what goes there ("The build puts here: Rage II,
 missing; …"). A cut gem in the inventory, the stash or a merchant's stock says "in the build, for Twister" or "outside the
 build", and so does each choice of the engraving window. The build is known without opening the passive tree (the game's
-settings name it per character).
+settings name it per character). A meta gem (Cast on Critical, an Invocation, Ancestral Warrior Totem) holds skills
+in its sockets, and the build lists them among its gems: "Build gems: 2 of 3 socketed"; a skill held there counts as
+yours, supported by the meta gem's supports, and the next one to put in says "Next: Thunderstorm in Cast on Critical".
 
 **The build's gear** (the same file's piece per equipment slot, at your level). On an equipment slot, after the item's
 own lines: "Build: Shielded Helm, armour, another base" — the base by its name in the game's language, the defence its

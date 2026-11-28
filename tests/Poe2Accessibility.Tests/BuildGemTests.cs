@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AGuidesStageIsToldFromTheNext), AGuidesStageIsToldFromTheNext),
             (nameof(ASupportIsWhereTheCharacterHasIt), ASupportIsWhereTheCharacterHasIt),
             (nameof(ASkillsSupportsAreHeardByGroup), ASkillsSupportsAreHeardByGroup),
+            (nameof(AMetaGemsSkillIsAmongItsGems), AMetaGemsSkillIsAmongItsGems),
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
             (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
@@ -209,6 +210,51 @@ namespace Poe2Accessibility.Tests
                     Array.Empty<string>(), new[] { "A" }, Array.Empty<string>()), "an empty group is not named");
                 Expect("Fuera de la build: A", Announcements.BuildSupportGroups(0, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(),
                     Array.Empty<string>(), Array.Empty<string>(), new[] { "A" }), "a build skill without supports names only the strangers");
+            }
+            finally
+            {
+                Localization.Set("en", new());
+            }
+        }
+
+        /// <summary>
+        ///     Raxx's Oracle build (BuildPlanner folder, 2026-11-28) lists Thunderstorm among Cast on Critical's supports, and
+        ///     Thunderstorm on its own with the meta's two supports: one gem, supported by the meta's supports.
+        /// </summary>
+        private static void AMetaGemsSkillIsAmongItsGems()
+        {
+            static string Gem(string key, int from) => "{\"id\":\"Metadata/Items/Gems/" + key + "\",\"level_interval\":[" + from + ",100]}";
+            var plan = BuildPlan.Parse("{\"name\":\"Oracle\",\"passives\":[],\"skills\":[" +
+                "{\"id\":\"Metadata/Items/Gems/SkillGemThunderstorm\",\"level_interval\":[14,100],\"support_skills\":[" + Gem("SupportGemMagnifiedEffectTwo", 1) + "," + Gem("SupportGemConduction", 1) + "]}," +
+                "{\"id\":\"Metadata/Items/Gems/SkillGemCastOnCritical\",\"level_interval\":[58,100],\"support_skills\":[" +
+                Gem("SkillGemThunderstorm", 14) + "," + Gem("SupportGemConduction", 1) + "," + Gem("SupportGemMagnifiedEffectTwo", 1) + "]}]}")!;
+            var index = new GemIndex(GemCatalog.Parse(
+                "{\"gems\":{" +
+                "\"Metadata/Items/Gems/SkillGemCastOnCritical\":{\"kind\":\"MetaSkillGem\",\"effects\":[],\"skills\":[],\"tags\":[\"meta\"],\"str\":0,\"dex\":0,\"int\":100}," +
+                "\"Metadata/Items/Gems/SkillGemThunderstorm\":{\"kind\":\"ActiveSkillGem\",\"effects\":[],\"skills\":[],\"tags\":[],\"str\":0,\"dex\":0,\"int\":100}," +
+                "\"Metadata/Items/Gems/SupportOlrothsConviction\":{\"kind\":\"SupportSkillGem\",\"effects\":[],\"skills\":[],\"tags\":[],\"str\":100,\"dex\":0,\"int\":0}}," +
+                "\"names\":{},\"skills\":{}}"));
+            static HeldGem Bare(string key) => new(key, Array.Empty<HeldGem>());
+            var meta = new HeldGem("SkillGemCastOnCritical", new[] { Bare("SkillGemThunderstorm"), Bare("SupportGemConduction"), Bare("SupportGemMagnifiedEffectTwo"), Bare("SupportOlrothsConviction") });
+            var owned = BuildGems.Owned(new[] { meta }, index);
+            Expect("SkillGemCastOnCritical: SkillGemThunderstorm SupportGemConduction SupportGemMagnifiedEffectTwo SupportOlrothsConviction | " +
+                   "SkillGemThunderstorm: SupportGemConduction SupportGemMagnifiedEffectTwo SupportOlrothsConviction",
+                string.Join(" | ", owned.Select(skill => $"{skill.Key}: {string.Join(" ", skill.Supports)}")), "the meta holds its skill; the skill counts, with the meta's supports");
+            var statuses = BuildGems.Status(plan, 60, new GemHoldings(owned, Array.Empty<string>()));
+            Expect("True True", string.Join(" ", statuses.Select(status => status.Owned)), "both of the build's skills owned");
+            Expect(true, statuses.All(status => status.Supports.All(support => support.State == GemState.Socketed)), "the skill socketed in the meta, the supports in both");
+            Expect(((BuildGem?)null, false), (BuildGems.Next(statuses, 60).Skill, BuildGems.Next(statuses, 60).Support.HasValue), "nothing next");
+
+            var own = new HeldGem("SkillGemThunderstorm", new[] { Bare("SupportGemFrostNexus") });
+            var both = BuildGems.Owned(new[] { meta, own }, index);
+            Expect("SupportGemFrostNexus", string.Join(" ", both.Single(skill => skill.Key == "SkillGemThunderstorm").Supports), "a copy in a slot of its own is the one read");
+
+            Localization.Set("es", new());
+            try
+            {
+                Expect("Gemas de la build: 1 de 3 engarzadas. Engarzadas: Tormenta. Faltan: Conducción; Efecto magnificado II", Announcements.BuildSupportGroups(3, new[] { "Tormenta" },
+                    Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), new[] { "Conducción", "Efecto magnificado II" }, Array.Empty<string>(), holdsSkills: true), "a meta gem's list holds gems, not only supports");
+                Expect("Siguiente: Tormenta en Lanzar al crítico", Announcements.BuildNextHeldSkill("Tormenta", "Lanzar al crítico"), "the skill to put in a meta");
             }
             finally
             {

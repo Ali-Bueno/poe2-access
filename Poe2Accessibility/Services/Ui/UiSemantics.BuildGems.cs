@@ -29,6 +29,9 @@ namespace Poe2Accessibility.Services
         private const int SocketRowHops = 3;
         private const int GemViewDepth = 2;
 
+        /// <summary>A slot's gem, the skills a meta gem holds and their supports: the socket levels read.</summary>
+        private const int MetaDepth = 2;
+
         /// <summary>Skills every character has without a gem of their own (BaseItemTypes ids, 0.5.5f): no build names them.</summary>
         private static readonly string[] GrantedSkillKeys = { "SkillGemPlayerDefault", "SkillGemUnusable" };
 
@@ -91,7 +94,7 @@ namespace Poe2Accessibility.Services
                 (this.panelSkills, this.panelSkillsOf) = (new HashSet<string>(StringComparer.OrdinalIgnoreCase), character);
             }
 
-            var skills = new List<OwnedSkill>();
+            var slots = new List<HeldGem>();
             var bag = new HashSet<string>();
             try
             {
@@ -116,7 +119,7 @@ namespace Poe2Accessibility.Services
                         }
                         else
                         {
-                            skills.Add(new OwnedSkill(BuildGems.KeyOf(id), this.SocketedSupports(item.Entity)));
+                            slots.Add(this.Held(item.Entity, id, MetaDepth));
                         }
                     }
                 }
@@ -127,6 +130,7 @@ namespace Poe2Accessibility.Services
                 return this.gemHoldings is { } last && last.Character == character ? last.Holdings : GemHoldings.None;
             }
 
+            var skills = BuildGems.Owned(slots, GemIndex.Shared).ToList();
             var gemless = new HashSet<string>(StringComparer.Ordinal);
             foreach (var granted in this.GemPlan()?.Plan.Skills.Select(skill => skill.Gem.Key).Distinct() ?? Enumerable.Empty<string>())
             {
@@ -144,25 +148,29 @@ namespace Poe2Accessibility.Services
             return holdings;
         }
 
-        /// <summary>The support gems socketed in a skill gem item (<see cref="GameLayout.Sockets"/>), as gem keys.</summary>
-        private IReadOnlyList<string> SocketedSupports(IntPtr skillGem)
-        {
-            var keys = new List<string>();
-            if (!this.inventory.ItemComponents(skillGem).TryGetValue(GameLayout.Sockets.Component, out var sockets) || sockets == IntPtr.Zero)
-            {
-                return keys;
-            }
+        /// <summary>The gems socketed in a gem item, as gem keys: its supports, and a meta gem's skills.</summary>
+        private IReadOnlyList<string> SocketedGems(IntPtr gemItem) => this.Held(gemItem, string.Empty, 1).Socketed.Select(gem => gem.Key).ToList();
 
-            for (var at = GameLayout.Sockets.FirstOffset; at < GameLayout.Sockets.EndOffset; at += IntPtr.Size)
+        /// <summary>
+        ///     A gem item with what its sockets hold (<see cref="GameLayout.Sockets"/>), <paramref name="depth"/> levels down;
+        ///     a support's sockets are not read.
+        /// </summary>
+        private HeldGem Held(IntPtr gemItem, string id, int depth)
+        {
+            var socketed = new List<HeldGem>();
+            if (depth > 0 && this.inventory.ItemComponents(gemItem).TryGetValue(GameLayout.Sockets.Component, out var sockets) && sockets != IntPtr.Zero)
             {
-                if (this.reader.TryRead<IntPtr>(sockets + at, out var gem) && gem != IntPtr.Zero && this.reader.IsValidAddress(gem) &&
-                    this.inventory.ItemBaseId(gem) is var id && BuildGems.IsGemId(id) && BuildGems.IsSupport(BuildGems.KeyOf(id), GemIndex.Shared))
+                for (var at = GameLayout.Sockets.FirstOffset; at < GameLayout.Sockets.EndOffset; at += IntPtr.Size)
                 {
-                    keys.Add(BuildGems.KeyOf(id));
+                    if (this.reader.TryRead<IntPtr>(sockets + at, out var gem) && gem != IntPtr.Zero && this.reader.IsValidAddress(gem) &&
+                        this.inventory.ItemBaseId(gem) is var inner && BuildGems.IsGemId(inner))
+                    {
+                        socketed.Add(this.Held(gem, inner, BuildGems.IsSupport(BuildGems.KeyOf(inner), GemIndex.Shared) ? 0 : depth - 1));
+                    }
                 }
             }
 
-            return keys;
+            return new HeldGem(BuildGems.KeyOf(id), socketed);
         }
 
         /// <summary>
@@ -199,7 +207,7 @@ namespace Poe2Accessibility.Services
             }
 
             var statuses = BuildGems.Status(active.Plan, active.Level, this.Holdings());
-            var supports = statuses.SelectMany(status => status.Supports).ToList();
+            var supports = statuses.SelectMany(status => status.Supports).Where(support => BuildGems.IsSupport(support.Gem.Key, GemIndex.Shared)).ToList();
             yield return Announcements.BuildGemCount(statuses.Count(status => status.Owned), statuses.Count,
                 supports.Count(support => support.State == GemState.Socketed), supports.Count);
             var (skill, support) = BuildGems.Next(statuses, active.Level);
@@ -210,7 +218,10 @@ namespace Poe2Accessibility.Services
 
             if (support is { } next)
             {
-                yield return Announcements.BuildNextSupport(GemNames.Of(next.Support.Key), GemNames.Of(next.For.Gem.Key));
+                // A meta gem's skill is one of its gems in the build file, not a support.
+                yield return BuildGems.IsSupport(next.Support.Key, GemIndex.Shared)
+                    ? Announcements.BuildNextSupport(GemNames.Of(next.Support.Key), GemNames.Of(next.For.Gem.Key))
+                    : Announcements.BuildNextHeldSkill(GemNames.Of(next.Support.Key), GemNames.Of(next.For.Gem.Key));
             }
         }
 
@@ -343,7 +354,7 @@ namespace Poe2Accessibility.Services
                 yield break;
             }
 
-            foreach (var line in this.BuildSkillLines(active, key, new OwnedSkill(key, this.SocketedSupports(entity))))
+            foreach (var line in this.BuildSkillLines(active, key, new OwnedSkill(key, this.SocketedGems(entity))))
             {
                 yield return line;
             }
@@ -370,7 +381,8 @@ namespace Poe2Accessibility.Services
                 groups.OtherTier.Select(support => Announcements.BuildTierHeld(GemNames.Of(support.Held), Name(support))),
                 groups.InOtherSkill.Select(support => Announcements.GemInSkill(Name(support), GemNames.Of(support.Held))),
                 groups.Missing.Select(support => Leveled(support.Gem, active.Level)),
-                groups.Outside.Select(GemNames.Of));
+                groups.Outside.Select(GemNames.Of),
+                planned.Supports.Any(gem => gem.ToLevel >= active.Level && !BuildGems.IsSupport(gem.Key, GemIndex.Shared)));
             if (line.Length > 0)
             {
                 yield return line;
@@ -397,7 +409,7 @@ namespace Poe2Accessibility.Services
             }
 
             var holdings = this.Holdings();
-            var socketed = skillGem != IntPtr.Zero ? this.SocketedSupports(skillGem)
+            var socketed = skillGem != IntPtr.Zero ? this.SocketedGems(skillGem)
                 : holdings.Skills.FirstOrDefault(held => held.Key == skillKey)?.Supports ?? Array.Empty<string>();
             var status = BuildGems.StatusOf(planned, active.Level, holdings, new OwnedSkill(skillKey, socketed));
             if (socketed.FirstOrDefault(key => string.Equals(GemNames.Of(key), label, StringComparison.OrdinalIgnoreCase)) is { } held)

@@ -282,8 +282,8 @@ namespace Poe2Accessibility
                 "a skill of yours finished its cooldown and can be used again; its name is said too",
                 "una de tus habilidades terminó de recargarse y ya puedes volver a usarla; también se dice su nombre"),
             "deployed" or "tempest_bell" or "ice_crystal" => T(
-                "something a skill of yours placed and left standing, such as a bell, a crystal or a totem, from where it is; more often as you get closer",
-                "algo que una de tus habilidades colocó y dejó en el suelo, como una campana, un cristal o un tótem, desde donde está; más seguido cuanto más cerca"),
+                "something a skill of yours placed and left standing, such as a bell or a crystal, from where it is; more often as you get closer",
+                "algo que una de tus habilidades colocó y dejó en el suelo, como una campana o un cristal, desde donde está; más seguido cuanto más cerca"),
             "state_PrimedForStun" => T(
                 "an enemy on that side has enough stun buildup that a heavy hit stuns it (Boneshatter): 40% normal, 50% magic, 60% rare, 70% unique",
                 "un enemigo de ese lado ya acumula aturdimiento suficiente para que un golpe fuerte lo aturda (Destrozahuesos): 40% si es normal, 50% mágico, 60% raro, 70% único"),

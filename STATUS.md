@@ -542,6 +542,14 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28, evening (the owner, on Ancestral Warrior Totem and the 1.0 squire: "la 1 puedes arreglarlo"; 1209 tests, 1733
+phrases; code only, not heard):** the Build Planner's gems take a meta gem's skills. The build files list Cast on Critical's
+Thunderstorm among its supports; the mod read only supports out of a gem's sockets, so the skill held there was "falta"
+and its own entry "Siguiente habilidad". Now every gem in the sockets counts, a held skill is owned with the meta's
+supports, and a meta's line says "Gemas de la build" ([a meta gem's skills](docs/research/ui-layers.md#a-meta-gems-skills)).
+Reading the sockets themselves needed nothing: the reader names whatever gem sits there. Not done at the owner's word: a
+placed-object cue for totems (the game's own sounds tell them).
+
 **2026-11-28, afternoon, later (the owner: "sí, quita la repetición. Luego haz comit, push y release"; 1208 tests, 1731
 phrases, deployed to the play copy, pushed, released at the owner's word as v2026.11.28-2, with the Map Device's loop
 below):** an Atlas landing says the node's name and biome once. The popup's reading
@@ -953,6 +961,10 @@ The 21 entries fixed up to 2026-11-12, each with how it was verified, are in the
   which uncut gem engraves a gem. The engraving window itself was opened from kehgan's uncut support gem on 2026-11-14
   and read with the build's lines ([sweep](docs/research/sweep-2026-11-13.md)); an uncut spirit gem was not at hand.
   **Unblocks:** an uncut spirit gem in a bag, its window opened and read without confirming.
+- **A meta gem's skill in its `Sockets` component.** Taken to sit there like a support (measured on supports and runes
+  only); Ancestral Warrior Totem needs 92 Strength, which the owner's Monk lacks. **Unblocks:** any meta gem a character
+  meets the requirements of (a Monk: Cast on Dodge, an Invocation) with a skill in it, its Manage Sockets read with a
+  build that names it ([a meta gem's skills](docs/research/ui-layers.md#a-meta-gems-skills)).
 - **The cosmetics shop's purchase confirmation.** Only the owner may spend points (150): he presses A on a buy button
   once and says what he hears, or allows one purchase.
 - **Item modifiers on kinds of item not at hand:** (a rune's line: only in the tooltip, answered 2026-11-16) a piece with
