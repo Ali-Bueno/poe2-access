@@ -230,7 +230,11 @@ namespace Poe2Accessibility.Services
                 }
                 catch (Exception ex)
                 {
-                    this.log.Error("Screen snapshot failed", ex);
+                    if (Environment.TickCount64 >= this.failureReportAt)
+                    {
+                        this.failureReportAt = Environment.TickCount64 + SlowReportIntervalMs;
+                        this.log.Error("Screen snapshot failed", ex);
+                    }
                 }
             }
         }
@@ -259,6 +263,38 @@ namespace Poe2Accessibility.Services
             if (this.loggedSkipped.Add($"{name}|{why}"))
             {
                 this.log.Info($"Screen layer skipped ({why}): \"{name}\"");
+            }
+        }
+
+        /// <summary>When the next snapshot failure may be logged (Environment.TickCount64).</summary>
+        private long failureReportAt;
+
+        private readonly HashSet<string> loggedLayerFailures = new(StringComparer.Ordinal);
+
+        /// <summary>One layer that throws does not stop the snapshot: its previous capture stands in, so the differ never sees it close.</summary>
+        private void CaptureLayerSafely(List<ScreenLayer> layers, UiElementReader.ElementInfo layerInfo, int index, RectangleF screen, PluginUiElementReflection.RectCache rects, ref int budget)
+        {
+            try
+            {
+                layers.Add(this.CaptureLayer(layerInfo, index, screen, rects, ref budget));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                if (this.loggedLayerFailures.Count > MaxSkippedLogged)
+                {
+                    this.loggedLayerFailures.Clear();
+                }
+
+                if (this.loggedLayerFailures.Add(layerInfo.Name))
+                {
+                    this.log.Error($"Screen layer read failed: \"{layerInfo.Name}\"", ex);
+                }
+
+                var previous = this.differ.Last.Layers.FirstOrDefault(layer => layer.Address == layerInfo.Address);
+                if (previous != null)
+                {
+                    layers.Add(previous with { Index = index });
+                }
             }
         }
 
@@ -309,7 +345,7 @@ namespace Poe2Accessibility.Services
 
                 if (layerInfo.IsVisibleFlag && !IsIgnored(layerInfo.Name))
                 {
-                    layers.Add(this.CaptureLayer(layerInfo, index, screen, rects, ref budget)); // gives the layer's block back
+                    this.CaptureLayerSafely(layers, layerInfo, index, screen, rects, ref budget); // gives the layer's block back
                 }
                 else
                 {

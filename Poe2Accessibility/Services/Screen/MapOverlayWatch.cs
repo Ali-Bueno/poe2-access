@@ -90,38 +90,6 @@ namespace Poe2Accessibility.Services
             return lines;
         }
 
-        private IntPtr FindHint()
-        {
-            if (!this.elements.TryReadElement(this.overlay, out var root))
-            {
-                return IntPtr.Zero;
-            }
-
-            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
-            queue.Enqueue((root, 0));
-            while (queue.Count > 0)
-            {
-                var (node, depth) = queue.Dequeue();
-                foreach (var address in this.elements.ReadChildren(node))
-                {
-                    if (!this.elements.TryReadElement(address, out var child))
-                    {
-                        continue;
-                    }
-
-                    if (child.Name == HintName)
-                    {
-                        return address;
-                    }
-
-                    if (depth + 1 < HintDepth)
-                    {
-                        queue.Enqueue((child, depth + 1));
-                    }
-                }
-            }
-
-            return IntPtr.Zero;
-        }
+        private IntPtr FindHint() => this.elements.FindNamed(this.overlay, HintName, HintDepth)?.Address ?? IntPtr.Zero;
     }
 }

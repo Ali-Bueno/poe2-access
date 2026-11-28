@@ -8,15 +8,14 @@ namespace Poe2Accessibility.Services
     /// <summary>The quest page, shop and countdown checks of <see cref="ScreenNarrator"/>: what a quest page, a shop page and a running timer say.</summary>
     public sealed partial class ScreenNarrator
     {
-        /// <summary>New HUD texts (quest tracker, shrines, ground items) once per area, never the whole HUD.</summary>
+        /// <summary>Gets the quest tracker's lines at the last look at the HUD.</summary>
+        public IReadOnlyList<string> QuestLines { get; private set; } = Array.Empty<string>();
+
         /// <summary>
         ///     The quest tracker's page whenever it is not the page last said, held whole: an objective must not be lost (an
         ///     area's new one came with the HUD after loading, which is no news, and was never said: Freythorn, 2026-10-29).
         /// </summary>
         /// <returns>The tracker's texts, for the HUD's own news to leave out.</returns>
-        /// <summary>Gets the quest tracker's lines at the last look at the HUD.</summary>
-        public IReadOnlyList<string> QuestLines { get; private set; } = Array.Empty<string>();
-
         public List<ScreenText> CheckQuestPage(ScreenSnapshot snapshot)
         {
             var hud = this.inGame ? snapshot.Find(this.HudLayer) : null;

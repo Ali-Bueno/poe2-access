@@ -32,12 +32,6 @@ namespace Poe2Accessibility.Services
         private string groundItemSaid = string.Empty;
 
         /// <summary>
-        ///     A new area (its name changed): the HUD's and the tutorial box's texts are news again. Not on every game
-        ///     state change — the game menu closing and a respawn in the same area would repeat the quest tracker,
-        ///     "Nuevo punto de control" and the last tutorial hint.
-        /// </summary>
-        /// <summary>A hint never said in this area; or said long ago and shown again while playing (the HUD on top, no panel just closed).</summary>
-        /// <summary>
         ///     The inventory's gold amount and its header (the unit word alone, "Oro"): a reward or vendor panel opens
         ///     beside the inventory and read "20 oro. Oro." first. The tribute in the favours window too: its own watch says it once it is right.
         /// </summary>

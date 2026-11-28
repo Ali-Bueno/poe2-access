@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Services
             this.mapHere = default;
             this.depthToggle = default;
             this.notEndgame.Clear();
+            this.trialSlotsSearched.Clear();
             this.quickCurrencyLogged = default;
         }
 

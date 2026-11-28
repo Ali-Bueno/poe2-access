@@ -41,7 +41,7 @@ namespace Poe2Accessibility.Services
 
             this.steppedField = fresh;
             this.log.Info($"Value stepped -> 0x{fresh.Address.ToInt64():X} \"{fresh.Text}\" = \"{fresh.Value}\"");
-            this.ValueChanged?.Invoke(fresh);
+            this.Raise(this.ValueChanged, fresh);
         }
 
         private void PollValue()
@@ -82,7 +82,7 @@ namespace Poe2Accessibility.Services
                 if (!fresh.Tooltip.SequenceEqual(this.Current.Tooltip))
                 {
                     this.Current = fresh;
-                    this.TooltipChanged?.Invoke(fresh);
+                    this.Raise(this.TooltipChanged, fresh);
                 }
 
                 return;
@@ -108,7 +108,7 @@ namespace Poe2Accessibility.Services
             this.emptiedValue = default;
             this.log.Info($"Value -> 0x{fresh.Address.ToInt64():X} \"{fresh.Text}\" = \"{fresh.Value}\"");
             this.Current = fresh;
-            this.ValueChanged?.Invoke(fresh);
+            this.Raise(this.ValueChanged, fresh);
         }
 
         /// <summary>The empty cell a grid read once on a value poll, not yet said.</summary>

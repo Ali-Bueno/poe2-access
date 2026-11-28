@@ -18,6 +18,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The element holding a tooltip's rows.</summary>
         public const string LayoutName = "layout";
 
+        /// <summary>A tooltip's price or sell value, no row of the item.</summary>
+        public const string CostName = "cost";
+
+        /// <summary>A tooltip's buttons, no row of the item.</summary>
+        public const string LegendName = "gamepad_popup_button_legend_layout";
+
         /// <summary>The end of a modifier group's name: implicit-, prefix- and suffix-mods-with-reminders (advanced info on).</summary>
         private const string ModGroupSuffix = "-mods-with-reminders";
 
@@ -25,7 +31,7 @@ namespace Poe2Accessibility.Services
         private const string PlainModsName = "explicit-stats";
 
         /// <summary>Rows that are no line of the item: its price or sell value, and its buttons.</summary>
-        private static readonly HashSet<string> NoRows = new(StringComparer.Ordinal) { "cost", "gamepad_popup_button_legend_layout" };
+        private static readonly HashSet<string> NoRows = new(StringComparer.Ordinal) { CostName, LegendName };
 
         /// <summary>Whether a row element is a modifier group, one line a child and the group's label last.</summary>
         public static bool IsModGroup(string name) => name.EndsWith(ModGroupSuffix, StringComparison.Ordinal);

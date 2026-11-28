@@ -77,6 +77,7 @@ namespace Poe2Accessibility.Services
             return result;
         }
 
+        /// <summary>New HUD texts (quest tracker, shrines, ground items) once per area, never the whole HUD.</summary>
         private void OnHudChange(ScreenChange change, ScreenSnapshot snapshot, IReadOnlyList<ScreenText> legends)
         {
             this.hudSpoken.UnionWith(this.CheckQuestPage(snapshot).Select(text => ScreenDiffer.Shape(text.Text)));
@@ -135,6 +136,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>A hint never said in this area; or said long ago and shown again while playing (the HUD on top, no panel just closed).</summary>
         private bool TutorialIsNews(string text, bool playing)
         {
             var now = DateTime.UtcNow;
