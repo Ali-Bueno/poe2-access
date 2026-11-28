@@ -114,7 +114,7 @@ namespace Poe2Accessibility.Services
 
                 if (this.inventory.ItemBaseName(worldItem.ItemEntityAddress) is { Length: > 0 } baseName)
                 {
-                    this.itemTitles.TryAdd(baseName, kind == "gold" ? string.Empty : name); // a rare's tooltip names its base on a line of its own
+                    GroundTooltip.Remember(this.itemTitles, baseName, kind == "gold" ? string.Empty : name); // a rare's tooltip names its base on a line of its own
                 }
                 baseId = this.inventory.ItemBaseId(worldItem.ItemEntityAddress);
             }
