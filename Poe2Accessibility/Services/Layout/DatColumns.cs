@@ -53,6 +53,7 @@ namespace Poe2Accessibility.Services
             ("Mods.Name", GameLayout.ModsDat.NameOffset, offset => GameLayout.ModsDat.NameOffset = offset),
             ("MinimapIcons.Label", GameLayout.MinimapIconRow.LabelOffset, offset => GameLayout.MinimapIconRow.LabelOffset = offset),
             ("MinimapIcons.RowSize", GameLayout.MinimapIconRow.RowSize, offset => GameLayout.MinimapIconRow.RowSize = offset),
+            ("MinimapIcons.MinimapIconPointerMaxDistance", GameLayout.MinimapIconRow.PointerDistanceOffset, offset => GameLayout.MinimapIconRow.PointerDistanceOffset = offset),
             ("Characters.Id", GameLayout.PassiveTree.CharacterIdOffset, offset => GameLayout.PassiveTree.CharacterIdOffset = offset),
             ("Characters.Name", GameLayout.PassiveTree.CharacterNameOffset, offset => GameLayout.PassiveTree.CharacterNameOffset = offset),
             ("GrantedEffects.Id", GameLayout.SkillSlot.EffectIdOffset, offset => GameLayout.SkillSlot.EffectIdOffset = offset),
