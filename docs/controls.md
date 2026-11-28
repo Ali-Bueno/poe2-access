@@ -222,6 +222,11 @@ mana and flask lines cut it.
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
+**Leave out items the game's item filter hides** (on by default): the loot filter chosen in the game's Options > Game > Item
+Filter, such as NeverSink's, hides items by drawing no label for them and offering no pick-up. With this on, those items are not
+listed in the scanner, make no drop sound and are not named on approach either, the same as a sighted player sees. It follows
+the game's own "hide all filtered ground items" option: with that off, nothing is left out (`FollowGameItemFilter`).
+
 **Item sound set** (Sound, after the master volume; D2R item sound sets): the sounds of items on the ground, chests, searchable bodies and shrines:
 Path of Exile 2, the game's own (default), or Diablo IV, the D2R mod's set, which plays without a break while the
 thing is in range and where equipment sounds by rarity; up on screen it rises only two semitones, since these
@@ -689,7 +694,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`, `PlayerSounds`,
-  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `ItemSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
+  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `FollowGameItemFilter`, `ItemSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
   `LowLifeBelow`, volumes `SoundVolume`, `RadarVolume`, `EnemyVolume`, `DodgeVolume` (dodge warning and parry cue),
   `BeaconVolume`, `ObjectVolume` and each sound's own `SoundLevels` in `config/settings.txt`, each 0-300 percent: above
   100 a sound is raised under a look-ahead limiter of its own, so its body grows louder (the dodge warning about 4 dB at

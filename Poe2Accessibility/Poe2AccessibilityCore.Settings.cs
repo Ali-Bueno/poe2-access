@@ -157,6 +157,7 @@ namespace Poe2Accessibility
             if (this.entities != null)
             {
                 this.entities.NameKnownWays = settings.NameKnownWays;
+                this.entities.FollowItemFilter = settings.FollowGameItemFilter;
             }
 
             if (this.leftBehind != null)

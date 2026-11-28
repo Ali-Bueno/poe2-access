@@ -29,4 +29,22 @@ namespace Poe2Accessibility.Services
             _ => true,
         };
     }
+
+    /// <summary>
+    ///     The game's own item filter (the one chosen in Options > Game > Item Filter), as the game applies it to a ground item: the
+    ///     verdict its WorldItem component keeps (<see cref="GameLayout.WorldItemComponent"/>). A verdict not computed yet, or not read,
+    ///     hides nothing, so the item stays listed and audible.
+    /// </summary>
+    public static class GameItemFilter
+    {
+        /// <summary>The game's config key that makes the filter's Hide blocks hide items on the ground (the game reads it under [UI]).</summary>
+        public const string HideOptionKey = "hide_all_filtered_ground_items";
+
+        /// <summary>
+        ///     Whether the component's bytes say the filter hides the item: the verdict is computed, its Hide bit is set, and the item
+        ///     is not one the filter never hides. The item entity's own keep byte is checked apart (read only when this is true).
+        /// </summary>
+        public static bool VerdictHides(byte ready, byte result, byte neverHidden) =>
+            ready != 0 && (result & GameLayout.WorldItemComponent.HideBit) != 0 && neverHidden == 0;
+    }
 }

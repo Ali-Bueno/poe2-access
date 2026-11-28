@@ -434,6 +434,12 @@ namespace Poe2Accessibility
         /// </summary>
         public string LootSounds = Services.LootFilter.All;
 
+        /// <summary>
+        ///     Leave out the items on the ground that the game's own item filter hides (Options > Game > Item Filter, with "hide all
+        ///     filtered ground items" on): they are not listed, heard or named, as the game draws no label for them.
+        /// </summary>
+        public bool FollowGameItemFilter = true;
+
         /// <summary>The sounds of loot (items, chests, bodies, shrines): "poe2", the game's own, or "diablo4" (D2R item sound sets).</summary>
         public string ItemSounds = Services.ItemSoundSet.Game;
 

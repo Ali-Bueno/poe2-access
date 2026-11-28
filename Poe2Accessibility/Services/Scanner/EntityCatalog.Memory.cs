@@ -192,6 +192,7 @@ namespace Poe2Accessibility.Services
             this.itemTitles.Clear();
             this.strongboxReads.Clear(); // entity ids are this instance's: a later area's box may reuse one
             this.essenceRows.Clear();
+            this.filteredLogged.Clear(); // ids again: another area's item may reuse one
             this.explored.Reset();
             this.questTargets = Array.Empty<ScanEntry>();
             this.questExit = null;

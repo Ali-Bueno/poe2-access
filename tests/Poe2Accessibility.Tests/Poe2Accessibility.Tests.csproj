@@ -43,6 +43,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Player\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ExperienceTable.cs" Link="Plugin\ExperienceTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\LootFilter.cs" Link="Plugin\LootFilter.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\GameConfigOption.cs" Link="Plugin\GameConfigOption.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ItemSoundGroup.cs" Link="Plugin\ItemSoundGroup.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ItemSoundSet.cs" Link="Plugin\ItemSoundSet.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\LoopReader.cs" Link="Plugin\LoopReader.cs" />

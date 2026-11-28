@@ -33,6 +33,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ABossOfSeveralBodiesIsHeardOnce), ABossOfSeveralBodiesIsHeardOnce),
             (nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech),
             (nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose),
+            (nameof(GameItemFilterHidesOnlyWhatItsVerdictHides), GameItemFilterHidesOnlyWhatItsVerdictHides),
+            (nameof(GameConfigOptionReadsTrueOrFalse), GameConfigOptionReadsTrueOrFalse),
         };
 
         private static void GroundNoWalkJoinsIsApart()
@@ -380,6 +382,27 @@ namespace Poe2Accessibility.Tests
             Equal(true, LootFilter.Allows(LootFilter.Valuable, LootTier.Valuable), "valuable keeps currency and rares");
             Equal(true, LootFilter.Allows("garbage", LootTier.Normal), "an unknown setting keeps everything");
             Equal(LootTier.Valuable, new ScanEntry(1, ScanCategory.Items, "x", 0, 0, 0).Loot, "an item of unknown worth stays heard");
+        }
+
+        private static void GameItemFilterHidesOnlyWhatItsVerdictHides()
+        {
+            // The live bytes of 2026-11-28: a helmet under a "Hide Class Helmets" filter beside a shown spear.
+            Equal(true, GameItemFilter.VerdictHides(1, 1, 0), "a computed Hide verdict hides");
+            Equal(false, GameItemFilter.VerdictHides(1, 0, 0), "a computed Show verdict keeps the item");
+            Equal(false, GameItemFilter.VerdictHides(0, 1, 0), "a verdict not computed again since the filter changed hides nothing");
+            Equal(false, GameItemFilter.VerdictHides(1, 1, 1), "an item the filter never hides stays");
+            Equal(false, GameItemFilter.VerdictHides(1, 2, 0), "only the Hide bit hides: a Continue bit alone does not");
+            Equal(true, GameItemFilter.VerdictHides(1, 3, 0), "Hide with other bits still hides");
+        }
+
+        private static void GameConfigOptionReadsTrueOrFalse()
+        {
+            const string ini = "[GAME]\r\nlanguage=en\r\n[UI]\r\nhide_all_filtered_ground_items=true\r\napply_item_filter_to_ritual=false\r\n";
+            Equal(true, GameConfigOption.Parse(ini, GameItemFilter.HideOptionKey), "the option on");
+            Equal(false, GameConfigOption.Parse(ini.Replace("items=true", "items=false"), GameItemFilter.HideOptionKey), "the option off");
+            Equal(null, GameConfigOption.Parse("[UI]\r\nitem_filter=x.filter\r\n", GameItemFilter.HideOptionKey), "a missing key reads as unknown");
+            Equal(null, GameConfigOption.Parse("hide_all_filtered_ground_items=maybe", GameItemFilter.HideOptionKey), "a value neither true nor false reads as unknown");
+            Equal(false, GameConfigOption.Parse("apply_item_filter_to_ritual=false", "apply_item_filter_to_ritual"), "another key reads by its own name");
         }
     }
 }

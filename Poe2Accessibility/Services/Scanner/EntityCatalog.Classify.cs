@@ -30,6 +30,14 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<uint, (bool HasProperties, Rarity Rarity, int ModCount, int CorruptByMods, bool HasMods, Rarity ModsRarity, int Implicit, int Explicit, bool HasStats, int CorruptByItems, int CorruptByBuffs)> strongboxReads = new();
         private readonly Dictionary<string, string> abouts = new(StringComparer.Ordinal);
 
+        /// <summary>Ground items of this area the game's item filter hides, logged once each (<see cref="MaxLoggedFiltered"/> at most).</summary>
+        private readonly HashSet<uint> filteredLogged = new();
+
+        private const int MaxLoggedFiltered = 64;
+
+        /// <summary>Whether the game's item filter hides items for this listing (<see cref="FollowItemFilter"/> and the game's option).</summary>
+        private bool filterHides;
+
         /// <summary>
         ///     Category and name, or null for what the scanner leaves out (self, dead, opened, unnamed, and what is
         ///     not in play: the town holds every story variant of an NPC, only one of them targetable).
@@ -107,6 +115,12 @@ namespace Poe2Accessibility.Services
             }
             else if (entity.TryGetComponent<WorldItem>(out var worldItem))
             {
+                if (this.filterHides && this.HiddenByItemFilter(entity.Id, worldItem))
+                {
+                    // The game draws no label for it and offers no pick-up, yet the mod named it on approach (user 2026-11-28).
+                    return null;
+                }
+
                 category = ScanCategory.Items;
                 name = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, name) ?? name;
                 (kind, loot) = this.inventory.ItemKind(worldItem.ItemEntityAddress);
@@ -466,6 +480,36 @@ namespace Poe2Accessibility.Services
             // The character at a cage: caged, they are out of play and listed nowhere.
             var held = MinimapMarks.BareName(this.NameNear(render, CageWorld, other => other.EntityType == EntityTypes.NPC));
             return held.Length > 0 ? Announcements.CageOf(held) : Announcements.Cage;
+        }
+
+        /// <summary>
+        ///     Whether the game's item filter hides this ground item, read as the game reads it (<see cref="GameLayout.WorldItemComponent"/>):
+        ///     the component's verdict in one read, then the item's keep byte only for an item the verdict hides. Anything unread hides nothing.
+        /// </summary>
+        private bool HiddenByItemFilter(uint id, WorldItem worldItem)
+        {
+            var start = GameLayout.WorldItemComponent.SpanStart;
+            var span = this.memory.ReadBytes(worldItem.Address + start, GameLayout.WorldItemComponent.SpanLength);
+            if (span.Length < GameLayout.WorldItemComponent.SpanLength ||
+                !GameItemFilter.VerdictHides(span[GameLayout.WorldItemComponent.FilterReadyOffset - start],
+                    span[GameLayout.WorldItemComponent.FilterResultOffset - start], span[GameLayout.WorldItemComponent.NeverHiddenOffset - start]))
+            {
+                return false;
+            }
+
+            if (worldItem.ItemEntityAddress == IntPtr.Zero ||
+                !this.memory.TryRead<byte>(worldItem.ItemEntityAddress + GameLayout.WorldItemComponent.ItemNeverHiddenOffset, out var kept) || kept != 0)
+            {
+                return false;
+            }
+
+            if (this.filteredLogged.Count < MaxLoggedFiltered && this.filteredLogged.Add(id))
+            {
+                // How a fresh drop the filter hides is confirmed from a session's log.
+                this.log.Info($"Ground item hidden by the game's item filter: {id} {this.inventory.ItemBaseName(worldItem.ItemEntityAddress)}");
+            }
+
+            return true;
         }
 
         /// <summary>

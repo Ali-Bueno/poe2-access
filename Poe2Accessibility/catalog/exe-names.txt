@@ -129,6 +129,7 @@
 -	help_settings	SettingsMenu.cs
 -	hidden_monster	BuffIds.cs
 -	hidden_monster_disable_minions	EssencePrison.cs
++	hide_all_filtered_ground_items	LootFilter.cs
 +	highlight_picture	FocusTracker.cs
 +	highlight_rect	FocusTracker.cs
 -	ice_crystal	Announcements.Settings.cs

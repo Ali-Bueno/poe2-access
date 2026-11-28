@@ -1,0 +1,141 @@
+Item filter result per ground item, static study of PathOfExileSteam.exe
+=========================================================================
+
+Exe studied
+-----------
+F:\Steam\steamapps\common\Path of Exile 2\PathOfExileSteam.exe, 78,442,840 bytes, modified 2026-11-23 10:54,
+Steam buildid 26744644 (F:\Steam\steamapps\appmanifest_2694490.acf).
+The path in the brief (D:\games\steam\...) does not exist on this machine. This file is 2,048 bytes larger
+than the 0.5.5f hotfix in docs/research/exe-layouts.md (build 26476662, 78,440,792), so it is a later build
+and not 0.5.5f. Every RVA below is for this file. Field offsets were read from code, so they hold for this
+build only until rechecked. Nothing was attached or read from the running game.
+
+Scripts are s1..s42 in this folder (lib.py copies reader.py's helpers, pointed at the F: exe).
+Disassembly of every proof site is in disasm_excerpts.txt.
+
+Result in one line
+------------------
+The component an entity lists under the name "WorldItem" is a ClientWorldItem (0xB8 bytes). It caches the
+item filter's verdict for its item. Byte [comp+0x70] bit 0 is the filter's Hide, valid while byte [comp+0xB0]
+is 1. The mod already reads this component (WorldItemOffsets, ItemEntityPtr +0x28), so the flag is a few
+more byte reads on a pointer it already has.
+
+The game's own test (slot 0xC8, below), which the mod should copy:
+  hidden = option && ![comp+0x54] && ![[comp+0x28]+0x2E] && [comp+0xB0] == 1 && ([comp+0x70] & 1)
+When +0xB0 is 0 the result was never computed or was invalidated. Treat the item as shown or unknown and do
+not read +0x70, which the constructor 0x17E1F50 does not zero. Items with +0x54 or item+0x2E set skip the
+evaluation entirely, so they can read +0xB0 = 0 even with the option on.
+
+ClientWorldItem layout (proof level as in exe-layouts.md)
+---------------------------------------------------------
+  +0x08  owner entity (component header)
+  +0x28  item entity pointer                                   A  dump 0x1E11010 prints "Item: " + [[+0x28]+8] name
+  +0x54  byte, item can never be hidden                        B  SetItem 0x1E10750 at 0x1E10829
+         (base type flag [..+0x58] set, or the item has a Quest component)
+  +0x68  byte, visibility refresh pending                      B  set at 0x101C907, 0xE4CF26, 0x101AA44; cleared by slot 0x50 at 0x17E218D
+  +0x70  filter result, 0x24 bytes plus a vector at +0x98     B  copied in 0x17E2F11..0x17E2FA8 from evaluator 0x21C2C80
+         +0x70 byte0 bit0 Hide                                 A  "Hide" handler 0x21BD150: or byte [block+0x18],1 (0x21BD217)
+         +0x70 byte0 bit1 Continue                             A  "Continue" handler 0x21C0220: or byte [rdx],2
+         +0x71 byte1 bit0 Minimal                              A  "Minimal" handler 0x21BD240: or byte [block+0x19],1 and clears bit0
+         +0x73/+0x77/+0x7B dwords, +0x80..+0x90 dwords          C  colours and other actions; "Minimal" zeroes +0x7B (block+0x23)
+  +0xB0  byte, result cached                                   B  0x17E2EC2 tests it, 0x17E2FAF sets it, ctor 0x17E1FB0 and 0xE4CF1F/0x101AA3D clear it
+
+Size 0xB8 comes from the constructor 0x17E1F50 (mov edx,0xB8; pool 0x45C4980). The pool initialiser 0x3D630
+loads the name "ClientWorldItem" and the same pool 0x45C4980. The plain "WorldItem" pool is 0x60 bytes, and
+the WorldItem base constructor 0x1E106B0 (called by 0x17E1F50) zeroes +0x28..+0x58, so ClientWorldItem extends it.
+
+Proof that the "WorldItem" entry is the ClientWorldItem
+--------------------------------------------------------
+- 0xE58000..0xE58099 (label function 0xE57F70) looks up the component named "WorldItem" in the entity's
+  component map (lea r14,"WorldItem"; call 0x166100; [entity+0x10][index]) and passes it straight to 0x17E2EB0,
+  which reads +0xB0 and writes +0x70..+0xB0, past the 0x60 bytes of the WorldItem pool.
+- 0x101C8FD and 0xE4CEFD call GetComponent<WorldItem> (0x196CD0, the getter holding the "WorldItem" string)
+  and write +0x68 and +0xB0 on the result.
+
+How the game uses the flag
+--------------------------
+Predicate, ClientWorldItem vtable 0x33CE098 slot 0xC8 = 0x17E2E60:
+  shown = !GetBool("UI","hide_all_filtered_ground_items")   (getter 0x19467D0)
+          || [comp+0x54] || [[comp+0x28]+0x2E] || !([0x17E2EB0(comp)] & 1)
+SetItem 0x1E10750 calls this predicate (0x1E10899) and builds the ground model (0x1E10960) only when it is
+true. So with the option on, which it is for this user, every ground item has its filter result computed when
+the item is set, whether or not a label is ever shown. The per-frame slot 0x50 (0x17E2160, fragments 0x17E2191
+and 0x17E21F7) re-runs the same test when +0x68 is set and builds or removes the model.
+
+Evaluator 0x21C2C80 (rcx = filter, rdx = out, r8 = item entity). It starts from a default result (0x21C2BC0),
+walks rule blocks (stride 0x58, vector at filter+8..+0x10), and for each block calls every condition (stride
+0x20) through a table indexed by the condition's type byte. The first matching block's result (+0x18..+0x40)
+is copied out. A block with bit 1 (Continue) set keeps the loop going and later matches merge (0x21C0240).
+After the loop, Hide is cleared again when the base type flag [..+0x58] is set or the item's Mods component
+has +0x268 set (0x21C2E5F..0x21C2E7B). If Hide survives, alert and effect bits in bytes 1 and 2 are cleared.
+The filter object is a shared_ptr at [singleton 0x193E3A0 + 0x5D8] (count block +0x5E0).
+
+Keyword table at 0x2F220E0 (rows of 0x38: wchar*, length, ..., handler at +0x30)
+  Show 0x21BD0D0 (sets no bit), Hide 0x21BD150, Minimal 0x21BD240, Import 0x21BDE60.
+  Action keywords sit in the same family of tables: SetTextColor 0x2F229D0, SetFontSize 0x2F22A08,
+  Continue 0x2F22A40, DisableDropSound 0x2F22848, EnableDropSound 0x2F228B8, MinimapIcon 0x2F22960, PlayEffect 0x2F22928.
+
+Other readers of the cached result
+  0xE58099  label function 0xE57F70: label visible = !(byte & 1) at 0xE580C4..0xE580CD; it skips the filter
+            when [label+0x6FC] is set (0xE58088, meaning not identified).
+  0x1A5204  targeting function 0x1A4B90: an item whose result has Hide is skipped unless 0xE4C670 returns
+            true. Read only from this excerpt; it suggests a hidden item cannot be targeted with the pad.
+  0x17E2CFE slot 0xD0 (0x17E2570, drop sound: "drop_treshold", "SoundEvents") and 0x17E241F (0x17E22E0,
+            secondary vtable 0x33CE358) also read it.
+
+Cache invalidation
+  0xE4CEB0 walks the entity map at [rcx+0x3C0]+0x10 (the same field the label owner uses for ids; that rcx is a label owner is likely, not proven) and, for each valid entity's WorldItem with +0xB0
+  set, frees +0x98, clears +0xB0 and sets +0x68 (0xE4CF0A..0xE4CF26). It is reached from 0xFFAA60
+  (rcx = [this+0x4D0]; 0xFFAA60 is slot 0x8 of a small vtable 0x317EB48 that 0xFD2A00 stores at [rsi+0x2F0],
+  so `this` is a sub-object whose owner is not identified) and from 0xFAD46B (rcx = [obj+0x8B0]).
+  Which event fires these two is not proven; a filter reload is the likely one. 0x101A6D0 clears one
+  WorldItem's cache the same way (callers 0x1016F70, 0x101EAA5; it also loads "Player").
+  0x101C320 (handler for the option key) only sets +0x68 on every WorldItem, so toggling the option
+  re-applies visibility without re-evaluating.
+
+Unidentified
+  [item+0x2E]: a byte on the item entity. When it is set the item counts as shown. Its writer and meaning were
+  not found. Proof C: two of the 35 functions that write byte +0x2E look like the constructor (0x21FCFB0) and
+  copy constructor (0x21FD7F0) of a class with vtable 0x352C070, and both zero it. That item entities are this
+  class is an inference; live check [[comp+0x28]] == image base + 0x352C070.
+
+Ground labels list (second road)
+--------------------------------
+A UI element of 0x678 bytes with vtable 0x315E010 keeps the pairing. Its constructor 0xE49DB0 initialises
++0x3C0 and allocates the +0x3F0 list head (0xE49EFE..0xE49F47). 0xFC4C00 allocates it (mov edx,0x678),
+constructs it, appends it to the parent's children (0x27C7010) and returns it. The UI builder 0xF823A0 calls
+0xFC4C00 at 0xF8444D with the world_ui_layer_parent element ([uiObj+0xB98]) as parent and stores the result
+at [uiObj+0xBA0] (0xF84452). A second caller is 0xFD61E4 in 0xFD4090 (not studied).
+Corrected after review. An earlier pass named vtable 0x315DBE8 slot 0x590 and constructors 0xE41B90 and
+0xE6E400, from walking back over vtables that sit back to back without RTTI separators. The per-slot
+reference scan in s41.py gives vtable 0x315E010, with the walker at slot 0x168.
+  [owner+0x3F0]  std::list head (sentinel). Node: +0x00 next, +0x08 prev, +0x10 label element pointer,
+                 +0x18/+0x20/+0x28 std::vector<uint32> of entity ids.   0xE4DED3..0xE4DF04, 0xE4E0AA..0xE4E0FA
+  [owner+0x3C0]  entity container; ids resolve through 0x1E80670([owner+0x3C0], id).
+  After the label code, 0xE4E10C tests the label's flags +0x168 bit 11 (the host's IsVisible bit).
+The list walker 0xE4DD20 is slot 0x168 of that vtable. In code the chain runs uiObj+0xBA0 -> owner ->
++0x3F0 list. It stops at uiObj itself. The builder stores world_ui_layer_parent at [uiObj+0xB98] (0xF84406),
+while ui-layers.md measured it at +0xB90 of the "G" object on an older build. Whether this uiObj is the docs'
+G with an 8-byte shift, or a different object, is not proven. Since the owner is appended to
+world_ui_layer_parent's children, it is probably the [0,1,11,0] element, parent of the nearby labels at
+[0,1,11,0,0,*]. The component flag above makes this road unnecessary for telling hidden from shown.
+
+Live checks (none run)
+----------------------
+1. Read the WorldItem component (the one the mod already reads) for every WorldItem entity, as bytes +0xB0,
+   +0x70, +0x71, +0x54 and [[+0x28]+0x2E]. With the option on, expect +0xB0 = 1 on every item with +0x54 = 0
+   and item+0x2E = 0. Items with either set may read +0xB0 = 0.
+2. Drop or find a few items the loot filter hides (white bases under a strict filter) and a few it shows.
+   Expect +0x70 & 1 = 1 on the hidden ones and 0 on the shown ones. Items in a Minimal block should read
+   +0x70 & 1 = 0 and +0x71 & 1 = 1.
+3. Compare across label states. The value must not change between on-screen and off-screen, targeted and not
+   targeted, or with labels toggled. Hide comes from the filter, not from the label.
+4. Change the loot filter in the options while items lie on the ground. Expect +0xB0 to drop to 0 and come back
+   as 1 with the new verdict within a frame or two. If it stays stale, the mod should treat the area's results
+   as unknown until the area reloads.
+5. Quest items should read +0x54 = 1 and are never hidden.
+6. Toggle hide_all_filtered_ground_items. +0x70 must stay the same; only whether the model is drawn changes.
+7. Label road, if wanted. Read [uiObj+0xB98] and [uiObj+0xB90] and compare each element's name with
+   "world_ui_layer_parent". Then read [uiObj+0xBA0]. Its vtable should be image base + 0x315E010, and its
+   +0x3F0 a list whose nodes hold a label element (+0x10) under [0,1,11,0,0] and entity ids (+0x18..+0x20)
+   that match the item entities' ids (+0x88).

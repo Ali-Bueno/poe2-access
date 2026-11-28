@@ -248,7 +248,7 @@ namespace Poe2Accessibility.Tests
             }
 
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
-            Equal(85, shipped.Count, "every shipped line parses");
+            Equal(88, shipped.Count, "every shipped line parses");
             Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
 
             // A line naming a plugin offset the core does not list would be read and never applied, and nothing would say so until a patch.
