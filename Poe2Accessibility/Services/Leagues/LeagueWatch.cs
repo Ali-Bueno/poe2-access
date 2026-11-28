@@ -42,6 +42,7 @@ namespace Poe2Accessibility.Services
         private readonly List<(uint Id, ExpeditionFind Find, Vector2 Place, bool Reached, bool WouldReach)> finds = new();
         private readonly List<Vector2> chargePlaces = new();
         private readonly Dictionary<uint, LeagueRule?> rules = new();
+        private readonly HashSet<string> statesMissed = new(StringComparer.Ordinal);
         private readonly Dictionary<uint, (List<(string Name, long Value)> States, string Icon)> lastSeen = new();
         private long lastPoll;
         private bool placing;
@@ -87,6 +88,7 @@ namespace Poe2Accessibility.Services
             this.guide.Reset();
             this.tracker.Reset();
             this.rules.Clear();
+            this.statesMissed.Clear();
             this.lastSeen.Clear();
             ExpeditionReach.PublishDetonated(false);
             (this.placing, this.fogLogged, this.detonated) = (false, FogNotLogged, false);
@@ -138,6 +140,7 @@ namespace Poe2Accessibility.Services
                 // A zone's radius and a sacrifice change without the states: those pieces are always looked at.
                 if (this.Changed(entity.Id, states, icon) || rule.Piece is LeaguePiece.BreachInitiator or LeaguePiece.RitualAltar)
                 {
+                    this.NoteMissing(rule, path, states);
                     if (model != null)
                     {
                         this.LogOnce(path, new List<(string Name, long Value)> { ("model " + model, 0) }, icon, null, null);
@@ -443,6 +446,23 @@ namespace Poe2Accessibility.Services
             }
 
             return rule;
+        }
+
+        /// <summary>Logs once per area a state the rules read by name that a piece with a script does not have: a game update renamed it.</summary>
+        private void NoteMissing(LeagueRule rule, string path, List<(string Name, long Value)> states)
+        {
+            if (!states.Any(state => state.Name != LeaguePieces.Transition))
+            {
+                return;
+            }
+
+            foreach (var name in LeaguePieces.StatesRead(rule))
+            {
+                if (states.All(state => state.Name != name) && this.statesMissed.Add($"{rule.Piece} {name}"))
+                {
+                    this.log.Warn($"League piece without an expected state: {FileOf(path)} ({rule.Piece}) has no '{name}', it has {string.Join(", ", states.Select(state => state.Name))}");
+                }
+            }
         }
 
         /// <summary>Whether the entity's states or icon differ from the last poll's; remembers them.</summary>

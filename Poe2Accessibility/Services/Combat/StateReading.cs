@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using GameReader.RemoteObjects.Components;
     using Entity = GameReader.RemoteObjects.States.InGameStateObjects.Entity;
@@ -13,5 +14,9 @@ namespace Poe2Accessibility.Services
             entity.TryGetComponent<StateMachine>(out var machine)
                 ? machine.States.Where(state => string.Equals(state.Name, name, StringComparison.OrdinalIgnoreCase)).Select(state => state.Value).FirstOrDefault()
                 : 0;
+
+        /// <summary>The state names of the entity's script; empty when it has none or none read.</summary>
+        public static IReadOnlyList<string> NamesOf(Entity entity) =>
+            entity.TryGetComponent<StateMachine>(out var machine) ? machine.States.Select(state => state.Name).ToList() : Array.Empty<string>();
     }
 }
