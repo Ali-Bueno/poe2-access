@@ -454,7 +454,11 @@ namespace Poe2Accessibility.Services
         private int allocatedFailures;
 
         /// <summary>The graph ids in an allocated list at the offset of the state; null when no such list is there.</summary>
-        public List<int>? AllocatedAt(IntPtr state, int offset)
+        public List<int>? AllocatedAt(IntPtr state, int offset) =>
+            this.ReadEntries(state, offset) is { } read ? read.Entries.Select(entry => (int)(entry & 0xFFFF)).ToList() : null;
+
+        /// <summary>The 32-bit entries of the vector at the offset of the state, and how many it holds; null when no such vector is there.</summary>
+        private (uint[] Entries, int Count)? ReadEntries(IntPtr state, int offset)
         {
             if (!this.reader.TryRead<StdVector>(state + offset, out var vector))
             {
@@ -469,7 +473,7 @@ namespace Poe2Accessibility.Services
             }
 
             var count = (int)(bytes / GameLayout.PassiveTree.AllocatedEntrySize);
-            return this.reader.ReadArray<uint>(vector.First, count).Select(entry => (int)(entry & 0xFFFF)).ToList();
+            return (this.reader.ReadArray<uint>(vector.First, count), count);
         }
 
         /// <summary>The choices list's name in the layout report.</summary>
@@ -540,24 +544,10 @@ namespace Poe2Accessibility.Services
         }));
 
         /// <summary>The choices in a list at the offset of the state; null when no such list is there.</summary>
-        private Dictionary<int, int>? ChoicesAt(IntPtr state, int offset)
-        {
-            if (!this.reader.TryRead<StdVector>(state + offset, out var vector))
-            {
-                return null;
-            }
-
-            var bytes = vector.Last.ToInt64() - vector.First.ToInt64();
-            if (bytes < 0 || bytes % GameLayout.PassiveTree.AllocatedEntrySize != 0 || bytes / GameLayout.PassiveTree.AllocatedEntrySize > MaxAllocated ||
-                (bytes > 0 && !this.reader.IsValidAddress(vector.First)))
-            {
-                return null;
-            }
-
-            var count = (int)(bytes / GameLayout.PassiveTree.AllocatedEntrySize);
-            var entries = this.reader.ReadArray<uint>(vector.First, count);
-            return entries.Length == count ? PassiveChoices.Read(entries, PassiveTreeCatalog.Shared.GraphIds, PassiveTreeCatalog.Shared.VariantIds) : null;
-        }
+        private Dictionary<int, int>? ChoicesAt(IntPtr state, int offset) =>
+            this.ReadEntries(state, offset) is { } read && read.Entries.Length == read.Count
+                ? PassiveChoices.Read(read.Entries, PassiveTreeCatalog.Shared.GraphIds, PassiveTreeCatalog.Shared.VariantIds)
+                : null;
 
         /// <summary>A new game process: every field is judged again from where it was measured.</summary>
         public void Reset()
