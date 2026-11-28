@@ -14,12 +14,12 @@ internal static class GameNameCheck
     public const string GonePrefix = "gone from the game's files: ";
 
     /// <summary>
-    ///     What the files hold: the Ids of the four tables, a reader of an object's script by its path (null when absent) and
+    ///     What the files hold: the Ids of the five tables, a reader of an object's script by its path (null when absent) and
     ///     the names of the UI images.
     /// </summary>
     internal sealed record Files(
         IReadOnlySet<string> Buffs, IReadOnlySet<string> Animations, IReadOnlyCollection<string> Monsters, Func<string, string?> Script,
-        IReadOnlySet<string> MinimapIcons, IReadOnlyCollection<string> UiArt);
+        IReadOnlySet<string> MinimapIcons, IReadOnlyCollection<string> UiArt, IReadOnlySet<string> Rulesets);
 
     /// <summary>The names the files no longer hold, in the order given.</summary>
     public static IReadOnlyList<GameName> Gone(IEnumerable<GameName> names, Files files) => names.Where(name => !Holds(name, files)).ToList();
@@ -33,6 +33,7 @@ internal static class GameNameCheck
         GameNameKind.ObjectFile => files.Script(name.Value) is { } text && (name.State is not { } state || StatesOf(name.Value, text, files.Script).Contains(state)),
         GameNameKind.MinimapIcon => files.MinimapIcons.Contains(name.Value),
         GameNameKind.UiArt => files.UiArt.Any(art => art.Contains(name.Value, StringComparison.OrdinalIgnoreCase)),
+        GameNameKind.Ruleset => files.Rulesets.Contains(name.Value),
         _ => false,
     };
 

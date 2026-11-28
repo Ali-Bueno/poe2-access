@@ -25,7 +25,8 @@ namespace Poe2Accessibility.Tests
             new HashSet<string> { "dazed" }, animations.ToHashSet(), new[] { "Metadata/Monsters/MudBurrower/MudBurrowerTailBoss_" },
             path => scripts != null && scripts.TryGetValue(path, out var text) ? text : null,
             new HashSet<string> { "QuestObject", "MarakethSanctumFountain" },
-            GameNameCheck.UiArtNames("\"Art/2DArt/UIImages/InGame/Sanctum/GoldIcon\" \"Art/Textures/Interface/2D/sheet.dds\" 0 0 31 31\r\n\"Art/2DArt/UIImages/Common/Background2\" \"x.dds\" 8 8 9 9"));
+            GameNameCheck.UiArtNames("\"Art/2DArt/UIImages/InGame/Sanctum/GoldIcon\" \"Art/Textures/Interface/2D/sheet.dds\" 0 0 31 31\r\n\"Art/2DArt/UIImages/Common/Background2\" \"x.dds\" 8 8 9 9"),
+            new HashSet<string> { "ExpeditionRules", "UltimatumRules" });
 
         private static readonly GameName[] Names =
         {
@@ -69,6 +70,9 @@ namespace Poe2Accessibility.Tests
             Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.UiArt, "/Sanctum/GoldIcon", null, "TrialArt"), files), "part of an image's name");
             Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.UiArt, "/sheet", null, "TrialArt"), files), "the sheet an image is cut from is not its name");
             Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.UiArt, "/Sanctum/SilverKeyIcon", null, "TrialArt"), files), "an image gone");
+            Expect(true, GameNameCheck.Holds(new GameName(GameNameKind.Ruleset, "UltimatumRules", null, "RulesetNames"), files), "a ruleset's Id");
+            Expect(false, GameNameCheck.Holds(new GameName(GameNameKind.Ruleset, "ExpandingBrequelEncounterRules", null, "RulesetNames"), files), "a ruleset renamed leaves its mechanic unread");
+            Expect(true, RulesetNames.All.All(id => GameNames.All().Contains(new GameName(GameNameKind.Ruleset, id, null, nameof(RulesetNames)))), "every ruleset the mod reads is checked");
         }
 
         private static void EveryRulesNameIsChecked()

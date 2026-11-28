@@ -207,6 +207,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\CodeFieldCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ExeNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Leagues\RulesetSessionSearch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Leagues\RulesetNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\LayoutOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PoiseSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemMoves.cs" />

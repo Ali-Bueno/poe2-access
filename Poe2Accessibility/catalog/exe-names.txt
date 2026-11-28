@@ -1,13 +1,11 @@
 # The names the plugin matches by their text, and whether the game's exe holds each as a whole string (+) or not (-):
 # a + name a later exe lacks was renamed by a patch and is said (docs/compatibility.md, "Names in the exe").
-# Made from the source: dotnet run --project tests/Poe2Accessibility.Tests -c Release -- exe-names <exe> <repository>
+# Made from the source: dotnet run --project tests/Poe2Accessibility.Tests -c Release -- exe-names <the game's exe>
 -	.dds|	GameLayout.cs
 -	/CoinPile	GameLayout.cs
 -	Act1_Transition	Announcements.Cinematics.cs
 -	Act2_Transition	Announcements.Cinematics.cs
 -	Act3_Transition	Announcements.Cinematics.cs
--	AfflictionEncounterRules	GameLayout.cs
--	AfflictionMapRules	GameLayout.cs
 -	Art/	GameLayout.cs
 -	Art/2DItems/Currency/	GameLayout.cs
 -	Art/2DItems/QuestItems/Reward	GameLayout.cs
@@ -26,8 +24,6 @@
 +	EShopDetailPage	GameLayout.cs
 +	EShopItemEntry	GameLayout.cs
 +	EshopMainPage	GameLayout.cs
--	ExpandingBrequelEncounterRules	GameLayout.cs
--	ExpeditionRules	GameLayout.cs
 -	Flask_Drop_01	SoundGlossary.cs
 -	G2_1	Cinematics.cs
 -	G3_1	Cinematics.cs
@@ -45,7 +41,6 @@
 +	Skip_Cutscene	GameLayout.cs
 +	Sockets	GameLayout.cs
 -	SupportGem_Drop_01	SoundGlossary.cs
--	UltimatumRules	GameLayout.cs
 -	abyss_chest	LeaguePieces.cs
 +	action_binding_display	GameLayout.cs
 -	add_one	StatHandlers.cs

@@ -368,10 +368,10 @@ namespace Poe2Accessibility
         /// </summary>
         public static class Fog
         {
-            public const string RulesName = "AfflictionEncounterRules";
+            public const string RulesName = Services.RulesetNames.Fog;
 
             /// <summary>The endgame variant, which has no clocks: its presence is logged, nothing is read from it.</summary>
-            public const string MapRulesName = "AfflictionMapRules";
+            public const string MapRulesName = Services.RulesetNames.FogOnMaps;
 
             public const int RulesBytes = 0x140;
             public static int Balance { get; internal set; } = 0x58;
@@ -512,7 +512,7 @@ namespace Poe2Accessibility
             ///     state (0x172AAD5: 89 4B 38; 2 plays BreachEnrageStinger, as encounter_state of BrequelInitiator). The ring is drawn
             ///     with a radius of 300 × (size / 100) ^ 0.6 grid cells (0x172A627).
             /// </summary>
-            public const string BreachName = "ExpandingBrequelEncounterRules";
+            public const string BreachName = Services.RulesetNames.Breach;
 
             public static int BreachEncounters { get; internal set; } = 0x190;
 
@@ -530,7 +530,7 @@ namespace Poe2Accessibility
             ///     charges it has and the vector at +0x40 the charges placed, 8 bytes each: the HUD's "Explosives Placed: {0}/{1}"
             ///     is formatted from exactly these (0x4F4280: 0F B6 74 01 68, then the vector's length). +0x60 is its grid place.
             /// </summary>
-            public const string ExpeditionName = "ExpeditionRules";
+            public const string ExpeditionName = Services.RulesetNames.Expedition;
 
             public static int ExpeditionSites { get; internal set; } = 0x1E0;
 
@@ -546,7 +546,7 @@ namespace Poe2Accessibility
             ///     UltimatumRoomCompleted, 0x181FE3E) and how many rounds at +0x1A9; the window's "Round {0}/{1}" is formatted from
             ///     them (0x5721A4 adds 1 to the first).
             /// </summary>
-            public const string UltimatumName = "UltimatumRules";
+            public const string UltimatumName = Services.RulesetNames.Ultimatum;
 
             public static int UltimatumRound { get; internal set; } = 0x1A8;
 

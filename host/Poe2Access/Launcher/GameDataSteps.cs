@@ -43,7 +43,7 @@ internal static class GameDataSteps
         // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
         new Step("game ids", 5, "game-ids.txt", "game-ids", true), // 5: the rows of Rulesets, for the client's rulesets
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
-        new Step("game names", 6, "game-names.txt", "game-names", true), // 6: the Expedition explosive objects; 5: the Verisium Anvil's icon; 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
+        new Step("game names", 7, "game-names.txt", "game-names", true), // 7: the rulesets the mod reads; 6: the Expedition explosive objects; 5: the Verisium Anvil's icon; 4: the Reforging Bench's icon; 3: minimap icons and the Trial map's art // fails, naming them, when a name a rule matches is gone
         new Step("places", 2, "places.json", "places", true), // 2: the props vocabulary, every rotation, each tile's own .tmd (2026-11-16)
         new Step("rooms", 3, "rooms.json", "rooms", true), // 3: generic labels named by file name or props (2026-11-16)
         new Step("endgame", 5, "endgame.json", "endgame", true), // 5: each graph's file path; 4: skill-graph nodes carry their PassiveSkills marks and roots

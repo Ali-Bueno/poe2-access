@@ -159,3 +159,8 @@ Buff	shrine_critical_2		LeaguePieces
 Buff	shrine_corrupt_2		LeaguePieces
 Buff	shrine_noequipment_2		LeaguePieces
 Buff	monolith_monster_freedom		EssencePrison
+Ruleset	ExpandingBrequelEncounterRules		RulesetNames
+Ruleset	ExpeditionRules		RulesetNames
+Ruleset	UltimatumRules		RulesetNames
+Ruleset	AfflictionEncounterRules		RulesetNames
+Ruleset	AfflictionMapRules		RulesetNames

@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Part of the name of a UI image (Art/UIImages1.txt).</summary>
         UiArt,
+
+        /// <summary>A Rulesets Id.</summary>
+        Ruleset,
     }
 
     /// <param name="State">For an object's script, the state matched on it; null when only the file is.</param>
@@ -60,6 +63,7 @@ namespace Poe2Accessibility.Services
                 .Concat(TrialArt.CounterMarkers.Append(TrialArt.CurrentRoomMarker).Append(TrialArt.EffectSlotMarker)
                     .Select(marker => new GameName(GameNameKind.UiArt, marker, null, nameof(TrialArt))))
                 .Concat(LeaguePieces.NamesMatched())
-                .Append(new GameName(GameNameKind.Buff, EssencePrison.FreedBuff, null, nameof(EssencePrison)));
+                .Append(new GameName(GameNameKind.Buff, EssencePrison.FreedBuff, null, nameof(EssencePrison)))
+                .Concat(RulesetNames.All.Select(id => new GameName(GameNameKind.Ruleset, id, null, nameof(RulesetNames))));
     }
 }

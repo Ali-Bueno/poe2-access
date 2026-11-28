@@ -59,6 +59,7 @@ namespace Poe2Accessibility.Services
         {
             (this.session, this.area, this.lastSearch) = (IntPtr.Zero, IntPtr.Zero, long.MinValue / 2);
             (this.areaMisses, this.healTries) = (0, 0);
+            this.names.Clear();
         }
 
         /// <summary>The ring of the Breach nearest a place, while one is open; null without one or when its numbers cannot be a ring's.</summary>
@@ -168,9 +169,12 @@ namespace Poe2Accessibility.Services
             var present = new List<string>();
             for (var row = 0; row < GameLayout.Rulesets.MostRows; row++)
             {
-                if (this.RulesetAt(this.session, row) != null)
+                if (this.RulesetAt(this.session, row) is { } rules)
                 {
-                    present.Add(GameIds.Current.RulesetName(row) ?? $"row {row}");
+                    // By the files' name of the row; what the ruleset itself says is added when it is another (a table that gained a row).
+                    var listed = GameIds.Current.RulesetName(row) ?? $"row {row}";
+                    var own = this.NameOf(rules);
+                    present.Add(own == listed ? listed : $"{listed} (its own row says {(own is { Length: > 0 } ? own : "nothing")})");
                 }
             }
 
@@ -348,13 +352,28 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private IntPtr? Find(string name)
         {
-            if (!this.EnsureSession() || RowOf(name) is not { } row || row < 0 || row >= GameLayout.Rulesets.MostRows)
+            if (!this.EnsureSession() || RowOf(name) is not { } row || row < 0 || row >= GameLayout.Rulesets.MostRows ||
+                this.RulesetAt(this.session, row) is not { } rules)
             {
                 return null;
             }
 
-            return this.RulesetAt(this.session, row);
+            // The row's number is the files' or, failing them, an older build's: the ruleset's own row must be named so, or a
+            // table that gained a row would give another mechanic's object to this one's reader.
+            if (!this.names.TryGetValue(rules, out var own))
+            {
+                this.names[rules] = own = this.NameOf(rules);
+                if (own != name)
+                {
+                    this.log.Info($"Rulesets: row {row} holds {(own is { Length: > 0 } ? own : "an unnamed ruleset")}, not {name}: not read as it");
+                }
+            }
+
+            return own == name ? rules : null;
         }
+
+        /// <summary>The Id each ruleset of the session says it is, read once.</summary>
+        private readonly Dictionary<IntPtr, string?> names = new();
 
         private static int? RowOf(string name) =>
             GameIds.Current.Ruleset(name) ?? (GameLayout.Rulesets.RowsOfThisBuild.TryGetValue(name, out var row) ? row : null);

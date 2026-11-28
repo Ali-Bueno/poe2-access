@@ -17,7 +17,7 @@ internal static class GameNameExtractor
     public static int Run(Index index, string outFile)
     {
         var ids = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (var name in new[] { "buffdefinitions", "animation", "monstervarieties", "minimapicons" })
+        foreach (var name in new[] { "buffdefinitions", "animation", "monstervarieties", "minimapicons", "rulesets" })
         {
             // Each holds its Id as a string at the row's start, as game-keys reads them.
             if (DatTable.Open(index, name) is not { } table || !DatColumnSearch.IsText(table, 0, _ => true))
@@ -37,7 +37,7 @@ internal static class GameNameExtractor
             return 1;
         }
 
-        var files = new GameNameCheck.Files(ids["buffdefinitions"], ids["animation"], ids["monstervarieties"], Script, ids["minimapicons"], GameNameCheck.UiArtNames(imageList.ReadText()));
+        var files = new GameNameCheck.Files(ids["buffdefinitions"], ids["animation"], ids["monstervarieties"], Script, ids["minimapicons"], GameNameCheck.UiArtNames(imageList.ReadText()), ids["rulesets"]);
         var names = GameNames.All().ToList();
         var gone = GameNameCheck.Gone(names, files);
         if (gone.Count > 0)
