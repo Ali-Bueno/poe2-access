@@ -90,16 +90,7 @@ namespace Poe2Accessibility
                 this.Isolated("moves", playing, static (core, playing) => core.pickups?.TickMoves(playing, core.Settings.AnnounceMoves));
                 this.Isolated("gold", playing, static (core, playing) => core.gold?.Tick(core.focus?.LayerContainer ?? IntPtr.Zero, playing, core.Settings.AnnouncePickups));
                 this.Isolated("flasks", playing, static (core, playing) => core.flasks?.Tick(playing, core.Settings.AnnounceFlasks));
-                if (Seats.Partner is { } partner)
-                {
-                    // The partner's own pick-ups, hand, moves and flasks, named (its menus are read for whoever moves in them).
-                    var partnerPlaying = inWorld && IsAlive(partner);
-                    this.Isolated("partner pick-ups", partnerPlaying, static (core, playing) => core.partnerPickups?.Tick(playing && core.Settings.AnnouncePickups));
-                    this.Isolated("partner hand", static core => core.partnerPickups?.TickHand(core.Settings.AnnounceHand));
-                    this.Isolated("partner moves", partnerPlaying, static (core, playing) => core.partnerPickups?.TickMoves(playing, core.Settings.AnnounceMoves));
-                    this.Isolated("partner flasks", partnerPlaying, static (core, playing) => core.partnerFlasks?.Tick(playing, core.Settings.AnnounceFlasks));
-                }
-
+                this.Isolated("partner", inWorld, static (core, inWorld) => core.TickPartnerSounds(inWorld));
                 this.Isolated("barriers", static core => core.barriers?.Tick(core.Settings.AnnounceDiscoveries));
             }
 
@@ -266,6 +257,21 @@ namespace Poe2Accessibility
 
         private static bool IsAlive(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity) =>
             entity.TryGetComponent<GameReader.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
+
+        /// <summary>The partner's own pick-ups, hand, moves and flasks, named (its menus are read for whoever moves in them).</summary>
+        private void TickPartnerSounds(bool inWorld)
+        {
+            if (Seats.Partner is not { } partner)
+            {
+                return;
+            }
+
+            var partnerPlaying = inWorld && IsAlive(partner);
+            this.Isolated("partner pick-ups", partnerPlaying, static (core, playing) => core.partnerPickups?.Tick(playing && core.Settings.AnnouncePickups));
+            this.Isolated("partner hand", static core => core.partnerPickups?.TickHand(core.Settings.AnnounceHand));
+            this.Isolated("partner moves", partnerPlaying, static (core, playing) => core.partnerPickups?.TickMoves(playing, core.Settings.AnnounceMoves));
+            this.Isolated("partner flasks", partnerPlaying, static (core, playing) => core.partnerFlasks?.Tick(playing, core.Settings.AnnounceFlasks));
+        }
 
         /// <summary>Per frame in the game: each read player's own news (life, mana, level, states).</summary>
         private void TickPlayerNews()
