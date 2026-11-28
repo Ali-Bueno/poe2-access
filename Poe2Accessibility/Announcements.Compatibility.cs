@@ -78,6 +78,7 @@ namespace Poe2Accessibility
             "poise" => T("when an enemy is about to be stunned, so that warning stays silent", "cuándo un enemigo está a punto de aturdirse, así que ese aviso no sonará"),
             "walkable" => T("where you can walk, so the guide and the radar may fail", "por dónde se puede andar, así que el guía y el radar pueden fallar"),
             "code fields" => T("some of the game's data, so some readings may be wrong", "parte de los datos del juego, así que alguna lectura puede ser errónea"),
+            Services.ExeNames.Part => T("some of the interface's controls by their name, so a screen or a button may stay silent", "algunos controles de la interfaz por su nombre, así que alguna pantalla o algún botón puede quedar sin leer"),
             "effect names" => T("some effects by their name, so they stay silent", "algunos efectos por su nombre, así que no sonarán"),
             "reaction" => T("who is an enemy and who is not, so enemies may stay silent", "quién es enemigo y quién no, así que los enemigos pueden no sonar"),
             "animations" => T("what enemies are doing, so dodge and shield warnings stay silent", "lo que hacen los enemigos, así que los avisos de esquivar y de escudo no sonarán"),

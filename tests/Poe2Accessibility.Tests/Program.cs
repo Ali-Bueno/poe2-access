@@ -42,6 +42,11 @@ namespace Poe2Accessibility.Tests
                 return StaticAnchorTests.CheckBuild(build, catalogs);
             }
 
+            if (args is [ExeNameTests.MakeCommand, var held])
+            {
+                return ExeNameTests.Make(held);
+            }
+
             if (args is [PrismTests.CheckCommand, var prismFolder])
             {
                 return PrismTests.Check(prismFolder);
@@ -139,6 +144,7 @@ namespace Poe2Accessibility.Tests
                 HostAndToolsAuditTests.All(),
                 KnownRowTests.All(),
                 GameNameTests.All(),
+                ExeNameTests.All(),
                 HostRuleTests.All(),
                 LayoutRuleTests.All(),
                 LauncherWaitTests.All(),

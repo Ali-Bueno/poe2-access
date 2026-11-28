@@ -102,7 +102,10 @@ namespace Poe2Accessibility.Tests
 
             Console.WriteLine("== Semantic rules");
             var semantic = SemanticRuleTests.CheckExe(exe, System.IO.Path.Combine(catalogs, "semantic-fields.txt"));
-            return patterns == 0 && moved == 0 && unread == 0 && semantic == 0 ? 0 : 1;
+
+            Console.WriteLine("== Exe names");
+            var names = ExeNameTests.CheckExe(exe, catalogs);
+            return patterns == 0 && moved == 0 && unread == 0 && semantic == 0 && names == 0 ? 0 : 1;
         }
 
         private static void EveryMatchOfAPatternIsFound()

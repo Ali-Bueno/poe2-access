@@ -351,6 +351,7 @@ namespace Poe2Accessibility
             this.codeFields = null;
             var reading = task.IsCompletedSuccessfully ? task.Result
                 : new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, task.Exception?.GetBaseException().Message, null);
+            this.TakeExeNames(reading.Names);
             if (reading.Error != null)
             {
                 this.log?.Warn($"Code fields unread: {reading.Error}");
@@ -436,6 +437,30 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>A control or table the game renamed is matched by nothing: said once, with each name and its file in the log.</summary>
+        private void TakeExeNames(ExeNameReading? names)
+        {
+            if (names is null)
+            {
+                return;
+            }
+
+            if (names.Error is { } error)
+            {
+                this.log?.Warn($"Exe names unread: {error}");
+                return;
+            }
+
+            if (names.Gone.Count == 0)
+            {
+                this.log?.Info(ExeNames.Tally(names.Held, names.Gone));
+                return;
+            }
+
+            this.log?.Warn(ExeNames.Tally(names.Held, names.Gone));
+            this.compatibility?.Missing(ExeNames.Part);
+        }
+
         /// <summary>"Code fields: 50 of 50 read in 600 ms; moved: none", and what read nothing.</summary>
         private static string Tally(
             string source, System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> read, long milliseconds, System.Collections.Generic.IReadOnlyList<string> moved)
@@ -470,13 +495,34 @@ namespace Poe2Accessibility
                 var code = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
                 var codeTime = watch.ElapsedMilliseconds;
                 var (semantic, semanticError) = ReadSemanticFields(file, Path.Join(catalog, SemanticFieldFile));
-                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null, semanticError) { StickRule = StickRuleCode.Read(file) };
+                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null, semanticError)
+                {
+                    StickRule = StickRuleCode.Read(file),
+                    Names = ReadExeNames(file, Path.Join(catalog, ExeNames.FileName)),
+                };
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
             {
                 return new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, ex.Message, null);
             }
         }
+
+        /// <summary>The listed names the exe no longer holds (<see cref="ExeNames"/>), or why the list was not read.</summary>
+        private static ExeNameReading ReadExeNames(byte[] file, string list)
+        {
+            try
+            {
+                var entries = ExeNames.Parse(File.ReadLines(list));
+                return new ExeNameReading(entries.Count(entry => entry.Held), ExeNames.Gone(file, entries), null);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                return new ExeNameReading(0, Array.Empty<ExeName>(), ex.Message);
+            }
+        }
+
+        /// <summary>How many names the exe held when the list was made, and those this exe lacks.</summary>
+        private sealed record ExeNameReading(int Held, System.Collections.Generic.IReadOnlyList<ExeName> Gone, string? Error);
 
         /// <summary>What the exe on disk says, from the signatures and from the semantic rules, and how long each took.</summary>
         private sealed record CodeFieldReading(
@@ -489,6 +535,9 @@ namespace Poe2Accessibility
         {
             /// <summary>The stick rule's constants as this exe holds them; null when its code was not found.</summary>
             public StickRuleCode.Rule? StickRule { get; init; }
+
+            /// <summary>The names the plugin matches that this exe no longer holds; null when the exe was not read.</summary>
+            public ExeNameReading? Names { get; init; }
         }
     }
 }
