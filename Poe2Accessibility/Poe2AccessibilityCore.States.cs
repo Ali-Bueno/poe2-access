@@ -62,45 +62,55 @@ namespace Poe2Accessibility
 
         private void OnGameStateChanged(GameStateTypes previous, GameStateTypes current)
         {
-            this.research?.OnStateChanged(current);
-            if (current == GameStateTypes.SelectCharacterState)
+            // The state is already current and the event does not fire again: each step stands alone (as OnAreaChanged's).
+            this.Isolated("state research", current, static (core, current) => core.research?.OnStateChanged(current));
+            this.Isolated("state character", current, static (core, current) =>
             {
-                this.creationHelpSaid = false;
-                this.classHelpSaid = false;
-                this.flasks?.ForgetCosts();
-                this.partnerFlasks?.ForgetCosts();
-                this.alerts?.Resources.ForgetCharacter();
-                this.partnerAlerts?.Resources.ForgetCharacter();
-                this.narrator?.CharacterChanged();
-            }
-
-            if (current == GameStateTypes.AreaLoadingState)
+                if (current == GameStateTypes.SelectCharacterState)
+                {
+                    core.creationHelpSaid = false;
+                    core.classHelpSaid = false;
+                    core.flasks?.ForgetCosts();
+                    core.partnerFlasks?.ForgetCosts();
+                    core.alerts?.Resources.ForgetCharacter();
+                    core.partnerAlerts?.Resources.ForgetCharacter();
+                    core.narrator?.CharacterChanged();
+                }
+            });
+            this.Isolated("state barriers", current, static (core, current) =>
             {
-                // A respawn reloads the same area without an area change; its barriers come back reading open for a
-                // moment ("Se abrió el paso" after a death, 2026-10-24): learnt again without a word.
-                this.barriers?.Reset();
-            }
-
-            this.cinematics?.StateChanged(current == GameStateTypes.AreaLoadingState);
-            this.screen?.Reset(false);
-            this.narrator?.Reset(current == GameStateTypes.InGameState);
-            if (this.narrator != null)
+                if (current == GameStateTypes.AreaLoadingState)
+                {
+                    // A respawn reloads the same area without an area change; its barriers come back reading open for a
+                    // moment ("Se abrió el paso" after a death, 2026-10-24): learnt again without a word.
+                    core.barriers?.Reset();
+                }
+            });
+            this.Isolated("state cinematics", current, static (core, current) => core.cinematics?.StateChanged(current == GameStateTypes.AreaLoadingState));
+            this.Isolated("state screen", static core => core.screen?.Reset(false));
+            this.Isolated("state narrator", current, static (core, current) =>
             {
-                // The game menu's screen carries the pause banner and a loading tip: its focus alone opens it.
-                this.narrator.ReadScreenMessages = current != GameStateTypes.EscapeState;
-                this.narrator.LoadingArea = current == GameStateTypes.AreaLoadingState;
-                this.narrator.SaidTitle = current == GameStateTypes.EscapeState ? Announcements.ForState(current) : string.Empty;
-            }
-            if (this.semantics != null)
+                core.narrator?.Reset(current == GameStateTypes.InGameState);
+                if (core.narrator != null)
+                {
+                    // The game menu's screen carries the pause banner and a loading tip: its focus alone opens it.
+                    core.narrator.ReadScreenMessages = current != GameStateTypes.EscapeState;
+                    core.narrator.LoadingArea = current == GameStateTypes.AreaLoadingState;
+                    core.narrator.SaidTitle = current == GameStateTypes.EscapeState ? Announcements.ForState(current) : string.Empty;
+                }
+            });
+            this.Isolated("state semantics", current, static (core, current) =>
             {
-                this.semantics.InGame = current == GameStateTypes.InGameState;
-            }
-
+                if (core.semantics != null)
+                {
+                    core.semantics.InGame = current == GameStateTypes.InGameState;
+                }
+            });
             if (previous == GameStateTypes.EscapeState && current == GameStateTypes.InGameState)
             {
                 // Back to play from the game menu: its long pause banner stops (user 2026-10-28). Options opened from
                 // the menu are read after this, as their page arrives.
-                this.output.Stop();
+                this.Isolated("state stop", static core => core.output.Stop());
             }
 
             if (!this.Settings.AnnounceGameState)

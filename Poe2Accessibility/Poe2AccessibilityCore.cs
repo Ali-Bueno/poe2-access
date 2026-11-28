@@ -291,8 +291,8 @@ namespace Poe2Accessibility
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
                 CurrencyIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "currency-art.json"));
                 EndgameCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "endgame.json"));
-            ControllerGlyphs.Dropped = message => this.log.Info(message);
-            InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
+                ControllerGlyphs.Dropped = message => this.log.Info(message);
+                InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
                 // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
                 var landmarks = this.landmarks = LandmarkTable.Load(
                     this.log,
@@ -352,8 +352,7 @@ namespace Poe2Accessibility
                 this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);
                 this.pickups.InTrade = () => tradeOffers.Open;
                 this.pickups.InFavours = () => this.narrator?.FavoursShown == true;
-                this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
-                    this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
+                this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(this.InventoryPanel()) ?? string.Empty;
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
                 this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
@@ -816,6 +815,31 @@ namespace Poe2Accessibility
             });
         }
 
+        private void NarrateScreenChange(ScreenChange change, bool watching)
+        {
+            if (this.screen == null || this.narrator == null || this.focus == null)
+            {
+                return;
+            }
+
+            if (change.Kind != ScreenChangeKind.NumbersChanged) // a running counter would fill the log
+            {
+                this.log?.Info($"Screen {change.Kind} layer {change.Layer.Index}: {string.Join(" | ", change.Texts.Select(text => text.Button.Length > 0 ? $"{text.Text} [{text.Button}]" : text.Text))}");
+            }
+
+            this.deaths?.Saw(change.Layer.Address);
+            if (watching && change.Kind != ScreenChangeKind.NumbersChanged)
+            {
+                // Inspect Mode's table follows every change, said or not (a counter ticking is none of its).
+                this.narrator.ObserveInspect(this.focus.Current);
+            }
+
+            if (watching && (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText))
+            {
+                this.narrator.OnScreenChange(change, this.screen.Current, this.focus.Current, this.focus.CurrentLayer);
+            }
+        }
+
         private void NarrateScreenChanges(IntPtr stateObject)
         {
             if (this.screen == null || this.narrator == null || this.focus == null || this.locator == null || this.gameState == null)
@@ -851,7 +875,7 @@ namespace Poe2Accessibility
             this.narrator.HudLayer = inGame ? fields.Find(container, InGameField.Hud) : IntPtr.Zero;
             this.skillBar = inGame ? fields.Find(container, InGameField.SkillBar) : IntPtr.Zero;
             this.narrator.ReadTooltips = this.Settings.ReadTooltipsOnFocus;
-            this.narrator.Tick();
+            this.Isolated("narrator", static core => core.narrator?.Tick());
             // Another window in front (a notification, alt-tab): what the game redraws meanwhile is not news, and is
             // taken in silently so coming back does not read it (tooltips read out on a notification, 2026-10-26).
             // Unless the pad, pressed since the window went behind, drives the game there: the game takes it, the focus
@@ -871,22 +895,7 @@ namespace Poe2Accessibility
             });
             while (this.screen.TryDequeue(out var change))
             {
-                if (change.Kind != ScreenChangeKind.NumbersChanged) // a running counter would fill the log
-                {
-                    this.log?.Info($"Screen {change.Kind} layer {change.Layer.Index}: {string.Join(" | ", change.Texts.Select(text => text.Button.Length > 0 ? $"{text.Text} [{text.Button}]" : text.Text))}");
-                }
-
-                this.deaths?.Saw(change.Layer.Address);
-                if (watching && change.Kind != ScreenChangeKind.NumbersChanged)
-                {
-                    // Inspect Mode's table follows every change, said or not (a counter ticking is none of its).
-                    this.narrator.ObserveInspect(this.focus.Current);
-                }
-
-                if (watching && (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText))
-                {
-                    this.narrator.OnScreenChange(change, this.screen.Current, this.focus.Current, this.focus.CurrentLayer);
-                }
+                this.Isolated("screen change", (change, watching), static (core, item) => core.NarrateScreenChange(item.change, item.watching));
             }
 
             // What the narrator looks for on the screen, each on its own: a countdown that fails to parse must not take the

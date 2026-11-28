@@ -127,6 +127,7 @@
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Leagues.cs" Link="Plugin\Announcements.Leagues.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\ThrottledLookup.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\AreaInstanceGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechPriority.cs" />

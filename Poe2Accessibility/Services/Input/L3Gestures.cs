@@ -122,10 +122,13 @@ namespace Poe2Accessibility.Services
         private bool longHoldFired;
         private bool freeStickOut;
         private long? pendingTapAt;
+        private readonly List<PadGesture> fired = new();
 
+        /// <summary>The gestures this tick completed; nothing allocated on a tick with none.</summary>
         public IReadOnlyList<PadGesture> Update(long nowMs, bool l3, float rightX, float rightY, bool r3 = false, bool leftTrigger = false)
         {
-            var gestures = new List<PadGesture>();
+            var gestures = this.fired;
+            gestures.Clear();
             var r3Pressed = r3 && !this.r3Down;
             this.r3Down = r3;
             if (r3Pressed && leftTrigger && !l3)
@@ -221,7 +224,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return gestures;
+            return gestures.Count == 0 ? Array.Empty<PadGesture>() : gestures.ToArray();
         }
     }
 }

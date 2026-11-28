@@ -52,10 +52,19 @@ namespace Poe2Accessibility.Services
                 while (!this.stopping)
                 {
                     this.pendingSignal.WaitOne(waitMs);
-                    waitMs = this.ReleaseWaiting();
-                    while (!this.stopping && this.TryDequeue(out var request))
+                    try
                     {
-                        this.Execute(prism, request);
+                        waitMs = this.ReleaseWaiting();
+                        while (!this.stopping && this.TryDequeue(out var request))
+                        {
+                            this.Execute(prism, request);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // An exception escaping this thread would end the host process.
+                        waitMs = WorkerRetryMs;
+                        this.LogWorkerFault(ex);
                     }
                 }
             }
@@ -71,6 +80,18 @@ namespace Poe2Accessibility.Services
                     this.log.Error("PRISM shutdown failed", ex);
                 }
             }
+        }
+
+        private void LogWorkerFault(Exception ex)
+        {
+            var now = Environment.TickCount64;
+            if (now - this.lastFaultLogMs < WorkerFaultLogMs)
+            {
+                return;
+            }
+
+            this.lastFaultLogMs = now;
+            this.log.Error("Speech worker loop failed", ex);
         }
 
         private bool TryDequeue(out SpeechRequest request)

@@ -27,12 +27,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Returns the commands written since the last poll (lower-case, one per line) and deletes the file.</summary>
         public IReadOnlyList<string> Poll()
         {
-            if (this.sinceCheck.ElapsedMilliseconds < PollIntervalMs || !File.Exists(this.path))
+            if (this.sinceCheck.ElapsedMilliseconds < PollIntervalMs)
             {
                 return Array.Empty<string>();
             }
 
             this.sinceCheck.Restart();
+            if (!File.Exists(this.path))
+            {
+                return Array.Empty<string>();
+            }
+
             try
             {
                 var commands = File.ReadAllLines(this.path)

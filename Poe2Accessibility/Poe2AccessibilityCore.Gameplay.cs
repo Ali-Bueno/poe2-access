@@ -90,16 +90,7 @@ namespace Poe2Accessibility
                 this.Isolated("moves", playing, static (core, playing) => core.pickups?.TickMoves(playing, core.Settings.AnnounceMoves));
                 this.Isolated("gold", playing, static (core, playing) => core.gold?.Tick(core.focus?.LayerContainer ?? IntPtr.Zero, playing, core.Settings.AnnouncePickups));
                 this.Isolated("flasks", playing, static (core, playing) => core.flasks?.Tick(playing, core.Settings.AnnounceFlasks));
-                if (Seats.Partner is { } partner)
-                {
-                    // The partner's own pick-ups, hand, moves and flasks, named (its menus are read for whoever moves in them).
-                    var partnerPlaying = inWorld && IsAlive(partner);
-                    this.Isolated("partner pick-ups", partnerPlaying, static (core, playing) => core.partnerPickups?.Tick(playing && core.Settings.AnnouncePickups));
-                    this.Isolated("partner hand", static core => core.partnerPickups?.TickHand(core.Settings.AnnounceHand));
-                    this.Isolated("partner moves", partnerPlaying, static (core, playing) => core.partnerPickups?.TickMoves(playing, core.Settings.AnnounceMoves));
-                    this.Isolated("partner flasks", partnerPlaying, static (core, playing) => core.partnerFlasks?.Tick(playing, core.Settings.AnnounceFlasks));
-                }
-
+                this.Isolated("partner", inWorld, static (core, inWorld) => core.TickPartnerSounds(inWorld));
                 this.Isolated("barriers", static core => core.barriers?.Tick(core.Settings.AnnounceDiscoveries));
             }
 
@@ -170,7 +161,7 @@ namespace Poe2Accessibility
             this.bosses.AllMonsters = allMonsters;
             this.bosses.ParryCues = this.Settings.ParryCues;
             this.bosses.UnblockableCues = this.Settings.UnblockableCues;
-            this.bosses.CatalogDirectory = System.IO.Path.Join(this.DllDirectory, "catalog");
+            this.bosses.CatalogDirectory = this.catalogDirectory ??= System.IO.Path.Join(this.DllDirectory, "catalog");
             this.bosses.Tick(playing);
             foreach (var (part, trust) in this.bosses.FieldNews())
             {
@@ -186,9 +177,31 @@ namespace Poe2Accessibility
             }
         }
 
+        private string? catalogDirectory;
+
         /// <summary>The panel covering the game; none in local co-op, where it may be the other player's and this one's game goes on.</summary>
-        private ScreenLayer? PanelOverGame() =>
-            this.narrator == null || Seats.Other != null ? null : this.screen?.Current.PanelOver(this.narrator.HudLayer, this.narrator.TutorialLayer);
+        private ScreenLayer? PanelOverGame()
+        {
+            if (this.narrator == null || Seats.Other != null || this.screen == null)
+            {
+                return null;
+            }
+
+            // Asked several times a frame: the answer only changes with the snapshot (immutable) or the two layers it ignores.
+            var snapshot = this.screen.Current;
+            if (!ReferenceEquals(snapshot, this.panelSnapshot) || this.narrator.HudLayer != this.panelHud || this.narrator.TutorialLayer != this.panelTutorial)
+            {
+                (this.panelSnapshot, this.panelHud, this.panelTutorial) = (snapshot, this.narrator.HudLayer, this.narrator.TutorialLayer);
+                this.panelOver = snapshot.PanelOver(this.panelHud, this.panelTutorial);
+            }
+
+            return this.panelOver;
+        }
+
+        private ScreenSnapshot? panelSnapshot;
+        private IntPtr panelHud;
+        private IntPtr panelTutorial;
+        private ScreenLayer? panelOver;
 
         /// <summary>
         ///     Nothing covers the game: no focus and no panel. The focus alone is not enough: a panel can hold none (a
@@ -243,6 +256,24 @@ namespace Poe2Accessibility
             this.NoteTickCost(service, start);
         }
 
+        /// <summary>The same for a part that gives a value: <paramref name="fallback"/> when it throws.</summary>
+        private TResult Isolated<TState, TResult>(string service, TState state, Func<Poe2AccessibilityCore, TState, TResult> tick, TResult fallback)
+        {
+            var start = System.Diagnostics.Stopwatch.GetTimestamp();
+            var result = fallback;
+            try
+            {
+                result = tick(this, state);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                this.ReportTickFault(service, ex);
+            }
+
+            this.NoteTickCost(service, start);
+            return result;
+        }
+
         private void NoteTickCost(string service, long start)
         {
             var ticks = System.Diagnostics.Stopwatch.GetTimestamp() - start;
@@ -266,6 +297,21 @@ namespace Poe2Accessibility
 
         private static bool IsAlive(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity) =>
             entity.TryGetComponent<GameReader.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
+
+        /// <summary>The partner's own pick-ups, hand, moves and flasks, named (its menus are read for whoever moves in them).</summary>
+        private void TickPartnerSounds(bool inWorld)
+        {
+            if (Seats.Partner is not { } partner)
+            {
+                return;
+            }
+
+            var partnerPlaying = inWorld && IsAlive(partner);
+            this.Isolated("partner pick-ups", partnerPlaying, static (core, playing) => core.partnerPickups?.Tick(playing && core.Settings.AnnouncePickups));
+            this.Isolated("partner hand", static core => core.partnerPickups?.TickHand(core.Settings.AnnounceHand));
+            this.Isolated("partner moves", partnerPlaying, static (core, playing) => core.partnerPickups?.TickMoves(playing, core.Settings.AnnounceMoves));
+            this.Isolated("partner flasks", partnerPlaying, static (core, playing) => core.partnerFlasks?.Tick(playing, core.Settings.AnnounceFlasks));
+        }
 
         /// <summary>Per frame in the game: each read player's own news (life, mana, level, states).</summary>
         private void TickPlayerNews()
@@ -390,57 +436,33 @@ namespace Poe2Accessibility
             return sets.Count == 0 ? null : Announcements.Sentences(sets.Select(set => Announcements.SkillSet(set.Title, set.Bindings)));
         }
 
-        /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>
         /// <summary>The shop page is looked for this often while nothing has the focus (its search walks panels_parent).</summary>
         private const int ShopLookupMs = 250;
 
-        private long shopLookedUpAt = long.MinValue / 2;
-        private IntPtr shopPage;
+        private readonly ThrottledLookup<IntPtr> shopPage = new(ShopLookupMs);
+        private readonly ThrottledLookup<IntPtr> shopRoot = new(ShopLookupMs);
+        private readonly ThrottledLookup<IntPtr> worldScreen = new(ShopLookupMs);
+
+        /// <summary>The inventory panel of the HUD's layer container; zero when it is not found.</summary>
+        private IntPtr InventoryPanel() =>
+            this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero;
 
         /// <summary>The shop's page while it is shown (<see cref="UiSemantics.ShopPage"/>), looked up at most every ShopLookupMs.</summary>
-        private IntPtr ShopPage()
-        {
-            var now = Environment.TickCount64;
-            if (now - this.shopLookedUpAt >= ShopLookupMs)
-            {
-                this.shopLookedUpAt = now;
-                this.shopPage = this.semantics?.ShopPage(this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero) ?? IntPtr.Zero;
-            }
-
-            return this.shopPage;
-        }
+        private IntPtr ShopPage() =>
+            this.shopPage.Get(this, static core => core.semantics?.ShopPage(core.InventoryPanel()) ?? IntPtr.Zero, Environment.TickCount64);
 
         /// <summary>Where the shop's chosen card shows: its open item page, else the whole page; looked up as often as the page.</summary>
         private IntPtr ShopHighlightRoot()
         {
             var page = this.ShopPage();
-            if (page == IntPtr.Zero || Environment.TickCount64 - this.shopRootLookedUpAt < ShopLookupMs)
-            {
-                return page == IntPtr.Zero ? page : this.shopRoot;
-            }
-
-            this.shopRootLookedUpAt = Environment.TickCount64;
-            return this.shopRoot = this.semantics?.ShopHighlightRoot(page) ?? page;
+            return page == IntPtr.Zero
+                ? page
+                : this.shopRoot.Get((core: this, page), static args => args.core.semantics?.ShopHighlightRoot(args.page) ?? args.page, Environment.TickCount64);
         }
-
-        private long shopRootLookedUpAt = long.MinValue / 2;
-        private IntPtr shopRoot;
-
-        private long worldScreenLookedUpAt = long.MinValue / 2;
-        private IntPtr worldScreen;
 
         /// <summary>The world map while it is shown (<see cref="UiSemantics.WorldScreen"/>), looked up at most every ShopLookupMs.</summary>
-        private IntPtr WorldScreen()
-        {
-            var now = Environment.TickCount64;
-            if (now - this.worldScreenLookedUpAt >= ShopLookupMs)
-            {
-                this.worldScreenLookedUpAt = now;
-                this.worldScreen = this.semantics?.WorldScreen(this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero) ?? IntPtr.Zero;
-            }
-
-            return this.worldScreen;
-        }
+        private IntPtr WorldScreen() =>
+            this.worldScreen.Get(this, static core => core.semantics?.WorldScreen(core.InventoryPanel()) ?? IntPtr.Zero, Environment.TickCount64);
 
         /// <summary>How often the Atlas tree's root at the view's centre is looked for while nothing has the focus on the Atlas.</summary>
         private const int HoverlessLookupMs = 1000;
