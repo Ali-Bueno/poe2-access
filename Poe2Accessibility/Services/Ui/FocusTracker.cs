@@ -97,6 +97,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A grid's cursor is seen and waits to be said (its item's first tooltip filling, a cell empty on arrival): its line comes within moments.</summary>
         public bool ItemPending => this.pendingVisibility && this.lastFocused != IntPtr.Zero && (this.lastFocused == this.fillingTooltip || this.lastFocused == this.emptyOnArrival);
+        private const long SubscriberFailureLogMs = 10000;
+
+        private long subscriberFailureAt;
+
         private GameStateTypes lastState = GameStateTypes.GameNotLoaded;
 
         public FocusTracker(HostMemoryReader reader, UiElementReader elements, UiManagerLocator locator, UiSemantics semantics, PluginLog log)
@@ -312,7 +316,24 @@ namespace Poe2Accessibility.Services
             this.sinceValuePoll.Restart();
             this.log.Info($"Focus -> 0x{focused.ToInt64():X} panel={this.CurrentPanelIndex} name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" context=\"{node.Context}\" group=\"{node.Group}\" notes=\"{string.Join(". ", node.PanelNotes)}\"");
             this.NoteUnnamed(focused, node);
-            this.FocusChanged?.Invoke(node);
+            this.Raise(this.FocusChanged, node);
+        }
+
+        /// <summary>Runs the subscribers of an event; one that throws is logged (at most once per period) and does not stop the tick.</summary>
+        private void Raise(Action<AccessibleUiNode>? handlers, AccessibleUiNode node)
+        {
+            try
+            {
+                handlers?.Invoke(node);
+            }
+            catch (Exception ex)
+            {
+                if (Environment.TickCount64 >= this.subscriberFailureAt)
+                {
+                    this.subscriberFailureAt = Environment.TickCount64 + SubscriberFailureLogMs;
+                    this.log.Error("A focus event subscriber failed", ex);
+                }
+            }
         }
 
         /// <summary>A panel closed and opened again shows no layer change: the memos also go once nothing has had the focus for a moment.</summary>
