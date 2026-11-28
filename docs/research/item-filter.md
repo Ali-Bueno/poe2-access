@@ -2,7 +2,7 @@
 
 The loot filter a player picks in Options > Game > Item Filter (NeverSink's, the game's own, or any `.filter` file) decides
 for each item on the ground whether the game draws its label. Before 2026-11-28 the mod listed every ground item in the
-scanner, played its drop sound and named it on approach, hidden or not. The owner noticed a helmet with no pick-up prompt
+scanner, played its drop sound and named it on approach, hidden or not. A tester of the fork oasis1701/poe2-access noticed a helmet with no pick-up prompt
 that the mod still named. The game keeps the filter's verdict on the item's WorldItem component, and the mod now reads it
 there (`GameItemFilter`, setting `FollowGameItemFilter`, on by default).
 
@@ -48,7 +48,7 @@ once per area (`Ground item hidden by the game's item filter: <id> <base>`).
 
 ## Live check, 2026-11-28
 
-The owner played (Manor Ramparts, area level 14, controller, `always_highlight.gamepad=true`) while the agent sent dev
+The tester played (Manor Ramparts, area level 14, controller, `always_highlight.gamepad=true`) while the agent sent dev
 commands (`entities`, `dump`, `hex`) to the running mod. A Hunting Spear and a Rusted Greathelm, both normal, lay on the
 ground. NeverSink's semi-strict filter shows nearly all white gear in act 1 (rule 584 for pure armour bases), so both were
 shown. A one-line filter `Hide Class == "Helmets"` then hid the helmet.
@@ -70,7 +70,7 @@ The labels were the first road, and they work less well.
 
 - `world_ui_layer_parent` is at +0xB98 of the in-game layer container (`map_overlay` is at +0xB90 on this build), and
   its first child, the label owner (0x678 bytes, vtable 0x315E010), is at +0xBA0 (UI builder 0xF823A0, 0xF84452).
-- The owner holds a std::list at +0x3F0 of records {label element at +0x10, entity ids}, and a map from an entity id to
+- The label owner holds a std::list at +0x3F0 of records {label element at +0x10, entity ids}, and a map from an entity id to
   its label at +0x428 (MSVC unordered_map: list head +0x430, size +0x438, buckets +0x440, mask +0x458). The hidden
   helmet stayed in both. A vector of label groups at +0x2F0 holds only the labels drawn.
 - A label element names no entity; it is named "Metadata/MiscellaneousObjects/WorldItem" and carries the item's text.
@@ -85,6 +85,6 @@ these limits.
 ## Evidence
 
 `evidence/item-filter-2026-11-28/`: `worlditem-components.txt` (both components and items in both states, from the
-mod's log), `ground-labels.txt` (the labels and the owner through each state), `world-label-layer.txt` (the layer in
+mod's log), `ground-labels.txt` (the labels and the label owner element through each state), `world-label-layer.txt` (the layer in
 three dumps), `ground-items-20261128-005032.txt` (the three items in the entity list), `static-notes.txt` and
 `static-disasm.txt` (the exe study: every site above, disassembled).

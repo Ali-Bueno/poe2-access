@@ -6,9 +6,8 @@
 ## Identity
 - **Game:** Path of Exile 2, Steam (`PathOfExileSteam.exe`, app 2694490), proprietary GGG engine, DX12,
   no kernel anti-cheat (server-side detection). Install: `D:\games\steam\steamapps\common\Path of Exile 2`
-  (download started 2026-09-14, ~138 GB). Current patch 0.5.5f. On the machine of 2026-11-28 the game is at
-  `F:\Steam\steamapps\common\Path of Exile 2`, Steam build 26744644 (exe of 2026-11-23); `tools/exe_reader` then needs
-  `POE2_EXE` set to it.
+  (download started 2026-09-14, ~138 GB). Current patch 0.5.5f. Steam build 26744644 (exe of 2026-11-23) was installed on 2026-11-28; on a machine with the game elsewhere,
+  `tools/exe_reader` needs `POE2_EXE` set to its exe.
 - **Approach:** external, **read-only** memory reading, no input automation (see brief §3/§25 and `AGENTS.md`).
 - **Host:** the mod's own headless `Poe2Access.exe` (`host/Poe2Access`, one process with the launcher steps since 2026-11-08; [host](host/README.md)): the
   `GameReader` library (GameHelper2 v2.8.0's memory model, vendored and renamed) with the runtime layout searches and the
@@ -542,8 +541,8 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
-**2026-11-28, night (the owner: NeverSink's semi-strict filter on, "our mod still announces its name as I move over it"; branch
-`item-filter-labels`, all tests pass, not deployed: the owner was playing on the development host):** ground items the game's
+**2026-11-28, night (a tester of the fork oasis1701/poe2-access, NeverSink's semi-strict filter on: "our mod still announces its name as I move over it"; branch
+`item-filter`, all tests pass):** ground items the game's
 item filter hides are left out of the scanner, its sounds and its names ([item filter](docs/research/item-filter.md)). Next:
 deploy with the host stopped, then confirm a fresh hidden drop from the log line `Ground item hidden by the game's item filter`
 (at area level 14 semi-strict hides Transmutation Shards and plain white flasks without quality). The code catalog's three

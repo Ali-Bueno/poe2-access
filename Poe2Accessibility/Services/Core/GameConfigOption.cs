@@ -53,7 +53,8 @@ namespace Poe2Accessibility.Services
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    this.value = null; // the game may be writing it: looked at again later
+                    // The game may be writing it: the last value stands (dropping it would bring every hidden item back for a
+                    // moment, drop sounds and all), and the file is read again next time.
                     this.readStamp = DateTime.MinValue;
                 }
 
