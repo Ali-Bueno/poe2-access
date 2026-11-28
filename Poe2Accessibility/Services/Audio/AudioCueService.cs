@@ -324,6 +324,32 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        private bool MixedOut(Voice voice)
+        {
+            try
+            {
+                return voice.MixInto(this.mix);
+            }
+            catch (Exception ex)
+            {
+                this.log.Error("Audio cues: a voice threw while mixing and is dropped", ex);
+                return true;
+            }
+        }
+
+        private bool MixedOut(Bed bed)
+        {
+            try
+            {
+                return bed.MixInto(this.mix);
+            }
+            catch (Exception ex)
+            {
+                this.log.Error("Audio cues: a bed threw while mixing and is dropped", ex);
+                return true;
+            }
+        }
+
         private void Mix()
         {
             Array.Clear(this.mix);
@@ -331,7 +357,7 @@ namespace Poe2Accessibility.Services
             {
                 for (var v = this.voices.Count - 1; v >= 0; v--)
                 {
-                    if (this.voices[v].MixInto(this.mix))
+                    if (this.MixedOut(this.voices[v]))
                     {
                         this.voices.RemoveAt(v);
                     }
@@ -342,7 +368,7 @@ namespace Poe2Accessibility.Services
             {
                 for (var b = this.beds.Count - 1; b >= 0; b--)
                 {
-                    if (this.beds[b].MixInto(this.mix))
+                    if (this.MixedOut(this.beds[b]))
                     {
                         this.beds.RemoveAt(b);
                     }
