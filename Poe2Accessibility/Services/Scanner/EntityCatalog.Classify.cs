@@ -411,7 +411,6 @@ namespace Poe2Accessibility.Services
         /// <summary>What the object asks in sacred water, from its script's shared state; 0 without one.</summary>
         private static int CostOf(Entity entity) => ShrineCost.Of(StatesOf(entity));
 
-        /// <summary>The states of the object's script as they stand; none without a StateMachine.</summary>
         /// <summary>Whether the Trial of Chaos lift by this lever is on another floor (<see cref="ChaosTrial.LiftAway"/>); null with none near.</summary>
         private bool? LiftAwayFrom(Render lever)
         {
@@ -427,6 +426,7 @@ namespace Poe2Accessibility.Services
             return ChaosTrial.LiftAway(new Vector3(lever.WorldPosition.X, lever.WorldPosition.Y, lever.WorldPosition.Z), lifts);
         }
 
+        /// <summary>The states of the object's script as they stand; none without a StateMachine.</summary>
         private static IEnumerable<(string Name, long Value)> StatesOf(Entity entity) =>
             entity.TryGetComponent<StateMachine>(out var machine) ? machine.States.Select(state => (state.Name, state.Value)) : Array.Empty<(string, long)>();
 

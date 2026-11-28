@@ -538,17 +538,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The arrow's reach to a boss room known from the area's tiles, which has no icon row to read it from.</summary>
         private static float TileRoomReach(ScanEntry entry) => entry.Id >= ArenaIdBase ? MinimapMarks.MapBossPointerCells : MinimapMarks.CampaignBossPointerCells;
 
-        /// <summary>
-        ///     The entity carries a MinimapIcons.dat icon (GameHelper's MinimapIcon component) and the minimap draws it. A character
-        ///     out of town only within its icon's pointer reach (MinimapIcons +0x12, 250 cells for "NPC"): the client knows some quest
-        ///     characters map-wide from the arrival, the Water Goddess 2,000 cells off in the boss room of Santuarios enterrados, listed
-        ///     the moment the owner came in (2026-11-18, "haz eso solo para las ciudades… a menos que ahí el juego lo muestre").
-        /// </summary>
         /// <summary>Not on screen and on a piece of ground the player's does not join.</summary>
         private bool Unreachable(Render render, Render player) =>
             !ScreenProjection.InView(render.WorldPosition) &&
             this.OnGroundApart(new Vector2(render.GridPosition.X, render.GridPosition.Y), new Vector2(player.GridPosition.X, player.GridPosition.Y));
 
+        /// <summary>The entity carries a MinimapIcons.dat icon the minimap draws; out of town a character only within its icon's pointer reach.</summary>
         private bool DrawnOnMinimap(Entity entity, ScanEntry entry, Render render, Render player, bool town)
         {
             if (!entity.TryGetComponent<MinimapIcon>(out var icon) || string.IsNullOrEmpty(icon.IconName))
