@@ -252,9 +252,11 @@ namespace Poe2Accessibility.Services
             return next;
         }
 
-        /// <summary>Where one area's own pin lies on the map from another's ("down"), empty when either is not placed.</summary>
+        /// <summary>Where one area's own pin lies on the map from another's ("below it on the map"), empty when either is not placed.</summary>
         private string PinSide(IReadOnlyList<(UiElementReader.ElementInfo Pin, IntPtr Row, IntPtr Area)> pins, IntPtr from, IntPtr to) =>
-            this.PinCentre(pins, from) is { } here && this.PinCentre(pins, to) is { } there ? AtlasLinks.Side(here, there) : string.Empty;
+            this.PinCentre(pins, from) is { } here && this.PinCentre(pins, to) is { } there && Vector2.Distance(here, there) >= 1
+                ? Announcements.OnTheMapFrom(PassiveStick.Nearest(there - here))
+                : string.Empty;
 
         private Vector2? PinCentre(IReadOnlyList<(UiElementReader.ElementInfo Pin, IntPtr Row, IntPtr Area)> pins, IntPtr area)
         {

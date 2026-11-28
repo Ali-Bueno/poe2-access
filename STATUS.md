@@ -546,7 +546,7 @@ exclamation marks are on, with the nearest active waypoint, when it opens; the c
 quest of the list says where it is marked ([controls](docs/controls.md), [research](docs/research/quest-goals.md#the-world-maps-quest-marker-2026-11-27)).
 Read from the game's loaded rows (quest button > step > pins; area > connections), checked at each key, two columns
 followed by `dat-columns` by content. Heard live: "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint:
-The Manor Ramparts, next door, down"; on the pin "Quest location" after the popup, which names the quest itself; "The Mad
+The Manor Ramparts, one area away, below it on the map" (first "next door, down", heard as an order to go down once there); on the pin "Quest location" after the popup, which names the quest itself; "The Mad
 Wolf of Ogham, marked on Ogham Manor, button, 1 of 12"; no "Active, unavailable". Next: confirm the button's step key
 follows the step once the Manor is entered (orders 3 to 6 still pin G1_15). Open: the Quest category's
 `quest-goals` step judges its columns on two named Keth lines, so a v1.0 that rewords them keeps the 0.5 catalog

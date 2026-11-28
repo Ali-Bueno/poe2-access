@@ -84,8 +84,8 @@ namespace Poe2Accessibility.Tests
             new(new[] { "The Mad Wolf of Ogham" }, "Ogham Manor", state, IntPtr.Zero, waypoints, steps, side);
 
         private static void TheGlanceSaysQuestPlaceStateAndWaypoint() => Expect(
-            "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, next door, down",
-            Announcements.QuestMarkGlance(Manor(new[] { "The Manor Ramparts" }, 1, "down")),
+            "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, one area away, below it on the map",
+            Announcements.QuestMarkGlance(Manor(new[] { "The Manor Ramparts" }, 1, Announcements.OnTheMapFrom(6))),
             "the look at the map");
 
         private static void TheGlanceOfAPlaceWithItsWaypointEndsAtItsState() => Expect(
@@ -106,7 +106,7 @@ namespace Poe2Accessibility.Tests
 
         private static void TwoWaypointsAsNearGiveNoSide() => Expect(
             "Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts or Ogham Village, 2 areas away",
-            Announcements.QuestMarkGlance(Manor(new[] { "The Manor Ramparts", "Ogham Village" }, 2, "down")),
+            Announcements.QuestMarkGlance(Manor(new[] { "The Manor Ramparts", "Ogham Village" }, 2, Announcements.OnTheMapFrom(6))),
             "one side would point at one of the two only");
 
         private static void AQuestOfTheListSaysWhereItIsMarked() =>

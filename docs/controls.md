@@ -528,8 +528,8 @@ With two worn items (rings) each is named by its slot on the name row. The D-pad
 - Quest locations (both maps; setting "Quest locations on the world map and the nearest waypoint", Navigation, on by
   default): the exclamation mark the map draws over a quest's place is told the way a look at the map shows it. When
   a map opens, and each time it shows another act, after the place under the cursor: "Quest location: The Mad Wolf of
-  Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, next door, down" (the active waypoint fewest
-  exits away, and where it lies on the map from the mark), or "No active waypoint near it". A place whose own waypoint
+  Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, one area away, below it on the map" (the active
+  waypoint fewest exits away, and where its pin lies on the map from the mark's), or "No active waypoint near it". A place whose own waypoint
   is active ends at "Visited, waypoint active". The cursor on a marked place adds "Quest location" after its popup, which
   names the area's quests itself (the quest's name follows only when the popup did not say it). In the quest list (Square) a quest says where its mark is, after its name: "The Mad Wolf of Ogham, marked on
   Ogham Manor, button, 1 of 12, …". A quest the map does not mark (Grave Tidings, the rituals) says nothing more, as the

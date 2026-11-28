@@ -131,7 +131,8 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     What a look at the opened world map shows of a quest's mark: the quest, its place and state, and the nearest blue swirl
-        ///     ("Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, next door, down").
+        ///     ("Quest location: The Mad Wolf of Ogham, Ogham Manor, Not visited. Nearest waypoint: The Manor Ramparts, one area away,
+        ///     below it on the map").
         /// </summary>
         public static string QuestMarkGlance(Services.QuestMark mark)
         {
@@ -144,14 +145,31 @@ namespace Poe2Accessibility
             };
         }
 
-        /// <summary>The active waypoints fewest exits from a mark, how far, and where the one lies on the map from it.</summary>
+        /// <summary>
+        ///     The active waypoints fewest exits from a mark, how far, and where the one lies on the map from it ("…, one area away,
+        ///     below it on the map": "next door, down" was heard as an order to go down once there, 2026-11-28).
+        /// </summary>
         public static string NearestWaypoint(System.Collections.Generic.IReadOnlyList<string> waypoints, int steps, string side)
         {
             var names = string.Join(T(" or ", " o "), waypoints);
-            var far = steps == 1 ? T("next door", "al lado") : T($"{steps} areas away", $"a {steps} zonas");
+            var far = steps == 1 ? T("one area away", "a una zona") : T($"{steps} areas away", $"a {steps} zonas");
             var line = T($"Nearest waypoint: {names}, {far}", $"Transportador activo más cercano: {names}, {far}");
             return side.Length > 0 ? $"{line}, {side}" : line;
         }
+
+        /// <summary>Where a pin lies on the world map from the one just named, by <see cref="Services.StickDirection"/> octant ("below it on the map").</summary>
+        public static string OnTheMapFrom(int octant) => octant switch
+        {
+            0 => T("to the right of it on the map", "a su derecha en el mapa"),
+            1 => T("above and to the right of it on the map", "arriba a su derecha en el mapa"),
+            2 => T("above it on the map", "encima en el mapa"),
+            3 => T("above and to the left of it on the map", "arriba a su izquierda en el mapa"),
+            4 => T("to the left of it on the map", "a su izquierda en el mapa"),
+            5 => T("below and to the left of it on the map", "abajo a su izquierda en el mapa"),
+            6 => T("below it on the map", "debajo en el mapa"),
+            7 => T("below and to the right of it on the map", "abajo a su derecha en el mapa"),
+            _ => string.Empty,
+        };
 
         /// <summary>A quest of the map's list (Square), said by the places its mark is on, as the ring the game draws there.</summary>
         public static string QuestMarkedOn(System.Collections.Generic.IEnumerable<string> places)
