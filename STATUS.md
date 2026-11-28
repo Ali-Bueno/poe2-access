@@ -543,7 +543,7 @@
 
 ## Next step
 **2026-11-28, evening (the owner, on Ancestral Warrior Totem and the 1.0 squire: "la 1 puedes arreglarlo"; 1209 tests, 1733
-phrases; code only, not heard):** the Build Planner's gems take a meta gem's skills. The build files list Cast on Critical's
+phrases; code only, not heard; deployed to the play copy, pushed, released at the owner's word as v2026.11.28-3):** the Build Planner's gems take a meta gem's skills. The build files list Cast on Critical's
 Thunderstorm among its supports; the mod read only supports out of a gem's sockets, so the skill held there was "falta"
 and its own entry "Siguiente habilidad". Now every gem in the sockets counts, a held skill is owned with the meta's
 supports, and a meta's line says "Gemas de la build" ([a meta gem's skills](docs/research/ui-layers.md#a-meta-gems-skills)).
