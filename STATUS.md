@@ -534,7 +534,7 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
-**2026-11-27, late (issue #16, closed by its reporter):** what A uses is named "no disponible" when its minimap icon is in the
+**2026-11-27, late (issue #16, closed by its reporter; released at the owner's word as v2026.11.27-4):** what A uses is named "no disponible" when its minimap icon is in the
 spent form (`ScanEntry.Dimmed`), and every A press in the world logs what the game targets (`A pressed on:`, file, icon, states);
 the Goddess of Justice's key, door and reward from the game data are in `docs/research/minimap.md`. Locked-door refusals
 ("The Chapel Door is locked…") already come through `message_label`. Not yet heard live: what the statue's window reads.
