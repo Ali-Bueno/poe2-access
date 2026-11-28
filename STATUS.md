@@ -543,7 +543,8 @@
 
 ## Next step
 **2026-11-28, afternoon, later (the owner: "sí, quita la repetición. Luego haz comit, push y release"; 1208 tests, 1731
-phrases, deployed to the play copy, pushed, NOT released):** an Atlas landing says the node's name and biome once. The popup's reading
+phrases, deployed to the play copy, pushed, released at the owner's word as v2026.11.28-2, with the Map Device's loop
+below):** an Atlas landing says the node's name and biome once. The popup's reading
 says them first; `AtlasNarrator` then leaves out of its line what `ScreenNarrator.SaidSince` heard since the hop (title,
 biome line; `AtlasLandingWords`), so the line goes on with the state, contents and links. Live on kehgan (13:13): opening
 "Oasis. Bioma: Desierto. …" then "Completado. Conexiones: abajo a la izquierda, Gruta oculta"; hop "Gruta oculta. Bioma:
@@ -551,8 +552,8 @@ Hierba. …" then "Accesible. Conexiones…"; Drenaje's popup said no biome (Hie
 "Bloqueado. Bioma: Hierba. …". The log line keeps the whole line ("popup said the rest of: …").
 
 **2026-11-28, afternoon (the owner: "un sonido para el interactuable este que abre el mapa del atlas", C, then "que se lopee de
-forma que no se detecte el inicio y el fin": loop 3; 1207 tests, 1731 phrases, deployed to the play copy, pushed, not
-released):** the Map Device is a service of its own (`MinimapMarks.MapDeviceKind`, icon `MapDevice`), heard as a bed of its own
+forma que no se detecte el inicio y el fin": loop 3; 1207 tests, 1731 phrases, deployed to the play copy, pushed, released
+as v2026.11.28-2):** the Map Device is a service of its own (`MinimapMarks.MapDeviceKind`, icon `MapDevice`), heard as a bed of its own
 frozen mechanism ([notes](docs/research/game-audio.md#the-map-device-2026-11-28)). Live on kehgan in the Ziggurat: the bed
 heard from the waypoint, "Artefacto de mapas, A" at it, quiet behind the Atlas and back on closing. The play copy's exe is the
 released one: its data steps (game names 8, sounds 23) run with the next release; the loop was copied in place. Heard on
