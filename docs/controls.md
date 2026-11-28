@@ -369,9 +369,11 @@ right, outer ring, 3 links away. From here: …"). What a node costs in Atlas po
 popup says "Unallocated" where it stands.
 
 **The Atlas map** (landed node and orientation behind the setting "Atlas node landed on, with its state",
-Navigation, on by default): the stick or D-pad hops node to node. On landing, the map's own words (its flavour,
-objective and what blocks it) finish first; the node's name, state (Locked, Accessible or Completed), what it
-holds and its links queue behind them, then where it sits — as a tree node reads its details before its links.
+Navigation, on by default): the stick or D-pad hops node to node. On landing, the map's own words (its name, biome,
+flavour, objective and what blocks it) finish first; the node's state (Locked, Accessible or Completed), what it
+holds and its links queue behind them, then where it sits — as a tree node reads its details before its links. The
+name and biome are said once: the line behind adds them only when the map's words left them out (a biome the last
+node shared is not read again by the map, so the line says it).
 Hop on and the waiting words of the node left are dropped with it. On opening, where the last session left off is
 said with its distance, and the accessible frontier (the nearest accessible, not completed nodes in links, and
 how many there are); on each hop after that, where you came from and the nearest landmark to steer by. A node the

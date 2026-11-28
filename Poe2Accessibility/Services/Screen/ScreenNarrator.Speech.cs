@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Recently read texts are left out of a repeat within this time.</summary>
         private const int RecentTextsMs = 1500;
 
+        /// <summary>What was said is remembered this long, for <see cref="SaidSince"/>: an Atlas landing composes up to 1.6 s after its hop.</summary>
+        private const int KeptTextsMs = 4000;
+
         /// <summary>Said once the focus waiting for its new layer has been (the creation screen's name help).</summary>
         public void SayAfterFocus(string text) => this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, text });
 
@@ -44,11 +47,21 @@ namespace Poe2Accessibility.Services
             return parts.Count > 0 && this.narrated.Any(said => (now - said.At).TotalMilliseconds < RecentTextsMs && parts.All(said.Parts.Contains));
         }
 
-        /// <summary>Keeps what was just said for <see cref="JustNarrated"/>.</summary>
+        /// <summary>
+        ///     Whether one narration since <paramref name="since"/> carried every part of a text: an Atlas node's popup,
+        ///     read as it appears, says the node's title and biome line, which its landing line then leaves out.
+        /// </summary>
+        public bool SaidSince(string text, DateTime since)
+        {
+            var parts = Parts(text);
+            return parts.Count > 0 && this.narrated.Any(said => said.At >= since && parts.All(said.Parts.Contains));
+        }
+
+        /// <summary>Keeps what was just said for <see cref="JustNarrated"/> and <see cref="SaidSince"/>.</summary>
         private void NoteNarrated(string text)
         {
             var now = DateTime.UtcNow;
-            this.narrated.RemoveAll(said => (now - said.At).TotalMilliseconds >= RecentTextsMs);
+            this.narrated.RemoveAll(said => (now - said.At).TotalMilliseconds >= KeptTextsMs);
             this.narrated.Add((new HashSet<string>(Parts(text), StringComparer.Ordinal), now));
         }
 

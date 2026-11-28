@@ -561,6 +561,7 @@ namespace Poe2Accessibility
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log, () => this.Settings.AnnounceQuestMarks);
                 this.atlasNodes = new AtlasNarrator(this.semantics, this.output, this.log);
                 this.atlasNodes.CharacterName = () => this.semantics.CharacterName?.Invoke() ?? string.Empty;
+                this.atlasNodes.SaidSince = this.narrator.SaidSince;
                 this.atlasNodes.ResumeFile = Path.Join(this.DllDirectory, "config", "atlas-resume.txt");
                 this.atlasNodes.ProgressFile = Path.Join(this.DllDirectory, "config", "atlas-progress.txt");
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;

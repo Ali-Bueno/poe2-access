@@ -542,14 +542,22 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+**2026-11-28, afternoon, later (the owner: "sí, quita la repetición. Luego haz comit, push y release"; 1208 tests, 1731
+phrases, deployed to the play copy, pushed, NOT released):** an Atlas landing says the node's name and biome once. The popup's reading
+says them first; `AtlasNarrator` then leaves out of its line what `ScreenNarrator.SaidSince` heard since the hop (title,
+biome line; `AtlasLandingWords`), so the line goes on with the state, contents and links. Live on kehgan (13:13): opening
+"Oasis. Bioma: Desierto. …" then "Completado. Conexiones: abajo a la izquierda, Gruta oculta"; hop "Gruta oculta. Bioma:
+Hierba. …" then "Accesible. Conexiones…"; Drenaje's popup said no biome (Hierba, as the node before), and its line kept
+"Bloqueado. Bioma: Hierba. …". The log line keeps the whole line ("popup said the rest of: …").
+
 **2026-11-28, afternoon (the owner: "un sonido para el interactuable este que abre el mapa del atlas", C, then "que se lopee de
 forma que no se detecte el inicio y el fin": loop 3; 1207 tests, 1731 phrases, deployed to the play copy, pushed, not
 released):** the Map Device is a service of its own (`MinimapMarks.MapDeviceKind`, icon `MapDevice`), heard as a bed of its own
 frozen mechanism ([notes](docs/research/game-audio.md#the-map-device-2026-11-28)). Live on kehgan in the Ziggurat: the bed
 heard from the waypoint, "Artefacto de mapas, A" at it, quiet behind the Atlas and back on closing. The play copy's exe is the
 released one: its data steps (game names 8, sounds 23) run with the next release; the loop was copied in place. Heard on
-opening the Atlas, not changed (the navigator's since 2026-11-25): the node's popup "Oasis. Bioma: Desierto. …" and then the
-readout "Oasis. Completado. Bioma: Desierto. Conexiones…" say the name and biome twice.
+opening the Atlas (the navigator's since 2026-11-25): the node's popup "Oasis. Bioma: Desierto. …" and then the readout
+"Oasis. Completado. Bioma: Desierto. Conexiones…" said the name and biome twice; fixed in the entry above.
 
 **2026-11-28, morning (the owner, after listening to the unattended tests: an exit of Villafrey said "con misión" with no
 quest there, the hideout's decorative stones sounded as quests, and "nos han mandado pull requests. Míralas, mergéalas y si

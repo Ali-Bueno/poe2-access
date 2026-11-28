@@ -25,7 +25,31 @@ namespace Poe2Accessibility.Tests
             (nameof(AFreeCursorsPageIsStillRead), AFreeCursorsPageIsStillRead),
             (nameof(TheInventorysGoldIsSaidOnceAnOpening), TheInventorysGoldIsSaidOnceAnOpening),
             (nameof(TheTributeGoesBeforeEverythingInTheFavours), TheTributeGoesBeforeEverythingInTheFavours),
+            (nameof(AnAtlasPopupIsKnownSaidForItsLanding), AnAtlasPopupIsKnownSaidForItsLanding),
         };
+
+        /// <summary>The Atlas node's popup, read as it appears, is what its landing line leaves out (the owner, 2026-11-28).</summary>
+        private static void AnAtlasPopupIsKnownSaidForItsLanding()
+        {
+            Localization.Set("en", new());
+            using var output = new Recorder();
+            var narrator = new ScreenNarrator(output, Log(), _ => string.Empty);
+            narrator.Reset(true);
+            var hop = DateTime.UtcNow;
+            var popup = Layer(17, 0, false, Text(1, "Oasis"), Text(2, "Biome: Desert"), Text(3, "Hidden amidst the sun-bleached wastes."));
+            narrator.OnScreenChange(new ScreenChange(ScreenChangeKind.TextsAppeared, popup, popup.Texts), Snapshot(popup), null, IntPtr.Zero);
+            Equal("Oasis. Biome: Desert. Hidden amidst the sun-bleached wastes.", string.Join(" | ", output.Said), "the popup, read as it appears");
+            Equal(true, narrator.SaidSince("Oasis", hop) && narrator.SaidSince("Biome: Desert", hop), "its title and biome line were said this hop");
+            Equal(false, narrator.SaidSince("Oasis", DateTime.UtcNow.AddSeconds(1)), "not for a hop after it");
+            Equal(false, narrator.SaidSince("Biome: Forest", hop), "nor a biome it did not say");
+
+            var landing = new AtlasLandingWords("Oasis", "Accessible", "Biome: Desert", "Desert", string.Empty, "Links: down left, Hidden Grotto");
+            Equal("Accessible. Links: down left, Hidden Grotto", landing.Spoken(text => narrator.SaidSince(text, hop)), "the landing goes on with the state");
+            Equal("Oasis. Accessible. Biome: Desert. Links: down left, Hidden Grotto", landing.Text, "the whole line, with nothing heard");
+            Equal("Accessible. Biome: Desert. Links: down left, Hidden Grotto", landing.Spoken(text => text == "Oasis"),
+                "a biome line the last node shared never read as new: the landing says it");
+            Equal(string.Empty, AtlasLandingWords.None.Spoken(_ => false), "no node, nothing");
+        }
 
         private static void TheInventoryOpensWithItsCursorOnly()
         {

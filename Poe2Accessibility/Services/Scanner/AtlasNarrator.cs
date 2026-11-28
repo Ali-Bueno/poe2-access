@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A popup still unbuilt this long after landing is composed without (catalogue name and words).</summary>
         private const int GiveUpMs = 1600;
 
+        /// <summary>The screen is read before this narrator in a frame: a popup said in the frame its hop is seen still belongs to it.</summary>
+        private const int SameFrameMs = 100;
+
         private readonly UiSemantics semantics;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
@@ -57,6 +60,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The Atlas destination finder answers on the shoulder buttons and guides each landing.</summary>
         public bool FinderOn { get; set; } = true;
+
+        /// <summary>
+        ///     Whether the screen reading has said a text since a moment (<see cref="ScreenNarrator.SaidSince"/>): the
+        ///     node's popup title and biome line heard since the hop are left out of its landing line. Null says all.
+        /// </summary>
+        public Func<string, DateTime, bool>? SaidSince { get; set; }
 
         /// <summary>The character whose Atlas is open, for the resume file; set by the plugin.</summary>
         public Func<string>? CharacterName { get; set; }
@@ -255,12 +264,13 @@ namespace Poe2Accessibility.Services
             }
 
             this.nextLineAttempt = now.AddMilliseconds(150);
-            if (this.semantics.AtlasNodeLine(selected, allowPending: elapsed >= GiveUpMs) is not { } line)
+            if (this.semantics.AtlasNodeLine(selected, allowPending: elapsed >= GiveUpMs) is not { } landing)
             {
                 return;
             }
 
             this.settled = true;
+            var line = landing.Text;
             var guiding = this.FinderOn && this.destinations.Target.Length > 0;
             if (line.Length == 0 && !guiding)
             {
@@ -274,8 +284,17 @@ namespace Poe2Accessibility.Services
             this.opening = false;
             if (this.AnnounceNodes && line.Length > 0)
             {
-                this.log.Info($"Atlas node landed: {line}");
-                this.output.Speak(line);
+                // The popup said the node's title and biome line a moment ago, so the line goes on with the state:
+                // "Oasis. Biome: Desert. …" then "Oasis. Completed. Biome: Desert. Links…" said both twice (the owner,
+                // 2026-11-28). What the popup did not say this hop — a biome line the last node shared, so it never
+                // read as new — stays in the line.
+                var heardSince = this.since.AddMilliseconds(-SameFrameMs);
+                var spoken = this.SaidSince is { } saidSince ? landing.Spoken(text => saidSince(text, heardSince)) : line;
+                this.log.Info(spoken == line ? $"Atlas node landed: {line}" : $"Atlas node landed: {spoken} (popup said the rest of: {line})");
+                if (spoken.Length > 0)
+                {
+                    this.output.Speak(spoken);
+                }
             }
 
             this.Orient(selected, first);

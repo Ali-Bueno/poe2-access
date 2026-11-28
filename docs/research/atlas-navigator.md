@@ -88,6 +88,10 @@ compilation of the day's `Atlas node:`/`Atlas node landed:` log spans) closed th
 subtree only (a whole-screen walk read the quest panel's "The Grand Expedition" as a content on every landing),
 fog neighbours say "unrevealed" (revealed = drawn in the scan, not the visible flag, which also drops on drawn
 nodes), and state words matched across two walks. **Phase 1's live proof is done.**
+2026-11-28 (the owner: the name and biome were said twice, popup then landing): the landing line leaves out the popup's
+title and biome line when the screen reading said them since the hop (`ScreenNarrator.SaidSince`, `AtlasLandingWords`).
+The screen reading speaks only texts new to the layer, so a biome line the previous node shared is not read by it, and the
+landing keeps it (Drenaje after Gruta oculta, both Hierba, live the same day).
 One population stays partly mute: nodes with no EndgameMapAtlas key (Rockpools, Oasis, Slash — the census gap,
 1,035 canvas elements vs 610 catalog graph nodes). Grid, status, rolled area and popup words all read off the
 element, so they land named and stated, but no identity or connection list is on the element (record search and

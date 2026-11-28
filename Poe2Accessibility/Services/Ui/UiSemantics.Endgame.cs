@@ -208,13 +208,13 @@ namespace Poe2Accessibility.Services
         ///     The landed node's spoken line for <see cref="AtlasNarrator"/>: its name, its state from the status byte,
         ///     what it holds and its links — the popup's flavour and blocked words are the screen reading's, which
         ///     this line queues behind. Null while its popup is unbuilt (the name lives there for a random map) unless
-        ///     <paramref name="allowPending"/>; empty when the element is no endgame node at all.
+        ///     <paramref name="allowPending"/>; <see cref="AtlasLandingWords.None"/> when the element is no endgame node at all.
         /// </summary>
-        public string? AtlasNodeLine(IntPtr node, bool allowPending)
+        public AtlasLandingWords? AtlasNodeLine(IntPtr node, bool allowPending)
         {
             if (!this.elements.TryReadElement(node, out var info))
             {
-                return string.Empty;
+                return AtlasLandingWords.None;
             }
 
             // Some landed nodes hold no EndgameMapAtlas key (a Rockpools and an Oasis went silent, live 2026-11-25):
@@ -224,7 +224,7 @@ namespace Poe2Accessibility.Services
             var name = described?.Text ?? this.AtlasAreaName(node, language);
             if (name.Length == 0)
             {
-                return string.Empty;
+                return AtlasLandingWords.None;
             }
 
             // The map's popup is no part of the node's tooltip; it stands beside map_control and carries the rolled
@@ -236,14 +236,15 @@ namespace Poe2Accessibility.Services
             }
 
             var catalog = EndgameCatalog.Shared;
-            var biome = popup.Select(text => catalog.BiomeNameIn(text, language)).FirstOrDefault(found => found.Length > 0) ?? string.Empty;
+            var biomeLine = popup.FirstOrDefault(text => catalog.BiomeNameIn(text, language).Length > 0) ?? string.Empty;
+            var biome = biomeLine.Length > 0 ? catalog.BiomeNameIn(biomeLine, language) : string.Empty;
             var held = popup.SelectMany(text => catalog.ContentNamesIn(text, language)).Distinct(StringComparer.Ordinal).ToList();
             var state = AtlasNodeFields.Read(this.reader, node, AtlasNodeFields.Shift) is { } fields
                 ? Announcements.AtlasState(AtlasState.Of(fields.Status))
                 : string.Empty;
             var contents = held.Count > 0 ? Announcements.AtlasContents(held) : described == null ? string.Empty : FirstWith(described.Tooltip, Announcements.AtlasContents(Array.Empty<string>()));
             var links = described == null ? string.Empty : FirstWith(described.Tooltip, Announcements.PassiveLinks(Array.Empty<string>()));
-            return Announcements.AtlasLanding(name, state, biome, contents, links);
+            return new AtlasLandingWords(name, state, biomeLine, biome, contents, links);
 
             static string FirstWith(IReadOnlyList<string>? lines, string prefix) =>
                 lines?.FirstOrDefault(line => line.StartsWith(prefix, StringComparison.Ordinal)) ?? string.Empty;

@@ -269,6 +269,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Player\EndgameCatalog.cs" Link="Plugin\EndgameCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\AtlasLinks.cs" Link="Plugin\AtlasLinks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasState.cs" Link="Plugin\AtlasState.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasLandingWords.cs" Link="Plugin\AtlasLandingWords.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasProgress.cs" Link="Plugin\AtlasProgress.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasGraph.cs" Link="Plugin\AtlasGraph.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AtlasDestinationFinder.cs" Link="Plugin\AtlasDestinationFinder.cs" />
