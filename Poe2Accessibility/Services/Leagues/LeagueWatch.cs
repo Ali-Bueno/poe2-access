@@ -41,6 +41,8 @@ namespace Poe2Accessibility.Services
         private readonly List<bool> findsCovered = new();
         private readonly List<(uint Id, ExpeditionFind Find, Vector2 Place, bool Reached, bool WouldReach)> finds = new();
         private readonly List<Vector2> chargePlaces = new();
+        private readonly Dictionary<uint, LeagueRule?> rules = new();
+        private readonly Dictionary<uint, (List<(string Name, long Value)> States, string Icon)> lastSeen = new();
         private long lastPoll;
         private bool placing;
         private bool detonated;
@@ -83,6 +85,8 @@ namespace Poe2Accessibility.Services
             this.placement.Reset();
             this.guide.Reset();
             this.tracker.Reset();
+            this.rules.Clear();
+            this.lastSeen.Clear();
             ExpeditionReach.PublishDetonated(false);
             (this.placing, this.fogLogged, this.detonated) = (false, FogNotLogged, false);
         }
@@ -117,22 +121,31 @@ namespace Poe2Accessibility.Services
                     this.Monster(entity, path);
                 }
 
-                if ((LeaguePieces.RuleOf(path) ?? (EssenceWatch.IsCrystal(entity) ? LeaguePieces.EssenceCrystalRule : null)) is not { } rule)
+                if ((this.RuleOf(entity.Id, path) ?? (EssenceWatch.IsCrystal(entity) ? LeaguePieces.EssenceCrystalRule : null)) is not { } rule)
                 {
                     continue;
                 }
 
                 var states = TransitionState.With(this.memory, entity);
                 var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
-                if (rule.Piece == LeaguePiece.ExpeditionMarker)
+                var model = rule.Piece == LeaguePiece.ExpeditionMarker ? EntityCatalog.ModelOf(entity) : null;
+                if (model != null)
                 {
-                    var model = EntityCatalog.ModelOf(entity);
                     icon = LeaguePieces.MarkerIcon(icon, model);
-                    this.LogOnce(path, new List<(string Name, long Value)> { ("model " + model, 0) }, icon, null, null);
                 }
 
-                this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null,
-                    rule.Piece == LeaguePiece.RitualAltar ? this.Sacrifice(entity) : null);
+                // A zone's radius and a sacrifice change without the states: those pieces are always looked at.
+                if (this.Changed(entity.Id, states, icon) || rule.Piece is LeaguePiece.BreachInitiator or LeaguePiece.RitualAltar)
+                {
+                    if (model != null)
+                    {
+                        this.LogOnce(path, new List<(string Name, long Value)> { ("model " + model, 0) }, icon, null, null);
+                    }
+
+                    this.LogOnce(path, states, icon, rule.Piece == LeaguePiece.BreachInitiator ? this.ZoneRadius(entity) : null,
+                        rule.Piece == LeaguePiece.RitualAltar ? this.Sacrifice(entity) : null);
+                }
+
                 var place = entity.TryGetComponent<Render>(out var render) ? new Vector2(render.GridPosition.X, render.GridPosition.Y) : (Vector2?)null;
 
                 if (rule.Piece == LeaguePiece.PlacementIndicator)
@@ -413,6 +426,35 @@ namespace Poe2Accessibility.Services
             entity.TryGetComponent<Render>(out var render)
                 ? this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty
                 : string.Empty;
+
+        /// <summary>The rule of an entity's path, asked once per entity while its path reads.</summary>
+        private LeagueRule? RuleOf(uint id, string path)
+        {
+            if (this.rules.TryGetValue(id, out var cached))
+            {
+                return cached;
+            }
+
+            var rule = LeaguePieces.RuleOf(path);
+            if (path.Length > 0)
+            {
+                this.rules[id] = rule;
+            }
+
+            return rule;
+        }
+
+        /// <summary>Whether the entity's states or icon differ from the last poll's; remembers them.</summary>
+        private bool Changed(uint id, List<(string Name, long Value)> states, string icon)
+        {
+            if (this.lastSeen.TryGetValue(id, out var before) && before.Icon == icon && before.States.SequenceEqual(states))
+            {
+                return false;
+            }
+
+            this.lastSeen[id] = (states, icon);
+            return true;
+        }
 
         /// <summary>Each followed object's states (and icon) as they first read, and as they change: how the rules are confirmed from a session's log.</summary>
         private void LogOnce(string path, List<(string Name, long Value)> states, string icon, int? zoneRadius, string? sacrifice)
