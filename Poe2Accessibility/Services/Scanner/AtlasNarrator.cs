@@ -37,6 +37,9 @@ namespace Poe2Accessibility.Services
         private bool settled;
         private DateTime nextLineAttempt;
         private bool opening = true;
+
+        /// <summary>The opening found no character name: the changes since last time are worked out at the first landing that has one.</summary>
+        private bool progressPending;
         private IReadOnlyList<AtlasScanEntry>? scan;
         private AtlasScanEntry? opened;
         private AtlasScanEntry? previous;
@@ -239,6 +242,9 @@ namespace Poe2Accessibility.Services
             this.Orient(selected, first);
         }
 
+        private AtlasProgressChange? UpdateProgress(string character, IReadOnlyList<AtlasScanEntry> scan) =>
+            this.progress.Update(character, scan.Select(entry => (entry.GridX, entry.GridY, entry.State, entry.Name)), NamedChanges);
+
         /// <summary>Where this landing sits: on opening the last session and the frontier; per hop the way back and an anchor or the guide.</summary>
         private void Orient(IntPtr selected, bool first)
         {
@@ -257,7 +263,8 @@ namespace Poe2Accessibility.Services
             {
                 this.opened = here;
                 var character = this.CharacterName?.Invoke() ?? string.Empty;
-                var change = character.Length > 0 ? this.progress.Update(character, scan.Select(entry => (entry.GridX, entry.GridY, entry.State, entry.Name)), NamedChanges) : null;
+                var change = character.Length > 0 ? this.UpdateProgress(character, scan) : null;
+                this.progressPending = character.Length == 0;
                 if (this.AnnounceNodes)
                 {
                     if (change is { IsEmpty: false })
@@ -272,6 +279,15 @@ namespace Poe2Accessibility.Services
             else if (this.AnnounceNodes && this.previous is { Name.Length: > 0 } came && came.Element != here.Element)
             {
                 extras.Add(Announcements.AtlasCameFrom(came.Name));
+            }
+
+            if (!first && this.progressPending && this.CharacterName?.Invoke() is { Length: > 0 } known)
+            {
+                this.progressPending = false;
+                if (this.UpdateProgress(known, scan) is { IsEmpty: false } late && this.AnnounceNodes)
+                {
+                    extras.Add(Announcements.AtlasSinceLastTime(late));
+                }
             }
 
             var guide = this.Guidance(scan, here);

@@ -120,6 +120,31 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public ScanEntry? QuestExit() => this.questExit;
 
+        /// <summary>How many entity paths whose classification failed are logged (one line each).</summary>
+        private const int MaxLoggedFaults = 32;
+
+        private readonly HashSet<string> faultedPaths = new(StringComparer.Ordinal);
+
+        private bool TryClassify(Entity entity, Render render, out ScanEntry? entry)
+        {
+            try
+            {
+                entry = this.Classify(entity, render);
+                return true;
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                entry = null;
+                var path = entity.Path ?? string.Empty;
+                if (this.faultedPaths.Count < MaxLoggedFaults && this.faultedPaths.Add(path))
+                {
+                    this.log.Warn($"Scanner: could not classify {path}: {ex.Message}");
+                }
+
+                return false;
+            }
+        }
+
         private List<ScanEntry> List(AreaInstance area, Render player, long now, ListingScratch scratch)
         {
             this.bossWays.Clear();
@@ -144,7 +169,12 @@ namespace Poe2Accessibility.Services
                     this.Fields!.Sample(entity, render);
                 }
 
-                if (this.Classify(entity, render) is not { } entry)
+                if (!this.TryClassify(entity, render, out var classified))
+                {
+                    continue; // one unreadable entity does not take the listing down
+                }
+
+                if (classified is not { } entry)
                 {
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
                     this.doors.Forget(entity.Id); // opened: the game takes its target away
@@ -508,17 +538,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The arrow's reach to a boss room known from the area's tiles, which has no icon row to read it from.</summary>
         private static float TileRoomReach(ScanEntry entry) => entry.Id >= ArenaIdBase ? MinimapMarks.MapBossPointerCells : MinimapMarks.CampaignBossPointerCells;
 
-        /// <summary>
-        ///     The entity carries a MinimapIcons.dat icon (GameHelper's MinimapIcon component) and the minimap draws it. A character
-        ///     out of town only within its icon's pointer reach (MinimapIcons +0x12, 250 cells for "NPC"): the client knows some quest
-        ///     characters map-wide from the arrival, the Water Goddess 2,000 cells off in the boss room of Santuarios enterrados, listed
-        ///     the moment the owner came in (2026-11-18, "haz eso solo para las ciudades… a menos que ahí el juego lo muestre").
-        /// </summary>
         /// <summary>Not on screen and on a piece of ground the player's does not join.</summary>
         private bool Unreachable(Render render, Render player) =>
             !ScreenProjection.InView(render.WorldPosition) &&
             this.OnGroundApart(new Vector2(render.GridPosition.X, render.GridPosition.Y), new Vector2(player.GridPosition.X, player.GridPosition.Y));
 
+        /// <summary>The entity carries a MinimapIcons.dat icon the minimap draws; out of town a character only within its icon's pointer reach.</summary>
         private bool DrawnOnMinimap(Entity entity, ScanEntry entry, Render render, Render player, bool town)
         {
             if (!entity.TryGetComponent<MinimapIcon>(out var icon) || string.IsNullOrEmpty(icon.IconName))

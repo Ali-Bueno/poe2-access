@@ -134,6 +134,18 @@ namespace Poe2Accessibility.Tests
             Equal("Long Staff, rare", GroundTooltip.Name(new[] { "Fierce Long Staff of Impact", "Long Staff" }, null, Array.Empty<GroundTooltip.Item>(), Remembered), "a picked-up item's late tooltip, by its base line");
             Equal(string.Empty, GroundTooltip.Name(new[] { "Gold" }, null, new[] { gold, gold }, Remembered), "gold says nothing, however many piles");
             Equal(null, GroundTooltip.Name(new[] { "New checkpoint" }, three, new[] { three }, Remembered), "a text that is no item's");
+
+            // Two rares of one base, as the classifier remembers them (each by its own title, then by its base line).
+            var doomBite = new GroundTooltip.Item("Doom Bite", "Vaal Axe", "Doom Bite, rare");
+            var runeSlicer = new GroundTooltip.Item("Rune Slicer", "Vaal Axe", "Rune Slicer, rare");
+            foreach (var item in new[] { doomBite, runeSlicer })
+            {
+                GroundTooltip.Remember(remembered, item.Title, item.Spoken);
+                GroundTooltip.Remember(remembered, item.BaseName, item.Spoken);
+            }
+
+            Equal("Vaal Axe", GroundTooltip.Name(new[] { "Vaal Axe" }, null, Array.Empty<GroundTooltip.Item>(), Remembered), "two rares of one base: the base, not the first one's name");
+            Equal("Doom Bite, rare", GroundTooltip.Name(new[] { "Doom Bite", "Vaal Axe" }, null, Array.Empty<GroundTooltip.Item>(), Remembered), "a late tooltip with its own title keeps its name");
         }
 
         /// <summary>The guide's target stops being listed 300 units away: a chest was opened, a boss only hid.</summary>

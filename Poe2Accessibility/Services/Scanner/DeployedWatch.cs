@@ -2,7 +2,6 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
     using GameReader;
     using GameReader.RemoteObjects.Components;
@@ -17,6 +16,9 @@ namespace Poe2Accessibility.Services
     {
         private const int PollMs = 100;
 
+        /// <summary>Path verdicts kept; a full cache starts over (an area holds a few hundred distinct paths).</summary>
+        private const int MaxCachedPaths = 2048;
+
         private readonly AudioCueService audio;
         private readonly PluginLog log;
         private readonly float[] ping = CueSynth.Deployed(AudioCueService.SampleRate);
@@ -24,6 +26,9 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<uint> moving = new();
         private readonly Dictionary<uint, long> lastPlayed = new();
         private readonly HashSet<string> loggedPaths = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, bool> placedPaths = new(StringComparer.Ordinal);
+        private readonly HashSet<uint> seen = new();
+        private readonly List<uint> gone = new();
         private long lastPoll;
         private long lastAnyPlayed;
         private int mostStanding;
@@ -60,10 +65,11 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            var seen = new HashSet<uint>();
+            var seen = this.seen;
+            seen.Clear();
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
-                if (!entity.IsValid || !DeployedObjects.IsPlaced(entity.Path) || !entity.TryGetComponent<Render>(out var render))
+                if (!entity.IsValid || !this.IsPlaced(entity.Path) || !entity.TryGetComponent<Render>(out var render))
                 {
                     continue;
                 }
@@ -108,12 +114,36 @@ namespace Poe2Accessibility.Services
                 this.log.Info($"Placed by skills, standing at once: {seen.Count}");
             }
 
-            foreach (var gone in this.placed.Keys.Where(id => !seen.Contains(id)).ToList())
+            this.gone.Clear();
+            foreach (var id in this.placed.Keys)
             {
-                this.placed.Remove(gone);
-                this.moving.Remove(gone);
-                this.lastPlayed.Remove(gone);
+                if (!seen.Contains(id))
+                {
+                    this.gone.Add(id);
+                }
             }
+
+            foreach (var id in this.gone)
+            {
+                this.placed.Remove(id);
+                this.moving.Remove(id);
+                this.lastPlayed.Remove(id);
+            }
+        }
+
+        private bool IsPlaced(string path)
+        {
+            if (this.placedPaths.TryGetValue(path, out var known))
+            {
+                return known;
+            }
+
+            if (this.placedPaths.Count >= MaxCachedPaths)
+            {
+                this.placedPaths.Clear();
+            }
+
+            return this.placedPaths[path] = DeployedObjects.IsPlaced(path);
         }
     }
 }

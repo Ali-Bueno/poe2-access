@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Services
 
         private (string Area, byte[] Grid, long At, System.Threading.Tasks.Task<WalkableRegions> Work)? regionsWork;
         private (string Area, WalkableRegions Regions)? regionsReady;
+        private System.Threading.Tasks.Task? regionsFaultLogged;
 
         /// <summary>Whether something stands on ground the player's ground does not join (<see cref="WalkableRegions"/>); false while not known yet.</summary>
         private bool OnGroundApart(Vector2 thing, Vector2 playerCell) => this.Regions()?.Apart(thing, playerCell) == true;
@@ -44,6 +45,11 @@ namespace Poe2Accessibility.Services
             if (this.regionsWork is { } work && work.Work.IsCompletedSuccessfully)
             {
                 this.regionsReady = (work.Area, work.Work.Result);
+            }
+            else if (this.regionsWork is { } failed && failed.Work.IsFaulted && !ReferenceEquals(this.regionsFaultLogged, failed.Work))
+            {
+                this.regionsFaultLogged = failed.Work;
+                this.log.Warn($"Walkable regions not worked out: {failed.Work.Exception?.GetBaseException().Message}");
             }
 
             if (this.regionsWork is not { } current ||

@@ -49,7 +49,7 @@ namespace Poe2Accessibility.Services
         private readonly float[] sound;
         private readonly List<Trail> trails = new();
         private string instance = string.Empty;
-        private Vector2 lastPlace;
+        private Vector2? lastPlace;
         private bool moving;
         private long lastPoll;
         private long lastSound;
@@ -73,6 +73,8 @@ namespace Poe2Accessibility.Services
         {
             this.trails.Clear();
             this.instance = areaInstance;
+            this.lastPlace = null;
+            this.lastPoll = 0;
         }
 
         /// <summary>A trail of the area, not met yet.</summary>
@@ -111,7 +113,7 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-            this.moving = Vector2.Distance(here, this.lastPlace) >= MovedCells;
+            this.moving = this.lastPlace is { } before && Vector2.Distance(here, before) >= MovedCells;
             this.lastPlace = here;
             foreach (var trail in this.trails)
             {
